@@ -1,0 +1,19 @@
+
+
+***********************************************************************
+Fatal NI connect error 12170.
+
+  VERSION INFORMATION:
+	TNS for MacOS X Server: Version 10.2.0.4.0 - Production
+	TCP/IP NT Protocol Adapter for MacOS X Server: Version 10.2.0.4.0 - Production
+  Time: 19-OCT-2012 13:08:05
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12535
+    TNS-12535: Message 12535 not found; No message file for product=network, facility=TNS
+    ns secondary err code: 12560
+    nt main err code: 505
+    TNS-00505: Message 505 not found; No message file for product=network, facility=TNS
+    nt secondary err code: 60
+    nt OS err code: 0
+  Client address: (ADDRESS=(PROTOCOL=tcp)(HOST=171.65.77.128)(PORT=1521))

@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<h2>Welcome</h2>
+
+{% if current_user.is_authenticated() %}
+<p>You are authorized to access <a href="{{ url_for('reference') }}">The Literature Review Page</a>.
+{% else %}
+<p>This Web site contains curation information available only to authorized users.
+Available usernames are Dianna, Maria, and Selina.
+{% endif %}
+{% endblock body %}
