@@ -6,8 +6,9 @@ Created on Nov 7, 2012
 These classes are populated using SQLAlchemy to connect to the BUD schema on Fasolt. These are the classes representing tables in the
 Reference module of the database schema.
 '''
-from lit_review.parser import MedlineJournal
+from lit_review.parse import MedlineJournal
 from model_old_schema import Base
+from model_old_schema.admin import RefCuration
 from model_old_schema.config import SCHEMA
 from model_old_schema.feature import Feature
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -58,7 +59,11 @@ class Reference(Base):
     refTypeNames = association_proxy('refTypes', 'name')
     
     litGuides = relationship("LitGuide")
-    litGuideTopics = association_proxy('litGuides', 'topic')
+    litGuideTopics = association_proxy('litGuides', 'topic',
+                                    creator=lambda topic: LitGuide(topic=topic, reference_id = id))
+    
+    curations = relationship(RefCuration)
+
     
     def __init__(self, status, citation, year, pubmed_id, source='PubMed script', pdf_status='N', page=None, volume=None, title=None, issue=None, journal=None, doi=None, book=None):
         self.status = status
@@ -224,8 +229,17 @@ class LitGuide(Base):
     reference_id = Column('reference_no', Integer, ForeignKey("bud.reference.reference_no"))
     topic = Column('literature_topic', String)
     created_by = Column('created_by', String)
+    
+    #Relationships
+    features = relationship("Feature", secondary= Table('litguide_feat', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
+
+    
+    def __init__(self, topic, reference_id):
+        self.topic = topic
+        self.reference_id = reference_id
+        self.created_by = model_old_schema.current_user
 
     def __repr__(self):
         data = self.topic, self.reference_id
-        return 'LitGuide(topic=%s, reference_id=%s)' % data  
-
+        return 'LitGuide(topic=%s, reference_id=%s)' % data   
+    

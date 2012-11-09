@@ -8,6 +8,7 @@ by Matthew Frazier, MIT) for handling the login sessions and everything.
 from config import SECRET_KEY, HOST, PORT
 from flask import Flask, request, render_template, redirect, url_for, flash
 from flask_login import login_required, fresh_login_required
+from lit_review.parse import ParseParameters
 from lit_review_login import LoginResult, LogoutResult, \
     confirm_login_lit_review_user, logout_lit_review_user, login_lit_review_user, \
     setup_app
@@ -43,20 +44,19 @@ def discard_ref(pmid):
 @app.route("/reference/link/<pmid>/<parameters>")
 @fresh_login_required
 def link_ref(pmid, parameters):
-    reflink = ReferenceLink(pmid, current_user.name.upper(), parameters)
-    bad_names = reflink.invalid_names()
-    if len(bad_names) > 0:
-        return "Not found Gene name(s): " + ', '.join(bad_names)
-
-    err = 0
-                            
-    try:
-        message = reflink.insert_and_associate()
-        db.session.commit() #@UndefinedVariable
-    except:
-        db.session.rollback() #@UndefinedVariable
-        err = 1
-        raise
+    parsedParams = ParseParameters(parameters)
+    gene_names = parsedParams.get_genes()
+    name_to_feature = conn.validateGenes(gene_names)
+    
+    #If we don't get back as many features as we have gene names, find the bad ones and show them to the user.
+    if len(name_to_feature) < len(gene_names):
+        bad_gene_names = list(gene_names)
+        for name in name_to_feature.keys():
+            bad_gene_names.remove(name)
+        return "Not found Gene name(s): " + ', '.join(bad_gene_names)
+    
+    ref = conn.moveRefTempToReference(pmid)
+    conn.associate(ref, name_to_feature, parsedParams.get_tasks())
 
     if err == 1:
         return "An error occurred when linking the reference for pmid = " + pmid + " to the info you picked/entered: " + parameters

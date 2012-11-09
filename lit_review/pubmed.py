@@ -22,10 +22,10 @@ class Pubmed():
     
     def __get_pub_type(self):
         if self.record.has_key('PT'):
-            type = self.record['PT'][0]
-            if (type == 'JOURNAL ARTICLE'):
-                type = 'Journal Article'  ## need a conf for the mapping
-            return type
+            pubtype = self.record['PT'][0]
+            if (pubtype == 'JOURNAL ARTICLE'):
+                pubtype = 'Journal Article'  ## need a conf for the mapping
+            return pubtype
         return ''
 
     def __get_publish_status(self):
