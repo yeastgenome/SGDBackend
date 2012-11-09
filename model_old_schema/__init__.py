@@ -3,3 +3,4 @@ from sqlalchemy.schema import MetaData
 
 Base = declarative_base()
 metadata = Base.metadata
+current_user = None

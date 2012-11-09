@@ -26,21 +26,6 @@ class Alias(Base):
         data = self.name
         return 'Alias(name=%s)' % data
     
-class Annotation(Base):
-    __tablename__ = 'feat_annotation'
-    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'), primary_key=True)
-    qualifier = Column('qualifier', String)
-    attribute = Column('feat_attribute', String)
-    description = Column('description', String)
-    headline = Column('headline', String)
-    name_description = Column('name_description', String)
-    genetic_position = Column('genetic_position', String)
-    
-    def __repr__(self):
-        data = self.headline, self.qualifier
-        return 'Annotation(headline=%s, qualifier=%s)' % data
-    
 class Feature(Base):
     __tablename__ = 'feature'
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
@@ -66,4 +51,19 @@ class Feature(Base):
     def __repr__(self):
         data = self.dbxref_id, self.name, self.type, self.status, self.gene_name
         return 'Feature(dbxref_id=%s, name=%s, type=%s, status=%s, gene_name=%s)' % data    
+    
+class Annotation(Base):
+    __tablename__ = 'feat_annotation'
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'), primary_key=True)
+    qualifier = Column('qualifier', String)
+    attribute = Column('feat_attribute', String)
+    description = Column('description', String)
+    headline = Column('headline', String)
+    name_description = Column('name_description', String)
+    genetic_position = Column('genetic_position', String)
+    
+    def __repr__(self):
+        data = self.headline, self.qualifier
+        return 'Annotation(headline=%s, qualifier=%s)' % data
 

@@ -3,13 +3,11 @@ from Bio import Medline
 
 class FetchMedline():
 
-    def __init__(self, pmids):
-        
-         Entrez.email = 'sgd-programmers@genome.stanford.edu'
-
-         ## pmids is a list (array of pmid)
-         handle = Entrez.efetch(db='pubmed', id=pmids, rettype='medline', retmode='text')
-         self.records = Medline.parse(handle)
+    def __init__(self, pmid):
+        Entrez.email = 'sgd-programmers@genome.stanford.edu'
+        ## pmids is a list (array of pmid)
+        handle = Entrez.efetch(db='pubmed', id=pmid, rettype='medline', retmode='text')
+        self.records = Medline.parse(handle)
 
     def get_records(self):
         return self.records

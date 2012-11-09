@@ -9,10 +9,10 @@ var link_ref_url = ref_url + "link/";
  */ 
 function discard_paper(pmid) {
 
-	var url = delete_ref_url + pmid;
+	var url = delete_ref_url + pmid.toString();
 	// alert(url);
 	$.get(url, function(data) {
-		$("#" + pmid).empty().append("<font color=red>" + data + "</font>");
+		$("#" + pmid.toString()).empty().append("<font color=red>" + data + "</font>");
 	});
 
 }
