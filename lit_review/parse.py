@@ -8,36 +8,33 @@ class ParseParameters():
 
     def __init__(self, parameter):
 
-        unique_name = []
-        found_name = {}
-        task_list = []
+        self.all_gene_names = set()
+        self.tasks = []
         
         task_dict = eval(parameter)
+        print task_dict.keys
         
         for task in sorted(task_dict.keys()):
-
             (genes, comment) = task_dict[task]
-            
-            names = []
 
+            gene_names = None
             if genes:
-                gene_list = genes.split()
-                for name in gene_list:
-                    names.append(name)
-                    if not found_name.has_key(name):
-                        found_name[name] = 1
-                        unique_name.append(name)
+                gene_names = genes.split()
+                self.all_gene_names.update(gene_names)
                         
-            task_list.append([task, names, comment])
-
-        self.tasks = task_list
-        self.genes = unique_name
+            self.tasks.append(Task(task, gene_names, comment))
 
     def get_tasks(self):
         return self.tasks
 
-    def get_genes(self):
-        return self.genes
+    def get_all_gene_names(self):
+        return self.all_gene_names
+
+class Task():
+    def __init(self, task, names, comment):
+        self.task = task
+        self.names = names
+        self.comment = comment
     
     # medline_journal
 

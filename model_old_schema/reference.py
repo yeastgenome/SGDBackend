@@ -65,20 +65,10 @@ class Reference(Base):
     curations = relationship(RefCuration)
 
     
-    def __init__(self, status, citation, year, pubmed_id, source='PubMed script', pdf_status='N', page=None, volume=None, title=None, issue=None, journal=None, doi=None, book=None):
-        self.status = status
-        self.citation = citation
-        self.year = year
+    def __init__(self, pubmed_id):
         self.pubmed_id = pubmed_id
-        self.source = source
-        self.pdf_status = pdf_status
-        self.page = page
-        self.volume = volume
-        self.title = title
-        self.issue = issue
-        self.journal = journal
-        self.doi = doi
-        self.book = book
+        self.pdf_status='N'
+        self.source='PubMed script'
         self.created_by = model_old_schema.current_user
 
     def __repr__(self):

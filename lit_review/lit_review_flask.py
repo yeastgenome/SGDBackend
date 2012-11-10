@@ -45,7 +45,7 @@ def discard_ref(pmid):
 @fresh_login_required
 def link_ref(pmid, parameters):
     parsedParams = ParseParameters(parameters)
-    gene_names = parsedParams.get_genes()
+    gene_names = parsedParams.get_all_gene_names()
     name_to_feature = conn.validateGenes(gene_names)
     
     #If we don't get back as many features as we have gene names, find the bad ones and show them to the user.

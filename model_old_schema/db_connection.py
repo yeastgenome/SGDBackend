@@ -168,56 +168,46 @@ class DBConnection(object):
 
             #Check if reference already exists.
             from model_old_schema.reference import Reference, Journal, Author, RefType
-            ref = session.query(Reference).filter_by(pubmed_id=pubmed_id).first()
-            if ref:
-                return ref
-            else:
-                #Get medline record from ncbi
-                medline = FetchMedline(pubmed_id)
-                records = medline.get_records()
-                for rec in records:
-                    record = rec
-                pubmed = Pubmed(record)
+            ref = get_or_create(session, Reference, pubmed_id=pubmed_id)
+            
+            #Get medline record from ncbi
+            medline = FetchMedline(pubmed_id)
+            records = medline.get_records()
+            for rec in records:
+                record = rec
+            pubmed = Pubmed(record)
+            
+            #Set basic information for the reference.
+            ref.status = pubmed.publish_status
+            ref.citation = pubmed.citation
+            ref.year = pubmed.year
+            ref.pdf_status = pubmed.pdf_status
+            ref.pages = pubmed.pages
+            ref.volume = pubmed.volume
+            ref.title = pubmed.title
+            ref.issue = pubmed.issue
                 
-                #Create the reference.
-                ref = Reference(pubmed.publish_status, pubmed.citation, pubmed.year, pubmed_id,
-                             'PubMed script', pubmed.pdf_status, pubmed.pages, pubmed.volume,
-                             pubmed.title, pubmed.issue)
+            #Add the journal.
+            ref.journal = get_or_create(session, Journal, abbreviation=pubmed.journal_abbrev)
                 
-                #Add the journal.
-                journal_abbrev = pubmed.journal_abbrev
-                journal = session.query(Journal).filter_by(abbreviation=journal_abbrev).first()
-                if not journal:
-                    journal = Journal(journal_abbrev)
-                ref.journal = journal
-                
-                #Add the abstract.
-                abstract_txt = pubmed.abstract_txt
-                if abstract_txt != '':
-                    ref.abstract = abstract_txt
+            #Add the abstract.
+            abstract_txt = pubmed.abstract_txt
+            if abstract_txt != '':
+                ref.abstract = abstract_txt
                     
-                #Add the authors.
-                order = 0
-                for author_name in pubmed.authors:
-                    order += 1
-                    author = session.query(Author).filter_by(name=author_name).first()
-                    if author:
-                        ref.authors[order] = author
-                    else:
-                        ref.authorNames[order] = author_name
+            #Add the authors.
+            order = 0
+            for author_name in pubmed.authors:
+                order += 1
+                ref.authors[order] = get_or_create(session, Author, name=author_name)
                     
-                #Add the ref_type
-                refTypeName = pubmed.pub_type
-                refType = session.query(RefType).filter_by(name=refTypeName).first()
-                if refType:
-                    ref.refTypes.append(refType)
-                else:
-                    ref.refTypeNames.append(refTypeName)
+            #Add the ref_type
+            ref.refType = get_or_create(session, RefType, name=pubmed.pub_type)
                                 
-                #Add the new ref to the session.
-                session.add(ref)
-                session.commit()        
-                return ref
+            #Add the new ref to the session.
+            session.add(ref)
+            session.commit()        
+            return ref
             
         except Exception:
             traceback.print_exc(file=sys.stdout)
@@ -238,16 +228,8 @@ class DBConnection(object):
             topic_added = {}
             task_added = {}
         
-
-            if len(tasks) == 0:
-                return None
-
-            for task_entry in tasks:
-                task = task_entry[0]    
-                genes = task_entry[1]
-                comment = task_entry[2]
-            
-                if len(genes) > 0:
+            for task in tasks:
+                if len(task.genes) > 0:
                     feature_list = []
             
                     topic = ''
@@ -335,12 +317,12 @@ class DBConnection(object):
                         if topic_added.has_key(topic):
                             if comment:
                                 message += ", comment = '" + comment + "'"
-                                message += "<br>"
-                                continue
-                            else:    
-                                reference.litReviewTopics.append(topic)
-                                lit_guide = reference.litReviewTopics.last()
-                                topic_added[topic] = lit_guide
+                            message += "<br>"
+                            continue
+                        else:    
+                            reference.litReviewTopics.append(topic)
+                            lit_guide = reference.litReviewTopics.last()
+                            topic_added[topic] = lit_guide
                             message += ", literature_topic = '" + topic
 
                     if comment:
@@ -360,7 +342,15 @@ class DBConnection(object):
         from model_old_schema.reference import Reference
         session = self.SessionFactory()
         return session.query(Reference).filter_by(id = reference_id).first()
-     
+
+def get_or_create(session, model, **kwargs):
+        instance = session.query(model).filter_by(**kwargs).first()
+        if instance:
+            return instance
+        else:
+            instance = model(**kwargs)
+        return instance
+    
 if __name__ == '__main__':
     conn = DBConnection()
     conn.connect(DBUSER, DBPASS)
