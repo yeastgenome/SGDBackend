@@ -56,14 +56,18 @@ def link_ref(pmid, parameters):
         return "Not found Gene name(s): " + ', '.join(bad_gene_names)
     
     ref = conn.moveRefTempToReference(pmid)
-    conn.associate(ref, name_to_feature, parsedParams.get_tasks())
-
-    if err == 1:
-        return "An error occurred when linking the reference for pmid = " + pmid + " to the info you picked/entered: " + parameters
-    if message == None:
+    
+    if len(parsedParams.get_tasks()) > 0:
+        result = conn.associate(ref, name_to_feature, parsedParams.get_tasks())
+        
+        if result:
+            return "Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + parameters
+        else:
+            return "An error occurred when linking the reference for pmid = " + pmid + " to the info you picked/entered: " + parameters
+        
+    else:
         return "Reference for pmid = " + pmid + " has been added into the database."
-    return "Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + message
-    "return link_ref()"
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

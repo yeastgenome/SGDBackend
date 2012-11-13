@@ -6,6 +6,7 @@ Created on Oct 18, 2012
 This class is used to perform queries and operations on the corresponding database. In this case, the BUD schema on fasolt.
 
 '''
+from lit_review.parse import TaskType
 from lit_review.pubmed import FetchMedline, Pubmed
 from model_old_schema import Base
 from model_old_schema.config import DBTYPE, DBHOST, DBNAME, DBUSER, DBPASS
@@ -222,115 +223,51 @@ class DBConnection(object):
         """
         try:
             from model_old_schema.admin import RefCuration
+            from model_old_schema.reference import LitGuide
             session = self.SessionFactory()
-            
-            message = ''
-            topic_added = {}
-            task_added = {}
-        
-            for task in tasks:
-                if len(task.genes) > 0:
-                    feature_list = []
-            
-                    topic = ''
-                    if 'Add to' in task:
-                        topic = 'Additional Literature'
-                    elif 'Review' in task:
-                        topic = task
-                    else:
-                        topic = 'Primary Literature'
-            
-                    if 'Review' in task or 'Add to' in task:
-                        task = 'Gene Link'
-
-                        message += "Curation_task = '" + task
-                        message += "', literature_topic = '" + topic + "'"
-                        message += ", gene = "
-                 
-                    for name in genes:
-                        feature = name_to_feature[name.upper()]
-                        feature_id = feature.id
-                        feature_list.append(feature)
                         
-                        ## Create RefCuration objects and add them to the Reference.
-                        if not task_added.has_key((feature_id, task)):
-                            curation = reference.curation.filter_by(task=task, feature_id=feature_id)
-                            if not curation:
-                                curation = RefCuration(task, feature_id, comment)
-                                reference.curation.append(curation)
-                                task_added[(feature_id, task)] = 1
-                            message += name + '|'
-
-                    if comment:
-                        message += ", comment = '" + comment + "'"
-                    
-                    message += "<br>"
-            
-                    ## insert into lit_guide + litguide_feat
-            
-                    if topic_added.has_key(topic):
-                        lit_guide = topic_added[topic]
-                    else:
-                        reference.litReviewTopics.append(topic)
-                        lit_guide = reference.litReviewTopics.last()
-                        topic_added[topic] = lit_guide
-            
-                    feature_ids_added = set()
-                    for feature in feature_list:
-                        feature_id = feature.id
-                        if feature_id in feature_ids_added:
-                            continue
-                        feature_ids_added.add(feature_id)
-                        lit_guide.features.append(feature)
+            for task in tasks:
+                
+                #Convert gene_names to features using the name_to_feature table.                
+                features = set()
+                for gene_name in task.gene_names:
+                    features.add(name_to_feature[gene_name])
+                
+                if len(features) > 0:
+                    ## Create RefCuration objects and add them to the Reference.
+                    for feature in features:
+                        curation = get_or_create(session, RefCuration, reference_id = reference.id, task = task.name, feature_id = feature.id)
+                        curation.comment = task.comment
+                        reference.curation.append(curation)
+                            
+                    ## Create a LitGuide object and attach features to it.
+                    lit_guide = get_or_create(session, LitGuide, topic=task.topic, reference_id=reference.id)
+                    for feature in features:
+                        if not feature.id in lit_guide.feature_ids:
+                            lit_guide.features.append(feature)
                     
                 else:   ## no gene name provided
 
                     ## if no gene name provided and "Add to database" was checked,
                     ## no need to add any association
-                    if 'Add' in task:
+                    if task.type == TaskType.ADD_TO_DATABASE:
                         continue
 
                     ## if it is a review, no need to add to ref_curation
-                    if 'Review' in task:
+                    if task.type == TaskType.REVIEWS:
                         ## topic = task = 'Reviews'
-                        reference.litReviewTopics.append(topic)
-                        message += "Literature_topic = '" + task + "'<br>"
-                        continue
+                        reference.litGuideTopics.append(task.topic)
 
-                    if not task_added.has_key((0, task)):
-                        curation = RefCuration(task, None, comment)
-                        reference.curation.append(curation)
-                        task_added[(0, task)] = 1
-                
-                        message += "Curation_task = '" + task + "'"
+                    curation = get_or_create(session, RefCuration, reference_id = reference.id, task=task.name, feature_id=None)
+                    curation.comment = task.comment
+                    
             
-                    ## insert into lit_guide 
-                    if 'HTP' in task or 'Review' in task:
-
-                        topic = ''
-                        if 'HTP' in task:
-                            topic = 'Omics'
-                        else:
-                            # 'Review' in task:
-                            topic = task
-                    
-                        if topic_added.has_key(topic):
-                            if comment:
-                                message += ", comment = '" + comment + "'"
-                            message += "<br>"
-                            continue
-                        else:    
-                            reference.litReviewTopics.append(topic)
-                            lit_guide = reference.litReviewTopics.last()
-                            topic_added[topic] = lit_guide
-                            message += ", literature_topic = '" + topic
-
-                    if comment:
-                        message += ", comment = '" + comment + "'"
-                    
-                    message += "<br>"
+                    ## Create a LitGuide object.
+                    if task.type == TaskType.HTP_PHENOTYPE_DATA or task.type == TaskType.REVIEWS:
+                        lit_guide = get_or_create(session, LitGuide, topic=task.topic, reference_id=reference.id)
                 
                 session.commit()
+                return True
         except Exception:
             traceback.print_exc(file=sys.stdout)
             session.rollback()
@@ -342,6 +279,11 @@ class DBConnection(object):
         from model_old_schema.reference import Reference
         session = self.SessionFactory()
         return session.query(Reference).filter_by(id = reference_id).first()
+    
+    def getReferenceByPmid(self, pmid):
+        from model_old_schema.reference import Reference
+        session = self.SessionFactory()
+        return session.query(Reference).filter_by(pubmed_id = pmid).first()
 
 def get_or_create(session, model, **kwargs):
         instance = session.query(model).filter_by(**kwargs).first()
@@ -359,8 +301,8 @@ if __name__ == '__main__':
     #print r
     #result = conn.createReference(r)
     #print result
-    r = conn.getReferenceByID(64810)
+    r = conn.getReferenceByPmid(22888114)
     print r
-    print r.curations
+    print r.journal
     
     

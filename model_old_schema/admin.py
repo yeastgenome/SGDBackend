@@ -19,10 +19,10 @@ class RefCuration(Base):
     comment = Column('curator_comment', String)
     created_by = Column('created_by', String)
 
-    def __init__(self, task, feature_id, comment):
+    def __init__(self, task, feature_id, reference_id):
         self.task = task
         self.feature_id = feature_id
-        self.comment = comment
+        self.reference_id = reference_id
         self.created_by = current_user
 
     def __repr__(self):

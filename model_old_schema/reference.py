@@ -222,7 +222,7 @@ class LitGuide(Base):
     
     #Relationships
     features = relationship("Feature", secondary= Table('litguide_feat', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
-
+    feature_ids = association_proxy('features', 'id')
     
     def __init__(self, topic, reference_id):
         self.topic = topic
