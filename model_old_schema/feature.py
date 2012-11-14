@@ -21,7 +21,7 @@ class Alias(Base):
     id = Column('alias_no', Integer, primary_key = True)
     name = Column('alias_name', String)
     type = Column('alias_type', String)
-
+    
     def __repr__(self):
         data = self.name
         return 'Alias(name=%s)' % data
@@ -49,8 +49,8 @@ class Feature(Base):
                            Table('feat_alias', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
     
     def __repr__(self):
-        data = self.dbxref_id, self.name, self.type, self.status, self.gene_name
-        return 'Feature(dbxref_id=%s, name=%s, type=%s, status=%s, gene_name=%s)' % data    
+        data = self.name, self.gene_name
+        return 'Feature(name=%s, gene_name=%s)' % data    
     
 class Annotation(Base):
     __tablename__ = 'feat_annotation'

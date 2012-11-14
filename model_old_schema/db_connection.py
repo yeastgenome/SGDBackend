@@ -12,7 +12,6 @@ from model_old_schema import Base
 from model_old_schema.config import DBTYPE, DBHOST, DBNAME, DBUSER, DBPASS
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
-from sqlalchemy.sql.expression import or_
 import model_old_schema
 import sys
 import traceback
@@ -38,7 +37,7 @@ class DBConnection(object):
         model_old_schema.current_user = username
         return
     
-    def isConnected(self):
+    def is_connected(self):
         """
         Checks if a connection to the db has been made.
         """
@@ -49,22 +48,25 @@ class DBConnection(object):
             traceback.print_exc(file=sys.stdout)
             return False
     
-    def getFeatureByName(self, name):
+    def get_feature_by_name(self, name):
         """
         Get a feature by its name.
         """
         try:
             from model_old_schema.feature import Feature
             session = self.SessionFactory()
-            return session.query(Feature).filter(or_(Feature.name == name.upper()), Feature.gene_name == name.upper()).first();
+            f = session.query(Feature).filter(Feature.name == name.upper()).first()
+            if f:
+                return f
+            return session.query(Feature).filter(Feature.gene_name == name.upper()).first();
         except:
             traceback.print_exc(file=sys.stdout)
         finally:
             session.close()
     
-    def getRefTempByPmid(self, pubmed_id):
+    def get_reftemp_by_pmid(self, pubmed_id):
         """
-        Get a feature by its pubmed_id.
+        Get a reftemp by its pubmed_id.
         """
         try:
             from model_old_schema.reference import RefTemp
@@ -75,8 +77,40 @@ class DBConnection(object):
             traceback.print_exc(file=sys.stdout)
         finally:
             session.close()
+            
+    def get_refbad_by_pmid(self, pubmed_id):
+        """
+        Get a refbad by its pubmed_id.
+        """
+        try:
+            from model_old_schema.reference import RefBad
+            session = self.SessionFactory()
+            pubmed_id_as_int = int(float(pubmed_id))
+            return session.query(RefBad).filter_by(pubmed_id=pubmed_id_as_int).first();
+        except:
+            traceback.print_exc(file=sys.stdout)
+        finally:
+            session.close()
+            
+    def get_ref_by_pmid(self, pubmed_id, session_a=None):
+        """
+        Get a reference by its pubmed_id.
+        """
+        try:
+            from model_old_schema.reference import Reference
+            if session_a is None:
+                session = self.SessionFactory()
+            else:
+                session = session_a
+            pubmed_id_as_int = int(float(pubmed_id))
+            return session.query(Reference).filter_by(pubmed_id=pubmed_id_as_int).first();
+        except:
+            traceback.print_exc(file=sys.stdout)
+        finally:
+            if session_a is None:
+                session.close()
     
-    def getRefTemps(self):
+    def get_reftemps(self):
         """
         Get all RefTemps.
         """
@@ -89,17 +123,17 @@ class DBConnection(object):
         finally:
             session.close()
     
-    def moveRefTempToRefBad(self, pubmed_id):
+    def move_reftemp_to_refbad(self, pubmed_id):
         """"
         Remove reference from the RefTemp table and add it to the RefBad table.
         """
         try:       
             from model_old_schema.reference import RefBad
             session = self.SessionFactory()
-            r_temp = self.getRefTempByPmid(pubmed_id)
-            r_bad = RefBad(r_temp.pubmed_id)
-            session.add(r_bad)
-            session.delete(r_temp)
+            reftemp = self.get_reftemp_by_pmid(pubmed_id)
+            refbad = RefBad(pubmed_id)
+            session.add(refbad)
+            session.delete(reftemp)
             session.commit()
             return True
         except:
@@ -109,74 +143,127 @@ class DBConnection(object):
         finally:
             session.close()
             
-    def moveRefTempToReference(self, pubmed_id):
+    def move_refbad_to_reftemp(self, pubmed_id):
+        """"
+        Remove reference from the RefBad table and add it to the RefTemp table.
+        """
+        try:       
+            from model_old_schema.reference import RefTemp
+            session = self.SessionFactory()
+            
+            refbad = self.get_refbad_by_pmid(pubmed_id)
+            pubmed = self.get_medline_data(pubmed_id)
+            reftemp = RefTemp(pubmed_id, pubmed.citation, None, pubmed.abstract_txt)
+            
+            session.add(reftemp)
+            session.delete(refbad)
+            session.commit()
+            return True
+        except:
+            session.rollback()
+            traceback.print_exc(file=sys.stdout)
+            return False
+        finally:
+            session.close()
+            
+    def move_reftemp_to_ref(self, pubmed_id):
         """
         Remove reference from the RefTemp table, create a full Reference, and add it to the Reference table.
         """
         try:       
             session = self.SessionFactory()
-            r_temp = self.getRefTempByPmid(pubmed_id)
-            r = self.createReference(r_temp)
+            reftemp = self.get_reftemp_by_pmid(pubmed_id)
+            ref = self.create_reference(pubmed_id)
             
-            session.add(r)
-            session.delete(r_temp)
+            session.add(ref)
+            session.delete(reftemp)
+            session.commit()
+            return True
+        except:
+            return False
+            session.rollback()
+            traceback.print_exc(file=sys.stdout)
+        finally:
+            session.close()
+            
+    def move_ref_to_reftemp(self, pubmed_id):
+        """
+        Remove reference from the Reference table and add it to the RefTemp table.
+        """
+        try:  
+            from model_old_schema.reference import RefTemp     
+            session = self.SessionFactory()
+            ref = self.get_ref_by_pmid(pubmed_id)
+            reftemp = RefTemp(pubmed_id, ref.citation, None, ref.abstract)
+            
+            session.add(reftemp)
+            session.delete(ref)
             session.commit()
             return True
         except:
             session.rollback()
             traceback.print_exc(file=sys.stdout)
-            return False
         finally:
             session.close()
             
-    def validateGenes(self, gene_names):
+    def validate_genes(self, gene_names):
         """
         Convert a list of gene_names to a mapping between those gene_names and features.
         """
         try:
             from model_old_schema.feature import Feature
             session = self.SessionFactory()
-            upper_gene_names = [x.upper() for x in gene_names]
-            fs = session.query(Feature).filter(or_(Feature.name.in_(upper_gene_names), Feature.gene_name.in_(upper_gene_names))).all()
             
-            name_to_feature = {}
-            for f in fs:
-                name_to_feature[f.name] = f
-                name_to_feature[f.gene_name] = f
+            if gene_names is not None and len(gene_names) > 0:
+                upper_gene_names = [x.upper() for x in gene_names]
+                fs = set(session.query(Feature).filter(Feature.name.in_(upper_gene_names)).all())
+                fs.update(session.query(Feature).filter(Feature.gene_name.in_(upper_gene_names)).all())
             
-            extraneous_names = name_to_feature.keys()
-            for name in upper_gene_names:
-                extraneous_names.remove(name.upper())
+                name_to_feature = {}
+                for f in fs:
+                    name_to_feature[f.name] = f
+                    name_to_feature[f.gene_name] = f
             
-            for name in extraneous_names:
-                del name_to_feature[name]
+                extraneous_names = name_to_feature.keys()
+                for name in upper_gene_names:
+                    extraneous_names.remove(name.upper())
+                
+                for name in extraneous_names:
+                    del name_to_feature[name]
              
-            return name_to_feature
+                return name_to_feature
+            else:
+                return {}
         except:
+            return False
+            session.rollback()
             traceback.print_exc(file=sys.stdout)
         finally:
             session.close()
             
-    def createReference(self, ref_temp):
+    def get_medline_data(self, pubmed_id):
         """
-        Create a Reference from a RefTemp. First grab information on the Reference from NCBI using FetchMedline().
+        Grab information on this pubmed_id from ncbi using FetchMedline()
+        """
+        medline = FetchMedline(pubmed_id)
+        records = medline.get_records()
+        for rec in records:
+            record = rec
+        return Pubmed(record)
+            
+    def create_reference(self, pubmed_id):
+        """
+        Create a Reference from a RefTemp. First grab information on the Reference from NCBI.
         Then create the reference with its associated object: Journal, Abstract, Author, RefType.
         """
-        try:
-            pubmed_id = ref_temp.pubmed_id
-            
+        try:            
             session = self.SessionFactory()
 
             #Check if reference already exists.
             from model_old_schema.reference import Reference, Journal, Author, RefType
             ref = get_or_create(session, Reference, pubmed_id=pubmed_id)
             
-            #Get medline record from ncbi
-            medline = FetchMedline(pubmed_id)
-            records = medline.get_records()
-            for rec in records:
-                record = rec
-            pubmed = Pubmed(record)
+            pubmed = self.get_medline_data(pubmed_id)
             
             #Set basic information for the reference.
             ref.status = pubmed.publish_status
@@ -192,9 +279,7 @@ class DBConnection(object):
             ref.journal = get_or_create(session, Journal, abbreviation=pubmed.journal_abbrev)
                 
             #Add the abstract.
-            abstract_txt = pubmed.abstract_txt
-            if abstract_txt != '':
-                ref.abstract = abstract_txt
+            ref.abstract = pubmed.abstract_txt
                     
             #Add the authors.
             order = 0
@@ -213,11 +298,10 @@ class DBConnection(object):
         except Exception:
             traceback.print_exc(file=sys.stdout)
             session.rollback()
-            return False
         finally:
             session.close()
             
-    def associate(self, reference, name_to_feature, tasks):
+    def associate(self, pubmed_id, name_to_feature, tasks):
         """
         Associate a Reference with LitGuide entries.
         """
@@ -226,25 +310,31 @@ class DBConnection(object):
             from model_old_schema.reference import LitGuide
             session = self.SessionFactory()
                         
+            reference = self.get_ref_by_pmid(pubmed_id, session)
+            
             for task in tasks:
                 
-                #Convert gene_names to features using the name_to_feature table.                
-                features = set()
-                for gene_name in task.gene_names:
-                    features.add(name_to_feature[gene_name])
                 
-                if len(features) > 0:
+                gene_names = task.gene_names
+                if gene_names is not None and len(gene_names) > 0:
+                    #Convert gene_names to features using the name_to_feature table.                
+                    features = set()
+                    for gene_name in task.gene_names:
+                        features.add(name_to_feature[gene_name])
+                    
                     ## Create RefCuration objects and add them to the Reference.
                     for feature in features:
                         curation = get_or_create(session, RefCuration, reference_id = reference.id, task = task.name, feature_id = feature.id)
                         curation.comment = task.comment
-                        reference.curation.append(curation)
+                        reference.curations.append(curation)
                             
                     ## Create a LitGuide object and attach features to it.
-                    lit_guide = get_or_create(session, LitGuide, topic=task.topic, reference_id=reference.id)
+                    lit_guide = get_or_create(session, LitGuide, topic=task.topic)
                     for feature in features:
                         if not feature.id in lit_guide.feature_ids:
                             lit_guide.features.append(feature)
+                    reference.litGuides.append(lit_guide)
+
                     
                 else:   ## no gene name provided
 
@@ -258,32 +348,53 @@ class DBConnection(object):
                         ## topic = task = 'Reviews'
                         reference.litGuideTopics.append(task.topic)
 
-                    curation = get_or_create(session, RefCuration, reference_id = reference.id, task=task.name, feature_id=None)
+                    curation = get_or_create(session, RefCuration, task=task.name, reference_id = reference.id, feature_id=None)
                     curation.comment = task.comment
-                    
+                    reference.curations.append(curation)
             
                     ## Create a LitGuide object.
                     if task.type == TaskType.HTP_PHENOTYPE_DATA or task.type == TaskType.REVIEWS:
                         lit_guide = get_or_create(session, LitGuide, topic=task.topic, reference_id=reference.id)
-                
-                session.commit()
-                return True
+                        reference.litGuides.append(lit_guide)
+            session.commit()
+            return True
         except Exception:
             traceback.print_exc(file=sys.stdout)
             session.rollback()
             return False
         finally:
             session.close()
-    
-    def getReferenceByID(self, reference_id):
-        from model_old_schema.reference import Reference
-        session = self.SessionFactory()
-        return session.query(Reference).filter_by(id = reference_id).first()
-    
-    def getReferenceByPmid(self, pmid):
-        from model_old_schema.reference import Reference
-        session = self.SessionFactory()
-        return session.query(Reference).filter_by(pubmed_id = pmid).first()
+            
+    def get_curations_for_ref(self, pubmed_id):
+        """
+        Get curations for the reference with this pubmed_id
+        """
+        try:  
+            session = self.SessionFactory()
+            ref = self.get_ref_by_pmid(pubmed_id, session)
+            curations = ref.curations
+            return curations
+        except:
+            session.rollback()
+            traceback.print_exc(file=sys.stdout)
+        finally:
+            session.close()
+            
+    def get_lit_guides_for_ref(self, pubmed_id):
+        """
+        Get lit review topics for the reference with this pubmed_id
+        """
+        try:  
+            session = self.SessionFactory()
+            ref = self.get_ref_by_pmid(pubmed_id, session)
+            litGuidess = ref.litGuides
+            return litGuidess
+        except:
+            session.rollback()
+            traceback.print_exc(file=sys.stdout)
+        finally:
+            session.close()
+
 
 def get_or_create(session, model, **kwargs):
         instance = session.query(model).filter_by(**kwargs).first()
@@ -301,8 +412,9 @@ if __name__ == '__main__':
     #print r
     #result = conn.createReference(r)
     #print result
-    r = conn.getReferenceByPmid(22888114)
-    print r
-    print r.journal
+    #r = conn.getRefTempByPmid(23079598)
+    #result = conn.moveRefTempToReference(23079598)
+    #print result
+    result = conn.get_reftemps()
     
     

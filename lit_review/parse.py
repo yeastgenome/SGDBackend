@@ -16,7 +16,7 @@ class ParseParameters():
         for task in sorted(task_dict.keys()):
             (genes, comment) = task_dict[task]
 
-            gene_names = None
+            gene_names = []
             if genes:
                 gene_names = genes.split()
                 self.all_gene_names.update(gene_names)
@@ -32,20 +32,9 @@ class ParseParameters():
                          'Add to database': TaskType.ADD_TO_DATABASE
             }[task]
              
-            if task_type == TaskType.ADD_TO_DATABASE:
-                task_name = 'Gene Link'
-                topic = 'Additional Literature'
-            elif task_type == TaskType.REVIEWS:
-                task_name = 'Gene Link'
-                topic = 'Reviews'
-            elif task_type == TaskType.HTP_PHENOTYPE_DATA:
-                task_name = 'HTP phenotype'
-                topic = 'Omics'
-            else:
-                task_name = task
-                topic = 'Primary Literature'
+            
                         
-            self.tasks.append(Task(task_name, task_type, topic, gene_names, comment))
+            self.tasks.append(Task(task_type, genes, comment))
 
     def get_tasks(self):
         return self.tasks
@@ -54,10 +43,18 @@ class ParseParameters():
         return self.all_gene_names
 
 class Task():
-    def __init__(self, task_name, task_type, topic, gene_names, comment):
-        self.name = task_name
-        self.type = gene_names
-        self.topic = topic
+    def __init__(self, task_type, gene_names, comment):
+        if task_type == TaskType.ADD_TO_DATABASE: self.name = 'Gene Link'; self.topic = 'Additional Literature'
+        elif task_type == TaskType.REVIEWS: self.name = 'Gene Link'; self.topic = 'Reviews'
+        elif task_type == TaskType.HTP_PHENOTYPE_DATA: self.name = 'HTP phenotype'; self.topic = 'Omics'
+        elif task_type == TaskType.CLASSICAL_PHENOTYPE_INFORMATION: self.name = 'Classical phenotype information'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.DELAY: self.name = 'Delay'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.GO_INFORMATION: self.name = 'GO information'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.HEADLINE_INFORMATION: self.name = 'Headline information'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.HIGH_PRIORITY: self.name = 'High Priority'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.OTHER_HTP_DATA: self.name = 'Non-phenotype HTP'; self.topic = 'Primary Literature'
+        
+        self.type = task_type
         self.gene_names = gene_names
         self.comment = comment
         

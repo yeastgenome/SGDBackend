@@ -34,12 +34,6 @@ class DBConnection(object):
         #Checks if a connection to the db has been made.
         return self.engine is not None
     
-    def getFirstBioentity(self):
-        #Get the first Feature.
-        from model_new_schema.bioentity_declarative import Bioentity
-        session = self.SessionFactory()
-        return session.query(Bioentity).first()
-    
     def getBioentityByName(self, name):
         #Get the first Feature.
         from model_new_schema.bioentity_declarative import Bioentity
@@ -51,6 +45,7 @@ class DBConnection(object):
         from model_new_schema.bioentity_declarative import Bioentity
         session = self.SessionFactory()
         return session.query(Bioentity).count()
+    
     def getBioentities(self):
         #Get the first Feature.
         from model_new_schema.bioentity_declarative import Bioentity
@@ -103,6 +98,14 @@ def timeInheritanceAcrossAllBioentites():
     print 'Time to grab description\n'
     print sum[3]/count[3]
     print 'Time to grab crick data\n'
+    
+def get_or_create(session, model, **kwargs):
+    instance = session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance
+    else:
+        instance = model(**kwargs)
+    return instance
 
 if __name__ == '__main__':
     conn = DBConnection(DBUSER, DBPASS)

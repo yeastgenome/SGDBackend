@@ -15,7 +15,8 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Column, ForeignKey, Table
-from sqlalchemy.types import Integer, String
+from sqlalchemy.types import Integer, String, Date
+import datetime
 import model_old_schema
        
 class Reference(Base):
@@ -40,29 +41,35 @@ class Reference(Base):
     book_id = Column('book_no', String, ForeignKey('bud.book.book_no'))
     doi = Column('doi', String)
     created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
     
     #Relationships
-    journal = relationship('Journal', uselist=False)
-    book = relationship('Book', uselist=False)
+    journal = relationship('Journal', uselist=False, lazy='subquery')
+    book = relationship('Book', uselist=False, lazy='subquery')
     
-    abs = relationship("Abstract", uselist=False)
-    abstract = association_proxy('abs', 'text')
+    abs = relationship("Abstract", cascade='all,delete', uselist=False, lazy='subquery')
+    abstract = association_proxy('abs', 'text',
+                                 creator=lambda text: Abstract(text=text, reference_id = id))
     
     features = relationship(Feature, secondary= Table('ref_curation', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
+    
+    author_references = relationship('AuthorReference', cascade='all,delete',
+                             backref=backref('reference'),
+                            collection_class=attribute_mapped_collection('order'))
     
     authorNames = association_proxy('author_references', 'author_name',
                                     creator=lambda k, v: AuthorReference(order=k, author_name=v, type='Author'))
     authors = association_proxy('author_references', 'author',
                                     creator=lambda k, v: AuthorReference(order=k, author=v, type='Author'))
     
-    refTypes = relationship("RefType", secondary= Table('ref_reftype', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
+    refTypes = relationship("RefType", cascade='all,delete', secondary= Table('ref_reftype', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
     refTypeNames = association_proxy('refTypes', 'name')
     
-    litGuides = relationship("LitGuide")
+    litGuides = relationship("LitGuide", cascade='all,delete')
     litGuideTopics = association_proxy('litGuides', 'topic',
                                     creator=lambda topic: LitGuide(topic=topic, reference_id = id))
     
-    curations = relationship(RefCuration)
+    curations = relationship(RefCuration, viewonly=True)
 
     
     def __init__(self, pubmed_id):
@@ -70,6 +77,7 @@ class Reference(Base):
         self.pdf_status='N'
         self.source='PubMed script'
         self.created_by = model_old_schema.current_user
+        self.date_created = datetime.datetime.now()
 
     def __repr__(self):
         data = self.title, self.pubmed_id
@@ -102,6 +110,7 @@ class Journal(Base):
     essn = Column('essn', Integer)
     publisher = Column('publisher', String)
     created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
     
     def __init__(self, abbreviation):
         medlineJournal = MedlineJournal(abbreviation)
@@ -110,6 +119,7 @@ class Journal(Base):
         self.issn = medlineJournal.issn
         self.essn = medlineJournal.essn
         self.created_by = model_old_schema.current_user
+        self.date_created = datetime.datetime.now()
 
     def __repr__(self):
         data = self.full_name, self.publisher
@@ -125,6 +135,15 @@ class RefTemp(Base):
     fulltext_url = Column('fulltext_url', String)
     abstract = Column('abstract', String)
     created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+
+    def __init__(self, pubmed_id, citation, fulltext_url, abstract):
+        self.pubmed_id = pubmed_id
+        self.citation = citation
+        self.fulltext_url = fulltext_url
+        self.abstract = abstract
+        self.created_by = model_old_schema.current_user
+        self.date_created = datetime.datetime.now()
 
     def __repr__(self):
         data = self.pubmed_id
@@ -137,11 +156,13 @@ class RefBad(Base):
     pubmed_id = Column('pubmed', Integer, primary_key = True)
     dbxref_id = Column('dbxref_id', String)
     created_by = Column('created_by', String)
-    
+    date_created = Column('date_created', Date)
+
     def __init__(self, pubmed_id, dbxref_id=None):
         self.pubmed_id = pubmed_id
         self.dbxref_id = dbxref_id
         self.created_by = model_old_schema.current_user
+        self.date_created = datetime.datetime.now()
 
     def __repr__(self):
         data = self.pubmed_id, self.dbxref_id
@@ -154,10 +175,12 @@ class Author(Base):
     id = Column('author_no', Integer, primary_key = True)
     name = Column('author_name', String)
     created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
     
-    def __init__(self, author_name):
-        self.name = author_name
+    def __init__(self, name):
+        self.name = name
         self.created_by = model_old_schema.current_user
+        self.date_created = datetime.datetime.now()
 
     def __repr__(self):
         data = self.name
@@ -173,9 +196,7 @@ class AuthorReference(Base):
     order = Column('author_order', Integer)
     type = Column('author_type', String)
     
-    reference = relationship(Reference, 
-                             backref=backref('author_references', 
-                            collection_class=attribute_mapped_collection('order')))
+    
     author = relationship('Author') 
     author_name = association_proxy('author', 'name')
     
@@ -186,8 +207,9 @@ class Abstract(Base):
     reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'), primary_key = True)
     text = Column('abstract', String)
    
-    def __init__(self, abstract):
-        self.abstract = abstract
+    def __init__(self, text, reference_id):
+        self.text = text
+        self.reference_id = reference_id
 
     def __repr__(self):
         data = self.text
@@ -201,11 +223,13 @@ class RefType(Base):
     source = Column('source', String)
     name = Column('ref_type', String)
     created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
     
     def __init__(self, name):
         self.name = name;
         self.source = 'NCBI'
         self.created_by = model_old_schema.current_user
+        self.date_created = datetime.datetime.now()
 
     def __repr__(self):
         data = self.name
@@ -219,17 +243,19 @@ class LitGuide(Base):
     reference_id = Column('reference_no', Integer, ForeignKey("bud.reference.reference_no"))
     topic = Column('literature_topic', String)
     created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
     
     #Relationships
-    features = relationship("Feature", secondary= Table('litguide_feat', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
+    features = relationship("Feature", secondary= Table('litguide_feat', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True), lazy = 'subquery')
     feature_ids = association_proxy('features', 'id')
     
     def __init__(self, topic, reference_id):
         self.topic = topic
         self.reference_id = reference_id
         self.created_by = model_old_schema.current_user
+        self.date_created = datetime.datetime.now()
 
     def __repr__(self):
-        data = self.topic, self.reference_id
-        return 'LitGuide(topic=%s, reference_id=%s)' % data   
+        data = self.topic, self.reference_id, self.features
+        return 'LitGuide(topic=%s, reference_id=%s, features=%s)' % data   
     

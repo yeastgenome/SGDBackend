@@ -25,7 +25,7 @@ def index():
 @app.route("/reference")
 @fresh_login_required
 def reference():
-    refs = conn.getRefTemps()
+    refs = conn.get_reftemps()
     num_of_refs = len(refs)
     return render_template('literature_review.html',
                            ref_list=refs,
@@ -34,40 +34,33 @@ def reference():
 @app.route("/reference/delete/<pmid>")
 @fresh_login_required
 def discard_ref(pmid):
-    moved = conn.moveRefTempToRefBad(pmid)
+    moved = conn.move_reftemp_to_refbad(pmid)
     if moved:
         return "Reference for pmid=" + pmid + " has been removed from the database!"
     else:
         return "An error occurred when deleting the reference for pmid=" + pmid + " from the database."
 
-
 @app.route("/reference/link/<pmid>/<parameters>")
 @fresh_login_required
 def link_ref(pmid, parameters):
-    parsedParams = ParseParameters(parameters)
-    gene_names = parsedParams.get_all_gene_names()
-    name_to_feature = conn.validateGenes(gene_names)
+    parsed_params = ParseParameters(parameters)
+    gene_names = parsed_params.get_all_gene_names()
+    name_to_feature = conn.validate_genes(gene_names)
     
     #If we don't get back as many features as we have gene names, find the bad ones and show them to the user.
     if len(name_to_feature) < len(gene_names):
-        bad_gene_names = list(gene_names)
-        for name in name_to_feature.keys():
-            bad_gene_names.remove(name)
+        bad_gene_names = set(gene_names) - set(name_to_feature.keys())
         return "Not found Gene name(s): " + ', '.join(bad_gene_names)
     
-    ref = conn.moveRefTempToReference(pmid)
-    
-    if len(parsedParams.get_tasks()) > 0:
-        result = conn.associate(ref, name_to_feature, parsedParams.get_tasks())
+    result = conn.move_reftemp_to_ref(pmid)
+    if not result:
+        return "Problem moving temporary reference for pmid = " + pmid + " to the reference table."
         
-        if result:
-            return "Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + parameters
-        else:
-            return "An error occurred when linking the reference for pmid = " + pmid + " to the info you picked/entered: " + parameters
-        
+    result = conn.associate(pmid, name_to_feature, parsed_params.get_tasks())    
+    if result:
+        return "Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + parameters
     else:
-        return "Reference for pmid = " + pmid + " has been added into the database."
-
+        return "An error occurred when linking the reference for pmid = " + pmid + " to the info you picked/entered: " + parameters
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -78,7 +71,7 @@ def login():
         remember = request.form.get("remember", "no") == "yes"
         conn.connect(username, password)
         
-        if conn.isConnected():
+        if conn.is_connected():
             result = login_lit_review_user(username, remember)
         else:
             result = LoginResult.BAD_USERNAME_PASSWORD
@@ -96,7 +89,6 @@ def login():
     else:
         return render_template("login.html")
 
-
 @app.route("/reauth", methods=["GET", "POST"])
 @login_required
 def reauth():
@@ -105,7 +97,6 @@ def reauth():
         flash(output)
         return redirect(url_for("index"))
     return render_template("reauth.html")
-
 
 @app.route("/logout")
 @login_required
@@ -116,8 +107,6 @@ def logout():
     }[result]
     flash(output)
     return redirect(url_for("index"))
-
-
 
 
 if __name__ == "__main__":
