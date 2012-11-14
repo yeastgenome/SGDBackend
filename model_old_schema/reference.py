@@ -107,7 +107,7 @@ class Journal(Base):
     full_name = Column('full_name', String)
     abbreviation = Column('abbreviation', String)
     issn = Column('issn', String)
-    essn = Column('essn', Integer)
+    essn = Column('essn', String)
     publisher = Column('publisher', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)

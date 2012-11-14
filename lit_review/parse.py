@@ -34,7 +34,7 @@ class ParseParameters():
              
             
                         
-            self.tasks.append(Task(task_type, genes, comment))
+            self.tasks.append(Task(task_type, gene_names, comment))
 
     def get_tasks(self):
         return self.tasks

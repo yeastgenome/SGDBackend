@@ -55,7 +55,7 @@ class TestGetAndMoveFeaturesAndReferences(unittest.TestCase):
         finally:
             conn.move_reftemp_to_refbad(pubmed_id)
         
-    def test_move_reftemp_to_refbad(self, pubmed_id=23080253):
+    def test_move_reftemp_to_refbad(self, pubmed_id=23131627):
         conn = DBConnection()
         conn.connect(DBUSER, DBPASS)
         try:
@@ -66,7 +66,7 @@ class TestGetAndMoveFeaturesAndReferences(unittest.TestCase):
         finally:
             conn.move_refbad_to_reftemp(pubmed_id)
         
-    def test_move_reftemp_to_ref(self, pubmed_id=22416066):
+    def test_move_reftemp_to_ref(self, pubmed_id=23104201):
         conn = DBConnection()
         conn.connect(DBUSER, DBPASS)
         try:
@@ -76,7 +76,7 @@ class TestGetAndMoveFeaturesAndReferences(unittest.TestCase):
         finally:
             conn.move_ref_to_reftemp(pubmed_id)
             
-    def test_move_ref_to_reftemp(self, pubmed_id=10783002):
+    def test_move_ref_to_reftemp(self, pubmed_id=10085156):
         conn = DBConnection()
         conn.connect(DBUSER, DBPASS)
         try:
@@ -139,27 +139,48 @@ class TestAssociate(unittest.TestCase):
             self.assertEqual(name_to_feature[gene_names[i]].id, feature_ids[i])
             
     def test_associate(self):
-        pubmed_id = 23103252
-        gene_names = ['YAL002W', 'CEN1', 'SPO7', 'YAL016C-B', 'YAL009W']
+        pubmed_id = 23113558
+        gene_names = ['ACT1', 'CEN1', 'SPO7', 'YAL016C-B', 'YAL009W']
 
         conn = DBConnection()
         conn.connect(DBUSER, DBPASS)
         try:
             conn.move_reftemp_to_ref(pubmed_id)
             name_to_feature = conn.validate_genes(gene_names)
-            tasks = [#Task(TaskType.HIGH_PRIORITY, None, None),
-                     #Task(TaskType.DELAY, None, None),
-                     #Task(TaskType.HTP_PHENOTYPE_DATA, None, None),
-                     #Task(TaskType.OTHER_HTP_DATA, None, None),
-                     Task(TaskType.CLASSICAL_PHENOTYPE_INFORMATION, ['YAL002W'], None)]
+            tasks = [Task(TaskType.HIGH_PRIORITY, None, "Comment"),
+                     Task(TaskType.DELAY, None, "Comment"),
+                     Task(TaskType.HTP_PHENOTYPE_DATA, None, "Comment"),
+                     Task(TaskType.OTHER_HTP_DATA, None, "Comment"),
+                     
+                     Task(TaskType.CLASSICAL_PHENOTYPE_INFORMATION, ['ACT1'], "Comment"),
+                     Task(TaskType.GO_INFORMATION, ['ACT1'], "Comment"),
+                     Task(TaskType.HEADLINE_INFORMATION, ['YAL009W', 'YAL016C-B'], "Comment"),
+                     
+                     Task(TaskType.ADD_TO_DATABASE, None, "Comment"),
+                     Task(TaskType.REVIEWS, None, "Comment")
+                     ]
             
             result = conn.associate(pubmed_id, name_to_feature, tasks)
             self.assertTrue(result)
             
-            print conn.get_curations_for_ref(pubmed_id)
-            print conn.get_lit_guides_for_ref(pubmed_id)
+            curations = conn.get_curations_for_ref(pubmed_id)
+            lit_guides = conn.get_lit_guides_for_ref(pubmed_id)
+            
+            self.assertEqual(len(curations), 8)
+            for curation in curations:
+                self.assertTrue(curation.comment is not None)
+                
+                if curation.task == 'Gene Link':
+                    self.assertTrue(False, 'The two Tasks with name Gene Link: ADD_TO_DATABASE and REVIEWS have no genes. They should not have curaitons.')
+                   
+            self.assertEqual(len(lit_guides), 3)
+            for lit_guide in lit_guides:
+                if curation.task == 'Reviews':
+                    self.assertEqual(len(lit_guide.features), 0)
+    
         finally:
             conn.move_ref_to_reftemp(pubmed_id)
+
         
         
 if __name__ == '__main__':

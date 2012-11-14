@@ -319,6 +319,7 @@ class DBConnection(object):
                 if gene_names is not None and len(gene_names) > 0:
                     #Convert gene_names to features using the name_to_feature table.                
                     features = set()
+                    print name_to_feature
                     for gene_name in task.gene_names:
                         features.add(name_to_feature[gene_name])
                     
@@ -329,7 +330,7 @@ class DBConnection(object):
                         reference.curations.append(curation)
                             
                     ## Create a LitGuide object and attach features to it.
-                    lit_guide = get_or_create(session, LitGuide, topic=task.topic)
+                    lit_guide = get_or_create(session, LitGuide, topic=task.topic, reference_id = reference.id)
                     for feature in features:
                         if not feature.id in lit_guide.feature_ids:
                             lit_guide.features.append(feature)
@@ -347,6 +348,7 @@ class DBConnection(object):
                     if task.type == TaskType.REVIEWS:
                         ## topic = task = 'Reviews'
                         reference.litGuideTopics.append(task.topic)
+                        continue
 
                     curation = get_or_create(session, RefCuration, task=task.name, reference_id = reference.id, feature_id=None)
                     curation.comment = task.comment

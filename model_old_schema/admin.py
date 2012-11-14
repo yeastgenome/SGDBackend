@@ -29,5 +29,5 @@ class RefCuration(Base):
         self.date_created = datetime.datetime.now()
 
     def __repr__(self):
-        data = self.task, self.comment
-        return 'RefCuration(task=%s, comment=%s)' % data
+        data = self.task, self.feature_id, self.comment
+        return 'RefCuration(task=%s, feature_id=%s, comment=%s)' % data

@@ -55,7 +55,7 @@ def link_ref(pmid, parameters):
     result = conn.move_reftemp_to_ref(pmid)
     if not result:
         return "Problem moving temporary reference for pmid = " + pmid + " to the reference table."
-        
+    
     result = conn.associate(pmid, name_to_feature, parsed_params.get_tasks())    
     if result:
         return "Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + parameters
