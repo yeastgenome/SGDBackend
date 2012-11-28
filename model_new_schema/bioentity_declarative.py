@@ -7,7 +7,9 @@ This is some test code to experiment with working with SQLAlchemy - particularly
 will eventually be the Bioentity classes/tables in the new SGD website schema. This code is currently meant to run on the KPASKOV 
 schema on fasolt.
 '''
-from model_new_schema import Base
+from model_new_schema import Base, plural_to_singular, subclasses
+from model_new_schema.bioconcept import Bioconcept, bioent_biocon_map
+from model_new_schema.biorelation import Biorelation
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
@@ -18,29 +20,34 @@ class Bioentity(Base):
     
     id = Column('bioent_id', Integer, primary_key = True)
     name = Column('name', String)
-    bioentity_type = Column('bioent_type', String)
+    type = Column('bioent_type', String)
     
-    __mapper_args__ = {'polymorphic_on': bioentity_type,
+    __mapper_args__ = {'polymorphic_on': type,
                        'polymorphic_identity':"BIOENTITY"}
     
-    biorel_source = relationship('Biorelation', primaryjoin="Biorelation.bioent1_id==Bioentity.id")
-    biorel_sink = relationship('Biorelation', primaryjoin="Biorelation.bioent2_id==Bioentity.id")
+    biorel_source = relationship(Biorelation, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id")
+    biorel_sink = relationship(Biorelation, primaryjoin="Biorelation.source_bioent_id==Bioentity.id")
+    
+    bioconcepts = relationship(Bioconcept, secondary=bioent_biocon_map, backref='bioentities')
     
     @hybrid_property
     def biorelations(self):
         return self.biorel_source + self.biorel_sink
-   
-    @hybrid_property 
-    def interactions(self):
-        return filter(lambda x: x.biorelation_type == 'INTERACTION', self.biorelations)
     
-    def __init__(self, name, bioentity_type):
+    def __init__(self, name):
         self.name = name
-        self.bioentity_type = bioentity_type
     
     def __repr__(self):
-        data = self.id, self.name, self.bioentity_type
-        return 'Bioentity(id=%s, name=%s, bioentity_type=%s)' % data
+        data = self.__class__.__name__, self.id, self.name
+        return '%s(id=%s, name=%s)' % data
+    
+    def __getattr__(self, name):
+        singular_name = plural_to_singular(name).upper()
+        if singular_name in subclasses(Biorelation):
+            return filter(lambda x: x.type == singular_name, self.biorelations)
+        elif singular_name in subclasses(Bioconcept):
+            return filter(lambda x: x.type == singular_name, self.bioconcepts)
+        raise AttributeError() 
 
 class Orf(Bioentity):
     __tablename__ = "orf"
@@ -65,10 +72,10 @@ class Orf(Bioentity):
 class NotPhysicallyMapped(Bioentity):
     __mapper_args__ = {'polymorphic_identity': "NOT_PHYSICALLY_MAPPED"}
     
-    def __init__(self, name, bioentity_type):
-        self.name = name
-        self.bioentity_type = bioentity_type
+class Intron(Bioentity):
+    __mapper_args__ = {'polymorphic_identity': "INTRON"}
     
-    def __repr__(self):
-        data = self.id, self.name
-        return 'Bioentity(id=%s, name=%s)' % data
+class CDS(Bioentity):
+    __mapper_args__ = {'polymorphic_identity': "CDS"}
+
+    

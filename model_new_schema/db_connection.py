@@ -7,13 +7,15 @@ This class is used to perform queries and operations on the corresponding databa
 '''
 #from connection_test.config import DBTYPE, DBHOST, DBNAME
 from model_new_schema import metadata
-#from model_new_schema.config import DBUSER, DBPASS
+from model_new_schema.bioconcept import Bioconcept
+from model_new_schema.bioentity_declarative import Bioentity
+from model_new_schema.biorelation import Biorelation
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
 from time import time
+import json
+#from model_new_schema.config import DBUSER, DBPASS
 
-from model_new_schema.bioentity_declarative import Bioentity
-from model_new_schema.biorelationship import Biorelation
 
 
 # imports of model classes from model.feature, model.taxonomy, etc are done as needed, since these imports are
@@ -40,23 +42,25 @@ class DBConnection(object):
         #Checks if a connection to the db has been made.
         return self.engine is not None
     
-    def getBioentityByName(self, name):
-        #Get the first Feature.
-        session = self.SessionFactory()
-        return session.query(Bioentity).filter_by(name=name).all();
+    def getByName(self, session, cls, name):
+        return session.query(cls).filter_by(name=name).all();
     
-    def getBioentityCount(self):
-        #Get the first Feature.
-        session = self.SessionFactory()
-        return session.query(Bioentity).count()
+    def getByID(self, session, cls, iD):
+        return session.query(cls).filter_by(id=iD).all();
     
-    def getBioentities(self):
-        #Get the first Feature.
-        session = self.SessionFactory()
-        return session.query(Bioentity).all()
+    def getAll(self, session, cls):
+        return session.query(cls).all();
     
-    def getBiorelationsForBioentity(self, name):
-        return self.getBioentityByName(name)[0].interactions
+    def getCount(self, session, cls):
+        session = self.SessionFactory()
+        return session.query(cls).count()
+    
+    def execute(self, f):
+        session = self.SessionFactory()
+        x = json.dumps(f(session))
+        session.close()
+        return x
+    
 
     
 def timeInheritance(bioentity):
@@ -115,8 +119,9 @@ def get_or_create(session, model, **kwargs):
 
 if __name__ == '__main__':
     conn = DBConnection()
-    b = conn.getBiorelationsForBioentity('ABF2')
-    print b
+    b = lambda session: conn.getByName(session, Bioentity, 'ACT1')[0].go_terms[0].orfs[0]
+    orf = conn.execute(b)
+    print orf
     
 
     
