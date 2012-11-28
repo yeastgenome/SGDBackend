@@ -5,12 +5,17 @@ Created on Oct 18, 2012
 
 This class is used to perform queries and operations on the corresponding database. In this case, the KPASKOV schema on fasolt.
 '''
-from connection_test.config import DBTYPE, DBHOST, DBNAME
+#from connection_test.config import DBTYPE, DBHOST, DBNAME
 from model_new_schema import metadata
-from model_new_schema.config import DBUSER, DBPASS
+#from model_new_schema.config import DBUSER, DBPASS
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
 from time import time
+
+from model_new_schema.bioentity_declarative import Bioentity
+from model_new_schema.biorelationship import Biorelation
+
+
 # imports of model classes from model.feature, model.taxonomy, etc are done as needed, since these imports are
 # not available until AFTER the metadata is bound to the engine.
 
@@ -23,9 +28,10 @@ class DBConnection(object):
     SessionFactory = None
 
          
-    def __init__(self, username, password):
+    def __init__(self):
         #Create engine, associate metadata with the engine, then create a SessionFactory for use through the backend.
-        self.engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, username, password, DBHOST, DBNAME), convert_unicode=True)
+        #self.engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, username, password, DBHOST, DBNAME), convert_unicode=True)
+        self.engine = create_engine('mysql://root@localhost/sgd_db')
         metadata.bind = self.engine
         self.SessionFactory = sessionmaker(bind=self.engine)
         return
@@ -36,21 +42,21 @@ class DBConnection(object):
     
     def getBioentityByName(self, name):
         #Get the first Feature.
-        from model_new_schema.bioentity_declarative import Bioentity
         session = self.SessionFactory()
         return session.query(Bioentity).filter_by(name=name).all();
     
     def getBioentityCount(self):
         #Get the first Feature.
-        from model_new_schema.bioentity_declarative import Bioentity
         session = self.SessionFactory()
         return session.query(Bioentity).count()
     
     def getBioentities(self):
         #Get the first Feature.
-        from model_new_schema.bioentity_declarative import Bioentity
         session = self.SessionFactory()
         return session.query(Bioentity).all()
+    
+    def getBiorelationsForBioentity(self, name):
+        return self.getBioentityByName(name)[0].interactions
 
     
 def timeInheritance(bioentity):
@@ -80,7 +86,7 @@ def timeInheritance(bioentity):
     return [a, b, c, d]
         
 def timeInheritanceAcrossAllBioentites():
-    conn = DBConnection(DBUSER, DBPASS)
+    conn = DBConnection()
     sumTotal = [0, 0, 0, 0]
     count = [0, 0, 0, 0]
     for bioentity in conn.getBioentities():
@@ -108,10 +114,9 @@ def get_or_create(session, model, **kwargs):
     return instance
 
 if __name__ == '__main__':
-    conn = DBConnection(DBUSER, DBPASS)
-    b = conn.getBioentityByName('GRD16')[0]
+    conn = DBConnection()
+    b = conn.getBiorelationsForBioentity('ABF2')
     print b
-    print b.name
     
 
     
