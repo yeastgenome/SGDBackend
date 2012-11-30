@@ -45,9 +45,10 @@ class Bioconcept(Base, CommonEqualityMixin):
             for subclass_name in subclasses(Bioentity):
                 serialized_obj[subclass_name] = map(lambda x: x.serialize(full=False), self.__get_objects_for_subclass__(subclass_name))
         else:
-            del serialized_obj['_sa_instance_state']
-            if 'bioentities' in serialized_obj:
-                del serialized_obj['bioentities']
+            to_remove = ['_sa_instance_state', 'bioentities']
+            for key in to_remove:
+                if key in serialized_obj:
+                    del serialized_obj[key]
         return serialized_obj
     
 class Metagene(Bioconcept):

@@ -39,11 +39,10 @@ class Biorelation(Base, CommonEqualityMixin):
             serialized_obj['source_bioent'] = self.source_bioent.serialize(full=False)
             serialized_obj['sink_bioent'] = self.sink_bioent.serialize(full=False)
         else:
-            del serialized_obj['_sa_instance_state']
-            if 'source_bioent' in serialized_obj:
-                del serialized_obj['source_bioent']
-            if 'sink_bioent' in serialized_obj:
-                del serialized_obj['sink_bioent']
+            to_remove = ['_sa_instance_state', 'source_bioent', 'source_bioent']
+            for key in to_remove:
+                if key in serialized_obj:
+                    del serialized_obj[key]
         return serialized_obj
         
 class Interaction(Biorelation):

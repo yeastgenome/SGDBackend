@@ -63,13 +63,10 @@ class Bioentity(Base, CommonEqualityMixin):
             for subclass_name in subclasses(Biorelation):
                 serialized_obj[subclass_name] = map(lambda x: x.serialize(full=False), self.__get_objects_for_subclass__(subclass_name))
         else:
-            del serialized_obj['_sa_instance_state']
-            if 'bioconcepts' in serialized_obj:
-                del serialized_obj['bioconcepts']
-            if 'biorel_source' in serialized_obj:
-                del serialized_obj['biorel_source']
-            if 'biorel_sink' in serialized_obj:
-                del serialized_obj['biorel_sink']
+            to_remove = ['_sa_instance_state', 'bioconcepts', 'biorel_source', 'biorel_sink']
+            for key in to_remove:
+                if key in serialized_obj:
+                    del serialized_obj[key]
         return serialized_obj
 
 class Orf(Bioentity, CommonEqualityMixin):
