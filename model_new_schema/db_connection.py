@@ -6,6 +6,7 @@ Created on Oct 18, 2012
 This class is used to perform queries and operations on the corresponding database. In this case, the KPASKOV schema on fasolt.
 '''
 #from connection_test.config import DBTYPE, DBHOST, DBNAME
+from jsonpickle import set_encoder_options
 from model_new_schema import metadata
 from model_new_schema.bioconcept import Bioconcept
 from model_new_schema.bioentity_declarative import Bioentity
@@ -14,6 +15,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
 from time import time
 import json
+import jsonpickle
 #from model_new_schema.config import DBUSER, DBPASS
 
 
@@ -57,57 +59,10 @@ class DBConnection(object):
     
     def execute(self, f):
         session = self.SessionFactory()
-        x = json.dumps(f(session))
+        obj = f(session)
+        json_obj = object_to_json(obj, recoverable=False)
         session.close()
-        return x
-    
-
-    
-def timeInheritance(bioentity):
-    begin = time()
-    a = time()-begin
-    #print 'Time to grab Bioentity\n'
-    
-    begin = time()
-    bioentity.name
-    b = time()-begin
-    #print 'Time to grab name\n'
-    
-    c = None
-    if hasattr(bioentity, 'description'):
-        begin = time()
-        bioentity.description
-        c = time()-begin
-        #print 'Time to grab description\n'
-    
-    d = None
-    if hasattr(bioentity, 'crick_data'): 
-        begin = time()
-        bioentity.crick_data
-        d = time()-begin
-        #print 'Time to grab crick data\n'
-    
-    return [a, b, c, d]
-        
-def timeInheritanceAcrossAllBioentites():
-    conn = DBConnection()
-    sumTotal = [0, 0, 0, 0]
-    count = [0, 0, 0, 0]
-    for bioentity in conn.getBioentities():
-        times = timeInheritance(bioentity)
-        for index, value in enumerate(times):
-            if value is not None:
-                sumTotal[index] = sumTotal[index] + value
-                count[index] += 1
-
-    print sum[0]/count[0]
-    print 'Time to grab Bioentity\n'
-    print sum[1]/count[1]
-    print 'Time to grab name\n'
-    print sum[2]/count[2]
-    print 'Time to grab description\n'
-    print sum[3]/count[3]
-    print 'Time to grab crick data\n'
+        return json_obj
     
 def get_or_create(session, model, **kwargs):
     instance = session.query(model).filter_by(**kwargs).first()
@@ -117,11 +72,37 @@ def get_or_create(session, model, **kwargs):
         instance = model(**kwargs)
     return instance
 
+def json_to_object(json):
+    return jsonpickle.decode(json)
+
+def object_to_json(obj, recoverable=False):
+    if not recoverable:
+        pickled = jsonpickle.encode(obj.serialize(), unpicklable=False, max_depth=3)
+        json_dict = json.loads(pickled)
+        if '_sa_instance_state' in json_dict:
+            del json_dict['_sa_instance_state']
+        return json.dumps(json_dict)
+    else:
+        pickled = jsonpickle.encode(obj, unpicklable=True)
+        return pickled
+    
+
 if __name__ == '__main__':
     conn = DBConnection()
-    b = lambda session: conn.getByName(session, Bioentity, 'ACT1')[0].go_terms[0].orfs[0]
-    orf = conn.execute(b)
-    print orf
+    first_orf_for_first_go_term_for_bioentity_with_name = lambda session: conn.getByName(session, Bioentity, 'AAH1')[0].go_terms[0].orfs[0]
+    json1 = conn.execute(first_orf_for_first_go_term_for_bioentity_with_name)
+    first_orf_for_first_go_term_for_bioentity_with_name2 = lambda session: conn.getByName(session, Bioentity, 'AAH1')[0].go_terms[0].orfs[0]
+    json2 = conn.execute(first_orf_for_first_go_term_for_bioentity_with_name2)
+    print json1.__class__.__name__
+    print json1
+    print json.loads(json1).keys()
+
+    print json2.__class__.__name__
+    print json2
+    orf1 = json_to_object(json1)
+    orf2 = json_to_object(json2)
+    print orf1
+    print orf1 == orf2
     
 
     

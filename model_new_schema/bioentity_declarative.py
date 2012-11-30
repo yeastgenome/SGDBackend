@@ -7,7 +7,8 @@ This is some test code to experiment with working with SQLAlchemy - particularly
 will eventually be the Bioentity classes/tables in the new SGD website schema. This code is currently meant to run on the KPASKOV 
 schema on fasolt.
 '''
-from model_new_schema import Base, plural_to_singular, subclasses
+from model_new_schema import Base, plural_to_singular, subclasses, \
+    CommonEqualityMixin
 from model_new_schema.bioconcept import Bioconcept, bioent_biocon_map
 from model_new_schema.biorelation import Biorelation
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -15,7 +16,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
     
-class Bioentity(Base):
+class Bioentity(Base, CommonEqualityMixin):
     __tablename__ = "bioent"
     
     id = Column('bioent_id', Integer, primary_key = True)
@@ -43,13 +44,35 @@ class Bioentity(Base):
     
     def __getattr__(self, name):
         singular_name = plural_to_singular(name).upper()
-        if singular_name in subclasses(Biorelation):
-            return filter(lambda x: x.type == singular_name, self.biorelations)
-        elif singular_name in subclasses(Bioconcept):
-            return filter(lambda x: x.type == singular_name, self.bioconcepts)
-        raise AttributeError() 
+        print singular_name
+        return self.__get_objects_for_subclass__(singular_name)
+    
+    def __get_objects_for_subclass__(self, subclass_name):
+        if subclass_name in subclasses(Biorelation):
+            return filter(lambda x: x.type == subclass_name, self.biorelations)
+        elif subclass_name in subclasses(Bioconcept):
+            return filter(lambda x: x.type == subclass_name, self.bioconcepts)
+        raise AttributeError()
+    
+    def serialize(self, full=True):
+        serialized_obj = dict(self.__dict__)
+            
+        if full:
+            for subclass_name in subclasses(Bioconcept):
+                serialized_obj[subclass_name] = map(lambda x: x.serialize(full=False), self.__get_objects_for_subclass__(subclass_name))
+            for subclass_name in subclasses(Biorelation):
+                serialized_obj[subclass_name] = map(lambda x: x.serialize(full=False), self.__get_objects_for_subclass__(subclass_name))
+        else:
+            del serialized_obj['_sa_instance_state']
+            if 'bioconcepts' in serialized_obj:
+                del serialized_obj['bioconcepts']
+            if 'biorel_source' in serialized_obj:
+                del serialized_obj['biorel_source']
+            if 'biorel_sink' in serialized_obj:
+                del serialized_obj['biorel_sink']
+        return serialized_obj
 
-class Orf(Bioentity):
+class Orf(Bioentity, CommonEqualityMixin):
     __tablename__ = "orf"
     
     id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key = True)

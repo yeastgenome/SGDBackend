@@ -3,12 +3,12 @@ Created on Nov 27, 2012
 
 @author: kpaskov
 '''
-from model_new_schema import Base
+from model_new_schema import Base, CommonEqualityMixin
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
   
-class Biorelation(Base):
+class Biorelation(Base, CommonEqualityMixin):
     __tablename__ = "biorel"
     
     id = Column('biorel_id', Integer, primary_key = True)
@@ -29,6 +29,22 @@ class Biorelation(Base):
     def __repr__(self):
         data = self.__class__.__name__, self.id, self.source_bioent.name, self.sink_bioent.name
         return '%s(id=%s, source_name=%s, sink_name=%s)' % data
+    
+    def serialize(self, full=True):
+        serialized_obj = dict(self.__dict__)
+        serialized_obj['source_bioent_name'] = self.source_bioent.name
+        serialized_obj['sink_bioent_name'] = self.sink_bioent.name
+        
+        if full:
+            serialized_obj['source_bioent'] = self.source_bioent.serialize(full=False)
+            serialized_obj['sink_bioent'] = self.sink_bioent.serialize(full=False)
+        else:
+            del serialized_obj['_sa_instance_state']
+            if 'source_bioent' in serialized_obj:
+                del serialized_obj['source_bioent']
+            if 'sink_bioent' in serialized_obj:
+                del serialized_obj['sink_bioent']
+        return serialized_obj
         
 class Interaction(Biorelation):
     __mapper_args__ = {'polymorphic_identity': "INTERACTION"}
