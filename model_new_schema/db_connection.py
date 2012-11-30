@@ -6,14 +6,12 @@ Created on Oct 18, 2012
 This class is used to perform queries and operations on the corresponding database. In this case, the KPASKOV schema on fasolt.
 '''
 #from connection_test.config import DBTYPE, DBHOST, DBNAME
-from jsonpickle import set_encoder_options
 from model_new_schema import metadata
 from model_new_schema.bioconcept import Bioconcept
 from model_new_schema.bioentity_declarative import Bioentity
 from model_new_schema.biorelation import Biorelation
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
-from time import time
 import json
 import jsonpickle
 #from model_new_schema.config import DBUSER, DBPASS
@@ -23,7 +21,7 @@ import jsonpickle
 # imports of model classes from model.feature, model.taxonomy, etc are done as needed, since these imports are
 # not available until AFTER the metadata is bound to the engine.
 
-class DBConnection(object):
+class Model(object):
     '''
     This class acts as a divider between the Oracle back-end and the application. In order to pull information
     from the Oracle DB, this class MUST be called.
@@ -88,7 +86,7 @@ def object_to_json(obj, recoverable=False):
     
 
 if __name__ == '__main__':
-    conn = DBConnection()
+    conn = Model()
     first_orf_for_first_go_term_for_bioentity_with_name = lambda session: conn.getByName(session, Bioentity, 'AAH1')[0].go_terms[0].orfs[0]
     json1 = conn.execute(first_orf_for_first_go_term_for_bioentity_with_name)
     first_orf_for_first_go_term_for_bioentity_with_name2 = lambda session: conn.getByName(session, Bioentity, 'AAH1')[0].go_terms[0].orfs[0]
