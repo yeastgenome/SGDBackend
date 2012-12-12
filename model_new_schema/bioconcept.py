@@ -3,9 +3,14 @@ Created on Nov 28, 2012
 
 @author: kpaskov
 '''
-from model_new_schema import Base, plural_to_singular, subclasses, \
+from model_new_schema import Base, subclasses, \
     CommonEqualityMixin
-from sqlalchemy.schema import Column, ForeignKey, Table
+from model_new_schema.evidence import Evidence, bioent_biocon_evidence_map
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
   
 
@@ -19,6 +24,13 @@ class Bioconcept(Base, CommonEqualityMixin):
     __mapper_args__ = {'polymorphic_on': type,
                        'polymorphic_identity':"BIOCONCEPT"}
     
+    bioent_biocons = relationship('BioentBiocon', collection_class=attribute_mapped_collection('bioentity'))
+    bioentity_evidence = association_proxy('bioent_biocons', 'evidences')
+    
+    @hybrid_property
+    def bioentity(self):
+        return self.bioentity_evidence.keys()
+        
     def __init__(self, source_bioent, sink_bioent):
         self.source_bioent = source_bioent
         self.sink_bioent = sink_bioent
@@ -28,31 +40,26 @@ class Bioconcept(Base, CommonEqualityMixin):
         return '%s(id=%s, name=%s)' % data
     
     def __getattr__(self, name):
-        singular_name = plural_to_singular(name).upper()
-        return self.__get_objects_for_subclass__(singular_name)
+        if name.endswith('_evidence'):
+            name = name[:-9].upper()
+            evidence = True
+        else:
+            name = name.upper()
+            evidence = False;
 
-    def __get_objects_for_subclass__(self, subclass_name):
+        return self.__get_objects_for_subclass__(name, evidence)
+
+    def __get_objects_for_subclass__(self, subclass_name, evidence=False):
         from bioentity_declarative import Bioentity
         if subclass_name in subclasses(Bioentity):
-            return filter(lambda x: x.type == subclass_name, self.bioentities)
+            if evidence:
+                return dict((k, v) for k, v in self.bioentity_evidence.iteritems() if k.type == subclass_name)
+            else:
+                return filter(lambda x: x.type == subclass_name, self.bioentity)
         raise AttributeError()
     
-    def serialize(self, full=True):
-        serialized_obj = dict(self.__dict__)
-        
-        if full:
-            from bioentity_declarative import Bioentity
-            for subclass_name in subclasses(Bioentity):
-                serialized_obj[subclass_name] = map(lambda x: x.serialize(full=False), self.__get_objects_for_subclass__(subclass_name))
-        else:
-            to_remove = ['_sa_instance_state', 'bioentities']
-            for key in to_remove:
-                if key in serialized_obj:
-                    del serialized_obj[key]
-        return serialized_obj
-    
-class Metagene(Bioconcept):
-    __mapper_args__ = {'polymorphic_identity': "METAGENE"}
+class Locus(Bioconcept):
+    __mapper_args__ = {'polymorphic_identity': "LOCUS"}
     
 class Strain(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "STRAIN"}
@@ -66,8 +73,17 @@ class Phenotype(Bioconcept):
 class Function(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "FUNCTION"}
 
-bioent_biocon_map = Table('bioent_biocon', Base.metadata,
-    Column('bioent_id', Integer, ForeignKey('bioent.bioent_id')),
-    Column('biocon_id', Integer, ForeignKey('biocon.biocon_id'))
-)
+class BioentBiocon(Base):
+    __tablename__ = 'bioent_biocon'
+    __table_args__ = {'extend_existing':True}
+    
+    bioent_biocon_id = Column('bioent_biocon_id', Integer, primary_key=True)
+    bioent_id = Column('bioent_id', Integer, ForeignKey('bioent.bioent_id'))
+    biocon_id = Column('biocon_id', Integer, ForeignKey('biocon.biocon_id'))
+    
+    bioconcept = relationship('Bioconcept', uselist=False)
+    bioentity = relationship('Bioentity', uselist=False)
+    evidences = relationship(Evidence, secondary=bioent_biocon_evidence_map)
+
+
     

@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+	
+	<head>
+			<script src="../static/js/AC_OETags.min.js"></script>
+			<script src="../static/js/json2.min.js"></script>
+			<script src="../static/js/cytoscapeweb.min.js"></script>
+			<script src="../static/js/jquery-1.7.2.min.js"></script> 
+    		<script src="../static/js/bootstrap.js"></script>
+			<p><p><h1>Graph: {{ graph }}</h1>
+        </head>
+        
+    <body>
+        <div id="cytoscapeweb">
+            Cytoscape Web will replace the contents of this div with your graph. 
+        </div>
+    </body>
+    
+    
+    
+    <script type="text/javascript">
+
+            window.onload=function() {
+            	var getUrl = 'http://0.0.0.0:5000/gene_id=1';
+                var data;
+    			$.getJSON(getUrl, function(json) {
+        			var data = json;
+				}); 
+				
+            
+            	
+                // id of Cytoscape Web container div
+                var div_id = "cytoscapeweb";
+                
+                // you could also use other formats (e.g. GraphML) or grab the network data via AJAX
+                var networ_json = '\
+                <graphml>\
+                	<key id="label" for="all" attr.name="label" attr.type="string"/>\
+                	<graph edgedefault=directed>\
+                		<node id=1>\
+                			<data key="label">ACT1</data>\
+                		</node>\
+                		<node id=2>\
+                			<data key="label">AAH1</data>\
+                		</node>\
+                		<edge source=1 target=2>\
+                			<data key="label">Edge</data>\
+                		</edge>\
+                		<node id=3>\
+                			<data key="label">ABF2</data>\
+                		</node>\
+                		<edge source=1 target=3>\
+                			<data key="label">Edge</data>\
+                		</edge>\
+                		<node id=4>\
+                			<data key="label">ABP1</data>\
+                		</node>\
+                		<edge source=1 target=4>\
+                			<data key="label">Edge</data>\
+                		</edge>\
+                		<node id=5>\
+                			<data key="label">ABP140</data>\
+                		</node>\
+                		<edge source=1 target=5>\
+                			<data key="label">Edge</data>\
+                		</edge>\
+                		<node id=6>\
+                			<data key="label">ACD1</data>\
+                		</node>\
+                		<edge source=1 target=6>\
+                			<data key="label">Edge</data>\
+                		</edge>\
+                	</graph>\
+                </graphml>\
+                ';
+                
+                // initialization options
+                var options = {
+                    // where you have the Cytoscape Web SWF
+                    swfPath: "../static/js/CytoscapeWeb",
+                    // where you have the Flash installer SWF
+                    flashInstallerPath: "/swf/playerProductInstall"
+                };
+                
+                // init and draw
+                var vis = new org.cytoscapeweb.Visualization(div_id, options);
+                vis.draw({ network: networ_json });
+            };
+        </script>
+        
+        <style>
+            /* The Cytoscape Web container must have its dimensions set. */
+            html, body { height: 100%; width: 100%; padding: 0; margin: 0; }
+            #cytoscapeweb { width: 100%; height: 100%; }
+        </style>
+            
+    
+    
+    
+    
+</html>

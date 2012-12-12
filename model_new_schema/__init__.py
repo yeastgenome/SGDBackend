@@ -1,22 +1,17 @@
+from model_new_schema.config import DBUSER, DBTYPE, DBPASS, DBHOST, DBNAME
+from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
 
 
 Base = declarative_base()
 metadata = MetaData()
+engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+
+current_user = DBUSER
 
 def subclasses(cls):
     return map(lambda x: x.__mapper_args__['polymorphic_identity'], cls.__subclasses__())
-
-def plural_to_singular(plural):
-    if plural.endswith('ies'):
-        return plural[:-3] + 'y'
-    elif plural.endswith('es'):
-        return plural[:-2]
-    elif plural.endswith('s'):
-        return plural[:-1]
-    else:
-        return plural
     
 class CommonEqualityMixin(object):
     def __eq__(self, other):
