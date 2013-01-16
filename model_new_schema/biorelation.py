@@ -3,31 +3,47 @@ Created on Nov 27, 2012
 
 @author: kpaskov
 '''
-from model_new_schema import Base, CommonEqualityMixin
+from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
+from model_new_schema.config import SCHEMA
 from model_new_schema.evidence import Evidence, biorel_evidence_map
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String
+from sqlalchemy.types import Integer, String, Date
+import datetime
   
-class Biorelation(Base, CommonEqualityMixin):
+class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = "biorel"
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
     
     id = Column('biorel_id', Integer, primary_key = True)
-    type = Column('biorel_type', String)
-    source_bioent_id = Column('bioent_id1', Integer, ForeignKey('bioent.bioent_id'))
-    sink_bioent_id = Column('bioent_id2', Integer, ForeignKey('bioent.bioent_id'))
+    biorel_type = Column('biorel_type', String)
+    source_bioent_id = Column('bioent_id1', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    sink_bioent_id = Column('bioent_id2', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
     
+    #Relationships
     source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id")
     sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id")
     
     evidences = relationship(Evidence, secondary=biorel_evidence_map)
-
-    __mapper_args__ = {'polymorphic_on': type,
+    
+    __mapper_args__ = {'polymorphic_on': biorel_type,
                        'polymorphic_identity':"BIORELATION"}
     
-    def __init__(self, source_bioent, sink_bioent):
+    @classmethod
+    def unique_hash(cls, biorel_type, source_bioent_id, sink_bioent_id):
+        return '%s_%s_%s' % (biorel_type, source_bioent_id, sink_bioent_id) 
+
+    @classmethod
+    def unique_filter(cls, query, biorel_type, source_bioent_id, sink_bioent_id):
+        return query.filter(Biorelation.biorel_type == biorel_type, Biorelation.source_bioent_id == source_bioent_id, Biorelation.sink_bioent_id == sink_bioent_id)
+    
+    def __init__(self, session, source_bioent, sink_bioent):
         self.source_bioent = source_bioent
         self.sink_bioent = sink_bioent
+        self.created_by = session.user
+        self.date_created = datetime.datetime.now()
     
     def __repr__(self):
         data = self.__class__.__name__, self.id, self.source_bioent.name, self.sink_bioent.name
@@ -44,6 +60,6 @@ class Homology(Biorelation):
     
 class Structural(Biorelation):
     __mapper_args__ = {'polymorphic_identity': "STRUCTURAL"}
-    
+
 class ProteinBiosynthesis(Biorelation):
     __mapper_args__ = {'polymorphic_identity': "PROTEIN_BIOSYNTHESIS"}

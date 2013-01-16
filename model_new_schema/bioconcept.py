@@ -3,37 +3,51 @@ Created on Nov 28, 2012
 
 @author: kpaskov
 '''
-from model_new_schema import Base, subclasses, \
-    CommonEqualityMixin
+from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, subclasses
+from model_new_schema.config import SCHEMA
 from model_new_schema.evidence import Evidence, bioent_biocon_evidence_map
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String
+from sqlalchemy.types import Integer, String, Date
+import datetime
   
 
-class Bioconcept(Base, CommonEqualityMixin):
+class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = "biocon"
-    
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+        
     id = Column('biocon_id', Integer, primary_key = True)
-    type = Column('biocon_type', String)
+    biocon_type = Column('biocon_type', String)
     name = Column('name', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
     
-    __mapper_args__ = {'polymorphic_on': type,
+    __mapper_args__ = {'polymorphic_on': biocon_type,
                        'polymorphic_identity':"BIOCONCEPT"}
-    
+ 
     bioent_biocons = relationship('BioentBiocon', collection_class=attribute_mapped_collection('bioentity'))
     bioentity_evidence = association_proxy('bioent_biocons', 'evidences')
     
     @hybrid_property
     def bioentity(self):
         return self.bioentity_evidence.keys()
+    
+    @classmethod
+    def unique_hash(cls, biocon_type, name):
+        return '%s_%s' % (biocon_type, name) 
+
+    @classmethod
+    def unique_filter(cls, query, biocon_type, name):
+        return query.filter(Bioconcept.biocon_type == biocon_type, Bioconcept.name == name)
         
-    def __init__(self, source_bioent, sink_bioent):
+    def __init__(self, session, source_bioent, sink_bioent):
         self.source_bioent = source_bioent
         self.sink_bioent = sink_bioent
+        self.created_by = session.user
+        self.date_created = datetime.datetime.now()
     
     def __repr__(self):
         data = self.__class__.__name__, self.id, self.name
@@ -53,20 +67,20 @@ class Bioconcept(Base, CommonEqualityMixin):
         from bioentity_declarative import Bioentity
         if subclass_name in subclasses(Bioentity):
             if evidence:
-                return dict((k, v) for k, v in self.bioentity_evidence.iteritems() if k.type == subclass_name)
+                return dict((k, v) for k, v in self.bioentity_evidence.iteritems() if k.bioent_type == subclass_name)
             else:
-                return filter(lambda x: x.type == subclass_name, self.bioentity)
+                return filter(lambda x: x.bioent_type == subclass_name, self.bioentity)
         raise AttributeError()
     
 class Locus(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "LOCUS"}
-    
+
 class Strain(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "STRAIN"}
     
 class GOTerm(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "GO_TERM"}
-    
+
 class Phenotype(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE"}
     
@@ -75,11 +89,11 @@ class Function(Bioconcept):
 
 class BioentBiocon(Base):
     __tablename__ = 'bioent_biocon'
-    __table_args__ = {'extend_existing':True}
-    
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+
     bioent_biocon_id = Column('bioent_biocon_id', Integer, primary_key=True)
-    bioent_id = Column('bioent_id', Integer, ForeignKey('bioent.bioent_id'))
-    biocon_id = Column('biocon_id', Integer, ForeignKey('biocon.biocon_id'))
+    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
     
     bioconcept = relationship('Bioconcept', uselist=False)
     bioentity = relationship('Bioentity', uselist=False)
