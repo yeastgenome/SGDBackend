@@ -1,14 +1,14 @@
 
 from model_old_schema.model import Model, get_first, get, count
-from model_old_schema.config import DBUSER, DBPASS
 from unittest.suite import TestSuite
+from webapp.config import DBTYPE, DBHOST, DBNAME, SCHEMA
 import unittest
 
 
 class ModelCreationMixin(unittest.TestCase):
     def setUp(self):
-        self.model = Model()
-        self.model.connect(DBUSER, DBPASS)
+        self.model = Model(DBTYPE, DBHOST, DBNAME, SCHEMA)
+        #self.model.connect(DBUSER, DBPASS)
 
 class TestConnection(ModelCreationMixin):
     

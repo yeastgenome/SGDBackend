@@ -5,7 +5,7 @@ Created on Dec 5, 2012
 '''
 from model_new_schema import subclasses
 from model_new_schema.bioconcept import Bioconcept
-from model_new_schema.bioentity_declarative import Bioentity
+from model_new_schema.bioentity import Bioentity
 from model_new_schema.biorelation import Biorelation
 import json
 import jsonpickle

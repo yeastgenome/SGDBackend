@@ -5,7 +5,7 @@ Created on Dec 11, 2012
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column, ForeignKey, Table
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 import datetime
 
@@ -13,8 +13,8 @@ class Evidence(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = "evidence"
     
     id = Column('evidence_id', Integer, primary_key=True)
-    experiment_id = Column('experiment_id', Integer, ForeignKey('experiment.experiment_id'))
-    reference_id = Column('reference_id', Integer, ForeignKey('reference.reference_id'))
+    experiment_id = Column('experiment_id', Integer, ForeignKey('sprout.experiment.experiment_id'))
+    reference_id = Column('reference_id', Integer, ForeignKey('sprout.reference.reference_id'))
     evidence_type = Column('evidence_type', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
@@ -146,15 +146,6 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     def __repr__(self):
         data = self.__class__.__name__, self.id
         return '%s(id=%s)' % data
-    
-bioent_biocon_evidence_map = Table('bioent_biocon_evidence', Base.metadata,
-    Column('bioent_biocon_id', Integer, ForeignKey('bioent_biocon.bioent_biocon_id')),
-    Column('evidence_id', Integer, ForeignKey('evidence.evidence_id'))
-)
-biorel_evidence_map = Table('biorel_evidence', Base.metadata,
-    Column('biorel_id', Integer, ForeignKey('biorel.biorel_id')),
-    Column('evidence_id', Integer, ForeignKey('evidence.evidence_id'))
-)
 
     
     

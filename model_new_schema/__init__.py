@@ -1,6 +1,9 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
 
+def subclasses(cls):
+    return map(lambda x: x.__mapper_args__['polymorphic_identity'], cls.__subclasses__())
+
 class EqualityByIDMixin(object):
     def __eq__(self, other):
         if type(other) is type(self):
@@ -44,21 +47,15 @@ class UniqueMixin(object):
     @classmethod
     def as_unique(cls, session, *arg, **kw):
         return _unique(
-                    session,
                     cls,
                     cls.unique_hash,
                     cls.unique_filter,
                     cls,
-                    arg, kw
+                    arg, 
+                    kw,
+                    session=session
                )
-    
-def subclasses(cls):
-    return map(lambda x: x.__mapper_args__['polymorphic_identity'], cls.__subclasses__())
-  
-    
-class Base(object):
-    __table_args__ = {'extend_existing':True}
 
-Base = declarative_base(cls=Base)
-
-metadata = Base.metadata
+SCHEMA = None  
+Base = None
+metadata = None

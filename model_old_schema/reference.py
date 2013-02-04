@@ -6,10 +6,9 @@ Created on Nov 7, 2012
 These classes are populated using SQLAlchemy to connect to the BUD schema on Fasolt. These are the classes representing tables in the
 Reference module of the database schema.
 '''
-from model_old_schema import Base, EqualityByIDMixin, UniqueMixin
-from model_old_schema.config import SCHEMA
+from model_old_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
 from model_old_schema.feature import Feature
-from queries.pubmed import get_medline_data, MedlineJournal
+from model_old_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -94,7 +93,8 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
         self.journal = Journal.as_unique(session, abbreviation=pubmed.journal_abbrev)
         
         #Add the abstract.
-        self.abst = Abstract.as_unique(session, reference_id = self.id, text = pubmed.abstract_txt)
+        if pubmed.abstract_txt is not None and not pubmed.abstract_txt == "": 
+            self.abst = Abstract.as_unique(session, reference_id = self.id, text = pubmed.abstract_txt)
                 
         #Add the authors.
         order = 0

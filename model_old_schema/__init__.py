@@ -1,4 +1,3 @@
-from model_old_schema.config import SCHEMA
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
 
@@ -52,10 +51,7 @@ class UniqueMixin(object):
                     cls,
                     arg, kw
                )
-    
-class Base(object):
-    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
 
-Base = declarative_base(cls=Base)
-
-metadata = Base.metadata
+SCHEMA = None  
+Base = None
+metadata = None

@@ -5,16 +5,15 @@ Created on Nov 28, 2012
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, subclasses
 from model_new_schema.config import SCHEMA
-from model_new_schema.evidence import Evidence, bioent_biocon_evidence_map
+from model_new_schema.mappers import BioentBiocon
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, String, Date
 import datetime
-  
-
+    
 class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = "biocon"
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
@@ -28,7 +27,7 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     __mapper_args__ = {'polymorphic_on': biocon_type,
                        'polymorphic_identity':"BIOCONCEPT"}
  
-    bioent_biocons = relationship('BioentBiocon', collection_class=attribute_mapped_collection('bioentity'))
+    bioent_biocons = relationship(BioentBiocon, collection_class=attribute_mapped_collection('bioentity'), backref=backref('bioconcept', uselist=False))
     bioentity_evidence = association_proxy('bioent_biocons', 'evidences')
     
     @hybrid_property
@@ -64,14 +63,14 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
         return self.__get_objects_for_subclass__(name, evidence)
 
     def __get_objects_for_subclass__(self, subclass_name, evidence=False):
-        from bioentity_declarative import Bioentity
+        from model_new_schema.bioentity import Bioentity
         if subclass_name in subclasses(Bioentity):
             if evidence:
                 return dict((k, v) for k, v in self.bioentity_evidence.iteritems() if k.bioent_type == subclass_name)
             else:
                 return filter(lambda x: x.bioent_type == subclass_name, self.bioentity)
         raise AttributeError()
-    
+
 class Locus(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "LOCUS"}
 
@@ -86,18 +85,6 @@ class Phenotype(Bioconcept):
     
 class Function(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "FUNCTION"}
-
-class BioentBiocon(Base):
-    __tablename__ = 'bioent_biocon'
-    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
-
-    bioent_biocon_id = Column('bioent_biocon_id', Integer, primary_key=True)
-    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
-    biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
-    
-    bioconcept = relationship('Bioconcept', uselist=False)
-    bioentity = relationship('Bioentity', uselist=False)
-    evidences = relationship(Evidence, secondary=bioent_biocon_evidence_map)
 
 
     
