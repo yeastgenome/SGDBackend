@@ -84,6 +84,15 @@ def get(model, session=None, **kwargs):
         return session.query(model).filter_by(**kwargs).all()
     
     return f if session is None else f(session)
+
+def get_filter(model, *args, **kwargs):
+    session=None
+    if 'session' in kwargs:
+        session = kwargs['session']
+        
+    def f(session):
+        return session.query(model).filter(*args).all()
+    return f if session is None else f(session)
     
 def get_first(model, session=None, **kwargs):
     def f(session):

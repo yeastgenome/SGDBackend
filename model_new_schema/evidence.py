@@ -3,19 +3,21 @@ Created on Dec 11, 2012
 
 @author: kpaskov
 '''
-from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
+from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema.reference import Reference
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 import datetime
 
-class Evidence(Base, EqualityByIDMixin, UniqueMixin):
+class Evidence(Base, EqualityByIDMixin):
     __tablename__ = "evidence"
     
     id = Column('evidence_id', Integer, primary_key=True)
-    experiment_id = Column('experiment_id', Integer, ForeignKey('sprout.experiment.experiment_id'))
-    reference_id = Column('reference_id', Integer, ForeignKey('sprout.reference.reference_id'))
+    experiment_type = Column('experiment_type', String)
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     evidence_type = Column('evidence_type', String)
+    strain_id = Column('strain_id', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
@@ -23,23 +25,21 @@ class Evidence(Base, EqualityByIDMixin, UniqueMixin):
                        'polymorphic_identity':"EVIDENCE"}
     
     #Relationships
-    experiment = relationship('Experiment')
     reference = relationship('Reference')
     
-    @classmethod
-    def unique_hash(cls, evidence_type, experiment_id, reference_id):
-        return '%s_%s_%s' % (experiment_id, reference_id, type) 
-
-    @classmethod
-    def unique_filter(cls, query, evidence_type, experiment_id, reference_id):
-        return query.filter(Evidence.evidence_type == evidence_type, Evidence.experiment_id == experiment_id, Evidence.reference_id == reference_id)
-
-    
-    def __init__(self, session, experiment, reference):
-        self.experiment = experiment
-        self.reference = reference
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
+    def __init__(self, experiment_type, reference_id, evidence_type, strain_id, session=None, evidence_id=None, date_created=None, created_by=None):
+        self.experiment_type = experiment_type
+        self.experiment_type = experiment_type
+        self.evidence_type = evidence_type
+        self.strain_id = strain_id
+        
+        if session is None:
+            self.id = evidence_id
+            self.date_created = date_created
+            self.created_by = created_by
+        else:
+            self.created_by = session.user
+            self.date_created = datetime.datetime.now()
     
     def __repr__(self):
         data = self.__class__.__name__, self.id
@@ -53,99 +53,59 @@ class Interevidence(Evidence):
     observable = Column('observable', String)
     qualifier = Column('qualifier', String)
     note = Column('note', String)
+    annotation_type = Column('annotation_type', String)
+    modification = Column('modification', String)
+    direction = Column('direction', String)
+    interaction_type = Column('interaction_type', String)
     
-    __mapper_args__ = {'polymorphic_identity': "INTEREVIDENCE"}
+    __mapper_args__ = {'polymorphic_identity': "INTERACTION_EVIDENCE"}
 
     
-    def __init__(self, experiment, reference, source, observable, qualifier, note):
-        super(Evidence, self).__init__(experiment, reference)
+    def __init__(self, experiment_type, reference_id, strain_id, direction, annotation_type, modification, source, observable, qualifier, note, interaction_type, session=None, evidence_id=None, date_created=None, created_by=None):
+        Evidence.__init__(self, experiment_type, reference_id, 'INTERACTION_EVIDENCE', strain_id, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
+        self.direction = direction
+        self.annotation_type = annotation_type
+        self.modification = modification
         self.source = source
         self.observable = observable
         self.qualifier = qualifier
         self.note = note
+        self.interaction_type = interaction_type
         
-class Experiment(Base, EqualityByIDMixin, UniqueMixin):
-    __tablename__ = "experiment"
+class Phenoevidence(Evidence):
+    __tablename__ = "phenoevidence"
     
-    id = Column('experiment_id', Integer, primary_key=True)
-    experiment_type = Column('experiment_type', String)
-    scale = Column('scale', String)
-    modification = Column('modification', String)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
-    
-    
-    @classmethod
-    def unique_hash(cls, experiment_type, scale, modification):
-        return '%s_%s_%s' % (experiment_type, scale, modification) 
-
-    @classmethod
-    def unique_filter(cls, query, experiment_type, scale, modification):
-        return query.filter(Experiment.experiment_type == experiment_type, Experiment.scale == scale, Experiment.modification == modification)
-        
-    def __init__(self, session, exp_type, scale, modification):
-        self.type = exp_type
-        self.scale = scale
-        self.modification = modification
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
-    
-    def __repr__(self):
-        data = self.__class__.__name__, self.id
-        return '%s(id=%s)' % data
-    
-class Reference(Base, EqualityByIDMixin, UniqueMixin):
-    __tablename__ = "reference"
-    
-    id = Column('reference_id', Integer, primary_key=True)
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    mutant_type = Column('mutant_type', String)
     source = Column('source', String)
-    status = Column('status', String)
-    pdf_status = Column('pdf_status', String)
-    dbxref_id = Column('dbxref_id', String)
-    citation = Column('citation', String)
-    year = Column('year', Integer)
-    pubmed_id = Column('pubmed', Integer)
-    date_published = Column('date_published', String)
-    date_revised = Column('date_recised', Integer)
-    issue = Column('issue', String)
-    page = Column('page', String)
-    volume = Column('volume', String)
-    title = Column('title', String)
-    journal_id = Column('journal_id', Integer)
-    book_id = Column('book_id', Integer)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
+    experiment_comment = Column('experiment_comment', String)
     
-    def __init__(self, session, source, status, pdf_status, dbxref_id, citation, year, pubmed_id, date_published, date_revised, issue, page, volume, title, journal_id, book_id):
+    #Relationship
+    properties = relationship('PhenoevidenceProperty')
+    
+    __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE"}
+
+    
+    def __init__(self, experiment_type, reference_id, strain_id, mutant_type, source, experiment_comment, session=None, evidence_id=None, date_created=None, created_by=None):
+        Evidence.__init__(self, experiment_type, reference_id, 'PHENOTYPE_EVIDENCE', strain_id, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
+        self.mutant_type = mutant_type
         self.source = source
-        self.status = status
-        self.pdf_status = pdf_status
-        self.dbxref_id = dbxref_id
-        self.citation = citation
-        self.year = year
-        self.pubmed_id = pubmed_id
-        self.date_published = date_published
-        self.date_revised = date_revised
-        self.issue = issue
-        self.page = page
-        self.volume = volume
-        self.title = title
-        self.journal_id = journal_id
-        self.book_id = book_id
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
+        self.experiment_comment = experiment_comment
         
-    @classmethod
-    def unique_hash(cls, pubmed_id):
-        return pubmed_id
-
-    @classmethod
-    def unique_filter(cls, query, pubmed_id):
-        return query.filter(Reference.pubmed_id == pubmed_id)
-        
-    def __repr__(self):
-        data = self.__class__.__name__, self.id
-        return '%s(id=%s)' % data
-
+class PhenoevidenceProperty(Base, EqualityByIDMixin):
+    __tablename__ = 'phenoevidence_property'
     
+    evidence_id = Column('evidence_id', Integer, ForeignKey('sprout.phenoevidence.evidence_id'), primary_key = True)
+    type = Column('property_type', String)
+    value = Column('property_value', String)
+    description = Column('property_description', String)
+    
+    def __init__(self, property_type, value, description, session=None, evidence_id=None):
+        self.type = property_type
+        self.value = value
+        self.description = description
+        
+        if session is None:
+            self.evidence_id = evidence_id
+        
     

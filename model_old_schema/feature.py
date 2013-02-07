@@ -49,6 +49,9 @@ class Feature(Base, EqualityByIDMixin):
                            Table('feat_alias', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
     alias_names = association_proxy('aliases', 'name')
     
+    phenotypes = relationship('Phenotype_Feature', lazy='joined')
+    
+    
     def __repr__(self):
         data = self.name, self.gene_name
         return 'Feature(name=%s, gene_name=%s)' % data    
@@ -67,4 +70,6 @@ class Annotation(Base, EqualityByIDMixin):
     def __repr__(self):
         data = self.headline, self.qualifier
         return 'Annotation(headline=%s, qualifier=%s)' % data
+    
+
 

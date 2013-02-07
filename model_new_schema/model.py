@@ -99,6 +99,12 @@ def count(model, session=None, **kwargs):
     
     return f if session is None else f(session)
 
+def exists(model, session=None, **kwargs):
+    def f(session):
+        return count(model, session, **kwargs) > 0
+    
+    return f if session is None else f(session)
+
 def add(obj, session=None):
     def f(session):
         session.add(obj)

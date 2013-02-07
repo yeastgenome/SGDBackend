@@ -52,15 +52,20 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     
     features = relationship(Feature, secondary= Table('ref_curation', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
     
-    author_references = relationship('AuthorReference', cascade='all,delete',
+    author_references = relationship('AuthorReference', cascade='all,delete', lazy='joined', 
                              backref=backref('reference'),
                             collection_class=attribute_mapped_collection('order'))
     
     authorNames = association_proxy('author_references', 'author_name')
     authors = association_proxy('author_references', 'author', 
                                 creator=lambda k, v: AuthorReference(session=None, author=v, order=k, ar_type='Author'))
-    refTypes = relationship("RefType", cascade='all,delete', secondary= Table('ref_reftype', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
-    refTypeNames = association_proxy('refTypes', 'name')
+    
+    reftype_references = relationship('RefReftype', cascade='all,delete', lazy='joined',
+                            collection_class=attribute_mapped_collection('id'))
+    
+    reftypeNames = association_proxy('reftype_references', 'reftype_name')
+    reftypes = association_proxy('reftype_references', 'reftype', 
+                                creator=lambda k, v: RefReftype(session=None, ref_reftype_id=k, reftype=v))
     
     litGuides = relationship("LitGuide", cascade='all,delete')
     litGuideTopics = association_proxy('litGuides', 'topic')
@@ -127,7 +132,7 @@ class Book(Base, EqualityByIDMixin):
     isbn = Column('isbn', String)
     total_pages = Column('total_pages', Integer)
     publisher = Column('publisher', String)
-    publisher_location = Column('publisher_location', Integer)
+    publisher_location = Column('publisher_location', String)
 
     def __repr__(self):
         data = self.title, self.total_pages, self.publisher
@@ -277,7 +282,7 @@ class AuthorReference(Base, EqualityByIDMixin, UniqueMixin):
     def unique_filter(cls, query, author, reference_id, order, ar_type):
         return query.filter(AuthorReference.order == order, AuthorReference.author == author, AuthorReference.ar_type == ar_type)
     
-    author = relationship('Author') 
+    author = relationship('Author', lazy='joined') 
     author_name = association_proxy('author', 'name')
     
 class Abstract(Base, EqualityByIDMixin, UniqueMixin):
@@ -401,3 +406,25 @@ class RefCuration(Base, EqualityByIDMixin, UniqueMixin):
             data = self.task, self.comment
             return 'RefCuration(task=%s, feature=None, comment=%s)' % data 
     
+class RefReftype(Base, EqualityByIDMixin, UniqueMixin):
+    __tablename__ = 'ref_reftype'
+    
+    id = Column('ref_reftype_no', Integer, primary_key = True)
+    reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
+    reftype_id = Column('ref_type_no', Integer, ForeignKey('bud.ref_type.ref_type_no'))
+        
+    def __init__(self, session=None, ref_reftype_id=None, reftype=None):
+        if session is None:
+            self.id = ref_reftype_id
+            self.reftype = reftype
+        
+    @classmethod
+    def unique_hash(cls, reference_id, reftype_id):
+        return '%s_%s_%s_%s' % (reference_id, reftype_id)  
+
+    @classmethod
+    def unique_filter(cls, query, reference_id, reftype_id):
+        return query.filter(RefReftype.reference_id == reference_id, RefReftype.reftype_id == reftype_id)
+    
+    reftype = relationship('RefType', lazy='joined') 
+    reftype_name = association_proxy('reftype', 'name')

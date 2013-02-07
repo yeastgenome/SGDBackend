@@ -22,12 +22,13 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     created_by = Column('created_by', String)
     
     #Relationships
-    #source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id")
-    #sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id")
+    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id")
+    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id")
         
-    evidences = relationship(Evidence, secondary= Table('sprout.biorel_evidence', Base.metadata,
+    evidences = relationship(Evidence, secondary= Table('biorel_evidence', Base.metadata, 
                                                         Column('biorel_id', Integer, ForeignKey('sprout.biorel.biorel_id')),
-                                                        Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id'))))
+                                                        Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id')),
+                                                        schema=SCHEMA), lazy='joined')
     
     __mapper_args__ = {'polymorphic_on': biorel_type,
                        'polymorphic_identity':"BIORELATION"}
@@ -40,11 +41,18 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     def unique_filter(cls, query, biorel_type, source_bioent_id, sink_bioent_id):
         return query.filter(Biorelation.biorel_type == biorel_type, Biorelation.source_bioent_id == source_bioent_id, Biorelation.sink_bioent_id == sink_bioent_id)
     
-    def __init__(self, session, source_bioent, sink_bioent):
-        self.source_bioent = source_bioent
-        self.sink_bioent = sink_bioent
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
+    def __init__(self, biorel_type, source_bioent_id, sink_bioent_id, session=None, biorel_id=None, created_by=None, date_created=None):
+        self.source_bioent_id = source_bioent_id
+        self.sink_bioent_id = sink_bioent_id
+        self.biorel_type = biorel_type
+        
+        if session is None:
+            self.created_by = created_by
+            self.date_created = date_created
+            self.id = biorel_id
+        else:
+            self.created_by = session.user
+            self.date_created = datetime.datetime.now()
     
     def __repr__(self):
         data = self.__class__.__name__, self.id, self.source_bioent.name, self.sink_bioent.name
@@ -64,5 +72,6 @@ class Structural(Biorelation):
 
 class ProteinBiosynthesis(Biorelation):
     __mapper_args__ = {'polymorphic_identity': "PROTEIN_BIOSYNTHESIS"}
+    
 
 

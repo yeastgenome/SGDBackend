@@ -8,11 +8,11 @@ will eventually be the Bioentity classes/tables in the new SGD website schema. T
 schema on fasolt.
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
-from model_new_schema.bioconcept import Bioconcept, BioentBiocon
+from model_new_schema.bioconcept import BioentBiocon
 from model_new_schema.biorelation import Biorelation
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.sql.expression import distinct
@@ -38,13 +38,9 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     biorel_source = relationship(Biorelation, primaryjoin=Biorelation.sink_bioent_id==id)
     biorel_sink = relationship(Biorelation, primaryjoin=Biorelation.source_bioent_id==id)
     
-    #locus = relationship(Bioconcept, primaryjoin='Bioconcept.id==Bioentity.locus_id')
-    #strain = relationship(Bioconcept, primaryjoin='Bioconcept.id==Bioentity.strain_id')
-
-    bioconcepts = relationship(Bioconcept, backref='bioentities', secondary= BioentBiocon.__table__)
-    
-    bioent_biocon = relationship(BioentBiocon, collection_class=attribute_mapped_collection('bioconcept'), backref=backref('bioentity', uselist=False))
-    bioconcept_evidence = association_proxy('bioent_biocon', 'evidences')
+    bioent_biocon = relationship(BioentBiocon, collection_class=attribute_mapped_collection('bioconcept'), lazy='subquery')
+    bioconcept_evidences = association_proxy('bioent_biocon', 'evidences', 
+                                             creator=lambda k, v: BioentBiocon(bioent_id=id, biocon_id=k.id, session=None, evidence=v))
     
     def __init__(self, name, bioent_type, dbxref, source, status, session=None, bioent_id=None, date_created=None, created_by=None):
         self.name = name
@@ -62,11 +58,11 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
             self.created_by = session.user
     
     @hybrid_property
-    def biorelation(self):
+    def biorelations(self):
         return self.biorel_source + self.biorel_sink
        
     @hybrid_property
-    def bioconcept(self):
+    def bioconcepts(self):
         return self.bioconcept_evidence.keys()
     
     @classmethod
@@ -79,28 +75,7 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     
     def __repr__(self):
         data = self.__class__.__name__, self.id, self.name, self.bioent_type
-        return '%s(id=%s, name=%s, bioent_type=%s)' % data
-    
-#    def __getattr__(self, name):
-#        if name.endswith('_evidence'):
-#            name = name[:-9].upper()
-#            evidence = True
-#        else:
-#            name = name.upper()
-#            evidence = False;
-#
-#        return self.__get_objects_for_subclass__(name, evidence)
-#    
-#    def __get_objects_for_subclass__(self, subclass_name, evidence=False):
-#        if subclass_name in subclasses(Biorelation):
-#            return filter(lambda x: x.biorel_type == subclass_name, self.biorelation)
-#        elif subclass_name in subclasses(Bioconcept):
-#            if evidence:
-#                return dict((k, v) for k, v in self.bioconcept_evidence.iteritems() if k.biocon_type == subclass_name)
-#            else:
-#                return filter(lambda x: x.biocon_type == subclass_name, self.bioconcept)
-#        raise AttributeError()
-                       
+        return '%s(id=%s, name=%s, bioent_type=%s)' % data                  
                        
 class Gene(Bioentity):
     __tablename__ = "gene"
