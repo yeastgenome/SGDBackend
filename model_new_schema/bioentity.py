@@ -131,5 +131,4 @@ def create_bioentity_subclasses(session=None):
                 type(bioent_type.capitalize(), (Bioentity,), {'__mapper_args__':{'polymorphic_identity': bioent_type, 'inherit_condition': id == Bioentity.id}})
     return f if session is None else f(session)
 
-
     

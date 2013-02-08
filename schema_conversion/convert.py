@@ -54,8 +54,9 @@ def convert():
     #convert_interactions_to_biorels(old_model, new_model, 1210000, 1220000)
     
     #continue from here
+    convert_interactions_to_biorels(old_model, new_model, 1220000, 1230000)
+#    convert_interactions_to_biorels(old_model, new_model, 1230000, 1240000)
 
-#    convert_interactions_to_biorels(old_model, new_model, 1220000, 1240000)
 #    convert_interactions_to_biorels(old_model, new_model, 1240000, 1260000)
 #    convert_interactions_to_biorels(old_model, new_model, 1260000, 1280000)
 #    convert_interactions_to_biorels(old_model, new_model, 1280000, 1300000)
@@ -63,10 +64,14 @@ def convert():
     
     #convert_phenotypes_to_bioconcepts(old_model, new_model, 0, 1000)
     #convert_phenotypes_to_bioconcepts(old_model, new_model, 1000, 5000)
+    #convert_phenotypes_to_bioconcepts(old_model, new_model, 5000, 20000)
+    #convert_phenotypes_to_bioconcepts(old_model, new_model, 20000, 40000)
+    
     #continue from here
-    #convert_phenotypes_to_bioconcepts(old_model, new_model, 1000, 92000)
+    #convert_phenotypes_to_bioconcepts(old_model, new_model, 40000, 60000)
+    #convert_phenotypes_to_bioconcepts(old_model, new_model, 60000, 92000)
 
-    convert_sequences_to_sequences(old_model, new_model)
+    #convert_sequences_to_sequences(old_model, new_model)
 
 def convert_features_to_bioents(old_model, new_model):
     print "Convert Features to Bioentities"
@@ -284,7 +289,7 @@ def convert_phenotypes_to_bioconcepts(old_model, new_model, min_id, max_id):
             time = new_time
    
 def convert_sequences_to_sequences(old_model, new_model):
-     
+    pass
     
 if __name__ == "__main__":
     convert()
