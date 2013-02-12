@@ -4,9 +4,8 @@ This is an experiment with Cytoscape web.
 
 """
 from flask import Flask, render_template
-from model_new_schema.bioentity_declarative import Bioentity
-from model_new_schema.db_connection import Model
-from sgd2.config import SECRET_KEY, HOST, PORT
+from model_new_schema.bioentity import Bioentity
+from model_new_schema.model import Model
 import json
 
 app = Flask(__name__)

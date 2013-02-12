@@ -47,20 +47,19 @@ def convert():
     #convert_interactions_to_biorels(old_model, new_model, 1165000, 1170000)
     #convert_interactions_to_biorels(old_model, new_model, 1170000, 1175000)
     #convert_interactions_to_biorels(old_model, new_model, 1175000, 1180000)
-    
     #convert_interactions_to_biorels(old_model, new_model, 1180000, 1190000)
     #convert_interactions_to_biorels(old_model, new_model, 1190000, 1200000)
     #convert_interactions_to_biorels(old_model, new_model, 1200000, 1210000)
     #convert_interactions_to_biorels(old_model, new_model, 1210000, 1220000)
-    
-    #continue from here
-    convert_interactions_to_biorels(old_model, new_model, 1220000, 1230000)
-#    convert_interactions_to_biorels(old_model, new_model, 1230000, 1240000)
-
-#    convert_interactions_to_biorels(old_model, new_model, 1240000, 1260000)
-#    convert_interactions_to_biorels(old_model, new_model, 1260000, 1280000)
-#    convert_interactions_to_biorels(old_model, new_model, 1280000, 1300000)
-#    convert_interactions_to_biorels(old_model, new_model, 1300000, 1500000)
+    #convert_interactions_to_biorels(old_model, new_model, 1220000, 1230000)
+    #convert_interactions_to_biorels(old_model, new_model, 1230000, 1240000)
+    #convert_interactions_to_biorels(old_model, new_model, 1240000, 1250000)
+    #convert_interactions_to_biorels(old_model, new_model, 1250000, 1260000)
+    #convert_interactions_to_biorels(old_model, new_model, 1260000, 1270000)
+    #convert_interactions_to_biorels(old_model, new_model, 1270000, 1280000)
+    #convert_interactions_to_biorels(old_model, new_model, 1280000, 1290000)
+    #convert_interactions_to_biorels(old_model, new_model, 1290000, 1300000)
+    #convert_interactions_to_biorels(old_model, new_model, 1300000, 1500000)
     
     #convert_phenotypes_to_bioconcepts(old_model, new_model, 0, 1000)
     #convert_phenotypes_to_bioconcepts(old_model, new_model, 1000, 5000)

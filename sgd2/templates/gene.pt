@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  
+<head>
+	<meta charset="utf-8">
+	<title>GAL4</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<link href="../static/css/bootstrap.css" rel="stylesheet">
+	<link href="../static/css/bootstrap-responsive.css" rel="stylesheet">
+	<link href="../static/css/docs.css" rel="stylesheet">
+
+
+</head>
+
+<body data-spy="scroll" data-target=".bs-docs-sidebar">
+
+<!-- Navbar
+================================================== -->
+<div class="navbar navbar-inverse navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container">
+			<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="brand" href="/">SGD2.0</a>
+			<div class="nav-collapse collapse">
+				<ul class="nav">
+					<li class="">
+						<a href="/">Home</a>
+					</li>
+					<li class="">
+						<a href="/my_sgd">My SGD</a>
+					</li>
+					<li class="">
+						<a href="/help">Help</a>
+					</li>
+					<li class="">
+						<a href="/about">About</a>
+					</li>
+				</ul>
+				<form class="navbar-search pull-right">
+					<input type="text" class="search-query" placeholder="Search">
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Subhead
+================================================== -->
+<header class="jumbotron subhead" id="overview">
+	<div class="container">
+		<h1>GAL4 <small>(YPL248C)</small></h1>
+		<p class="lead">
+			DNA-binding transcription factor required for the activation of the GAL genes in response to galactose; repressed by Gal80p and activated by Gal3p.
+		</p>
+	</div>
+</header>
+
+
+<div class="container">
+
+<!-- Docs nav
+================================================== -->
+<div class="row">
+	<div class="span3 bs-docs-sidebar">
+		<ul class="nav nav-list bs-docs-sidenav">
+			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
+			<li><a href="#history"><i class="icon-chevron-right"></i> History</a></li>
+          	<li><a href="#literature"><i class="icon-chevron-right"></i> Literature</a></li>
+          	<li><a href="#go"><i class="icon-chevron-right"></i> Gene Ontology</a></li>
+          	<li><a href="#phenotype"><i class="icon-chevron-right"></i> Phenotype</a></li>
+          	<li><a href="#interactions"><i class="icon-chevron-right"></i> Interactions</a></li>
+          	<li><a href="#expression"><i class="icon-chevron-right"></i> Expression</a></li>
+          	<li><a href="#protein"><i class="icon-chevron-right"></i> Protein</a></li>
+          	<li><a href="#wiki"><i class="icon-chevron-right"></i> Wiki</a></li>
+		</ul>
+	</div>
+	
+	<div class="span9">  
+
+<!-- Summary
+================================================== -->
+<section id="summary">
+	<div class="page-header">
+		<h1>Summary</h1>
+		<p>This is all of the summary information for this gene.</p>
+	</div>
+</section>
+
+<!-- History
+================================================== -->
+<section id="history">
+	<div class="page-header">
+		<h1>History</h1>
+		
+		<!-- Brief
+		========================================== -->
+		<p>This is the brief history information.</p>
+
+		<!-- In-depth
+		========================================== -->
+		<p class="collapse" id="viewdetails_history">
+           	This is the in-depth history information. </p>
+		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_history">View details &raquo;</a></p>
+        
+	</div>
+</section>
+
+
+<!-- Literature
+================================================== -->
+<section id="literature">
+	<div class="page-header">
+		<h1>Literature</h1>
+		
+		<!-- Brief
+		========================================== -->
+		<p>This is the brief literature information.</p>
+
+		<!-- In-depth
+		========================================== -->
+		<p class="collapse" id="viewdetails_literature">
+           	This is the in-depth literature information. </p>
+		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_literature">View details &raquo;</a></p>
+		
+	</div>
+</section>
+
+<!-- GO
+================================================== -->
+<section id="go">
+	<div class="page-header">
+		<h1>Gene Ontology</h1>
+		
+		<!-- Brief
+		========================================== -->
+		<p>This is the brief gene ontology information.</p>
+
+		<!-- In-depth
+		========================================== -->
+		<p class="collapse" id="viewdetails_go">
+           	This is the in-depth gene ontology information. </p>
+		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_go">View details &raquo;</a></p>
+		
+	</div>
+</section>
+
+<!-- Phenotype
+================================================== -->
+<section id="phenotype">
+	<div class="page-header">
+		<h1>Phenotype</h1>
+		
+		<!-- Brief
+		========================================== -->
+		<p>This is the brief phenotype information.</p>
+
+		<!-- In-depth
+		========================================== -->
+		<p class="collapse" id="viewdetails_phenotype">
+           	This is the in-depth phenotype information. </p>
+		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_phenotype">View details &raquo;</a></p>
+	
+	</div>
+</section>
+
+<!-- Interactions
+================================================== -->
+<section id="interactions">
+	<div class="page-header">
+		<h1>Interactions</h1>
+		
+		<!-- Brief
+		========================================== -->
+		<p>This is the brief interaction information.</p>
+
+		<!-- In-depth
+		========================================== -->
+		<p class="collapse" id="viewdetails_interactions">
+           	This is the in-depth interaction information. </p>
+		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_interactions">View details &raquo;</a></p>
+		
+	</div>
+</section>
+
+<!-- Expression
+================================================== -->
+<section id="expression">
+	<div class="page-header">
+		<h1>Expression</h1>
+		
+		<!-- Brief
+		========================================== -->
+		<p>This is the brief expression information.</p>
+
+		<!-- In-depth
+		========================================== -->
+		<p class="collapse" id="viewdetails_expression">
+           	This is the in-depth expression information. </p>
+		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_expression">View details &raquo;</a></p>
+		
+	</div>
+</section>
+
+<!-- Protein
+================================================== -->
+<section id="protein">
+	<div class="page-header">
+		<h1>Protein</h1>
+		
+		<!-- Brief
+		========================================== -->
+		<p>This is the brief protein information.</p>
+
+		<!-- In-depth
+		========================================== -->
+		<p class="collapse" id="viewdetails_protein">
+           	This is the in-depth protein information. </p>
+		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_protein">View details &raquo;</a></p>
+		
+	</div>
+</section>
+
+<!-- Wiki
+================================================== -->
+<section id="wiki">
+	<div class="page-header">
+		<h1>Wiki</h1>
+		
+		<p>This is the link to the wiki.</p>
+	</div>
+</section>
+ 
+
+<!-- Le javascript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="../static/js/bootstrap.js"></script>
+<script src="../static/js/bootstrap.min.js"></script>
+<script src="../static/js/jquery-1.9.1.js"></script>
+<script src="../static/js/bootstrap-transition.js"></script>
+<script src="../static/js/bootstrap-collapse.js"></script>
+
+</div>
+
+</body>
+</html>
