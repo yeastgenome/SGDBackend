@@ -19,13 +19,15 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     bioent_biocon_id = Column('bioent_biocon_id', Integer, primary_key=True)
     bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
     biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    name = Column('name', String)
+    evidence_count = Column('evidence_count', Integer)
     
-    evidences = relationship('Evidence', lazy='subquery', secondary= Table('bioent_biocon_evidence', Base.metadata,
+    evidences = relationship('Evidence', secondary= Table('bioent_biocon_evidence', Base.metadata,
                                                         Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id')),
                                                         Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id')),
                                                         schema=SCHEMA))
     bioentity = relationship('Bioentity', uselist=False)
-    bioconcept = relationship('Bioconcept', uselist=False)
+    bioconcept = relationship('Bioconcept', uselist=False, lazy='joined')
     
     def __init__(self, bioent, biocon_id, session=None):
         self.bioentity = bioent

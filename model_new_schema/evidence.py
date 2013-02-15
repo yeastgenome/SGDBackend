@@ -22,10 +22,11 @@ class Evidence(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     
     __mapper_args__ = {'polymorphic_on': evidence_type,
-                       'polymorphic_identity':"EVIDENCE"}
+                       'polymorphic_identity':"EVIDENCE",
+                       'with_polymorphic':'*'}
     
     #Relationships
-    reference = relationship('Reference')
+    reference = relationship('Reference', lazy='joined')
     
     def __init__(self, experiment_type, reference_id, evidence_type, strain_id, session=None, evidence_id=None, date_created=None, created_by=None):
         self.experiment_type = experiment_type

@@ -40,13 +40,13 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     date_created = Column('date_created', Date)
     
     #Relationships
-    journal = relationship('Journal', uselist=False, lazy='subquery')
+    journal = relationship('Journal', uselist=False)
     journal_abbrev = association_proxy('journal', 'abbreviation',
                                     creator=lambda x: Journal.as_unique(Session.object_session(self), abbreviation=x))
     
-    book = relationship('Book', uselist=False, lazy='subquery')
+    book = relationship('Book', uselist=False)
     
-    abst = relationship("Abstract", cascade='all,delete', uselist=False, lazy='subquery')
+    abst = relationship("Abstract", cascade='all,delete', uselist=False)
     abstract = association_proxy('abst', 'text')
         
     author_references = relationship('AuthorReference', cascade='all,delete', collection_class=attribute_mapped_collection('order'))
@@ -55,7 +55,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     authors = association_proxy('author_references', 'author', 
                                 creator=lambda k, v: AuthorReference(session=None, author=v, order=k, ar_type='Author'))
     
-    reftype_references = relationship('RefReftype', cascade='all,delete', lazy='joined',
+    reftype_references = relationship('RefReftype', cascade='all,delete',
                             collection_class=attribute_mapped_collection('id'))
     
     reftypeNames = association_proxy('reftype_references', 'reftype_name')

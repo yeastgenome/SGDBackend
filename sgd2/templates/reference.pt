@@ -1,0 +1,90 @@
+<div metal:use-macro="layout">
+  <div metal:fill-slot="content">
+
+
+<body data-spy="scroll" data-target=".bs-docs-sidebar">
+
+<!-- Subhead
+================================================== -->
+<header class="jumbotron subhead" id="overview">
+	<div class="container">
+		<h1>Reference <span tal:content="ref['basic_info']['pubmed_id']"></h1>
+		<p class="lead">
+			<span tal:content="ref['basic_info']['title']">
+		</p>
+	</div>
+</header>
+
+
+<div class="container">
+
+<!-- Docs nav
+================================================== -->
+<div class="row">
+	<div class="span3 bs-docs-sidebar">
+		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
+			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
+			<li><a href="#abstract"><i class="icon-chevron-right"></i> Abstract</a></li>
+
+		</ul>
+	</div>
+	
+	<div class="span9">  
+
+<!-- Summary
+================================================== -->
+<section id="summary">
+	<div class="page-header">
+		<h1>Summary</h1>
+		<div>
+			<ul class='unstyled'>
+				<li tal:condition="python: ref['basic_info']['citation']"><strong>Citation: </strong><span tal:content="ref['basic_info']['citation']"></li>
+				<br>
+				<li tal:condition="python: ref['basic_info']['book']"><strong>Book: </strong><span tal:content="ref['basic_info']['book']"></li>
+				<li tal:condition="python: ref['basic_info']['journal']"><strong>Journal: </strong><span tal:content="ref['basic_info']['journal']"></li>
+				<li tal:condition="python: ref['basic_info']['volume']"><strong>Volume: </strong><span tal:content="ref['basic_info']['volume']"></li>
+				<li tal:condition="python: ref['basic_info']['issue']"><strong>Issue: </strong><span tal:content="ref['basic_info']['issue']"></li>
+				<li tal:condition="python: ref['basic_info']['page']"><strong>Page: </strong><span tal:content="ref['basic_info']['page']"></li>
+				<li tal:condition="python: ref['basic_info']['doi']"><strong>DOI: </strong><span tal:content="ref['basic_info']['doi']"></li>
+				<li tal:condition="python: ref['basic_info']['date_published']"><strong>Published: </strong><span tal:content="ref['basic_info']['date_published']"></li>
+				<li tal:condition="python: ref['basic_info']['date_revised']"><strong>Revised: </strong><span tal:content="ref['basic_info']['date_revised']"></li>
+				
+				<!-- 
+				<li tal:condition="python: ref['basic_info']['source']"><strong>Source: </strong><span tal:content="ref['basic_info']['source']"></li>
+				<li tal:condition="python: ref['basic_info']['status']"><strong>Status: </strong><span tal:content="ref['basic_info']['status']"></li>
+				<li tal:condition="python: ref['basic_info']['pdf_status']"><strong>PDF-Status: </strong><span tal:content="ref['basic_info']['pdf_status']"></li>
+				<li tal:condition="python: ref['basic_info']['year']"><strong>Year: </strong><span tal:content="ref['basic_info']['year']"></li>
+				-->
+			</ul>
+		</div>
+	</div>
+</section>
+
+<!-- Abstract
+================================================== -->
+<section id="abstract">
+	<div class="page-header">
+		<h1>Abstract</h1>
+		<div>
+			<p tal:content="ref['basic_info']['abstract']"></p>
+		</div>
+	</div>
+</section>
+
+
+
+<script>
+	$(document).ready(function() {
+    $('#myTable').dataTable( {
+    "sPaginationType": "bootstrap",
+    "aaSorting": [[0, "asc"]]
+  } );
+} );
+</script>
+
+</div>
+
+</body>
+</div>
+</div>
+

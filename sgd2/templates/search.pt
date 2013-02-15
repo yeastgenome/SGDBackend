@@ -1,0 +1,22 @@
+<div metal:use-macro="layout">
+<div metal:fill-slot="content">
+
+<!-- Subhead
+================================================== -->
+<body>
+	<div class="container">
+		<h1>Search Results</h1>
+		<div class="span9">
+		<dl>
+		<p tal:repeat="item bioents">
+			<dt><a tal:attributes="href '/bioent/' + item['official_name']" tal:content="item['name'] + ' (' + item['official_name'] + ')'">Name</a></dt>
+			<dd class="muted" tal:condition="python: item['aliases']">Aliases: <span tal:content="item['aliases']">Aliases</span></dd>
+			<dd><span tal:content="item['description']">Aliases</span></dd><br>
+		</p>
+		</dl>
+		</div>
+	</div>
+</body>
+ 
+</div>
+</div>

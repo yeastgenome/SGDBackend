@@ -70,6 +70,10 @@ def convert():
     #convert_phenotypes_to_bioconcepts(old_model, new_model, 40000, 60000)
     #convert_phenotypes_to_bioconcepts(old_model, new_model, 60000, 92000)
 
+    #fill_typeahead_table(old_model, new_model)
+    fill_typeahead_table_aliases(old_model, new_model)
+    #convert_alias_to_alias(old_model, new_model)
+
     #convert_sequences_to_sequences(old_model, new_model)
 
 def convert_features_to_bioents(old_model, new_model):
@@ -287,8 +291,85 @@ def convert_phenotypes_to_bioconcepts(old_model, new_model, min_id, max_id):
             print str(count) + '/' + str(len(ps)) +  " " + str(new_time - time)
             time = new_time
    
-def convert_sequences_to_sequences(old_model, new_model):
-    pass
+def fill_typeahead_table(old_model, new_model):
+    from model_new_schema.bioentity import Bioentity as NewBioentity
+    from model_new_schema.search import Typeahead
+
+    time = datetime.datetime.now()
+    fs = new_model.execute(model_new_schema.model.get(NewBioentity, bioent_type='ORF'), NEW_DBUSER)
+
+    count = 0
+    new_time = datetime.datetime.now()
+    print 'Loaded in ' + str(new_time-time)
+    time = new_time
+    for f in fs:
+        name = f.name
+        if name is not None:
+            for i in range (0, len(name)):
+                if not new_model.execute(model_new_schema.model.exists(Typeahead, name=name[:i], full_name=name), NEW_DBUSER):
+                    typeahead = Typeahead(name[:i], name, 'BIOENT', f.id)
+                    new_model.execute(model_new_schema.model.add(typeahead), NEW_DBUSER, commit=True)
+
+        secondary_name = f.secondary_name
+        if secondary_name is not None:
+            for i in range (0, len(secondary_name)):
+                if not new_model.execute(model_new_schema.model.exists(Typeahead, name=secondary_name[:i], full_name=secondary_name), NEW_DBUSER):
+                    typeahead = Typeahead(secondary_name[:i], secondary_name, 'BIOENT', f.id)
+                    new_model.execute(model_new_schema.model.add(typeahead), NEW_DBUSER, commit=True)
+        
+        count = count+1
+        if count%1000 == 0:
+            new_time = datetime.datetime.now()
+            print str(count) + '/' + str(len(fs)) +  " " + str(new_time - time)
+            time = new_time
+            
+def fill_typeahead_table_aliases(old_model, new_model):
+    from model_new_schema.bioentity import Alias as NewAlias
+    from model_new_schema.search import Typeahead
+
+    time = datetime.datetime.now()
+    aliases = new_model.execute(model_new_schema.model.get(NewAlias, used_for_search='Y'), NEW_DBUSER)
+
+    count = 0
+    new_time = datetime.datetime.now()
+    print 'Loaded in ' + str(new_time-time)
+    time = new_time
+    for alias in aliases:
+        name = alias.name
+        if name is not None:
+            #for i in range (0, len(name)):
+            if not new_model.execute(model_new_schema.model.exists(Typeahead, name=name, full_name=name), NEW_DBUSER):
+                typeahead = Typeahead(name, name, 'BIOENT', alias.bioent_id)
+                new_model.execute(model_new_schema.model.add(typeahead), NEW_DBUSER, commit=True)
+        
+        count = count+1
+        if count%1000 == 0:
+            new_time = datetime.datetime.now()
+            print str(count) + '/' + str(len(aliases)) +  " " + str(new_time - time)
+            time = new_time
+ 
+def convert_alias_to_alias(old_model, new_model):
+    from model_old_schema.feature import AliasFeature as OldAliasFeature
+    from model_new_schema.bioentity import Alias as NewAlias
+
+    time = datetime.datetime.now()
+    aliases = old_model.execute(model_old_schema.model.get(OldAliasFeature),OLD_DBUSER)
+   
+    count = 0
+    new_time = datetime.datetime.now()
+    print 'Loaded in ' + str(new_time-time)
+    time = new_time
+    for alias in aliases:
+        new_a = NewAlias(alias.alias_name, alias.alias_type, alias.used_for_search, 
+                         alias_id=alias.id, bioent_id=alias.feature_id, date_created = alias.date_created, created_by = alias.created_by)
+        new_model.execute(model_new_schema.model.add(new_a), NEW_DBUSER, commit=True)
+
+        count = count+1
+        if count%1000 == 0:
+            new_time = datetime.datetime.now()
+            print str(count) + '/' + str(len(aliases)) +  " " + str(new_time - time)
+            time = new_time       
+
     
 if __name__ == "__main__":
     convert()

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html 
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:define-macro="layout">
+        
+<head metal:define-macro="head">
+	<meta charset="utf-8">
+	<title>${page_title}</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<link href="../static/css/bootstrap.css" rel="stylesheet">
+	<link href="../static/css/bootstrap-responsive.css" rel="stylesheet">
+	<link href="../static/css/docs.css" rel="stylesheet">
+	<link href="../static/css/datatable.css" rel="stylesheet">
+		
+	<script src="../static/js/jquery-1.9.1.js"></script>
+	<script src="../static/js/jquery.dataTables.js"></script>
+	<script src="../static/js/datatable.js"></script>
+
+</head>
+
+<body data-spy="scroll" data-target=".bs-docs-sidebar">
+
+<!-- Navbar
+================================================== -->
+<div class="navbar navbar-inverse navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container">
+			<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="brand" href="/">SGD2.0</a>
+			<div class="nav-collapse collapse">
+				<ul class="nav">
+					<li class="">
+						<a href="/">Home</a>
+					</li>
+					<li class="">
+						<a href="/my_sgd">My SGD</a>
+					</li>
+					<li class="">
+						<a href="/help">Help</a>
+					</li>
+					<li class="">
+						<a href="/about">About</a>
+					</li>
+				</ul>
+				<form class="navbar-search pull-right" autocomplete="off">
+					<input id="searchfield" name="searchfield" type="text" class="search-query" placeholder="Search">
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<div metal:define-slot="content">
+</div>
+ 
+
+<!-- Le javascript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="../static/js/bootstrap.js"></script>
+<script src="../static/js/bootstrap-transition.js"></script>
+<script src="../static/js/bootstrap-alert.js"></script>
+<script src="../static/js/bootstrap-modal.js"></script>
+<script src="../static/js/bootstrap-dropdown.js"></script>
+<script src="../static/js/bootstrap-scrollspy.js"></script>
+<script src="../static/js/bootstrap-tab.js"></script>
+<script src="../static/js/bootstrap-tooltip.js"></script>
+<script src="../static/js/bootstrap-popover.js"></script>
+<script src="../static/js/bootstrap-button.js"></script>
+<script src="../static/js/bootstrap-collapse.js"></script>
+<script src="../static/js/bootstrap-carousel.js"></script>
+<script src="../static/js/bootstrap-typeahead.js"></script>
+<script src="../static/js/bootstrap-affix.js"></script>
+<script src="../static/js/application.js"></script>
+
+
+<script>
+$(document).ready(function() {
+	$("#searchfield").typeahead({
+        minLength: 1,
+        source: function(query, process) {
+            $.post('/typeahead', { q: query, limit: 8 }, function(data) {
+                process(data);
+            });
+        },
+        updater: function (item) {
+            document.location = "/search/" + encodeURIComponent(item);
+            return item;
+        },
+        sorter: function (items) {
+            items.unshift(this.query);
+            return items;
+        }
+    });
+});
+</script>
+
+</body>
+</html>

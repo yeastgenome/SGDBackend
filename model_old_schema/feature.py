@@ -11,8 +11,8 @@ from model_old_schema.sequence import Sequence
 from model_old_schema.taxonomy import Taxonomy
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Table, Column, ForeignKey
-from sqlalchemy.types import Integer, String
+from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.types import Integer, String, Date
 
 class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'
@@ -25,6 +25,22 @@ class Alias(Base, EqualityByIDMixin):
     def __repr__(self):
         data = self.name
         return 'Alias(name=%s)' % data
+    
+class AliasFeature(Base, EqualityByIDMixin):
+    __tablename__ = 'feat_alias'
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+    
+    id = Column('feat_alias_no', Integer, primary_key=True)
+    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
+    alias_id = Column('alias_no', Integer, ForeignKey('bud.alias.alias_no'))
+    used_for_search = Column('used_for_search', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+    
+    #Relationships
+    alias = relationship('Alias', lazy='subquery')
+    alias_name = association_proxy('alias', 'name')
+    alias_type = association_proxy('alias', 'type')
     
 class Feature(Base, EqualityByIDMixin):
     __tablename__ = 'feature'
@@ -42,14 +58,14 @@ class Feature(Base, EqualityByIDMixin):
     
     #Relationships
     annotation = relationship('Annotation', uselist=False)
+   
     taxonomy = relationship(Taxonomy, uselist=False)
     sequences = relationship(Sequence)
 
-    aliases = relationship("Alias", 
-                           Table('feat_alias', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
+    aliases = relationship("AliasFeature", lazy='subquery')
     alias_names = association_proxy('aliases', 'name')
     
-    phenotypes = relationship('Phenotype_Feature', lazy='joined')
+    #phenotypes = relationship('Phenotype_Feature', lazy='joined')
     
     
     def __repr__(self):

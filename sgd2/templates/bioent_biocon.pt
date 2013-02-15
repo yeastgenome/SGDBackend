@@ -1,0 +1,122 @@
+<div metal:use-macro="layout">
+  <div metal:fill-slot="content">
+
+
+<body data-spy="scroll" data-target=".bs-docs-sidebar">
+
+<!-- Subhead
+================================================== -->
+<header class="jumbotron subhead" id="overview">
+	<div class="container">
+		<h1><span tal:content="bioent_biocon['basic_info']['name']"></h1>
+		<p class="lead">
+			Relationship between bioentity <span tal:content="bioent_biocon['bioent']['name']"><small>(<span tal:content="bioent_biocon['bioent']['official_name']">)</small> 
+			and bioconept <span tal:content="bioent_biocon['biorel']['name']">
+		</p>
+	</div>
+</header>
+
+
+<div class="container">
+
+<!-- Docs nav
+================================================== -->
+<div class="row">
+	<div class="span3 bs-docs-sidebar">
+		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
+			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
+			<li><a href="#evidence"><i class="icon-chevron-right"></i> Evidence</a></li>
+          	<li><a href="#literature"><i class="icon-chevron-right"></i> References</a></li> 
+
+		</ul>
+	</div>
+	
+	<div class="span9">  
+
+<!-- Summary
+================================================== -->
+<section id="summary">
+	<div class="page-header">
+		<h1>Summary</h1>
+		<div>
+			<ul class='unstyled'>
+				<strong>Bioentity: </strong><a tal:attributes="href '/bioent/' + bioent_biocon['bioent']['name']" tal:content="bioent_biocon['bioent']['name']"></a>
+				<strong>Bioconcept: </strong><a tal:attributes="href '/biocon/' + bioent_biocon['biocon']['name']" tal:content="bioent_biocon['biocon']['name']"></a>
+			</ul>
+		</div>
+	</div>
+</section>
+
+<!-- Evidence
+================================================== -->
+<section id="evidence">
+	<div class="page-header">
+		<h1>Evidence (<span tal:content="biorel['basic_info']['evidence_count']">)</h1>
+
+		<div>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='myTable'>
+			<thead>
+  			<tr>
+    			<th>Experiment</th>
+    			<th>Mutant</th>
+    			<th>Source</th>
+    			<th>Comment</th>
+    			<th>Reference (pmid)</th>
+
+
+  			</tr>
+  			</thead>
+  			<tbody>
+  			<tr tal:repeat="evidence bioent_biocon['evidences']">
+    			<td tal:content="evidence.experiment_type"></td>
+    			<td tal:content="evidence.mutant"></td>
+    			<td tal:content="evidence.direction"></td>
+    			<td tal:content="evidence.interaction_type"></td>
+    			<td tal:condition="python: biorel['hide'][0]" tal:content="evidence.modification"></td>
+    			<td tal:condition="python: biorel['hide'][1]" tal:content="evidence.observable"></td>
+    			<td tal:condition="python: biorel['hide'][2]" tal:content="evidence.qualifier"></td>
+    			<td> <a tal:attributes="href '/reference/' + evidence.reference.pubmed_id" tal:content="evidence.reference.pubmed_id">Id</a></td>
+
+  			</tr>
+  			</tbody>
+			</table>
+        </div>
+
+		<!-- In-depth
+		========================================== -->
+		<p class="collapse" id="viewdetails_interactions">
+           	This is the in-depth evidence information. </p>
+		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_literature">View details &raquo;</a></p>
+		
+	</div>
+</section>
+
+<!-- References
+================================================== -->
+<section id="literature">
+	<div class="page-header">
+		<h1>References</h1>
+		
+		<p tal:repeat="reference bioent_biocon.references">
+			<dt><a tal:attributes="href '/reference/' + reference['pubmed_id']" tal:content="reference['pubmed_id']">Name</a></dt>
+			<dd><span tal:content="reference['citation']">Aliases</span></dd><br>
+		</p>
+		
+	</div>
+</section>
+
+<script>
+	$(document).ready(function() {
+    $('#myTable').dataTable( {
+    "sPaginationType": "bootstrap",
+    "aaSorting": [[0, "asc"]]
+  } );
+} );
+</script>
+
+</div>
+
+</body>
+</div>
+</div>
+

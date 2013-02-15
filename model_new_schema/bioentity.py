@@ -13,7 +13,6 @@ from model_new_schema.biorelation import Biorelation
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.sql.expression import distinct
 from sqlalchemy.types import Integer, String, Date, Float
@@ -28,6 +27,15 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     dbxref = Column('dbxref', String)
     source = Column('source', String)
     status = Column('status', String)
+    secondary_name = Column('secondary_name', String)
+    
+    qualifier = Column('qualifier', String)
+    attribute = Column('attribute', String)
+    short_description = Column('short_description', String)
+    headline = Column('headline', String)
+    description = Column('description', String)
+    genetic_position = Column('genetic_position', String)
+    
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
@@ -38,16 +46,26 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     biorel_source = relationship(Biorelation, primaryjoin=Biorelation.sink_bioent_id==id)
     biorel_sink = relationship(Biorelation, primaryjoin=Biorelation.source_bioent_id==id)
     
-    bioent_biocon = relationship(BioentBiocon, collection_class=attribute_mapped_collection('bioconcept'), lazy='subquery')
-    bioconcept_evidences = association_proxy('bioent_biocon', 'evidences', 
-                                             creator=lambda k, v: BioentBiocon(bioent_id=id, biocon_id=k.id, session=None, evidence=v))
+    bioent_biocons = relationship(BioentBiocon)
+    bioconcepts = association_proxy('bioent_biocon', 'bioconcept')
+    aliases = relationship("Alias")
+    alias_names = association_proxy('aliases', 'name')
     
-    def __init__(self, name, bioent_type, dbxref, source, status, session=None, bioent_id=None, date_created=None, created_by=None):
+    def __init__(self, name, bioent_type, dbxref, source, status, secondary_name, 
+                 qualifier, attribute, short_description, headline, description, genetic_position,
+                 session=None, bioent_id=None, date_created=None, created_by=None):
         self.name = name
         self.bioent_type = bioent_type
         self.dbxref = dbxref
         self.source = source
         self.status = status
+        self.secondary_name = secondary_name
+        self.qualifier = qualifier
+        self.attribute = attribute
+        self.short_description = short_description
+        self.headline = headline
+        self.description = description
+        self.genetic_position = genetic_position
         
         if session is None:
             self.id = bioent_id
@@ -59,11 +77,7 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     
     @hybrid_property
     def biorelations(self):
-        return self.biorel_source + self.biorel_sink
-       
-    @hybrid_property
-    def bioconcepts(self):
-        return self.bioconcept_evidence.keys()
+        return set(self.biorel_source + self.biorel_sink)
     
     @classmethod
     def unique_hash(cls, bioent_type, name):
@@ -75,7 +89,32 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     
     def __repr__(self):
         data = self.__class__.__name__, self.id, self.name, self.bioent_type
-        return '%s(id=%s, name=%s, bioent_type=%s)' % data                  
+        return '%s(id=%s, name=%s, bioent_type=%s)' % data       
+    
+class Alias(Base, EqualityByIDMixin):
+    __tablename__ = 'alias'
+    
+    id = Column('alias_id', Integer, primary_key=True)
+    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    name = Column('name', String)
+    alias_type = Column('alias_type', String)
+    used_for_search = Column('used_for_search', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+        
+    def __init__(self, name, alias_type, used_for_search, session=None, alias_id=None, bioent_id=None, date_created=None, created_by=None):
+        self.name = name
+        self.alias_type = alias_type
+        self.used_for_search = used_for_search
+        
+        if session is None:
+            self.id = alias_id
+            self.bioent_id = bioent_id
+            self.date_created = date_created
+            self.created_by = created_by
+        else:
+            self.date_created = datetime.datetime.now()
+            self.created_by = session.user             
                        
 class Gene(Bioentity):
     __tablename__ = "gene"
@@ -131,4 +170,4 @@ def create_bioentity_subclasses(session=None):
                 type(bioent_type.capitalize(), (Bioentity,), {'__mapper_args__':{'polymorphic_identity': bioent_type, 'inherit_condition': id == Bioentity.id}})
     return f if session is None else f(session)
 
-    
+

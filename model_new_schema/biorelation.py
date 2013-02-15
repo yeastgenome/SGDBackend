@@ -5,8 +5,9 @@ Created on Nov 27, 2012
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
 from model_new_schema.evidence import Evidence
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column, ForeignKey, Table
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 import datetime
 
@@ -15,24 +16,26 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
     
     id = Column('biorel_id', Integer, primary_key = True)
+    name = Column('name', String)
     biorel_type = Column('biorel_type', String)
     source_bioent_id = Column('bioent_id1', Integer, ForeignKey('sprout.bioent.bioent_id'))
     sink_bioent_id = Column('bioent_id2', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    evidence_count = Column('evidence_count', Integer)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
     #Relationships
-    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id")
-    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id")
-        
-    evidences = relationship(Evidence, secondary= Table('biorel_evidence', Base.metadata, 
-                                                        Column('biorel_id', Integer, ForeignKey('sprout.biorel.biorel_id')),
-                                                        Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id')),
-                                                        schema=SCHEMA), lazy='joined')
+    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id", lazy='joined')
+    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id", lazy='joined')
+
+    biorel_evidences = relationship('BiorelEvidence')
+    evidences = association_proxy('biorel_evidences', 'evidence')
+    
+    
     
     __mapper_args__ = {'polymorphic_on': biorel_type,
                        'polymorphic_identity':"BIORELATION"}
-    
+
     @classmethod
     def unique_hash(cls, biorel_type, source_bioent_id, sink_bioent_id):
         return '%s_%s_%s' % (biorel_type, source_bioent_id, sink_bioent_id) 
@@ -73,5 +76,12 @@ class Structural(Biorelation):
 class ProteinBiosynthesis(Biorelation):
     __mapper_args__ = {'polymorphic_identity': "PROTEIN_BIOSYNTHESIS"}
     
+class BiorelEvidence(Base, UniqueMixin):
+    __tablename__ = "biorel_evidence"
+    biorel_evidence_id = Column('biorel_evidence_id', Integer, primary_key=True)
+    biorel_id = Column('biorel_id', Integer, ForeignKey('sprout.biorel.biorel_id'))
+    evidence_id = Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id'))
 
+    #Relationships
+    evidence = relationship(Evidence, lazy='joined')
 

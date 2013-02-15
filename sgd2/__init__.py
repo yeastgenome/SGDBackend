@@ -23,6 +23,15 @@ def main(global_config, **settings):
     config.add_route('my_sgd', '/my_sgd')
     config.add_route('help', '/help')
     config.add_route('about', '/about')
+    config.add_route('search', '/search/{search_str}')
+    config.add_route('typeahead', '/typeahead')
+    
+    config.add_route('bioent', '/bioent/{bioent_name}')
+    config.add_route('biorel', '/biorel/{biorel_name}')
+    config.add_route('biocon', '/biocon/{biocon_name}')
+    config.add_route('bioent_biocon', '/bioent_biocon/{bioent_biocon_name}')
+
+    config.add_route('reference', '/reference/{pubmed_id}')
 
     config.scan()
     return config.make_wsgi_app()
