@@ -2,7 +2,7 @@
   <div metal:fill-slot="content">
 
 
-<body data-spy="scroll" data-target=".bs-docs-sidebar">
+<body>
 
 <!-- Subhead
 ================================================== -->

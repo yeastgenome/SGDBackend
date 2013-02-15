@@ -4,7 +4,8 @@ Created on Feb 12, 2013
 @author: kpaskov
 '''
 def bioent_mini(bioent):
-    return {'name':bioent.secondary_name, 'official_name':bioent.name, 'description':bioent.description, 'bioent_type':bioent.bioent_type}
+    return {'name':bioent.secondary_name, 'official_name':bioent.name, 'description':bioent.description, 'bioent_type':bioent.bioent_type, 
+            'full_name':bioent.secondary_name + '(' + bioent.name + ')'}
 
 def bioent_small(bioent):
     aliases = ', '.join(bioent.alias_names)
@@ -28,24 +29,18 @@ def biorel_small(biorel):
     
 def biorel_large(biorel):
     basic_info = biorel_small(biorel)
-
-    hide = [False, False, False]        
-    for evidence in biorel.evidences:
-        if evidence.modification is not None:
-            hide[0] = True
-        if evidence.observable is not None:
-            hide[1] = True
-        if evidence.qualifier is not None:
-            hide[2] = True
             
     references = set([evidence.reference for evidence in biorel.evidences])
     json_references = [reference_mini(reference) for reference in references]
     json_evidences = [interevidence_small(evidence) for evidence in biorel.evidences]
     
-    return {'basic_info':basic_info, 'evidences':json_evidences, 'references': json_references, 'hide':hide}
+    return {'basic_info':basic_info, 'evidences':json_evidences, 'references': json_references}
 
 def evidence_small(evidence):
-    reference = reference_mini(evidence.reference)
+    if evidence.reference is not None:
+        reference = reference_mini(evidence.reference)
+    else:
+        reference = None
     return {'experiment_type':evidence.experiment_type, 'reference':reference}
     
 def interevidence_small(evidence):
@@ -62,9 +57,9 @@ def interevidence_small(evidence):
 def phenoevidence_small(evidence): 
     basic_info = evidence_small(evidence)
     
-    basic_info['mutant'] = evidence.mutant
+    basic_info['mutant'] = evidence.mutant_type
     basic_info['source'] = evidence.source
-    basic_info['comment'] = evidence.comment
+    basic_info['comment'] = evidence.experiment_comment
     return basic_info
 
 def reference_mini(ref):
@@ -100,7 +95,7 @@ def bioent_biocon_large(bioent_biocon):
     bioent = bioent_mini(bioent_biocon.bioentity)
     biocon = biocon_small(bioent_biocon.bioconcept)
     
-    references = set([evidence.reference for evidence in bioent_biocon.evidences])
+    references = set([evidence.reference for evidence in bioent_biocon.evidences if evidence.reference is not None])
     json_references = [reference_mini(reference) for reference in references]
     json_evidences = [phenoevidence_small(evidence) for evidence in bioent_biocon.evidences]
     return {'basic_info':basic_info, 'bioent':bioent, 'biocon':biocon, 'evidences':json_evidences, 'references':json_references} 

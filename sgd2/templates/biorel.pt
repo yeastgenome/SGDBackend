@@ -2,7 +2,7 @@
   <div metal:fill-slot="content">
 
 
-<body data-spy="scroll" data-target=".bs-docs-sidebar">
+<body>
 
 <!-- Subhead
 ================================================== -->
@@ -65,9 +65,6 @@
     			<th>Annotation</th>
     			<th>Direction</th>
     			<th>Interaction</th>
-    			<th tal:condition="python: biorel['hide'][0]">Modification</th>
-    			<th tal:condition="python: biorel['hide'][1]">Observable</th>
-    			<th tal:condition="python: biorel['hide'][2]">Qualifier</th>
     			<th>Reference (pmid)</th>
 
 
@@ -79,9 +76,6 @@
     			<td tal:content="evidence.annotation_type"></td>
     			<td tal:content="evidence.direction"></td>
     			<td tal:content="evidence.interaction_type"></td>
-    			<td tal:condition="python: biorel['hide'][0]" tal:content="evidence.modification"></td>
-    			<td tal:condition="python: biorel['hide'][1]" tal:content="evidence.observable"></td>
-    			<td tal:condition="python: biorel['hide'][2]" tal:content="evidence.qualifier"></td>
     			<td> <a tal:attributes="href '/reference/' + evidence.reference.pubmed_id" tal:content="evidence.reference.pubmed_id">Id</a></td>
 
   			</tr>

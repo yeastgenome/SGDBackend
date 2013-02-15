@@ -2,7 +2,7 @@
   <div metal:fill-slot="content">
 
 
-<body data-spy="scroll" data-target=".bs-docs-sidebar">
+<body>
 
 <!-- Subhead
 ================================================== -->
@@ -107,7 +107,7 @@
 
 		
 		<!-- Brief
-		========================================== 
+		========================================== -->
 		<div>
 			<ul class='unstyled'>
 				<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotype_table'>
@@ -121,7 +121,7 @@
   			</thead>
   			<tbody>
   			<tr tal:repeat="phenotype bioent.phenotypes">
-    			<td tal:content="phenotype.name"></td>			
+    			<td><a tal:attributes="href '/bioent_biocon/' + phenotype.name" tal:content="bioent['basic_info']['name'] + '---' + phenotype.biocon_name"></a></td>			
     			<td tal:content="phenotype.biocon_name"></td>			
     			<td tal:content="phenotype.evidence_count"></td>
 
@@ -264,7 +264,7 @@
   		} );
   		$('#phenotype_table').dataTable( {
     		"sPaginationType": "bootstrap",
-    		"aaSorting": [[1, "desc"]]
+    		"aaSorting": [[2, "desc"]]
   		} );
 	} );
 </script>
