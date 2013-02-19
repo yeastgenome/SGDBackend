@@ -30,11 +30,10 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
 
     biorel_evidences = relationship('BiorelEvidence')
     evidences = association_proxy('biorel_evidences', 'evidence')
-    
-    
-    
+        
     __mapper_args__ = {'polymorphic_on': biorel_type,
-                       'polymorphic_identity':"BIORELATION"}
+                       'polymorphic_identity':"BIORELATION",
+                       'with_polymorphic':'*'}
 
     @classmethod
     def unique_hash(cls, biorel_type, source_bioent_id, sink_bioent_id):
@@ -62,7 +61,14 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
         return '%s(id=%s, source_name=%s, sink_name=%s)' % data
 
 class Interaction(Biorelation):
-    __mapper_args__ = {'polymorphic_identity': "INTERACTION"}
+    __tablename__ = "interaction"
+
+    id = Column('biorel_id', Integer, ForeignKey(Biorelation.id), primary_key = True)
+    physical_evidence_count = Column('physical_evidence_count', Integer)
+    genetic_evidence_count = Column('genetic_evidence_count', Integer)
+        
+    __mapper_args__ = {'polymorphic_identity': 'INTERACTION',
+                       'inherit_condition': id == Biorelation.id}
     
 class Regulation(Biorelation):
     __mapper_args__ = {'polymorphic_identity': "REGULATION"}

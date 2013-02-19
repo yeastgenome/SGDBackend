@@ -26,7 +26,7 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
                                                         Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id')),
                                                         Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id')),
                                                         schema=SCHEMA))
-    bioentity = relationship('Bioentity', uselist=False)
+    bioentity = relationship('Bioentity', uselist=False, lazy='joined')
     bioconcept = relationship('Bioconcept', uselist=False, lazy='joined')
     
     def __init__(self, bioent, biocon_id, session=None):
@@ -54,7 +54,8 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     __mapper_args__ = {'polymorphic_on': biocon_type,
                        'polymorphic_identity':"BIOCONCEPT"}
  
-    bioent_biocons = relationship(BioentBiocon, collection_class=attribute_mapped_collection('bioentity'))
+    bioent_biocons = relationship(BioentBiocon)
+    bioentities = relationship(BioentBiocon, collection_class=attribute_mapped_collection('bioentity'))
     bioentity_evidences = association_proxy('bioent_biocons', 'evidences')
     
     @hybrid_property
@@ -90,15 +91,13 @@ class Phenotype(Bioconcept):
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
     
     id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
-    qualifier = Column('qualifier', String)
     observable = Column('observable', String)
        
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE"}
 
-    def __init__(self, qualifier, observable, session=None, biocon_id=None, date_created=None, created_by=None):
-        name = observable + "-" + qualifier
+    def __init__(self, observable, session=None, biocon_id=None, date_created=None, created_by=None):
+        name = observable
         Bioconcept.__init__(self, 'PHENOTYPE', name, session=session, biocon_id=biocon_id, date_created=date_created, created_by=created_by)
-        self.qualifier = str(qualifier)
         self.observable = str(observable)
          
         

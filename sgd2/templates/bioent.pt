@@ -23,6 +23,7 @@
 <div class="row">
 	<div id='sidebar' class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
+			<li><h3><span tal:content="bioent['basic_info']['name']"> <small>(<span tal:content="bioent['basic_info']['official_name']">)</small></h3></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#location"><i class="icon-chevron-right"></i> Sequence and Location</a></li>
           	<li><a href="#go"><i class="icon-chevron-right"></i> Gene Ontology</a></li>
@@ -120,10 +121,10 @@
   			</tr>
   			</thead>
   			<tbody>
-  			<tr tal:repeat="phenotype bioent.phenotypes">
-    			<td><a tal:attributes="href '/bioent_biocon/' + phenotype.name" tal:content="bioent['basic_info']['name'] + '---' + phenotype.biocon_name"></a></td>			
-    			<td tal:content="phenotype.biocon_name"></td>			
-    			<td tal:content="phenotype.evidence_count"></td>
+  			<tr tal:repeat="bioent_biocon bioent.phenotypes">
+    			<td><a tal:attributes="href '/bioent_biocon/' + bioent_biocon['official_name']" tal:content="bioent_biocon.name"></a></td>			
+    			<td><a tal:attributes="href '/biocon/' + bioent_biocon['biocon']['official_name']" tal:content="bioent_biocon['biocon']['name']"></a></td>					
+    			<td tal:content="bioent_biocon.evidence_count"></td>
 
   			</tr>
   			</tbody>
@@ -145,7 +146,14 @@
 <section id="interactions">
 	<div class="page-header">
 		<h1>Interactions (<span tal:content="bioent['interaction_count']">)</h1>
-		
+	
+		<h3>Cytoscape Visualization</h3>
+			<p>(Shows interactions with 3 or more pieces of evidence.)</p>
+		<div id="cytoscapeweb">
+            Cytoscape visualization is loading...
+        </div>
+
+        
 		<!-- Brief
 		========================================== -->
 		<div>
@@ -155,7 +163,9 @@
   			<tr>
     			<th>Interaction Name</th>
     			<th>Interactor Name</th>
-    			<th>Evidence Count</th>
+    			<th># Genetic Evidence</th>
+    			<th># Physical Evidence</th>
+    			<th># Total Evidence</th>
   			</tr>
   			</thead>
   			<tbody>
@@ -172,7 +182,9 @@
     					tal:attributes="href '/bioent/' + interaction['sink']['official_name']" 
     					tal:content="interaction['sink']['name']"></a>	
     			</td>			
-    			<td tal:content="interaction.evidence_count">Title</td>
+    			<td tal:content="interaction.genetic_evidence_count"></td>
+    			<td tal:content="interaction.physical_evidence_count"></td>
+    			<td tal:content="interaction.evidence_count"></td>
   			</tr>
   			</tbody>
 			</table>
@@ -260,7 +272,7 @@
 	$(document).ready(function() {
     	$('#interaction_table').dataTable( {
     		"sPaginationType": "bootstrap",
-    		"aaSorting": [[2, "desc"]]
+    		"aaSorting": [[4, "desc"]]
   		} );
   		$('#phenotype_table').dataTable( {
     		"sPaginationType": "bootstrap",
@@ -268,6 +280,53 @@
   		} );
 	} );
 </script>
+
+    <script type="text/javascript">
+
+            window.onload=function() {
+                // id of Cytoscape Web container div
+                var div_id = "cytoscapeweb";
+                                
+                // visual style we will use
+                var visual_style = {
+                    nodes: {
+                        color: {
+                            discreteMapper: {
+                                attrName: "focus",
+                                entries: [
+                                    { attrValue: '1', value: "#fade71" }
+                                ]
+                            }
+                        },
+                        labelHorizontalAnchor: "center"
+                    },
+                };
+                
+                // initialization options
+                var options = {
+                    // where you have the Cytoscape Web SWF
+                    swfPath: "../static/js/CytoscapeWeb",
+                    // where you have the Flash installer SWF
+                    flashInstallerPath: "/swf/playerProductInstall"
+                };
+                
+                // init and draw
+                var vis = new org.cytoscapeweb.Visualization(div_id, options);
+                
+                // you could also use other formats (e.g. GraphML) or grab the network data via AJAX
+                $.get('/bioent_graph/'+"${bioent['basic_info']['official_name']}", function(data) {
+                	vis.draw({ network: data, visualStyle: visual_style});
+
+            	});
+                
+            };
+        </script>
+        
+        <style>
+            /* The Cytoscape Web container must have its dimensions set. */
+            html, body { height: 80%; width: 100%; padding: 0; margin: 0; }
+            #cytoscapeweb { width: 100%; height: 100%; }
+        </style>
 
 </div>
 

@@ -50,7 +50,7 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     bioconcepts = association_proxy('bioent_biocon', 'bioconcept')
     aliases = relationship("Alias")
     alias_names = association_proxy('aliases', 'name')
-    
+        
     def __init__(self, name, bioent_type, dbxref, source, status, secondary_name, 
                  qualifier, attribute, short_description, headline, description, genetic_position,
                  session=None, bioent_id=None, date_created=None, created_by=None):

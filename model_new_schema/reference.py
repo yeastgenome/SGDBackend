@@ -38,6 +38,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     doi = Column('doi', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
+    name = Column('name', String)
     
     #Relationships
     journal = relationship('Journal', uselist=False)

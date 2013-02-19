@@ -1,6 +1,6 @@
 from .models import DBSession
 from jsonify.bioent_json import bioent_small, bioent_large, biorel_large, \
-    reference_large, biocon_large, bioent_biocon_large
+    reference_large, biocon_large, bioent_biocon_large, create_graph
 from model_new_schema.bioconcept import Bioconcept, BioentBiocon
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.biorelation import Biorelation
@@ -55,6 +55,16 @@ def typeahead_view(request):
         return full_names
     except DBAPIError:
         return ['Error']
+    
+@view_config(route_name='bioent_graph', renderer="json")
+def bioent_graph_view(request):
+    try:
+        bioent_name = request.matchdict['bioent_name'].upper()
+        bioent = DBSession.query(Bioentity).filter(func.upper(Bioentity.name)==bioent_name).first()
+        graph = create_graph(bioent)
+        return graph
+    except DBAPIError:
+        return ['Error']
 
 @view_config(route_name='bioent', renderer='templates/bioent.pt')
 def bioent_view(request):
@@ -74,7 +84,7 @@ def biorel_view(request):
 @view_config(route_name='biocon', renderer='templates/biocon.pt')
 def biocon_view(request):
     biocon_name = request.matchdict['biocon_name'].upper()
-    biocon = DBSession.query(Bioconcept).filter(func.upper(Bioconcept.name)==biocon_name).first()
+    biocon = DBSession.query(Bioconcept).options(joinedload('bioent_biocons')).filter(func.upper(Bioconcept.name)==biocon_name).first()
     json_biocon = biocon_large(biocon)
     return {'layout': site_layout(), 'page_title': json_biocon['basic_info']['name'], 'biocon': json_biocon}
 

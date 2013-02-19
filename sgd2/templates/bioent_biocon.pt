@@ -26,8 +26,7 @@
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#evidence"><i class="icon-chevron-right"></i> Evidence</a></li>
-          	<li><a href="#literature"><i class="icon-chevron-right"></i> References</a></li> 
-
+          	<li><a href="#literature"><i class="icon-chevron-right"></i> References</a></li>
 		</ul>
 	</div>
 	
@@ -41,7 +40,7 @@
 		<div>
 			<ul class='unstyled'>
 				<li><strong>Bioentity: </strong><a tal:attributes="href '/bioent/' + bioent_biocon['bioent']['official_name']" tal:content="bioent_biocon['bioent']['full_name']"></a></li>
-				<li><strong>Bioconcept: </strong><a tal:attributes="href '/biocon/' + bioent_biocon['biocon']['name']" tal:content="bioent_biocon['biocon']['name']"></a></li>
+				<li><strong>Bioconcept: </strong><a tal:attributes="href '/biocon/' + bioent_biocon['biocon']['official_name']" tal:content="bioent_biocon['biocon']['name']"></a></li>
 			</ul>
 		</div>
 	</div>
@@ -59,14 +58,16 @@
   			<tr>
     			<th>Experiment</th>
     			<th>Mutant</th>
-    			<th>Source</th>
+    			<th>Qualifier</th>
+    			<th>Reference</th>
   			</tr>
   			</thead>
   			<tbody>
   			<tr tal:repeat="evidence bioent_biocon['evidences']">
     			<td tal:content="evidence.experiment_type"></td>
     			<td tal:content="evidence.mutant"></td>
-    			<td tal:content="evidence.source"></td>
+    			<td tal:content="evidence.qualifier"></td>
+    			<td> <a tal:condition="python: evidence.reference" tal:attributes="href '/reference/' + evidence.reference.pubmed_id" tal:content="evidence.reference.name">Id</a></td>
   			</tr>
   			</tbody>
 			</table>
@@ -86,12 +87,11 @@
 <section id="literature">
 	<div class="page-header">
 		<h1>References</h1>
-		
-		<p tal:repeat="reference bioent_biocon.references">
-			<dt><a tal:attributes="href '/reference/' + reference['pubmed_id']" tal:content="reference['pubmed_id']">Name</a></dt>
-			<dd><span tal:content="reference['citation']">Aliases</span></dd><br>
+		<ul>
+		<p tal:repeat="reference bioent_biocon.references">	
+			<a tal:attributes="href '/reference/' + reference['pubmed_id']" tal:content="reference['citation']"></a>
 		</p>
-		
+		</ul>
 	</div>
 </section>
 

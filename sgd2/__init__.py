@@ -25,7 +25,8 @@ def main(global_config, **settings):
     config.add_route('about', '/about')
     config.add_route('search', '/search/{search_str}')
     config.add_route('typeahead', '/typeahead')
-    
+    config.add_route('bioent_graph', '/bioent_graph/{bioent_name}')
+   
     config.add_route('bioent', '/bioent/{bioent_name}')
     config.add_route('biorel', '/biorel/{biorel_name}')
     config.add_route('biocon', '/biocon/{biocon_name}')

@@ -80,6 +80,7 @@ class Phenoevidence(Evidence):
     mutant_type = Column('mutant_type', String)
     source = Column('source', String)
     experiment_comment = Column('experiment_comment', String)
+    qualifier = Column('qualifier', String)
     
     #Relationship
     properties = relationship('PhenoevidenceProperty')
