@@ -7,7 +7,7 @@ from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
 from model_new_schema.config import SCHEMA
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Column, ForeignKey, Table
 from sqlalchemy.types import Integer, String, Date
@@ -21,11 +21,12 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
     name = Column('name', String)
     evidence_count = Column('evidence_count', Integer)
+    evidence_desc = Column('evidence_desc', String)
     
     evidences = relationship('Evidence', secondary= Table('bioent_biocon_evidence', Base.metadata,
                                                         Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id')),
                                                         Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id')),
-                                                        schema=SCHEMA))
+                                                        schema=SCHEMA), backref=backref('bioent_biocon', uselist=False))
     bioentity = relationship('Bioentity', uselist=False, lazy='joined')
     bioconcept = relationship('Bioconcept', uselist=False, lazy='joined')
     
@@ -115,6 +116,7 @@ class GOTerm(Bioconcept):
 class Function(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "FUNCTION"}
     
+
 
 
 

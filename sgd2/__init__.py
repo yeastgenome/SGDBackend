@@ -33,6 +33,9 @@ def main(global_config, **settings):
     config.add_route('bioent_biocon', '/bioent_biocon/{bioent_biocon_name}')
 
     config.add_route('reference', '/reference/{pubmed_id}')
+    
+    config.add_route('evidence', '/evidence/{evidence_id}')
+    config.add_route('allele', '/allele/{allele_name}')
 
     config.scan()
     return config.make_wsgi_app()

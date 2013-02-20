@@ -1,9 +1,13 @@
 from .models import DBSession
-from jsonify.bioent_json import bioent_small, bioent_large, biorel_large, \
-    reference_large, biocon_large, bioent_biocon_large, create_graph
+from jsonify.graph import create_graph
+from jsonify.large import bioent_large, biorel_large, biocon_large, \
+    bioent_biocon_large, reference_large, phenoevidence_large, allele_large, \
+    interevidence_large
+from jsonify.small import bioent_small
 from model_new_schema.bioconcept import Bioconcept, BioentBiocon
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.biorelation import Biorelation
+from model_new_schema.evidence import Evidence, Allele
 from model_new_schema.reference import Reference
 from model_new_schema.search import Typeahead
 from pyramid.renderers import get_renderer
@@ -101,4 +105,21 @@ def reference_view(request):
     reference = DBSession.query(Reference).filter(Reference.pubmed_id == pubmed_id).first()
     json_reference = reference_large(reference)
     return {'layout': site_layout(), 'page_title': 'PMID ' + json_reference['basic_info']['pubmed_id'], 'ref': json_reference}
+
+@view_config(route_name='evidence', renderer='templates/evidence.pt')
+def evidence_view(request):
+    evidence_id = request.matchdict['evidence_id']
+    evidence = DBSession.query(Evidence).filter(Evidence.id == evidence_id).first()
+    if evidence.evidence_type == 'PHENOTYPE_EVIDENCE':
+        json_evidence = phenoevidence_large(evidence)
+    else:
+        json_evidence = interevidence_large(evidence)
+    return {'layout': site_layout(), 'page_title': 'Evidence ' + str(evidence_id), 'evidence': json_evidence}
+
+@view_config(route_name='allele', renderer='templates/allele.pt')
+def allele_view(request):
+    allele_name = request.matchdict['allele_name']
+    allele = DBSession.query(Allele).filter(Allele.name == allele_name).first()
+    json_allele = allele_large(allele)
+    return {'layout': site_layout(), 'page_title': allele_name, 'allele': json_allele}
 

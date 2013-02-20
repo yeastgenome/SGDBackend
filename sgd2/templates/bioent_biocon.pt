@@ -8,10 +8,9 @@
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
-		<h1><span tal:content="bioent_biocon['basic_info']['name']"></h1>
+		<h1><span tal:content="bioent_biocon.basic_info.name"></h1>
 		<p class="lead">
-			Relationship between bioentity <span tal:content="bioent_biocon['bioent']['name']"><small>(<span tal:content="bioent_biocon['bioent']['official_name']">)</small> 
-			and bioconept <span tal:content="bioent_biocon['biocon']['name']">
+			<span tal:content="bioent_biocon.basic_info.description"></span>
 		</p>
 	</div>
 </header>
@@ -24,6 +23,7 @@
 <div class="row">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
+			<li><h4><span tal:content="bioent_biocon.basic_info.name"></h4></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#evidence"><i class="icon-chevron-right"></i> Evidence</a></li>
           	<li><a href="#literature"><i class="icon-chevron-right"></i> References</a></li>
@@ -39,8 +39,8 @@
 		<h1>Summary</h1>
 		<div>
 			<ul class='unstyled'>
-				<li><strong>Bioentity: </strong><a tal:attributes="href '/bioent/' + bioent_biocon['bioent']['official_name']" tal:content="bioent_biocon['bioent']['full_name']"></a></li>
-				<li><strong>Bioconcept: </strong><a tal:attributes="href '/biocon/' + bioent_biocon['biocon']['official_name']" tal:content="bioent_biocon['biocon']['name']"></a></li>
+				<li><strong>Bioentity: </strong><a tal:attributes="href bioent_biocon.bioent.link" tal:content="bioent_biocon.bioent.full_name"></a></li>
+				<li><strong>Bioconcept: </strong><a tal:attributes="href bioent_biocon.biocon.link" tal:content="bioent_biocon.biocon.name"></a></li>
 			</ul>
 		</div>
 	</div>
@@ -50,35 +50,33 @@
 ================================================== -->
 <section id="evidence">
 	<div class="page-header">
-		<h1>Evidence (<span tal:content="bioent_biocon['basic_info']['evidence_count']">)</h1>
+		<h1>Evidence (<span tal:content="bioent_biocon.basic_info.evidence_count"></span>)</h1>
 
 		<div>
 			<table class='table table-striped table-bordered table-condensed tablesorter' id='myTable'>
 			<thead>
   			<tr>
-    			<th>Experiment</th>
-    			<th>Mutant</th>
+  				<th>Evidence</th>
     			<th>Qualifier</th>
+    			<th>Experiment</th>
+    			<th>Mutant (Allele)</th>
+    			<th>Strain</th>
     			<th>Reference</th>
   			</tr>
   			</thead>
   			<tbody>
-  			<tr tal:repeat="evidence bioent_biocon['evidences']">
-    			<td tal:content="evidence.experiment_type"></td>
-    			<td tal:content="evidence.mutant"></td>
+  			<tr tal:repeat="evidence bioent_biocon.evidences">
+  				<td><a tal:attributes="href evidence.link" tal:content="evidence.name"></a></td>
     			<td tal:content="evidence.qualifier"></td>
-    			<td> <a tal:condition="python: evidence.reference" tal:attributes="href '/reference/' + evidence.reference.pubmed_id" tal:content="evidence.reference.name">Id</a></td>
+    			<td tal:content="evidence.experiment_type"></td>
+    			<td><span tal:content="evidence.mutant"></span><span tal:condition="python: evidence.allele"> (<a tal:attributes="href '/allele/' + evidence.allele.name" tal:content="evidence.allele.name"></a>)</span></td>
+    			<td tal:content="evidence.strain"></td>
+    			<td> <a tal:condition="python: evidence.reference" tal:attributes="href evidence.reference.link" tal:content="evidence.reference.name"></a></td>
   			</tr>
   			</tbody>
 			</table>
         </div>
 
-		<!-- In-depth
-		========================================== -->
-		<p class="collapse" id="viewdetails_interactions">
-           	This is the in-depth evidence information. </p>
-		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_literature">View details &raquo;</a></p>
-		
 	</div>
 </section>
 
@@ -89,7 +87,7 @@
 		<h1>References</h1>
 		<ul>
 		<p tal:repeat="reference bioent_biocon.references">	
-			<a tal:attributes="href '/reference/' + reference['pubmed_id']" tal:content="reference['citation']"></a>
+			<a tal:attributes="href reference.link" tal:content="reference.citation"></a>
 		</p>
 		</ul>
 	</div>

@@ -6,7 +6,7 @@ Created on Nov 27, 2012
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
 from model_new_schema.evidence import Evidence
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 import datetime
@@ -89,5 +89,6 @@ class BiorelEvidence(Base, UniqueMixin):
     evidence_id = Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id'))
 
     #Relationships
-    evidence = relationship(Evidence, lazy='joined')
+    evidence = relationship(Evidence, lazy='joined', backref=backref('biorel_evidence', uselist=False))
+    biorel = relationship(Biorelation, uselist=False)
 

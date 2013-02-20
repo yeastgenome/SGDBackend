@@ -5,6 +5,7 @@ Created on Dec 11, 2012
 '''
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.reference import Reference
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
@@ -26,7 +27,7 @@ class Evidence(Base, EqualityByIDMixin):
                        'with_polymorphic':'*'}
     
     #Relationships
-    reference = relationship('Reference', lazy='joined')
+    reference = relationship('Reference', lazy='joined', backref='evidences')
     
     def __init__(self, experiment_type, reference_id, evidence_type, strain_id, session=None, evidence_id=None, date_created=None, created_by=None):
         self.experiment_type = experiment_type
@@ -60,6 +61,8 @@ class Interevidence(Evidence):
     interaction_type = Column('interaction_type', String)
     
     __mapper_args__ = {'polymorphic_identity': "INTERACTION_EVIDENCE"}
+    
+    biorel = association_proxy('biorel_evidence', 'biorel')
 
     
     def __init__(self, experiment_type, reference_id, strain_id, direction, annotation_type, modification, source, observable, qualifier, note, interaction_type, session=None, evidence_id=None, date_created=None, created_by=None):
@@ -73,17 +76,29 @@ class Interevidence(Evidence):
         self.note = note
         self.interaction_type = interaction_type
         
+class Allele(Base):
+    __tablename__ = 'allele'
+    id = Column('allele_id', Integer, primary_key=True)
+    name = Column('name', String)
+    parent_id = Column('parent_bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    description = Column('description', String)
+    
+    #Relationships
+    parent = relationship('Bioentity')
+        
 class Phenoevidence(Evidence):
     __tablename__ = "phenoevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     mutant_type = Column('mutant_type', String)
+    mutant_allele_id = Column('mutant_allele', Integer, ForeignKey('sprout.allele.allele_id'))
     source = Column('source', String)
     experiment_comment = Column('experiment_comment', String)
     qualifier = Column('qualifier', String)
     
     #Relationship
     properties = relationship('PhenoevidenceProperty')
+    mutant_allele = relationship('Allele')
     
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE"}
 

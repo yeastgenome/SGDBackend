@@ -8,9 +8,9 @@
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
-		<h1><span tal:content="biocon['basic_info']['name']"></h1>
+		<h1><span tal:content="biocon.basic_info.name"></h1>
 		<p class="lead">
-			<span tal:content="biocon['basic_info']['biocon_type']">:</span> <span tal:content="biocon['basic_info']['name']">
+			<span tal:content="biocon.basic_info.description">
 		</p>
 	</div>
 </header>
@@ -23,6 +23,7 @@
 <div class="row">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
+			<li><h4><span tal:content="biocon.basic_info.name"></h4></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#genes"><i class="icon-chevron-right"></i> Genes</a></li>
 		</ul>
@@ -46,7 +47,7 @@
 ================================================== -->
 <section id="genes">
 	<div class="page-header">
-		<h1>Genes (<span tal:content="biocon['bioent_biocon_count']">)</h1>
+		<h1>Genes (<span tal:content="biocon.bioent_biocon_count">)</h1>
 
 		<div>
 			<table class='table table-striped table-bordered table-condensed tablesorter' id='myTable'>
@@ -58,20 +59,14 @@
   			</tr>
   			</thead>
   			<tbody>
-  			<tr tal:repeat="bioent_biocon biocon['bioent_biocons']">
-  				<td><a tal:attributes="href '/bioent_biocon/' + bioent_biocon['official_name']" tal:content="bioent_biocon['name']"></a></td>			
-  				<td><a tal:attributes="href '/bioent/' + bioent_biocon['bioent']['official_name']" tal:content="bioent_biocon['bioent']['name']"></a></td>			
-    			<td tal:content="bioent_biocon.evidence_count"></td>
+  			<tr tal:repeat="bioent_biocon biocon.bioent_biocons">
+  				<td><a tal:attributes="href bioent_biocon.link" tal:content="bioent_biocon.name"></a></td>			
+  				<td><a tal:attributes="href bioent_biocon.bioent.link" tal:content="bioent_biocon.bioent.name"></a></td>			
+    			<td><span tal:content="bioent_biocon.evidence_count"></span> <span class="muted" style="float:right" tal:condition="python: bioent_biocon.evidence_desc" tal:content="'(' + bioent_biocon.evidence_desc + ')'"></span></td>
   			</tr>
   			</tbody>
 			</table>
         </div>
-
-		<!-- In-depth
-		========================================== -->
-		<p class="collapse" id="viewdetails_interactions">
-           	This is the in-depth evidence information. </p>
-		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_literature">View details &raquo;</a></p>
 		
 	</div>
 </section>

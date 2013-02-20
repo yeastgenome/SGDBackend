@@ -1,0 +1,62 @@
+<div metal:use-macro="layout">
+  <div metal:fill-slot="content">
+
+
+<body>
+
+<!-- Subhead
+================================================== -->
+<header class="jumbotron subhead" id="overview">
+	<div class="container">
+		<h1><span tal:content="evidence.basic_info.name"></h1>
+		<p class="lead">
+			<span tal:content="evidence.basic_info.description">
+		</p>
+	</div>
+</header>
+
+
+<div class="container">
+
+<!-- Docs nav
+================================================== -->
+<div class="row">
+	<div id='sidebar' class="span3 bs-docs-sidebar">
+		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
+			<li><h3><span tal:content="evidence.basic_info.name"></h3></li>
+			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
+		</ul>
+	</div>
+	
+	<div class="span9">  
+
+<!-- Summary
+================================================== -->
+<section id="summary">
+	<div class="page-header">
+		<h1>Summary</h1>
+		<div>
+			<ul class='unstyled'>
+				<li tal:condition="python: evidence.bioent_biocon"><strong>Bioent-Biocon: </strong><a tal:attributes="href evidence.bioent_biocon.link" tal:content="evidence.bioent_biocon.name"></a></li>
+				<li tal:condition="python: evidence.biorel"><strong>Interaction: </strong><a tal:attributes="href evidence.biorel.link" tal:content="evidence.biorel.name"></a></li>
+				
+				<li tal:condition="python: evidence.biorel and evidence.basic_info.modification"><strong>Modification: </strong><span tal:content="evidence.basic_info.modification"></span></li>
+				<li tal:condition="python: evidence.biorel and evidence.basic_info.observable"><strong>Phenotype: </strong><span tal:content="evidence.basic_info.qualifier"></span> <span tal:content="evidence.basic_info.observable"></span></li>
+				
+				<li tal:condition="python: evidence.bioent_biocon and evidence.basic_info.comment"><strong>Comment: </strong><span tal:content="evidence.basic_info.comment"></span></li>	
+			</ul>
+
+			<ul class='unstyled' tal:condition="python: evidence.bioent_biocon" tal:repeat="property evidence.properties">
+				<li><strong><span tal:content="property[0]"></span></strong>: <span tal:content="property[1]"></span></li>
+				<dd class='muted' tal:condition="python: property[2]" tal:content="'*' + property[2]"></dd>	
+			</ul>
+		</div>
+	</div>
+</section>
+
+</div>
+
+</body>
+</div>
+</div>
+

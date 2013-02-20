@@ -8,9 +8,9 @@
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
-		<h1><span tal:content="bioent['basic_info']['name']"> <small>(<span tal:content="bioent['basic_info']['official_name']">)</small></h1>
+		<h1><span tal:content="bioent.basic_info.name"> <small>(<span tal:content="bioent.basic_info.official_name">)</small></h1>
 		<p class="lead">
-			<span tal:content="bioent['basic_info']['description']">
+			<span tal:content="bioent.basic_info.description">
 		</p>
 	</div>
 </header>
@@ -23,7 +23,7 @@
 <div class="row">
 	<div id='sidebar' class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
-			<li><h3><span tal:content="bioent['basic_info']['name']"> <small>(<span tal:content="bioent['basic_info']['official_name']">)</small></h3></li>
+			<li><h3><span tal:content="bioent.basic_info.name"> <small>(<span tal:content="bioent.basic_info.official_name">)</small></h3></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#location"><i class="icon-chevron-right"></i> Sequence and Location</a></li>
           	<li><a href="#go"><i class="icon-chevron-right"></i> Gene Ontology</a></li>
@@ -45,14 +45,14 @@
 		<h1>Summary</h1>
 		<div>
 			<ul class='unstyled'>
-				<li tal:condition="python: bioent['basic_info']['aliases']"><strong>Aliases: </strong><span tal:content="bioent['basic_info']['aliases']"></li>
-				<li tal:condition="python: bioent['basic_info']['bioent_type']"><strong>Bioent-Type: </strong><span tal:content="bioent['basic_info']['bioent_type']"></li>
-				<li tal:condition="python: bioent['basic_info']['qualifier']"><strong>Qualifier: </strong><span tal:content="bioent['basic_info']['qualifier']"></li>
+				<li tal:condition="python: bioent.basic_info.aliases"><strong>Aliases: </strong><span tal:content="bioent.basic_info.aliases"></li>
+				<li tal:condition="python: bioent.basic_info.bioent_type"><strong>Bioent-Type: </strong><span tal:content="bioent.basic_info.bioent_type"></li>
+				<li tal:condition="python: bioent.basic_info.qualifier"><strong>Qualifier: </strong><span tal:content="bioent.basic_info.qualifier"></li>
 				<br>
-				<li tal:condition="python: bioent['basic_info']['source']"><strong>Source: </strong><span tal:content="bioent['basic_info']['source']"></li>
-				<li tal:condition="python: bioent['basic_info']['status']"><strong>Status: </strong><span tal:content="bioent['basic_info']['status']"></li>
-				<li tal:condition="python: bioent['basic_info']['attribute']"><strong>Attribute: </strong><span tal:content="bioent['basic_info']['attribute']"></li>
-				<li tal:condition="python: bioent['basic_info']['name_description']"><strong>Name Derived From: </strong><span tal:content="bioent['basic_info']['name_description']"></li>
+				<li tal:condition="python: bioent.basic_info.source"><strong>Source: </strong><span tal:content="bioent.basic_info.source"></li>
+				<li tal:condition="python: bioent.basic_info.status"><strong>Status: </strong><span tal:content="bioent.basic_info.status"></li>
+				<li tal:condition="python: bioent.basic_info.attribute"><strong>Attribute: </strong><span tal:content="bioent.basic_info.attribute"></li>
+				<li tal:condition="python: bioent.basic_info.name_description"><strong>Name Derived From: </strong><span tal:content="bioent.basic_info.name_description"></li>
 			</ul>
 		</div>
 	</div>
@@ -68,7 +68,7 @@
 		========================================== -->
 		<div class="container">
 			<ul class='unstyled'>
-				<li tal:condition="python: bioent['genetic_position']"><strong>Genetic Position: </strong><span tal:content="bioent['genetic_position']"></li>
+				<li tal:condition="python: bioent.genetic_position"><strong>Genetic Position: </strong><span tal:content="bioent.genetic_position"></li>
 			</ul>
 		</div>
 
@@ -104,7 +104,7 @@
 ================================================== -->
 <section id="phenotype">
 	<div class="page-header">
-		<h1>Phenotypes (<span tal:content="bioent['phenotype_count']">)</h1>
+		<h1>Phenotypes (<span tal:content="bioent.phenotype_count">)</h1>
 
 		
 		<!-- Brief
@@ -122,9 +122,9 @@
   			</thead>
   			<tbody>
   			<tr tal:repeat="bioent_biocon bioent.phenotypes">
-    			<td><a tal:attributes="href '/bioent_biocon/' + bioent_biocon['official_name']" tal:content="bioent_biocon.name"></a></td>			
-    			<td><a tal:attributes="href '/biocon/' + bioent_biocon['biocon']['official_name']" tal:content="bioent_biocon['biocon']['name']"></a></td>					
-    			<td tal:content="bioent_biocon.evidence_count"></td>
+    			<td><a tal:attributes="href bioent_biocon.link" tal:content="bioent_biocon.name"></a></td>			
+    			<td><a tal:attributes="href bioent_biocon.biocon.link" tal:content="bioent_biocon.biocon.name"></a></td>					
+    			<td><span tal:content="bioent_biocon.evidence_count"></span> <span class="muted" style="float:right" tal:condition="python: bioent_biocon.evidence_desc" tal:content="'(' + bioent_biocon.evidence_desc + ')'"></span></td>
 
   			</tr>
   			</tbody>
@@ -145,7 +145,7 @@
 ================================================== -->
 <section id="interactions">
 	<div class="page-header">
-		<h1>Interactions (<span tal:content="bioent['interaction_count']">)</h1>
+		<h1>Interactions (<span tal:content="bioent.interaction_count">)</h1>
 	
 		<h3>Cytoscape Visualization</h3>
 			<p>(Shows interactions with 3 or more pieces of evidence.)</p>
@@ -170,17 +170,17 @@
   			</thead>
   			<tbody>
   			<tr tal:repeat="interaction bioent.interactions">
-    			<td> <a tal:attributes="href '/biorel/' + interaction.official_name" tal:content="interaction.name">Id</a></td>
+    			<td> <a tal:attributes="href interaction.link" tal:content="interaction.name">Id</a></td>
     			<td>
-    				<a tal:condition="python: interaction['source']['official_name'] == bioent['basic_info']['official_name'] and interaction['sink']['official_name'] == bioent['basic_info']['official_name']" 
-    					tal:attributes="href '/bioent/' + interaction['source']['official_name']" 
-    					tal:content="interaction['source']['name']"></a>
-    				<a tal:condition="python: interaction['source']['official_name'] != bioent['basic_info']['official_name']" 
-    					tal:attributes="href '/bioent/' + interaction['source']['official_name']" 
-    					tal:content="interaction['source']['name']"></a>
-    				<a tal:condition="python: interaction['sink']['official_name'] != bioent['basic_info']['official_name']" 
-    					tal:attributes="href '/bioent/' + interaction['sink']['official_name']" 
-    					tal:content="interaction['sink']['name']"></a>	
+    				<a tal:condition="python: interaction.source.official_name == bioent.basic_info.official_name and interaction.sink.official_name == bioent.basic_info.official_name" 
+    					tal:attributes="href interaction.source.link" 
+    					tal:content="interaction.source.name"></a>
+    				<a tal:condition="python: interaction.source.official_name != bioent.basic_info.official_name" 
+    					tal:attributes="href interaction.source.link" 
+    					tal:content="interaction.source.name"></a>
+    				<a tal:condition="python: interaction.sink.official_name != bioent.basic_info.official_name" 
+    					tal:attributes="href interaction.sink.link" 
+    					tal:content="interaction.sink.name"></a>	
     			</td>			
     			<td tal:content="interaction.genetic_evidence_count"></td>
     			<td tal:content="interaction.physical_evidence_count"></td>
@@ -225,8 +225,7 @@
 <section id="wiki">
 	<div class="page-header">
 		<h1>Wiki</h1>
-		
-		<p>This is the link to the wiki.</p>
+    	<a tal:attributes="href 'http://wiki.yeastgenome.org/index.php/' + bioent.basic_info.official_name" tal:content="'http://wiki.yeastgenome.org/index.php/' + bioent.basic_info.official_name"></a>
 	</div>
 </section>
 
