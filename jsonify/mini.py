@@ -6,7 +6,7 @@ Created on Feb 19, 2013
 
 def bioent_mini(bioent):
     return {'name':bioent.secondary_name, 'official_name':bioent.name, 'link':'/bioent/' + bioent.name, 'description':bioent.description, 
-            'bioent_type':bioent.bioent_type, 'full_name':bioent.secondary_name + ' (' + bioent.name + ')'}
+            'bioent_type':bioent.bioent_type, 'full_name':bioent.secondary_name + ' (' + bioent.name + ')', 'id':bioent.id}
     
 def reference_mini(ref):
     pubmed_str = str(ref.pubmed_id)

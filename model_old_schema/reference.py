@@ -87,7 +87,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
         self.citation = pubmed.citation
         self.year = pubmed.year
         self.pdf_status = pubmed.pdf_status
-        self.pages = pubmed.pages
+        self.page = pubmed.pages
         self.volume = pubmed.volume
         self.title = pubmed.title
         self.issue = pubmed.issue

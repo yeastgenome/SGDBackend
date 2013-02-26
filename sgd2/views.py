@@ -1,19 +1,14 @@
 from .models import DBSession
-from jsonify.large import bioent_large, biorel_large, biocon_large, \
-    bioent_biocon_large, reference_large, phenoevidence_large, allele_large, \
+from jsonify.large import phenoevidence_large, allele_large, \
     interevidence_large
 from jsonify.small import bioent_small
-from model_new_schema.bioconcept import Bioconcept, BioentBiocon
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.biorelation import Biorelation
 from model_new_schema.evidence import Evidence, Allele
-from model_new_schema.reference import Reference
 from model_new_schema.search import Typeahead
 from pyramid.renderers import get_renderer
 from pyramid.response import Response
 from pyramid.view import view_config
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.orm import joinedload, subqueryload
 from sqlalchemy.sql.expression import func
  
 

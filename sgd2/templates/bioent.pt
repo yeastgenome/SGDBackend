@@ -136,7 +136,10 @@
 		<h1>Interactions <span id='interactions_header1'></span></h1>
 	
 		<h3>Cytoscape Visualization</h3>
-			<p>(Shows interactions with 3 or more pieces of evidence.)</p>
+		<strong>Filter Interactions by # Total Evidence:</strong>
+		<br></br>
+		<div id="slider-range-min"></div>
+		<br></br>
 		<div id="cytoscapeweb">
             Cytoscape visualization is loading...
         </div>
@@ -264,6 +267,7 @@
 	</div>
 </section>
 
+
 <tal:block tal:define="phenotype_link bioent.phenotype_link">
 <script>
 	$(document).ready(function() {
@@ -284,15 +288,16 @@
 <tal:block tal:define="interaction_link bioent.interaction_link">
 <script>
 	$(document).ready(function() {
-  		$('#interaction_table2').dataTable( {
+	thisTable = $('#interaction_table2')
+  		thisTable.dataTable( {
     		"sPaginationType": "bootstrap",
-    		"aaSorting": [[2, "desc"]],
+    		"aaSorting": [[4, "desc"]],
     		"sAjaxSource": '${interaction_link}2',
     		"fnInitComplete": function() {
     			this.fnAdjustColumnSizing(true);
     			var num_rows = this.fnSettings().fnRecordsTotal()
     			document.getElementById("interactions_header2").innerHTML = '(' + num_rows + ')'
-    		}
+    		}  
     		
   		} );
 	} );
@@ -304,7 +309,7 @@
 	$(document).ready(function() {
   		$('#interaction_table3').dataTable( {
     		"sPaginationType": "bootstrap",
-    		"aaSorting": [[2, "desc"]],
+    		"aaSorting": [[4, "desc"]],
     		"sAjaxSource": '${interaction_link}3',
     		"fnInitComplete": function() {
     			this.fnAdjustColumnSizing(true);
@@ -346,6 +351,8 @@
 	// init and draw
 	var vis = new org.cytoscapeweb.Visualization(div_id, options);
 	
+	var evidence_cutoff = 3;
+	
 	// callback when Cytoscape Web has finished drawing
     vis.ready(function() {
                 
@@ -362,14 +369,56 @@
 			var link = target.data['link']
 			window.location.href = link          
 		}
+		var max_evidence = vis.nodes()[vis.nodes().length-1].data.evidence;
+		$(function() {
+			$( "#slider-range-min" ).slider({
+				range: "max",
+				value: 3,
+				min: evidence_cutoff,
+				max: max_evidence,
+				step: 1,
+				slide: function( event, ui ) {
+					handle_slide(event, ui);
+				},
+				change: function( event, ui ) {
+					handle_slide(event, ui);
+				}
+			});
+			function handle_slide(event, ui) {
+    			document.getElementById("interactions_header1").innerHTML = '(' + vis.nodes().length + ')'
+				var val = $( "#amount" ).val( "$" + ui.value );
+				vis.filter(function(item) {
+					return item.data.evidence == -1 || item.data.evidence >= ui.value;
+				});
+				vis.layout('ForceDirected');
+			}
+			$( "#slider-range-min" ).slider('value', 3);
+			var $slider =  $('#slider-range-min');
+			var max =  $slider.slider("option", "max") - $slider.slider("option", "min") + 1;    
+ 			var spacing =  100 / (max -1);
 
+    		$slider.find('.ui-slider-tick-mark').remove();
+    		for (var i = 0; i < max ; i++) {
+    			var value = (i+evidence_cutoff);
+    			if(value >= 10) {
+    				var left = ((spacing * i)-1)
+    			}
+    			else {
+    				var left = ((spacing * i)-.5)
+    			}
+        		$('<span class="ui-slider-tick-mark muted">' +value+ '</span>').css('left', left + '%').appendTo($slider);
+        	}
+		});
 	});
                 
 	// you could also use other formats (e.g. GraphML) or grab the network data via AJAX
 	$.get('/bioent_graph/'+"${bioent['basic_info']['official_name']}", function(data) {
 		vis.draw({ network: data, visualStyle: visual_style});
+		evidence_cutoff = data['evidence_cutoff']
 	});
-                
+	
+	
+	              
 };
 </script>
         

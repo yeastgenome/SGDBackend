@@ -1066,4 +1066,12 @@ form.bs-docs-example {
   }
 }
 
+.ui-slider-tick-mark{
+display:inline-block;
+/*width:2px;
+background:gray;
+height:10px;*/
+position:absolute;
+top:15px;
+}
 

@@ -5,6 +5,27 @@ Created on Feb 20, 2013
 '''
     
 
+def create_table(objects, metadata):
+    table = []
+    for obj in objects:
+        object_info = []
+        for metadatum in metadata:
+            output = str(obj[metadatum['field']])
+            if 'link' in metadatum:
+                value = obj
+                for key in metadatum['link']:
+                    value = value[key]
+                output = entry_with_link(output, str(value))
+            if 'note' in metadatum:
+                value = obj
+                for key in metadatum['note']:
+                    value = value[key]
+                output = entry_with_note(output, str(value))
+            object_info.append(output)
+        table.append(object_info) 
+    return {'aaData':table}
+            
+
 def create_bioent_biocon_table_for_bioent(bioent_biocons):
     table = []
     for bioent_biocon in bioent_biocons:

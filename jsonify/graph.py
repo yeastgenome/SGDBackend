@@ -4,42 +4,68 @@ Created on Feb 19, 2013
 @author: kpaskov
 '''
 from jsonify.mini import bioent_mini
-from jsonify.small import biorel_small
 from model_new_schema.biorelation import Biorelation
 from sgd2.models import DBSession
 
 def create_graph(bioent):
     nodes = []
     edges = []
-    
-    bioent_id = str(bioent.id)
-    bioent_json = bioent_mini(bioent)
-    nodes.append({'id':str(bioent_id), 'label':str(bioent_json['name']), 'focus':'1', 'link':str(bioent_json['link'])})
-    
+        
     neighbor_ids = set()
     neighbor_ids.add(bioent.id)
+    
+    two_evidence_neighbors = []
+    two_evidence_neighbor_ids = set()
+    one_evidence_neighbors = []
+    one_evidence_neighbor_ids = set()
 
+    max_evidence_count = 0;
     for interaction in bioent.biorelations:
         if interaction.evidence_count > 2:
-            if interaction.source_bioent_id == bioent.id:
-                neighbor = interaction.sink_bioent
-            else:
-                neighbor = interaction.source_bioent
+            node_list = nodes
+            node_ids = neighbor_ids
+        elif interaction.evidence_count == 2:
+            node_list = two_evidence_neighbors
+            node_ids = two_evidence_neighbor_ids
+        else:
+            node_list = one_evidence_neighbors
+            node_ids = one_evidence_neighbor_ids
             
-            if not neighbor.id in neighbor_ids:
-                neighbor_json = bioent_mini(neighbor)
-                nodes.append({'id':str(neighbor.id), 'label':str(neighbor_json['name']), 'focus':'0', 'link':str(neighbor_json['link'])})
-                neighbor_ids.add(neighbor.id)
+        if interaction.source_bioent_id == bioent.id:
+            neighbor = interaction.sink_bioent
+        else:
+            neighbor = interaction.source_bioent
+            
+        neighbor_json = bioent_mini(neighbor)
+        node_list.append({'id':str(neighbor.id), 'label':str(neighbor_json['name']), 'focus':'0', 'link':str(neighbor_json['link']), 'evidence':interaction.evidence_count})
+        node_ids.add(neighbor.id)
+        if interaction.evidence_count > max_evidence_count:
+            max_evidence_count = interaction.evidence_count
+        
+    evidence_cutoff = 3
+    if len(neighbor_ids) + len(two_evidence_neighbor_ids) < 100:
+        neighbor_ids.update(two_evidence_neighbor_ids)
+        nodes.extend(two_evidence_neighbors)      
+        evidence_cutoff = 2
+        
+    if len(neighbor_ids) + len(one_evidence_neighbor_ids) < 100:
+        neighbor_ids.update(one_evidence_neighbor_ids)
+        nodes.extend(one_evidence_neighbors) 
+        evidence_cutoff = 1
+                
+    bioent_json = bioent_mini(bioent)
+    nodes.append({'id':str(bioent.id), 'label':str(bioent_json['name']), 'focus':'1', 'link':str(bioent_json['link']), 'evidence':max_evidence_count})
+    
         
     interactions = set(DBSession.query(Biorelation).filter(Biorelation.source_bioent_id.in_(neighbor_ids)).all())
     interactions.update(DBSession.query(Biorelation).filter(Biorelation.sink_bioent_id.in_(neighbor_ids)).all())
 
     for interaction in interactions:
-        if interaction.evidence_count > 2 and interaction.source_bioent_id in neighbor_ids and interaction.sink_bioent_id in neighbor_ids:
-            edges.append({ 'id': str(interaction.id), 'target': str(interaction.source_bioent_id), 'source': str(interaction.sink_bioent_id), 'label': str(interaction.name), 'link':'/biorel/' + str(interaction.name)})      
+        if interaction.evidence_count >= evidence_cutoff and interaction.source_bioent_id in neighbor_ids and interaction.sink_bioent_id in neighbor_ids:
+            edges.append({ 'id': str(interaction.id), 'target': str(interaction.source_bioent_id), 'source': str(interaction.sink_bioent_id), 'label': str(interaction.name), 'link':'/biorel/' + str(interaction.name), 'evidence':interaction.evidence_count})      
         
-    graph = {'dataSchema': {'nodes': [ { 'name': "label", 'type': "string" }, { 'name': "focus", 'type': "string" }, {'name':'link', 'type':'string'}],
-                            'edges': [ { 'name': "label", 'type': "string" }, {'name':'link', 'type':'string'}]},
-            'data': {'nodes': nodes, 'edges': edges}}
+    graph = {'dataSchema': {'nodes': [ { 'name': "label", 'type': "string" }, { 'name': "focus", 'type': "string" }, {'name':'link', 'type':'string'}, {'name':'evidence', 'type':'integer'}],
+                            'edges': [ { 'name': "label", 'type': "string" }, {'name':'link', 'type':'string'}, {'name':'evidence', 'type':'integer'}]},
+            'data': {'nodes': nodes, 'edges': edges}, 'evidence_cutoff':evidence_cutoff}
     return graph
     

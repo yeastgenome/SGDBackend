@@ -428,7 +428,64 @@ def convert_phenotypes_to_observable(old_model, new_model):
             print str(count) + '/' + str(len(ps)) +  " " + str(new_time - time)
             time = new_time
     
+def convert_phenoevidence_to_chemevidence():
+    print "Convert Phenotypes to Chemicals"
+
+    from model_old_schema.phenotype import Phenotype_Feature as OldPhenotype_Feature
+    from model_new_schema.evidence import Phenoevidence as NewPhenoevidence
+    from model_new_schema.bioconcept import Phenotype as NewPhenotype
+    from model_new_schema.bioentity import Bioentity as NewBioentity
+    from model_new_schema.bioconcept import BioentBiocon as NewBioentBiocon
+
+    time = datetime.datetime.now()
+    ps = old_model.execute(model_old_schema.model.get(OldPhenotype_Feature), OLD_DBUSER)
     
+    id_new_ps = {}
+    new_ps = new_model.execute(model_new_schema.model.get(NewPhenoevidence), NEW_DBUSER)
+    for new_p in new_ps:
+        id_new_ps[new_p.id] = new_p
+        
+    count = 0
+    new_time = datetime.datetime.now()
+    print 'Loaded in ' + str(new_time-time)
+    time = new_time
+    for p in ps:
+        phenoevidence = id_new_ps[p.id]
+        if phenoevidence.qualifier is None:
+            qualifier = 'None';
+            observable = 'None';
+            if p.qualifier is not None:
+                qualifier = p.qualifier
+            if p.observable is not None:
+                observable = p.observable
+                
+            #Set qualifier for phenoevidence.
+            phenoevidence.qualifier = qualifier
+                        
+            bioent = new_model.execute(model_new_schema.model.get_first(NewBioentity, id=p.feature_id), NEW_DBUSER)
+
+            #Find or create bioconcept
+            new_biocon = new_model.execute(model_new_schema.model.get_first(NewPhenotype, observable=observable), NEW_DBUSER)
+            if new_biocon is None:
+                new_biocon = NewPhenotype(observable, biocon_id=p.id, date_created=p.date_created, created_by=p.created_by)
+                new_model.execute(model_new_schema.model.add(new_biocon), NEW_DBUSER, commit=True)
+                biocon_id = p.id
+            else:
+                biocon_id = new_biocon.id
+                
+            #Find or create BioentBiocon
+            bioent_biocon = new_model.execute(model_new_schema.model.get_first(NewBioentBiocon, bioent_id=bioent.id, biocon_id=biocon_id), NEW_DBUSER)
+            if bioent_biocon is None:
+                bioent_biocon = NewBioentBiocon(bioent, biocon_id)
+            bioent_biocon.evidences.append(phenoevidence)
+         
+            new_model.execute(model_new_schema.model.add(bioent_biocon), NEW_DBUSER, commit=True)
+            
+        count = count+1
+        if count%1000 == 0:
+            new_time = datetime.datetime.now()
+            print str(count) + '/' + str(len(ps)) +  " " + str(new_time - time)
+            time = new_time    
    
 
           
