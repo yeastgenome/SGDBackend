@@ -133,7 +133,7 @@
 ================================================== -->
 <section id="original_interactions">
 	<div class="page-header">
-		<h1>Original Interactions <span id='interactions_header1'></span></h1>
+		<h1>Interactions <span id='interactions_header1'></span></h1>
 	
 		<h3>Cytoscape Visualization</h3>
 			<p>(Shows interactions with 3 or more pieces of evidence.)</p>
@@ -141,25 +141,6 @@
             Cytoscape visualization is loading...
         </div>
 
-        
-		<!-- Brief
-		========================================== -->
-		<div>
-			<ul class='unstyled'>
-				<table class='table table-striped table-bordered table-condensed tablesorter' id='interaction_table1'>
-			<thead>
-  			<tr>
-    			<th>Interaction Name</th>
-    			<th>Interactor Name</th>
-    			<th># Genetic Evidence</th>
-    			<th># Physical Evidence</th>
-    			<th># Total Evidence</th>
-  			</tr>
-  			</thead>
-  			
-			</table>
-			</ul>
-		</div>
 	</div>
 </section>
 
@@ -303,23 +284,6 @@
 <tal:block tal:define="interaction_link bioent.interaction_link">
 <script>
 	$(document).ready(function() {
-  		$('#interaction_table1').dataTable( {
-    		"sPaginationType": "bootstrap",
-    		"aaSorting": [[2, "desc"]],
-    		"sAjaxSource": '${interaction_link}',
-    		"fnInitComplete": function() {
-    			this.fnAdjustColumnSizing(true);
-    			var num_rows = this.fnSettings().fnRecordsTotal()
-    			document.getElementById("interactions_header1").innerHTML = '(' + num_rows + ')'
-    		}
-  		} );
-	} );
-</script>
-</tal:block>
-
-<tal:block tal:define="interaction_link bioent.interaction_link">
-<script>
-	$(document).ready(function() {
   		$('#interaction_table2').dataTable( {
     		"sPaginationType": "bootstrap",
     		"aaSorting": [[2, "desc"]],
@@ -381,6 +345,25 @@
                 
 	// init and draw
 	var vis = new org.cytoscapeweb.Visualization(div_id, options);
+	
+	// callback when Cytoscape Web has finished drawing
+    vis.ready(function() {
+                
+		// add a listener for when nodes and edges are clicked
+		vis.addListener("click", "nodes", function(event) {
+			handle_click(event);
+		})
+		.addListener("click", "edges", function(event) {
+			handle_click(event);
+		});
+                    
+		function handle_click(event) {
+			var target = event.target;   
+			var link = target.data['link']
+			window.location.href = link          
+		}
+
+	});
                 
 	// you could also use other formats (e.g. GraphML) or grab the network data via AJAX
 	$.get('/bioent_graph/'+"${bioent['basic_info']['official_name']}", function(data) {
