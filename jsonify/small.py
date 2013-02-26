@@ -3,7 +3,8 @@ Created on Feb 19, 2013
 
 @author: kpaskov
 '''
-from jsonify.mini import bioent_mini, reference_mini
+from jsonify.mini import bioent_mini, reference_mini, phenoevidence_mini, \
+    interevidence_mini
 
 def biocon_small(biocon):
     return {'name':biocon.name, 'official_name':biocon.name, 'link':'/biocon/' + biocon.name, 'description': biocon.biocon_type + ' ' + biocon.name,
@@ -36,36 +37,27 @@ def biorel_small(biorel):
             'source':source_bioent, 'sink':sink_bioent, 
             'evidence_count':biorel.evidence_count, 'physical_evidence_count':biorel.physical_evidence_count, 'genetic_evidence_count':biorel.genetic_evidence_count} 
 
-def evidence_small(evidence):
-    if evidence.reference is not None:
-        reference = reference_mini(evidence.reference)
-    else:
-        reference = None
-    return {'name':'Evidence ' + str(evidence.id), 'official_name': str(evidence.id), 'link':'/evidence/' + str(evidence.id), 'description': 'Evidence',
-            'experiment_type':evidence.experiment_type, 'reference':reference, 'strain':evidence.strain_id}
-
 def allele_small(allele):
     return {'name': allele.name, 'official_name':allele.name, 'link':str('/allele/' + str(allele.name)), 'description': 'Allele',
             'more_info':allele.description}
-    
-def interevidence_small(evidence):
-    basic_info = evidence_small(evidence)
 
-    basic_info['annotation_type'] = evidence.annotation_type
-    basic_info['modification'] = evidence.modification
-    basic_info['direction'] = evidence.direction
-    basic_info['interaction_type'] = evidence.interaction_type
-    basic_info['observable'] = evidence.observable
-    basic_info['qualifier'] = evidence.qualifier
+def phenoevidence_small(evidence):
+    basic_info = phenoevidence_mini(evidence)
+    if evidence.mutant_allele is not None:
+        basic_info['allele'] = allele_small(evidence.mutant_allele)
+    else:
+        basic_info['allele'] = None
+    basic_info['biorel'] = None
     return basic_info
 
-def phenoevidence_small(evidence): 
-    basic_info = evidence_small(evidence)
-    basic_info['mutant'] = evidence.mutant_type
-    basic_info['allele'] = evidence.mutant_allele
-    basic_info['source'] = evidence.source
-    basic_info['qualifier'] = evidence.qualifier
-    basic_info['comment'] = evidence.experiment_comment
+def phenoevidence_mid(evidence):
+    basic_info = phenoevidence_small(evidence)
+    basic_info['bioent_biocon'] = bioent_biocon_small(evidence.bioent_biocon)
+
+def interevidence_small(evidence):
+    basic_info = interevidence_mini(evidence)
+    basic_info['bioent_biocon'] = None
+    basic_info['biorel'] = biorel_small(evidence.biorel)
     return basic_info
 
 def reference_small(ref):

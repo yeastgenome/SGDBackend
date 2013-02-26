@@ -27,41 +27,12 @@
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#abstract"><i class="icon-chevron-right"></i> Abstract</a></li>
 			<li><a href="#interactions"><i class="icon-chevron-right"></i> Interactions</a></li>
-			<li><a href="#bioentity-phenotypes"><i class="icon-chevron-right"></i> Bioentity-Phenotypes</a></li>
+			<li><a href="#bioentity-phenotypes"><i class="icon-chevron-right"></i> Phenotypes</a></li>
 
 		</ul>
 	</div>
 	
 	<div class="span9">  
-
-<!-- Summary
-================================================== -->
-<section id="summary">
-	<div class="page-header">
-		<h1>Summary</h1>
-		<div>
-			<ul class='unstyled'>
-				<li tal:condition="python: ref.basic_info.citation"><strong>Citation: </strong><span tal:content="ref.basic_info.citation"></li>
-				<br>
-				<li tal:condition="python: ref.basic_info.book"><strong>Book: </strong><span tal:content="ref.basic_info.book"></li>
-				<li tal:condition="python: ref.basic_info.journal"><strong>Journal: </strong><span tal:content="ref.basic_info.journal"></li>
-				<li tal:condition="python: ref.basic_info.volume"><strong>Volume: </strong><span tal:content="ref.basic_info.volume"></li>
-				<li tal:condition="python: ref.basic_info.issue"><strong>Issue: </strong><span tal:content="ref.basic_info.issue"></li>
-				<li tal:condition="python: ref.basic_info.page"><strong>Page: </strong><span tal:content="ref.basic_info.page"></li>
-				<li tal:condition="python: ref.basic_info.doi"><strong>DOI: </strong><span tal:content="ref.basic_info.doi"></li>
-				<li tal:condition="python: ref.basic_info.date_published"><strong>Published: </strong><span tal:content="ref.basic_info.date_published"></li>
-				<li tal:condition="python: ref.basic_info.date_revised"><strong>Revised: </strong><span tal:content="ref.basic_info.date_revised"></li>
-				
-				<!-- 
-				<li tal:condition="python: ref.basic_info.source"><strong>Source: </strong><span tal:content="ref.basic_info.source"></li>
-				<li tal:condition="python: ref.basic_info.status"><strong>Status: </strong><span tal:content="ref.basic_info.status"></li>
-				<li tal:condition="python: ref.basic_info.pdf_status"><strong>PDF-Status: </strong><span tal:content="ref.basic_info.pdf_status"></li>
-				<li tal:condition="python: ref.basic_info.year"><strong>Year: </strong><span tal:content="ref.basic_info.year"></li>
-				-->
-			</ul>
-		</div>
-	</div>
-</section>
 
 <!-- Abstract
 ================================================== -->
@@ -69,7 +40,10 @@
 	<div class="page-header">
 		<h1>Abstract</h1>
 		<div>
-			<p tal:content="ref['basic_info']['abstract']"></p>
+			<p tal:content="ref.basic_info.abstract"></p>
+			<p>PMID: <span tal:content="ref.basic_info.pubmed_id"></span></p>
+			<p tal:condition="python: ref.basic_info.doi">DOI: <span tal:content="ref.basic_info.doi"></span></p>
+			
 		</div>
 	</div>
 </section>
@@ -78,26 +52,20 @@
 ================================================== -->
 <section id="interactions">
 	<div class="page-header">
-		<h1>Interactions (<span tal:content="ref.interaction_evidence_count">)</h1>
-
+		<h1>Interactions <span id='interactions_header'></h1>
+		<p id='interactions_message'></p>
 		
 		<!-- Brief
 		========================================== -->
-		<div>
-			<span tal:condition="python: ref.interaction_evidence_count == 0">No interaction information was pulled from this paper.</span>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotype_table' tal:condition="python: ref.interaction_evidence_count > 0">
+		<div id='interactions_wrapper'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='interactions_table'>
 			<thead>
   			<tr>
-  				<th>Evidence</th>
     			<th>Interaction</th>
+    			<th>Endpoint 1</th>
+    			<th>Endpoint 2</th>
   			</tr>
   			</thead>
-  			<tbody>
-  			<tr tal:repeat="evidence ref.interaction_evidences">
-    			<td><a tal:attributes="href evidence.basic_info.link" tal:content="evidence.basic_info.name"></a></td>			
-    			<td><a tal:attributes="href evidence.biorel.link" tal:content="evidence.biorel.name"></a></td>					
-  			</tr>
-  			</tbody>
 			</table>
 		</div>
 	</div>
@@ -107,30 +75,67 @@
 ================================================== -->
 <section id="bioentity-phenotypes">
 	<div class="page-header">
-		<h1>Bioentity-Phenotypes (<span tal:content="ref.phenotype_evidence_count">)</h1>
-
+		<h1>Phenotypes <span id='phenotypes_header'></h1>
+		<p id='phenotypes_message'></p>
 		
 		<!-- Brief
 		========================================== -->
-		<div>
-			<span tal:condition="python: ref.phenotype_evidence_count == 0">No phenotype information was pulled from this paper.</span>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotype_table' tal:condition="python: ref.phenotype_evidence_count > 0">
+		<div id='phenotypes_wrapper'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotypes_table'>
 			<thead>
   			<tr>
-  				<th>Evidence</th>
     			<th>Bioentity-Phenotype</th>
+    			<th>Phenotype</th>
+    			<th>Bioentity</th>
+
   			</tr>
   			</thead>
-  			<tbody>
-  			<tr tal:repeat="evidence ref.phenotype_evidences">
-    			<td><a tal:attributes="href evidence.basic_info.link" tal:content="evidence.basic_info.name"></a></td>			
-    			<td><a tal:attributes="href evidence.bioent_biocon.link" tal:content="evidence.bioent_biocon.name"></a></td>					
-  			</tr>
-  			</tbody>
 			</table>
 		</div>
 	</div>
 </section>
+
+<tal:block tal:define="phenotypes_link ref.phenotypes_link">
+<script>
+	$(document).ready(function() {
+  		$('#phenotypes_table').dataTable( {
+    		"sPaginationType": "bootstrap",
+    		"aaSorting": [[0, "asc"]],
+    		"sAjaxSource": '${phenotypes_link}',
+    		"fnInitComplete": function() {
+    			this.fnAdjustColumnSizing(true);
+    			var num_rows = this.fnSettings().fnRecordsTotal();
+    			document.getElementById("phenotypes_header").innerHTML = '(' + num_rows + ')';
+    			if(num_rows == 0) {
+    			 	document.getElementById("phenotypes_message").innerHTML = 'No phenotype information was pulled from this paper.';
+    			 	document.getElementById("phenotypes_wrapper").style.display = 'none';
+    			}
+    		}
+  		} );
+	} );
+</script>
+</tal:block>
+
+<tal:block tal:define="interactions_link ref.interactions_link">
+<script>
+$(document).ready(function() {
+  	$('#interactions_table').dataTable( {
+    	"sPaginationType": "bootstrap",
+    	"aaSorting": [[0, "asc"]],
+    	"sAjaxSource": '${interactions_link}',
+    	"fnInitComplete": function() {
+    		this.fnAdjustColumnSizing(true);
+    		var num_rows = this.fnSettings().fnRecordsTotal();
+    		document.getElementById("interactions_header").innerHTML = '(' + num_rows + ')';
+    		if(num_rows == 0) {
+    			 document.getElementById("interactions_message").innerHTML = 'No interaction information was pulled from this paper.';
+    			 document.getElementById("interactions_wrapper").style.display = 'none';
+    		}
+    	}
+  	} );
+} );
+</script>
+</tal:block>
 
 </div>
 

@@ -47,10 +47,10 @@
 ================================================== -->
 <section id="genes">
 	<div class="page-header">
-		<h1>Genes (<span tal:content="biocon.bioent_biocon_count">)</h1>
+		<h1>Genes <span id='genes_header'></span></h1> 
 
 		<div>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='myTable'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='genes_table'>
 			<thead>
   			<tr>
     			<th>BioentBiocon</th>
@@ -58,27 +58,28 @@
     			<th>Evidence Count</th>
   			</tr>
   			</thead>
-  			<tbody>
-  			<tr tal:repeat="bioent_biocon biocon.bioent_biocons">
-  				<td><a tal:attributes="href bioent_biocon.link" tal:content="bioent_biocon.name"></a></td>			
-  				<td><a tal:attributes="href bioent_biocon.bioent.link" tal:content="bioent_biocon.bioent.name"></a></td>			
-    			<td><span tal:content="bioent_biocon.evidence_count"></span> <span class="muted" style="float:right" tal:condition="python: bioent_biocon.evidence_desc" tal:content="'(' + bioent_biocon.evidence_desc + ')'"></span></td>
-  			</tr>
-  			</tbody>
 			</table>
         </div>
 		
 	</div>
 </section>
 
+<tal:block tal:define="genes_link biocon.genes_link">
 <script>
 	$(document).ready(function() {
-    $('#myTable').dataTable( {
-    "sPaginationType": "bootstrap",
-    "aaSorting": [[2, "desc"]]
-  } );
-} );
+		$('#genes_table').dataTable( {
+    		"sPaginationType": "bootstrap",
+    		"aaSorting": [[2, "desc"]],
+    		"sAjaxSource": '${genes_link}',
+    		"fnInitComplete": function() {
+    			this.fnAdjustColumnSizing(true);
+    			var num_rows = this.fnSettings().fnRecordsTotal()
+    			document.getElementById("genes_header").innerHTML = '(' + num_rows + ')'
+    		}
+  		} );
+	} );
 </script>
+</tal:block>
 
 </div>
 

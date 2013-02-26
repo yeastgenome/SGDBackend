@@ -41,10 +41,6 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     
     __mapper_args__ = {'polymorphic_on': bioent_type,
                        'polymorphic_identity':"BIOENTITY"}
-
-    
-    biorel_source = relationship(Biorelation, primaryjoin=Biorelation.sink_bioent_id==id)
-    biorel_sink = relationship(Biorelation, primaryjoin=Biorelation.source_bioent_id==id)
     
     bioent_biocons = relationship(BioentBiocon)
     bioconcepts = association_proxy('bioent_biocon', 'bioconcept')

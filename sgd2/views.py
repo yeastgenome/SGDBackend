@@ -1,5 +1,4 @@
 from .models import DBSession
-from jsonify.graph import create_graph
 from jsonify.large import bioent_large, biorel_large, biocon_large, \
     bioent_biocon_large, reference_large, phenoevidence_large, allele_large, \
     interevidence_large
@@ -14,7 +13,7 @@ from pyramid.renderers import get_renderer
 from pyramid.response import Response
 from pyramid.view import view_config
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, subqueryload
 from sqlalchemy.sql.expression import func
  
 
@@ -60,51 +59,7 @@ def typeahead_view(request):
     except DBAPIError:
         return ['Error']
     
-@view_config(route_name='bioent_graph', renderer="json")
-def bioent_graph_view(request):
-    try:
-        bioent_name = request.matchdict['bioent_name'].upper()
-        bioent = DBSession.query(Bioentity).filter(func.upper(Bioentity.name)==bioent_name).first()
-        graph = create_graph(bioent)
-        return graph
-    except DBAPIError:
-        return ['Error']
 
-@view_config(route_name='bioent', renderer='templates/bioent.pt')
-def bioent_view(request):
-    bioent_name = request.matchdict['bioent_name'].upper()
-    
-    bioent = DBSession.query(Bioentity).options(joinedload('bioent_biocons')).filter(func.upper(Bioentity.name)==bioent_name).first()
-    json_bioent = bioent_large(bioent)
-    return {'layout': site_layout(), 'page_title': json_bioent['basic_info']['name'], 'bioent': json_bioent}
-
-@view_config(route_name='biorel', renderer='templates/biorel.pt')
-def biorel_view(request):
-    biorel_name = request.matchdict['biorel_name'].upper()
-    biorel = DBSession.query(Biorelation).options(joinedload('biorel_evidences')).filter(func.upper(Biorelation.name)==biorel_name).first()
-    json_biorel = biorel_large(biorel)
-    return {'layout': site_layout(), 'page_title': json_biorel['basic_info']['name'], 'biorel': json_biorel}
-
-@view_config(route_name='biocon', renderer='templates/biocon.pt')
-def biocon_view(request):
-    biocon_name = request.matchdict['biocon_name'].upper()
-    biocon = DBSession.query(Bioconcept).options(joinedload('bioent_biocons')).filter(func.upper(Bioconcept.name)==biocon_name).first()
-    json_biocon = biocon_large(biocon)
-    return {'layout': site_layout(), 'page_title': json_biocon['basic_info']['name'], 'biocon': json_biocon}
-
-@view_config(route_name='bioent_biocon', renderer='templates/bioent_biocon.pt')
-def bioent_biocon_view(request):
-    bioent_biocon_name = request.matchdict['bioent_biocon_name'].upper()
-    bioent_biocon = DBSession.query(BioentBiocon).options(joinedload('evidences')).filter(func.upper(BioentBiocon.name)==bioent_biocon_name).first()
-    json_bioent_biocon = bioent_biocon_large(bioent_biocon)
-    return {'layout': site_layout(), 'page_title': json_bioent_biocon['basic_info']['name'], 'bioent_biocon': json_bioent_biocon}
-
-@view_config(route_name='reference', renderer='templates/reference.pt')
-def reference_view(request):
-    pubmed_id = request.matchdict['pubmed_id']
-    reference = DBSession.query(Reference).filter(Reference.pubmed_id == pubmed_id).first()
-    json_reference = reference_large(reference)
-    return {'layout': site_layout(), 'page_title': 'PMID ' + json_reference['basic_info']['pubmed_id'], 'ref': json_reference}
 
 @view_config(route_name='evidence', renderer='templates/evidence.pt')
 def evidence_view(request):

@@ -27,7 +27,7 @@ class Evidence(Base, EqualityByIDMixin):
                        'with_polymorphic':'*'}
     
     #Relationships
-    reference = relationship('Reference', lazy='joined', backref='evidences')
+    reference = relationship('Reference', backref='evidences', uselist=False)
     
     def __init__(self, experiment_type, reference_id, evidence_type, strain_id, session=None, evidence_id=None, date_created=None, created_by=None):
         self.experiment_type = experiment_type
@@ -98,7 +98,8 @@ class Phenoevidence(Evidence):
     
     #Relationship
     properties = relationship('PhenoevidenceProperty')
-    mutant_allele = relationship('Allele')
+    mutant_allele = relationship('Allele', lazy='subquery')
+    bioent_biocon = association_proxy('bioent_biocon_evidence', 'bioent_biocon')
     
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE"}
 

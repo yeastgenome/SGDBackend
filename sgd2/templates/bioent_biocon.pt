@@ -50,30 +50,20 @@
 ================================================== -->
 <section id="evidence">
 	<div class="page-header">
-		<h1>Evidence (<span tal:content="bioent_biocon.basic_info.evidence_count"></span>)</h1>
+		<h1>Evidence <span id='evidence_header'></span></h1>
 
 		<div>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='myTable'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='evidence_table'>
 			<thead>
   			<tr>
   				<th>Evidence</th>
     			<th>Qualifier</th>
     			<th>Experiment</th>
-    			<th>Mutant (Allele)</th>
+    			<th>Mutant <span style='float:right'>(Allele)</span></th>
     			<th>Strain</th>
     			<th>Reference</th>
   			</tr>
   			</thead>
-  			<tbody>
-  			<tr tal:repeat="evidence bioent_biocon.evidences">
-  				<td><a tal:attributes="href evidence.link" tal:content="evidence.name"></a></td>
-    			<td tal:content="evidence.qualifier"></td>
-    			<td tal:content="evidence.experiment_type"></td>
-    			<td><span tal:content="evidence.mutant"></span><span tal:condition="python: evidence.allele"> (<a tal:attributes="href '/allele/' + evidence.allele.name" tal:content="evidence.allele.name"></a>)</span></td>
-    			<td tal:content="evidence.strain"></td>
-    			<td> <a tal:condition="python: evidence.reference" tal:attributes="href evidence.reference.link" tal:content="evidence.reference.name"></a></td>
-  			</tr>
-  			</tbody>
 			</table>
         </div>
 
@@ -85,22 +75,48 @@
 <section id="literature">
 	<div class="page-header">
 		<h1>References</h1>
-		<ul>
-		<p tal:repeat="reference bioent_biocon.references">	
-			<a tal:attributes="href reference.link" tal:content="reference.citation"></a>
-		</p>
+		<ul id='reference_list'>
 		</ul>
 	</div>
 </section>
 
+<tal:block tal:define="evidence_link bioent_biocon.evidence_link">
 <script>
 	$(document).ready(function() {
-    $('#myTable').dataTable( {
-    "sPaginationType": "bootstrap",
-    "aaSorting": [[0, "asc"]]
-  } );
+  		$('#evidence_table').dataTable( {
+    		"sPaginationType": "bootstrap",
+    		"aaSorting": [[2, "desc"]],
+    		"sAjaxSource": '${evidence_link}',
+    		"fnInitComplete": function() {
+    			this.fnAdjustColumnSizing(true);
+    			this.fnSetColumnVis(0, false);
+    			var num_rows = this.fnSettings().fnRecordsTotal();
+    			document.getElementById("evidence_header").innerHTML = '(' + num_rows + ')';
+    		}
+  		} );
+  		
+  		
+	} );
+</script>
+</tal:block>
+
+<tal:block tal:define="references_link bioent_biocon.references_link">
+<script>
+$(document).ready(function() {
+  	$.getJSON('${references_link}', function(data) {  		
+
+  		ref_list = document.getElementById("reference_list");
+  		
+		for (var i=0; i < data.length; i++) {
+			var reference = data[i];
+			var p=document.createElement('p');
+			p.innerHTML = reference['citation'];
+			ref_list.appendChild(p);
+		}
+  	});
 } );
 </script>
+</tal:block>
 
 </div>
 

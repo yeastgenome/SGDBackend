@@ -25,8 +25,8 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     created_by = Column('created_by', String)
     
     #Relationships
-    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id", lazy='joined')
-    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id", lazy='joined')
+    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id", lazy='joined', backref='biorel_source')
+    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id", lazy='joined', backref='biorel_sink')
 
     biorel_evidences = relationship('BiorelEvidence')
     evidences = association_proxy('biorel_evidences', 'evidence')
@@ -89,6 +89,6 @@ class BiorelEvidence(Base, UniqueMixin):
     evidence_id = Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id'))
 
     #Relationships
-    evidence = relationship(Evidence, lazy='joined', backref=backref('biorel_evidence', uselist=False))
+    evidence = relationship(Evidence, backref=backref('biorel_evidence', uselist=False))
     biorel = relationship(Biorelation, uselist=False)
 

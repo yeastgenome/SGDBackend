@@ -104,7 +104,7 @@
 ================================================== -->
 <section id="phenotype">
 	<div class="page-header">
-		<h1>Phenotypes (<span tal:content="bioent.phenotype_count">)</h1>
+		<h1>Phenotypes <span id='phenotype_header'></span></h1> 
 
 		
 		<!-- Brief
@@ -120,24 +120,10 @@
 
   			</tr>
   			</thead>
-  			<tbody>
-  			<tr tal:repeat="bioent_biocon bioent.phenotypes">
-    			<td><a tal:attributes="href bioent_biocon.link" tal:content="bioent_biocon.name"></a></td>			
-    			<td><a tal:attributes="href bioent_biocon.biocon.link" tal:content="bioent_biocon.biocon.name"></a></td>					
-    			<td><span tal:content="bioent_biocon.evidence_count"></span> <span class="muted" style="float:right" tal:condition="python: bioent_biocon.evidence_desc" tal:content="'(' + bioent_biocon.evidence_desc + ')'"></span></td>
-
-  			</tr>
-  			</tbody>
+ 
 			</table>
 			</ul>
 		</div>
-
-		<!-- In-depth
-		========================================== 
-		<p class="collapse" id="viewdetails_phenotype">
-           	This is the in-depth phenotype information. </p>
-		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_phenotype">View details &raquo;</a></p>
-	-->
 	</div>
 </section>
 
@@ -145,7 +131,7 @@
 ================================================== -->
 <section id="interactions">
 	<div class="page-header">
-		<h1>Interactions (<span tal:content="bioent.interaction_count">)</h1>
+		<h1>Interactions <span id='interactions_header'></span></h1>
 	
 		<h3>Cytoscape Visualization</h3>
 			<p>(Shows interactions with 3 or more pieces of evidence.)</p>
@@ -168,25 +154,7 @@
     			<th># Total Evidence</th>
   			</tr>
   			</thead>
-  			<tbody>
-  			<tr tal:repeat="interaction bioent.interactions">
-    			<td> <a tal:attributes="href interaction.link" tal:content="interaction.name">Id</a></td>
-    			<td>
-    				<a tal:condition="python: interaction.source.official_name == bioent.basic_info.official_name and interaction.sink.official_name == bioent.basic_info.official_name" 
-    					tal:attributes="href interaction.source.link" 
-    					tal:content="interaction.source.name"></a>
-    				<a tal:condition="python: interaction.source.official_name != bioent.basic_info.official_name" 
-    					tal:attributes="href interaction.source.link" 
-    					tal:content="interaction.source.name"></a>
-    				<a tal:condition="python: interaction.sink.official_name != bioent.basic_info.official_name" 
-    					tal:attributes="href interaction.sink.link" 
-    					tal:content="interaction.sink.name"></a>	
-    			</td>			
-    			<td tal:content="interaction.genetic_evidence_count"></td>
-    			<td tal:content="interaction.physical_evidence_count"></td>
-    			<td tal:content="interaction.evidence_count"></td>
-  			</tr>
-  			</tbody>
+  			
 			</table>
 			</ul>
 		</div>
@@ -267,65 +235,82 @@
 	</div>
 </section>
 
+<tal:block tal:define="phenotype_link bioent.phenotype_link">
 <script>
 	$(document).ready(function() {
-    	$('#interaction_table').dataTable( {
+		$('#phenotype_table').dataTable( {
     		"sPaginationType": "bootstrap",
-    		"aaSorting": [[4, "desc"]]
-  		} );
-  		$('#phenotype_table').dataTable( {
-    		"sPaginationType": "bootstrap",
-    		"aaSorting": [[2, "desc"]]
+    		"aaSorting": [[2, "desc"]],
+    		"sAjaxSource": '${phenotype_link}',
+    		"fnInitComplete": function() {
+    			this.fnAdjustColumnSizing(true);
+    			var num_rows = this.fnSettings().fnRecordsTotal()
+    			document.getElementById("phenotype_header").innerHTML = '(' + num_rows + ')'
+    		}
   		} );
 	} );
 </script>
+</tal:block>
 
-    <script type="text/javascript">
+<tal:block tal:define="interaction_link bioent.interaction_link">
+<script>
+	$(document).ready(function() {
+  		$('#interaction_table').dataTable( {
+    		"sPaginationType": "bootstrap",
+    		"aaSorting": [[2, "desc"]],
+    		"sAjaxSource": '${interaction_link}',
+    		"fnInitComplete": function() {
+    			this.fnAdjustColumnSizing(true);
+    			var num_rows = this.fnSettings().fnRecordsTotal()
+    			document.getElementById("interactions_header").innerHTML = '(' + num_rows + ')'
+    		}
+  		} );
+	} );
+</script>
+</tal:block>
 
-            window.onload=function() {
-                // id of Cytoscape Web container div
-                var div_id = "cytoscapeweb";
+<script type="text/javascript">
+	window.onload=function() {
+		// id of Cytoscape Web container div
+		var div_id = "cytoscapeweb";
                                 
-                // visual style we will use
-                var visual_style = {
-                    nodes: {
-                        color: {
-                            discreteMapper: {
-                                attrName: "focus",
-                                entries: [
-                                    { attrValue: '1', value: "#fade71" }
-                                ]
-                            }
-                        },
-                        labelHorizontalAnchor: "center"
-                    },
-                };
+		// visual style we will use
+		var visual_style = {
+			nodes: {
+				color: {
+					discreteMapper: {
+						attrName: "focus",
+						entries: [
+							{ attrValue: '1', value: "#fade71" }
+						]
+					}
+				},
+				labelHorizontalAnchor: "center"
+			},
+		};
                 
-                // initialization options
-                var options = {
-                    // where you have the Cytoscape Web SWF
-                    swfPath: "../static/js/CytoscapeWeb",
-                    // where you have the Flash installer SWF
-                    flashInstallerPath: "/swf/playerProductInstall"
-                };
+		// initialization options
+		var options = {
+		swfPath: "../static/js/CytoscapeWeb",
+		flashInstallerPath: "/swf/playerProductInstall"
+	};
                 
-                // init and draw
-                var vis = new org.cytoscapeweb.Visualization(div_id, options);
+	// init and draw
+	var vis = new org.cytoscapeweb.Visualization(div_id, options);
                 
-                // you could also use other formats (e.g. GraphML) or grab the network data via AJAX
-                $.get('/bioent_graph/'+"${bioent['basic_info']['official_name']}", function(data) {
-                	vis.draw({ network: data, visualStyle: visual_style});
-
-            	});
+	// you could also use other formats (e.g. GraphML) or grab the network data via AJAX
+	$.get('/bioent_graph/'+"${bioent['basic_info']['official_name']}", function(data) {
+		vis.draw({ network: data, visualStyle: visual_style});
+	});
                 
-            };
-        </script>
+};
+</script>
         
-        <style>
-            /* The Cytoscape Web container must have its dimensions set. */
-            html, body { height: 80%; width: 100%; padding: 0; margin: 0; }
-            #cytoscapeweb { width: 100%; height: 100%; }
-        </style>
+<style>
+	/* The Cytoscape Web container must have its dimensions set. */
+	html, body { height: 80%; width: 100%; padding: 0; margin: 0; }
+	#cytoscapeweb { width: 100%; height: 100%; }
+</style>
 
 </div>
 

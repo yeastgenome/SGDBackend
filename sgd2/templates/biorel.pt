@@ -56,32 +56,21 @@
 ================================================== -->
 <section id="genetic_evidence">
 	<div class="page-header">
-		<h1>Genetic Evidence (<span tal:content="biorel.basic_info.genetic_evidence_count">)</h1>
+		<h1>Genetic Evidence <span id='genetic_evidence_header'></h1>
 
-		<div>
-			<span tal:condition="python: biorel.basic_info.genetic_evidence_count == 0">There are 0 pieces of genetic evidence for this interaction.</span>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='genetic_evidence_table' tal:condition="python: biorel.basic_info.genetic_evidence_count > 0">
+		<div id='genetic_evidence_wrapper'>
+			<span id='genetic_evidence_message'></span>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='genetic_evidence_table'>
 			<thead>
   			<tr>
   				<th>Evidence</th>
     			<th>Experiment</th>
     			<th>Annotation</th>
     			<th>Direction</th>
+    			<th>Phenotype</th>
     			<th>Reference</th>
-
-
   			</tr>
   			</thead>
-  			<tbody>
-  			<tr tal:repeat="evidence biorel.genetic_evidences">
-  				<td><a tal:attributes="href evidence.link" tal:content="evidence.name"></a></td>
-    			<td tal:content="evidence.experiment_type"></td>
-    			<td tal:content="evidence.annotation_type"></td>
-    			<td tal:content="evidence.direction"></td>
-    			<td> <a tal:attributes="href evidence.reference.link" tal:content="evidence.reference.name"></a></td>
-
-  			</tr>
-  			</tbody>
 			</table>
         </div>
 		
@@ -92,35 +81,24 @@
 ================================================== -->
 <section id="physical_evidence">
 	<div class="page-header">
-		<h1>Physical Evidence (<span tal:content="biorel.basic_info.physical_evidence_count">)</h1>
+		<h1>Physical Evidence <span id='physical_evidence_header'></h1>
 
-		<div>
-			<span tal:condition="python: biorel.basic_info.physical_evidence_count == 0">There are 0 pieces of physical evidence for this interaction.</span>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='physical_evidence_table' tal:condition="python: biorel.basic_info.physical_evidence_count > 0">
+		<div id='physical_evidence_wrapper'>
+			<span id='physical_evidence_message'></span>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='physical_evidence_table'>
 			<thead>
   			<tr>
   				<th>Evidence</th>
     			<th>Experiment</th>
     			<th>Annotation</th>
     			<th>Direction</th>
+    			<th>Modification</th>
     			<th>Reference</th>
-
-
   			</tr>
   			</thead>
-  			<tbody>
-  			<tr tal:repeat="evidence biorel.physical_evidences">
-   				<td><a tal:attributes="href evidence.link" tal:content="evidence.name"></a></td>
-    			<td tal:content="evidence.experiment_type"></td>
-    			<td tal:content="evidence.annotation_type"></td>
-    			<td tal:content="evidence.direction"></td>
-    			<td> <a tal:attributes="href evidence.reference.link" tal:content="evidence.reference.name">Id</a></td>
-
-  			</tr>
-  			</tbody>
 			</table>
         </div>
-
+		
 	</div>
 </section>
 
@@ -129,26 +107,68 @@
 <section id="literature">
 	<div class="page-header">
 		<h1>References</h1>
-		<ul>
-		<p tal:repeat="reference biorel.references">	
-			<a tal:attributes="href reference.link" tal:content="reference.citation"></a>
-		</p>
+		<ul id='reference_list'>
 		</ul>
 	</div>
 </section>
 
+<tal:block tal:define="genetic_evidence_link biorel.genetic_evidence_link">
 <script>
 	$(document).ready(function() {
-    $('#genetic_evidence_table').dataTable( {
-    "sPaginationType": "bootstrap",
-    "aaSorting": [[1, "asc"]]
-  } );
-   $('#physical_evidence_table').dataTable( {
-    "sPaginationType": "bootstrap",
-    "aaSorting": [[1, "asc"]]
-  } );
+  		$('#genetic_evidence_table').dataTable( {
+    		"sPaginationType": "bootstrap",
+    		"aaSorting": [[1, "asc"]],
+    		"sAjaxSource": '${genetic_evidence_link}',
+    		"fnInitComplete": function() {
+    			this.fnAdjustColumnSizing(true);
+    			this.fnSetColumnVis(0, false);
+    			var num_rows = this.fnSettings().fnRecordsTotal();
+    			document.getElementById("genetic_evidence_header").innerHTML = '(' + num_rows + ')';
+    		}
+  		} );
+  		
+  		
+	} );
+</script>
+</tal:block>
+
+<tal:block tal:define="physical_evidence_link biorel.physical_evidence_link">
+<script>
+	$(document).ready(function() {
+  		$('#physical_evidence_table').dataTable( {
+    		"sPaginationType": "bootstrap",
+    		"aaSorting": [[2, "desc"]],
+    		"sAjaxSource": '${physical_evidence_link}',
+    		"fnInitComplete": function() {
+    			this.fnAdjustColumnSizing(true);
+    			this.fnSetColumnVis(0, false);
+    			var num_rows = this.fnSettings().fnRecordsTotal();
+    			document.getElementById("physical_evidence_header").innerHTML = '(' + num_rows + ')';
+    		}
+  		} );
+  		
+  		
+	} );
+</script>
+</tal:block>
+
+<tal:block tal:define="references_link biorel.references_link">
+<script>
+$(document).ready(function() {
+  	$.getJSON('${references_link}', function(data) {  		
+
+  		ref_list = document.getElementById("reference_list");
+  		
+		for (var i=0; i < data.length; i++) {
+			var reference = data[i];
+			var p=document.createElement('p');
+			p.innerHTML = reference['citation'];
+			ref_list.appendChild(p);
+		}
+  	});
 } );
 </script>
+</tal:block>
 
 </div>
 

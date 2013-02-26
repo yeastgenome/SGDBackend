@@ -9,26 +9,44 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.schema import Column, ForeignKey, Table
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 import datetime
 
+class BioentBioconEvidence(Base, EqualityByIDMixin, UniqueMixin):
+    __tablename__ = 'bioent_biocon_evidence'
+
+    
+    id = Column('bioent_biocon_evidence_id', Integer, primary_key=True)
+    bioent_biocon_id = Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id'))
+    evidence_id = Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id'))
+    
+    bioent_biocon = relationship('BioentBiocon', uselist=False)
+    evidence = relationship('Evidence', uselist=False, backref=backref('bioent_biocon_evidence', uselist=False))
+        
+    @classmethod
+    def unique_hash(cls, bioent_biocon_id, evidence_id):
+        return '%s_%s' % (bioent_biocon_id, evidence_id) 
+
+    @classmethod
+    def unique_filter(cls, query, bioent_biocon_evidence, evidence_id):
+        return query.filter(BioentBioconEvidence.bioent_biocon_evidence == bioent_biocon_evidence, BioentBioconEvidence.evidence_id == evidence_id)
+    
 class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = 'bioent_biocon'
 
-    bioent_biocon_id = Column('bioent_biocon_id', Integer, primary_key=True)
+    id = Column('bioent_biocon_id', Integer, primary_key=True)
     bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
     biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
     name = Column('name', String)
     evidence_count = Column('evidence_count', Integer)
     evidence_desc = Column('evidence_desc', String)
     
-    evidences = relationship('Evidence', secondary= Table('bioent_biocon_evidence', Base.metadata,
-                                                        Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id')),
-                                                        Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id')),
-                                                        schema=SCHEMA), backref=backref('bioent_biocon', uselist=False))
-    bioentity = relationship('Bioentity', uselist=False, lazy='joined')
-    bioconcept = relationship('Bioconcept', uselist=False, lazy='joined')
+    bioent_biocon_evidences = relationship(BioentBioconEvidence)
+    evidences = association_proxy('bioent_biocon_evidences', 'evidence')
+    
+    bioentity = relationship('Bioentity', uselist=False)
+    bioconcept = relationship('Bioconcept', uselist=False)
     
     def __init__(self, bioent, biocon_id, session=None):
         self.bioentity = bioent
@@ -41,7 +59,9 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     @classmethod
     def unique_filter(cls, query, bioent_id, biocon_id):
         return query.filter(BioentBiocon.bioent_id == bioent_id, BioentBiocon.biocon_id == biocon_id)
-      
+    
+
+          
 class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = "biocon"
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
@@ -56,8 +76,6 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
                        'polymorphic_identity':"BIOCONCEPT"}
  
     bioent_biocons = relationship(BioentBiocon)
-    bioentities = relationship(BioentBiocon, collection_class=attribute_mapped_collection('bioentity'))
-    bioentity_evidences = association_proxy('bioent_biocons', 'evidences')
     
     @hybrid_property
     def bioentities(self):
