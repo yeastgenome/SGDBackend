@@ -30,6 +30,9 @@ def main(global_config, **settings):
     config.add_route('bioent', '/bioent/{bioent_name}')
     config.add_route('bioent_phenotypes', '/bioent/{bioent_name}/phenotypes')
     config.add_route('bioent_interactions', '/bioent/{bioent_name}/interactions')
+    config.add_route('bioent_interactions2', '/bioent/{bioent_name}/interactions2')
+    config.add_route('bioent_interactions3', '/bioent/{bioent_name}/interactions3')
+
     config.add_route('bioent_graph', '/bioent_graph/{bioent_name}')
 
     config.add_route('biorel', '/biorel/{biorel_name}')

@@ -33,7 +33,7 @@ def reference_phenotypes_view(request):
 def reference_interactions_view(request):
     pubmed_id = request.matchdict['pubmed_id']
     reference_id = DBSession.query(Reference).filter(Reference.pubmed_id==pubmed_id).first().id
-    interevidences = DBSession.query(Interevidence).options().filter(Interevidence.reference_id==reference_id).all()
+    interevidences = DBSession.query(Interevidence).options(joinedload('biorel_evidence'), joinedload('biorel_evidence.biorel')).filter(Interevidence.reference_id==reference_id).all()
     interactions = set(interevidence.biorel for interevidence in interevidences)
     interaction_jsons = [biorel_small(interaction) for interaction in interactions]
     return create_interaction_table_for_reference(interaction_jsons)

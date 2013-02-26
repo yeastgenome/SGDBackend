@@ -34,6 +34,38 @@ def create_biorel_table_for_bioent(bioent_name, biorels):
         table.append([biorel_entry, bioent_entry, str(biorel['genetic_evidence_count']), str(biorel['physical_evidence_count']), str(biorel['evidence_count'])])
     return {'aaData':table}
 
+def create_biorel_table_for_bioent2(bioent_name, biorels):
+    table = []
+    for biorel in biorels:
+        source_or_sink = None
+        if biorel['source']['official_name'] == bioent_name:
+            source_or_sink = 'sink'
+        else:
+            source_or_sink = 'source'
+            
+        biorel_entry = entry_with_link("O--O", biorel['link'])
+        bioent_entry = entry_with_link(biorel[source_or_sink]['name'], biorel[source_or_sink]['link'])
+        table.append([biorel_entry, bioent_entry, str(biorel['genetic_evidence_count']), str(biorel['physical_evidence_count']), str(biorel['evidence_count'])])
+    return {'aaData':table}
+
+def create_biorel_table_for_bioent3(bioent_name, biorels):
+    table = []
+    for biorel in biorels:
+        source_or_sink = None
+        if biorel['source']['official_name'] == bioent_name:
+            source_or_sink = 'sink'
+        else:
+            source_or_sink = 'source'
+            
+        biorel_entry = entry_with_link("O--O", biorel['link'])
+        bioent_entry = entry_with_link(biorel[source_or_sink]['name'], biorel[source_or_sink]['link'])
+        genetic_entry = entry_with_link(str(biorel['genetic_evidence_count']), biorel['link'] + '#genetic_evidence')
+        physical_entry = entry_with_link(str(biorel['physical_evidence_count']), biorel['link'] + '#physical_evidence')
+        total_entry = entry_with_link(str(biorel['evidence_count']), biorel['link'])
+
+        table.append([biorel_entry, bioent_entry, genetic_entry, physical_entry, total_entry])
+    return {'aaData':table}
+
 def create_bioent_biocon_table_for_biocon(bioent_biocons):
     table = []
     for bioent_biocon in bioent_biocons:

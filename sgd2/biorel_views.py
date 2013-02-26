@@ -19,7 +19,6 @@ def biorel_view(request):
     biorel_name = request.matchdict['biorel_name']
     biorel = DBSession.query(Biorelation).options(subqueryload('source_bioent'), subqueryload('sink_bioent')).filter(Biorelation.name==biorel_name).first()
     json_biorel = biorel_large(biorel)
-    biorel_genetic_evidence_view(request)
     return {'layout': site_layout(), 'page_title': json_biorel['basic_info']['name'], 'biorel': json_biorel}
 
 @view_config(route_name='biorel_genetic_evidence', renderer='json')
