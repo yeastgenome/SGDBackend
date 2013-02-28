@@ -3,6 +3,7 @@ Created on Feb 19, 2013
 
 @author: kpaskov
 '''
+from jsonify.add_hyperlinks import add_gene_hyperlinks
 from jsonify.mini import bioent_mini, reference_mini, phenoevidence_mini, \
     interevidence_mini
 
@@ -71,5 +72,5 @@ def reference_small(ref):
         basic_info['journal'] = ref.journal.full_name
     else:
         basic_info['journal'] = None
-    basic_info['abstract'] = ref.abstract
+    basic_info['abstract'] = add_gene_hyperlinks(ref.abstract)
     return basic_info

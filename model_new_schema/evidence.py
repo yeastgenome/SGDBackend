@@ -110,6 +110,29 @@ class Phenoevidence(Evidence):
         self.source = source
         self.experiment_comment = experiment_comment
         
+class Chemevidence(Evidence):
+    __tablename__ = "chemevidence"
+    
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    mutant_type = Column('mutant_type', String)
+    mutant_allele_id = Column('mutant_allele', Integer, ForeignKey('sprout.allele.allele_id'))
+    source = Column('source', String)
+    experiment_comment = Column('experiment_comment', String)
+    qualifier = Column('qualifier', String)
+    
+    #Relationship
+    mutant_allele = relationship('Allele', lazy='subquery')
+    bioent_biocon = association_proxy('bioent_biocon_evidence', 'bioent_biocon')
+    
+    __mapper_args__ = {'polymorphic_identity': "CHEMICAL_EVIDENCE"}
+
+    
+    def __init__(self, experiment_type, reference_id, strain_id, mutant_type, source, experiment_comment, session=None, evidence_id=None, date_created=None, created_by=None):
+        Evidence.__init__(self, experiment_type, reference_id, 'CHEMICAL_EVIDENCE', strain_id, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
+        self.mutant_type = mutant_type
+        self.source = source
+        self.experiment_comment = experiment_comment
+        
 class PhenoevidenceProperty(Base, EqualityByIDMixin):
     __tablename__ = 'phenoevidence_property'
     

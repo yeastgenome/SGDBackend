@@ -72,7 +72,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     
     def __init__(self, pubmed_id, session=None, reference_id=None, source=None, status=None, pdf_status=None, dbxref_id=None, citation=None, 
                  year=None, date_published=None, date_revised=None, issue=None, page=None, volume=None, title=None, 
-                 journal_id=None, book_id=None, date_created=None, created_by=None):
+                 journal_id=None, book_id=None, date_created=None, created_by=None, doi=None, name=None):
         if session is None:
             self.id = reference_id
             self.pubmed_id = pubmed_id
@@ -90,6 +90,8 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
             self.title = title
             self.journal_id = journal_id
             self.book_id = book_id
+            self.doi = doi
+            self.name = name
             self.date_created = date_created
             self.created_by = created_by
         else:

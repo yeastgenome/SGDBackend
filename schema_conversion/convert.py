@@ -11,13 +11,18 @@ from model_old_schema.config import DBTYPE as OLD_DBTYPE, DBHOST as OLD_DBHOST, 
     DBNAME as OLD_DBNAME, SCHEMA as OLD_SCHEMA, DBUSER as OLD_DBUSER, \
     DBPASS as OLD_DBPASS
 from model_old_schema.model import Model as OldModel
-from schema_conversion.old_to_new import feature_to_bioent, \
-    reference_to_reference, journal_to_journal, book_to_book, abstract_to_abstract, \
-    reftype_to_reftype, author_to_author, interaction_to_biorel, \
+from schema_conversion.old_to_new_bioconcept import \
     experiment_property_to_phenoevidence_property
+from schema_conversion.old_to_new_bioentity import feature_to_bioent
+from schema_conversion.old_to_new_biorelation import interaction_to_biorel
+from schema_conversion.old_to_new_reference import new_refs, new_journals, \
+    new_books, new_abstracts, new_author_refs, new_authors, new_ref_types, \
+    reference_to_reference, fix_references_with_same_name
 import datetime
 import model_new_schema
 import model_old_schema
+
+
 
 def convert():
     old_model = OldModel(OLD_DBTYPE, OLD_DBHOST, OLD_DBNAME, OLD_SCHEMA)
@@ -67,13 +72,77 @@ def convert():
     #convert_phenotypes_to_bioconcepts(old_model, new_model, 20000, 40000)
     #convert_phenotypes_to_bioconcepts(old_model, new_model, 40000, 60000)
     #convert_phenotypes_to_bioconcepts(old_model, new_model, 60000, 92000)
-    convert_phenotypes_to_observable(old_model, new_model)
+    #convert_phenotypes_to_observable(old_model, new_model)
+    
+    
 
     #fill_typeahead_table(old_model, new_model)
     #fill_typeahead_table_aliases(old_model, new_model)
     #convert_alias_to_alias(old_model, new_model)
 
     #convert_sequences_to_sequences(old_model, new_model)
+    
+    def f(session):
+        fill_cache(session)
+        fix_references_with_same_name(session)
+    
+    new_model.execute(f, NEW_DBUSER, commit=True)
+
+def fill_cache(session):
+    from model_new_schema.reference import Reference as NewReference, Journal as NewJournal, Book as NewBook, \
+    Abstract as NewAbstract, AuthorReference as NewAuthorReference, Author as NewAuthor, Reftype as NewRefType
+        
+    time = datetime.datetime.now()
+
+    new_rs = model_new_schema.model.get(NewReference, session=session)
+    for r in new_rs:
+        new_refs[r.id] = r
+    new_time = datetime.datetime.now()
+    print 'Reference cache filled in ' + str(new_time-time)
+    time = new_time
+        
+    #new_js = model_new_schema.model.get(NewJournal, session=session)
+    #for j in new_js:
+    #    new_journals[j.id] = j
+    #new_time = datetime.datetime.now()
+    #print 'Journal cache filled in ' + str(new_time-time)
+    #time = new_time
+            
+    #new_bs = model_new_schema.model.get(NewBook, session=session)
+    #for b in new_bs:
+    #    new_books[b.id] = b
+    #new_time = datetime.datetime.now()
+    #print 'Book cache filled in ' + str(new_time-time)
+    #time = new_time
+        
+    #new_abs = model_new_schema.model.get(NewAbstract, session=session)
+    #for ab in new_abs:
+    #    new_abstracts[ab.reference_id] = ab
+    #new_time = datetime.datetime.now()
+    #print 'Abstract cache filled in ' + str(new_time-time)
+    #time = new_time
+            
+    #new_ars = model_new_schema.model.get(NewAuthorReference, session=session)
+    #for ar in new_ars:
+    #    new_author_refs[ar.id] = ar
+    #new_time = datetime.datetime.now()
+    #print 'Author Reference cache filled in ' + str(new_time-time)
+    #time = new_time
+        
+    #new_as = model_new_schema.model.get(NewAuthor, session=session)
+    #for a in new_as:
+    #    new_authors[a.id] = a
+    #new_time = datetime.datetime.now()
+    #print 'Author cache filled in ' + str(new_time-time)
+    #time = new_time
+            
+    #new_rts = model_new_schema.model.get(NewRefType, session=session)
+    #for rt in new_rts:
+    #    new_ref_types[rt.id] = rt
+    #new_time = datetime.datetime.now()
+    #print 'Reftype cache filled in ' + str(new_time-time)
+    #time = new_time
+
 
 def convert_features_to_bioents(old_model, new_model):
     print "Convert Features to Bioentities"
@@ -95,66 +164,25 @@ def convert_features_to_bioents(old_model, new_model):
             print str(count) + '/' + str(len(fs)) +  " " + str(new_time - time)
             time = new_time
             
-def convert_references_to_references(old_model, new_model):
+def convert_references_to_references(session, old_model):
     print "Convert References to References"
     from model_old_schema.reference import Reference as OldReference
-    from model_new_schema.reference import Reference as NewReference, Journal as NewJournal, Book as NewBook, Abstract as NewAbstract, \
-        Author as NewAuthor, Reftype as NewReftype, AuthorReference as NewAuthorReference
 
     rs = old_model.execute(model_old_schema.model.get(OldReference), OLD_DBUSER)
     
     count = 0;
     time = datetime.datetime.now()
     for r in rs:
-        if not new_model.execute(model_new_schema.model.exists(NewReference, id=r.id), NEW_DBUSER):
-            new_r = reference_to_reference(r)
-            if r.journal is not None:
-                new_j = new_model.execute(model_new_schema.model.get_first(NewJournal, id=r.journal.id), NEW_DBUSER)
-                if new_j is None:
-                    new_j = journal_to_journal(r.journal)
-                new_r.journal = new_j
-                    
-            if r.book is not None:
-                new_b = new_model.execute(model_new_schema.model.get_first(NewBook, id=r.book.id), NEW_DBUSER)
-                if new_b is None:
-                    new_b = book_to_book(r.book)
-                new_r.book = new_b
-                    
-            if r.abst is not None:
-                new_a = new_model.execute(model_new_schema.model.get_first(NewAbstract, reference_id=r.id), NEW_DBUSER)
-                if new_a is None:
-                    new_a = abstract_to_abstract(r.abst)
-                new_r.abst = new_a
-                    
-            author_ids = set()
-            for index, author_reference in r.author_references.items():
-                new_ar = new_model.execute(model_new_schema.model.get_first(NewAuthorReference, id=author_reference.id), NEW_DBUSER)
-                author = author_reference.author
-                if not author.id in author_ids:
-                    if new_ar is None:
-                        new_au = new_model.execute(model_new_schema.model.get_first(NewAuthor, id=author.id), NEW_DBUSER)
-                        if new_au is None:
-                            new_au = author_to_author(author)
-                        new_ar = NewAuthorReference(new_au, author_reference.order, author_reference.type, author_reference_id=author_reference.id)
-                    new_r.author_references[index] = new_ar
-                    author_ids.add(author.id)
-                else:
-                    print "Double author in " + str(r.id) + " author_id =" + str(author.id)
-                
-            for mapping_id, reftype in r.reftypes.items():
-                new_rt = new_model.execute(model_new_schema.model.get_first(NewReftype, id=reftype.id), NEW_DBUSER)
-                if new_rt is None:
-                    new_r.reftypes[mapping_id] = reftype_to_reftype(reftype)
-                else:
-                    new_r.reftypes[mapping_id] = new_rt
-            new_model.execute(model_new_schema.model.add(new_r), NEW_DBUSER, commit=True)
+        new_r = reference_to_reference(r)
+        model_new_schema.model.add(new_r, session)       
             
         count = count+1
         if count%1000 == 0:
+            session.commit()
             new_time = datetime.datetime.now()
             print str(count) + '/' + str(len(rs)) +  " " + str(new_time - time)
             time = new_time
-            
+                        
 def convert_interactions_to_biorels(old_model, new_model, min_id, max_id):
     print "Convert Interaction to Biorelations"
     from model_old_schema.interaction import Interaction as OldInteraction
@@ -428,30 +456,51 @@ def convert_phenotypes_to_observable(old_model, new_model):
             print str(count) + '/' + str(len(ps)) +  " " + str(new_time - time)
             time = new_time
     
-def convert_phenoevidence_to_chemevidence():
+def convert_phenoevidence_to_chemevidence(new_model):
     print "Convert Phenotypes to Chemicals"
 
-    from model_old_schema.phenotype import Phenotype_Feature as OldPhenotype_Feature
     from model_new_schema.evidence import Phenoevidence as NewPhenoevidence
     from model_new_schema.bioconcept import Phenotype as NewPhenotype
     from model_new_schema.bioentity import Bioentity as NewBioentity
     from model_new_schema.bioconcept import BioentBiocon as NewBioentBiocon
-
+   
     time = datetime.datetime.now()
-    ps = old_model.execute(model_old_schema.model.get(OldPhenotype_Feature), OLD_DBUSER)
-    
-    id_new_ps = {}
     new_ps = new_model.execute(model_new_schema.model.get(NewPhenoevidence), NEW_DBUSER)
-    for new_p in new_ps:
-        id_new_ps[new_p.id] = new_p
         
     count = 0
     new_time = datetime.datetime.now()
     print 'Loaded in ' + str(new_time-time)
     time = new_time
-    for p in ps:
-        phenoevidence = id_new_ps[p.id]
-        if phenoevidence.qualifier is None:
+    
+    chem_id = 1;
+    for p in new_ps:
+        chemicals = []
+        amounts = []
+        for prop in p.properties:
+            if prop.type == 'Chemical_pending' or prop.type == 'chebi_ontology':
+                chemicals.append(property.value)
+                amounts.append(property.description)
+                
+        if len(chemicals) > 0:
+            new_c = Chemevidence(p.experiment_type, p.reference_id, p.strain_id, p.mutant_type, p.source, p.experiment_comment, evidence_id=p.id, date_created=p.date_created, created_by=p.created_by)
+            
+            #Find or create bioconcept
+            name = ' + '.join(chemicals)
+            new_biocon = new_model.execute(model_new_schema.model.get_first(Chemical, name=name), NEW_DBUSER)
+            if new_biocon is None:
+                new_biocon = Chemical(name, None, biocon_id=chem_id)
+                
+            
+            #Find or create bioent_biocon
+            old_bioent_biocon = p.bioent_biocon
+            bioent_id = old_bioent_biocon.bioent_id
+            biocon_id = new_biocon.id
+            bioent_biocon = new_model.execute(model_new_schema.model.get_first(NewBioentBiocon, bioent_id=bioent_id, biocon_id=biocon_id), NEW_DBUSER)
+            if bioent_biocon is None:
+                bioent_biocon = NewBioentBiocon(old_bioent_biocon.bioentity, biocon_id)
+
+            
+            
             qualifier = 'None';
             observable = 'None';
             if p.qualifier is not None:

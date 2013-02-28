@@ -40,7 +40,7 @@
 	<div class="page-header">
 		<h1>Abstract</h1>
 		<div>
-			<p tal:content="ref.basic_info.abstract"></p>
+			<p tal:content="structure ref.basic_info.abstract"></p>
 			<p>PMID: <span tal:content="ref.basic_info.pubmed_id"></span></p>
 			<p tal:condition="python: ref.basic_info.doi">DOI: <span tal:content="ref.basic_info.doi"></span></p>
 			

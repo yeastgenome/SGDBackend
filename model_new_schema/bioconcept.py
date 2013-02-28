@@ -127,6 +127,28 @@ class Phenotype(Bioconcept):
     @classmethod
     def unique_filter(cls, query, qualifier, observable):
         return query.filter(Phenotype.qualifier == qualifier, Phenotype.observable == observable)
+    
+class Chemical(Bioconcept):
+    __tablename__ = "chemical"
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+    
+    id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
+    name = Column('name', String)
+    description = Column('description', String)
+      
+    __mapper_args__ = {'polymorphic_identity': "CHEMICAL"}
+
+    def __init__(self, name, description, session=None, biocon_id=None, date_created=None, created_by=None):
+        Bioconcept.__init__(self, 'CHEMICAL', name, session=session, biocon_id=biocon_id, date_created=date_created, created_by=created_by)
+        self.description = description
+        
+    @classmethod
+    def unique_hash(cls, name):
+        return '%s_%s' % (name) 
+
+    @classmethod
+    def unique_filter(cls, query, name):
+        return query.filter(Chemical.name == name)
 
 class GOTerm(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "GO_TERM"}
