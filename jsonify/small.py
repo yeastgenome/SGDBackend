@@ -35,8 +35,13 @@ def biorel_small(biorel):
     source_bioent = bioent_mini(biorel.source_bioent)
     sink_bioent = bioent_mini(biorel.sink_bioent)
     return {'name': source_bioent['name'] + unichr(8213) + sink_bioent['name'], 'official_name':biorel.name, 'link':'/biorel/' + biorel.name, 'description': 'Interaction between ' + source_bioent['full_name'] + ' and ' + sink_bioent['full_name'],
-            'source':source_bioent, 'sink':sink_bioent, 
+            'source':source_bioent, 'sink':sink_bioent, 'all':0,
             'evidence_count':biorel.evidence_count, 'physical_evidence_count':biorel.physical_evidence_count, 'genetic_evidence_count':biorel.genetic_evidence_count} 
+    
+def all_biorel_small(bioent):
+    bioent_basic_info = bioent_small(bioent)
+    return {'name':bioent_basic_info['name'] + unichr(8213) + 'All Genes', 'description':'All interactions between ' + bioent_basic_info['name'] + ' and other genes.', 
+                  'source': bioent_basic_info, 'sink': None, 'link': '/biorel/' + bioent_basic_info['official_name'], 'all':1}
 
 def allele_small(allele):
     return {'name': allele.name, 'official_name':allele.name, 'link':str('/allele/' + str(allele.name)), 'description': 'Allele',

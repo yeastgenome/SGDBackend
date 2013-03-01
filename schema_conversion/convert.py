@@ -12,7 +12,9 @@ from model_old_schema.config import DBTYPE as OLD_DBTYPE, DBHOST as OLD_DBHOST, 
     DBPASS as OLD_DBPASS
 from model_old_schema.model import Model as OldModel
 from schema_conversion.old_to_new_bioconcept import \
-    experiment_property_to_phenoevidence_property
+    experiment_property_to_phenoevidence_property, new_evidence, name_allele, \
+    new_bioents, new_biocons, new_bioent_biocons, evidence_reference, \
+    phenoevidence_to_bioconcept
 from schema_conversion.old_to_new_bioentity import feature_to_bioent
 from schema_conversion.old_to_new_biorelation import interaction_to_biorel
 from schema_conversion.old_to_new_reference import new_refs, new_journals, \
@@ -76,30 +78,60 @@ def convert():
     
     
 
-    #fill_typeahead_table(old_model, new_model)
+    #fill_typeahead_table(old_model, new_model, 'ORF')
+    #fill_typeahead_table(old_model, new_model, 'ARS')
+    #fill_typeahead_table(old_model, new_model, 'CENTROMERE')
+    #fill_typeahead_table(old_model, new_model, 'GENE_CASSETTE')
+    #fill_typeahead_table(old_model, new_model, 'LONG_TERMINAL_REPEAT')
+    #fill_typeahead_table(old_model, new_model, 'MATING_LOCUS')
+    #fill_typeahead_table(old_model, new_model, 'MULTIGENE LOCUS')
+    #fill_typeahead_table(old_model, new_model, 'NCRNA')
+    #fill_typeahead_table(old_model, new_model, 'NOT IN SYSTEMATIC SEQUENCE OF S288C')
+    #fill_typeahead_table(old_model, new_model, 'NOT PHYSICALLY MAPPED')
+    #fill_typeahead_table(old_model, new_model, 'PSEUDOGENE')
+    #fill_typeahead_table(old_model, new_model, 'RETROTRANSPOSON')
+    #fill_typeahead_table(old_model, new_model, 'RRNA')
+    #fill_typeahead_table(old_model, new_model, 'SNORNA')
+    #fill_typeahead_table(old_model, new_model, 'SNRNA')
+    #fill_typeahead_table(old_model, new_model, 'TELOMERE')
+    #fill_typeahead_table(old_model, new_model, 'TELOMERIC_REPEAT')
+    #fill_typeahead_table(old_model, new_model, 'TRANSPOSABLE_ELEMENT_GENE')
+    #fill_typeahead_table(old_model, new_model, 'TRNA')
+    #fill_typeahead_table(old_model, new_model, 'X_ELEMENT_COMBINATORIAL_REPEATS')
+    #fill_typeahead_table(old_model, new_model, 'X_ELEMENT_CORE_SEQUENCE')
+    #fill_typeahead_table(old_model, new_model, "Y'_ELEMENT")
+    
     #fill_typeahead_table_aliases(old_model, new_model)
     #convert_alias_to_alias(old_model, new_model)
 
     #convert_sequences_to_sequences(old_model, new_model)
     
-    def f(session):
-        fill_cache(session)
-        fix_references_with_same_name(session)
+    #def f(session):
+    #    fill_cache(session)
+    #    fix_references_with_same_name(session)
     
-    new_model.execute(f, NEW_DBUSER, commit=True)
+    #new_model.execute(f, NEW_DBUSER, commit=True)
 
 def fill_cache(session):
     from model_new_schema.reference import Reference as NewReference, Journal as NewJournal, Book as NewBook, \
     Abstract as NewAbstract, AuthorReference as NewAuthorReference, Author as NewAuthor, Reftype as NewRefType
+    
+    from model_old_schema.reference import Reflink as OldReflink
+    
+    from model_new_schema.evidence import Phenoevidence as NewPhenoevidence, Chemevidence as NewChemevidence, Allele as NewAllele
+    
+    from model_new_schema.bioentity import Bioentity as NewBioentity
+    
+    from model_new_schema.bioconcept import Bioconcept as NewBioconcept, BioentBiocon as NewBioentBiocon
         
     time = datetime.datetime.now()
 
-    new_rs = model_new_schema.model.get(NewReference, session=session)
-    for r in new_rs:
-        new_refs[r.id] = r
-    new_time = datetime.datetime.now()
-    print 'Reference cache filled in ' + str(new_time-time)
-    time = new_time
+    #new_rs = model_new_schema.model.get(NewReference, session=session)
+    #for r in new_rs:
+    #    new_refs[r.id] = r
+    #new_time = datetime.datetime.now()
+    #print 'Reference cache filled in ' + str(new_time-time)
+    #time = new_time
         
     #new_js = model_new_schema.model.get(NewJournal, session=session)
     #for j in new_js:
@@ -142,7 +174,62 @@ def fill_cache(session):
     #new_time = datetime.datetime.now()
     #print 'Reftype cache filled in ' + str(new_time-time)
     #time = new_time
-
+    
+    new_evs = model_new_schema.model.get(NewPhenoevidence, session=session)
+    for e in new_evs:
+        new_evidence[e.id] = e
+    new_time = datetime.datetime.now()
+    print 'Phenevidence cache filled in ' + str(new_time-time)
+    time = new_time
+    
+    new_evs = model_new_schema.model.get(NewChemevidence, session=session)
+    for e in new_evs:
+        new_evidence[e.id] = e
+    new_time = datetime.datetime.now()
+    print 'Chemevidence cache filled in ' + str(new_time-time)
+    time = new_time
+    
+    new_alls = model_new_schema.model.get(NewAllele, session=session)
+    for al in new_alls:
+        name_allele[al.name] = al
+    new_time = datetime.datetime.now()
+    print 'Allele cache filled in ' + str(new_time-time)
+    time = new_time
+    
+    new_bioes = model_new_schema.model.get(NewBioentity, session=session)
+    for b in new_bioes:
+        new_bioents[b.id] = b
+    new_time = datetime.datetime.now()
+    print 'Bioentity cache filled in ' + str(new_time-time)
+    time = new_time
+    
+    new_biocs = model_new_schema.model.get(NewBioconcept, session=session)
+    for b in new_biocs:
+        new_biocons[b.id] = b
+    new_time = datetime.datetime.now()
+    print 'Bioconcept cache filled in ' + str(new_time-time)
+    time = new_time
+    
+    new_bioecs = model_new_schema.model.get(NewBioentBiocon, session=session)
+    for b in new_bioecs:
+        new_bioent_biocons[(b.bioent_id, b.biocon_id)] = b
+    new_time = datetime.datetime.now()
+    print 'BioentBiocon cache filled in ' + str(new_time-time)
+    time = new_time
+    
+    new_bioecs = model_new_schema.model.get(NewBioentBiocon, session=session)
+    for b in new_bioecs:
+        new_bioent_biocons[(b.bioent_id, b.biocon_id)] = b
+    new_time = datetime.datetime.now()
+    print 'BioentBiocon cache filled in ' + str(new_time-time)
+    time = new_time
+    
+    new_reflinks = model_new_schema.model.get(OldReflink, tab_name='PHENO_ANNOTATION_NO', session=session)
+    for r in new_reflinks:
+        evidence_reference[r.primary_key] = r.reference_id
+    new_time = datetime.datetime.now()
+    print 'Reflink cache filled in ' + str(new_time-time)
+    time = new_time
 
 def convert_features_to_bioents(old_model, new_model):
     print "Convert Features to Bioentities"
@@ -237,29 +324,11 @@ def convert_interactions_to_biorels(old_model, new_model, min_id, max_id):
             new_time = datetime.datetime.now()
             print str(count) + '/' + str(len(inters)) +  " " + str(new_time - time)
             time = new_time
-            
-def get_strain(properties):
-    strain_name = None
-    strain_background = None
-    for prop in properties:
-        if prop.type == 'strain_name':
-            strain_name = prop.value
-        elif prop.type == 'strain_background':
-            strain_background = prop.value
-    
-    if strain_name is None:
-        return strain_background
-    else:
-        return strain_name
         
-def convert_phenotypes_to_bioconcepts(old_model, new_model, min_id, max_id):
+def convert_phenotypes_to_bioconcepts(old_model, new_model, min_id, max_id, session):
     print "Convert Phenotypes to Bioconcepts"
 
     from model_old_schema.phenotype import Phenotype_Feature as OldPhenotype_Feature
-    from model_new_schema.evidence import Phenoevidence as NewPhenoevidence
-    from model_new_schema.bioconcept import Phenotype as NewPhenotype
-    from model_new_schema.bioentity import Bioentity as NewBioentity
-    from model_new_schema.bioconcept import BioentBiocon as NewBioentBiocon
 
     time = datetime.datetime.now()
     ps = old_model.execute(model_old_schema.model.get_filter(OldPhenotype_Feature, OldPhenotype_Feature.id>=min_id, OldPhenotype_Feature.id < max_id), OLD_DBUSER)
@@ -269,48 +338,9 @@ def convert_phenotypes_to_bioconcepts(old_model, new_model, min_id, max_id):
     print 'Loaded in ' + str(new_time-time)
     time = new_time
     for p in ps:
-        if not new_model.execute(model_new_schema.model.exists(NewPhenoevidence, id=p.id), NEW_DBUSER):
-            #Find strain name from expt_properties
-            if p.experiment is not None:
-                strain = get_strain(p.experiment_properties)
-                comment = p.experiment_comment
-            else:
-                strain = None
-                comment = None
-            
-            new_p = NewPhenoevidence(p.experiment_type, None, strain, p.mutant_type, p.source, comment,
-                                  evidence_id=p.id, date_created=p.date_created, created_by=p.created_by)
-            
-            if p.experiment is not None:
-                for prop in p.experiment_properties:
-                    new_property = experiment_property_to_phenoevidence_property(prop)
-                    new_p.properties.append(new_property)
-             
-            qualifier = 'None';
-            observable = 'None';
-            if p.qualifier is not None:
-                qualifier = p.qualifier
-            if p.observable is not None:
-                observable = p.observable
-                        
-            bioent = new_model.execute(model_new_schema.model.get_first(NewBioentity, id=p.feature_id), NEW_DBUSER)
-
-            #Find or create bioconcept
-            new_biocon = new_model.execute(model_new_schema.model.get_first(NewPhenotype, qualifier=qualifier, observable=observable), NEW_DBUSER)
-            if new_biocon is None:
-                new_biocon = NewPhenotype(qualifier, observable, biocon_id=p.id, date_created=p.date_created, created_by=p.created_by)
-                new_model.execute(model_new_schema.model.add(new_biocon), NEW_DBUSER, commit=True)
-                biocon_id = p.id
-            else:
-                biocon_id = new_biocon.id
-                
-            #Find or create BioentBiocon
-            bioent_biocon = new_model.execute(model_new_schema.model.get_first(NewBioentBiocon, bioent_id=bioent.id, biocon_id=biocon_id), NEW_DBUSER)
-            if bioent_biocon is None:
-                bioent_biocon = NewBioentBiocon(bioent, biocon_id)
-            bioent_biocon.evidences.append(new_p)
-                        
-            new_model.execute(model_new_schema.model.add(bioent_biocon), NEW_DBUSER, commit=True)
+        new_p = phenoevidence_to_bioconcept(p)
+        if new_p is not None:
+            model_new_schema.model.add(new_p, session=session, commit=True)
             
         count = count+1
         if count%1000 == 0:
@@ -318,13 +348,13 @@ def convert_phenotypes_to_bioconcepts(old_model, new_model, min_id, max_id):
             print str(count) + '/' + str(len(ps)) +  " " + str(new_time - time)
             time = new_time
    
-def fill_typeahead_table(old_model, new_model):
+def fill_typeahead_table(old_model, new_model, bioent_type):
     from model_new_schema.bioentity import Bioentity as NewBioentity
     from model_new_schema.search import Typeahead
 
     time = datetime.datetime.now()
-    fs = new_model.execute(model_new_schema.model.get(NewBioentity, bioent_type='ORF'), NEW_DBUSER)
-
+    fs = new_model.execute(model_new_schema.model.get(NewBioentity, bioent_type=bioent_type), NEW_DBUSER)
+    print len(fs)
     count = 0
     new_time = datetime.datetime.now()
     print 'Loaded in ' + str(new_time-time)
@@ -338,7 +368,7 @@ def fill_typeahead_table(old_model, new_model):
                     new_model.execute(model_new_schema.model.add(typeahead), NEW_DBUSER, commit=True)
 
         secondary_name = f.secondary_name
-        if secondary_name is not None:
+        if secondary_name is not None and secondary_name != name:
             for i in range (0, len(secondary_name)):
                 if not new_model.execute(model_new_schema.model.exists(Typeahead, name=secondary_name[:i], full_name=secondary_name), NEW_DBUSER):
                     typeahead = Typeahead(secondary_name[:i], secondary_name, 'BIOENT', f.id)
@@ -455,87 +485,6 @@ def convert_phenotypes_to_observable(old_model, new_model):
             new_time = datetime.datetime.now()
             print str(count) + '/' + str(len(ps)) +  " " + str(new_time - time)
             time = new_time
-    
-def convert_phenoevidence_to_chemevidence(new_model):
-    print "Convert Phenotypes to Chemicals"
-
-    from model_new_schema.evidence import Phenoevidence as NewPhenoevidence
-    from model_new_schema.bioconcept import Phenotype as NewPhenotype
-    from model_new_schema.bioentity import Bioentity as NewBioentity
-    from model_new_schema.bioconcept import BioentBiocon as NewBioentBiocon
-   
-    time = datetime.datetime.now()
-    new_ps = new_model.execute(model_new_schema.model.get(NewPhenoevidence), NEW_DBUSER)
-        
-    count = 0
-    new_time = datetime.datetime.now()
-    print 'Loaded in ' + str(new_time-time)
-    time = new_time
-    
-    chem_id = 1;
-    for p in new_ps:
-        chemicals = []
-        amounts = []
-        for prop in p.properties:
-            if prop.type == 'Chemical_pending' or prop.type == 'chebi_ontology':
-                chemicals.append(property.value)
-                amounts.append(property.description)
-                
-        if len(chemicals) > 0:
-            new_c = Chemevidence(p.experiment_type, p.reference_id, p.strain_id, p.mutant_type, p.source, p.experiment_comment, evidence_id=p.id, date_created=p.date_created, created_by=p.created_by)
-            
-            #Find or create bioconcept
-            name = ' + '.join(chemicals)
-            new_biocon = new_model.execute(model_new_schema.model.get_first(Chemical, name=name), NEW_DBUSER)
-            if new_biocon is None:
-                new_biocon = Chemical(name, None, biocon_id=chem_id)
-                
-            
-            #Find or create bioent_biocon
-            old_bioent_biocon = p.bioent_biocon
-            bioent_id = old_bioent_biocon.bioent_id
-            biocon_id = new_biocon.id
-            bioent_biocon = new_model.execute(model_new_schema.model.get_first(NewBioentBiocon, bioent_id=bioent_id, biocon_id=biocon_id), NEW_DBUSER)
-            if bioent_biocon is None:
-                bioent_biocon = NewBioentBiocon(old_bioent_biocon.bioentity, biocon_id)
-
-            
-            
-            qualifier = 'None';
-            observable = 'None';
-            if p.qualifier is not None:
-                qualifier = p.qualifier
-            if p.observable is not None:
-                observable = p.observable
-                
-            #Set qualifier for phenoevidence.
-            phenoevidence.qualifier = qualifier
-                        
-            bioent = new_model.execute(model_new_schema.model.get_first(NewBioentity, id=p.feature_id), NEW_DBUSER)
-
-            #Find or create bioconcept
-            new_biocon = new_model.execute(model_new_schema.model.get_first(NewPhenotype, observable=observable), NEW_DBUSER)
-            if new_biocon is None:
-                new_biocon = NewPhenotype(observable, biocon_id=p.id, date_created=p.date_created, created_by=p.created_by)
-                new_model.execute(model_new_schema.model.add(new_biocon), NEW_DBUSER, commit=True)
-                biocon_id = p.id
-            else:
-                biocon_id = new_biocon.id
-                
-            #Find or create BioentBiocon
-            bioent_biocon = new_model.execute(model_new_schema.model.get_first(NewBioentBiocon, bioent_id=bioent.id, biocon_id=biocon_id), NEW_DBUSER)
-            if bioent_biocon is None:
-                bioent_biocon = NewBioentBiocon(bioent, biocon_id)
-            bioent_biocon.evidences.append(phenoevidence)
-         
-            new_model.execute(model_new_schema.model.add(bioent_biocon), NEW_DBUSER, commit=True)
-            
-        count = count+1
-        if count%1000 == 0:
-            new_time = datetime.datetime.now()
-            print str(count) + '/' + str(len(ps)) +  " " + str(new_time - time)
-            time = new_time    
-   
 
           
 

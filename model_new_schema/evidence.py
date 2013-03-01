@@ -83,6 +83,10 @@ class Allele(Base):
     parent_id = Column('parent_bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
     description = Column('description', String)
     
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description
+    
     #Relationships
     parent = relationship('Bioentity')
         
@@ -96,57 +100,81 @@ class Phenoevidence(Evidence):
     experiment_comment = Column('experiment_comment', String)
     qualifier = Column('qualifier', String)
     
+    #chemical = Column('chemical', String)
+    #chemical_amt = Column('chemical_amt', String)
+    #reporter = Column('reporter', String)
+    #reporter_desc = Column('reporter_desc', String)
+    #strain_details = Column('strain_details', String)
+    #budding_index = Column('budding_index', String)
+    #glutathione_excretion = Column('glutathione_excretion', String)
+    #z_score = Column('z_score', String)
+    #relative_fitness_score = Column('relative_fitness_score', String)
+    #chitin_level = Column('chitin_level', String)
+    #condition = Column('condition', String)
+    #condition_desc = Column('condition_desc', String)
+    #details = Column('details', String)
+    #details_desc = Column('details_desc', String)
+    
+    
     #Relationship
-    properties = relationship('PhenoevidenceProperty')
     mutant_allele = relationship('Allele', lazy='subquery')
     bioent_biocon = association_proxy('bioent_biocon_evidence', 'bioent_biocon')
     
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE"}
 
     
-    def __init__(self, experiment_type, reference_id, strain_id, mutant_type, source, experiment_comment, session=None, evidence_id=None, date_created=None, created_by=None):
+    def __init__(self, experiment_type, reference_id, strain_id, mutant_type, mutant_allele_id, source, experiment_comment, qualifier, session=None, evidence_id=None, date_created=None, created_by=None):
         Evidence.__init__(self, experiment_type, reference_id, 'PHENOTYPE_EVIDENCE', strain_id, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
         self.mutant_type = mutant_type
+        self.mutant_allele_id = mutant_allele_id
         self.source = source
         self.experiment_comment = experiment_comment
+        self.qualifier = qualifier
         
-class Chemevidence(Evidence):
-    __tablename__ = "chemevidence"
+#class Chemevidence(Evidence):
+    #__tablename__ = "chemevidence"
     
-    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    mutant_type = Column('mutant_type', String)
-    mutant_allele_id = Column('mutant_allele', Integer, ForeignKey('sprout.allele.allele_id'))
-    source = Column('source', String)
-    experiment_comment = Column('experiment_comment', String)
-    qualifier = Column('qualifier', String)
-    
-    #Relationship
-    mutant_allele = relationship('Allele', lazy='subquery')
-    bioent_biocon = association_proxy('bioent_biocon_evidence', 'bioent_biocon')
-    
-    __mapper_args__ = {'polymorphic_identity': "CHEMICAL_EVIDENCE"}
+    #id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    #chemevidence_type = Column('chemevidence_type', String)
+    #qualifier = Column('qualifier', String)
 
     
-    def __init__(self, experiment_type, reference_id, strain_id, mutant_type, source, experiment_comment, session=None, evidence_id=None, date_created=None, created_by=None):
-        Evidence.__init__(self, experiment_type, reference_id, 'CHEMICAL_EVIDENCE', strain_id, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
-        self.mutant_type = mutant_type
-        self.source = source
-        self.experiment_comment = experiment_comment
-        
-class PhenoevidenceProperty(Base, EqualityByIDMixin):
-    __tablename__ = 'phenoevidence_property'
+    #mutant_type = Column('mutant_type', String)
+    #mutant_allele_id = Column('mutant_allele', Integer, ForeignKey('sprout.allele.allele_id'))
+    #source = Column('source', String)
+    #experiment_comment = Column('experiment_comment', String)
     
-    evidence_id = Column('evidence_id', Integer, ForeignKey('sprout.phenoevidence.evidence_id'), primary_key = True)
-    type = Column('property_type', String)
-    value = Column('property_value', String)
-    description = Column('property_description', String)
+    #chemical = Column('chemical', String)
+    #chemical_amt = Column('chemical_amt', String)
+    #reporter = Column('reporter', String)
+    #reporter_desc = Column('reporter_desc', String)
+    #strain_details = Column('strain_details', String)
+    #budding_index = Column('budding_index', String)
+    #glutathione_excretion = Column('glutathione_excretion', String)
+    #z_score = Column('z_score', String)
+    #relative_fitness_score = Column('relative_fitness_score', String)
+    #chitin_level = Column('chitin_level', String)
+    #condition = Column('condition', String)
+    #condition_desc = Column('condition_desc', String)
+    #details = Column('details', String)
+    #details_desc = Column('details_desc', String)
     
-    def __init__(self, property_type, value, description, session=None, evidence_id=None):
-        self.type = property_type
-        self.value = value
-        self.description = description
-        
-        if session is None:
-            self.evidence_id = evidence_id
-        
     
+    #Relationship
+    #mutant_allele = relationship('Allele', lazy='subquery')
+    #bioent_biocon = association_proxy('bioent_biocon_evidence', 'bioent_biocon')
+    
+    #__mapper_args__ = {'polymorphic_identity': "CHEMICAL_EVIDENCE"}
+
+    
+    #def __init__(self, experiment_type, reference_id, strain_id, mutant_type, mutant_allele_id, source, experiment_comment, qualifier,
+    #             chemevidence_type, 
+    #             session=None, evidence_id=None, date_created=None, created_by=None):
+    #    Evidence.__init__(self, experiment_type, reference_id, 'CHEMICAL_EVIDENCE', strain_id, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
+    #    self.mutant_type = mutant_type
+    #    self.mutant_allele_id = mutant_allele_id
+    #    self.source = source
+    #    self.experiment_comment = experiment_comment
+    #    self.qualifier = qualifier
+    #    self.chemevidence_type = chemevidence_type
+        

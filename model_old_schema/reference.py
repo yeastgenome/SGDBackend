@@ -428,3 +428,12 @@ class RefReftype(Base, EqualityByIDMixin, UniqueMixin):
     
     reftype = relationship('RefType', lazy='joined') 
     reftype_name = association_proxy('reftype', 'name')
+    
+class Reflink(Base):
+    __tablename__ = 'ref_link'
+    
+    id = Column('ref_link_no', Integer, primary_key = True)
+    reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
+    tab_name = Column('tab_name', String)
+    primary_key = Column('primary_key', String)
+    col_name = Column('col_name', String)

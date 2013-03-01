@@ -24,7 +24,6 @@
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
 			<li><h3><span tal:content="ref.basic_info.name"></h3></li>
-			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#abstract"><i class="icon-chevron-right"></i> Abstract</a></li>
 			<li><a href="#interactions"><i class="icon-chevron-right"></i> Interactions</a></li>
 			<li><a href="#bioentity-phenotypes"><i class="icon-chevron-right"></i> Phenotypes</a></li>

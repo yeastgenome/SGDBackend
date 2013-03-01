@@ -11,8 +11,7 @@ from model_new_schema.bioentity import Bioentity
 from pyramid.view import view_config
 from sgd2.models import DBSession
 from sgd2.table_maker import create_bioent_biocon_table_for_bioent, \
-    create_biorel_table_for_bioent, create_biorel_table_for_bioent2, \
-    create_biorel_table_for_bioent3
+    create_biorel_table_for_bioent
 from sgd2.views import site_layout
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import joinedload
@@ -39,20 +38,6 @@ def bioent_interactions_view(request):
     bioent = DBSession.query(Bioentity).filter(Bioentity.name==bioent_name).first()
     interactions = [biorel_small(interaction) for interaction in bioent.biorelations if interaction.biorel_type == 'INTERACTION']
     return create_biorel_table_for_bioent(bioent_name, interactions)
-
-@view_config(route_name='bioent_interactions2', renderer="json")
-def bioent_interactions_view2(request):
-    bioent_name = request.matchdict['bioent_name']
-    bioent = DBSession.query(Bioentity).filter(Bioentity.name==bioent_name).first()
-    interactions = [biorel_small(interaction) for interaction in bioent.biorelations if interaction.biorel_type == 'INTERACTION']
-    return create_biorel_table_for_bioent2(bioent_name, interactions)
-
-@view_config(route_name='bioent_interactions3', renderer="json")
-def bioent_interactions_view3(request):
-    bioent_name = request.matchdict['bioent_name']
-    bioent = DBSession.query(Bioentity).filter(Bioentity.name==bioent_name).first()
-    interactions = [biorel_small(interaction) for interaction in bioent.biorelations if interaction.biorel_type == 'INTERACTION']
-    return create_biorel_table_for_bioent3(bioent_name, interactions)
 
 @view_config(route_name='bioent_graph', renderer="json")
 def bioent_graph_view(request):

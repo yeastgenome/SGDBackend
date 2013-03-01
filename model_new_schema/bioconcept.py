@@ -128,6 +128,8 @@ class Phenotype(Bioconcept):
     def unique_filter(cls, query, qualifier, observable):
         return query.filter(Phenotype.qualifier == qualifier, Phenotype.observable == observable)
     
+    
+    
 class Chemical(Bioconcept):
     __tablename__ = "chemical"
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}

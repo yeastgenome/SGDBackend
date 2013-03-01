@@ -16,6 +16,7 @@
 	<link href="../static/css/bootstrap.css" rel="stylesheet">
 	<link href="../static/css/bootstrap-responsive.css" rel="stylesheet">
 	<link href="../static/css/docs.css" rel="stylesheet">
+	<link href="../static/css/DT_bootstrap.css" rel="stylesheet">
 	<link href="../static/css/datatable.css" rel="stylesheet">
 	<link href="../static/css/jquery-ui-1.10.1.custom.css" rel="stylesheet">
 
@@ -24,6 +25,26 @@
 	<script src="../static/js/json2.js"></script>		
 	<script src="../static/js/jquery.dataTables.js"></script>
 	<script src="../static/js/datatable.js"></script>
+	<script src="../static/js/TableTools.js"></script>
+	<script src="../static/js/ZeroClipboard.js"></script>
+	<script src="../static/js/DT_bootstrap.js"></script>
+
+	<script>
+		jQuery.extend( jQuery.fn.dataTableExt.oSort, {
+    	"num-html-pre": function ( a ) {
+        	var x = String(a).replace( /<[\s\S]*?>/g, "" );
+        	return parseFloat( x );
+    	},
+ 
+    	"num-html-asc": function ( a, b ) {
+        	return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    	},
+ 
+    	"num-html-desc": function ( a, b ) {
+        	return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    	}
+	} );
+	</script>
 
 
 </head>

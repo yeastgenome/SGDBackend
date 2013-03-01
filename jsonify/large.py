@@ -6,7 +6,8 @@ Created on Feb 19, 2013
 from jsonify.mini import bioent_mini, reference_mini, interevidence_mini
 from jsonify.small import biocon_small, bioent_biocon_small, bioent_small, \
     biorel_small, phenoevidence_small, interevidence_small, reference_small, \
-    allele_small, phenoevidence_mid
+    allele_small, phenoevidence_mid, all_biorel_small
+from model_new_schema.biorelation import Biorelation
 
 
 def biocon_large(biocon):
@@ -25,17 +26,18 @@ def bioent_large(bioent):
     
         
     return {'basic_info':basic_info, 'genetic_position':bioent.genetic_position, 'interaction_count':0, 'interaction_link':basic_info['link'] + '/interactions',
-            'phenotype_count':0, 'phenotype_link':basic_info['link'] + '/phenotypes'}
+            'phenotype_count':0, 'phenotype_link':basic_info['link'] + '/phenotypes', 'all_interactions_link':'/biorel/' + bioent.name}
 
 def biorel_large(biorel):
-    basic_info = biorel_small(biorel)
-            
+    if isinstance(biorel, Biorelation):
+        basic_info = biorel_small(biorel)
+    else:
+        basic_info = all_biorel_small(biorel)
     return {'basic_info':basic_info, 'genetic_evidence_link':basic_info['link'] + '/genetic_evidence', 'physical_evidence_link':basic_info['link'] + '/physical_evidence', 'references_link': basic_info['link'] + '/references'}
 
 def phenoevidence_large(evidence):
     basic_info = phenoevidence_small(evidence)
-    properties = [(prop.type, prop.value, prop.description) for prop in evidence.properties]
-    return {'basic_info':basic_info, 'properties':properties}
+    return {'basic_info':basic_info}
 
 def interevidence_large(evidence):
     basic_info = interevidence_small(evidence)
