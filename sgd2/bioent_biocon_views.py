@@ -5,8 +5,9 @@ Created on Feb 21, 2013
 '''
 from jsonify.large import bioent_biocon_large
 from jsonify.mini import reference_mini
-from jsonify.small import phenoevidence_small
+from jsonify.small import phenoevidence_small, phenoevidence_mid
 from model_new_schema.bioconcept import BioentBiocon, BioentBioconEvidence
+from model_new_schema.bioentity import Bioentity
 from pyramid.view import view_config
 from sgd2.models import DBSession
 from sgd2.table_maker import create_evidence_table_for_bioent_biocon
@@ -17,22 +18,45 @@ from sqlalchemy.orm import joinedload
 def bioent_biocon_view(request):
     bioent_biocon_name = request.matchdict['bioent_biocon_name']
     bioent_biocon = DBSession.query(BioentBiocon).filter(BioentBiocon.name==bioent_biocon_name).first()
-    json_bioent_biocon = bioent_biocon_large(bioent_biocon)
+    if bioent_biocon is None:
+        bioent = DBSession.query(Bioentity).filter(Bioentity.name==bioent_biocon_name).first()
+        if bioent is not None:
+            json_bioent_biocon = bioent_biocon_large(bioent)
+        else:
+            request.response.status = '404 Not Found'
+            return {'URL':request.URL}
+    else:
+        json_bioent_biocon = bioent_biocon_large(bioent_biocon)
     return {'layout': site_layout(), 'page_title': json_bioent_biocon['basic_info']['name'], 'bioent_biocon': json_bioent_biocon}
 
 @view_config(route_name='bioent_biocon_evidence', renderer='json')
 def bioent_biocon_evidence_view(request):
     bioent_biocon_name = request.matchdict['bioent_biocon_name']
-    bioent_biocon_id = DBSession.query(BioentBiocon).filter(BioentBiocon.name==bioent_biocon_name).first().id
-    bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('bioent_biocon'), joinedload('evidence.reference')).filter(BioentBioconEvidence.bioent_biocon_id==bioent_biocon_id).all()
-    evidence_jsons = [phenoevidence_small(bioent_biocon_evidence.evidence) for bioent_biocon_evidence in bioent_biocon_evidences if bioent_biocon_evidence.evidence.evidence_type == 'PHENOTYPE_EVIDENCE']
+    bioent_biocon = DBSession.query(BioentBiocon).filter(BioentBiocon.name==bioent_biocon_name).first()
+    if bioent_biocon is not None:
+        bioent_biocon_id = bioent_biocon.id
+        bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('bioent_biocon'), joinedload('evidence.reference')).filter(BioentBioconEvidence.bioent_biocon_id==bioent_biocon_id).all()
+    else:
+        bioent = DBSession.query(Bioentity).options(joinedload('bioent_biocons')).filter(Bioentity.name==bioent_biocon_name).first()
+        if bioent is not None:
+            bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in bioent.bioent_biocons]
+            bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('bioent_biocon'), joinedload('evidence.reference'), joinedload('bioent_biocon.bioconcept'), joinedload('evidence.bioent_biocon_evidences')).filter(BioentBioconEvidence.bioent_biocon_id.in_(bioent_biocon_ids)).all()
+    evidence_jsons = [phenoevidence_mid(bioent_biocon_evidence.evidence) for bioent_biocon_evidence in bioent_biocon_evidences if bioent_biocon_evidence.evidence.evidence_type == 'PHENOTYPE_EVIDENCE']
     return create_evidence_table_for_bioent_biocon(evidence_jsons)
 
 @view_config(route_name='bioent_biocon_references', renderer='json')
 def bioent_biocon_references_view(request):
     bioent_biocon_name = request.matchdict['bioent_biocon_name']
-    bioent_biocon_id = DBSession.query(BioentBiocon).filter(BioentBiocon.name==bioent_biocon_name).first().id
-    bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('evidence.reference')).filter(BioentBioconEvidence.bioent_biocon_id==bioent_biocon_id).all()
+    bioent_biocon = DBSession.query(BioentBiocon).filter(BioentBiocon.name==bioent_biocon_name).first()
+    if bioent_biocon is not None:
+        bioent_biocon_id = bioent_biocon.id
+        bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('evidence.reference')).filter(BioentBioconEvidence.bioent_biocon_id==bioent_biocon_id).all()
+    else:
+        bioent = DBSession.query(Bioentity).options(joinedload('bioent_biocons')).filter(Bioentity.name==bioent_biocon_name).first()
+        if bioent is not None:
+            bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in bioent.bioent_biocons]
+            bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('evidence.reference')).filter(BioentBioconEvidence.bioent_biocon_id.in_(bioent_biocon_ids)).all()
+
     references = set([bioent_biocon_evidence.evidence.reference for bioent_biocon_evidence in bioent_biocon_evidences if bioent_biocon_evidence.evidence.evidence_type == 'PHENOTYPE_EVIDENCE'])
     json_references = sorted([reference_mini(reference) for reference in references], key=lambda x: x['name'])
     return json_references

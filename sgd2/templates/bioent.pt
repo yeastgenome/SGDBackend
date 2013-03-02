@@ -28,9 +28,7 @@
 			<li><a href="#location"><i class="icon-chevron-right"></i> Sequence and Location</a></li>
           	<li><a href="#go"><i class="icon-chevron-right"></i> Gene Ontology</a></li>
           	<li><a href="#phenotype"><i class="icon-chevron-right"></i> Phenotype</a></li>
-          	<li><a href="#original_interactions"><i class="icon-chevron-right"></i> Original Interactions</a></li>
-          	<li><a href="#icon_interactions"><i class="icon-chevron-right"></i> Icon Interactions</a></li>
-          	<li><a href="#hyperlinked_numbers_interactions"><i class="icon-chevron-right"></i> Hyperlinked Numbers Interactions</a></li>
+          	<li><a href="#interactions"><i class="icon-chevron-right"></i>Interaction</a></li>
           	<li><a href="#expression"><i class="icon-chevron-right"></i> Expression</a></li>
           	<li><a href="#wiki"><i class="icon-chevron-right"></i> Wiki</a></li>
 			<li><a href="#history"><i class="icon-chevron-right"></i> History</a></li>
@@ -106,8 +104,7 @@
 ================================================== -->
 <section id="phenotype">
 	<div class="page-header">
-		<h1>Phenotypes <span id='phenotype_header'></span><button class="btn btn-large btn-warning" style="float:right">See Details</button></h1> 
-		<br></br>
+		<h1>Phenotypes <span id='phenotype_header'></span><a tal:attributes="href bioent.all_phenotypes_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1> 
 
 		
 		<!-- Brief
@@ -117,9 +114,11 @@
 				<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotype_table'>
 			<thead>
   			<tr>
-  				<th>Phenotype-Bioent Relationship</th>
-    			<th>Phenotype Name</th>
-    			<th>Evidence Count</th>
+  				<th>Relationship</th>
+  				<th>Null<br>Mutant</th>
+  				<th>Overexpressed<br>Mutant</th>
+  				<th>Conditional<br>Mutant</th>
+    			<th>Total Evidence</th>
 
   			</tr>
   			</thead>
@@ -132,9 +131,9 @@
 
 <!-- Interactions
 ================================================== -->
-<section id="original_interactions">
+<section id="interactions">
 	<div class="page-header">
-		<h1>Interactions <span id='interactions_header'></span><a tal:attributes="href bioent.all_interactions_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1>
+		<h1>Interaction <span id='interactions_header'></span><a tal:attributes="href bioent.all_interactions_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1>
 	
 		<h3>Cytoscape Visualization</h3>
 		<strong>Filter Interactions by # Total Evidence:</strong>
@@ -151,9 +150,9 @@
 			<thead>
   			<tr>
     			<th>Interaction</th>
-    			<th># Genetic Evidence</th>
-    			<th># Physical Evidence</th>
-    			<th># Total Evidence</th>
+    			<th>Genetic Evidence</th>
+    			<th>Physical Evidence</th>
+    			<th>Total Evidence</th>
   			</tr>
   			</thead>
   			
@@ -230,13 +229,13 @@
 	</div>
 </section>
 
-
 <tal:block tal:define="phenotype_link bioent.phenotype_link">
 <script>
+
 	$(document).ready(function() {
 		$('#phenotype_table').dataTable( {
     		"sPaginationType": "bootstrap",
-    		"aaSorting": [[2, "desc"]],
+    		"aaSorting": [[4, "desc"]],
     		"sAjaxSource": '${phenotype_link}',
     		"fnInitComplete": function() {
     			this.fnAdjustColumnSizing(true);
@@ -350,7 +349,7 @@
 			var link = target.data['link']
 			window.location.href = link          
 		}
-		var max_evidence = vis.nodes()[vis.nodes().length-1].data.evidence;
+		var max_evidence = Math.min(10, vis.nodes()[vis.nodes().length-1].data.evidence);
 		$(function() {
 			$( "#slider-range-min" ).slider({
 				range: "max",
@@ -373,20 +372,26 @@
 				vis.layout('ForceDirected');
 			}
 			$( "#slider-range-min" ).slider('value', 3);
+			
 			var $slider =  $('#slider-range-min');
 			var max =  $slider.slider("option", "max") - $slider.slider("option", "min") + 1;    
  			var spacing =  100 / (max -1);
+ 			var multiplier = 1;
+ 			if (max > 25) {
+ 				multiplier = 2;
+ 			}
 
     		$slider.find('.ui-slider-tick-mark').remove();
-    		for (var i = 0; i < max ; i++) {
+    		for (var i = 0; i < max ; i=i+multiplier) {
     			var value = (i+evidence_cutoff);
     			if(value >= 10) {
     				var left = ((spacing * i)-1)
+        			$('<span class="ui-slider-tick-mark muted">10+</span>').css('left', left + '%').appendTo($slider);
     			}
     			else {
     				var left = ((spacing * i)-.5)
+					$('<span class="ui-slider-tick-mark muted">' +value+ '</span>').css('left', left + '%').appendTo($slider);
     			}
-        		$('<span class="ui-slider-tick-mark muted">' +value+ '</span>').css('left', left + '%').appendTo($slider);
         	}
 		});
 	});

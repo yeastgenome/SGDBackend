@@ -42,7 +42,6 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     __mapper_args__ = {'polymorphic_on': bioent_type,
                        'polymorphic_identity':"BIOENTITY"}
     
-    bioent_biocons = relationship(BioentBiocon)
     bioconcepts = association_proxy('bioent_biocon', 'bioconcept')
     aliases = relationship("Alias")
     alias_names = association_proxy('aliases', 'name')

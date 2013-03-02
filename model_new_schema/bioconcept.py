@@ -21,8 +21,8 @@ class BioentBioconEvidence(Base, EqualityByIDMixin, UniqueMixin):
     bioent_biocon_id = Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id'))
     evidence_id = Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id'))
     
-    bioent_biocon = relationship('BioentBiocon', uselist=False)
-    evidence = relationship('Evidence', uselist=False, backref=backref('bioent_biocon_evidence', uselist=False))
+    bioent_biocon = relationship('BioentBiocon', uselist=False, backref=backref('bioent_biocon_evidences'))
+    evidence = relationship('Evidence', uselist=False, backref=backref('bioent_biocon_evidences', uselist=False))
         
     @classmethod
     def unique_hash(cls, bioent_biocon_id, evidence_id):
@@ -42,11 +42,10 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     evidence_count = Column('evidence_count', Integer)
     evidence_desc = Column('evidence_desc', String)
     
-    bioent_biocon_evidences = relationship(BioentBioconEvidence)
     evidences = association_proxy('bioent_biocon_evidences', 'evidence')
     
-    bioentity = relationship('Bioentity', uselist=False)
-    bioconcept = relationship('Bioconcept', uselist=False)
+    bioentity = relationship('Bioentity', uselist=False, backref='bioent_biocons')
+    bioconcept = relationship('Bioconcept', uselist=False, backref='bioent_biocons')
     
     def __init__(self, bioent, biocon_id, session=None):
         self.bioentity = bioent
@@ -74,13 +73,7 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     
     __mapper_args__ = {'polymorphic_on': biocon_type,
                        'polymorphic_identity':"BIOCONCEPT"}
- 
-    bioent_biocons = relationship(BioentBiocon)
-    
-    @hybrid_property
-    def bioentities(self):
-        return self.bioentity_evidence.keys()
-    
+     
     @classmethod
     def unique_hash(cls, biocon_type, name):
         return '%s_%s' % (biocon_type, name) 

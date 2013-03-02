@@ -118,7 +118,7 @@ class Phenoevidence(Evidence):
     
     #Relationship
     mutant_allele = relationship('Allele', lazy='subquery')
-    bioent_biocon = association_proxy('bioent_biocon_evidence', 'bioent_biocon')
+    bioent_biocon = association_proxy('bioent_biocon_evidences', 'bioent_biocon')
     
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE"}
 

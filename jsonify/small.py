@@ -15,7 +15,7 @@ def bioent_biocon_small(bioent_biocon):
     biocon = biocon_small(bioent_biocon.bioconcept)
     bioent = bioent_mini(bioent_biocon.bioentity)
     return {'name': bioent['name'] + unichr(8213) + biocon['name'], 'official_name':bioent_biocon.name, 'link':'/bioent_biocon/' + bioent_biocon.name, 'description': 'Relationship between bioentity ' + bioent['full_name'] + ' and bioconcept ' + biocon['name'],
-            'biocon':biocon, 'bioent':bioent, 'evidence_count':bioent_biocon.evidence_count, 'evidence_desc':bioent_biocon.evidence_desc}
+            'biocon':biocon, 'bioent':bioent, 'evidence_count':bioent_biocon.evidence_count, 'evidence_desc':bioent_biocon.evidence_desc, 'all':0}
     
 def bioent_small(bioent):
     aliases = ', '.join(bioent.alias_names)
@@ -43,6 +43,11 @@ def all_biorel_small(bioent):
     return {'name':bioent_basic_info['name'] + unichr(8213) + 'All Genes', 'description':'All interactions between ' + bioent_basic_info['name'] + ' and other genes.', 
                   'source': bioent_basic_info, 'sink': None, 'link': '/biorel/' + bioent_basic_info['official_name'], 'all':1}
 
+def all_bioent_biocon_small(bioent):
+    bioent_basic_info = bioent_small(bioent)
+    return {'name':bioent_basic_info['name'] + unichr(8213) + 'All Phenotypes', 'description':'All phenotypes for ' + bioent_basic_info['name'] + '.', 
+                  'bioent': bioent_basic_info, 'biocon': None, 'link': '/bioent_biocon/' + bioent_basic_info['official_name'], 'all':1}
+
 def allele_small(allele):
     return {'name': allele.name, 'official_name':allele.name, 'link':str('/allele/' + str(allele.name)), 'description': 'Allele',
             'more_info':allele.description}
@@ -59,6 +64,7 @@ def phenoevidence_small(evidence):
 def phenoevidence_mid(evidence):
     basic_info = phenoevidence_small(evidence)
     basic_info['bioent_biocon'] = bioent_biocon_small(evidence.bioent_biocon)
+    return basic_info
 
 def interevidence_small(evidence):
     basic_info = interevidence_mini(evidence)
