@@ -21,7 +21,8 @@ def bioent_small(bioent):
     aliases = ', '.join(bioent.alias_names)
     basic_info = bioent_mini(bioent)
     basic_info['aliases'] = aliases
-    basic_info['description'] = bioent.description
+    print bioent.description
+    basic_info['description'] = add_gene_hyperlinks(bioent.description)
     basic_info['source'] = bioent.source
     basic_info['status'] = aliases
     basic_info['qualifier'] = bioent.qualifier
@@ -83,5 +84,8 @@ def reference_small(ref):
         basic_info['journal'] = ref.journal.full_name
     else:
         basic_info['journal'] = None
-    basic_info['abstract'] = add_gene_hyperlinks(ref.abstract)
+    if ref.abst is not None:
+        basic_info['abstract'] = add_gene_hyperlinks(ref.abstract)
+    else:
+        basic_info['abstract'] = None
     return basic_info

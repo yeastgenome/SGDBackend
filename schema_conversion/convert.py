@@ -11,10 +11,8 @@ from model_old_schema.config import DBTYPE as OLD_DBTYPE, DBHOST as OLD_DBHOST, 
     DBNAME as OLD_DBNAME, SCHEMA as OLD_SCHEMA, DBUSER as OLD_DBUSER, \
     DBPASS as OLD_DBPASS
 from model_old_schema.model import Model as OldModel
-from schema_conversion.old_to_new_bioconcept import \
-    experiment_property_to_phenoevidence_property, new_evidence, name_allele, \
-    new_bioents, new_biocons, new_bioent_biocons, evidence_reference, \
-    phenoevidence_to_bioconcept
+from schema_conversion.old_to_new_bioconcept import new_evidence, name_allele, \
+    name_chemical, update_phenoevidence, go_to_bioconcept
 from schema_conversion.old_to_new_bioentity import feature_to_bioent
 from schema_conversion.old_to_new_biorelation import interaction_to_biorel
 from schema_conversion.old_to_new_reference import new_refs, new_journals, \
@@ -23,6 +21,7 @@ from schema_conversion.old_to_new_reference import new_refs, new_journals, \
 import datetime
 import model_new_schema
 import model_old_schema
+
 
 
 
@@ -106,11 +105,12 @@ def convert():
 
     #convert_sequences_to_sequences(old_model, new_model)
     
-    #def f(session):
-    #    fill_cache(session)
-    #    fix_references_with_same_name(session)
+    def f(session):
+        #fill_cache(session)
+        #update_phenotypes(old_model, 80000, 100000, session)
+        go_to_bioconcept(old_model, session)
     
-    #new_model.execute(f, NEW_DBUSER, commit=True)
+    new_model.execute(f, NEW_DBUSER, commit=True)
 
 def fill_cache(session):
     from model_new_schema.reference import Reference as NewReference, Journal as NewJournal, Book as NewBook, \
@@ -118,11 +118,13 @@ def fill_cache(session):
     
     from model_old_schema.reference import Reflink as OldReflink
     
-    from model_new_schema.evidence import Phenoevidence as NewPhenoevidence, Chemevidence as NewChemevidence, Allele as NewAllele
+    from model_new_schema.evidence import Phenoevidence as NewPhenoevidence, Allele as NewAllele
     
     from model_new_schema.bioentity import Bioentity as NewBioentity
     
     from model_new_schema.bioconcept import Bioconcept as NewBioconcept, BioentBiocon as NewBioentBiocon
+
+    from model_new_schema.chemical import Chemical as NewChemical
         
     time = datetime.datetime.now()
 
@@ -175,61 +177,28 @@ def fill_cache(session):
     #print 'Reftype cache filled in ' + str(new_time-time)
     #time = new_time
     
-    new_evs = model_new_schema.model.get(NewPhenoevidence, session=session)
-    for e in new_evs:
-        new_evidence[e.id] = e
-    new_time = datetime.datetime.now()
-    print 'Phenevidence cache filled in ' + str(new_time-time)
-    time = new_time
+    #new_evs = model_new_schema.model.get(NewPhenoevidence, session=session)
+    #for e in new_evs:
+    #    new_evidence[e.id] = e
+    #new_time = datetime.datetime.now()
+    #print 'Phenevidence cache filled in ' + str(new_time-time)
+    #time = new_time
     
-    new_evs = model_new_schema.model.get(NewChemevidence, session=session)
-    for e in new_evs:
-        new_evidence[e.id] = e
-    new_time = datetime.datetime.now()
-    print 'Chemevidence cache filled in ' + str(new_time-time)
-    time = new_time
+    #new_alls = model_new_schema.model.get(NewAllele, session=session)
+    #for al in new_alls:
+    #    name_allele[al.name] = al
+    #new_time = datetime.datetime.now()
+    #print 'Allele cache filled in ' + str(new_time-time)
+    #time = new_time
     
-    new_alls = model_new_schema.model.get(NewAllele, session=session)
-    for al in new_alls:
-        name_allele[al.name] = al
-    new_time = datetime.datetime.now()
-    print 'Allele cache filled in ' + str(new_time-time)
-    time = new_time
+    #new_chems = model_new_schema.model.get(NewChemical, session=session)
+    #for c in new_chems:
+    #    name_chemical[c.name] = c
+    #new_time = datetime.datetime.now()
+    #print 'Chemical cache filled in ' + str(new_time-time)
+    #time = new_time
+
     
-    new_bioes = model_new_schema.model.get(NewBioentity, session=session)
-    for b in new_bioes:
-        new_bioents[b.id] = b
-    new_time = datetime.datetime.now()
-    print 'Bioentity cache filled in ' + str(new_time-time)
-    time = new_time
-    
-    new_biocs = model_new_schema.model.get(NewBioconcept, session=session)
-    for b in new_biocs:
-        new_biocons[b.id] = b
-    new_time = datetime.datetime.now()
-    print 'Bioconcept cache filled in ' + str(new_time-time)
-    time = new_time
-    
-    new_bioecs = model_new_schema.model.get(NewBioentBiocon, session=session)
-    for b in new_bioecs:
-        new_bioent_biocons[(b.bioent_id, b.biocon_id)] = b
-    new_time = datetime.datetime.now()
-    print 'BioentBiocon cache filled in ' + str(new_time-time)
-    time = new_time
-    
-    new_bioecs = model_new_schema.model.get(NewBioentBiocon, session=session)
-    for b in new_bioecs:
-        new_bioent_biocons[(b.bioent_id, b.biocon_id)] = b
-    new_time = datetime.datetime.now()
-    print 'BioentBiocon cache filled in ' + str(new_time-time)
-    time = new_time
-    
-    new_reflinks = model_new_schema.model.get(OldReflink, tab_name='PHENO_ANNOTATION_NO', session=session)
-    for r in new_reflinks:
-        evidence_reference[r.primary_key] = r.reference_id
-    new_time = datetime.datetime.now()
-    print 'Reflink cache filled in ' + str(new_time-time)
-    time = new_time
 
 def convert_features_to_bioents(old_model, new_model):
     print "Convert Features to Bioentities"
@@ -325,7 +294,7 @@ def convert_interactions_to_biorels(old_model, new_model, min_id, max_id):
             print str(count) + '/' + str(len(inters)) +  " " + str(new_time - time)
             time = new_time
         
-def convert_phenotypes_to_bioconcepts(old_model, new_model, min_id, max_id, session):
+def update_phenotypes(old_model, min_id, max_id, session):
     print "Convert Phenotypes to Bioconcepts"
 
     from model_old_schema.phenotype import Phenotype_Feature as OldPhenotype_Feature
@@ -338,9 +307,9 @@ def convert_phenotypes_to_bioconcepts(old_model, new_model, min_id, max_id, sess
     print 'Loaded in ' + str(new_time-time)
     time = new_time
     for p in ps:
-        new_p = phenoevidence_to_bioconcept(p)
+        new_p = update_phenoevidence(p)
         if new_p is not None:
-            model_new_schema.model.add(new_p, session=session, commit=True)
+            model_new_schema.model.add(new_p, session=session)
             
         count = count+1
         if count%1000 == 0:

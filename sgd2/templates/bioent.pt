@@ -16,13 +16,13 @@
 </header>
 
 
-<div class="container">
+<div class="container-fluid">
 
 <!-- Docs nav
 ================================================== -->
-<div class="row">
+<div class="row-fluid">
 	<div id='sidebar' class="span3 bs-docs-sidebar">
-		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
+		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar' style="margin-left:auto; margin-right:auto">
 			<li><h3><span tal:content="bioent.basic_info.name"> <small>(<span tal:content="bioent.basic_info.official_name">)</small></h3></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#location"><i class="icon-chevron-right"></i> Sequence and Location</a></li>
@@ -87,16 +87,6 @@
 	<div class="page-header">
 		<h1>Gene Ontology</h1>
 		
-		<!-- Brief
-		========================================== -->
-		<p>This is gene ontology information.</p>
-
-		<!-- In-depth
-		========================================== 
-		<p class="collapse" id="viewdetails_go">
-           	This is the in-depth gene ontology information. </p>
-		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_go">View details &raquo;</a></p>
-		-->
 	</div>
 </section>
 
@@ -104,28 +94,79 @@
 ================================================== -->
 <section id="phenotype">
 	<div class="page-header">
-		<h1>Phenotypes <span id='phenotype_header'></span><a tal:attributes="href bioent.all_phenotypes_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1> 
+		<h1>Phenotype <span id='phenotype_header'></span><a tal:attributes="href bioent.all_phenotypes_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1> 
 
 		
-		<!-- Brief
+		<!-- Phenotype Table
 		========================================== -->
 		<div>
-			<ul class='unstyled'>
-				<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotype_table'>
+			<span id='phenotype_message' class="hide">No known phenotypes.</span>
+			<div id='phenotype_wrapper'>
+				<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotype_table' width="100%">
+				<thead>
+  				<tr>
+  					<th rowspan="2" colspan="1">Relationship</th>
+  					<th rowspan="1" colspan="3" style="text-align:center">Mutant Type</th>
+    				<th rowspan="2" colspan="1">Total Evidence</th>
+  				</tr>
+  				<tr>
+  					<th rowspan="1" colspan="1">Null</th>
+  					<th rowspan="1" colspan="1">Overexpressed</th>
+  					<th rowspan="1" colspan="1">Conditional</th>
+  				</tr>
+  				</thead>
+				</table>
+			</div>
+		</div>
+		<br></br>
+		<!-- Chemical Phenotype Table
+		========================================== -->
+		<h3>Chemical Phenotype <span id='chemical_phenotype_header'></span></h3>
+		<div>
+			<span id='chemical_phenotype_message'  class="hide">No known chemical phenotypes.</span>
+			<div id='chemical_phenotype_wrapper'>
+								<table class='table table-striped table-bordered table-condensed tablesorter' id='chemical_phenotype_table' width="100%">
 			<thead>
   			<tr>
-  				<th>Relationship</th>
-  				<th>Null<br>Mutant</th>
-  				<th>Overexpressed<br>Mutant</th>
-  				<th>Conditional<br>Mutant</th>
-    			<th>Total Evidence</th>
-
+  				<th rowspan="2" colspan="1">Chemical</th>
+   				<th rowspan="2" colspan="1">Relationship</th>
+  				<th rowspan="1" colspan="3" style="text-align:center">Mutant Type</th>
+    			<th rowspan="2" colspan="1">Total Evidence</th>
+  			</tr>
+  			<tr>
+  				<th rowspan="1" colspan="1">Null</th>
+  				<th rowspan="1" colspan="1">Overexpressed</th>
+  				<th rowspan="1" colspan="1">Conditional</th>
   			</tr>
   			</thead>
  
 			</table>
-			</ul>
 		</div>
+		<br></br>
+		<!-- Protein/Peptide and RNA Interactions Table
+		========================================== -->
+		<h3>Protein/Peptide and RNA Phenotype <span id='pp_rna_phenotype_header'></span></h3>
+		<div>
+			<span id='pp_rna_phenotype_message' class="hide">No known protein/peptide and RNA phenotypes.</span>
+			<div id='pp_rna_phenotype_wrapper'>				
+				<table class='table table-striped table-bordered table-condensed tablesorter' id='pp_rna_phenotype_table' width="100%">
+			<thead>
+  			<tr>
+  				<th rowspan="2" colspan="1">Bioentity</th>
+  				<th rowspan="2" colspan="1">Relationship</th>
+  				<th rowspan="1" colspan="3" style="text-align:center">Mutant Type</th>
+    			<th rowspan="2" colspan="1">Total Evidence</th>
+  			</tr>
+  			<tr>
+  				<th rowspan="1" colspan="1">Null</th>
+  				<th rowspan="1" colspan="1">Overexpressed</th>
+  				<th rowspan="1" colspan="1">Conditional</th>
+  			</tr>
+  			</thead>
+ 
+			</table>
+		</div>
+
 	</div>
 </section>
 
@@ -146,7 +187,7 @@
         
         <div>
 			<ul class='unstyled'>
-				<table class='table table-striped table-bordered table-condensed tablesorter' id='interaction_table'>
+				<table class='table table-striped table-bordered table-condensed tablesorter' id='interaction_table' width="100%">
 			<thead>
   			<tr>
     			<th>Interaction</th>
@@ -229,182 +270,42 @@
 	</div>
 </section>
 
-<tal:block tal:define="phenotype_link bioent.phenotype_link">
-<script>
-
-	$(document).ready(function() {
-		$('#phenotype_table').dataTable( {
-    		"sPaginationType": "bootstrap",
-    		"aaSorting": [[4, "desc"]],
-    		"sAjaxSource": '${phenotype_link}',
-    		"fnInitComplete": function() {
-    			this.fnAdjustColumnSizing(true);
-    			var num_rows = this.fnSettings().fnRecordsTotal()
-    			document.getElementById("phenotype_header").innerHTML = '(' + num_rows + ')'
-    		},
-    		
-    		"sDom": '<"clear">lfrtipT',
-        	"oTableTools": {
-        	"aButtons": [
-                "copy",
-                "print",
-				{
-                    "sExtends": "csv",
-                    "sTitle": '${bioent["basic_info"]["name"]}_phenotypes.csv'
-                },
-                {
-                    "sExtends": "xls",
-                    "sTitle": '${bioent["basic_info"]["name"]}_phenotypes.xls'
-                }	
-            ],
-            "sSwfPath": "../static/js/copy_csv_xls_pdf.swf"
-        }
-  		} );
-	} );
-</script>
-</tal:block>
-
-<tal:block tal:define="interaction_link bioent.interaction_link">
 <script>
 	$(document).ready(function() {
-	thisTable = $('#interaction_table')
-  		thisTable.dataTable( {
-  			"aoColumns": [
-    			null, null, null, {"sType":"num-html"}
-    			],
-    		"sPaginationType": "bootstrap",
-    		"aaSorting": [[3, "desc"]],
-    		"sAjaxSource": '${interaction_link}',
-    		"fnInitComplete": function() {
-    			this.fnAdjustColumnSizing(true);
-    			var num_rows = this.fnSettings().fnRecordsTotal()
-    			document.getElementById("interactions_header").innerHTML = '(' + num_rows + ')'
-    			},
-    			
-    		"sDom": '<"clear">lfrtipT',
-        	"oTableTools": {
-        	"aButtons": [
-                "copy",
-                "print",
-				{
-                    "sExtends": "csv",
-                    "sTitle": '${bioent["basic_info"]["name"]}_interactions.csv'
-                },
-                {
-                    "sExtends": "xls",
-                    "sTitle": '${bioent["basic_info"]["name"]}_interactions.xls'
-                }	
-            ],
-            "sSwfPath": "../static/js/copy_csv_xls_pdf.swf"
-        }
-  		} );
-	} );
+		//Set up phenotype table
+		var options = basic_datatable_options('${bioent["phenotype_link"]}', "phenotype_header", '${bioent["basic_info"]["name"]}_phenotypes', "phenotype_wrapper", "phenotype_message");
+		options["aaSorting"] = [[4, "desc"]];
+		options["aoColumns"] = [null, null, null, null, {"sType":"num-html"}];
+		$('#phenotype_table').dataTable(options);
+		
+		//Set up chemical phenotype table
+		var options = basic_datatable_options('${bioent["chemical_phenotype_link"]}', "chemical_phenotype_header", '${bioent["basic_info"]["name"]}_chemical_phenotypes', "chemical_phenotype_wrapper", "chemical_phenotype_message");
+		options["aaSorting"] = [[5, "desc"]];
+		options["aoColumns"] = [null, null, null, null, null, null];
+		$('#chemical_phenotype_table').dataTable(options);
+		
+		//Set up pp-rna phenotype table
+		var options = basic_datatable_options('${bioent["pp_rna_phenotype_link"]}', "pp_rna_phenotype_header", '${bioent["basic_info"]["name"]}_pp_rna_phenotypes', "pp_rna_phenotype_wrapper", "pp_rna_phenotype_message");
+		options["aaSorting"] = [[5, "desc"]];
+		options["aoColumns"] = [null, null, null, null, null, null];
+		$('#pp_rna_phenotype_table').dataTable(options);
+		
+		//Set up interaction table
+		var options = basic_datatable_options('${bioent["interaction_link"]}', "interactions_header", '${bioent["basic_info"]["name"]}_interactions');
+		options["aaSorting"] = [[3, "desc"]];
+		options["aoColumns"] = [null, null, null, {"sType":"num-html"}];
+		$('#interaction_table').dataTable(options);
+		
+	});
+	
+	
 </script>
-</tal:block>
 
 <script type="text/javascript">
-	window.onload=function() {
-		// id of Cytoscape Web container div
-		var div_id = "cytoscapeweb";
-                                
-		// visual style we will use
-		var visual_style = {
-			nodes: {
-				color: {
-					discreteMapper: {
-						attrName: "focus",
-						entries: [
-							{ attrValue: '1', value: "#fade71" }
-						]
-					}
-				},
-				labelHorizontalAnchor: "center"
-			},
-		};
-                
-		// initialization options
-		var options = {
-		swfPath: "../static/js/CytoscapeWeb",
-		flashInstallerPath: "/swf/playerProductInstall"
-	};
-                
-	// init and draw
-	var vis = new org.cytoscapeweb.Visualization(div_id, options);
-	
-	var evidence_cutoff = 3;
-	
-	// callback when Cytoscape Web has finished drawing
-    vis.ready(function() {
-                
-		// add a listener for when nodes and edges are clicked
-		vis.addListener("click", "nodes", function(event) {
-			handle_click(event);
-		})
-		.addListener("click", "edges", function(event) {
-			handle_click(event);
-		});
-                    
-		function handle_click(event) {
-			var target = event.target;   
-			var link = target.data['link']
-			window.location.href = link          
-		}
-		var max_evidence = Math.min(10, vis.nodes()[vis.nodes().length-1].data.evidence);
-		$(function() {
-			$( "#slider-range-min" ).slider({
-				range: "max",
-				value: 3,
-				min: evidence_cutoff,
-				max: max_evidence,
-				step: 1,
-				slide: function( event, ui ) {
-					handle_slide(event, ui);
-				},
-				change: function( event, ui ) {
-					handle_slide(event, ui);
-				}
-			});
-			function handle_slide(event, ui) {
-				var val = $( "#amount" ).val( "$" + ui.value );
-				vis.filter(function(item) {
-					return item.data.evidence == -1 || item.data.evidence >= ui.value;
-				});
-				vis.layout('ForceDirected');
-			}
-			$( "#slider-range-min" ).slider('value', 3);
-			
-			var $slider =  $('#slider-range-min');
-			var max =  $slider.slider("option", "max") - $slider.slider("option", "min") + 1;    
- 			var spacing =  100 / (max -1);
- 			var multiplier = 1;
- 			if (max > 25) {
- 				multiplier = 2;
- 			}
+window.onload=function() {
+	setup_cytoscape_vis("${bioent['graph_link']}");   
+};           
 
-    		$slider.find('.ui-slider-tick-mark').remove();
-    		for (var i = 0; i < max ; i=i+multiplier) {
-    			var value = (i+evidence_cutoff);
-    			if(value >= 10) {
-    				var left = ((spacing * i)-1)
-        			$('<span class="ui-slider-tick-mark muted">10+</span>').css('left', left + '%').appendTo($slider);
-    			}
-    			else {
-    				var left = ((spacing * i)-.5)
-					$('<span class="ui-slider-tick-mark muted">' +value+ '</span>').css('left', left + '%').appendTo($slider);
-    			}
-        	}
-		});
-	});
-                
-	// you could also use other formats (e.g. GraphML) or grab the network data via AJAX
-	$.get('/bioent_graph/'+"${bioent['basic_info']['official_name']}", function(data) {
-		vis.draw({ network: data, visualStyle: visual_style});
-		evidence_cutoff = data['evidence_cutoff']
-	});
-	
-	
-	              
-};
 </script>
         
 <style>

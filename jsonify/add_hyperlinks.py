@@ -9,6 +9,9 @@ from sqlalchemy.sql.expression import func
 import string
 
 def add_gene_hyperlinks(text):
+    text = str(text)
+    if text is None:
+        return None
     search_text = text.upper().translate(string.maketrans("",""), string.punctuation).split()
     result = validate_genes(search_text)
     bioentities = result['bioentities']

@@ -56,58 +56,61 @@ def create_note(qualifiers):
         return ''
     
         
-
-def create_bioent_biocon_table_for_bioent(evidences):
-    name_to_bioent_biocons = {}
-    bb_name_to_null_qualifiers = {}
-    bb_name_to_overexpression_qualifiers = {}
-    bb_name_to_conditional_qualifiers = {}
-    
-    for evidence in evidences:
+def create_bioent_biocon_table_for_bioent(evidence_jsons, evidence_map, include_group_term=False):
+    group_term_bioent_biocon = {}
+    group_term_to_null_qualifiers = {}
+    group_term_to_overexpression_qualifiers = {}
+    group_term_to_conditional_qualifiers = {}
+    group_term_to_all_qualifiers = {}
+   
+    for evidence in evidence_jsons:
+        group_term = evidence_map[evidence['name']]
         bb = evidence['bioent_biocon']
-        bb_name = bb['name']
-        name_to_bioent_biocons[bb_name] = bb
+        group_term_bioent_biocon[group_term] = bb
         if evidence['mutant'] == 'null':
-            if bb_name in bb_name_to_null_qualifiers:
-                bb_name_to_null_qualifiers[bb_name].append(evidence['qualifier'])
+            if group_term in group_term_to_null_qualifiers:
+                group_term_to_null_qualifiers[group_term].append(evidence['qualifier'])
             else:
-                bb_name_to_null_qualifiers[bb_name] = [evidence['qualifier']]
+                group_term_to_null_qualifiers[group_term] = [evidence['qualifier']]
         if evidence['mutant'] == 'overexpression':
-            if bb_name in bb_name_to_overexpression_qualifiers:
-                bb_name_to_overexpression_qualifiers[bb_name].append(evidence['qualifier'])
+            if group_term in group_term_to_overexpression_qualifiers:
+                group_term_to_overexpression_qualifiers[group_term].append(evidence['qualifier'])
             else:
-                bb_name_to_overexpression_qualifiers[bb_name] = [evidence['qualifier']]
+                group_term_to_overexpression_qualifiers[group_term] = [evidence['qualifier']]
         if evidence['mutant'] == 'conditional':
-            if bb_name in bb_name_to_conditional_qualifiers:
-                bb_name_to_conditional_qualifiers[bb_name].append(evidence['qualifier'])
+            if group_term in group_term_to_conditional_qualifiers:
+                group_term_to_conditional_qualifiers[group_term].append(evidence['qualifier'])
             else:
-                bb_name_to_conditional_qualifiers[bb_name] = [evidence['qualifier']]
-                
-    
+                group_term_to_conditional_qualifiers[group_term] = [evidence['qualifier']]
+        if group_term in group_term_to_all_qualifiers:
+            group_term_to_all_qualifiers[group_term].append(evidence['qualifier'])
+        else:
+            group_term_to_all_qualifiers[group_term] = [evidence['qualifier']]
         
     table = []
-    for bioent_biocon in name_to_bioent_biocons.values():
-        bb_name = bioent_biocon['name']
+    for (group_term, bioent_biocon) in group_term_bioent_biocon.iteritems():
         bioent_biocon_entry = entry_with_link('&#151;' + bioent_biocon['biocon']['name'], bioent_biocon['link'])
         null_entry = '0'
         overex_entry = '0'
         cond_entry = '0'
-        all_quals = []
-        if bb_name in bb_name_to_null_qualifiers:
-            quals = bb_name_to_null_qualifiers[bb_name]
+        if group_term in group_term_to_null_qualifiers:
+            quals = group_term_to_null_qualifiers[group_term]
             null_entry = entry_with_note(str(len(quals)), create_note(quals))
-            all_quals.extend(quals)
-        if bb_name in bb_name_to_overexpression_qualifiers:
-            quals = bb_name_to_overexpression_qualifiers[bb_name]
+        if group_term in group_term_to_overexpression_qualifiers:
+            quals = group_term_to_overexpression_qualifiers[group_term]
             overex_entry = entry_with_note(str(len(quals)), create_note(quals))
-            all_quals.extend(quals)
-        if bb_name in bb_name_to_conditional_qualifiers:
-            quals = bb_name_to_conditional_qualifiers[bb_name]
+        if group_term in group_term_to_conditional_qualifiers:
+            quals = group_term_to_conditional_qualifiers[group_term]
             cond_entry = entry_with_note(str(len(quals)), create_note(quals))
-            all_quals.extend(quals)
-        total_entry = entry_with_note(entry_with_link(str(len(all_quals)), bioent_biocon['link']), create_note(all_quals))
             
-        table.append([bioent_biocon_entry, null_entry, overex_entry, cond_entry, total_entry])
+        quals = group_term_to_all_qualifiers[group_term]
+            
+        if include_group_term:
+            total_entry = entry_with_note(str(len(quals)), create_note(quals))
+            table.append([group_term, bioent_biocon_entry, null_entry, overex_entry, cond_entry, total_entry])
+        else:
+            total_entry = entry_with_note(entry_with_link(str(len(quals)), bioent_biocon['link']), create_note(quals))
+            table.append([bioent_biocon_entry, null_entry, overex_entry, cond_entry, total_entry])            
     return {'aaData':table}
 
 def get_biorel_name(biorel, bioent_name):
@@ -136,7 +139,7 @@ def create_bioent_biocon_table_for_biocon(bioent_biocons):
         if evidence_desc:
             evidence_entry = entry_with_note(str(bioent_biocon['evidence_count']), '(' + evidence_desc + ')')
         else:
-            evidence_entry = str(bioent_biocon['evidence_count'])
+            evidence_entry = str(bioent_biocon['evidence_count']) 
         table.append([bioent_biocon_entry, evidence_entry])
     return {'aaData':table}
 
@@ -148,9 +151,18 @@ def create_evidence_table_for_bioent_biocon(evidences):
             allele_entry = entry_with_link(evidence['allele']['name'], evidence['allele']['link'])
         else:
             allele_entry = None
-        reference_entry = entry_with_link(evidence['reference']['name'], evidence['reference']['link'])
+        reference_entry = evidence['reference']['name'] + ' <small>pmid:' + entry_with_link(str(evidence['reference']['pubmed_id']), evidence['reference']['link']) + '</small>'
         
-        table.append([bioent_biocon_entry, evidence['qualifier'], evidence['experiment_type'], evidence['mutant'], allele_entry, evidence['strain'], reference_entry])
+        chemicals = []
+        for (x, y) in evidence['chemicals']:
+            if y is None:
+                chemicals.append(x)
+            else:
+                chemicals.append(x + ': ' + y)
+        chemical_info = ', '.join(chemicals)
+        
+        table.append([bioent_biocon_entry, evidence['qualifier'], evidence['experiment_type'], evidence['mutant'], allele_entry, 
+                      evidence['reporter'], chemical_info, evidence['strain'], reference_entry])
     return {'aaData':table}
 
 def create_phenotype_table_for_reference(bioent_biocons):
@@ -180,7 +192,7 @@ def reverse_direction(direction):
 def create_genetic_evidence_table_for_interaction(evidences, bioent_name):
     table = []
     for evidence in evidences:
-        reference_entry = entry_with_link(evidence['reference']['name'], evidence['reference']['link'])
+        reference_entry = evidence['reference']['name'] + ' <small>pmid:' + entry_with_link(str(evidence['reference']['pubmed_id']), evidence['reference']['link']) + '</small>'
         phenotype = ''
         if evidence['qualifier'] is not None:
             phenotype = evidence['qualifier'] + ' ' + evidence['observable']
@@ -202,7 +214,7 @@ def create_genetic_evidence_table_for_interaction(evidences, bioent_name):
 def create_physical_evidence_table_for_interaction(evidences, bioent_name):
     table = []
     for evidence in evidences:
-        reference_entry = entry_with_link(evidence['reference']['name'], evidence['reference']['link'])
+        reference_entry = evidence['reference']['name'] + ' <small>pmid:' + entry_with_link(str(evidence['reference']['pubmed_id']), evidence['reference']['link']) + '</small>'
         
         if bioent_name is None:
             biorel_entry = None
@@ -217,6 +229,20 @@ def create_physical_evidence_table_for_interaction(evidences, bioent_name):
                 direction = reverse_direction(evidence['direction'])
         table.append([biorel_entry, evidence['experiment_type'], evidence['annotation_type'], direction, evidence['modification'], reference_entry])
     return {'aaData':table}
+
+def create_go_table_for_bioent(bioent_biocons):
+    table = []
+    for bioent_biocon in bioent_biocons:
+        bioent_biocon_entry = entry_with_link(bioent_biocon.name, '/bioent_biocon/' + bioent_biocon.name)
+        table.append([bioent_biocon_entry, bioent_biocon.bioconcept.go_aspect, 0])
+    return {'aaData':table} 
+
+def create_go_table_for_bioent_biocon(evidences):
+    table = []
+    for evidence in evidences:
+        reference_entry = evidence['reference']['name'] + ' <small>pmid:' + entry_with_link(str(evidence['reference']['pubmed_id']), evidence['reference']['link']) + '</small>'
+        table.append([evidence['go_evidence'], evidence['annotation_type'], evidence['source'], evidence['qualifier'], evidence['date_last_reviewed'], reference_entry])
+    return {'aaData':table}   
 
 def entry_with_link(entry_name, link):
     return"<a href='" + link + "'>" + entry_name + "</a>"

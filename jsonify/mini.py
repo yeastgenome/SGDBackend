@@ -9,12 +9,17 @@ def bioent_mini(bioent):
             'bioent_type':bioent.bioent_type, 'full_name':bioent.secondary_name + ' (' + bioent.name + ')', 'id':bioent.id}
     
 def reference_mini(ref):
-    pubmed_str = str(ref.pubmed_id)
-    link = '/reference/' + pubmed_str
-    citation = "<a href='" + link + "'>" + ref.citation[:len(ref.name)] + "</a>" + ref.citation[len(ref.name):]
-    return {'name':ref.name, 'official_name':pubmed_str, 'link':link, 'description':ref.title,
+    link_str = ref.pubmed_id
+    if link_str is None:
+        link_str = ref.dbxref_id
+    if link_str is None:
+        link_str = str(ref.id)
+    link = '/reference/' + str(link_str)
+    name = ref.citation[:ref.citation.find(')')]
+    citation = ref.citation + " <a href='" + link + "'>pmid:" + str(ref.pubmed_id) + "</a>"
+    return {'name':name, 'official_name':str(link_str), 'link':link, 'description':ref.title,
             'source': ref.source, 'status':ref.status, 'pdf_status':ref.pdf_status, 'citation': citation, 'year': str(ref.year),
-            'pubmed_id': pubmed_str, 'date_published': ref.date_published, 'date_revised':ref.date_revised, 'issue':ref.issue,
+            'pubmed_id': str(ref.pubmed_id), 'date_published': ref.date_published, 'date_revised':ref.date_revised, 'issue':ref.issue,
             'page':ref.page, 'volume':ref.volume, 'title':ref.title, 'doi':ref.doi, 'name':ref.name} 
 
 def evidence_mini(evidence):
@@ -41,5 +46,17 @@ def phenoevidence_mini(evidence):
     basic_info['mutant'] = evidence.mutant_type
     basic_info['source'] = evidence.source
     basic_info['qualifier'] = evidence.qualifier
-    basic_info['comment'] = evidence.experiment_comment
+    basic_info['reporter'] = evidence.reporter
+    basic_info['chemicals'] = [(chemical.chemical.name, chemical.chemical_amt) for chemical in evidence.phenoev_chemicals]
+    basic_info['description'] = evidence.description
     return basic_info
+
+def goevidence_mini(evidence):
+    basic_info = evidence_mini(evidence)
+    basic_info['go_evidence'] = evidence.go_evidence
+    basic_info['annotation_type'] = evidence.annotation_type
+    basic_info['source'] = evidence.source
+    basic_info['date_last_reviewed'] = evidence.date_last_reviewed
+    basic_info['qualifier'] = evidence.qualifier
+    return basic_info
+ 

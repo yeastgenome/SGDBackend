@@ -16,11 +16,11 @@
 </header>
 
 
-<div class="container">
+<div class="container-fluid">
 
 <!-- Docs nav
 ================================================== -->
-<div class="row">
+<div class="row-fluid">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
 			<li><h4><span tal:content="biocon.basic_info.name"></h4></li>
@@ -50,7 +50,7 @@
 		<h1>Genes <span id='genes_header'></span></h1> 
 
 		<div>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='genes_table'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='genes_table' width="100%">
 			<thead>
   			<tr>
     			<th>Relationship</th>

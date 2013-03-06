@@ -887,7 +887,8 @@ form.bs-docs-example {
     top: 0;
     width: 218px;
     margin-top: 30px;
-    margin-right: 0;
+    margin-left:auto; 
+    margin-right:auto
   }
 }
 

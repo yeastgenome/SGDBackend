@@ -29,8 +29,12 @@ def bioent_biocon_large(bioent_biocon):
 
 def bioent_large(bioent):
     basic_info = bioent_small(bioent)   
-    return {'basic_info':basic_info, 'genetic_position':bioent.genetic_position, 'interaction_count':0, 'interaction_link':basic_info['link'] + '/interactions',
-            'phenotype_count':0, 'phenotype_link':basic_info['link'] + '/phenotypes', 
+    link = basic_info['link']
+    return {'basic_info':basic_info, 'genetic_position':bioent.genetic_position, 
+            'interaction_link': link + '/interactions',
+            'phenotype_link': link + '/phenotypes', 'chemical_phenotype_link': link + '/chemical_phenotypes', 'pp_rna_phenotype_link':link + '/pp_rna_phenotypes',
+            'graph_link':'/bioent_graph/' + basic_info['official_name'], 
+            'go_link':link + '/go',
             'all_interactions_link':'/biorel/' + bioent.name, 'all_phenotypes_link':'/bioent_biocon/' + bioent.name}
 
 def biorel_large(biorel):

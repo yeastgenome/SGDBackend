@@ -16,11 +16,11 @@
 </header>
 
 
-<div class="container">
+<div class="container-fluid">
 
 <!-- Docs nav
 ================================================== -->
-<div class="row">
+<div class="row-fluid">
 	<div id='sidebar' class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
 			<li><h3><span tal:content="allele.basic_info.name"></h3></li>

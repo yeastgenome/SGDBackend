@@ -8,7 +8,6 @@ from model_new_schema.config import SCHEMA
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 import datetime
@@ -23,7 +22,12 @@ class BioentBioconEvidence(Base, EqualityByIDMixin, UniqueMixin):
     
     bioent_biocon = relationship('BioentBiocon', uselist=False, backref=backref('bioent_biocon_evidences'))
     evidence = relationship('Evidence', uselist=False, backref=backref('bioent_biocon_evidences', uselist=False))
+    
+    def __init__(self, bioent_biocon, evidence):
+        self.bioent_biocon = bioent_biocon
+        self.evidence = evidence
         
+    
     @classmethod
     def unique_hash(cls, bioent_biocon_id, evidence_id):
         return '%s_%s' % (bioent_biocon_id, evidence_id) 
@@ -38,7 +42,6 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     id = Column('bioent_biocon_id', Integer, primary_key=True)
     bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
     biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
-    name = Column('name', String)
     evidence_count = Column('evidence_count', Integer)
     evidence_desc = Column('evidence_desc', String)
     
@@ -47,10 +50,14 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     bioentity = relationship('Bioentity', uselist=False, backref='bioent_biocons')
     bioconcept = relationship('Bioconcept', uselist=False, backref='bioent_biocons')
     
-    def __init__(self, bioent, biocon_id, session=None):
+    def __init__(self, bioent, biocon, session=None):
         self.bioentity = bioent
-        self.biocon_id = biocon_id
+        self.bioconcept = biocon
         
+    @hybrid_property
+    def name(self):
+        return self.bioentity.name + unichr(8213) + self.bioconcept.name
+    
     @classmethod
     def unique_hash(cls, bioent_id, biocon_id):
         return '%s_%s' % (bioent_id, biocon_id) 
@@ -121,32 +128,25 @@ class Phenotype(Bioconcept):
     def unique_filter(cls, query, qualifier, observable):
         return query.filter(Phenotype.qualifier == qualifier, Phenotype.observable == observable)
     
-    
-    
-class Chemical(Bioconcept):
-    __tablename__ = "chemical"
+class Go(Bioconcept):
+    __tablename__ = 'go_term'
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
-    
+
     id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
-    name = Column('name', String)
-    description = Column('description', String)
-      
-    __mapper_args__ = {'polymorphic_identity': "CHEMICAL"}
-
-    def __init__(self, name, description, session=None, biocon_id=None, date_created=None, created_by=None):
-        Bioconcept.__init__(self, 'CHEMICAL', name, session=session, biocon_id=biocon_id, date_created=date_created, created_by=created_by)
-        self.description = description
-        
-    @classmethod
-    def unique_hash(cls, name):
-        return '%s_%s' % (name) 
-
-    @classmethod
-    def unique_filter(cls, query, name):
-        return query.filter(Chemical.name == name)
-
-class GOTerm(Bioconcept):
-    __mapper_args__ = {'polymorphic_identity': "GO_TERM"}
+    go_go_id = Column('go_go_id', Integer)
+    go_term = Column('go_term', String)
+    go_aspect = Column('go_aspect', String)
+    go_definition = Column('go_definition', String)
+    
+    def __init__(self, go_go_id, go_term, go_aspect, go_definition, session=None, biocon_id=None, date_created=None, created_by=None):
+        name = go_term
+        Bioconcept.__init__(self, 'GO', name, session=session, biocon_id=biocon_id, date_created=date_created, created_by=created_by)
+        self.go_go_id = go_go_id
+        self.go_term = go_term
+        self.go_aspect = go_aspect
+        self.go_definition = go_definition
+    
+    __mapper_args__ = {'polymorphic_identity': "GO"}
     
 class Function(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "FUNCTION"}

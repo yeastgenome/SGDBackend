@@ -28,6 +28,7 @@
 	<script src="../static/js/TableTools.js"></script>
 	<script src="../static/js/ZeroClipboard.js"></script>
 	<script src="../static/js/DT_bootstrap.js"></script>
+	<script src="../static/js/local.js"></script>
 
 	<script>
 		jQuery.extend( jQuery.fn.dataTableExt.oSort, {
@@ -91,6 +92,27 @@
 </div>
  
 
+<script>
+$(document).ready(function() {
+	$("#searchfield").typeahead({
+        minLength: 1,
+        source: function(query, process) {
+            $.post('/typeahead', { q: query, limit: 8 }, function(data) {
+                process(data);
+            });
+        },
+        updater: function (item) {
+            document.location = "/search/" + encodeURIComponent(item);
+            return item;
+        },
+        sorter: function (items) {
+            items.unshift(this.query);
+            return items;
+        }
+    });
+});
+</script>
+
 <!-- Le javascript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
@@ -113,26 +135,7 @@
 <script src="../static/js/application.js"></script>
 <script src="../static/js/AC_OETags.min.js"></script>
 
-<script>
-$(document).ready(function() {
-	$("#searchfield").typeahead({
-        minLength: 1,
-        source: function(query, process) {
-            $.post('/typeahead', { q: query, limit: 8 }, function(data) {
-                process(data);
-            });
-        },
-        updater: function (item) {
-            document.location = "/search/" + encodeURIComponent(item);
-            return item;
-        },
-        sorter: function (items) {
-            items.unshift(this.query);
-            return items;
-        }
-    });
-});
-</script>
+
 
 </body>
 </html>

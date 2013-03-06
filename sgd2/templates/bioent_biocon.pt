@@ -3,6 +3,8 @@
 
 
 <body>
+	
+
 
 <!-- Subhead
 ================================================== -->
@@ -15,14 +17,14 @@
 	</div>
 </header>
 
+<div class="container-fluid">
 
-<div class="container">
 
 <!-- Docs nav
 ================================================== -->
-<div class="row">
+<div class="row-fluid">
 	<div class="span3 bs-docs-sidebar">
-		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
+		<ul class="nav nav-list bs-docs-sidenav" id='navbar' name='navbar' style="margin-left:auto; margin-right:auto">
 			<li><h4><span tal:content="bioent_biocon.basic_info.name"></h4></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#evidence"><i class="icon-chevron-right"></i> Evidence</a></li>
@@ -40,7 +42,10 @@
 		<div>
 			<ul class='unstyled'>
 				<li><strong>Bioentity: </strong><a tal:attributes="href bioent_biocon.bioent.link" tal:content="bioent_biocon.bioent.full_name"></a></li>
-				<li><strong>Bioconcept: </strong><a tal:condition="python: bioent_biocon.biocon" tal:attributes="href bioent_biocon.biocon.link" tal:content="bioent_biocon.biocon.name"></a></li>
+				<li><strong>Bioconcept: </strong>
+				<a tal:condition="python: bioent_biocon.biocon" tal:attributes="href bioent_biocon.biocon.link" tal:content="bioent_biocon.biocon.name"></a>
+				<span tal:condition="python: not bioent_biocon.biocon">All</span>
+				</li>
 			</ul>
 		</div>
 	</div>
@@ -53,7 +58,7 @@
 		<h1>Evidence <span id='evidence_header'></span></h1>
 
 		<div>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='evidence_table'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='evidence_table' width="100%">
 			<thead>
   			<tr>
   				<th>Relationship</th>
@@ -61,6 +66,8 @@
     			<th>Experiment</th>
     			<th>Mutant</th>
     			<th>Allele</th>
+    			<th>Reporter</th>
+    			<th>Chemical</th>
     			<th>Strain</th>
     			<th>Reference</th>
   			</tr>

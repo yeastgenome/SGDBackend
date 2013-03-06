@@ -16,11 +16,11 @@
 </header>
 
 
-<div class="container">
+<div class="container-fluid">
 
 <!-- Docs nav
 ================================================== -->
-<div class="row">
+<div class="row-fluid">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
 			<li><h3><span tal:content="ref.basic_info.name"></h3></li>
@@ -39,7 +39,7 @@
 	<div class="page-header">
 		<h1>Abstract</h1>
 		<div>
-			<p tal:content="structure ref.basic_info.abstract"></p>
+			<p tal:condition="python: ref.basic_info.abstract" tal:content="structure ref.basic_info.abstract"></p>
 			<p>PMID: <span tal:content="ref.basic_info.pubmed_id"></span></p>
 			<p tal:condition="python: ref.basic_info.doi">DOI: <span tal:content="ref.basic_info.doi"></span></p>
 			
@@ -57,7 +57,7 @@
 		<!-- Brief
 		========================================== -->
 		<div id='interactions_wrapper'>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='interactions_table'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='interactions_table' width="100%">
 			<thead>
   			<tr>
     			<th>Interaction</th>
@@ -80,7 +80,7 @@
 		<!-- Brief
 		========================================== -->
 		<div id='phenotypes_wrapper'>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotypes_table'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotypes_table' width="100%">
 			<thead>
   			<tr>
     			<th>Bioentity-Phenotype</th>
