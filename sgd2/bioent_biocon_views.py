@@ -17,7 +17,7 @@ from sqlalchemy.orm import joinedload
 @view_config(route_name='bioent_biocon', renderer='templates/bioent_biocon.pt')
 def bioent_biocon_view(request):
     bioent_biocon_name = request.matchdict['bioent_biocon_name']
-    bioent_biocon = DBSession.query(BioentBiocon).filter(BioentBiocon.name==bioent_biocon_name).first()
+    bioent_biocon = DBSession.query(BioentBiocon).filter(BioentBiocon.official_name==bioent_biocon_name).first()
     if bioent_biocon is None:
         bioent = DBSession.query(Bioentity).filter(Bioentity.name==bioent_biocon_name).first()
         if bioent is not None:
@@ -32,7 +32,7 @@ def bioent_biocon_view(request):
 @view_config(route_name='bioent_biocon_evidence', renderer='json')
 def bioent_biocon_evidence_view(request):
     bioent_biocon_name = request.matchdict['bioent_biocon_name']
-    bioent_biocon = DBSession.query(BioentBiocon).filter(BioentBiocon.name==bioent_biocon_name).first()
+    bioent_biocon = DBSession.query(BioentBiocon).filter(BioentBiocon.official_name==bioent_biocon_name).first()
     if bioent_biocon is not None:
         bioent_biocon_id = bioent_biocon.id
         bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('bioent_biocon'), joinedload('evidence.reference')).filter(BioentBioconEvidence.bioent_biocon_id==bioent_biocon_id).all()
@@ -47,7 +47,7 @@ def bioent_biocon_evidence_view(request):
 @view_config(route_name='bioent_biocon_references', renderer='json')
 def bioent_biocon_references_view(request):
     bioent_biocon_name = request.matchdict['bioent_biocon_name']
-    bioent_biocon = DBSession.query(BioentBiocon).filter(BioentBiocon.name==bioent_biocon_name).first()
+    bioent_biocon = DBSession.query(BioentBiocon).filter(BioentBiocon.official_name==bioent_biocon_name).first()
     if bioent_biocon is not None:
         bioent_biocon_id = bioent_biocon.id
         bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('evidence.reference')).filter(BioentBioconEvidence.bioent_biocon_id==bioent_biocon_id).all()

@@ -42,6 +42,7 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     id = Column('bioent_biocon_id', Integer, primary_key=True)
     bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
     biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    official_name = Column('name', String)
     evidence_count = Column('evidence_count', Integer)
     evidence_desc = Column('evidence_desc', String)
     
