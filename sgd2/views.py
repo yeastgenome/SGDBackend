@@ -1,7 +1,7 @@
 from .models import DBSession
-from jsonify.large import phenoevidence_large, allele_large, \
-    interevidence_large
+from jsonify.large import phenoevidence_large, allele_large, interevidence_large
 from jsonify.small import bioent_small
+from model_new_schema.bioconcept import BioentBiocon
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.evidence import Evidence, Allele
 from model_new_schema.search import Typeahead
@@ -39,10 +39,9 @@ def search_view(request):
     try:
         search_str = request.matchdict['search_str'].upper()
         bioents = DBSession.query(Bioentity).join(Typeahead).filter(Typeahead.bio_type == 'BIOENT', func.upper(Typeahead.name) == search_str).all()
-        json_bioents = [bioent_small(b) for b in bioents]
     except DBAPIError:
         return Response("Error.", content_type='text/plain', status_int=500)
-    return {'layout': site_layout(), 'page_title': 'Search Results', 'bioents': json_bioents}
+    return {'layout': site_layout(), 'page_title': 'Search Results', 'bioents': bioents}
 
 @view_config(route_name='typeahead', renderer="json")
 def typeahead_view(request):
@@ -54,22 +53,12 @@ def typeahead_view(request):
     except DBAPIError:
         return ['Error']
     
-
-
-@view_config(route_name='evidence', renderer='templates/evidence.pt')
-def evidence_view(request):
-    evidence_id = request.matchdict['evidence_id']
-    evidence = DBSession.query(Evidence).filter(Evidence.id == evidence_id).first()
-    if evidence.evidence_type == 'PHENOTYPE_EVIDENCE':
-        json_evidence = phenoevidence_large(evidence)
-    else:
-        json_evidence = interevidence_large(evidence)
-    return {'layout': site_layout(), 'page_title': 'Evidence ' + str(evidence_id), 'evidence': json_evidence}
-
 @view_config(route_name='allele', renderer='templates/allele.pt')
 def allele_view(request):
     allele_name = request.matchdict['allele_name']
     allele = DBSession.query(Allele).filter(Allele.name == allele_name).first()
     json_allele = allele_large(allele)
     return {'layout': site_layout(), 'page_title': allele_name, 'allele': json_allele}
+
+
 

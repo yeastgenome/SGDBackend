@@ -14,7 +14,7 @@ def biocon_small(biocon):
 def bioent_biocon_small(bioent_biocon):
     biocon = biocon_small(bioent_biocon.bioconcept)
     bioent = bioent_mini(bioent_biocon.bioentity)
-    return {'name': bioent['name'] + unichr(8213) + biocon['name'], 'official_name':bioent_biocon.name, 'link':'/bioent_biocon/' + bioent_biocon.name, 'description': 'Relationship between bioentity ' + bioent['full_name'] + ' and bioconcept ' + biocon['name'],
+    return {'name': bioent['name'] + unichr(8213) + biocon['name'], 'official_name':bioent_biocon.name, 'link':'/bioent_biocon/' + bioent_biocon.official_name, 'description': 'Relationship between bioentity ' + bioent['full_name'] + ' and bioconcept ' + biocon['name'],
             'biocon':biocon, 'bioent':bioent, 'evidence_count':bioent_biocon.evidence_count, 'evidence_desc':bioent_biocon.evidence_desc, 'all':0}
     
 def bioent_small(bioent):

@@ -5,8 +5,10 @@ Created on Dec 11, 2012
 '''
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.chemical import Chemical
+from model_new_schema.link_maker import add_link, allele_link
 from model_new_schema.reference import Reference
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date, Float
@@ -65,7 +67,13 @@ class Interevidence(Evidence):
     
     biorel = association_proxy('biorel_evidence', 'biorel')
 
-    
+    @hybrid_property
+    def phenotype(self):
+        if self.qualifier is not None:
+            return self.qualifier + ' ' + self.observable
+        else:
+            return None
+        
     def __init__(self, experiment_type, reference_id, strain_id, direction, annotation_type, modification, source, observable, qualifier, note, interaction_type, session=None, evidence_id=None, date_created=None, created_by=None):
         Evidence.__init__(self, experiment_type, reference_id, 'INTERACTION_EVIDENCE', strain_id, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
         self.direction = direction
@@ -80,9 +88,21 @@ class Interevidence(Evidence):
 class Allele(Base):
     __tablename__ = 'allele'
     id = Column('allele_id', Integer, primary_key=True)
-    name = Column('name', String)
+    official_name = Column('name', String)
     parent_id = Column('parent_bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
     description = Column('description', String)
+    
+    @hybrid_property
+    def name(self):
+        return self.official_name
+    
+    @hybrid_property
+    def name_with_link(self):
+        return add_link(self.name, self.link)
+    
+    @hybrid_property
+    def link(self):
+        return allele_link(self)
     
     def __init__(self, name, description):
         self.name = name
@@ -106,6 +126,7 @@ class PhenoevidenceChemical(Base):
     #Relationships
     #evidence = relationship('Phenoevidence', uselist=False)
     chemical = relationship(Chemical, uselist=False)
+    chemical_name = association_proxy('chemical', 'name')
         
 class Phenoevidence(Evidence):
     __tablename__ = "phenoevidence"
@@ -127,13 +148,15 @@ class Phenoevidence(Evidence):
     description = Column('description', String)
     
     #Relationship
-    mutant_allele = relationship('Allele', lazy='subquery', uselist=False)
+    allele = relationship('Allele', lazy='subquery', uselist=False)
     phenoev_chemicals = relationship('PhenoevidenceChemical')
     chemicals = association_proxy('phenoev_chemicals', 'chemical')
 
     bioent_biocon = association_proxy('bioent_biocon_evidences', 'bioent_biocon')
     
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE"}
+    
+
 
     
     def __init__(self, experiment_type, reference_id, strain_id, mutant_type, mutant_allele, source, 
@@ -154,6 +177,8 @@ class Goevidence(Evidence):
     date_last_reviewed = Column('date_last_reviewed', Date)
     qualifier = Column('qualifier', String)
     
+    bioent_biocon = association_proxy('bioent_biocon_evidences', 'bioent_biocon')
+
     __mapper_args__ = {'polymorphic_identity': "GO_EVIDENCE"}
 
     

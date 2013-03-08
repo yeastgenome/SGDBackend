@@ -7,8 +7,10 @@ These classes are populated using SQLAlchemy to connect to the BUD schema on Fas
 Reference module of the database schema.
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
+from model_new_schema.link_maker import add_link, reference_link
 from model_new_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.orm.session import Session
@@ -24,7 +26,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     status = Column('status', String)
     pdf_status = Column('pdf_status', String)
     dbxref_id = Column('dbxref_id', String)
-    citation = Column('citation', String)
+    citation_db = Column('citation', String)
     year = Column('year', Integer)
     pubmed_id = Column('pubmed_id', Integer)
     date_published = Column('date_published', String)
@@ -38,7 +40,6 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     doi = Column('doi', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
-    name = Column('name', String)
     
     #Relationships
     journal = relationship('Journal', uselist=False)
@@ -128,6 +129,25 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
                 
             #Add the ref_type
             self.refType = Reftype.as_unique(session, name=pubmed.pub_type)
+            
+    @hybrid_property
+    def link(self):
+        return reference_link(self)
+    @hybrid_property
+    def name(self):
+        return self.citation[:self.citation.find(')')+1] + ' pmid:' + self.official_name
+    @hybrid_property
+    def name_with_link(self):
+        return self.citation[:self.citation.find(')')+1] + ' ' + self.pmid_with_link
+    @hybrid_property
+    def pmid_with_link(self):
+        return 'pmid:' + add_link(self.official_name, self.link)
+    @hybrid_property
+    def official_name(self):
+        return str(self.pubmed_id)
+    @hybrid_property
+    def citation(self):
+        return self.citation_db + ' ' + self.pmid_with_link
         
     @classmethod
     def unique_hash(cls, pubmed_id):

@@ -1,0 +1,10 @@
+<div metal:use-macro="layout">
+  <div metal:fill-slot="content">
+
+
+<body>
+
+</body>
+</div>
+</div>
+

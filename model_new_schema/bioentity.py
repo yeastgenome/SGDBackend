@@ -10,6 +10,10 @@ schema on fasolt.
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
 from model_new_schema.bioconcept import BioentBiocon
 from model_new_schema.biorelation import Biorelation
+from model_new_schema.link_maker import add_link, bioent_link, \
+    bioent_all_phenotypes_link, bioent_all_interactions_link, bioent_wiki_link, \
+    bioent_graph_link, bioent_all_biorel_link, bioent_all_biocon_link, \
+    bioent_all_go_link
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -22,7 +26,7 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = 'bioent'
     
     id = Column('bioent_id', Integer, primary_key=True)
-    name = Column('name', String)
+    official_name = Column('name', String)
     bioent_type = Column('bioent_type', String)
     dbxref = Column('dbxref', String)
     source = Column('source', String)
@@ -31,7 +35,7 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     
     qualifier = Column('qualifier', String)
     attribute = Column('attribute', String)
-    short_description = Column('short_description', String)
+    name_description = Column('short_description', String)
     headline = Column('headline', String)
     description = Column('description', String)
     genetic_position = Column('genetic_position', String)
@@ -45,7 +49,8 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     bioconcepts = association_proxy('bioent_biocon', 'bioconcept')
     aliases = relationship("Alias")
     alias_names = association_proxy('aliases', 'name')
-        
+    type = "BIOENTITY"
+            
     def __init__(self, name, bioent_type, dbxref, source, status, secondary_name, 
                  qualifier, attribute, short_description, headline, description, genetic_position,
                  session=None, bioent_id=None, date_created=None, created_by=None):
@@ -72,7 +77,70 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     
     @hybrid_property
     def biorelations(self):
-        return set(self.biorel_source + self.biorel_sink)
+        return set(self.biorel_source + self.biorel_sink)\
+            
+    @hybrid_property
+    def name(self):
+        return self.official_name if self.secondary_name is None else self.secondary_name      
+    @hybrid_property
+    def full_name(self, include_link=True):
+        return self.secondary_name + ' (' + self.official_name + ')'
+    
+    @hybrid_property
+    def alias_str(self):
+        return ', '.join(self.alias_names)
+
+    
+    @hybrid_property
+    def link(self):
+        return bioent_link(self)
+    @hybrid_property
+    def all_phenotype_link(self):
+        return bioent_all_phenotypes_link(self)
+    @hybrid_property
+    def all_interaction_link(self):
+        return bioent_all_interactions_link(self)
+    @hybrid_property
+    def all_go_link(self):
+        return bioent_all_go_link(self)
+    @hybrid_property
+    def wiki_link(self):
+        return bioent_wiki_link(self)
+    @hybrid_property
+    def graph_link(self):
+        return bioent_graph_link(self)
+    @hybrid_property
+    def biorel_link(self):
+        return bioent_all_biorel_link(self) 
+    @hybrid_property
+    def biocon_link(self):
+        return bioent_all_biocon_link(self)
+        
+    @hybrid_property
+    def name_with_link(self):
+        return add_link(self.name, self.link) 
+    @hybrid_property
+    def full_name_with_link(self):
+        return add_link(self.full_name, self.link) 
+    @hybrid_property
+    def wiki_name_with_link(self):
+        return add_link(self.wiki_link, self.wiki_link)
+    
+    @hybrid_property
+    def phenotype_file_name(self):
+        return self.name + '_phenotypes'
+    @hybrid_property
+    def chemical_phenotype_file_name(self):
+        return self.name + '_chemical_phenotypes'
+    @hybrid_property
+    def pp_rna_phenotype_file_name(self):
+        return self.name + '_pp_rna_phenotypes'
+    @hybrid_property
+    def interaction_file_name(self):
+        return self.name + '_interactions'
+    @hybrid_property
+    def go_file_name(self):
+        return self.name + '_go_terms'
     
     @classmethod
     def unique_hash(cls, bioent_type, name):

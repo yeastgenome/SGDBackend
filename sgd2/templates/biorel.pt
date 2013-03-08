@@ -8,9 +8,9 @@
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
-		<h1><span tal:content="biorel.basic_info.name"></h1>
+		<h1><span tal:content="biorel.name"></h1>
 		<p class="lead">
-			<span tal:content="biorel.basic_info.description"></span>
+			<span tal:content="biorel.description"></span>
 		</p>
 	</div>
 </header>
@@ -23,7 +23,7 @@
 <div class="row-fluid">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
-			<li><h3><span tal:content="biorel.basic_info.name"></h3></li>
+			<li><h3><span tal:content="biorel.name"></h3></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#genetic_evidence"><i class="icon-chevron-right"></i> Genetic Evidence</a></li>
 			<li><a href="#physical_evidence"><i class="icon-chevron-right"></i> Physical Evidence</a></li>
@@ -40,12 +40,12 @@
 	<div class="page-header">
 		<h1>Summary</h1>
 		<div>
-			<dl>
+			<dl tal:condition="python: biorel.type == 'BIORELATION'">
 				<dt>Interacting Bioentities:</dt>
-				<a tal:attributes="href biorel.basic_info.source.link" tal:content="biorel.basic_info.source.full_name">
-				<dd tal:content="biorel.basic_info.source.description"></dd>
-				<a tal:condition="python: biorel.basic_info.sink" tal:attributes="href biorel.basic_info.sink.link" tal:content="biorel.basic_info.sink.full_name">
-				<dd tal:condition="python: biorel.basic_info.sink" tal:content="biorel.basic_info.sink.description"></dd>
+				<span tal:content="structure biorel.source_bioent.full_name_with_link"></span>
+				<dd tal:content="biorel.source_bioent.description"></dd>
+				<span tal:content="structure biorel.sink_bioent.full_name_with_link"></span>
+				<dd tal:content="biorel.sink_bioent.description"></dd>
 
 			</dl>
 		</div>
@@ -114,101 +114,58 @@
 
 <script>
 	$(document).ready(function() {
-  		$('#genetic_evidence_table').dataTable( {
-    		"sPaginationType": "bootstrap",
-    		"aaSorting": [[0, "asc"], [1, "asc"]],
-    		"sAjaxSource": '${biorel['genetic_evidence_link']}',
-    		"fnInitComplete": function() {
-    			this.fnAdjustColumnSizing(true);
-    			if('${biorel['basic_info']['all']}' == 0) {
+		$.getJSON('${biorel.evidence_link}', function(data) {
+  			var genetic_evidence_table = data['genetic_evidence'];
+  			var physical_evidence_table = data['physical_evidence'];
+			var references = data['reference'];
+  			
+			//Set up genetic evidence table
+			var options = basic_datatable_options("genetic_evidence_header", 
+				'${biorel.name}_genetic_evidence', "genetic_evidence_wrapper", "genetic_evidence_message");
+			options["fnInitComplete"] = function() {
+				if('${biorel.type}' == "BIORELATION") {
 					this.fnSetColumnVis(0, false);
-    			}
+    			}  
     			var num_rows = this.fnSettings().fnRecordsTotal();
-    			document.getElementById("genetic_evidence_header").innerHTML = '(' + num_rows + ')';
-    			if(num_rows == 0) {
+				document.getElementById("genetic_evidence_header").innerHTML = '(' + num_rows + ')';
+				if(num_rows == 0) {
     			 	document.getElementById("genetic_evidence_message").innerHTML = 'No evidence of a genetic interaction.';
     			 	document.getElementById("genetic_evidence_wrapper").style.display = 'none';
     			}
-    		},
-    		"sDom": '<"clear">lfrtipT',
-        	"oTableTools": {
-        		"aButtons": [
-                	"copy",
-                	"print",
-					{
-                    	"sExtends": "csv",
-                    	"sTitle": '${biorel["basic_info"]["name"]}_genetic_evidence.csv'
-                	},
-                	{
-                    	"sExtends": "xls",
-                    	"sTitle": '${biorel["basic_info"]["name"]}_genetic_evidence.xls'
-                	}	
-            	],
-            	"sSwfPath": "../static/js/copy_csv_xls_pdf.swf"
-        	}
-  		} );
-  		
-  		
-	} );
-</script>
-
-<script>
-	$(document).ready(function() {
-  		$('#physical_evidence_table').dataTable( {
-    		"sPaginationType": "bootstrap",
-    		"aaSorting": [[0, "asc"], [1, "asc"]],
-    		"sAjaxSource": '${biorel['physical_evidence_link']}',
-    		"fnInitComplete": function() {
-    			this.fnAdjustColumnSizing(true);
-				if('${biorel['basic_info']['all']}' == 0) {
+			};
+			options["aaData"] = genetic_evidence_table;
+  			$('#genetic_evidence_table').dataTable(options);
+  			
+  			//Set up physical evidence data
+			var options = basic_datatable_options("physical_evidence_header", 
+				'${biorel.name}_physical_evidence', "physical_evidence_wrapper", "physical_evidence_message");
+			options["fnInitComplete"] = function() {
+				if('${biorel.type}' == "BIORELATION") {
 					this.fnSetColumnVis(0, false);
-    			}    			
+    			}  
     			var num_rows = this.fnSettings().fnRecordsTotal();
-    			document.getElementById("physical_evidence_header").innerHTML = '(' + num_rows + ')';
-    			if(num_rows == 0) {
+				document.getElementById("physical_evidence_header").innerHTML = '(' + num_rows + ')';
+				if(num_rows == 0) {
     			 	document.getElementById("physical_evidence_message").innerHTML = 'No evidence of a physical interaction.';
     			 	document.getElementById("physical_evidence_wrapper").style.display = 'none';
     			}
-    		},
-    		"sDom": '<"clear">lfrtipT',
-        	"oTableTools": {
-        	"aButtons": [
-                "copy",
-                "print",
-				{
-                    "sExtends": "csv",
-                    "sTitle": '${biorel["basic_info"]["name"]}_physical_evidence.csv'
-                },
-                {
-                    "sExtends": "xls",
-                    "sTitle": '${biorel["basic_info"]["name"]}_physical_evidence.xls'
-                }	
-            ],
-            "sSwfPath": "../static/js/copy_csv_xls_pdf.swf"
-        }
-  		} );
-  		
-  		
+			};
+			options["aaData"] = physical_evidence_table;
+  			$('#physical_evidence_table').dataTable(options);
+			
+			//Set up references
+			ref_list = document.getElementById("reference_list");
+			for (var i=0; i < references.length; i++) {
+				var citation = references[i];
+				var p=document.createElement('p');
+				p.innerHTML = citation;
+				ref_list.appendChild(p);
+			}  			
+  			
+  		});
 	} );
 </script>
 
-<tal:block tal:define="references_link biorel.references_link">
-<script>
-$(document).ready(function() {
-  	$.getJSON('${references_link}', function(data) {  		
-
-  		ref_list = document.getElementById("reference_list");
-  		
-		for (var i=0; i < data.length; i++) {
-			var reference = data[i];
-			var p=document.createElement('p');
-			p.innerHTML = reference['citation'];
-			ref_list.appendChild(p);
-		}
-  	});
-} );
-</script>
-</tal:block>
 
 </div>
 

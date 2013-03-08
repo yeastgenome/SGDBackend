@@ -8,9 +8,9 @@
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
-		<h1><span tal:content="bioent.basic_info.name"> <small>(<span tal:content="bioent.basic_info.official_name">)</small></h1>
+		<h1><span tal:content="bioent.full_name"></h1>
 		<p class="lead">
-			<span tal:content="bioent.basic_info.description">
+			<span tal:content="bioent.description">
 		</p>
 	</div>
 </header>
@@ -23,7 +23,7 @@
 <div class="row-fluid">
 	<div id='sidebar' class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar' style="margin-left:auto; margin-right:auto">
-			<li><h3><span tal:content="bioent.basic_info.name"> <small>(<span tal:content="bioent.basic_info.official_name">)</small></h3></li>
+			<li><h3><span tal:content="bioent.full_name"></h3></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#location"><i class="icon-chevron-right"></i> Sequence and Location</a></li>
           	<li><a href="#go"><i class="icon-chevron-right"></i> Gene Ontology</a></li>
@@ -45,14 +45,14 @@
 		<h1>Summary</h1>
 		<div>
 			<ul class='unstyled'>
-				<li tal:condition="python: bioent.basic_info.aliases"><strong>Aliases: </strong><span tal:content="bioent.basic_info.aliases"></li>
-				<li tal:condition="python: bioent.basic_info.bioent_type"><strong>Bioent-Type: </strong><span tal:content="bioent.basic_info.bioent_type"></li>
-				<li tal:condition="python: bioent.basic_info.qualifier"><strong>Qualifier: </strong><span tal:content="bioent.basic_info.qualifier"></li>
+				<li tal:condition="python: len(bioent.aliases) > 0"><strong>Aliases: </strong><span tal:content="bioent.alias_str"></li>
+				<li tal:condition="python: bioent.bioent_type"><strong>Bioent-Type: </strong><span tal:content="bioent.bioent_type"></li>
+				<li tal:condition="python: bioent.qualifier"><strong>Qualifier: </strong><span tal:content="bioent.qualifier"></li>
 				<br>
-				<li tal:condition="python: bioent.basic_info.source"><strong>Source: </strong><span tal:content="bioent.basic_info.source"></li>
-				<li tal:condition="python: bioent.basic_info.status"><strong>Status: </strong><span tal:content="bioent.basic_info.status"></li>
-				<li tal:condition="python: bioent.basic_info.attribute"><strong>Attribute: </strong><span tal:content="bioent.basic_info.attribute"></li>
-				<li tal:condition="python: bioent.basic_info.name_description"><strong>Name Derived From: </strong><span tal:content="bioent.basic_info.name_description"></li>
+				<li tal:condition="python: bioent.source"><strong>Source: </strong><span tal:content="bioent.source"></li>
+				<li tal:condition="python: bioent.status"><strong>Status: </strong><span tal:content="bioent.status"></li>
+				<li tal:condition="python: bioent.attribute"><strong>Attribute: </strong><span tal:content="bioent.attribute"></li>
+				<li tal:condition="python: bioent.name_description"><strong>Name Derived From: </strong><span tal:content="bioent.name_description"></li>
 			</ul>
 		</div>
 	</div>
@@ -85,8 +85,23 @@
 ================================================== -->
 <section id="go">
 	<div class="page-header">
-		<h1>Gene Ontology</h1>
+		<h1>Gene Ontology <span id='go_header'></span><a tal:attributes="href bioent.all_go_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1> 
 		
+		<span id='go_message' class="hide">No known gene ontology associations.</span>
+		<div id='go_wrapper'>	
+			<ul class='unstyled'>
+				<table class='table table-striped table-bordered table-condensed tablesorter' id='go_table' width="100%">
+			<thead>
+  			<tr>
+    			<th>Relationship</th>
+    			<th>Category</th>
+    			<th>Total Evidence</th>
+  			</tr>
+  			</thead>
+  			
+			</table>
+			</ul>
+		</div>
 	</div>
 </section>
 
@@ -94,7 +109,7 @@
 ================================================== -->
 <section id="phenotype">
 	<div class="page-header">
-		<h1>Phenotype <span id='phenotype_header'></span><a tal:attributes="href bioent.all_phenotypes_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1> 
+		<h1>Phenotype <span id='phenotype_header'></span><a tal:attributes="href bioent.all_phenotype_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1> 
 
 		
 		<!-- Phenotype Table
@@ -174,7 +189,7 @@
 ================================================== -->
 <section id="interactions">
 	<div class="page-header">
-		<h1>Interaction <span id='interactions_header'></span><a tal:attributes="href bioent.all_interactions_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1>
+		<h1>Interaction <span id='interactions_header'></span><a tal:attributes="href bioent.all_interaction_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1>
 	
 		<h3>Cytoscape Visualization</h3>
 		<strong>Filter Interactions by # Total Evidence:</strong>
@@ -185,7 +200,8 @@
             Cytoscape visualization is loading...
         </div>
         
-        <div>
+		<span id='interaction_message' class="hide">No known interactions.</span>
+		<div id='interaction_wrapper'>					
 			<ul class='unstyled'>
 				<table class='table table-striped table-bordered table-condensed tablesorter' id='interaction_table' width="100%">
 			<thead>
@@ -228,7 +244,7 @@
 <section id="wiki">
 	<div class="page-header">
 		<h1>Wiki</h1>
-    	<a tal:attributes="href 'http://wiki.yeastgenome.org/index.php/' + bioent.basic_info.official_name" tal:content="'http://wiki.yeastgenome.org/index.php/' + bioent.basic_info.official_name"></a>
+    	<span tal:content="structure bioent.wiki_name_with_link"></span>
 	</div>
 </section>
 
@@ -272,38 +288,61 @@
 
 <script>
 	$(document).ready(function() {
-		//Set up phenotype table
-		var options = basic_datatable_options('${bioent["phenotype_link"]}', "phenotype_header", '${bioent["basic_info"]["name"]}_phenotypes', "phenotype_wrapper", "phenotype_message");
-		options["aaSorting"] = [[4, "desc"]];
-		options["aoColumns"] = [null, null, null, null, {"sType":"num-html"}];
-		$('#phenotype_table').dataTable(options);
+  		//Get biocon data
+  		$.getJSON('${bioent.biocon_link}', function(data) {
+  			var go_table = data['go'];
+  			var phenotype_table = data['phenotype'];
+  			var chemical_phenotype_table = data['chemical_phenotype'];
+  			var pp_rna_phenotype_table = data['pp_rna_phenotype'];
+  			
+  			
+			
+  			//Set up phenotype table
+			var options = basic_datatable_options("phenotype_header", '${bioent.phenotype_file_name}', "phenotype_wrapper", "phenotype_message");
+			options["aaSorting"] = [[4, "desc"]];
+			options["aoColumns"] = [null, null, null, null, {"sType":"num-html"}];
+			options["aaData"] = phenotype_table;
+			$('#phenotype_table').dataTable(options);
 		
-		//Set up chemical phenotype table
-		var options = basic_datatable_options('${bioent["chemical_phenotype_link"]}', "chemical_phenotype_header", '${bioent["basic_info"]["name"]}_chemical_phenotypes', "chemical_phenotype_wrapper", "chemical_phenotype_message");
-		options["aaSorting"] = [[5, "desc"]];
-		options["aoColumns"] = [null, null, null, null, null, null];
-		$('#chemical_phenotype_table').dataTable(options);
+			//Set up chemical phenotype table
+			var options = basic_datatable_options("chemical_phenotype_header", '${bioent.chemical_phenotype_file_name}', "chemical_phenotype_wrapper", "chemical_phenotype_message");
+			options["aaSorting"] = [[5, "desc"]];
+			options["aoColumns"] = [null, null, null, null, null, null];
+			options["aaData"] = chemical_phenotype_table;
+			$('#chemical_phenotype_table').dataTable(options);
 		
-		//Set up pp-rna phenotype table
-		var options = basic_datatable_options('${bioent["pp_rna_phenotype_link"]}', "pp_rna_phenotype_header", '${bioent["basic_info"]["name"]}_pp_rna_phenotypes', "pp_rna_phenotype_wrapper", "pp_rna_phenotype_message");
-		options["aaSorting"] = [[5, "desc"]];
-		options["aoColumns"] = [null, null, null, null, null, null];
-		$('#pp_rna_phenotype_table').dataTable(options);
-		
-		//Set up interaction table
-		var options = basic_datatable_options('${bioent["interaction_link"]}', "interactions_header", '${bioent["basic_info"]["name"]}_interactions');
-		options["aaSorting"] = [[3, "desc"]];
-		options["aoColumns"] = [null, null, null, {"sType":"num-html"}];
-		$('#interaction_table').dataTable(options);
-		
-	});
-	
-	
+			//Set up pp-rna phenotype table
+			var options = basic_datatable_options("pp_rna_phenotype_header", '${bioent.pp_rna_phenotype_file_name}', "pp_rna_phenotype_wrapper", "pp_rna_phenotype_message");
+			options["aaSorting"] = [[5, "desc"]];
+			options["aoColumns"] = [null, null, null, null, null, null];
+			options["aaData"] = pp_rna_phenotype_table;
+			$('#pp_rna_phenotype_table').dataTable(options);
+			
+			//Set up go table
+			var options = basic_datatable_options("go_header", '${bioent.go_file_name}', "go_wrapper", "go_message");
+			options["aaSorting"] = [[2, "desc"]];
+			options["aoColumns"] = [null, null, {"sType":"num-html"}];
+			options["aaData"] = go_table;
+			$('#go_table').dataTable(options);
+  		});
+  		
+  		//Get biorel data
+  		$.getJSON('${bioent.biorel_link}', function(data) {
+  			var interaction_table = data['interaction'];
+  			
+  			//Set up interaction table
+			var options = basic_datatable_options("interaction_header", '${bioent.interaction_file_name}', "interaction_wrapper", "interaction_message");
+			options["aaSorting"] = [[3, "desc"]];
+			options["aoColumns"] = [null, null, null, {"sType":"num-html"}];
+			options["aaData"] = interaction_table;
+			$('#interaction_table').dataTable(options);
+  		});
+	} );
 </script>
 
 <script type="text/javascript">
 window.onload=function() {
-	setup_cytoscape_vis("${bioent['graph_link']}");   
+	setup_cytoscape_vis("${bioent.graph_link}");   
 };           
 
 </script>

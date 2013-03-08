@@ -1,16 +1,12 @@
 
 
-function basic_datatable_options(data_link, header_id, save_name, wrapper_id, message_id) {
+function basic_datatable_options(header_id, save_name, wrapper_id, message_id) {
 	var options = {
-		"aoColumns": [
-			null, null, null, null, {"sType":"num-html"}
-		],
 		"sPaginationType": "bootstrap",
-		"sAjaxSource": data_link,
 		"fnInitComplete": function() {
 			this.fnAdjustColumnSizing(true);
-			var num_rows = this.fnSettings().fnRecordsTotal()
-			document.getElementById(header_id).innerHTML = '(' + num_rows + ')'
+			var num_rows = this.fnSettings().fnRecordsTotal();
+			document.getElementById(header_id).innerHTML = '(' + num_rows + ')';
 			if(num_rows == 0) {
     			 document.getElementById(message_id).style.display = 'block';
     			 document.getElementById(wrapper_id).style.display = 'none';
@@ -23,11 +19,11 @@ function basic_datatable_options(data_link, header_id, save_name, wrapper_id, me
 				"print",
 				{
 					"sExtends": "csv",
-					"sTitle": save_name + '.csv'
+					"sTitle": save_name
 				},
 				{
 					"sExtends": "xls",
-					"sTitle": save_name + '.xls'
+					"sTitle": save_name
 				}	
 			],
         	"sSwfPath": "../static/js/copy_csv_xls_pdf.swf"

@@ -8,9 +8,9 @@
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
-		<h1><span tal:content="biocon.basic_info.name"></h1>
+		<h1><span tal:content="biocon.name"></h1>
 		<p class="lead">
-			<span tal:content="biocon.basic_info.description">
+			<span tal:content="biocon.description">
 		</p>
 	</div>
 </header>
@@ -23,7 +23,7 @@
 <div class="row-fluid">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
-			<li><h4><span tal:content="biocon.basic_info.name"></h4></li>
+			<li><h4><span tal:content="biocon.name"></h4></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 			<li><a href="#genes"><i class="icon-chevron-right"></i> Genes</a></li>
 		</ul>
@@ -49,7 +49,8 @@
 	<div class="page-header">
 		<h1>Genes <span id='genes_header'></span></h1> 
 
-		<div>
+		<span id='genes_message'></span>
+		<div id='genes_wrapper'>
 			<table class='table table-striped table-bordered table-condensed tablesorter' id='genes_table' width="100%">
 			<thead>
   			<tr>
@@ -63,22 +64,20 @@
 	</div>
 </section>
 
-<tal:block tal:define="genes_link biocon.genes_link">
 <script>
 	$(document).ready(function() {
-		$('#genes_table').dataTable( {
-    		"sPaginationType": "bootstrap",
-    		"aaSorting": [[1, "desc"]],
-    		"sAjaxSource": '${genes_link}',
-    		"fnInitComplete": function() {
-    			this.fnAdjustColumnSizing(true);
-    			var num_rows = this.fnSettings().fnRecordsTotal()
-    			document.getElementById("genes_header").innerHTML = '(' + num_rows + ')'
-    		}
-  		} );
+		$.getJSON('${biocon.all_bioent_link}', function(data) {
+  			var bioents = data['bioent'];
+  			
+			//Set up gene table
+			var options = basic_datatable_options("genes_header", 
+				'${biocon.name}_genes', "genes_wrapper", "genes_message");
+			options["aaData"] = bioents;
+  			$('#genes_table').dataTable(options);	
+  			
+  		});
 	} );
 </script>
-</tal:block>
 
 </div>
 

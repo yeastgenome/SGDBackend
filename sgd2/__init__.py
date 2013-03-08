@@ -4,6 +4,9 @@ from pyramid.config import Configurator
 from sgd2.config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
+import bioent_biocon_views
+import bioent_views
+import biorel_views
 import model_new_schema
 
 
@@ -28,31 +31,23 @@ def main(global_config, **settings):
     config.add_route('typeahead', '/typeahead')
    
     config.add_route('bioent', '/bioent/{bioent_name}')
-    config.add_route('bioent_phenotypes', '/bioent/{bioent_name}/phenotypes')
-    config.add_route('bioent_chemical_phenotypes', '/bioent/{bioent_name}/chemical_phenotypes')
-    config.add_route('bioent_pp_rna_phenotypes', '/bioent/{bioent_name}/pp_rna_phenotypes')
-    config.add_route('bioent_interactions', '/bioent/{bioent_name}/interactions')
-    config.add_route('bioent_go', '/bioent/{bioent_name}/go')
+    config.add_route('bioent_all_biocon', '/bioent/{bioent_name}/biocon')
+    config.add_route('bioent_all_biorel', '/bioent/{bioent_name}/biorel')
+    config.add_route('bioent_graph', '/bioent/{bioent_name}/graph')
 
-    config.add_route('bioent_graph', '/bioent_graph/{bioent_name}')
-
-    config.add_route('biorel', '/biorel/{biorel_name}')
-    config.add_route('biorel_genetic_evidence', '/biorel/{biorel_name}/genetic_evidence')
-    config.add_route('biorel_physical_evidence', '/biorel/{biorel_name}/physical_evidence')
-    config.add_route('biorel_references', '/biorel/{biorel_name}/references')
+    config.add_route('biorel', '/biorel/{biorel_type}={biorel_name}')
+    config.add_route('biorel_evidence', '/biorel/{biorel_type}={biorel_name}/evidence')
     
-    config.add_route('biocon', '/biocon/{biocon_name}')
-    config.add_route('biocon_genes', '/biocon/{biocon_name}/genes')
+    config.add_route('biocon', '/biocon/{biocon_type}={biocon_name}')
+    config.add_route('biocon_all_bioent', '/biocon/{biocon_type}={biocon_name}/bioent')
     
-    config.add_route('bioent_biocon', '/bioent_biocon/{bioent_biocon_name}')
-    config.add_route('bioent_biocon_references', '/bioent_biocon/{bioent_biocon_name}/references')
-    config.add_route('bioent_biocon_evidence', '/bioent_biocon/{bioent_biocon_name}/evidence')
+    config.add_route('bioent_biocon', '/bioent_biocon/{biocon_type}={bioent_biocon_name}')
+    config.add_route('bioent_biocon_evidence', '/bioent_biocon/{biocon_type}={bioent_biocon_name}/evidence')
 
     config.add_route('reference', '/reference/{pubmed_id}')
     config.add_route('reference_phenotypes', '/reference/{pubmed_id}/phenotypes')
     config.add_route('reference_interactions', '/reference/{pubmed_id}/interactions')
     
-    config.add_route('evidence', '/evidence/{evidence_id}')
     config.add_route('allele', '/allele/{allele_name}')
 
     config.scan()

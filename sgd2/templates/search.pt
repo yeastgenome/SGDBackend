@@ -9,9 +9,9 @@
 		<div class="span9">
 		<dl>
 		<p tal:repeat="item bioents">
-			<dt><a tal:attributes="href '/bioent/' + item['official_name']" tal:content="item['name'] + ' (' + item['official_name'] + ')'">Name</a></dt>
-			<dd class="muted" tal:condition="python: item['aliases']">Aliases: <span tal:content="item['aliases']">Aliases</span></dd>
-			<dd><span tal:content="item['description']">Aliases</span></dd><br>
+			<dt><span tal:content="structure item.full_name_with_link"></span></dt>
+			<dd class="muted" tal:condition="python: len(item.aliases)>0">Aliases: <span tal:content="item.alias_str"></span></dd>
+			<dd><span tal:content="item.description"></span></dd><br>
 		</p>
 		</dl>
 		</div>
