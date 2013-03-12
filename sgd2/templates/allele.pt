@@ -8,9 +8,9 @@
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
-		<h1><span tal:content="allele.basic_info.name"></h1>
+		<h1><span tal:content="allele.name"></h1>
 		<p class="lead">
-			<span tal:content="allele.basic_info.description">
+			<span tal:content="allele.description">
 		</p>
 	</div>
 </header>
@@ -23,7 +23,7 @@
 <div class="row-fluid">
 	<div id='sidebar' class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
-			<li><h3><span tal:content="allele.basic_info.name"></h3></li>
+			<li><h3><span tal:content="allele.name"></h3></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
 		</ul>
 	</div>
@@ -38,7 +38,7 @@
 		<div>
 			<ul class='unstyled'>
 				<li tal:condition="python: allele.parent"><strong>Gene: </strong><a tal:attributes="href allele.parent.link" tal:content="allele.parent.full_name"></a></li>
-				<li><strong>Description: </strong><span tal:content="allele.basic_info.more_info"></span></li>
+				<li><strong>Description: </strong><span tal:content="allele.more_info"></span></li>
 			</ul>
 		</div>
 	</div>

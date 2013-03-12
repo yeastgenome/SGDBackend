@@ -12,12 +12,8 @@ link_symbol = unichr(8213)
 #Bioentity links
 def bioent_link(bioent):
     return '/bioent/' + bioent.official_name
-def bioent_all_phenotypes_link(bioent):
-    return '/bioent_biocon/phenotype=' + bioent.official_name
-def bioent_all_interactions_link(bioent):
-    return '/biorel/interaction=' + bioent.official_name
-def bioent_all_go_link(bioent):
-    return '/bioent_biocon/go=' + bioent.official_name
+def bioent_all_link(bioent, bio_type, link_type):
+    return '/' + bio_type + '/' + link_type + '=' + bioent.official_name
 
 def bioent_graph_link(bioent):
     return bioent.link + '/graph'
@@ -33,14 +29,11 @@ def bioent_all_biocon_link(bioent):
 #Biorelation links
 def biorel_link(biorel):
     return '/biorel/' + lower(biorel.biorel_type) + '=' + biorel.official_name
-def biorel_evidence_link(biorel):
-    return biorel.link + '/evidence'
 
 #BioentBiocon links
 def bioent_biocon_link(bioent_biocon):
     return '/bioent_biocon/' + lower(bioent_biocon.biocon_type) + '=' + bioent_biocon.official_name
-def bioent_biocon_evidence_link(bioent_biocon):
-    return bioent_biocon.link + '/evidence'
+
 def bioent_biocon_reference_link(bioent_biocon):
     return bioent_biocon.link + '/reference'
 
@@ -58,6 +51,8 @@ def reference_link(reference):
     if link_str is None:
         link_str = str(reference.id)
     return '/reference/' + str(link_str)
+def reference_evidence_link(reference):
+    return reference.link + '/evidence'
 
 #Misc links
 def allele_link(allele):

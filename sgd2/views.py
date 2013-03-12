@@ -1,9 +1,6 @@
 from .models import DBSession
-from jsonify.large import phenoevidence_large, allele_large, interevidence_large
-from jsonify.small import bioent_small
-from model_new_schema.bioconcept import BioentBiocon
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.evidence import Evidence, Allele
+from model_new_schema.evidence import Allele
 from model_new_schema.search import Typeahead
 from pyramid.renderers import get_renderer
 from pyramid.response import Response
@@ -56,9 +53,10 @@ def typeahead_view(request):
 @view_config(route_name='allele', renderer='templates/allele.pt')
 def allele_view(request):
     allele_name = request.matchdict['allele_name']
-    allele = DBSession.query(Allele).filter(Allele.name == allele_name).first()
-    json_allele = allele_large(allele)
-    return {'layout': site_layout(), 'page_title': allele_name, 'allele': json_allele}
+    allele = DBSession.query(Allele).filter(Allele.official_name == allele_name).first()
+    return {'layout': site_layout(), 'page_title': allele.name, 'allele': allele}
+
+
 
 
 

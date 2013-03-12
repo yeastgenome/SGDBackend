@@ -7,7 +7,8 @@ These classes are populated using SQLAlchemy to connect to the BUD schema on Fas
 Reference module of the database schema.
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
-from model_new_schema.link_maker import add_link, reference_link
+from model_new_schema.link_maker import add_link, reference_link, \
+    reference_evidence_link
 from model_new_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -40,6 +41,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     doi = Column('doi', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
+    official_name = Column('name', String)
     
     #Relationships
     journal = relationship('Journal', uselist=False)
@@ -81,7 +83,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
             self.status = status
             self.pdf_status = pdf_status
             self.dbxref_id = dbxref_id
-            self.citation = citation
+            self.citation_db = citation
             self.year = year
             self.date_published = date_published
             self.date_revised = date_revised
@@ -92,7 +94,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
             self.journal_id = journal_id
             self.book_id = book_id
             self.doi = doi
-            self.name = name
+            self.official_name = name
             self.date_created = date_created
             self.created_by = created_by
         else:
@@ -106,7 +108,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
             
             #Set basic information for the reference.
             self.status = pubmed.publish_status
-            self.citation = pubmed.citation
+            self.citation_db = pubmed.citation
             self.year = pubmed.year
             self.pdf_status = pubmed.pdf_status
             self.pages = pubmed.pages
@@ -134,21 +136,45 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     def link(self):
         return reference_link(self)
     @hybrid_property
+    def evidence_link(self):
+        return reference_evidence_link(self)
+    @hybrid_property
     def name(self):
-        return self.citation[:self.citation.find(')')+1] + ' pmid:' + self.official_name
+        return self.citation[:self.citation.find(')')+1] + ' pmid: ' + str(self.pubmed_id)
     @hybrid_property
     def name_with_link(self):
         return self.citation[:self.citation.find(')')+1] + ' ' + self.pmid_with_link
     @hybrid_property
     def pmid_with_link(self):
-        return 'pmid:' + add_link(self.official_name, self.link)
-    @hybrid_property
-    def official_name(self):
-        return str(self.pubmed_id)
+        return 'pmid: ' + add_link(str(self.pubmed_id), self.link)
+
     @hybrid_property
     def citation(self):
         return self.citation_db + ' ' + self.pmid_with_link
-        
+    @hybrid_property
+    def description(self):
+        return self.title
+    
+    @hybrid_property
+    def phenotype_file_name(self):
+        return self.name + '_phenotypes'
+    @hybrid_property
+    def chemical_phenotype_file_name(self):
+        return self.name + '_chemical_phenotypes'
+    @hybrid_property
+    def pp_rna_phenotype_file_name(self):
+        return self.name + '_pp_rna_phenotypes'
+    @hybrid_property
+    def interaction_file_name(self):
+        return self.name + '_interactions'
+    @hybrid_property
+    def go_file_name(self):
+        return self.name + '_go_terms'
+    @hybrid_property
+    def gene_file_name(self):
+        return self.name + '_genes'
+    
+    
     @classmethod
     def unique_hash(cls, pubmed_id):
         return pubmed_id
@@ -281,8 +307,9 @@ class AuthorReference(Base, EqualityByIDMixin, UniqueMixin):
     order = Column('author_order', Integer)
     type = Column('author_type', String)
         
-    def __init__(self, author, order, ar_type, session=None, author_reference_id=None):
-        self.author = author
+    def __init__(self, author_id, reference_id, order, ar_type, session=None, author_reference_id=None):
+        self.author_id = author_id
+        self.reference_id = reference_id
         self.order = order
         self.type = ar_type
         
@@ -365,10 +392,11 @@ class RefReftype(Base, EqualityByIDMixin, UniqueMixin):
     reference_id = Column('reference_id', Integer, ForeignKey('sprout.reference.reference_id'))
     reftype_id = Column('reftype_id', Integer, ForeignKey('sprout.reftype.reftype_id'))
         
-    def __init__(self, session=None, ref_reftype_id=None, reftype=None):
+    def __init__(self, session=None, ref_reftype_id=None, reference_id=None, reftype_id=None):
         if session is None:
             self.id = ref_reftype_id
-            self.reftype = reftype
+            self.reference_id = reference_id
+            self.reftype_id = reftype_id
         
     @classmethod
     def unique_hash(cls, reference_id, reftype_id):

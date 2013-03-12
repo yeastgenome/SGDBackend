@@ -45,8 +45,7 @@ def main(global_config, **settings):
     config.add_route('bioent_biocon_evidence', '/bioent_biocon/{biocon_type}={bioent_biocon_name}/evidence')
 
     config.add_route('reference', '/reference/{pubmed_id}')
-    config.add_route('reference_phenotypes', '/reference/{pubmed_id}/phenotypes')
-    config.add_route('reference_interactions', '/reference/{pubmed_id}/interactions')
+    config.add_route('reference_all_evidence', '/reference/{pubmed_id}/evidence')
     
     config.add_route('allele', '/allele/{allele_name}')
 

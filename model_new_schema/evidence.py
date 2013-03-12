@@ -34,7 +34,7 @@ class Evidence(Base, EqualityByIDMixin):
     
     def __init__(self, experiment_type, reference_id, evidence_type, strain_id, session=None, evidence_id=None, date_created=None, created_by=None):
         self.experiment_type = experiment_type
-        self.experiment_type = experiment_type
+        self.reference_id = reference_id
         self.evidence_type = evidence_type
         self.strain_id = strain_id
         
@@ -63,6 +63,8 @@ class Interevidence(Evidence):
     direction = Column('direction', String)
     interaction_type = Column('interaction_type', String)
     
+    type = 'BIOREL_EVIDENCE'
+    
     __mapper_args__ = {'polymorphic_identity': "INTERACTION_EVIDENCE"}
     
     biorel = association_proxy('biorel_evidence', 'biorel')
@@ -90,11 +92,15 @@ class Allele(Base):
     id = Column('allele_id', Integer, primary_key=True)
     official_name = Column('name', String)
     parent_id = Column('parent_bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
-    description = Column('description', String)
+    more_info = Column('description', String)
     
     @hybrid_property
     def name(self):
         return self.official_name
+    
+    @hybrid_property
+    def description(self):
+        return 'Allele'
     
     @hybrid_property
     def name_with_link(self):
@@ -118,9 +124,9 @@ class PhenoevidenceChemical(Base):
     chemical_id = Column('chemical_id', Integer, ForeignKey('sprout.chemical.chemical_id'))
     chemical_amt = Column('chemical_amount', String)
     
-    def __init__(self, evidence, chemical, chemical_amt):
-        self.evidence = evidence
-        self.chemical = chemical
+    def __init__(self, evidence_id, chemical_id, chemical_amt):
+        self.evidence_id = evidence_id
+        self.evidence_id = evidence_id
         self.chemical_amt = chemical_amt
     
     #Relationships
@@ -147,6 +153,8 @@ class Phenoevidence(Evidence):
     chitin_level = Column('chitin_level', Float)
     description = Column('description', String)
     
+    type = 'BIOCON_EVIDENCE'
+    
     #Relationship
     allele = relationship('Allele', lazy='subquery', uselist=False)
     phenoev_chemicals = relationship('PhenoevidenceChemical')
@@ -159,11 +167,11 @@ class Phenoevidence(Evidence):
 
 
     
-    def __init__(self, experiment_type, reference_id, strain_id, mutant_type, mutant_allele, source, 
+    def __init__(self, experiment_type, reference_id, strain_id, mutant_type, mutant_allele_id, source, 
                  qualifier, evidence_type='PHENOTYPE_EVIDENCE', session=None, evidence_id=None, date_created=None, created_by=None):
         Evidence.__init__(self, experiment_type, reference_id, evidence_type, strain_id, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
         self.mutant_type = mutant_type
-        self.mutant_allele = mutant_allele
+        self.mutant_allele_id = mutant_allele_id
         self.source = source
         self.qualifier = qualifier
         
@@ -178,6 +186,8 @@ class Goevidence(Evidence):
     qualifier = Column('qualifier', String)
     
     bioent_biocon = association_proxy('bioent_biocon_evidences', 'bioent_biocon')
+
+    type = 'BIOCON_EVIDENCE'
 
     __mapper_args__ = {'polymorphic_identity': "GO_EVIDENCE"}
 

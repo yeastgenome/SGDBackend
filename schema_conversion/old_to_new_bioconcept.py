@@ -3,210 +3,32 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
+from model_old_schema.config import DBUSER as OLD_DBUSER
+from schema_conversion import check_values, cache, create_or_update, \
+    add_or_check
+from schema_conversion.old_to_new_bioentity import id_to_bioent
+from schema_conversion.output_manager import OutputCreator
 import model_new_schema
 import model_old_schema
+
 
 new_evidence = {}
 name_allele = {}
 name_chemical = {}
 new_phenoevidence_chemical = {}
 
-class OutputCreator():
-    num_added = 0
-    num_changed = 0
-    def added(self, message):
-        self.num_added = self.num_added+1
-        if self.num_added%1000==0:
-            print str(self.num_added) + ' ' + message + 's added.'
-    
-    def changed(self, message):
-        self.num_changed = self.num_changed+1
-        if self.num_changed%1000==0:
-            print str(self.num_changed) + ' ' + message + 's changed.'
-    
-    def finished(self, message):
-        print 'In total ' + str(self.num_added) + ' ' + message + 's added.'
-        print 'In total ' + str(self.num_changed) + ' ' + message + 's changed.'
-        self.num_added = 0
-        self.num_changed = 0
-        
-    def cached(self, message):
-        print 'Cache finished for ' + message + '.'
-    
-def check_value(new_obj, old_obj, field_name):
-    new_obj_value = getattr(new_obj, field_name)
-    old_obj_value = getattr(old_obj, field_name)
-    if new_obj_value != old_obj_value:
-        setattr(new_obj, field_name, old_obj_value)
-        return False
-    return True
-
-def check_values(new_obj, old_obj, field_names):
-    match = True
-    for field_name in field_names:
-        match = check_value(new_obj, old_obj, field_name) and match
-    return match
-
-
-def update_phenoevidence(p):
-    from model_new_schema.evidence import Allele as NewAllele, PhenoevidenceChemical as NewPhenoevidenceChemical
-    from model_new_schema.chemical import Chemical as NewChemical
-    
-    if not p.id in new_evidence:
-        return
-    
-    new_biocon_ev = new_evidence[p.id]
-
-    #Pull information from expt_props
-    expt_prop_info = {'chemical':[], 'allele':None, 'allele_desc':None, 'reporter':None, 'reporter_desc':None, 'strain':None, 'strain_details':None,
-                      'budding_index':None, 'glutathione_excretion':None, 'z_score':None, 'relative_fitness_score':None, 'chitin_level':None, 
-                      'condition':[], 'details':[]}
-    if p.experiment is not None:
-        for prop in p.experiment_properties:
-            if prop.type == 'Chemical_pending' or prop.type == 'chebi_ontology':
-                expt_prop_info['chemical'].append((prop.value, prop.description))
-            elif prop.type == 'Allele':
-                expt_prop_info['allele'] = prop.value
-                expt_prop_info['allele_desc'] = prop.description
-            elif prop.type == 'Reporter':
-                expt_prop_info['reporter'] = prop.value
-                expt_prop_info['reporter_desc'] = prop.description
-            elif prop.type == 'strain_background':
-                expt_prop_info['strain'] = prop.value
-                expt_prop_info['strain_details'] = prop.description
-            elif prop.type == 'Numerical_value' and prop.description == 'relative budding index compared to control':
-                expt_prop_info['budding_index'] = prop.value
-            elif prop.type == 'Numerical_value' and prop.description == 'Fold elevation of glutathione excretion':
-                expt_prop_info['glutathione_excretion'] = prop.value
-            elif prop.type == 'Numerical_value' and prop.description == 'Fitness defect score (Z-score)':
-                expt_prop_info['z_score'] = prop.value
-            elif prop.type == 'Numerical_value' and prop.description == 'Relative fitness score':
-                expt_prop_info['relative_fitness_score'] = prop.value
-            elif prop.type == 'Numerical_value' and prop.description == 'Chitin level (nmole GlcNAc/mg dry weight)':
-                expt_prop_info['chitin_level'] = prop.value
-            elif prop.type == 'Condition':
-                expt_prop_info['condition'].append((prop.value, prop.description))
-            elif prop.type == 'Details':
-                expt_prop_info['details'].append((prop.value, prop.description))
-                
-    allele = None
-    allele_name = expt_prop_info['allele']
-    if allele_name is not None:
-        if allele_name in name_allele:
-            allele = name_allele[allele_name]
-        else:
-            allele = NewAllele(allele_name, expt_prop_info['allele_desc'])
-            name_allele[allele_name] = allele
-        new_biocon_ev.mutant_allele = allele
-            
-    for chem_info in expt_prop_info['chemical']:
-        chemical_name = chem_info[0]
-        chemical_amt = chem_info[1]
-        if chemical_name in name_chemical:
-            chemical = name_chemical[chemical_name]
-        else:
-            chemical = NewChemical(chemical_name)
-            name_chemical[chemical_name] = chemical
-        already_has = False
-        for phenoev_chemical in new_biocon_ev.phenoev_chemicals:
-            if phenoev_chemical.chemical == chemical:
-                already_has = True
-        if not already_has:
-            new_biocon_ev.phenoev_chemicals.append(NewPhenoevidenceChemical(new_biocon_ev, chemical, chemical_amt))
-            
-
-    new_biocon_ev.reporter = expt_prop_info['reporter']
-    new_biocon_ev.reporter_desc = expt_prop_info['reporter_desc']
-    new_biocon_ev.strain_id = expt_prop_info['strain']
-    new_biocon_ev.strain_details = expt_prop_info['strain_details']
-    new_biocon_ev.budding_index = expt_prop_info['budding_index']
-    new_biocon_ev.glutathione_excretion = expt_prop_info['glutathione_excretion']
-    new_biocon_ev.z_score = expt_prop_info['z_score']
-    new_biocon_ev.relative_fitness_score = expt_prop_info['relative_fitness_score']
-    new_biocon_ev.chitin_level = expt_prop_info['chitin_level']
-        
-    description_pieces = []
-    if p.experiment is not None and p.experiment_comment is not None:
-        description_pieces.append('Experiment: ' + p.experiment_comment)
-            
-    if len(expt_prop_info['condition']) > 0:
-        conditions = []
-        for (a, b) in expt_prop_info['condition']:
-            if b is None:
-                conditions.append(a)
-            else:
-                conditions.append(a + '- ' + b)
-        condition_info = ', '.join(conditions)
-        description_pieces.append('Condition: ' + condition_info)
-            
-    if len(expt_prop_info['details']) > 0:
-        details = []
-        for (a, b) in expt_prop_info['details']:
-            if b is None:
-                details.append(a)
-            else:
-                details.append(a + '- ' + b)
-        detail_info = ', '.join(details)
-        description_pieces.append('Details: ' + detail_info)
-            
-    new_biocon_ev.description = '; '.join(description_pieces)
-    return new_biocon_ev
-           
-             
-
 """
----------------------Convert GO------------------------------
+---------------------Cache------------------------------
 """
-def create_go_id(old_go_id):
-    return old_go_id+87636
 
-def create_goevidence_id(old_evidence_id):
-    return old_evidence_id+1322521  
-                 
-def create_go(old_go):
-    from model_new_schema.bioconcept import Go as NewGo
-    new_go = NewGo(old_go.go_go_id, old_go.go_term, old_go.go_aspect, old_go.go_definition, 
-                   biocon_id=create_go_id(old_go.id), date_created=old_go.date_created, created_by=old_go.created_by)
-    return new_go
-
-def create_go_bioent_biocon(old_go_feature):
-    from model_new_schema.bioconcept import BioentBiocon as NewBioentBiocon
-    bioent_id = old_go_feature.feature_id
-    biocon_id = create_go_id(old_go_feature.go_id)
-        
-    bioent = id_to_bioent[bioent_id]
-    biocon = id_to_biocon[biocon_id]
-    return NewBioentBiocon(bioent_id, biocon_id, bioent.official_name + '---' + biocon.official_name, biocon.biocon_type)
-
-def create_goevidence(old_go_feature, go_ref):
-    from model_new_schema.evidence import Goevidence as NewGoevidence
-    evidence_id = create_goevidence_id(go_ref.id)
-    qualifier = None
-    if go_ref.go_qualifier is not None:
-        qualifier = go_ref.qualifier
-    return NewGoevidence(old_go_feature.reference_id, old_go_feature.go_evidence, old_go_feature.annotation_type, old_go_feature.source,
-                                qualifier, old_go_feature.date_last_reviewed, 
-                                evidence_id=evidence_id, date_created=go_ref.date_created, created_by=go_ref.created_by)
-
-def create_go_bioent_biocon_evidence(old_go_feature, go_ref):
-    from model_new_schema.bioconcept import BioentBioconEvidence as NewBioentBioconEvidence
-    bioent_id = old_go_feature.feature_id
-    biocon_id = create_go_id(old_go_feature.go_id)
-    evidence_id = create_goevidence_id(go_ref.id)
-    bioent_biocon_id = tuple_to_bioent_biocon[(bioent_id, biocon_id)].id
-    return NewBioentBioconEvidence(bioent_biocon_id, evidence_id)
-
-
-id_to_bioent = {}
 id_to_biocon = {}
 id_to_evidence = {}
 tuple_to_bioent_biocon = {}
 tuple_to_bioent_biocon_evidence = {}
- 
-def cache_bioent(session):
-    from model_new_schema.bioentity import Bioentity as NewBioentity
-    new_entries = dict([(bioent.id, bioent) for bioent in model_new_schema.model.get(NewBioentity, session=session)])
-    id_to_bioent.update(new_entries)
+
+name_to_allele = {}
+name_to_chemical = {}
+tuple_to_phenoevidence_chemical = {}
 
 def cache_biocon(session, biocon_type):
     from model_new_schema.bioconcept import Bioconcept as NewBiocon
@@ -232,13 +54,170 @@ def cache_evidence(session, evidence_type):
     else:
         new_entries = dict([(goevidence.id, goevidence) for goevidence in model_new_schema.model.get(NewEvidence, evidence_type=evidence_type, session=session)])
     id_to_evidence.update(new_entries)
+             
 
-def cache_bioent_biocon_evidence(session):
+"""
+---------------------Create------------------------------
+"""
+
+def create_bioent_biocon_name(bioent, biocon):
+    return bioent.official_name + '---' + biocon.official_name
+
+"""
+------------GO--------------
+"""
+def create_go_id(old_go_id):
+    return old_go_id+87636
+
+def create_goevidence_id(old_evidence_id):
+    return old_evidence_id+1322521  
+                 
+abbrev_to_go_aspect = {'C':'cellular component', 'F':'molecular function', 'P':'biological process'}
+def create_go(old_go):
+    from model_new_schema.bioconcept import Go as NewGo
+    new_go = NewGo(old_go.go_go_id, old_go.go_term, abbrev_to_go_aspect[old_go.go_aspect], old_go.go_definition, 
+                   biocon_id=create_go_id(old_go.id), date_created=old_go.date_created, created_by=old_go.created_by)
+    return new_go
+
+def create_go_bioent_biocon(old_go_feature):
+    from model_new_schema.bioconcept import BioentBiocon as NewBioentBiocon
+    bioent_id = old_go_feature.feature_id
+    biocon_id = create_go_id(old_go_feature.go_id)
+        
+    bioent = id_to_bioent[bioent_id]
+    biocon = id_to_biocon[biocon_id]
+    name = create_bioent_biocon_name(bioent, biocon)
+    return NewBioentBiocon(bioent_id, biocon_id, name, biocon.biocon_type)
+
+def create_goevidence(old_go_feature, go_ref):
+    from model_new_schema.evidence import Goevidence as NewGoevidence
+    evidence_id = create_goevidence_id(go_ref.id)
+    qualifier = None
+    if go_ref.go_qualifier is not None:
+        qualifier = go_ref.qualifier
+    return NewGoevidence(go_ref.reference_id, old_go_feature.go_evidence, old_go_feature.annotation_type, old_go_feature.source,
+                                qualifier, old_go_feature.date_last_reviewed, 
+                                evidence_id=evidence_id, date_created=go_ref.date_created, created_by=go_ref.created_by)
+
+def create_go_bioent_biocon_evidence(old_go_feature, go_ref):
     from model_new_schema.bioconcept import BioentBioconEvidence as NewBioentBioconEvidence
-    key_extractor = lambda x: (x.bioent_biocon_id, x.evidence_id)
-    new_entries = dict([(key_extractor(bb_ev), bb_ev) for bb_ev in model_new_schema.model.get(NewBioentBioconEvidence, session=session)])
-    tuple_to_bioent_biocon_evidence.update(new_entries)
-   
+    bioent_id = old_go_feature.feature_id
+    biocon_id = create_go_id(old_go_feature.go_id)
+    evidence_id = create_goevidence_id(go_ref.id)
+    bioent_biocon_id = tuple_to_bioent_biocon[(bioent_id, biocon_id)].id
+    return NewBioentBioconEvidence(bioent_biocon_id, evidence_id)
+
+"""
+------------Phenotype--------------
+"""
+
+def create_phenotype_id(old_phenotype_id):
+    return old_phenotype_id
+
+def create_phenoevidence_id(old_evidence_id):
+    return old_evidence_id
+
+def create_phenotype(old_phenotype):
+    from model_new_schema.bioconcept import Phenotype as NewPhenotype
+    new_phenotype = NewPhenotype(old_phenotype.observable.title(),
+                                 biocon_id=create_go_id(old_phenotype.id), date_created=old_phenotype.date_created, created_by=old_phenotype.created_by)
+    return new_phenotype
+
+def create_phenotype_bioent_biocon(old_phenotype_feature):
+    from model_new_schema.bioconcept import BioentBiocon as NewBioentBiocon
+    bioent_id = old_phenotype_feature.feature_id
+    biocon_id = create_phenotype_id(old_phenotype_feature.go_id)
+        
+    bioent = id_to_bioent[bioent_id]
+    biocon = id_to_biocon[biocon_id]
+    name = create_bioent_biocon_name(bioent, biocon)
+    return NewBioentBiocon(bioent_id, biocon_id, name, biocon.biocon_type)
+
+def create_allele(old_phenotype_feature):
+    from model_new_schema.evidence import Allele as NewAllele
+    allele_info = old_phenotype_feature.experiment.allele
+    new_allele = NewAllele(allele_info[0], allele_info[1])
+    return new_allele
+
+def create_chemical(old_phenotye_feature):
+    from model_new_schema.chemical import Chemical as NewChemical
+    chemical_info = old_phenotye_feature.experiment.chemical
+    new_chemical = NewChemical(chemical_info[0])
+    return new_chemical
+
+def create_phenoevidence(old_phenotye_feature):
+    from model_new_schema.evidence import Phenoevidence as NewPhenoevidence
+    evidence_id = create_phenoevidence_id(old_phenotye_feature.id)
+    reference_id = None
+    strain_id = None
+    allele_id = None
+    new_phenoevidence = NewPhenoevidence(old_phenotye_feature.experiment_type, reference_id, strain_id, old_phenotye_feature.mutant_type, 
+                                         allele_id, old_phenotye_feature.source, old_phenotye_feature.qualifier, 
+                                         old_phenotye_feature.evidence_type, evidence_id, old_phenotye_feature.date_created, old_phenotye_feature.created_by)
+    if old_phenotye_feature.experiment is not None:
+        experiment = old_phenotye_feature.experiment
+        new_phenoevidence.reporter = experiment.reporter[0]
+        new_phenoevidence.reporter_desc = experiment.reporter[1]
+        new_phenoevidence.strain_id = experiment.strain[0]
+        new_phenoevidence.strain_details = experiment.strain[1]
+        new_phenoevidence.budding_index = experiment.budding_index
+        new_phenoevidence.glutathione_excretion = experiment.glutathione_excretion
+        new_phenoevidence.z_score = experiment.z_score
+        new_phenoevidence.relative_fitness_score = experiment.relative_fitness_score
+        new_phenoevidence.chitin_level = experiment.chitin_level
+    
+        description_pieces = []
+        comment = experiment.experiment_comment
+        if comment is not None:
+            description_pieces.append('Experiment: ' + comment)
+            
+        if len(experiment.condition) > 0:
+            conditions = []
+            for (a, b) in experiment.condition:
+                if b is None:
+                    conditions.append(a)
+                else:
+                    conditions.append(a + '- ' + b)
+            condition_info = ', '.join(conditions)
+            description_pieces.append('Condition: ' + condition_info)
+            
+        if len(experiment.details) > 0:
+            details = []
+            for (a, b) in experiment.details:
+                if b is None:
+                    details.append(a)
+                else:
+                    details.append(a + '- ' + b)
+            detail_info = ', '.join(details)
+            description_pieces.append('Details: ' + detail_info)
+            
+        new_phenoevidence.description = '; '.join(description_pieces)
+
+    return new_phenoevidence    
+
+def create_phenoevidence_chemical(old_phenotype_feature):
+    from model_new_schema.evidence import PhenoevidenceChemical as NewPhenoevidenceChemical
+    evidence_id = create_phenoevidence_id(old_phenotype_feature.id)
+    chemical_info = old_phenotype_feature.experiment.chemical
+    if chemical_info is not None:
+        chemical_id = name_to_chemical[chemical_info[0]]
+        chemical_amount = chemical_info[1]
+        new_pheno_chemical = NewPhenoevidenceChemical(evidence_id, chemical_id, chemical_amount)
+        return new_pheno_chemical
+    return None
+    
+def create_phenotype_bioent_biocon_evidence(old_phenotype_feature):
+    from model_new_schema.bioconcept import BioentBioconEvidence as NewBioentBioconEvidence
+    bioent_id = old_phenotype_feature.feature_id
+    biocon_id = create_phenotype_id(old_phenotype_feature.phenotype_id)
+    evidence_id = create_phenoevidence_id(old_phenotype_feature.id)
+    bioent_biocon_id = tuple_to_bioent_biocon[(bioent_id, biocon_id)].id
+    return NewBioentBioconEvidence(bioent_biocon_id, evidence_id)
+
+"""
+---------------------Add or Check------------------------------
+"""
+
 def check_biocon(new_biocon, current_biocon):
     match = check_values(new_biocon, current_biocon, 
                          ['official_name', 'biocon_type', 'date_created', 'created_by'])
@@ -248,79 +227,44 @@ def check_evidence(new_evidence, current_evidence):
     match = check_values(new_evidence, current_evidence, 
                          ['experiment_type', 'reference_id', 'evidence_type', 'strain_id', 'date_created', 'created_by'])
     return match
-        
-def add_or_check_go_term(new_go, session, output_creator):
-    key = new_go.id
-    if key in id_to_biocon:
-        current_go = id_to_biocon[key]
-        match = check_biocon(new_go, current_go) and check_values(new_go, current_go, 
-                         ['go_go_id', 'go_term', 'go_aspect', 'go_definition'])
-        if not match:
-            output_creator.changed('go_term')
-    else:
-        model_new_schema.model.add(new_go, session=session)
-        id_to_biocon[key] = new_go
-        output_creator.added('go_term')
-        
-def add_or_check_bioent_biocon(new_bioent_biocon, session, output_creator):
-    key = (new_bioent_biocon.bioent_id, new_bioent_biocon.biocon_id)
-    if key in tuple_to_bioent_biocon:
-        current_bioent_biocon = tuple_to_bioent_biocon[key]
-        match = check_values(new_bioent_biocon, current_bioent_biocon, 
-                         ['id', 'bioent_id', 'biocon_id', 'official_name', 'biocon_type'])
-        if not match:
-            output_creator.changed('bioent_biocon')
-    else:
-        model_new_schema.model.add(new_bioent_biocon, session=session)
-        tuple_to_bioent_biocon[key] = new_bioent_biocon
-        output_creator.added('bioent_biocon')
-        
-def add_or_check_goevidence(new_goevidence, session, output_creator):
-    key = new_goevidence.id
-    if key in id_to_evidence:
-        current_goevidence = id_to_evidence[key]
-        match = check_biocon(new_goevidence, current_goevidence) and check_values(new_goevidence, current_goevidence, 
-                         ['go_evidence', 'annotation_type', 'source', 'source', 'qualifier'])
-        if not match:
-            output_creator.changed('goevidence')
-    else:
-        model_new_schema.model.add(new_goevidence, session=session)
-        id_to_evidence[key] = new_goevidence
-        output_creator.added('goevidence')
-        
+
 def add_or_check_bioent_biocon_evidence(new_bioent_biocon_evidence, session, output_creator):
     key = (new_bioent_biocon_evidence.bioent_biocon_id, new_bioent_biocon_evidence.evidence_id)
     if key in tuple_to_bioent_biocon_evidence:
         current_bioent_biocon_evidence = tuple_to_bioent_biocon_evidence[key]
-        match = check_values(new_bioent_biocon_evidence, current_bioent_biocon_evidence, 
-                         ['id', 'bioent_biocon_id', 'evidence_id', 'source', 'qualifier'])
+        match = check_values(current_bioent_biocon_evidence, current_bioent_biocon_evidence, 
+                         ['bioent_biocon_id', 'evidence_id'])
         if not match:
             output_creator.changed('bioent_biocon_evidence')
     else:
         model_new_schema.model.add(new_bioent_biocon_evidence, session=session)
         tuple_to_bioent_biocon[key] = new_bioent_biocon_evidence
         output_creator.added('bioent_biocon_evidence')
+     
+"""
+---------------------Convert------------------------------
+"""   
 
-def go_to_bioconcept(old_model, session):
+def convert_go(old_model, session):
     from model_old_schema.go import Go as OldGo, GoFeature as OldGoFeature
-    from model_old_schema.config import DBUSER as OLD_DBUSER
-    
+
+    from model_new_schema.bioconcept import BioentBioconEvidence as NewBioentBioconEvidence
+    from model_new_schema.bioentity import Bioentity as NewBioentity
+      
     output_creator = OutputCreator()
 
     #Cache bioents
-    cache_bioent(session)
-    output_creator.cached('bioent')
+    cache(NewBioentity, id_to_bioent, lambda x: x.id, session, output_creator, 'bioent')
      
     #Cache go_biocons
     cache_biocon(session, 'GO')
     output_creator.cached('biocon')
 
     #Create new go_biocons if they don't exist, or update the database if they do.
-    gos = old_model.execute(model_old_schema.model.get(OldGo), OLD_DBUSER)
-    for old_go in gos:
-        new_go = create_go(old_go)
-        add_or_check_go_term(new_go, session, output_creator)
-    output_creator.finished('go_term')
+    old_objs = old_model.execute(model_old_schema.model.get(OldGo), OLD_DBUSER)
+    key_maker = lambda x: x.id
+    values_to_check = ['go_go_id', 'go_term', 'go_aspect', 'go_definition']
+    create_or_update(old_objs, id_to_biocon, create_go, key_maker, values_to_check, old_model, session, output_creator, 'go_term', [check_biocon])
 
     #Cache bioent_biocons
     cache_bioent_biocon(session, 'GO')
@@ -328,32 +272,115 @@ def go_to_bioconcept(old_model, session):
     
     #Create new bioent_biocons if they don't exist, or update the database if they do.
     old_go_features = old_model.execute(model_old_schema.model.get(OldGoFeature), OLD_DBUSER)
-    for old_go_feature in old_go_features:
-        new_bioent_biocon = create_go_bioent_biocon(old_go_feature)
-        add_or_check_bioent_biocon(new_bioent_biocon, session, output_creator)
-    output_creator.finished('bioent_biocon')
+    key_maker = lambda x: (x.bioent_id, x.biocon_id)
+    values_to_check = ['bioent_id', 'biocon_id', 'official_name', 'biocon_type']
+    create_or_update(old_go_features, tuple_to_bioent_biocon, create_go_bioent_biocon, key_maker, values_to_check, old_model, session, output_creator, 'bioent_biocon')
     
     #Cache goevidences
     cache_evidence(session, 'GO_EVIDENCE')
     output_creator.cached('goevidence')
     
     #Create new goevidences if they don't exist, or update the database if they do.
-    for old_go_feature in old_go_features:
+    key_maker = lambda x: x.id
+    values_to_check = ['go_evidence', 'annotation_type', 'source', 'date_last_reviewed', 'qualifier']
+    for old_go_feature in old_go_features: 
         for go_ref in old_go_feature.go_refs:
-            new_goevidence = create_goevidence(old_go_feature, go_ref)
-            add_or_check_goevidence(new_goevidence, session, output_creator)
-    output_creator.finished('goevidence')
+            new_evidence = create_goevidence(old_go_feature, go_ref)
+            add_or_check(new_evidence, id_to_evidence, key_maker, values_to_check, session, output_creator, 'goevidence', [check_evidence])
+    output_creator.finished('bioent_biocon_evidence')
         
     #Cache bioent_biocon_evidences
-    cache_bioent_biocon_evidence(session)
-    output_creator.cached('bioent_biocon_evidences')
+    key_maker = lambda x: (x.bioent_biocon_id, x.evidence_id)
+    cache(NewBioentBioconEvidence, tuple_to_bioent_biocon_evidence, key_maker, session, output_creator, 'bioent_biocon_evidence')
+    output_creator.cached('bioent_biocon_evidence')
     
     #Create new bioent_biocon_evidences if they don't exist, or update the database if they do.
     for old_go_feature in old_go_features: 
         for go_ref in old_go_feature.go_refs:
             new_bioent_biocon_evidence = create_go_bioent_biocon_evidence(old_go_feature, go_ref)
             add_or_check_bioent_biocon_evidence(new_bioent_biocon_evidence, session, output_creator)
-    output_creator.finished('bioent_biocon_evidences')
+    output_creator.finished('bioent_biocon_evidence')
+    
+def convert_phenotyp(old_model, session):
+    from model_new_schema.evidence import Allele as NewAllele, PhenoevidenceChemical as NewPhenoevidenceChemical
+    from model_new_schema.chemical import Chemical as NewChemical
+    from model_new_schema.bioentity import Bioentity as NewBioentity
+    from model_old_schema.phenotype import PhenotypeFeature as OldPhenotypeFeature, Phenotype as OldPhenotype
+    from model_new_schema.bioconcept import BioentBioconEvidence as NewBioentBioconEvidence
+    
+    output_creator = OutputCreator()
+
+    #Cache bioents
+    cache(NewBioentity, id_to_bioent, lambda x: x.id, session, output_creator, 'bioent')
+    output_creator.cached('bioent')
+     
+    #Cache phenotype_biocons
+    cache_biocon(session, 'PHENOTYPE')
+    output_creator.cached('biocon')
+
+    #Create new phenotype_biocons if they don't exist, or update the database if they do.
+    old_phenotypes = old_model.execute(model_old_schema.model.get(OldPhenotype), OLD_DBUSER)
+    key_maker = lambda x: x.id
+    values_to_check = ['observable']
+    create_or_update(old_phenotypes, id_to_biocon, create_phenotype, key_maker, values_to_check, old_model, session, output_creator, 'phenotype', [check_biocon])
+
+    #Cache bioent_biocons
+    cache_bioent_biocon(session, 'PHENOTYPE')
+    output_creator.cached('bioent_biocon')
+    
+    #Create new bioent_biocons if they don't exist, or update the database if they do.
+    old_phenotype_features = old_model.execute(model_old_schema.model.get(OldPhenotypeFeature), OLD_DBUSER)
+    key_maker = lambda x: (x.bioent_id, x.biocon_id)
+    values_to_check = ['bioent_id', 'biocon_id', 'official_name', 'biocon_type']
+    create_or_update(old_phenotype_features, tuple_to_bioent_biocon, create_phenotype_bioent_biocon, key_maker, values_to_check, old_model, session, output_creator, 'bioent_biocon')
+    
+    #Cache phenoevidences
+    cache_evidence(session, 'PHENOTYPE_EVIDENCE')
+    output_creator.cached('phenoevidence')
+    
+    #Create new phenoevidences if they don't exist, or update the database if they do.
+    key_maker = lambda x: x.id
+    values_to_check = ['mutant_type', 'mutant_allele_id', 'source', 'qualifier', 'reporter', 'reporter_desc', 'strain_details', 
+                       'budding_index', 'glutathione_excretion', 'z_score', 'relative_fitness_score', 'chitin_level', 'description']
+    create_or_update(old_phenotype_features, id_to_evidence, key_maker, values_to_check, old_model, session, output_creator, 'phenoevidence', [check_evidence])
+    
+    #Cache bioent_biocon_evidences
+    key_maker = lambda x: (x.bioent_biocon_id, x.evidence_id)
+    output_message = 'bioent_biocon_evidence'
+    cache(NewBioentBioconEvidence, tuple_to_bioent_biocon_evidence, key_maker, session, output_creator, output_message)
+    
+    #Create new bioent_biocon_evidences if they don't exist, or update the database if they do.
+    values_to_check = ['bioent_biocon_id', 'evidence_id']
+    create_or_update(old_phenotype_features, tuple_to_bioent_biocon_evidence, create_phenotype_bioent_biocon_evidence, key_maker, values_to_check,
+                     old_model, session, output_creator, output_message)
+    
+    #Cache alleles
+    key_maker = lambda x: x.name
+    output_message = 'allele'
+    cache(NewAllele, name_to_allele, key_maker, session, output_creator, output_message)
+    
+    #Create new alleles if they don't exist, or update the database if they do.
+    values_to_check = ['name', 'description']
+    create_or_update(old_phenotype_features, name_to_allele, create_allele, key_maker, values_to_check, old_model, output_creator, output_message)
+
+    #Cache chemicals
+    key_maker = lambda x: x.name
+    output_message = 'chemical'
+    cache(NewChemical, name_to_chemical, key_maker, session, output_creator, output_message)
+    
+    #Create new chemicals if they don't exist, or update the database if they do.
+    values_to_check = ['name', 'description']
+    create_or_update(old_phenotype_features, name_to_allele, create_allele, key_maker, values_to_check, old_model, output_creator, output_message)
+
+    #Cache evidence_chemical
+    key_maker = lambda x: (x.evidence_id, x.chemical_id)
+    output_message = 'evidence_chemical'
+    cache(NewPhenoevidenceChemical, tuple_to_phenoevidence_chemical, key_maker, session, output_creator, output_message)
+    
+    #Create new evidence_chemical if they don't exist, or update the database if they do.
+    values_to_check = ['evidence_id', 'chemical_id', 'chemical_amt']
+    create_or_update(old_phenotype_features, tuple_to_phenoevidence_chemical, create_phenoevidence_chemical, key_maker, values_to_check, 
+                     old_model, output_creator, output_message)
         
         
         

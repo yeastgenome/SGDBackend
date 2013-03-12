@@ -6,7 +6,7 @@ Created on Nov 28, 2012
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
 from model_new_schema.config import SCHEMA
 from model_new_schema.link_maker import add_link, link_symbol, biocon_link, \
-    bioent_biocon_link, bioent_biocon_evidence_link, biocon_all_bioent_link
+    bioent_biocon_link, biocon_all_bioent_link
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
@@ -19,11 +19,16 @@ class BioentBioconEvidence(Base, EqualityByIDMixin, UniqueMixin):
 
     
     id = Column('bioent_biocon_evidence_id', Integer, primary_key=True)
-    bioent_biocon_id = Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id'))
+    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    #bioent_biocon_id = Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id'))
     evidence_id = Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id'))
     
-    bioent_biocon = relationship('BioentBiocon', uselist=False, backref=backref('bioent_biocon_evidences'))
-    evidence = relationship('Evidence', uselist=False, backref=backref('bioent_biocon_evidences', uselist=False))
+    bioentity = relationship('Bioentity', uselist=False, backref='bioent_biocons')
+    bioconcept = relationship('Bioconcept', uselist=False, backref='bioent_biocons')
+    #bioent_biocon = relationship('BioentBiocon', uselist=False, backref=backref('bioent_biocon_evidences'))
+    evidence = relationship('Evidence', uselist=False, backref=backref('bioent_biocon_evidence', uselist=False))
+    
     
     def __init__(self, bioent_biocon_id, evidence_id):
         self.bioent_biocon_id = bioent_biocon_id
@@ -84,13 +89,10 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     @hybrid_property
     def link(self):
         return bioent_biocon_link(self)
-    @hybrid_property
-    def evidence_link(self):
-        return bioent_biocon_evidence_link(self)
-    
+
     @hybrid_property
     def description(self):
-        return 'Relationship between bioentity ' + self.bioentity.full_name + ' and bioconcept ' + self.bioconcept.name + '.'  
+        return 'Evidence that ' + self.bioentity.name + ' is involved in ' + self.bioconcept.name + '.'  
 
     @classmethod
     def unique_hash(cls, bioent_id, biocon_id):
@@ -134,6 +136,10 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     
     @hybrid_property
     def description(self):
+        if self.biocon_type == 'PHENOTYPE':
+            return 'All genes with phenotype ' + self.name + '.'
+        elif self.biocon_type == 'GO':
+            return 'All genes with GO term ' + self.name + '.'
         return self.biocon_type.lower() + ' ' + self.name
     
     @classmethod

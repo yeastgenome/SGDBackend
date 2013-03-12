@@ -6,11 +6,12 @@ Created on Feb 4, 2013
 from model_old_schema import Base, EqualityByIDMixin, SCHEMA
 from model_old_schema.feature import Feature
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey, Table
 from sqlalchemy.types import Integer, String, Date
    
-class Phenotype_Feature(Base, EqualityByIDMixin):
+class PhenotypeFeature(Base, EqualityByIDMixin):
     __tablename__ = 'pheno_annotation'
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
     
@@ -67,5 +68,87 @@ class Experiment(Base, EqualityByIDMixin):
                                                         Column('expt_property_no', Integer, ForeignKey('bud.expt_property.expt_property_no')),
                                                         Column('experiment_no', Integer, ForeignKey('bud.experiment.experiment_no')),
                                                         schema=SCHEMA), lazy='joined')
+    
+    @hybrid_property
+    def chemicals(self):
+        chemicals = []
+        for prop in self.experiment_properties:
+            if prop.type == 'Chemical_pending' or prop.type == 'chebi_ontology':
+                chemicals.append((prop.value, prop.description))
+        return chemicals
+    
+    @hybrid_property
+    def allele(self):
+        for prop in self.experiment_comment:
+            if prop.type == 'Allele':
+                return (prop.value, prop.description)
+        return None
+    
+    @hybrid_property
+    def reporter(self):
+        for prop in self.experiment_comment:
+            if prop.type == 'Reporter':
+                return (prop.value, prop.description)
+        return None
+    
+    @hybrid_property
+    def strain(self):
+        for prop in self.experiment_comment:
+            if prop.type == 'strain_background':
+                return (prop.value, prop.description)
+        return None
+    
+    @hybrid_property
+    def budding_index(self):
+        for prop in self.experiment_comment:
+            if prop.type == 'Numerical_value' and prop.description == 'relative budding index compared to control':
+                return prop.value
+        return None    
+    
+    @hybrid_property
+    def glutathione_excretion(self):
+        for prop in self.experiment_comment:
+            if prop.type == 'Numerical_value' and prop.description == 'Fold elevation of glutathione excretion':
+                return prop.value
+        return None  
+    
+    @hybrid_property
+    def z_score(self):
+        for prop in self.experiment_comment:
+            if prop.type == 'Numerical_value' and prop.description == 'Fitness defect score (Z-score)':
+                return prop.value
+        return None  
+    
+    @hybrid_property
+    def relative_fitness_score(self):
+        for prop in self.experiment_comment:
+            if prop.type == 'Numerical_value' and prop.description == 'Relative fitness score':
+                return prop.value
+        return None  
+    
+    @hybrid_property
+    def chitin_level(self):
+        for prop in self.experiment_comment:
+            if prop.type == 'Numerical_value' and prop.description == 'Chitin level (nmole GlcNAc/mg dry weight)':
+                return prop.value
+        return None  
+    
+    @hybrid_property
+    def condition(self):
+        return_value = []
+        for prop in self.experiment_comment:
+            if prop.type == 'Condition':
+                return_value.append((prop.value, prop.description))
+        return return_value
+    
+    @hybrid_property
+    def details(self):
+        return_value = []
+        for prop in self.experiment_comment:
+            if prop.type == 'Details':
+                return return_value.append((prop.value, prop.description))
+        return return_value
+    
+                
 
     

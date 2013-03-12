@@ -7,10 +7,17 @@
 <!-- Subhead
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
-	<div class="container">
+	<div class="container" tal:condition="python: biorel.type == 'BIORELATION'">
 		<h1><span tal:content="biorel.name"></h1>
 		<p class="lead">
 			<span tal:content="biorel.description"></span>
+		</p>
+	</div>
+	
+	<div class="container" tal:condition="python: biorel.type == 'BIOENTITY' and biorel_type == 'INTERACTION'">
+		<h1><span tal:content="biorel.name + ' Interaction'"></h1>
+		<p class="lead">
+			<span tal:content="'Evidence for all interactions associated with ' + biorel.name + '.'"></span>
 		</p>
 	</div>
 </header>
@@ -48,6 +55,12 @@
 				<dd tal:content="biorel.sink_bioent.description"></dd>
 
 			</dl>
+			<dl tal:condition="python: biorel.type == 'BIOENTITY' and biorel_type == 'INTERACTION'">
+				<dt>Interacting Bioentity:</dt>
+				<span tal:content="structure biorel.full_name_with_link"></span>
+				<dd tal:content="biorel.description"></dd>
+
+			</dl>
 		</div>
 	</div>
 </section>
@@ -63,7 +76,7 @@
 			<table class='table table-striped table-bordered table-condensed tablesorter' id='genetic_evidence_table' width="100%">
 			<thead>
   			<tr>
-  				<th>Interaction</th>
+  				<th>Interactor</th>
     			<th>Experiment</th>
     			<th>Annotation</th>
     			<th>Direction</th>
@@ -88,7 +101,7 @@
 			<table class='table table-striped table-bordered table-condensed tablesorter' id='physical_evidence_table' width="100%">
 			<thead>
   			<tr>
-  				<th>Interaction</th>
+  				<th>Interactor</th>
     			<th>Experiment</th>
     			<th>Annotation</th>
     			<th>Direction</th>
@@ -114,7 +127,7 @@
 
 <script>
 	$(document).ready(function() {
-		$.getJSON('${biorel.evidence_link}', function(data) {
+		$.getJSON('${evidence_link}', function(data) {
   			var genetic_evidence_table = data['genetic_evidence'];
   			var physical_evidence_table = data['physical_evidence'];
 			var references = data['reference'];

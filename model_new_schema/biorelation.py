@@ -5,8 +5,7 @@ Created on Nov 27, 2012
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
 from model_new_schema.evidence import Evidence
-from model_new_schema.link_maker import link_symbol, add_link, biorel_link, \
-    biorel_evidence_link
+from model_new_schema.link_maker import link_symbol, add_link, biorel_link
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
@@ -57,6 +56,14 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
         else:
             return None
         
+    def get_opposite(self, bioent):
+        if bioent == self.source_bioent:
+            return self.sink_bioent
+        elif bioent == self.sink_bioent:
+            return self.source_bioent
+        else:
+            return None
+        
     @hybrid_property
     def description(self):
         return 'Interaction between ' + self.source_bioent.full_name + ' and ' + self.sink_bioent.full_name    
@@ -76,10 +83,6 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     def get_name_with_link_for(self, bioent):
         return add_link(self.get_name_for(bioent), self.link)
     
-    @hybrid_property
-    def evidence_link(self):
-        return biorel_evidence_link(self)
-
     @classmethod
     def unique_hash(cls, biorel_type, source_bioent_id, sink_bioent_id):
         return '%s_%s_%s' % (biorel_type, source_bioent_id, sink_bioent_id) 

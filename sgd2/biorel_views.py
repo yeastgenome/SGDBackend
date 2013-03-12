@@ -9,40 +9,38 @@ from pyramid.view import view_config
 from sgd2.models import DBSession
 from sgd2.views import site_layout
 from sqlalchemy.orm import joinedload, subqueryload
-from string import upper
  
 #------------------Basic Biorel Information-----------------------
-@view_config(route_name='biorel', renderer='templates/biorel.pt')
-def biorel_view(request):
+def get_biorel(request):
     biorel_name = request.matchdict['biorel_name']
-    biorel_type = upper(request.matchdict['biorel_type'])
+    biorel_type = request.matchdict['biorel_type'].upper()
     biorel = DBSession.query(Biorelation).options(subqueryload('source_bioent'), subqueryload('sink_bioent')).filter(Biorelation.biorel_type==biorel_type).filter(Biorelation.official_name==biorel_name).first()
     
     if biorel is None:
-        biorel = DBSession.query(Bioentity).filter(Bioentity.name==biorel_name).first()
-    
-    if biorel is None:
-        request.response.status = '404 Not Found'
-        return {'URL':request.URL}
-    
-    return {'layout': site_layout(), 'page_title': biorel.name, 'biorel': biorel}
+        biorel = DBSession.query(Bioentity).filter(Bioentity.official_name==biorel_name).first()
+
+    return biorel
+
+@view_config(route_name='biorel', renderer='templates/biorel.pt')
+def biorel_view(request):
+    biorel = get_biorel(request)
+    biorel_type = request.matchdict['biorel_type'].upper()
+    evidence_link = request.url + '/evidence'
+    return {'layout': site_layout(), 'page_title': biorel.name, 'biorel': biorel, 'evidence_link':evidence_link, 'biorel_type':biorel_type}
 
 #------------------Evidence for Interactions-----------------------
 @view_config(route_name='biorel_evidence', renderer='json')
 def biorel_evidence_view(request):
-    biorel_name = request.matchdict['biorel_name']
-    biorel_type = upper(request.matchdict['biorel_type'])
-    biorel = DBSession.query(Biorelation).filter(Biorelation.biorel_type==biorel_type).filter(Biorelation.official_name==biorel_name).first()
+    biorel = get_biorel(request)
     
-    if biorel is not None:
-        biorel_id = biorel.id
+    if biorel.type == 'BIORELATION':
         bioent = None
+        biorel_id = biorel.id
         evidences = DBSession.query(BiorelEvidence).options(joinedload('evidence'), joinedload('evidence.reference'), joinedload('biorel'), joinedload('evidence.biorel_evidence')).filter(BiorelEvidence.biorel_id==biorel_id).all()
     else:
-        bioent = DBSession.query(Bioentity).filter(Bioentity.name==biorel_name).first()
-        if bioent is not None:
-            biorel_ids = [biorel.id for biorel in bioent.biorelations]
-            evidences = DBSession.query(BiorelEvidence).options(joinedload('evidence'), joinedload('evidence.reference'), joinedload('biorel'), joinedload('evidence.biorel_evidence')).filter(BiorelEvidence.biorel_id.in_(biorel_ids)).all()
+        bioent = biorel
+        biorel_ids = [biorel.id for biorel in bioent.biorelations]
+        evidences = DBSession.query(BiorelEvidence).options(joinedload('evidence'), joinedload('evidence.reference'), joinedload('biorel'), joinedload('evidence.biorel_evidence')).filter(BiorelEvidence.biorel_id.in_(biorel_ids)).all()
            
     tables = {}
     tables['genetic_evidence'] = get_genetic_evidence(evidences, bioent)
@@ -65,21 +63,21 @@ def create_evidence_table_for_interaction(evidences, bioent, is_genetic):
         phenotype = evidence.phenotype
             
         if bioent is None:
-            biorel_entry = None
+            bioent_entry = None
             direction = evidence.direction
         else:
             biorel = evidence.biorel
-            biorel_entry = biorel.get_name_with_link_for(bioent)
+            bioent_entry = biorel.get_opposite(bioent).name_with_link
 
-            if biorel.source == bioent:
+            if biorel.source_bioent == bioent:
                 direction = evidence.direction
             else:
                 direction = reverse_direction(evidence.direction)
         
         if is_genetic:
-            table.append([biorel_entry, evidence.experiment_type, evidence.annotation_type, direction, phenotype, reference_entry])
+            table.append([bioent_entry, evidence.experiment_type, evidence.annotation_type, direction, phenotype, reference_entry])
         else:
-            table.append([biorel_entry, evidence.experiment_type, evidence.annotation_type, direction, evidence.modification, reference_entry])
+            table.append([bioent_entry, evidence.experiment_type, evidence.annotation_type, direction, evidence.modification, reference_entry])
             
     return table
 

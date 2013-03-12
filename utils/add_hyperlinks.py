@@ -43,7 +43,7 @@ def validate_genes(gene_names, session=None):
     Convert a list of gene_names to a mapping between those gene_names and features.
     """            
     
-    from model_new_schema.bioentity import Bioentity, Alias
+    from model_new_schema.bioentity import Bioentity
 
     if gene_names is not None and len(gene_names) > 0:
         upper_gene_names = [x.upper() for x in gene_names]

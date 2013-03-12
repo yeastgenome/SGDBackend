@@ -85,15 +85,16 @@
 ================================================== -->
 <section id="go">
 	<div class="page-header">
-		<h1>Gene Ontology <span id='go_header'></span><a tal:attributes="href bioent.all_go_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1> 
-		
+		<h1>Gene Ontology <span id='go_header'></span></h1>
+		<a tal:attributes="href bioent.all_link('bioent_biocon', 'go')"><button class="btn btn-large btn-warning">All Gene Ontology Evidence <i class="icon-chevron-right icon-white"></i></button></a>
+		<br></br>
 		<span id='go_message' class="hide">No known gene ontology associations.</span>
 		<div id='go_wrapper'>	
 			<ul class='unstyled'>
 				<table class='table table-striped table-bordered table-condensed tablesorter' id='go_table' width="100%">
 			<thead>
   			<tr>
-    			<th>Relationship</th>
+    			<th>GO Term</th>
     			<th>Category</th>
     			<th>Total Evidence</th>
   			</tr>
@@ -109,25 +110,26 @@
 ================================================== -->
 <section id="phenotype">
 	<div class="page-header">
-		<h1>Phenotype <span id='phenotype_header'></span><a tal:attributes="href bioent.all_phenotype_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1> 
-
-		
+		<h1>Phenotype <span id='phenotype_header'></span></h1> 
+		<a tal:attributes="href bioent.all_link('bioent_biocon', 'phenotype')"><button class="btn btn-large btn-warning">All Phenotype Evidence <i class="icon-chevron-right icon-white"></i></button></a>
+		<br></br>
 		<!-- Phenotype Table
 		========================================== -->
+		<h3>Cellular Phenotype <span id='cellular_phenotype_header'></span></h3>
 		<div>
 			<span id='phenotype_message' class="hide">No known phenotypes.</span>
 			<div id='phenotype_wrapper'>
 				<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotype_table' width="100%">
 				<thead>
   				<tr>
-  					<th rowspan="2" colspan="1">Relationship</th>
+  					<th rowspan="2" colspan="1">Phenotype</th>
   					<th rowspan="1" colspan="3" style="text-align:center">Mutant Type</th>
     				<th rowspan="2" colspan="1">Total Evidence</th>
   				</tr>
   				<tr>
   					<th rowspan="1" colspan="1">Null</th>
-  					<th rowspan="1" colspan="1">Overexpressed</th>
-  					<th rowspan="1" colspan="1">Conditional</th>
+  					<th rowspan="1" colspan="1">Overexp.</th>
+  					<th rowspan="1" colspan="1">Cond.</th>
   				</tr>
   				</thead>
 				</table>
@@ -143,15 +145,15 @@
 								<table class='table table-striped table-bordered table-condensed tablesorter' id='chemical_phenotype_table' width="100%">
 			<thead>
   			<tr>
+   				<th rowspan="2" colspan="1">Phenotype</th>
   				<th rowspan="2" colspan="1">Chemical</th>
-   				<th rowspan="2" colspan="1">Relationship</th>
   				<th rowspan="1" colspan="3" style="text-align:center">Mutant Type</th>
     			<th rowspan="2" colspan="1">Total Evidence</th>
   			</tr>
   			<tr>
   				<th rowspan="1" colspan="1">Null</th>
-  				<th rowspan="1" colspan="1">Overexpressed</th>
-  				<th rowspan="1" colspan="1">Conditional</th>
+  				<th rowspan="1" colspan="1">Overexp.</th>
+  				<th rowspan="1" colspan="1">Cond.</th>
   			</tr>
   			</thead>
  
@@ -167,15 +169,15 @@
 				<table class='table table-striped table-bordered table-condensed tablesorter' id='pp_rna_phenotype_table' width="100%">
 			<thead>
   			<tr>
+  				<th rowspan="2" colspan="1">Phenotype</th>
   				<th rowspan="2" colspan="1">Bioentity</th>
-  				<th rowspan="2" colspan="1">Relationship</th>
   				<th rowspan="1" colspan="3" style="text-align:center">Mutant Type</th>
     			<th rowspan="2" colspan="1">Total Evidence</th>
   			</tr>
   			<tr>
   				<th rowspan="1" colspan="1">Null</th>
-  				<th rowspan="1" colspan="1">Overexpressed</th>
-  				<th rowspan="1" colspan="1">Conditional</th>
+  				<th rowspan="1" colspan="1">Overexp.</th>
+  				<th rowspan="1" colspan="1">Cond.</th>
   			</tr>
   			</thead>
  
@@ -189,8 +191,9 @@
 ================================================== -->
 <section id="interactions">
 	<div class="page-header">
-		<h1>Interaction <span id='interactions_header'></span><a tal:attributes="href bioent.all_interaction_link"><button class="btn btn-large btn-warning" style="float:right">See Details</button></a></h1>
-	
+		<h1>Interaction <span id='interaction_header'></span></h1>
+		<a tal:attributes="href bioent.all_link('biorel', 'interaction')"><button class="btn btn-large btn-warning">All Interaction Evidence <i class="icon-chevron-right icon-white"></i></button></a>
+		<br></br>
 		<h3>Cytoscape Visualization</h3>
 		<strong>Filter Interactions by # Total Evidence:</strong>
 		<br></br>
@@ -206,7 +209,7 @@
 				<table class='table table-striped table-bordered table-condensed tablesorter' id='interaction_table' width="100%">
 			<thead>
   			<tr>
-    			<th>Interaction</th>
+    			<th>Interactor</th>
     			<th>Genetic Evidence</th>
     			<th>Physical Evidence</th>
     			<th>Total Evidence</th>
@@ -295,10 +298,19 @@
   			var chemical_phenotype_table = data['chemical_phenotype'];
   			var pp_rna_phenotype_table = data['pp_rna_phenotype'];
   			
-  			
+  			//Set up go table
+			var options = basic_datatable_options("go_header", '${bioent.go_file_name}', "go_wrapper", "go_message");
+			options["aaSorting"] = [[2, "desc"]];
+			options["aoColumns"] = [null, null, {"sType":"num-html"}];
+			options["aaData"] = go_table;
+			$('#go_table').dataTable(options);
+			
+			//Set total phenotype count
+			var num_rows = phenotype_table.length + chemical_phenotype_table.length + pp_rna_phenotype_table.length;
+			document.getElementById("phenotype_header").innerHTML = '(' + num_rows + ')';
 			
   			//Set up phenotype table
-			var options = basic_datatable_options("phenotype_header", '${bioent.phenotype_file_name}', "phenotype_wrapper", "phenotype_message");
+			var options = basic_datatable_options("cellular_phenotype_header", '${bioent.phenotype_file_name}', "phenotype_wrapper", "phenotype_message");
 			options["aaSorting"] = [[4, "desc"]];
 			options["aoColumns"] = [null, null, null, null, {"sType":"num-html"}];
 			options["aaData"] = phenotype_table;
@@ -318,12 +330,7 @@
 			options["aaData"] = pp_rna_phenotype_table;
 			$('#pp_rna_phenotype_table').dataTable(options);
 			
-			//Set up go table
-			var options = basic_datatable_options("go_header", '${bioent.go_file_name}', "go_wrapper", "go_message");
-			options["aaSorting"] = [[2, "desc"]];
-			options["aoColumns"] = [null, null, {"sType":"num-html"}];
-			options["aaData"] = go_table;
-			$('#go_table').dataTable(options);
+
   		});
   		
   		//Get biorel data

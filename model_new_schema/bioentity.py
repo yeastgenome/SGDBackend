@@ -8,12 +8,11 @@ will eventually be the Bioentity classes/tables in the new SGD website schema. T
 schema on fasolt.
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
+# Following two imports are necessary for SQLAlchemy
 from model_new_schema.bioconcept import BioentBiocon
 from model_new_schema.biorelation import Biorelation
-from model_new_schema.link_maker import add_link, bioent_link, \
-    bioent_all_phenotypes_link, bioent_all_interactions_link, bioent_wiki_link, \
-    bioent_graph_link, bioent_all_biorel_link, bioent_all_biocon_link, \
-    bioent_all_go_link
+from model_new_schema.link_maker import add_link, bioent_link, bioent_wiki_link, \
+    bioent_graph_link, bioent_all_biorel_link, bioent_all_biocon_link, bioent_all_link
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -94,15 +93,10 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     @hybrid_property
     def link(self):
         return bioent_link(self)
-    @hybrid_property
-    def all_phenotype_link(self):
-        return bioent_all_phenotypes_link(self)
-    @hybrid_property
-    def all_interaction_link(self):
-        return bioent_all_interactions_link(self)
-    @hybrid_property
-    def all_go_link(self):
-        return bioent_all_go_link(self)
+    
+    def all_link(self, bio_type, link_type):
+        return bioent_all_link(self, bio_type, link_type)
+    
     @hybrid_property
     def wiki_link(self):
         return bioent_wiki_link(self)

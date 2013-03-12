@@ -11,13 +11,10 @@ from model_old_schema.config import DBTYPE as OLD_DBTYPE, DBHOST as OLD_DBHOST, 
     DBNAME as OLD_DBNAME, SCHEMA as OLD_SCHEMA, DBUSER as OLD_DBUSER, \
     DBPASS as OLD_DBPASS
 from model_old_schema.model import Model as OldModel
-from schema_conversion.old_to_new_bioconcept import new_evidence, name_allele, \
-    name_chemical, update_phenoevidence, go_to_bioconcept
+from schema_conversion.old_to_new_bioconcept import convert_go
 from schema_conversion.old_to_new_bioentity import feature_to_bioent
 from schema_conversion.old_to_new_biorelation import interaction_to_biorel
-from schema_conversion.old_to_new_reference import new_refs, new_journals, \
-    new_books, new_abstracts, new_author_refs, new_authors, new_ref_types, \
-    reference_to_reference, fix_references_with_same_name
+from schema_conversion.old_to_new_reference import convert_reference
 import datetime
 import model_new_schema
 import model_old_schema
@@ -108,7 +105,8 @@ def convert():
     def f(session):
         #fill_cache(session)
         #update_phenotypes(old_model, 80000, 100000, session)
-        go_to_bioconcept(old_model, session)
+        #go_to_bioconcept(old_model, session)
+        convert_go(old_model, session)
     
     new_model.execute(f, NEW_DBUSER, commit=True)
 

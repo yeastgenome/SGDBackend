@@ -8,9 +8,9 @@
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
-		<h1><span tal:content="ref.basic_info.name"></h1>
+		<h1><span tal:content="ref.name"></h1>
 		<p class="lead">
-			<span tal:content="ref.basic_info.description">
+			<span tal:content="ref.description">
 		</p>
 	</div>
 </header>
@@ -23,10 +23,11 @@
 <div class="row-fluid">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
-			<li><h3><span tal:content="ref.basic_info.name"></h3></li>
+			<li><h3><span tal:content="ref.name"></h3></li>
 			<li><a href="#abstract"><i class="icon-chevron-right"></i> Abstract</a></li>
+			<li><a href="#go"><i class="icon-chevron-right"></i> GO</a></li>
+			<li><a href="#phenotypes"><i class="icon-chevron-right"></i> Phenotypes</a></li>
 			<li><a href="#interactions"><i class="icon-chevron-right"></i> Interactions</a></li>
-			<li><a href="#bioentity-phenotypes"><i class="icon-chevron-right"></i> Phenotypes</a></li>
 
 		</ul>
 	</div>
@@ -39,30 +40,28 @@
 	<div class="page-header">
 		<h1>Abstract</h1>
 		<div>
-			<p tal:condition="python: ref.basic_info.abstract" tal:content="structure ref.basic_info.abstract"></p>
-			<p>PMID: <span tal:content="ref.basic_info.pubmed_id"></span></p>
-			<p tal:condition="python: ref.basic_info.doi">DOI: <span tal:content="ref.basic_info.doi"></span></p>
+			<p tal:condition="python: ref.abstract" tal:content="structure ref.abstract"></p>
+			<p tal:condition="python: ref.pubmed_id">PMID: <span tal:content="ref.pubmed_id"></span></p>
+			<p tal:condition="python: ref.doi">DOI: <span tal:content="ref.doi"></span></p>
 			
 		</div>
 	</div>
 </section>
 
-<!-- Interactions
+<!-- GO
 ================================================== -->
-<section id="interactions">
+<section id="go">
 	<div class="page-header">
-		<h1>Interactions <span id='interactions_header'></h1>
-		<p id='interactions_message'></p>
-		
-		<!-- Brief
-		========================================== -->
-		<div id='interactions_wrapper'>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='interactions_table' width="100%">
+		<h1>Gene Ontology <span id='go_header'></h1>
+		<p id='go_message' style="display:none;">No gene ontology information taken from this reference.</p>
+
+		<div id='go_wrapper'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='go_table' width="100%">
 			<thead>
   			<tr>
-    			<th>Interaction</th>
-    			<th>Endpoint 1</th>
-    			<th>Endpoint 2</th>
+    			<th>GO Term</th>
+    			<th>Gene</th>
+    			<th>Evidence From This Reference</th>
   			</tr>
   			</thead>
 			</table>
@@ -72,20 +71,55 @@
 
 <!-- Phenotypes
 ================================================== -->
-<section id="bioentity-phenotypes">
+<section id="phenotypes">
 	<div class="page-header">
-		<h1>Phenotypes <span id='phenotypes_header'></h1>
-		<p id='phenotypes_message'></p>
+		<h1>Phenotype <span id='phenotype_header'></h1>
 		
-		<!-- Brief
+		<!-- General Phenotypes
 		========================================== -->
-		<div id='phenotypes_wrapper'>
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotypes_table' width="100%">
+		<h3>Cellular Phenotype <span id='cellular_phenotype_header'></h3>
+		<p id='phenotype_message' style="display:none;">No general phenotype information taken from this reference.</p>
+		<div id='phenotype_wrapper'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='phenotype_table' width="100%">
 			<thead>
   			<tr>
-    			<th>Bioentity-Phenotype</th>
     			<th>Phenotype</th>
-    			<th>Bioentity</th>
+    			<th>Gene</th>
+    			<th>Evidence From This Reference</th>
+  			</tr>
+  			</thead>
+			</table>
+		</div>
+		
+		<!-- Chemical Phenotypes
+		========================================== -->
+		<h3>Chemical Phenotype <span id='chemical_phenotype_header'></h3>
+		<p id='chemical_phenotype_message' style="display:none;">No chemical phenotype information taken from this reference.</p>
+		<div id='chemical_phenotype_wrapper'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='chemical_phenotype_table' width="100%">
+			<thead>
+  			<tr>
+    			<th>Phenotype</th>
+    			<th>Gene</th>
+  				<th>Chemical</th>
+    			<th>Evidence From This Reference</th>
+  			</tr>
+  			</thead>
+			</table>
+		</div>
+		
+		<!-- Protein Peptide and RNA Phenotypes
+		========================================== -->
+		<h3>Protein/Peptide and RNA Phenotype <span id='pp_rna_phenotype_header'></h3>
+		<p id='pp_rna_phenotype_message' style="display:none;">No protein/peptide and RNA phenotype information taken from this reference.</p>
+		<div id='pp_rna_phenotype_wrapper'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='pp_rna_phenotype_table' width="100%">
+			<thead>
+  			<tr>
+    			<th>Phenotype</th>
+    			<th>Gene</th>
+    			<th>Reporter</th>
+    			<th>Evidence From This Reference</th>
 
   			</tr>
   			</thead>
@@ -94,47 +128,76 @@
 	</div>
 </section>
 
-<tal:block tal:define="phenotypes_link ref.phenotypes_link">
-<script>
-	$(document).ready(function() {
-  		$('#phenotypes_table').dataTable( {
-    		"sPaginationType": "bootstrap",
-    		"aaSorting": [[0, "asc"]],
-    		"sAjaxSource": '${phenotypes_link}',
-    		"fnInitComplete": function() {
-    			this.fnAdjustColumnSizing(true);
-    			var num_rows = this.fnSettings().fnRecordsTotal();
-    			document.getElementById("phenotypes_header").innerHTML = '(' + num_rows + ')';
-    			if(num_rows == 0) {
-    			 	document.getElementById("phenotypes_message").innerHTML = 'No phenotype information was pulled from this paper.';
-    			 	document.getElementById("phenotypes_wrapper").style.display = 'none';
-    			}
-    		}
-  		} );
-	} );
-</script>
-</tal:block>
+<!-- Interactions
+================================================== -->
+<section id="interactions">
+	<div class="page-header">
+		<h1>Interaction <span id='interaction_header'></h1>
+		<p id='interaction_message' style="display:none;">No interaction information taken from this reference.</p>
+		
+		<!-- Brief
+		========================================== -->
+		<div id='interaction_wrapper'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='interaction_table' width="100%">
+			<thead>
+  			<tr>
+    			<th>Interactor 1</th>
+    			<th>Interactor 2</th>
+    			<th>Evidence From This Reference</th>
+  			</tr>
+  			</thead>
+			</table>
+		</div>
+	</div>
+</section>
 
-<tal:block tal:define="interactions_link ref.interactions_link">
 <script>
 $(document).ready(function() {
-  	$('#interactions_table').dataTable( {
-    	"sPaginationType": "bootstrap",
-    	"aaSorting": [[0, "asc"]],
-    	"sAjaxSource": '${interactions_link}',
-    	"fnInitComplete": function() {
-    		this.fnAdjustColumnSizing(true);
-    		var num_rows = this.fnSettings().fnRecordsTotal();
-    		document.getElementById("interactions_header").innerHTML = '(' + num_rows + ')';
-    		if(num_rows == 0) {
-    			 document.getElementById("interactions_message").innerHTML = 'No interaction information was pulled from this paper.';
-    			 document.getElementById("interactions_wrapper").style.display = 'none';
-    		}
-    	}
-  	} );
-} );
+  		//Get evidence data
+  		$.getJSON('${ref.evidence_link}', function(data) {
+  			var go_table = data['go'];
+  			var phenotype_table = data['phenotype'];
+  			var chemical_phenotype_table = data['chemical_phenotype'];
+  			var pp_rna_phenotype_table = data['pp_rna_phenotype'];
+  			var interaction_table = data['interaction'];
+			
+  			//Set up phenotype table
+			var options = basic_datatable_options("cellular_phenotype_header", '${ref.phenotype_file_name}', "phenotype_wrapper", "phenotype_message");
+			options["aaSorting"] = [[2, "desc"]];
+			options["aoColumns"] = [null, null, {"sType":"num-html"}];
+			options["aaData"] = phenotype_table;
+			$('#phenotype_table').dataTable(options);
+		
+			//Set up chemical phenotype table
+			var options = basic_datatable_options("chemical_phenotype_header", '${ref.chemical_phenotype_file_name}', "chemical_phenotype_wrapper", "chemical_phenotype_message");
+			options["aaSorting"] = [[3, "desc"]];
+			options["aoColumns"] = [null, null, null, {"sType":"num-html"}];
+			options["aaData"] = chemical_phenotype_table;
+			$('#chemical_phenotype_table').dataTable(options);
+		
+			//Set up pp-rna phenotype table
+			var options = basic_datatable_options("pp_rna_phenotype_header", '${ref.pp_rna_phenotype_file_name}', "pp_rna_phenotype_wrapper", "pp_rna_phenotype_message");
+			options["aaSorting"] = [[3, "desc"]];
+			options["aoColumns"] = [null, null, null, {"sType":"num-html"}];
+			options["aaData"] = pp_rna_phenotype_table;
+			$('#pp_rna_phenotype_table').dataTable(options);
+			
+			//Set up go table
+			var options = basic_datatable_options("go_header", '${ref.go_file_name}', "go_wrapper", "go_message");
+			options["aaSorting"] = [[2, "desc"]];
+			options["aoColumns"] = [null, null, {"sType":"num-html"}];
+			options["aaData"] = go_table;
+			$('#go_table').dataTable(options);
+
+  			//Set up interaction table
+			var options = basic_datatable_options("interaction_header", '${ref.interaction_file_name}', "interaction_wrapper", "interaction_message");
+			options["aaSorting"] = [[3, "desc"]];
+			options["aoColumns"] = [null, null, {"sType":"num-html"}];
+			options["aaData"] = interaction_table;
+			$('#interaction_table').dataTable(options);
+  		});
+	} );
 </script>
-</tal:block>
 
 </div>
 
