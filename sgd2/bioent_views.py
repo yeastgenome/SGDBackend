@@ -3,15 +3,16 @@ Created on Feb 20, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.bioconcept import BioentBioconEvidence, BioentBiocon
+from model_new_schema.bioconcept import BioentBiocon
 from model_new_schema.bioentity import Bioentity
+from model_new_schema.evidence import Goevidence, Phenoevidence
 from model_new_schema.link_maker import add_link
 from pyramid.view import view_config
 from sgd2.models import DBSession
 from sgd2.views import site_layout
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import joinedload
-from utils.graph import create_graph
+from utils.graph import create_interaction_graph
 from utils.utils import create_grouped_evidence_table, entry_with_note, \
     entry_with_link, create_phenotype_note
 
@@ -34,72 +35,111 @@ def bioent_view(request):
 @view_config(route_name='bioent_all_biocon', renderer="json")
 def bioent_all_biocon_view(request):
     bioent = get_bioent(request)
-    bioent_biocons = DBSession.query(BioentBiocon).filter(BioentBiocon.bioent_id==bioent.id).options(joinedload('bioconcept')).all()
-    bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in bioent_biocons]
-    bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('bioent_biocon'), joinedload('evidence.reference'), joinedload('bioent_biocon.bioconcept'), joinedload('evidence.bioent_biocon_evidence')).filter(BioentBioconEvidence.bioent_biocon_id.in_(bioent_biocon_ids)).all()
-    evidences = [bioent_biocon_evidence.evidence for bioent_biocon_evidence in bioent_biocon_evidences]
+    go_bioent_biocons = DBSession.query(BioentBiocon).filter(BioentBiocon.bioent_id==bioent.id).filter(BioentBiocon.biocon_type=='GO').all()
+    go_bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in go_bioent_biocons]
+    pheno_bioent_biocons = DBSession.query(BioentBiocon).filter(BioentBiocon.bioent_id==bioent.id).filter(BioentBiocon.biocon_type=='PHENOTYPE').all()
+    pheno_bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in pheno_bioent_biocons]
+    
+    goevidences = DBSession.query(Goevidence).options(joinedload('bioent_biocon'), joinedload('reference'), joinedload('bioent_biocon.bioconcept')).filter(Goevidence.bioent_biocon_id.in_(go_bioent_biocon_ids)).all()
+    phenoevidences = DBSession.query(Phenoevidence).options(joinedload('bioent_biocon'), joinedload('reference'), joinedload('bioent_biocon.bioconcept')).filter(Phenoevidence.bioent_biocon_id.in_(pheno_bioent_biocon_ids)).all()
+    
     tables = {}
-    tables['phenotype'] = get_phenotypes(evidences)
-    tables['chemical_phenotype'] = get_chemical_phenotypes(evidences)
-    tables['pp_rna_phenotype'] = get_pp_rna_phenotypes(evidences)
-    tables['go'] = get_gos(evidences)
+    tables['phenotype'] = get_phenotypes(phenoevidences)
+    tables['chemical_phenotype'] = get_chemical_phenotypes(phenoevidences)
+    tables['pp_rna_phenotype'] = get_pp_rna_phenotypes(phenoevidences)
+    tables['go'] = get_gos(goevidences)
 
     return tables
 
 #-------GO Information------
-def get_gos(bioent_biocons):
-    bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.biocon_type == 'GO']
-    return create_go_table(bioent_biocons)
-    
-def create_go_table(evidences):
-    go_evidences = [evidence for evidence in evidences if evidence.evidence_type == 'GO_EVIDENCE']
-    evidence_map = dict([(evidence.id, evidence.bioent_biocon.id) for evidence in go_evidences])
+@view_config(route_name='bioent_go', renderer="json")
+def bioent_go_view(request):
+    bioent = get_bioent(request)
+    go_bioent_biocons = DBSession.query(BioentBiocon).filter(BioentBiocon.bioent_id==bioent.id).filter(BioentBiocon.biocon_type=='GO').all()
+    go_bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in go_bioent_biocons]
+
+    goevidences = DBSession.query(Goevidence).options(joinedload('bioent_biocon'), joinedload('reference'), joinedload('bioent_biocon.bioconcept')).filter(Goevidence.bioent_biocon_id.in_(go_bioent_biocon_ids)).all()
+
+    return {"aaData":get_gos(goevidences)}
+
+def get_gos(goevidences):
+    evidence_map = dict([(evidence.id, evidence.bioent_biocon.id) for evidence in goevidences])
     def f(evs_for_group, group_term, bioent_biocon):
         total_entry = add_link(str(len(evs_for_group)), bioent_biocon.link)
         return [bioent_biocon.bioconcept.name_with_link, bioent_biocon.bioconcept.go_aspect, total_entry]
-    return create_grouped_evidence_table(go_evidences, evidence_map, f)
+    return create_grouped_evidence_table(goevidences, evidence_map, f)
 
 #-------Phenotype Information------
+@view_config(route_name='bioent_phenotype', renderer="json")
+def bioent_phenotype_view(request):
+    bioent = get_bioent(request)
+    pheno_bioent_biocons = DBSession.query(BioentBiocon).filter(BioentBiocon.bioent_id==bioent.id).filter(BioentBiocon.biocon_type=='PHENOTYPE').all()
+    pheno_bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in pheno_bioent_biocons]
+    
+    phenoevidences = DBSession.query(Phenoevidence).options(joinedload('bioent_biocon'), joinedload('reference'), joinedload('bioent_biocon.bioconcept')).filter(Phenoevidence.bioent_biocon_id.in_(pheno_bioent_biocon_ids)).all()
+     
+    tables = {}
+    tables['phenotype'] = get_phenotypes(phenoevidences)
+    tables['chemical_phenotype'] = get_chemical_phenotypes(phenoevidences)
+    tables['pp_rna_phenotype'] = get_pp_rna_phenotypes(phenoevidences)
+
+    return tables
+
 # Main phenotype information
 def get_phenotypes(evidences):
     other_phenotypes = set()
     other_phenotypes.update(chemical_phenotypes)
     other_phenotypes.update(pp_rna_phenotypes)
     pheno_evidences = [evidence for evidence in evidences 
-                if evidence.evidence_type == 'PHENOTYPE_EVIDENCE' and
-                evidence.bioent_biocon_evidence.bioent_biocon.bioconcept.name not in other_phenotypes]
-    evidence_map = dict([(evidence.id, evidence.bioent_biocon_evidence.bioent_biocon.id) for evidence in pheno_evidences])
+                if evidence.bioent_biocon.bioconcept.name not in other_phenotypes]
+    evidence_map = dict([(evidence.id, evidence.bioent_biocon.id) for evidence in pheno_evidences])
     def f(evs_for_group, group_term, bioent_biocon):
         quals = [evidence.qualifier for evidence in evs_for_group]
+        null_quals = [evidence.qualifier for evidence in evs_for_group if evidence.mutant_type == 'null']
+        null_entry = entry_with_note(str(len(null_quals)), create_phenotype_note(null_quals))
+        overexp_quals = [evidence.qualifier for evidence in evs_for_group if evidence.mutant_type == 'overexpression']
+        overexp_entry = entry_with_note(str(len(overexp_quals)), create_phenotype_note(overexp_quals))
+        cond_quals = [evidence.qualifier for evidence in evs_for_group if evidence.mutant_type == 'conditional']
+        cond_entry = entry_with_note(str(len(cond_quals)), create_phenotype_note(cond_quals))
         total_entry = entry_with_note(add_link(str(len(evs_for_group)), bioent_biocon.link), create_phenotype_note(quals))
-        return [bioent_biocon.bioconcept.name_with_link, total_entry]
+        return [bioent_biocon.bioconcept.name_with_link, null_entry, overexp_entry, cond_entry, total_entry]
         
     return create_grouped_evidence_table(pheno_evidences, evidence_map, f)
 
 # Chemical Phenotype Information
 def get_chemical_phenotypes(evidences):
     chem_evidences = [evidence for evidence in evidences 
-                 if evidence.evidence_type == 'PHENOTYPE_EVIDENCE' and
-                 evidence.bioent_biocon_evidence.bioent_biocon.bioconcept.name in chemical_phenotypes]
+                 if evidence.bioent_biocon.bioconcept.name in chemical_phenotypes]
     evidence_map = dict([(evidence.id, ', '.join([chem.name for chem in evidence.chemicals])) for evidence in chem_evidences])
     def f(evs_for_group, group_term, bioent_biocon):
         quals = [evidence.qualifier for evidence in evs_for_group]
+        null_quals = [evidence.qualifier for evidence in evs_for_group if evidence.mutant_type == 'null']
+        null_entry = entry_with_note(str(len(null_quals)), create_phenotype_note(null_quals))
+        overexp_quals = [evidence.qualifier for evidence in evs_for_group if evidence.mutant_type == 'overexpression']
+        overexp_entry = entry_with_note(str(len(overexp_quals)), create_phenotype_note(overexp_quals))
+        cond_quals = [evidence.qualifier for evidence in evs_for_group if evidence.mutant_type == 'conditional']
+        cond_entry = entry_with_note(str(len(cond_quals)), create_phenotype_note(cond_quals))
         total_entry = entry_with_note(add_link(str(len(evs_for_group)), bioent_biocon.link), create_phenotype_note(quals))
-        return [bioent_biocon.bioconcept.name_with_link, total_entry]
+        return [bioent_biocon.bioconcept.name_with_link, group_term, null_entry, overexp_entry, cond_entry, total_entry]
     
     return create_grouped_evidence_table(chem_evidences, evidence_map, f)
 
 # Protein/peptide and RNA Phenotype Information
 def get_pp_rna_phenotypes(evidences):
     pp_rna_evidences = [evidence for evidence in evidences 
-                 if evidence.evidence_type == 'PHENOTYPE_EVIDENCE' and
-                 evidence.bioent_biocon_evidence.bioent_biocon.bioconcept.name in pp_rna_phenotypes]
+                 if evidence.bioent_biocon.bioconcept.name in pp_rna_phenotypes]
     evidence_map = dict([(evidence.id, evidence.reporter) for evidence in pp_rna_evidences])
     
     def f(evs_for_group, group_term, bioent_biocon):
         quals = [evidence.qualifier for evidence in evs_for_group]
+        null_quals = [evidence.qualifier for evidence in evs_for_group if evidence.mutant_type == 'null']
+        null_entry = entry_with_note(str(len(null_quals)), create_phenotype_note(null_quals))
+        overexp_quals = [evidence.qualifier for evidence in evs_for_group if evidence.mutant_type == 'overexpression']
+        overexp_entry = entry_with_note(str(len(overexp_quals)), create_phenotype_note(overexp_quals))
+        cond_quals = [evidence.qualifier for evidence in evs_for_group if evidence.mutant_type == 'conditional']
+        cond_entry = entry_with_note(str(len(cond_quals)), create_phenotype_note(cond_quals))
         total_entry = entry_with_note(add_link(str(len(evs_for_group)), bioent_biocon.link), create_phenotype_note(quals))
-        return [bioent_biocon.bioconcept.name_with_link, total_entry]
+        return [bioent_biocon.bioconcept.name_with_link, group_term, null_entry, overexp_entry, cond_entry, total_entry]
     
     return create_grouped_evidence_table(pp_rna_evidences, evidence_map, f)
 
@@ -113,13 +153,17 @@ def bioent_all_biorel_view(request):
     return tables
 
 #-------Interaction Information------
+@view_config(route_name='bioent_interaction', renderer="json")
+def bioent_interaction_view(request):
+    bioent = get_bioent(request)
+    
+    return {"aaData":get_interactions(bioent)}
+
 def get_interactions(bioent):
     interactions = [interaction for interaction in bioent.biorelations if interaction.biorel_type == 'INTERACTION']
-    return create_interaction_table(bioent, interactions)
-
-def create_interaction_table(bioent, biorels):
+    
     table = []
-    for biorel in biorels:     
+    for biorel in interactions:     
         biorel_entry = biorel.get_opposite(bioent).name_with_link
         total_entry = entry_with_link(str(biorel.evidence_count), biorel.link)
         table.append([biorel_entry, str(biorel.genetic_evidence_count), str(biorel.physical_evidence_count), total_entry])
@@ -130,7 +174,7 @@ def create_interaction_table(bioent, biorels):
 def bioent_graph_view(request):
     try:
         bioent = get_bioent(request)
-        graph = create_graph(bioent)
+        graph = create_interaction_graph(bioent)
         return graph
     except DBAPIError:
         return ['Error']

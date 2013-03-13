@@ -91,21 +91,17 @@ def create_go_bioent_biocon(old_go_feature):
 
 def create_goevidence(old_go_feature, go_ref):
     from model_new_schema.evidence import Goevidence as NewGoevidence
+    bioent_id = old_go_feature.feature_id
+    biocon_id = create_go_id(old_go_feature.go_id)
+    bioent_biocon_id = tuple_to_bioent_biocon[(bioent_id, biocon_id)].id
     evidence_id = create_goevidence_id(go_ref.id)
     qualifier = None
     if go_ref.go_qualifier is not None:
         qualifier = go_ref.qualifier
-    return NewGoevidence(go_ref.reference_id, old_go_feature.go_evidence, old_go_feature.annotation_type, old_go_feature.source,
+    return NewGoevidence(bioent_biocon_id, go_ref.reference_id, old_go_feature.go_evidence, old_go_feature.annotation_type, old_go_feature.source,
                                 qualifier, old_go_feature.date_last_reviewed, 
                                 evidence_id=evidence_id, date_created=go_ref.date_created, created_by=go_ref.created_by)
 
-def create_go_bioent_biocon_evidence(old_go_feature, go_ref):
-    from model_new_schema.bioconcept import BioentBioconEvidence as NewBioentBioconEvidence
-    bioent_id = old_go_feature.feature_id
-    biocon_id = create_go_id(old_go_feature.go_id)
-    evidence_id = create_goevidence_id(go_ref.id)
-    bioent_biocon_id = tuple_to_bioent_biocon[(bioent_id, biocon_id)].id
-    return NewBioentBioconEvidence(bioent_biocon_id, evidence_id)
 
 """
 ------------Phenotype--------------
@@ -248,7 +244,6 @@ def add_or_check_bioent_biocon_evidence(new_bioent_biocon_evidence, session, out
 def convert_go(old_model, session):
     from model_old_schema.go import Go as OldGo, GoFeature as OldGoFeature
 
-    from model_new_schema.bioconcept import BioentBioconEvidence as NewBioentBioconEvidence
     from model_new_schema.bioentity import Bioentity as NewBioentity
       
     output_creator = OutputCreator()
@@ -282,24 +277,12 @@ def convert_go(old_model, session):
     
     #Create new goevidences if they don't exist, or update the database if they do.
     key_maker = lambda x: x.id
-    values_to_check = ['go_evidence', 'annotation_type', 'source', 'date_last_reviewed', 'qualifier']
+    values_to_check = ['bioent_biocon_id', 'go_evidence', 'annotation_type', 'source', 'date_last_reviewed', 'qualifier']
     for old_go_feature in old_go_features: 
         for go_ref in old_go_feature.go_refs:
             new_evidence = create_goevidence(old_go_feature, go_ref)
             add_or_check(new_evidence, id_to_evidence, key_maker, values_to_check, session, output_creator, 'goevidence', [check_evidence])
-    output_creator.finished('bioent_biocon_evidence')
-        
-    #Cache bioent_biocon_evidences
-    key_maker = lambda x: (x.bioent_biocon_id, x.evidence_id)
-    cache(NewBioentBioconEvidence, tuple_to_bioent_biocon_evidence, key_maker, session, output_creator, 'bioent_biocon_evidence')
-    output_creator.cached('bioent_biocon_evidence')
-    
-    #Create new bioent_biocon_evidences if they don't exist, or update the database if they do.
-    for old_go_feature in old_go_features: 
-        for go_ref in old_go_feature.go_refs:
-            new_bioent_biocon_evidence = create_go_bioent_biocon_evidence(old_go_feature, go_ref)
-            add_or_check_bioent_biocon_evidence(new_bioent_biocon_evidence, session, output_creator)
-    output_creator.finished('bioent_biocon_evidence')
+    output_creator.finished('goevidence')
     
 def convert_phenotyp(old_model, session):
     from model_new_schema.evidence import Allele as NewAllele, PhenoevidenceChemical as NewPhenoevidenceChemical

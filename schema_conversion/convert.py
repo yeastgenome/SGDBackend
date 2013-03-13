@@ -106,95 +106,11 @@ def convert():
         #fill_cache(session)
         #update_phenotypes(old_model, 80000, 100000, session)
         #go_to_bioconcept(old_model, session)
-        convert_go(old_model, session)
+        #convert_go(old_model, session)
+        convert_reference(old_model, session)
     
     new_model.execute(f, NEW_DBUSER, commit=True)
 
-def fill_cache(session):
-    from model_new_schema.reference import Reference as NewReference, Journal as NewJournal, Book as NewBook, \
-    Abstract as NewAbstract, AuthorReference as NewAuthorReference, Author as NewAuthor, Reftype as NewRefType
-    
-    from model_old_schema.reference import Reflink as OldReflink
-    
-    from model_new_schema.evidence import Phenoevidence as NewPhenoevidence, Allele as NewAllele
-    
-    from model_new_schema.bioentity import Bioentity as NewBioentity
-    
-    from model_new_schema.bioconcept import Bioconcept as NewBioconcept, BioentBiocon as NewBioentBiocon
-
-    from model_new_schema.chemical import Chemical as NewChemical
-        
-    time = datetime.datetime.now()
-
-    #new_rs = model_new_schema.model.get(NewReference, session=session)
-    #for r in new_rs:
-    #    new_refs[r.id] = r
-    #new_time = datetime.datetime.now()
-    #print 'Reference cache filled in ' + str(new_time-time)
-    #time = new_time
-        
-    #new_js = model_new_schema.model.get(NewJournal, session=session)
-    #for j in new_js:
-    #    new_journals[j.id] = j
-    #new_time = datetime.datetime.now()
-    #print 'Journal cache filled in ' + str(new_time-time)
-    #time = new_time
-            
-    #new_bs = model_new_schema.model.get(NewBook, session=session)
-    #for b in new_bs:
-    #    new_books[b.id] = b
-    #new_time = datetime.datetime.now()
-    #print 'Book cache filled in ' + str(new_time-time)
-    #time = new_time
-        
-    #new_abs = model_new_schema.model.get(NewAbstract, session=session)
-    #for ab in new_abs:
-    #    new_abstracts[ab.reference_id] = ab
-    #new_time = datetime.datetime.now()
-    #print 'Abstract cache filled in ' + str(new_time-time)
-    #time = new_time
-            
-    #new_ars = model_new_schema.model.get(NewAuthorReference, session=session)
-    #for ar in new_ars:
-    #    new_author_refs[ar.id] = ar
-    #new_time = datetime.datetime.now()
-    #print 'Author Reference cache filled in ' + str(new_time-time)
-    #time = new_time
-        
-    #new_as = model_new_schema.model.get(NewAuthor, session=session)
-    #for a in new_as:
-    #    new_authors[a.id] = a
-    #new_time = datetime.datetime.now()
-    #print 'Author cache filled in ' + str(new_time-time)
-    #time = new_time
-            
-    #new_rts = model_new_schema.model.get(NewRefType, session=session)
-    #for rt in new_rts:
-    #    new_ref_types[rt.id] = rt
-    #new_time = datetime.datetime.now()
-    #print 'Reftype cache filled in ' + str(new_time-time)
-    #time = new_time
-    
-    #new_evs = model_new_schema.model.get(NewPhenoevidence, session=session)
-    #for e in new_evs:
-    #    new_evidence[e.id] = e
-    #new_time = datetime.datetime.now()
-    #print 'Phenevidence cache filled in ' + str(new_time-time)
-    #time = new_time
-    
-    #new_alls = model_new_schema.model.get(NewAllele, session=session)
-    #for al in new_alls:
-    #    name_allele[al.name] = al
-    #new_time = datetime.datetime.now()
-    #print 'Allele cache filled in ' + str(new_time-time)
-    #time = new_time
-    
-    #new_chems = model_new_schema.model.get(NewChemical, session=session)
-    #for c in new_chems:
-    #    name_chemical[c.name] = c
-    #new_time = datetime.datetime.now()
-    #print 'Chemical cache filled in ' + str(new_time-time)
-    #time = new_time
 
     
 

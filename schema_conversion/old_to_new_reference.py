@@ -81,7 +81,9 @@ def create_citation(citation):
         if len(word) > 3:
             words_in_name[i] = word.title()
     name = ' '.join(words_in_name)
-    return name + citation[end_of_name:]
+    new_citation = name + citation[end_of_name:]
+    new_citation = new_citation.replace('()', '')
+    return new_citation
   
 def create_name(citation):
     name = citation[:citation.find(")")+1]
@@ -194,6 +196,7 @@ def convert_reference(old_model, session):
     create_or_update(old_objs, tuple_to_reftype_ref, create_reftype_reference, key_maker, values_to_check, 
                      old_model, session, output_creator, output_message)
         
+    session.commit()
     #Cache author_refs
     key_maker = lambda x: (x.author_id, x.reference_id)
     output_message = 'author_ref'

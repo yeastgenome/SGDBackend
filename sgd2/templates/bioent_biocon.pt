@@ -117,14 +117,7 @@
 <script>
 	$(document).ready(function() {
 		//Get evidence data
-		var link;
-		var hide_first;
-		if('${bioent_biocon.type}' == 'BIOENT_BIOCON') {
-			hide_first = true;
-		}
-		else {
-			hide_first = false
-		}
+		
   		$.getJSON('${evidence_link}', function(data) {
   			var evidence_table = data['evidence'];
 			var references = data['reference'];
@@ -133,7 +126,7 @@
 			var options = basic_datatable_options("evidence_header", 
 				'${bioent_biocon.name}_evidence', "evidence_wrapper", "evidence_message");
 			options["fnInitComplete"] = function() {
-				if(hide_first) {
+				if('${bioent_biocon.type}' == 'BIOENT_BIOCON') {
 					this.fnSetColumnVis(0, false);
     			}  
     			var num_rows = this.fnSettings().fnRecordsTotal();

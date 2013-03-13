@@ -35,9 +35,8 @@ def bicon_all_bioent_view(request):
         return Response(status_int=500, body='Biocon could not be found.')
     
     bioent_biocons = DBSession.query(BioentBiocon).options(joinedload('bioentity')).filter(BioentBiocon.biocon_id==biocon.id).all()
-    tables = {}
-    tables['bioent'] = get_bioents(bioent_biocons)
-    return tables
+
+    return {"aaData":get_bioents(bioent_biocons)}
 
 def get_bioents(bioent_biocons):
     table = []

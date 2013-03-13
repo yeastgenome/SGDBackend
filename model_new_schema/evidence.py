@@ -4,6 +4,8 @@ Created on Dec 11, 2012
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema.bioconcept import BioentBiocon
+from model_new_schema.biorelation import Interaction
 from model_new_schema.chemical import Chemical
 from model_new_schema.link_maker import add_link, allele_link
 from model_new_schema.reference import Reference
@@ -62,12 +64,13 @@ class Interevidence(Evidence):
     modification = Column('modification', String)
     direction = Column('direction', String)
     interaction_type = Column('interaction_type', String)
+    biorel_id = Column('biorel_id', Integer, ForeignKey('sprout.interaction.biorel_id'))
     
     type = 'BIOREL_EVIDENCE'
     
     __mapper_args__ = {'polymorphic_identity': "INTERACTION_EVIDENCE"}
     
-    biorel = association_proxy('biorel_evidence', 'biorel')
+    biorel = relationship(Interaction, backref='evidences')
 
     @hybrid_property
     def phenotype(self):
@@ -130,8 +133,7 @@ class PhenoevidenceChemical(Base):
         self.chemical_amt = chemical_amt
     
     #Relationships
-    #evidence = relationship('Phenoevidence', uselist=False)
-    chemical = relationship(Chemical, uselist=False)
+    chemical = relationship(Chemical, uselist=False, lazy='joined')
     chemical_name = association_proxy('chemical', 'name')
         
 class Phenoevidence(Evidence):
@@ -153,14 +155,16 @@ class Phenoevidence(Evidence):
     chitin_level = Column('chitin_level', Float)
     description = Column('description', String)
     
+    bioent_biocon_id = Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id'))
+    
     type = 'BIOCON_EVIDENCE'
     
     #Relationship
     allele = relationship('Allele', lazy='subquery', uselist=False)
-    phenoev_chemicals = relationship('PhenoevidenceChemical')
+    phenoev_chemicals = relationship('PhenoevidenceChemical', backref='evidence', lazy='joined')
     chemicals = association_proxy('phenoev_chemicals', 'chemical')
 
-    bioent_biocon = association_proxy('bioent_biocon_evidences', 'bioent_biocon')
+    bioent_biocon = relationship(BioentBiocon)
     
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE"}
     
@@ -185,16 +189,19 @@ class Goevidence(Evidence):
     date_last_reviewed = Column('date_last_reviewed', Date)
     qualifier = Column('qualifier', String)
     
-    bioent_biocon = association_proxy('bioent_biocon_evidences', 'bioent_biocon')
+    bioent_biocon_id = Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id'))
+    
+    bioent_biocon = relationship(BioentBiocon)
 
     type = 'BIOCON_EVIDENCE'
 
     __mapper_args__ = {'polymorphic_identity': "GO_EVIDENCE"}
 
     
-    def __init__(self, reference_id, go_evidence, annotation_type, source, qualifier, date_last_reviewed,
+    def __init__(self, bioent_biocon_id, reference_id, go_evidence, annotation_type, source, qualifier, date_last_reviewed,
                  session=None, evidence_id=None, date_created=None, created_by=None):
         Evidence.__init__(self, None, reference_id, 'GO_EVIDENCE', None, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
+        self.bioent_biocon_id = bioent_biocon_id
         self.go_evidence = go_evidence
         self.annotation_type = annotation_type
         self.source = source

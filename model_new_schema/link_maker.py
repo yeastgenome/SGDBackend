@@ -24,7 +24,12 @@ def bioent_all_biorel_link(bioent):
     return bioent.link + '/biorel'
 def bioent_all_biocon_link(bioent):
     return bioent.link + '/biocon'
-
+def bioent_go_link(bioent):
+    return bioent.link + '/go'
+def bioent_phenotype_link(bioent):
+    return bioent.link + '/phenotype'
+def bioent_interaction_link(bioent):
+    return bioent.link + '/interaction'
 
 #Biorelation links
 def biorel_link(biorel):
@@ -53,6 +58,12 @@ def reference_link(reference):
     return '/reference/' + str(link_str)
 def reference_evidence_link(reference):
     return reference.link + '/evidence'
+def reference_phenotype_link(reference):
+    return reference.link + '/phenotype'
+def reference_go_link(reference):
+    return reference.link + '/go'
+def reference_interaction_link(reference):
+    return reference.link + '/interaction'
 
 #Misc links
 def allele_link(allele):

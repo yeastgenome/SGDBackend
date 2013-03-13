@@ -3,8 +3,9 @@ Created on Feb 21, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.bioconcept import BioentBioconEvidence, BioentBiocon
+from model_new_schema.bioconcept import BioentBiocon
 from model_new_schema.bioentity import Bioentity
+from model_new_schema.evidence import Goevidence, Phenoevidence
 from pyramid.view import view_config
 from sgd2.models import DBSession
 from sgd2.views import site_layout
@@ -30,26 +31,29 @@ def bioent_biocon_view(request):
     return {'layout': site_layout(), 'page_title': bioent_biocon.name, 'bioent_biocon':bioent_biocon, 
             'evidence_link':evidence_link, 'biocon_type':biocon_type}
 
+
+biocon_evidence_class = {'GO':Goevidence, 'PHENOTYPE': Phenoevidence}
+
 #------------------Evidence Information-----------------------
 @view_config(route_name='bioent_biocon_evidence', renderer='json')
 def bioent_biocon_evidence_view(request):
     bioent_biocon = get_bioent_biocon(request)
     biocon_type = request.matchdict['biocon_type'].upper()
+    cls = biocon_evidence_class[biocon_type]
+            
     if bioent_biocon.type == 'BIOENTITY':
         bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in bioent_biocon.bioent_biocons if bioent_biocon.biocon_type == biocon_type]
-        bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('bioent_biocon'), joinedload('evidence.reference'), joinedload('bioent_biocon.bioconcept'), joinedload('evidence.bioent_biocon_evidences')).filter(BioentBioconEvidence.bioent_biocon_id.in_(bioent_biocon_ids)).all()
+        evidences = DBSession.query(cls).options(joinedload('bioent_biocon'), joinedload('reference'), joinedload('bioent_biocon.bioconcept')).filter(cls.bioent_biocon_id.in_(bioent_biocon_ids)).all()
     else:
         bioent_biocon_id = bioent_biocon.id
-        bioent_biocon_evidences = DBSession.query(BioentBioconEvidence).options(joinedload('evidence'), joinedload('bioent_biocon'), joinedload('evidence.reference')).filter(BioentBioconEvidence.bioent_biocon_id==bioent_biocon_id).all()
-    
-    evidences = [bioent_biocon_evidence.evidence for bioent_biocon_evidence in bioent_biocon_evidences]
-    
+        evidences = DBSession.query(cls).options(joinedload('bioent_biocon'), joinedload('reference')).filter(cls.bioent_biocon_id==bioent_biocon_id).all()
+        
     tables = {}
     if biocon_type == 'PHENOTYPE':
         tables['evidence'] = create_evidence_table_for_phenotype(evidences)
     elif biocon_type == 'GO':
         tables['evidence'] = create_evidence_table_for_go(evidences)        
-    tables['reference'] = get_references(bioent_biocon_evidences)
+    tables['reference'] = get_references(evidences)
     return tables
 
 def create_evidence_table_for_phenotype(evidences):
@@ -94,8 +98,8 @@ def create_evidence_table_for_go(evidences):
                       reference_entry])
     return table
 
-def get_references(bioent_biocon_evidences):
-    references = set([bioent_biocon_evidence.evidence.reference for bioent_biocon_evidence in bioent_biocon_evidences])
+def get_references(evidences):
+    references = set([evidence.reference for evidence in evidences])
     sorted_references = sorted(references, key=lambda x: x.name)
     citations = [reference.citation for reference in sorted_references]
     return citations

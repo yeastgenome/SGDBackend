@@ -8,7 +8,8 @@ Reference module of the database schema.
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
 from model_new_schema.link_maker import add_link, reference_link, \
-    reference_evidence_link
+    reference_evidence_link, reference_phenotype_link, reference_go_link, \
+    reference_interaction_link
 from model_new_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -138,6 +139,16 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     @hybrid_property
     def evidence_link(self):
         return reference_evidence_link(self)
+    @hybrid_property
+    def phenotype_link(self):
+        return reference_phenotype_link(self)
+    @hybrid_property
+    def go_link(self):
+        return reference_go_link(self)
+    @hybrid_property
+    def interaction_link(self):
+        return reference_interaction_link(self)
+    
     @hybrid_property
     def name(self):
         return self.citation[:self.citation.find(')')+1] + ' pmid: ' + str(self.pubmed_id)

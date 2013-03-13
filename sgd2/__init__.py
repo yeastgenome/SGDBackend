@@ -32,6 +32,10 @@ def main(global_config, **settings):
    
     config.add_route('bioent', '/bioent/{bioent_name}')
     config.add_route('bioent_all_biocon', '/bioent/{bioent_name}/biocon')
+    config.add_route('bioent_go', '/bioent/{bioent_name}/go')
+    config.add_route('bioent_phenotype', '/bioent/{bioent_name}/phenotype')
+    config.add_route('bioent_interaction', '/bioent/{bioent_name}/interaction')
+
     config.add_route('bioent_all_biorel', '/bioent/{bioent_name}/biorel')
     config.add_route('bioent_graph', '/bioent/{bioent_name}/graph')
 
@@ -46,6 +50,9 @@ def main(global_config, **settings):
 
     config.add_route('reference', '/reference/{pubmed_id}')
     config.add_route('reference_all_evidence', '/reference/{pubmed_id}/evidence')
+    config.add_route('reference_phenotype', '/reference/{pubmed_id}/phenotype')
+    config.add_route('reference_go', '/reference/{pubmed_id}/go')
+    config.add_route('reference_interaction', '/reference/{pubmed_id}/interaction')
     
     config.add_route('allele', '/allele/{allele_name}')
 

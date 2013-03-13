@@ -19,11 +19,11 @@ function basic_datatable_options(header_id, save_name, wrapper_id, message_id) {
 				"print",
 				{
 					"sExtends": "csv",
-					"sTitle": save_name
+					"sTitle": save_name + '.csv'
 				},
 				{
 					"sExtends": "xls",
-					"sTitle": save_name
+					"sTitle": save_name + '.xls'
 				}	
 			],
         	"sSwfPath": "../static/js/copy_csv_xls_pdf.swf"

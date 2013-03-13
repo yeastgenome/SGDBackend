@@ -4,7 +4,8 @@ Created on Feb 21, 2013
 @author: kpaskov
 '''
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.biorelation import Biorelation, BiorelEvidence
+from model_new_schema.biorelation import Biorelation
+from model_new_schema.evidence import Interevidence
 from pyramid.view import view_config
 from sgd2.models import DBSession
 from sgd2.views import site_layout
@@ -36,24 +37,26 @@ def biorel_evidence_view(request):
     if biorel.type == 'BIORELATION':
         bioent = None
         biorel_id = biorel.id
-        evidences = DBSession.query(BiorelEvidence).options(joinedload('evidence'), joinedload('evidence.reference'), joinedload('biorel'), joinedload('evidence.biorel_evidence')).filter(BiorelEvidence.biorel_id==biorel_id).all()
+        interevidences = DBSession.query(Interevidence).options(joinedload('biorel'), joinedload('reference')).filter(Interevidence.biorel_id==biorel_id).all()
     else:
         bioent = biorel
         biorel_ids = [biorel.id for biorel in bioent.biorelations]
-        evidences = DBSession.query(BiorelEvidence).options(joinedload('evidence'), joinedload('evidence.reference'), joinedload('biorel'), joinedload('evidence.biorel_evidence')).filter(BiorelEvidence.biorel_id.in_(biorel_ids)).all()
+        interevidences = DBSession.query(Interevidence).options(joinedload('biorel'), joinedload('reference')).filter(Interevidence.biorel_id.in_(biorel_ids)).all()
            
     tables = {}
-    tables['genetic_evidence'] = get_genetic_evidence(evidences, bioent)
-    tables['physical_evidence'] = get_physical_evidence(evidences, bioent)
-    tables['reference']  = get_reference(evidences)
+    tables['genetic_evidence'] = get_genetic_evidence(interevidences, bioent)
+    tables['physical_evidence'] = get_physical_evidence(interevidences, bioent)
+    tables['reference']  = get_reference(interevidences)
     return tables
 
-def get_genetic_evidence(evidences, bioent):
-    gen_evidences = set([biorel_evidence.evidence for biorel_evidence in evidences if biorel_evidence.evidence.evidence_type == 'INTERACTION_EVIDENCE' and biorel_evidence.evidence.interaction_type == 'genetic'])
+def get_genetic_evidence(interevidences, bioent):
+    gen_evidences = set([evidence for evidence in interevidences 
+                         if evidence.interaction_type == 'genetic'])
     return create_evidence_table_for_interaction(gen_evidences, bioent, True)
 
-def get_physical_evidence(evidences, bioent):
-    phys_evidences = set([biorel_evidence.evidence for biorel_evidence in evidences if biorel_evidence.evidence.evidence_type == 'INTERACTION_EVIDENCE' and biorel_evidence.evidence.interaction_type == 'physical'])
+def get_physical_evidence(interevidences, bioent):
+    phys_evidences = set([evidence for evidence in interevidences 
+                          if evidence.interaction_type == 'physical'])
     return create_evidence_table_for_interaction(phys_evidences, bioent, False)
 
 def create_evidence_table_for_interaction(evidences, bioent, is_genetic):
@@ -88,8 +91,8 @@ def reverse_direction(direction):
         return 'bait-hit'
 
 #------------------Reference Information-----------------------
-def get_reference(evidences):
-    references = set([biorel_evidence.evidence.reference for biorel_evidence in evidences if biorel_evidence.evidence.evidence_type == 'INTERACTION_EVIDENCE'])
+def get_reference(interevidences):
+    references = set([evidence.reference for evidence in interevidences])
     sorted_references = sorted(references, key=lambda x: x.name)
     citations = [reference.citation for reference in sorted_references]
     return citations

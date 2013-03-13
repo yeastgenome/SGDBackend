@@ -153,13 +153,27 @@
 
 <script>
 $(document).ready(function() {
+		//Set up go table
+		var options = basic_datatable_options("go_header", '${ref.go_file_name}', "go_wrapper", "go_message");
+		options["aaSorting"] = [[2, "desc"]];
+		options["aoColumns"] = [null, null, {"sType":"num-html"}];
+		options["bProcessing"] = true
+		options["sAjaxSource"] = '${ref.go_link}';
+		$('#go_table').dataTable(options);
+
+  		//Set up interaction table
+		var options = basic_datatable_options("interaction_header", '${ref.interaction_file_name}', "interaction_wrapper", "interaction_message");
+		options["aaSorting"] = [[3, "desc"]];
+		options["aoColumns"] = [null, null, {"sType":"num-html"}];
+		options["bProcessing"] = true
+		options["sAjaxSource"] = '${ref.interaction_link}';
+		$('#interaction_table').dataTable(options);
+			
   		//Get evidence data
-  		$.getJSON('${ref.evidence_link}', function(data) {
-  			var go_table = data['go'];
+  		$.getJSON('${ref.phenotype_link}', function(data) {
   			var phenotype_table = data['phenotype'];
   			var chemical_phenotype_table = data['chemical_phenotype'];
   			var pp_rna_phenotype_table = data['pp_rna_phenotype'];
-  			var interaction_table = data['interaction'];
 			
   			//Set up phenotype table
 			var options = basic_datatable_options("cellular_phenotype_header", '${ref.phenotype_file_name}', "phenotype_wrapper", "phenotype_message");
@@ -182,19 +196,6 @@ $(document).ready(function() {
 			options["aaData"] = pp_rna_phenotype_table;
 			$('#pp_rna_phenotype_table').dataTable(options);
 			
-			//Set up go table
-			var options = basic_datatable_options("go_header", '${ref.go_file_name}', "go_wrapper", "go_message");
-			options["aaSorting"] = [[2, "desc"]];
-			options["aoColumns"] = [null, null, {"sType":"num-html"}];
-			options["aaData"] = go_table;
-			$('#go_table').dataTable(options);
-
-  			//Set up interaction table
-			var options = basic_datatable_options("interaction_header", '${ref.interaction_file_name}', "interaction_wrapper", "interaction_message");
-			options["aaSorting"] = [[3, "desc"]];
-			options["aoColumns"] = [null, null, {"sType":"num-html"}];
-			options["aaData"] = interaction_table;
-			$('#interaction_table').dataTable(options);
   		});
 	} );
 </script>

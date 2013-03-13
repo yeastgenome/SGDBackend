@@ -4,11 +4,9 @@ Created on Nov 27, 2012
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
-from model_new_schema.evidence import Evidence
 from model_new_schema.link_maker import link_symbol, add_link, biorel_link
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 import datetime
@@ -31,9 +29,6 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     #Relationships
     source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id", lazy='joined', backref='biorel_source')
     sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id", lazy='joined', backref='biorel_sink')
-
-    biorel_evidences = relationship('BiorelEvidence')
-    evidences = association_proxy('biorel_evidences', 'evidence')
         
     __mapper_args__ = {'polymorphic_on': biorel_type,
                        'polymorphic_identity':"BIORELATION",
@@ -129,14 +124,4 @@ class Structural(Biorelation):
 
 class ProteinBiosynthesis(Biorelation):
     __mapper_args__ = {'polymorphic_identity': "PROTEIN_BIOSYNTHESIS"}
-    
-class BiorelEvidence(Base, UniqueMixin):
-    __tablename__ = "biorel_evidence"
-    biorel_evidence_id = Column('biorel_evidence_id', Integer, primary_key=True)
-    biorel_id = Column('biorel_id', Integer, ForeignKey('sprout.biorel.biorel_id'))
-    evidence_id = Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id'))
-
-    #Relationships
-    evidence = relationship(Evidence, backref=backref('biorel_evidence', uselist=False))
-    biorel = relationship(Biorelation, uselist=False)
 

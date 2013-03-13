@@ -67,18 +67,15 @@
 
 <script>
 	$(document).ready(function() {
-		$.getJSON('${biocon.all_bioent_link}', function(data) {
-  			var bioents = data['bioent'];
-  			
-			//Set up gene table
-			var options = basic_datatable_options("genes_header", 
+		//Set up gene table
+		var options = basic_datatable_options("genes_header", 
 				'${biocon.name}_genes', "genes_wrapper", "genes_message");
-			options["aaSorting"] = [[1, "desc"]];
-			options["aoColumns"] = [null, {"sType":"num-html"}];
-			options["aaData"] = bioents;
-  			$('#genes_table').dataTable(options);	
+		options["aaSorting"] = [[1, "desc"]];
+		options["aoColumns"] = [null, {"sType":"num-html"}];
+		options["bProcessing"] = true;
+		options["sAjaxSource"] = '${biocon.all_bioent_link}'
+  		$('#genes_table').dataTable(options);	
   			
-  		});
 	} );
 </script>
 

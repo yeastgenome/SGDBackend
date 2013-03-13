@@ -7,41 +7,13 @@ from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
 from model_new_schema.config import SCHEMA
 from model_new_schema.link_maker import add_link, link_symbol, biocon_link, \
     bioent_biocon_link, biocon_all_bioent_link
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 import datetime
 
-class BioentBioconEvidence(Base, EqualityByIDMixin, UniqueMixin):
-    __tablename__ = 'bioent_biocon_evidence'
 
-    
-    id = Column('bioent_biocon_evidence_id', Integer, primary_key=True)
-    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
-    biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
-    #bioent_biocon_id = Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id'))
-    evidence_id = Column('evidence_id', Integer, ForeignKey('sprout.evidence.evidence_id'))
-    
-    bioentity = relationship('Bioentity', uselist=False, backref='bioent_biocons')
-    bioconcept = relationship('Bioconcept', uselist=False, backref='bioent_biocons')
-    #bioent_biocon = relationship('BioentBiocon', uselist=False, backref=backref('bioent_biocon_evidences'))
-    evidence = relationship('Evidence', uselist=False, backref=backref('bioent_biocon_evidence', uselist=False))
-    
-    
-    def __init__(self, bioent_biocon_id, evidence_id):
-        self.bioent_biocon_id = bioent_biocon_id
-        self.evidence_id = evidence_id
-    
-    @classmethod
-    def unique_hash(cls, bioent_biocon_id, evidence_id):
-        return '%s_%s' % (bioent_biocon_id, evidence_id) 
-
-    @classmethod
-    def unique_filter(cls, query, bioent_biocon_evidence, evidence_id):
-        return query.filter(BioentBioconEvidence.bioent_biocon_evidence == bioent_biocon_evidence, BioentBioconEvidence.evidence_id == evidence_id)
-    
 class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = 'bioent_biocon'
 
@@ -52,9 +24,7 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     official_name = Column('name', String)
     evidence_count = Column('evidence_count', Integer)
     evidence_desc = Column('evidence_desc', String)
-    
-    evidences = association_proxy('bioent_biocon_evidences', 'evidence')
-    
+        
     bioentity = relationship('Bioentity', uselist=False, backref='bioent_biocons')
     bioconcept = relationship('Bioconcept', uselist=False, backref='bioent_biocons')
     type = "BIOENT_BIOCON"
