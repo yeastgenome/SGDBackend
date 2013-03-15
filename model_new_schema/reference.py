@@ -150,18 +150,28 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
         return reference_interaction_link(self)
     
     @hybrid_property
+    def small_pmid(self):
+        print self.pubmed_id
+        if self.pubmed_id is None:
+            return ''
+        else:
+            return ' <small>PMID:' + str(self.pubmed_id) + '</small>'
+    @hybrid_property
     def name(self):
-        return self.citation[:self.citation.find(')')+1] + ' pmid: ' + str(self.pubmed_id)
+        return self.author_year + self.small_pmid
     @hybrid_property
     def name_with_link(self):
-        return self.citation[:self.citation.find(')')+1] + ' ' + self.pmid_with_link
+        return self.author_year_with_link + self.small_pmid
     @hybrid_property
-    def pmid_with_link(self):
-        return 'pmid: ' + add_link(str(self.pubmed_id), self.link)
+    def author_year(self):
+        return self.citation_db[:self.citation_db.find(')')+1]
+    @hybrid_property
+    def author_year_with_link(self):
+        return add_link(self.author_year, self.link)
 
     @hybrid_property
     def citation(self):
-        return self.citation_db + ' ' + self.pmid_with_link
+        return self.author_year_with_link + self.citation_db[self.citation_db.find(')')+1:] + self.small_pmid
     @hybrid_property
     def description(self):
         return self.title

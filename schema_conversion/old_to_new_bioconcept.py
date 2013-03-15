@@ -282,14 +282,31 @@ def convert_go(old_model, session):
         for go_ref in old_go_feature.go_refs:
             new_evidence = create_goevidence(old_go_feature, go_ref)
             add_or_check(new_evidence, id_to_evidence, key_maker, values_to_check, session, output_creator, 'goevidence', [check_evidence])
-    output_creator.finished('goevidence')
+    output_creator.finished('goevidence')            
+    
+    use_in_graph = set()
+    for goevidence in id_to_evidence.values():
+        if goevidence.evidence_type == 'GO_EVIDENCE' and goevidence.annotation_type != 'computational':
+            use_in_graph.add(goevidence.bioent_biocon)
+    
+    #Set use_in_graph value for all bioent_biocons 
+    changed = 0;
+    for bioent_biocon in tuple_to_bioent_biocon.values():
+        if bioent_biocon.use_in_graph == 'Y' and bioent_biocon not in use_in_graph:
+            bioent_biocon.use_in_graph = 'N'
+            changed = changed + 1
+        elif bioent_biocon.use_in_graph == 'N' and bioent_biocon in use_in_graph:
+            bioent_biocon.use_in_graph = 'Y'
+            changed = changed + 1
+   
+    print 'In total ' + str(changed) + ' bioent_biocons use_in_graph changed.'
+            
     
 def convert_phenotyp(old_model, session):
     from model_new_schema.evidence import Allele as NewAllele, PhenoevidenceChemical as NewPhenoevidenceChemical
     from model_new_schema.chemical import Chemical as NewChemical
     from model_new_schema.bioentity import Bioentity as NewBioentity
     from model_old_schema.phenotype import PhenotypeFeature as OldPhenotypeFeature, Phenotype as OldPhenotype
-    from model_new_schema.bioconcept import BioentBioconEvidence as NewBioentBioconEvidence
     
     output_creator = OutputCreator()
 

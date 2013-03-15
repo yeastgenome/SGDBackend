@@ -67,6 +67,19 @@ def create_phenotype_note(qualifiers):
     else:
         return ''
     
+def create_note_from_pieces(pieces):
+    pieces_to_count = {}
+    for piece in pieces:
+        if piece in pieces_to_count:
+            pieces_to_count[piece] = pieces_to_count[piece] + 1
+        else:
+            pieces_to_count[piece] = 1
+            
+    messages = [str(value) + ' ' + key for (key, value) in pieces_to_count.iteritems()]
+    message = ', '.join(sorted(messages))
+
+    return '(' + message + ')'
+    
 def entry_with_link(entry_name, link):
     return"<a href='" + link + "'>" + entry_name + "</a>"
 

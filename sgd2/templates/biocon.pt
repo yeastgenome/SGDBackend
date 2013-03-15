@@ -37,7 +37,7 @@
 	<div class="page-header">
 		<h1>Summary</h1>
 		<div>
-			<ul class='unstyled'>
+			<ul class='unstyled' tal:condition="biocon.type == 'GO'">
 			</ul>
 		</div>
 	</div>

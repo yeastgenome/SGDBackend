@@ -343,7 +343,7 @@
 
 <script type="text/javascript">
 window.onload=function() {
-	setup_cytoscape_vis("${bioent.graph_link}");   
+	setup_cytoscape_vis("${bioent.interaction_graph_link}");   
 };           
 
 </script>

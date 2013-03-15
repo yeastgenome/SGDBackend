@@ -71,6 +71,8 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     litGuideTopics = association_proxy('litGuides', 'topic')
     
     curations = relationship('RefCuration', cascade='all,delete')
+    
+    dbxrefs = association_proxy('dbxrefrefs', 'dbxref')
 
     
     def __init__(self, session, pubmed_id):

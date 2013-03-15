@@ -28,8 +28,13 @@ def bioent_biocon_view(request):
     biocon_type = request.matchdict['biocon_type'].upper()
     
     evidence_link = request.url + '/evidence'
+    
+    go_graph_link = None
+    if bioent_biocon.type == 'BIOENTITY' and biocon_type == 'GO':
+        go_graph_link = bioent_biocon.go_graph_link
+        
     return {'layout': site_layout(), 'page_title': bioent_biocon.name, 'bioent_biocon':bioent_biocon, 
-            'evidence_link':evidence_link, 'biocon_type':biocon_type}
+            'evidence_link':evidence_link, 'biocon_type':biocon_type, 'go_graph_link':go_graph_link}
 
 
 biocon_evidence_class = {'GO':Goevidence, 'PHENOTYPE': Phenoevidence}
@@ -75,17 +80,10 @@ def create_evidence_table_for_phenotype(evidences):
         chemical_info = ', '.join(chemicals)
         
         table.append([bioent_biocon_entry, evidence.qualifier, evidence.experiment_type, evidence.mutant_type, allele_entry, 
-                      evidence.reporter, chemical_info, evidence.strain_id, reference_entry])
+                      evidence.reporter, chemical_info, evidence.strain_id, evidence.source, reference_entry])
     return table
 
-go_code_to_full_name = {'EXP': 'Inferred from experiment', 'IDA':'Inferred from direct assay', 'IPI':'Inferred from physical interaction', 
-                          'IMP':'Inferred from mutant phenotype', 'IGI': 'Inferred from genetic interaction', 'IEP': 'Inferred from expression pattern', 
-                          'ISS': 'Inferred from sequence of structural similarity', 'ISO':'Inferred from sequence orthology', 'ISA':'Inferred from sequence alignment',
-                          'ISM':'Inferred from sequence model', 'IGC':'Inferred from genomic context', 'IBA': 'Inferred from biological aspect of ancestor',
-                          'IBD':'Inferred from biological aspect of descendant', 'IKR':'Inferred from key residues', 'IRD': 'Inferred from rapid divergence',
-                          'RCA':'Inferred from reviewed computational analysis', 'TAS':'Traceable author statement', 'NAS':'Non-traceable author statement',
-                          'IC':'Inferred by curator', 'ND':'No biological data available', 'IEA':'Inferred from electronic annotation', 'NR':'Not recorded'}
-def create_evidence_table_for_go(evidences):
+def create_evidence_table_for_go(evidences):  
     table = []
     for evidence in evidences:
         bioent_biocon_entry = evidence.bioent_biocon.bioconcept.name_with_link
@@ -94,12 +92,13 @@ def create_evidence_table_for_go(evidences):
         else:
             reference_entry = evidence.reference.name_with_link
         
-        table.append([bioent_biocon_entry, go_code_to_full_name[evidence.go_evidence], evidence.annotation_type, evidence.source, 
+        table.append([bioent_biocon_entry, evidence.go_evidence, evidence.annotation_type, 
+                      evidence.qualifier, evidence.source, 
                       reference_entry])
     return table
 
 def get_references(evidences):
-    references = set([evidence.reference for evidence in evidences])
+    references = set([evidence.reference for evidence in evidences if evidence.reference is not None])
     sorted_references = sorted(references, key=lambda x: x.name)
     citations = [reference.citation for reference in sorted_references]
     return citations

@@ -11,8 +11,9 @@ from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
 from model_new_schema.bioconcept import BioentBiocon
 from model_new_schema.biorelation import Biorelation
 from model_new_schema.link_maker import add_link, bioent_link, bioent_wiki_link, \
-    bioent_graph_link, bioent_all_biorel_link, bioent_all_biocon_link, \
-    bioent_all_link, bioent_phenotype_link, bioent_go_link, bioent_interaction_link
+    bioent_all_biorel_link, bioent_all_biocon_link, \
+    bioent_all_link, bioent_phenotype_link, bioent_go_link, bioent_interaction_link, \
+    bioent_interaction_graph_link, bioent_go_graph_link
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -28,7 +29,7 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     id = Column('bioent_id', Integer, primary_key=True)
     official_name = Column('name', String)
     bioent_type = Column('bioent_type', String)
-    dbxref = Column('dbxref', String)
+    dbxref_id = Column('dbxref', String)
     source = Column('source', String)
     status = Column('status', String)
     secondary_name = Column('secondary_name', String)
@@ -102,8 +103,11 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     def wiki_link(self):
         return bioent_wiki_link(self)
     @hybrid_property
-    def graph_link(self):
-        return bioent_graph_link(self)
+    def interaction_graph_link(self):
+        return bioent_interaction_graph_link(self)
+    @hybrid_property
+    def go_graph_link(self):
+        return bioent_go_graph_link(self)
     @hybrid_property
     def biorel_link(self):
         return bioent_all_biorel_link(self) 

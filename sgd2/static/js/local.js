@@ -42,9 +42,21 @@ function setup_cytoscape_vis(graph_link) {
 			nodes: {
 				color: {
 					discreteMapper: {
-						attrName: "focus",
+						attrName: "sub_type",
 						entries: [
-							{ attrValue: '1', value: "#fade71" }
+							{attrValue: 'FOCUS', value: "#fade71" },
+							{attrValue: 'CELLULAR COMPONENT', value: '#E2A9F3'},
+							{attrValue: 'MOLECULAR FUNCTION', value: '#81F781'},
+							{attrValue: 'BIOLOGICAL PROCESS', value: '#5CB3FF'},
+						]
+					}
+				},
+				shape: {
+					discreteMapper: {
+						attrName: "bio_type",
+						entries: [
+							{attrValue: 'BIOENTITY', value: 'ELLIPSE',
+							attrValue: 'BIOCONCEPT', value: 'RECTANGLE'}
 						]
 					}
 				},
@@ -60,9 +72,7 @@ function setup_cytoscape_vis(graph_link) {
                 
 	// init and draw
 	var vis = new org.cytoscapeweb.Visualization(div_id, options);
-	
-	var evidence_cutoff = 3;
-	
+		
 	// callback when Cytoscape Web has finished drawing
     vis.ready(function() {
                 
@@ -79,13 +89,13 @@ function setup_cytoscape_vis(graph_link) {
 			var link = target.data['link']
 			window.location.href = link          
 		}
-		var max_evidence = Math.min(10, vis.nodes()[vis.nodes().length-1].data.evidence);
+		var max_cutoff = Math.min(10, max_evidence_cutoff);
 		$(function() {
 			$( "#slider-range-min" ).slider({
 				range: "max",
 				value: 3,
-				min: evidence_cutoff,
-				max: max_evidence,
+				min: min_evidence_cutoff,
+				max: max_cutoff,
 				step: 1,
 				slide: function( event, ui ) {
 					handle_slide(event, ui);
@@ -113,7 +123,7 @@ function setup_cytoscape_vis(graph_link) {
 
     		$slider.find('.ui-slider-tick-mark').remove();
     		for (var i = 0; i < max ; i=i+multiplier) {
-    			var value = (i+evidence_cutoff);
+    			var value = (i+min_evidence_cutoff);
     			if(value >= 10) {
     				var left = ((spacing * i)-1)
         			$('<span class="ui-slider-tick-mark muted">10+</span>').css('left', left + '%').appendTo($slider);
@@ -128,6 +138,7 @@ function setup_cytoscape_vis(graph_link) {
 		//Grab the network data via AJAX
 	$.get(graph_link, function(data) {
 		vis.draw({ network: data, visualStyle: visual_style});
-		evidence_cutoff = data['evidence_cutoff']
+		min_evidence_cutoff = data['min_evidence_cutoff']
+		max_evidence_cutoff = data['max_evidence_cutoff']
 	});          
 }

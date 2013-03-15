@@ -24,7 +24,8 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     official_name = Column('name', String)
     evidence_count = Column('evidence_count', Integer)
     evidence_desc = Column('evidence_desc', String)
-        
+    use_in_graph = Column('use_for_graph', String)    
+    
     bioentity = relationship('Bioentity', uselist=False, backref='bioent_biocons')
     bioconcept = relationship('Bioconcept', uselist=False, backref='bioent_biocons')
     type = "BIOENT_BIOCON"
@@ -83,6 +84,7 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     official_name = Column('name', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
+    type = "BIOCONCEPT"
     
     __mapper_args__ = {'polymorphic_on': biocon_type,
                        'polymorphic_identity':"BIOCONCEPT",

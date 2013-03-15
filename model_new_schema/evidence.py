@@ -5,6 +5,7 @@ Created on Dec 11, 2012
 '''
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.bioconcept import BioentBiocon
+from model_new_schema.bioentity import Bioentity
 from model_new_schema.biorelation import Interaction
 from model_new_schema.chemical import Chemical
 from model_new_schema.link_maker import add_link, allele_link
@@ -24,6 +25,7 @@ class Evidence(Base, EqualityByIDMixin):
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     evidence_type = Column('evidence_type', String)
     strain_id = Column('strain_id', String)
+    source = Column('source', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
@@ -56,7 +58,6 @@ class Interevidence(Evidence):
     __tablename__ = "interevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    source = Column('source', String)
     observable = Column('observable', String)
     qualifier = Column('qualifier', String)
     note = Column('note', String)
@@ -142,7 +143,6 @@ class Phenoevidence(Evidence):
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     mutant_type = Column('mutant_type', String)
     mutant_allele_id = Column('mutant_allele', Integer, ForeignKey('sprout.allele.allele_id'))
-    source = Column('source', String)
     qualifier = Column('qualifier', String)
     
     reporter = Column('reporter', String)
@@ -185,7 +185,6 @@ class Goevidence(Evidence):
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     go_evidence = Column('go_evidence', String)
     annotation_type = Column('annotation_type', String)
-    source = Column('source', String)
     date_last_reviewed = Column('date_last_reviewed', Date)
     qualifier = Column('qualifier', String)
     
@@ -207,4 +206,24 @@ class Goevidence(Evidence):
         self.source = source
         self.qualifier = qualifier
         self.date_last_reviewed
+        
+class Bioentevidence(Evidence):
+    __tablename__ = "bioentevidence"
+    
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    type = 'BIOENT_EVIDENCE'
+    
+    bioent = relationship(Bioentity)
+
+
+    __mapper_args__ = {'polymorphic_identity': "BIOENT_EVIDENCE"}
+
+    
+    def __init__(self, bioent_id, reference_id, 
+                 session=None, evidence_id=None, date_created=None, created_by=None):
+        Evidence.__init__(self, None, reference_id, 'BIOENT_EVIDENCE', None, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
+        self.bioent_id = bioent_id
+
+          
         

@@ -37,7 +37,8 @@ def main(global_config, **settings):
     config.add_route('bioent_interaction', '/bioent/{bioent_name}/interaction')
 
     config.add_route('bioent_all_biorel', '/bioent/{bioent_name}/biorel')
-    config.add_route('bioent_graph', '/bioent/{bioent_name}/graph')
+    config.add_route('bioent_interaction_graph', '/bioent/{bioent_name}/interaction_graph')
+    config.add_route('bioent_go_graph', '/bioent/{bioent_name}/go_graph')
 
     config.add_route('biorel', '/biorel/{biorel_type}={biorel_name}')
     config.add_route('biorel_evidence', '/biorel/{biorel_type}={biorel_name}/evidence')

@@ -12,11 +12,11 @@ from sgd2.models import DBSession
 from sgd2.views import site_layout
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import joinedload
-from utils.graph import create_interaction_graph
+from utils.graph import create_interaction_graph, create_go_graph
 from utils.utils import create_grouped_evidence_table, entry_with_note, \
-    entry_with_link, create_phenotype_note
+    entry_with_link, create_phenotype_note, create_note_from_pieces
 
-pp_rna_phenotypes = set(['protein-peptide accumulation', 'protein-peptide distribution', 'protein-peptide modification', 'RNA accumulation', 'RNA localization'])
+pp_rna_phenotypes = set(['protein-peptide accumulation', 'protein-peptide distribution', 'protein-peptide modification', 'RNA accumulation', 'RNA localization', 'RNA modification'])
 chemical_phenotypes = set(['resistance to chemicals', 'chemical compound accumulation', 'chemical compund excretion'])
 
 
@@ -65,7 +65,8 @@ def bioent_go_view(request):
 def get_gos(goevidences):
     evidence_map = dict([(evidence.id, evidence.bioent_biocon.id) for evidence in goevidences])
     def f(evs_for_group, group_term, bioent_biocon):
-        total_entry = add_link(str(len(evs_for_group)), bioent_biocon.link)
+        evidence_codes = [ev.go_evidence for ev in evs_for_group]
+        total_entry = entry_with_note(entry_with_link(str(len(evs_for_group)), bioent_biocon.link), create_note_from_pieces(evidence_codes))
         return [bioent_biocon.bioconcept.name_with_link, bioent_biocon.bioconcept.go_aspect, total_entry]
     return create_grouped_evidence_table(goevidences, evidence_map, f)
 
@@ -170,11 +171,20 @@ def get_interactions(bioent):
     return table
 
 #Cytoscape graph
-@view_config(route_name='bioent_graph', renderer="json")
-def bioent_graph_view(request):
+@view_config(route_name='bioent_interaction_graph', renderer="json")
+def bioent_interaction_graph_view(request):
     try:
         bioent = get_bioent(request)
         graph = create_interaction_graph(bioent)
+        return graph
+    except DBAPIError:
+        return ['Error']
+    
+@view_config(route_name='bioent_go_graph', renderer="json")
+def bioent_go_graph_view(request):
+    try:
+        bioent = get_bioent(request)
+        graph = create_go_graph(bioent)
         return graph
     except DBAPIError:
         return ['Error']

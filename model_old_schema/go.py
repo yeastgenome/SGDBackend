@@ -72,4 +72,9 @@ class GoQualifier(Base, EqualityByIDMixin):
     
     #Relationships
     go_ref = relationship(GoRef, uselist=False, backref=backref('go_qualifier', uselist=False, lazy='joined'))
+    
+    
+    
+    
+    
 

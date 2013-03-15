@@ -15,8 +15,10 @@ def bioent_link(bioent):
 def bioent_all_link(bioent, bio_type, link_type):
     return '/' + bio_type + '/' + link_type + '=' + bioent.official_name
 
-def bioent_graph_link(bioent):
-    return bioent.link + '/graph'
+def bioent_interaction_graph_link(bioent):
+    return bioent.link + '/interaction_graph'
+def bioent_go_graph_link(bioent):
+    return bioent.link + '/go_graph'
 def bioent_wiki_link(bioent):
     return 'http://wiki.yeastgenome.org/index.php/' + bioent.official_name
 

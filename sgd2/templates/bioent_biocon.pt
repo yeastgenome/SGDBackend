@@ -87,6 +87,7 @@
     			<th>Reporter</th>
     			<th>Chemical</th>
     			<th>Strain</th>
+    			<th>Source</th>
     			<th>Reference</th>
   			</tr>
   			
@@ -94,6 +95,7 @@
   				<th>GO Term</th>
     			<th>GO Evidence</th>
     			<th>Annotation Type</th>
+    			<th>Qualifier</th>
     			<th>Source</th>
     			<th>Reference</th>
   			</tr>
@@ -101,6 +103,14 @@
 			</table>
         </div>
 
+	
+	<div tal:condition="python: biocon_type == 'GO' and bioent_biocon.type == 'BIOENTITY'">
+	<br></br>
+		<h3>Cytoscape Visualization</h3>
+		<div id="cytoscapeweb">
+            Cytoscape visualization is loading...
+        </div>
+     </div>
 	</div>
 </section>
 
@@ -146,6 +156,21 @@
   		});
 	} );
 </script>
+
+<script type="text/javascript">
+window.onload=function() {
+	if('${bioent_biocon.type}' == 'BIOENTITY' && '${biocon_type}' == 'GO') {
+		setup_cytoscape_vis("${go_graph_link}");   
+	}
+};           
+
+</script>
+        
+<style>
+	/* The Cytoscape Web container must have its dimensions set. */
+	html, body { height: 80%; width: 100%; padding: 0; margin: 0; }
+	#cytoscapeweb { width: 100%; height: 100%; }
+</style>
 
 </div>
 

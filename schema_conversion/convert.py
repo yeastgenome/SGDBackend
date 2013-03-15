@@ -106,8 +106,8 @@ def convert():
         #fill_cache(session)
         #update_phenotypes(old_model, 80000, 100000, session)
         #go_to_bioconcept(old_model, session)
-        #convert_go(old_model, session)
-        convert_reference(old_model, session)
+        convert_go(old_model, session)
+        #convert_reference(old_model, session)
     
     new_model.execute(f, NEW_DBUSER, commit=True)
 

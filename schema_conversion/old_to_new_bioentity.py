@@ -9,6 +9,7 @@ import model_new_schema
 ---------------------Cache------------------------------
 """
 id_to_bioent = {}
+dbxref_id_to_bioent = {}
 
 def feature_to_bioent(feature):
     from model_new_schema.bioentity import Bioentity

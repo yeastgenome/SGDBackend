@@ -81,6 +81,7 @@
     			<th>Annotation</th>
     			<th>Direction</th>
     			<th>Phenotype</th>
+    			<th>Source</th>
     			<th>Reference</th>
   			</tr>
   			</thead>
@@ -106,6 +107,7 @@
     			<th>Annotation</th>
     			<th>Direction</th>
     			<th>Modification</th>
+    			<th>Source</th>
     			<th>Reference</th>
   			</tr>
   			</thead>

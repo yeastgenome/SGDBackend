@@ -78,9 +78,9 @@ def create_evidence_table_for_interaction(evidences, bioent, is_genetic):
                 direction = reverse_direction(evidence.direction)
         
         if is_genetic:
-            table.append([bioent_entry, evidence.experiment_type, evidence.annotation_type, direction, phenotype, reference_entry])
+            table.append([bioent_entry, evidence.experiment_type, evidence.annotation_type, direction, phenotype, evidence.source, reference_entry])
         else:
-            table.append([bioent_entry, evidence.experiment_type, evidence.annotation_type, direction, evidence.modification, reference_entry])
+            table.append([bioent_entry, evidence.experiment_type, evidence.annotation_type, direction, evidence.modification, evidence.source, reference_entry])
             
     return table
 
