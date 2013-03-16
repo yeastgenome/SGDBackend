@@ -1,0 +1,180 @@
+<div metal:use-macro="layout">
+  <div metal:fill-slot="content">
+
+
+<body>
+	
+<!-- Subhead
+================================================== -->
+<header class="jumbotron subhead" id="overview">
+	<div class="container" tal:condition="python: bioent_biocon.type == 'BIOENT_BIOCON'">
+		<h1><span tal:content="bioent_biocon.name"></h1>
+		<p class="lead">
+			<span tal:content="bioent_biocon.description"></span>
+		</p>
+	</div>
+	
+	<div class="container" tal:condition="python: bioent_biocon.type == 'BIOENTITY' and biocon_type == 'PHENOTYPE'">
+		<h1><span tal:content="bioent_biocon.name + ' Phenotypes'"></h1>
+		<p class="lead">
+			<span tal:content="'Evidence for all phenotypes associated with ' + bioent_biocon.name + '.'"></span>
+		</p>
+	</div>
+	
+	<div class="container" tal:condition="python: bioent_biocon.type == 'BIOENTITY' and biocon_type == 'GO'">
+		<h1><span tal:content="bioent_biocon.name + ' Gene Ontology'"></h1>
+		<p class="lead">
+			<span tal:content="'Evidence for all gene ontology terms associated with ' + bioent_biocon.name + '.'"></span>
+		</p>
+	</div>
+</header>
+
+<div class="container-fluid">
+
+
+<!-- Docs nav
+================================================== -->
+<div class="row-fluid">
+	<div class="span3 bs-docs-sidebar">
+		<ul class="nav nav-list bs-docs-sidenav" id='navbar' name='navbar' style="margin-left:auto; margin-right:auto">
+			<li><h4><span tal:content="bioent_biocon.name"></h4></li>
+			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
+			<li><a href="#evidence"><i class="icon-chevron-right"></i> Evidence</a></li>
+          	<li><a href="#literature"><i class="icon-chevron-right"></i> References</a></li>
+		</ul>
+	</div>
+	
+	<div class="span9">  
+
+<!-- Summary
+================================================== -->
+<section id="summary">
+	<div class="page-header">
+		<h1>Summary</h1>
+		<div>
+			<ul class='unstyled' tal:condition="python: bioent_biocon.type == 'BIOENT_BIOCON'">
+				<li><strong>Gene: </strong><span tal:content="structure bioent_biocon.bioentity.full_name_with_link"></span></li>
+				<li>
+					<strong tal:condition="python: biocon_type == 'PHENOTYPE'">Phenotype: </strong>
+					<strong tal:condition="python: biocon_type == 'GO'">GO Term: </strong>
+					<a tal:content="structure bioent_biocon.bioconcept.name_with_link"></a></li>
+			</ul>
+			<ul class='unstyled' tal:condition="python: bioent_biocon.type == 'BIOENTITY'">
+				<li><strong>Gene: </strong><span tal:content="structure bioent_biocon.full_name_with_link"></span></li>
+				<li tal:condition="python: biocon_type == 'PHENOTYPE'"><strong>Phenotype: </strong><span>All</span></li>
+				<li tal:condition="python: biocon_type == 'GO'"><strong>GO Term: </strong><span>All</span></li>
+			</ul>
+		</div>
+	</div>
+</section>
+
+<!-- Evidence
+================================================== -->
+<section id="evidence">
+	<div class="page-header">
+		<h1>Evidence <span id='evidence_header'></span></h1>
+
+		<span id='evidence_message' class="hide">No evidence for this relationship.</span>
+		<div id='evidence_wrapper'>		
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='evidence_table' width="100%">
+			<thead>
+  			<tr tal:condition="python: biocon_type == 'PHENOTYPE'">
+  				<th>Phenotype</th>
+    			<th>Qualifier</th>
+    			<th>Experiment</th>
+    			<th>Mutant</th>
+    			<th>Allele</th>
+    			<th>Reporter</th>
+    			<th>Chemical</th>
+    			<th>Strain</th>
+    			<th>Source</th>
+    			<th>Reference</th>
+  			</tr>
+  			
+  			<tr tal:condition="python: biocon_type == 'GO'">
+  				<th>GO Term</th>
+    			<th>GO Evidence</th>
+    			<th>Annotation Type</th>
+    			<th>Qualifier</th>
+    			<th>Source</th>
+    			<th>Reference</th>
+  			</tr>
+  			</thead>
+			</table>
+        </div>
+
+	
+	<div tal:condition="python: biocon_type == 'GO' and bioent_biocon.type == 'BIOENTITY'">
+	<br></br>
+		<h3>Cytoscape Visualization</h3>
+		<div id="cytoscapeweb">
+            Cytoscape visualization is loading...
+        </div>
+     </div>
+	</div>
+</section>
+
+<!-- References
+================================================== -->
+<section id="literature">
+	<div class="page-header">
+		<h1>References</h1>
+		<ul id='reference_list'>
+		</ul>
+	</div>
+</section>
+
+<script>
+	$(document).ready(function() {
+		//Get evidence data
+		
+  		$.getJSON('${evidence_link}', function(data) {
+  			var evidence_table = data['evidence'];
+			var references = data['reference'];
+  			
+  			//Set up evidence table
+			var options = basic_datatable_options("evidence_header", 
+				'${bioent_biocon.name}_evidence', "evidence_wrapper", "evidence_message");
+			options["fnInitComplete"] = function() {
+				if('${bioent_biocon.type}' == 'BIOENT_BIOCON') {
+					this.fnSetColumnVis(0, false);
+    			}  
+    			var num_rows = this.fnSettings().fnRecordsTotal();
+				document.getElementById("evidence_header").innerHTML = '(' + num_rows + ')';
+			};
+			options["aaData"] = evidence_table;
+			$('#evidence_table').dataTable(options);
+			
+			//Set up references
+			ref_list = document.getElementById("reference_list");
+			for (var i=0; i < references.length; i++) {
+				var citation = references[i];
+				var p=document.createElement('p');
+				p.innerHTML = citation;
+				ref_list.appendChild(p);
+			}
+  		});
+	} );
+</script>
+
+<script type="text/javascript">
+window.onload=function() {
+	if('${bioent_biocon.type}' == 'BIOENTITY' && '${biocon_type}' == 'GO') {
+		setup_cytoscape_vis("${go_graph_link}");   
+	}
+};           
+
+</script>
+        
+<style>
+	/* The Cytoscape Web container must have its dimensions set. */
+	html, body { height: 80%; width: 100%; padding: 0; margin: 0; }
+	#cytoscapeweb { width: 100%; height: 100%; }
+</style>
+
+</div>
+
+</body>
+</div>
+</div>
+

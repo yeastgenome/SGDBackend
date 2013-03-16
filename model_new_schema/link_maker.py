@@ -9,6 +9,29 @@ def add_link(name, link):
 
 link_symbol = unichr(8213)
 
+def add_official_name_params(link, key_to_obj):
+    params = {}
+    for key, obj in key_to_obj.iteritems():
+        if obj is not None:
+            params[key] = obj.official_name
+    full_link = link + '&'.join([key + '=' + value for key, value in params.iteritems()])
+    return full_link
+
+#Bioentity links
+
+#Bioconcept links
+def go_overview_table_link(biocon=None, bioent=None):
+    overview_link = add_official_name_params('/go_overview_table?', {'bioent_name':bioent, 'biocon_name': biocon})
+    return overview_link
+
+def go_evidence_table_link(biocon=None, bioent=None):
+    evidence_link = add_official_name_params('/go_evidence_table?', {'bioent_name':bioent, 'biocon_name': biocon})
+    return evidence_link
+
+def go_evidence_link(biocon=None, bioent=None):
+    evidence_link = add_official_name_params('/go_evidence?', {'bioent_name':bioent, 'biocon_name': biocon})
+    return evidence_link
+
 #Bioentity links
 def bioent_link(bioent):
     return '/bioent/' + bioent.official_name
@@ -46,18 +69,14 @@ def bioent_biocon_reference_link(bioent_biocon):
 
 #Bioconcept links
 def biocon_link(biocon):
-    return '/biocon/' + lower(biocon.biocon_type) + '=' + biocon.official_name
+    return '/' + lower(biocon.biocon_type) + '/' + biocon.link_name
 def biocon_all_bioent_link(biocon):
-    return biocon.link + '/bioent'
+    return evidence_link(biocon=biocon)
 
 #Reference links
 def reference_link(reference):
-    link_str = reference.pubmed_id
-    if link_str is None:
-        link_str = reference.dbxref_id
-    if link_str is None:
-        link_str = str(reference.id)
-    return '/reference/' + str(link_str)
+    return '/reference/' + reference.official_name
+
 def reference_evidence_link(reference):
     return reference.link + '/evidence'
 def reference_phenotype_link(reference):

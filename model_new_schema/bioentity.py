@@ -11,9 +11,10 @@ from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
 from model_new_schema.bioconcept import BioentBiocon
 from model_new_schema.biorelation import Biorelation
 from model_new_schema.link_maker import add_link, bioent_link, bioent_wiki_link, \
-    bioent_all_biorel_link, bioent_all_biocon_link, \
-    bioent_all_link, bioent_phenotype_link, bioent_go_link, bioent_interaction_link, \
-    bioent_interaction_graph_link, bioent_go_graph_link
+    bioent_all_biorel_link, bioent_all_biocon_link, bioent_all_link, \
+    bioent_phenotype_link, bioent_go_link, bioent_interaction_link, \
+    bioent_interaction_graph_link, bioent_go_graph_link, go_overview_table_link, \
+    go_evidence_table_link, go_evidence_link
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -119,7 +120,10 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
         return bioent_phenotype_link(self)
     @hybrid_property
     def go_link(self):
-        return bioent_go_link(self)
+        return go_overview_table_link(bioent=self)
+    @hybrid_property
+    def go_evidence_link(self):
+        return go_evidence_link(bioent=self)
     @hybrid_property
     def interaction_link(self):
         return bioent_interaction_link(self)
@@ -147,9 +151,14 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     def interaction_file_name(self):
         return self.name + '_interactions'
     @hybrid_property
-    def go_file_name(self):
-        return self.name + '_go_terms'
-    
+    def go_f_filename(self):
+        return self.name + '_function_go_terms'
+    @hybrid_property
+    def go_p_filename(self):
+        return self.name + '_process_go_terms'
+    @hybrid_property
+    def go_c_filename(self):
+        return self.name + '_component_go_terms'    
     @classmethod
     def unique_hash(cls, bioent_type, name):
         return '%s_%s' % (bioent_type, name) 

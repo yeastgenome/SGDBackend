@@ -148,6 +148,7 @@
     			 	document.getElementById("genetic_evidence_wrapper").style.display = 'none';
     			}
 			};
+			options["bPaginate"] = true;
 			options["aaData"] = genetic_evidence_table;
   			$('#genetic_evidence_table').dataTable(options);
   			
@@ -165,6 +166,7 @@
     			 	document.getElementById("physical_evidence_wrapper").style.display = 'none';
     			}
 			};
+			options["bPaginate"] = true;
 			options["aaData"] = physical_evidence_table;
   			$('#physical_evidence_table').dataTable(options);
 			

@@ -30,7 +30,32 @@ def main(global_config, **settings):
     config.add_route('search', '/search/{search_str}')
     config.add_route('typeahead', '/typeahead')
    
+    #Bioent views
     config.add_route('bioent', '/bioent/{bioent_name}')
+    
+    #GO views
+    config.add_route('go', '/go/{biocon_name}')
+    config.add_route('go_evidence', '/go_evidence')
+    config.add_route('go_overview_table', '/go_overview_table')
+    config.add_route('go_evidence_table', '/go_evidence_table')
+    
+    
+    config.add_route('phenotype', '/phenotype/{biocon_name}')
+        
+    #Evidence views
+    config.add_route('phenotype_evidence', '/phenotype_evidence')
+    config.add_route('interaction_evidence', '/interaction_evidence')
+    
+    #Reference views
+    config.add_route('reference', '/reference/{pubmed_id}')
+    
+    #Tables
+    config.add_route('phenotype_overview_table', '/phenotype/overview_table')
+    config.add_route('phenotype_evidence_table', '/phenotype/evidence_table')
+    
+    config.add_route('interaction_overview_table', '/interaction/overview_table')
+    config.add_route('interaction_evidence_table', '/interaction/evidence_table')       
+    
     config.add_route('bioent_all_biocon', '/bioent/{bioent_name}/biocon')
     config.add_route('bioent_go', '/bioent/{bioent_name}/go')
     config.add_route('bioent_phenotype', '/bioent/{bioent_name}/phenotype')
@@ -49,7 +74,6 @@ def main(global_config, **settings):
     config.add_route('bioent_biocon', '/bioent_biocon/{biocon_type}={bioent_biocon_name}')
     config.add_route('bioent_biocon_evidence', '/bioent_biocon/{biocon_type}={bioent_biocon_name}/evidence')
 
-    config.add_route('reference', '/reference/{pubmed_id}')
     config.add_route('reference_all_evidence', '/reference/{pubmed_id}/evidence')
     config.add_route('reference_phenotype', '/reference/{pubmed_id}/phenotype')
     config.add_route('reference_go', '/reference/{pubmed_id}/go')

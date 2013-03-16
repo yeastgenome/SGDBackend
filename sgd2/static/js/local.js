@@ -2,6 +2,7 @@
 
 function basic_datatable_options(header_id, save_name, wrapper_id, message_id) {
 	var options = {
+		"bPaginate":false,
 		"sPaginationType": "bootstrap",
 		"fnInitComplete": function() {
 			this.fnAdjustColumnSizing(true);
@@ -32,6 +33,7 @@ function basic_datatable_options(header_id, save_name, wrapper_id, message_id) {
 	return options;
   	 
 }
+
 
 function setup_cytoscape_vis(graph_link) {
 		// id of Cytoscape Web container div

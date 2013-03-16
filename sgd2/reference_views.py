@@ -3,10 +3,10 @@ Created on Feb 21, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.evidence import Goevidence, Phenoevidence, \
-    Interevidence
+from model_new_schema.evidence import Goevidence, Phenoevidence, Interevidence
 from model_new_schema.reference import Reference
 from pyramid.view import view_config
+from sgd2.biocon_views import make_go_table
 from sgd2.bioent_views import pp_rna_phenotypes, chemical_phenotypes
 from sgd2.models import DBSession
 from sgd2.views import site_layout
@@ -60,7 +60,7 @@ def reference_go_view(request):
     reference = get_reference(request)
     go_evidences = DBSession.query(Goevidence).options(joinedload('bioent_biocon'), joinedload('bioent_biocon.bioentity'), joinedload('bioent_biocon.bioconcept')).filter(Goevidence.reference_id==reference.id).all()
     
-    return {"aaData": get_gos(go_evidences)}
+    return make_go_table(go_evidences, True)
 
 def get_gos(evidences):
     evidence_map = dict([(evidence.id, evidence.bioent_biocon) for evidence in evidences])

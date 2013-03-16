@@ -6,7 +6,8 @@ Created on Nov 28, 2012
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
 from model_new_schema.config import SCHEMA
 from model_new_schema.link_maker import add_link, link_symbol, biocon_link, \
-    bioent_biocon_link, biocon_all_bioent_link
+    bioent_biocon_link, biocon_all_bioent_link, go_overview_table_link, \
+    go_evidence_table_link
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
@@ -90,29 +91,25 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
                        'polymorphic_identity':"BIOCONCEPT",
                        'with_polymorphic':'*'}
      
-     
     @hybrid_property
     def link(self):
         return biocon_link(self)
     @hybrid_property
-    def all_bioent_link(self):
-        return biocon_all_bioent_link(self)
-    
+    def link_name(self):
+        return self.official_name.replace(' ', '_')
     @hybrid_property
     def name(self):
-        return self.official_name
-    
+        return self.official_name.title()
     @hybrid_property
     def name_with_link(self):
         return add_link(self.name, self.link)
     
     @hybrid_property
-    def description(self):
-        if self.biocon_type == 'PHENOTYPE':
-            return 'All genes with phenotype ' + self.name + '.'
-        elif self.biocon_type == 'GO':
-            return 'All genes with GO term ' + self.name + '.'
-        return self.biocon_type.lower() + ' ' + self.name
+    def gene_file_name(self):
+        return self.link_name + '_genes'
+    @hybrid_property
+    def evidence_file_name(self):
+        return self.name + '_evidence' 
     
     @classmethod
     def unique_hash(cls, biocon_type, official_name):
@@ -148,6 +145,10 @@ class Phenotype(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Bioconcept.id}
 
+    @hybrid_property
+    def description(self):
+        return 'All genes with phenotype ' + self.name + '.'
+
     def __init__(self, observable, session=None, biocon_id=None, date_created=None, created_by=None):
         name = observable
         Bioconcept.__init__(self, 'PHENOTYPE', name, session=session, biocon_id=biocon_id, date_created=date_created, created_by=created_by)
@@ -171,6 +172,19 @@ class Go(Bioconcept):
     go_term = Column('go_term', String)
     go_aspect = Column('go_aspect', String)
     go_definition = Column('go_definition', String)
+    
+    @hybrid_property
+    def overview_link(self):
+        return go_overview_table_link(biocon=self)
+    @hybrid_property
+    def evidence_link(self):
+        return go_evidence_table_link(biocon=self)
+
+    
+    @hybrid_property
+    def description(self):
+        return self.go_definition
+ 
     
     def __init__(self, go_go_id, go_term, go_aspect, go_definition, session=None, biocon_id=None, date_created=None, created_by=None):
         name = go_term

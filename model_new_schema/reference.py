@@ -42,7 +42,6 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     doi = Column('doi', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
-    official_name = Column('name', String)
     
     #Relationships
     journal = relationship('Journal', uselist=False)
@@ -159,6 +158,14 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     @hybrid_property
     def name(self):
         return self.author_year + self.small_pmid
+    @hybrid_property
+    def official_name(self):
+        link_str = self.pubmed_id
+        if link_str is None:
+            link_str = self.dbxref_id
+        if link_str is None:
+            link_str = str(self.id)
+        return str(link_str)
     @hybrid_property
     def name_with_link(self):
         return self.author_year_with_link + self.small_pmid

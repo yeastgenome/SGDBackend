@@ -47,8 +47,7 @@
 ================================================== -->
 <section id="genes">
 	<div class="page-header">
-		<h1 tal:condition="python: biocon.biocon_type == 'PHENOTYPE'">Genes with Phenotype <span id='genes_header'></span></h1> 
-		<h1 tal:condition="python: biocon.biocon_type == 'GO'">Genes with GO Term <span id='genes_header'></span></h1> 
+		<h1>Genes with Phenotype <span id='genes_header'></span></h1> 
 
 		<span id='genes_message'></span>
 		<div id='genes_wrapper'>
@@ -79,41 +78,6 @@
   		$('#genes_table').dataTable(options);	
   			
 	} );
-	
-	//Get go data
-  		$.getJSON('${bioent.go_link}', function(data) {
-  			var go_c = data['go_c'];
-  			var go_p = data['go_p'];
-  			var go_f = data['go_f'];
-  			var comp_count = data['computational'];
-  			
-			//Set total go count
-			var num_rows = go_c.length + go_p.length + go_f.length;
-			document.getElementById("go_header").innerHTML = '(' + num_rows + ')';
-			
-  			//Set up function table
-			var options = basic_datatable_options("go_f_header", '${bioent.go_f_file_name}', "go_f_wrapper", "go_f_message");
-			options["aaSorting"] = [[0, "asc"]];
-			options["aaData"] = go_f;
-			$('#go_f_table').dataTable(options);
-			
-			//Set up process table
-			var options = basic_datatable_options("go_p_header", '${bioent.go_p_file_name}', "go_p_wrapper", "go_p_message");
-			options["aaSorting"] = [[0, "asc"]];
-			options["aaData"] = go_p;
-			$('#go_p_table').dataTable(options);
-		
-			//Set up component table
-			var options = basic_datatable_options("go_c_header", '${bioent.go_c_file_name}', "go_c_wrapper", "go_c_message");
-			options["aaSorting"] = [[0, "asc"]];
-			options["aaData"] = go_c;
-			$('#go_c_table').dataTable(options);
-			
-			//Set up computational message
-			document.getElementById("go_comp_header").innerHTML = '(' + comp_count + ')';
-			document.getElementById("go_comp_message").innerHTML = comp_count;
-			
-  		});
 </script>
 
 </div>
