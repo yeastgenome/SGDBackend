@@ -31,11 +31,102 @@ function basic_datatable_options(header_id, save_name, wrapper_id, message_id) {
 		}
 	};
 	return options;
-  	 
+}
+
+function setup_interaction_cytoscape_vis(graph_link) {
+	// id of Cytoscape Web container div
+		var div_id = "cytoscapeweb";
+                                
+		// visual style we will use
+		var visual_style = {
+			nodes: {
+				color: {
+					discreteMapper: {
+						attrName: "sub_type",
+						entries: [
+							{attrValue: 'FOCUS', value: "#fade71" }]
+					}
+				},
+				labelHorizontalAnchor: "center"
+			},
+		};
+                
+		// initialization options
+		var options = {
+		swfPath: "../static/js/CytoscapeWeb",
+		flashInstallerPath: "/swf/playerProductInstall"
+	};
+                
+	// init and draw
+	var vis = new org.cytoscapeweb.Visualization(div_id, options);
+		
+	// callback when Cytoscape Web has finished drawing
+    vis.ready(function() {
+                
+		// add a listener for when nodes and edges are clicked
+		vis.addListener("click", "nodes", function(event) {
+			handle_click(event);
+		})
+		.addListener("click", "edges", function(event) {
+			handle_click(event);
+		});
+                    
+		function handle_click(event) {
+			var target = event.target;   
+			var link = target.data['link']
+			window.location.href = link          
+		}
+		
+		//setup slider
+		var max_cutoff = Math.min(10, max_evidence_cutoff);
+		$( "#slider-range-min" ).slider({
+			range: "max",
+			value: 3,
+			min: min_evidence_cutoff,
+			max: max_cutoff,
+			step: 1,
+			slide: function( event, ui ) {
+				handle_slide(event, ui);
+			},
+			change: function( event, ui ) {
+				handle_slide(event, ui);
+			}
+		});
+		function handle_slide(event, ui) {
+			var val = $( "#amount" ).val( "$" + ui.value );
+			vis.filter(function(item) {
+				return item.data.evidence == -1 || item.data.evidence >= ui.value;
+			});
+			vis.layout('ForceDirected');
+		}
+		$( "#slider-range-min" ).slider('value', 3);
+			
+		var $slider =  $('#slider-range-min');
+		var max =  $slider.slider("option", "max") - $slider.slider("option", "min") + 1;    
+ 		var spacing =  100 / (max -1);
+    	$slider.find('.ui-slider-tick-mark').remove();
+    	for (var i = 0; i < max ; i=i+1) {
+    		var value = (i+min_evidence_cutoff);
+    		if(value >= 10) {
+    			var left = ((spacing * i)-1)
+        		$('<span class="ui-slider-tick-mark muted">10+</span>').css('left', left + '%').appendTo($slider);
+    		}
+    		else {
+    			var left = ((spacing * i)-.5)
+				$('<span class="ui-slider-tick-mark muted">' +value+ '</span>').css('left', left + '%').appendTo($slider);
+    		}
+       }
+	});
+		//Grab the network data via AJAX
+	$.get(graph_link, function(data) {
+		vis.draw({ network: data, visualStyle: visual_style});
+		var min_evidence_cutoff = data['min_evidence_cutoff'];
+		var max_evidence_cutoff = data['max_evidence_cutoff'];
+	});          
 }
 
 
-function setup_cytoscape_vis(graph_link) {
+function setup_go_cytoscape_vis(graph_link) {
 		// id of Cytoscape Web container div
 		var div_id = "cytoscapeweb";
                                 
@@ -68,79 +159,121 @@ function setup_cytoscape_vis(graph_link) {
                 
 		// initialization options
 		var options = {
-		swfPath: "../static/js/CytoscapeWeb",
-		flashInstallerPath: "/swf/playerProductInstall"
-	};
+			swfPath: "../static/js/CytoscapeWeb",
+			flashInstallerPath: "/swf/playerProductInstall"
+		};
                 
-	// init and draw
-	var vis = new org.cytoscapeweb.Visualization(div_id, options);
+		// init and draw
+		var vis = new org.cytoscapeweb.Visualization(div_id, options);
 		
-	// callback when Cytoscape Web has finished drawing
-    vis.ready(function() {
-                
-		// add a listener for when nodes and edges are clicked
-		vis.addListener("click", "nodes", function(event) {
-			handle_click(event);
-		})
-		.addListener("click", "edges", function(event) {
-			handle_click(event);
-		});
-                    
-		function handle_click(event) {
-			var target = event.target;   
-			var link = target.data['link']
-			window.location.href = link          
-		}
-		var max_cutoff = Math.min(10, max_evidence_cutoff);
-		$(function() {
-			$( "#slider-range-min" ).slider({
-				range: "max",
-				value: 3,
-				min: min_evidence_cutoff,
-				max: max_cutoff,
-				step: 1,
-				slide: function( event, ui ) {
-					handle_slide(event, ui);
-				},
-				change: function( event, ui ) {
-					handle_slide(event, ui);
-				}
+		// callback when Cytoscape Web has finished drawing
+    	vis.ready(function() {
+			// add a listener for when nodes and edges are clicked
+			vis.addListener("click", "nodes", function(event) {
+				handle_click(event);
+			})
+			.addListener("click", "edges", function(event) {
+				handle_click(event);
 			});
-			function handle_slide(event, ui) {
-				var val = $( "#amount" ).val( "$" + ui.value );
-				vis.filter(function(item) {
-					return item.data.evidence == -1 || item.data.evidence >= ui.value;
+                    
+			function handle_click(event) {
+				var target = event.target;   
+				var link = target.data['link']
+				window.location.href = link          
+			}
+        	//setup checkboxes
+        	var $checkboxes = $('input:checkbox[name=categories]');
+			$checkboxes.click(function() {
+				handle_check();	
+			});
+				
+			function handle_check() {
+				var f_checked = $('#f_check').is(':checked');
+				var p_checked = $('#p_check').is(':checked');
+				var c_checked = $('#c_check').is(':checked');
+
+    			vis.filter('nodes', function(item) {
+					return item.data.sub_type == 'FOCUS' || (f_checked && item.data.f_include) ||
+					(p_checked && item.data.p_include) ||
+					(c_checked && item.data.c_include);
 				});
 				vis.layout('ForceDirected');
 			}
-			$( "#slider-range-min" ).slider('value', 3);
-			
-			var $slider =  $('#slider-range-min');
-			var max =  $slider.slider("option", "max") - $slider.slider("option", "min") + 1;    
- 			var spacing =  100 / (max -1);
- 			var multiplier = 1;
- 			if (max > 25) {
- 				multiplier = 2;
- 			}
-
-    		$slider.find('.ui-slider-tick-mark').remove();
-    		for (var i = 0; i < max ; i=i+multiplier) {
-    			var value = (i+min_evidence_cutoff);
-    			if(value >= 10) {
-    				var left = ((spacing * i)-1)
-        			$('<span class="ui-slider-tick-mark muted">10+</span>').css('left', left + '%').appendTo($slider);
-    			}
-    			else {
-    				var left = ((spacing * i)-.5)
-					$('<span class="ui-slider-tick-mark muted">' +value+ '</span>').css('left', left + '%').appendTo($slider);
-    			}
-        	}
+			handle_check();
 		});
-	});
+		
 		//Grab the network data via AJAX
-	$.get(graph_link, function(data) {
-		vis.draw({ network: data, visualStyle: visual_style});
-		min_evidence_cutoff = data['min_evidence_cutoff']
-		max_evidence_cutoff = data['max_evidence_cutoff']
-	});          
+		$.get(graph_link, function(data) {
+			vis.draw({ network: data, visualStyle: visual_style});
+			if(data['disable_cellular']) {
+				$('#c_check').attr('disabled', true);
+			}
+		});          
 }
+
+function setup_phenotype_cytoscape_vis(graph_link) {
+		// id of Cytoscape Web container div
+		var div_id = "cytoscapeweb";
+                                
+		// visual style we will use
+		var visual_style = {
+			nodes: {
+				color: {
+					discreteMapper: {
+						attrName: "sub_type",
+						entries: [
+							{attrValue: 'FOCUS', value: "#fade71" },
+							{attrValue: 'CELLULAR COMPONENT', value: '#E2A9F3'},
+							{attrValue: 'MOLECULAR FUNCTION', value: '#81F781'},
+							{attrValue: 'BIOLOGICAL PROCESS', value: '#5CB3FF'},
+							{attrValue: 'BIOCONCEPT', value: '#5CB3FF'}
+						]
+					}
+				},
+				shape: {
+					discreteMapper: {
+						attrName: "bio_type",
+						entries: [
+							{attrValue: 'BIOENTITY', value: 'ELLIPSE',
+							attrValue: 'BIOCONCEPT', value: 'RECTANGLE'}
+						]
+					}
+				},
+				labelHorizontalAnchor: "center"
+			},
+		};
+                
+		// initialization options
+		var options = {
+			swfPath: "../static/js/CytoscapeWeb",
+			flashInstallerPath: "/swf/playerProductInstall"
+		};
+                
+		// init and draw
+		var vis = new org.cytoscapeweb.Visualization(div_id, options);
+		
+		// callback when Cytoscape Web has finished drawing
+    	vis.ready(function() {
+			// add a listener for when nodes and edges are clicked
+			vis.addListener("click", "nodes", function(event) {
+				handle_click(event);
+			})
+			.addListener("click", "edges", function(event) {
+				handle_click(event);
+			});
+                    
+			function handle_click(event) {
+				var target = event.target;   
+				var link = target.data['link']
+				window.location.href = link          
+			}
+		});
+		
+		//Grab the network data via AJAX
+		$.get(graph_link, function(data) {
+			vis.draw({ network: data, visualStyle: visual_style});
+		});          
+}
+
+
+

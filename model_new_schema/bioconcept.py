@@ -6,8 +6,7 @@ Created on Nov 28, 2012
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
 from model_new_schema.config import SCHEMA
 from model_new_schema.link_maker import add_link, link_symbol, biocon_link, \
-    bioent_biocon_link, biocon_all_bioent_link, go_overview_table_link, \
-    go_evidence_table_link
+    bioent_biocon_link
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
@@ -47,7 +46,9 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     @hybrid_property
     def name_for_bioent(self):
         return link_symbol + self.bioconcept.name
-    
+    @hybrid_property
+    def link(self):
+        return bioent_biocon_link(self)
     @hybrid_property
     def name_with_link(self):
         return add_link(self.name, self.link)
@@ -57,10 +58,6 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     @hybrid_property
     def name_for_bioent_with_link(self):
         return add_link(self.name_for_bioent, self.link)
-    
-    @hybrid_property
-    def link(self):
-        return bioent_biocon_link(self)
 
     @hybrid_property
     def description(self):
@@ -172,14 +169,6 @@ class Go(Bioconcept):
     go_term = Column('go_term', String)
     go_aspect = Column('go_aspect', String)
     go_definition = Column('go_definition', String)
-    
-    @hybrid_property
-    def overview_link(self):
-        return go_overview_table_link(biocon=self)
-    @hybrid_property
-    def evidence_link(self):
-        return go_evidence_table_link(biocon=self)
-
     
     @hybrid_property
     def description(self):

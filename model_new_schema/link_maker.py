@@ -17,48 +17,81 @@ def add_official_name_params(link, key_to_obj):
     full_link = link + '&'.join([key + '=' + value for key, value in params.iteritems()])
     return full_link
 
-#Bioentity links
+class LinkMaker():
+    bioent=None
+    biocon=None
+    biorel=None
 
-#Bioconcept links
-def go_overview_table_link(biocon=None, bioent=None):
-    overview_link = add_official_name_params('/go_overview_table?', {'bioent_name':bioent, 'biocon_name': biocon})
-    return overview_link
+    
+    def __init__(self, name, bioent=None, biocon=None, biorel=None, reference=None):
+        self.bioent=bioent
+        self.biocon=biocon
+        self.biorel=biorel
+        self.reference=reference
 
-def go_evidence_table_link(biocon=None, bioent=None):
-    evidence_link = add_official_name_params('/go_evidence_table?', {'bioent_name':bioent, 'biocon_name': biocon})
-    return evidence_link
+    
+        #GO links    
+        setattr(self, 'go_evidence_link', add_official_name_params('/go_evidence?', {'bioent_name':bioent, 'biocon_name': biocon}))
+        setattr(self, 'go_overview_table_link', add_official_name_params('/go_overview_table?', {'bioent_name':bioent, 'biocon_name': biocon, 'reference_name':reference}))
+        setattr(self, 'go_evidence_table_link', add_official_name_params('/go_evidence_table?', {'bioent_name':bioent, 'biocon_name': biocon}))
+        setattr(self, 'go_graph_link', add_official_name_params('/go_graph?', {'bioent_name':bioent, 'biocon_name': biocon}))
+   
+        setattr(self, 'go_f_filename', name + '_function_go_terms')
+        setattr(self, 'go_p_filename', name + '_process_go_terms')
+        setattr(self, 'go_c_filename', name + '_component_go_terms')
+        setattr(self, 'go_filename', name + '_go_terms')
+        
+        setattr(self, 'go_f_evidence_filename', name + '_function_go_evidence')
+        setattr(self, 'go_p_evidence_filename', name + '_process_go_evidence')
+        setattr(self, 'go_c_evidence_filename', name + '_component_go_evidence')
+        setattr(self, 'go_evidence_filename', name + '_go_evidence')
 
-def go_evidence_link(biocon=None, bioent=None):
-    evidence_link = add_official_name_params('/go_evidence?', {'bioent_name':bioent, 'biocon_name': biocon})
-    return evidence_link
+        #Phenotype links
+        setattr(self, 'phenotype_evidence_link', add_official_name_params('/phenotype_evidence?', {'bioent_name':bioent, 'biocon_name': biocon}))
+        setattr(self, 'phenotype_overview_table_link', add_official_name_params('/phenotype_overview_table?', {'bioent_name':bioent, 'biocon_name': biocon, 'reference_name':reference}))
+        setattr(self, 'phenotype_evidence_table_link', add_official_name_params('/phenotype_evidence_table?', {'bioent_name':bioent, 'biocon_name': biocon}))
+        setattr(self, 'phenotype_graph_link', add_official_name_params('/phenotype_graph?', {'bioent_name':bioent, 'biocon_name': biocon}))
+    
+        setattr(self, 'cellular_phenotype_filename', name + '_cellular_phenotypes')
+        setattr(self, 'chemical_phenotype_filename', name + '_chemical_phenotypes')
+        setattr(self, 'pp_rna_phenotype_filename', name + '_pp_rna_phenotypes')
+        setattr(self, 'phenotype_filename', name + '_phenotypes')
+        
+        setattr(self, 'cellular_phenotype_evidence_filename', name + '_cellular_pheno_evidence')
+        setattr(self, 'chemical_phenotype_evidence_filename', name + '_chemical_pheno_evidence')
+        setattr(self, 'pp_rna_phenotype_evidence_filename', name + '_pp_rna_pheno_evidence')
+        setattr(self, 'phenotype_evidence_filename', name + '_phenotypes')
 
+
+        #Interaction links
+        setattr(self, 'interaction_evidence_link', add_official_name_params('/interaction_evidence?', {'bioent_name':bioent, 'biocon_name': biocon}))
+        setattr(self, 'interaction_overview_table_link', add_official_name_params('/interaction_overview_table?', {'bioent_name':bioent, 'reference_name':reference}))
+        setattr(self, 'interaction_evidence_table_link', add_official_name_params('/interaction_evidence_table?', {'bioent_name':bioent, 'biorel_name': biorel}))
+        setattr(self, 'interaction_graph_link', add_official_name_params('/interaction_graph?', {'bioent_name':bioent}))
+        
+        setattr(self, 'interaction_filename', name + '_interactions')
+        setattr(self, 'genetic_interaction_filename', name + '_genetic_interactions')
+        setattr(self, 'physical_interaction_filename', name + '_physical_interactions')
+        
+        setattr(self, 'interaction_evidence_filename', name + '_interaction_evidence')
+        setattr(self, 'genetic_interaction_evidence_filename', name + '_genetic_interaction_evidence')
+        setattr(self, 'physical_interaction_evidence_filename', name + '_physical_interaction_evidence')
+
+#Biocon links
+def go_link(biocon):
+    return '/go/' + biocon.official_name
+def phenotype_link(biocon):
+    return '/phenotype/' + biocon.official_name 
+    
 #Bioentity links
 def bioent_link(bioent):
     return '/bioent/' + bioent.official_name
-def bioent_all_link(bioent, bio_type, link_type):
-    return '/' + bio_type + '/' + link_type + '=' + bioent.official_name
-
-def bioent_interaction_graph_link(bioent):
-    return bioent.link + '/interaction_graph'
-def bioent_go_graph_link(bioent):
-    return bioent.link + '/go_graph'
 def bioent_wiki_link(bioent):
     return 'http://wiki.yeastgenome.org/index.php/' + bioent.official_name
 
-def bioent_all_biorel_link(bioent):
-    return bioent.link + '/biorel'
-def bioent_all_biocon_link(bioent):
-    return bioent.link + '/biocon'
-def bioent_go_link(bioent):
-    return bioent.link + '/go'
-def bioent_phenotype_link(bioent):
-    return bioent.link + '/phenotype'
-def bioent_interaction_link(bioent):
-    return bioent.link + '/interaction'
-
 #Biorelation links
-def biorel_link(biorel):
-    return '/biorel/' + lower(biorel.biorel_type) + '=' + biorel.official_name
+def interaction_link(biorel):
+    return add_official_name_params('/interaction_evidence?', {'biorel_name':biorel})
 
 #BioentBiocon links
 def bioent_biocon_link(bioent_biocon):
@@ -70,8 +103,6 @@ def bioent_biocon_reference_link(bioent_biocon):
 #Bioconcept links
 def biocon_link(biocon):
     return '/' + lower(biocon.biocon_type) + '/' + biocon.link_name
-def biocon_all_bioent_link(biocon):
-    return evidence_link(biocon=biocon)
 
 #Reference links
 def reference_link(reference):
@@ -85,7 +116,3 @@ def reference_go_link(reference):
     return reference.link + '/go'
 def reference_interaction_link(reference):
     return reference.link + '/interaction'
-
-#Misc links
-def allele_link(allele):
-    return '/allele/' + allele.official_name

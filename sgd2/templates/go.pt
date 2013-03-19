@@ -112,17 +112,18 @@
 		options["aaSorting"] = [[1, "asc"]];
 		options["aoColumns"] = [{"bSearchable":false, "bVisible":false}, null, null, null]
 		options["bProcessing"] = true;
-		options["sAjaxSource"] = '${biocon.overview_link}';
+		options["sAjaxSource"] = '${link_maker.go_overview_table_link}';
 		options["bPaginate"] = true;
   		$('#genes_table').dataTable(options);	
   		
-  		$.getJSON('${biocon.evidence_link}', function(data) {
+  		//Set up evidence table and reference list
+  		$.getJSON('${link_maker.go_evidence_table_link}', function(data) {
   			var evidence_table = data['aaData'];
 			var references = data['reference'];
   			
   			//Set up evidence table
 			var options = basic_datatable_options("evidence_header", 
-				'${biocon.evidence_file_name}', "evidence_wrapper", "evidence_message");
+				'${link_maker.go_evidence_filename}', "evidence_wrapper", "evidence_message");
 			options["aaSorting"] = [[1, "asc"]];
 			options["aoColumns"] = [{"bSearchable":false, "bVisible":false}, null, null, null, null, null, null]
 			options["aaData"] = evidence_table;

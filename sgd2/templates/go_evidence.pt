@@ -8,6 +8,7 @@
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
+		<br></br>
 		<h1><span tal:content="name"></h1>
 		<p class="lead">
 			<span tal:content="description"></span>
@@ -110,6 +111,15 @@
         <br></br>
         
 		<h3>Cytoscape Visualization</h3>
+			<label class="checkbox">
+      			<input id="f_check" type="checkbox" checked="true" name="categories"> Molecular Function
+    		</label>
+    		<label class="checkbox">
+      			<input id="p_check" type="checkbox" checked="true" name="categories"> Biological Process
+    		</label>
+    		<label class="checkbox">
+      			<input id="c_check" type="checkbox" name="categories"> Cellular Component
+    		</label>
 		<div id="cytoscapeweb">
             Cytoscape visualization is loading...
         </div>
@@ -130,7 +140,7 @@
 	$(document).ready(function() {
 		
 		//Get evidence data
-  		$.getJSON('${evidence_link}', function(data) {
+  		$.getJSON('${link_maker.go_evidence_table_link}', function(data) {
 			var go_c = data['go_c'];
   			var go_p = data['go_p'];
   			var go_f = data['go_f'];
@@ -141,21 +151,21 @@
 			document.getElementById("evidence_header").innerHTML = '(' + num_rows + ')';
 			
   			//Set up function table
-			var options = basic_datatable_options("evidence_f_header", '${evidence_f_filename}', "evidence_f_wrapper", "evidence_f_message");
+			var options = basic_datatable_options("evidence_f_header", '${link_maker.go_f_evidence_filename}', "evidence_f_wrapper", "evidence_f_message");
 			options["aaSorting"] = [[0, "asc"]];
 			options["aaData"] = go_f;
 			options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null]
 			$('#evidence_f_table').dataTable(options);
 			
 			//Set up process table
-			var options = basic_datatable_options("evidence_p_header", '${evidence_p_filename}', "evidence_p_wrapper", "evidence_p_message");
+			var options = basic_datatable_options("evidence_p_header", '${link_maker.go_p_evidence_filename}', "evidence_p_wrapper", "evidence_p_message");
 			options["aaSorting"] = [[0, "asc"]];
 			options["aaData"] = go_p;
 			options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null]
 			$('#evidence_p_table').dataTable(options);
 		
 			//Set up component table
-			var options = basic_datatable_options("evidence_c_header", '${evidence_c_filename}', "evidence_c_wrapper", "evidence_c_message");
+			var options = basic_datatable_options("evidence_c_header", '${link_maker.go_c_evidence_filename}', "evidence_c_wrapper", "evidence_c_message");
 			options["aaSorting"] = [[0, "asc"]];
 			options["aaData"] = go_c;
 			options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null]
@@ -175,7 +185,7 @@
 
 <script type="text/javascript">
 window.onload=function() {
-	setup_cytoscape_vis("${go_graph_link}");   
+	setup_go_cytoscape_vis("${link_maker.go_graph_link}");   
 };           
 
 </script>

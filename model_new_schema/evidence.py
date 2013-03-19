@@ -8,7 +8,6 @@ from model_new_schema.bioconcept import BioentBiocon
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.biorelation import Interaction
 from model_new_schema.chemical import Chemical
-from model_new_schema.link_maker import add_link, allele_link
 from model_new_schema.reference import Reference
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -105,14 +104,6 @@ class Allele(Base):
     @hybrid_property
     def description(self):
         return 'Allele'
-    
-    @hybrid_property
-    def name_with_link(self):
-        return add_link(self.name, self.link)
-    
-    @hybrid_property
-    def link(self):
-        return allele_link(self)
     
     def __init__(self, name, description):
         self.name = name

@@ -1,15 +1,9 @@
-from .models import DBSession
-from model_new_schema.bioentity import Bioentity
-from model_new_schema.evidence import Allele
-from model_new_schema.search import Typeahead
+from model_new_schema.link_maker import LinkMaker
 from pyramid.renderers import get_renderer
 from pyramid.response import Response
 from pyramid.view import view_config
-from sqlalchemy.exc import DBAPIError
-from sqlalchemy.sql.expression import func
+from query import get_bioent, get_reference
  
-
-
 def site_layout():
     renderer = get_renderer("templates/global_layout.pt")
     layout = renderer.implementation().macros['layout']
@@ -31,32 +25,20 @@ def help_view(request):
 def about_view(request):
     return {'layout': site_layout(), 'page_title': 'About'}
 
-@view_config(route_name='search', renderer='templates/search.pt')
-def search_view(request):
-    try:
-        search_str = request.matchdict['search_str'].upper()
-        bioents = DBSession.query(Bioentity).join(Typeahead).filter(Typeahead.bio_type == 'BIOENT', func.upper(Typeahead.name) == search_str).all()
-    except DBAPIError:
-        return Response("Error.", content_type='text/plain', status_int=500)
-    return {'layout': site_layout(), 'page_title': 'Search Results', 'bioents': bioents}
 
-@view_config(route_name='typeahead', renderer="json")
-def typeahead_view(request):
-    try:
-        q = request.POST.items()[0][1].upper()
-        possible = DBSession.query(Typeahead).filter(func.upper(Typeahead.name) == q).all()
-        full_names = [p.full_name for p in possible]
-        return full_names
-    except DBAPIError:
-        return ['Error']
-    
-@view_config(route_name='allele', renderer='templates/allele.pt')
-def allele_view(request):
-    allele_name = request.matchdict['allele_name']
-    allele = DBSession.query(Allele).filter(Allele.official_name == allele_name).first()
-    return {'layout': site_layout(), 'page_title': allele.name, 'allele': allele}
+@view_config(route_name='bioent', renderer='templates/bioent.pt')
+def bioent_view(request):
+    bioent_name = request.matchdict['bioent_name']
+    bioent = get_bioent(bioent_name)
+    if bioent is None:
+        return Response(status_int=500, body='Bioent could not be found.')
+    return {'layout': site_layout(), 'page_title': bioent.name, 'bioent': bioent, 'link_maker':LinkMaker(bioent.name, bioent=bioent)}
+  
 
-
-
-
-
+@view_config(route_name='reference', renderer='templates/reference.pt')
+def reference_view(request):
+    ref_name = request.matchdict['pubmed_id']
+    reference = get_reference(ref_name)   
+    if reference is None:
+            return Response(status_int=500, body='Reference could not be found.') 
+    return {'layout': site_layout(), 'page_title': reference.name, 'ref': reference, 'link_maker':LinkMaker(reference.name, reference=reference)}

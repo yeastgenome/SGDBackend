@@ -58,7 +58,8 @@
   			<tr>
     			<th>GO Term</th>
     			<th>Gene</th>
-    			<th>Evidence From This Reference</th>
+    			<th>Gene Descripion</th>
+    			<th>Evidence Codes</th>
   			</tr>
   			</thead>
 			</table>
@@ -82,7 +83,8 @@
   			<tr>
     			<th>Phenotype</th>
     			<th>Gene</th>
-    			<th>Evidence From This Reference</th>
+    			<th>Qualifier</th>
+    			<th>Mutant Type</th>
   			</tr>
   			</thead>
 			</table>
@@ -99,8 +101,9 @@
     			<th>Phenotype</th>
     			<th>Gene</th>
   				<th>Chemical</th>
-    			<th>Evidence From This Reference</th>
-  			</tr>
+    			<th>Qualifier</th>
+    			<th>Mutant Type</th>
+   			</tr>
   			</thead>
 			</table>
 		</div>
@@ -116,8 +119,8 @@
     			<th>Phenotype</th>
     			<th>Gene</th>
     			<th>Reporter</th>
-    			<th>Evidence From This Reference</th>
-
+    			<th>Qualifier</th>
+    			<th>Mutant Type</th>
   			</tr>
   			</thead>
 			</table>
@@ -140,6 +143,8 @@
   			<tr>
     			<th>Interactor 1</th>
     			<th>Interactor 2</th>
+    			<th>Genetic Evidence</th>
+    			<th>Physical Evidence</th>
     			<th>Evidence From This Reference</th>
   			</tr>
   			</thead>
@@ -150,52 +155,54 @@
 
 <script>
 $(document).ready(function() {
+
 		//Set up go table
-		var options = basic_datatable_options("go_header", '${ref.go_file_name}', "go_wrapper", "go_message");
+		var options = basic_datatable_options("go_header", '${link_maker.go_filename}', "go_wrapper", "go_message");
 		options["aaSorting"] = [[2, "desc"]];
-		options["aoColumns"] = [null, null, {"sType":"num-html"}];
 		options["bProcessing"] = true
-		options["sAjaxSource"] = '${ref.go_link}';
+		options["sAjaxSource"] = '${link_maker.go_overview_table_link}';
+		options["aoColumns"] = [null, null, {"bSearchable":false, "bVisible":false}, null]
+		options["bPaginate"] = true;
 		$('#go_table').dataTable(options);
 
   		//Set up interaction table
-		var options = basic_datatable_options("interaction_header", '${ref.interaction_file_name}', "interaction_wrapper", "interaction_message");
+		var options = basic_datatable_options("interaction_header", '${link_maker.interaction_filename}', "interaction_wrapper", "interaction_message");
 		options["aaSorting"] = [[0, "asc"]];
-		options["aoColumns"] = [null, null, {"sType":"num-html"}];
 		options["bProcessing"] = true
-		options["sAjaxSource"] = '${ref.interaction_link}';
+		options["sAjaxSource"] = '${link_maker.interaction_overview_table_link}';
 		options["bPaginate"] = true;
+		options["aoColumns"] = [null, null, {"bSearchable":false, "bVisible":false}, {"bSearchable":false, "bVisible":false}, null]
 		$('#interaction_table').dataTable(options);
 			
   		//Get evidence data
-  		$.getJSON('${ref.phenotype_link}', function(data) {
-  			var phenotype_table = data['phenotype'];
-  			var chemical_phenotype_table = data['chemical_phenotype'];
-  			var pp_rna_phenotype_table = data['pp_rna_phenotype'];
+  		$.getJSON('${link_maker.phenotype_overview_table_link}', function(data) {
+  			var phenotype_table = data['cellular_pheno'];
+  			var chemical_phenotype_table = data['chemical_pheno'];
+  			var pp_rna_phenotype_table = data['pp_rna_pheno'];
 			
 			//Set total phenotype count
 			var num_rows = phenotype_table.length + chemical_phenotype_table.length + pp_rna_phenotype_table.length;
 			document.getElementById("phenotype_header").innerHTML = '(' + num_rows + ')';
 			
   			//Set up phenotype table
-			var options = basic_datatable_options("cellular_phenotype_header", '${ref.phenotype_file_name}', "phenotype_wrapper", "phenotype_message");
-			options["aaSorting"] = [[2, "desc"]];
-			options["aoColumns"] = [null, null, {"sType":"num-html"}];
+			var options = basic_datatable_options("cellular_phenotype_header", '${link_maker.cellular_phenotype_filename}', "phenotype_wrapper", "phenotype_message");
+			options["aaSorting"] = [[0, "asc"]];
 			options["aaData"] = phenotype_table;
+			options["bPaginate"] = true;
 			$('#phenotype_table').dataTable(options);
 		
 			//Set up chemical phenotype table
-			var options = basic_datatable_options("chemical_phenotype_header", '${ref.chemical_phenotype_file_name}', "chemical_phenotype_wrapper", "chemical_phenotype_message");
-			options["aaSorting"] = [[3, "desc"]];
-			options["aoColumns"] = [null, null, null, {"sType":"num-html"}];
+			var options = basic_datatable_options("chemical_phenotype_header", '${link_maker.chemical_phenotype_filename}', "chemical_phenotype_wrapper", "chemical_phenotype_message");
+			options["aaSorting"] = [[1, "asc"]];
 			options["aaData"] = chemical_phenotype_table;
+			options["bPaginate"] = true;
 			$('#chemical_phenotype_table').dataTable(options);
 		
 			//Set up pp-rna phenotype table
-			var options = basic_datatable_options("pp_rna_phenotype_header", '${ref.pp_rna_phenotype_file_name}', "pp_rna_phenotype_wrapper", "pp_rna_phenotype_message");
-			options["aaSorting"] = [[3, "desc"]];
-			options["aoColumns"] = [null, null, null, {"sType":"num-html"}];
+			var options = basic_datatable_options("pp_rna_phenotype_header", '${link_maker.pp_rna_phenotype_filename}', "pp_rna_phenotype_wrapper", "pp_rna_phenotype_message");
+			options["aaSorting"] = [[1, "asc"]];
 			options["aaData"] = pp_rna_phenotype_table;
+			options["bPaginate"] = true;
 			$('#pp_rna_phenotype_table').dataTable(options);
 			
   		});

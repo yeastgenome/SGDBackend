@@ -3,7 +3,6 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
-from jsonify.mini import bioent_mini
 from sgd2.models import DBSession
 from sqlalchemy.sql.expression import func
 import string
@@ -17,8 +16,7 @@ def add_gene_hyperlinks(text):
     bioentities = result['bioentities']
     word_to_link = {}
     for name, bioent in bioentities.iteritems():
-        bioent_json = bioent_mini(bioent)
-        word_to_link[name.upper()] = bioent_json['link']
+        word_to_link[name.upper()] = bioent.link
         
     words = text.split()
     for i in range(0, len(words)):

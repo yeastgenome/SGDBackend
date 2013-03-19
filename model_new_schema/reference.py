@@ -7,9 +7,7 @@ These classes are populated using SQLAlchemy to connect to the BUD schema on Fas
 Reference module of the database schema.
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
-from model_new_schema.link_maker import add_link, reference_link, \
-    reference_evidence_link, reference_phenotype_link, reference_go_link, \
-    reference_interaction_link
+from model_new_schema.link_maker import add_link, reference_link
 from model_new_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -18,6 +16,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.orm.session import Session
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date, CLOB
+from utils.add_hyperlinks import add_gene_hyperlinks
 import datetime
   
 class Reference(Base, EqualityByIDMixin, UniqueMixin):
@@ -51,7 +50,6 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     book = relationship('Book', uselist=False)
     
     abst = relationship("Abstract", cascade='all,delete', uselist=False)
-    abstract = association_proxy('abst', 'text')
         
     author_references = relationship('AuthorReference', cascade='all,delete', collection_class=attribute_mapped_collection('order'))
     
@@ -136,21 +134,12 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     def link(self):
         return reference_link(self)
     @hybrid_property
-    def evidence_link(self):
-        return reference_evidence_link(self)
-    @hybrid_property
-    def phenotype_link(self):
-        return reference_phenotype_link(self)
-    @hybrid_property
-    def go_link(self):
-        return reference_go_link(self)
-    @hybrid_property
-    def interaction_link(self):
-        return reference_interaction_link(self)
-    
+    def abstract(self):
+        if self.abst is not None:
+            return add_gene_hyperlinks(self.abst.text)
+        return None
     @hybrid_property
     def small_pmid(self):
-        print self.pubmed_id
         if self.pubmed_id is None:
             return ''
         else:
@@ -182,27 +171,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     @hybrid_property
     def description(self):
         return self.title
-    
-    @hybrid_property
-    def phenotype_file_name(self):
-        return self.name + '_phenotypes'
-    @hybrid_property
-    def chemical_phenotype_file_name(self):
-        return self.name + '_chemical_phenotypes'
-    @hybrid_property
-    def pp_rna_phenotype_file_name(self):
-        return self.name + '_pp_rna_phenotypes'
-    @hybrid_property
-    def interaction_file_name(self):
-        return self.name + '_interactions'
-    @hybrid_property
-    def go_file_name(self):
-        return self.name + '_go_terms'
-    @hybrid_property
-    def gene_file_name(self):
-        return self.name + '_genes'
-    
-    
+
     @classmethod
     def unique_hash(cls, pubmed_id):
         return pubmed_id

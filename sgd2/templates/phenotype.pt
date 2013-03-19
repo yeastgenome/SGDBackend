@@ -54,9 +54,10 @@
 			<table class='table table-striped table-bordered table-condensed tablesorter' id='genes_table' width="100%">
 			<thead>
   			<tr>
-    			<th>Bioconcept</th>
+    			<th>Phenotype</th>
     			<th>Gene</th>
-    			<th>Evidence Count</th>
+    			<th>Qualifier</th>
+    			<th>Mutant Type</th>
   			</tr>
   			</thead>
 			</table>
@@ -70,10 +71,10 @@
 		//Set up gene table
 		var options = basic_datatable_options("genes_header", 
 				'${biocon.name}_genes', "genes_wrapper", "genes_message");
-		options["aaSorting"] = [[1, "desc"]];
-		options["aoColumns"] = [{"bSearchable":false, "bVisible":false}, null, null]
+		options["aaSorting"] = [[1, "asc"]];
+		options["aoColumns"] = [{"bSearchable":false, "bVisible":false}, null, null, null]
 		options["bProcessing"] = true;
-		options["sAjaxSource"] = '${biocon.all_bioent_link}';
+		options["sAjaxSource"] = '${link_maker.phenotype_overview_table_link}';
 		options["bPaginate"] = true;
   		$('#genes_table').dataTable(options);	
   			

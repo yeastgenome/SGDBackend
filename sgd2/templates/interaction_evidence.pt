@@ -7,24 +7,10 @@
 <!-- Subhead
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
-	<div class="container" tal:condition="python: bioent_biocon.type == 'BIOENT_BIOCON'">
-		<h1><span tal:content="bioent_biocon.name"></h1>
+	<div class="container">
+		<h1><span tal:content="name"></h1>
 		<p class="lead">
-			<span tal:content="bioent_biocon.description"></span>
-		</p>
-	</div>
-	
-	<div class="container" tal:condition="python: bioent_biocon.type == 'BIOENTITY' and biocon_type == 'PHENOTYPE'">
-		<h1><span tal:content="bioent_biocon.name + ' Phenotypes'"></h1>
-		<p class="lead">
-			<span tal:content="'Evidence for all phenotypes associated with ' + bioent_biocon.name + '.'"></span>
-		</p>
-	</div>
-	
-	<div class="container" tal:condition="python: bioent_biocon.type == 'BIOENTITY' and biocon_type == 'GO'">
-		<h1><span tal:content="bioent_biocon.name + ' Gene Ontology'"></h1>
-		<p class="lead">
-			<span tal:content="'Evidence for all gene ontology terms associated with ' + bioent_biocon.name + '.'"></span>
+			<span tal:content="description"></span>
 		</p>
 	</div>
 </header>
@@ -37,9 +23,10 @@
 <div class="row-fluid">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav" id='navbar' name='navbar' style="margin-left:auto; margin-right:auto">
-			<li><h4><span tal:content="bioent_biocon.name"></h4></li>
+			<li><h4><span tal:content="name"></h4></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
-			<li><a href="#evidence"><i class="icon-chevron-right"></i> Evidence</a></li>
+			<li><a href="#genetic_evidence"><i class="icon-chevron-right"></i> Genetic Evidence</a></li>
+			<li><a href="#physical_evidence"><i class="icon-chevron-right"></i> Physical Evidence</a></li>
           	<li><a href="#literature"><i class="icon-chevron-right"></i> References</a></li>
 		</ul>
 	</div>
@@ -52,65 +39,67 @@
 	<div class="page-header">
 		<h1>Summary</h1>
 		<div>
-			<ul class='unstyled' tal:condition="python: bioent_biocon.type == 'BIOENT_BIOCON'">
-				<li><strong>Gene: </strong><span tal:content="structure bioent_biocon.bioentity.full_name_with_link"></span></li>
-				<li>
-					<strong tal:condition="python: biocon_type == 'PHENOTYPE'">Phenotype: </strong>
-					<strong tal:condition="python: biocon_type == 'GO'">GO Term: </strong>
-					<a tal:content="structure bioent_biocon.bioconcept.name_with_link"></a></li>
-			</ul>
-			<ul class='unstyled' tal:condition="python: bioent_biocon.type == 'BIOENTITY'">
-				<li><strong>Gene: </strong><span tal:content="structure bioent_biocon.full_name_with_link"></span></li>
-				<li tal:condition="python: biocon_type == 'PHENOTYPE'"><strong>Phenotype: </strong><span>All</span></li>
-				<li tal:condition="python: biocon_type == 'GO'"><strong>GO Term: </strong><span>All</span></li>
-			</ul>
+			<dl>
+				<dt>Interacting Bioentities:</dt>
+				<span tal:content="structure bioent1.full_name_with_link"></span>
+				<dd tal:content="bioent1.description"></dd>
+				<span tal:condition="python: bioent2" tal:content="structure bioent2.full_name_with_link"></span>
+				<dd tal:condition="python: bioent2" tal:content="bioent2.description"></dd>
+
+			</dl>
 		</div>
 	</div>
 </section>
 
-<!-- Evidence
+<!-- Genetic Evidence
 ================================================== -->
-<section id="evidence">
+<section id="genetic_evidence">
 	<div class="page-header">
-		<h1>Evidence <span id='evidence_header'></span></h1>
-
-		<span id='evidence_message' class="hide">No evidence for this relationship.</span>
-		<div id='evidence_wrapper'>		
-			<table class='table table-striped table-bordered table-condensed tablesorter' id='evidence_table' width="100%">
+		<h1>Evidence <span id='evidence_header'></h1>
+		<span>Source: BioGRID</span>
+		
+		<h3>Genetic Evidence <span id='genetic_evidence_header'></h3>
+		<span id='genetic_evidence_message'></span>
+		<div id='genetic_evidence_wrapper'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='genetic_evidence_table' width="100%">
 			<thead>
-  			<tr tal:condition="python: biocon_type == 'PHENOTYPE'">
-  				<th>Phenotype</th>
-    			<th>Qualifier</th>
+  			<tr>
+  				<th>Interactor</th>
+  				<th>Interactor</th>
     			<th>Experiment</th>
-    			<th>Mutant</th>
-    			<th>Allele</th>
-    			<th>Reporter</th>
-    			<th>Chemical</th>
-    			<th>Strain</th>
-    			<th>Source</th>
-    			<th>Reference</th>
-  			</tr>
-  			
-  			<tr tal:condition="python: biocon_type == 'GO'">
-  				<th>GO Term</th>
-    			<th>GO Evidence</th>
-    			<th>Annotation Type</th>
-    			<th>Qualifier</th>
+    			<th>Annotation</th>
+    			<th>Direction</th>
+    			<th>Phenotype</th>
+    			<th>Modification</th>
     			<th>Source</th>
     			<th>Reference</th>
   			</tr>
   			</thead>
 			</table>
         </div>
+        <br></br>
+		
+		<h3>Physical Evidence <span id='physical_evidence_header'></h3>
 
-	
-	<div tal:condition="python: biocon_type == 'GO' and bioent_biocon.type == 'BIOENTITY'">
-	<br></br>
-		<h3>Cytoscape Visualization</h3>
-		<div id="cytoscapeweb">
-            Cytoscape visualization is loading...
+		<span id='physical_evidence_message'></span>
+		<div id='physical_evidence_wrapper'>
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='physical_evidence_table' width="100%">
+			<thead>
+  			<tr>
+  				<th>Interactor</th>
+  				<th>Interactor</th>
+    			<th>Experiment</th>
+    			<th>Annotation</th>
+    			<th>Direction</th>
+    			<th>Phenotype</th>
+    			<th>Modification</th>
+    			<th>Source</th>
+    			<th>Reference</th>
+  			</tr>
+  			</thead>
+			</table>
         </div>
-     </div>
+		
 	</div>
 </section>
 
@@ -128,22 +117,40 @@
 	$(document).ready(function() {
 		//Get evidence data
 		
-  		$.getJSON('${evidence_link}', function(data) {
-  			var evidence_table = data['evidence'];
-			var references = data['reference'];
+  		$.getJSON('${link_maker.interaction_evidence_table_link}', function(data) {
+			var genetic_evidence_table = data['genetic'];
+  			var physical_evidence_table = data['physical'];
+  			var references = data['reference'];
   			
-  			//Set up evidence table
-			var options = basic_datatable_options("evidence_header", 
-				'${bioent_biocon.name}_evidence', "evidence_wrapper", "evidence_message");
-			options["fnInitComplete"] = function() {
-				if('${bioent_biocon.type}' == 'BIOENT_BIOCON') {
-					this.fnSetColumnVis(0, false);
-    			}  
-    			var num_rows = this.fnSettings().fnRecordsTotal();
-				document.getElementById("evidence_header").innerHTML = '(' + num_rows + ')';
-			};
-			options["aaData"] = evidence_table;
-			$('#evidence_table').dataTable(options);
+  			//Set total evidence count
+			var num_rows = genetic_evidence_table.length + physical_evidence_table.length;
+			document.getElementById("evidence_header").innerHTML = '(' + num_rows + ')';
+			
+  			//Set up genetic evidence table
+			var options = basic_datatable_options("genetic_evidence_header", 
+				'${link_maker.genetic_interaction_evidence_filename}', "genetic_evidence_wrapper", "genetic_evidence_message");
+			options["bPaginate"] = true;
+			options["aaData"] = genetic_evidence_table;
+			options["aoColumns"] = [{"bSearchable":false, "bVisible":false}, null, null, null, null, null, {"bSearchable":false, "bVisible":false}, {"bSearchable":false, "bVisible":false}, null]
+  			if('${hide_interactor}') {
+  			  	options["aoColumns"][1] = {"bSearchable":false, "bVisible":false}
+    		}
+  			$('#genetic_evidence_table').dataTable(options);
+  			
+  			//Set up physical evidence data
+			var options = basic_datatable_options("physical_evidence_header", 
+				'${link_maker.genetic_interaction_evidence_filename}', "physical_evidence_wrapper", "physical_evidence_message");
+			options["bPaginate"] = true;
+			options["aaData"] = physical_evidence_table;
+			options["aoColumns"] = [{"bSearchable":false, "bVisible":false}, null, null, null, null, {"bSearchable":false, "bVisible":false}, null, {"bSearchable":false, "bVisible":false}, null]
+  			if('${hide_interactor}') {
+  			  	options["aoColumns"][1] = {"bSearchable":false, "bVisible":false}
+    		}
+  			$('#physical_evidence_table').dataTable(options);
+  			
+  			if('${hide_interactor}') {
+  			  		
+    		} 
 			
 			//Set up references
 			ref_list = document.getElementById("reference_list");
@@ -156,21 +163,6 @@
   		});
 	} );
 </script>
-
-<script type="text/javascript">
-window.onload=function() {
-	if('${bioent_biocon.type}' == 'BIOENTITY' && '${biocon_type}' == 'GO') {
-		setup_cytoscape_vis("${go_graph_link}");   
-	}
-};           
-
-</script>
-        
-<style>
-	/* The Cytoscape Web container must have its dimensions set. */
-	html, body { height: 80%; width: 100%; padding: 0; margin: 0; }
-	#cytoscapeweb { width: 100%; height: 100%; }
-</style>
 
 </div>
 

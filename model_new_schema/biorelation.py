@@ -4,7 +4,7 @@ Created on Nov 27, 2012
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
-from model_new_schema.link_maker import link_symbol, add_link, biorel_link
+from model_new_schema.link_maker import link_symbol, add_link, interaction_link
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
@@ -62,9 +62,6 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     @hybrid_property
     def description(self):
         return 'Interaction between ' + self.source_bioent.full_name + ' and ' + self.sink_bioent.full_name    
-    @hybrid_property
-    def link(self):
-        return biorel_link(self)
         
     @hybrid_property
     def name_with_link(self):
@@ -109,6 +106,10 @@ class Interaction(Biorelation):
     id = Column('biorel_id', Integer, ForeignKey(Biorelation.id), primary_key = True)
     physical_evidence_count = Column('physical_evidence_count', Integer)
     genetic_evidence_count = Column('genetic_evidence_count', Integer)
+    
+    @hybrid_property
+    def link(self):
+        return interaction_link(self)
         
     __mapper_args__ = {'polymorphic_identity': 'INTERACTION',
                        'inherit_condition': id == Biorelation.id}

@@ -87,10 +87,10 @@
 <section id="go">
 	<div class="page-header">
 		<h1>Gene Ontology <span id='go_header'></span></h1>
-		<a tal:attributes="href bioent.go_evidence_link"><button class="btn btn-large btn-warning">All Gene Ontology Evidence <i class="icon-chevron-right icon-white"></i></button></a>
+		<a tal:attributes="href link_maker.go_evidence_link"><button class="btn btn-large btn-warning">All Gene Ontology Evidence <i class="icon-chevron-right icon-white"></i></button></a>
 		<br></br>
 		
-		<h3 style="float:left;">Molecular Function <span id='go_f_header'></span></h3>
+		<h3>Molecular Function <span id='go_f_header'></span></h3>
 		<span id='go_f_message' class="hide">No known molecular function gene ontology associations.</span>
 		<div id='go_f_wrapper'>	
 			<ul class='unstyled'>
@@ -109,7 +109,7 @@
 		</div>		
 		<br></br>
 
-		<h3 style="float:left;">Biological Process <span id='go_p_header'></span></h3>
+		<h3>Biological Process <span id='go_p_header'></span></h3>
 		<span id='go_p_message' class="hide">No known biological process gene ontology associations.</span>
 		<div id='go_p_wrapper'>	
 			<ul class='unstyled'>
@@ -128,7 +128,7 @@
 		</div>	
 		<br></br>
 		
-		<h3 style="float:left;">Cellular Component <span id='go_c_header'></span></h3>
+		<h3>Cellular Component <span id='go_c_header'></span></h3>
 		<span id='go_c_message' class="hide">No known cellular component gene ontology associations.</span>
 		<div id='go_c_wrapper'>	
 			<ul class='unstyled'>
@@ -157,11 +157,11 @@
 <section id="phenotype">
 	<div class="page-header">
 		<h1>Phenotype <span id='phenotype_header'></span></h1> 
-		<a tal:attributes="href bioent.all_link('bioent_biocon', 'phenotype')"><button class="btn btn-large btn-warning">All Phenotype Evidence <i class="icon-chevron-right icon-white"></i></button></a>
+		<a tal:attributes="href link_maker.phenotype_evidence_link"><button class="btn btn-large btn-warning">All Phenotype Evidence <i class="icon-chevron-right icon-white"></i></button></a>
 		<br></br>
 		<!-- Phenotype Table
 		========================================== -->
-		<h3 style="float:left;">Cellular Phenotype <span id='cellular_phenotype_header'></span></h3>
+		<h3>Cellular Phenotype <span id='cellular_phenotype_header'></span></h3>
 		<div>
 			<span id='phenotype_message' class="hide">No known phenotypes.</span>
 			<div id='phenotype_wrapper'>
@@ -169,6 +169,7 @@
 				<thead>
   				<tr>
   					<th>Phenotype</th>
+  					<th>Gene</th>
   					<th>Qualifier</th>
   					<th>Mutant Type</th>
   				</tr>
@@ -179,7 +180,7 @@
 		<br></br>
 		<!-- Chemical Phenotype Table
 		========================================== -->
-		<h3 style="float:left;">Chemical Phenotype <span id='chemical_phenotype_header'></span></h3>
+		<h3>Chemical Phenotype <span id='chemical_phenotype_header'></span></h3>
 		<div>
 			<span id='chemical_phenotype_message'  class="hide">No known chemical phenotypes.</span>
 			<div id='chemical_phenotype_wrapper'>
@@ -187,6 +188,7 @@
 			<thead>
   			<tr>
    				<th>Phenotype</th>
+  				<th>Gene</th>
   				<th>Chemical</th>
   				<th>Qualifier</th>  				
   				<th>Mutant Type</th>
@@ -198,7 +200,7 @@
 		<br></br>
 		<!-- Protein/Peptide and RNA Interactions Table
 		========================================== -->
-		<h3 style="float:left;">Protein/Peptide and RNA Phenotype <span id='pp_rna_phenotype_header'></span></h3>
+		<h3>Protein/Peptide and RNA Phenotype <span id='pp_rna_phenotype_header'></span></h3>
 		<div>
 			<span id='pp_rna_phenotype_message' class="hide">No known protein/peptide and RNA phenotypes.</span>
 			<div id='pp_rna_phenotype_wrapper'>				
@@ -206,6 +208,7 @@
 			<thead>
   			<tr>
   				<th>Phenotype</th>
+  				<th>Gene</th>
   				<th>Reporter</th>
   				<th>Qualifier.</th>
   				<th>Mutant Type</th>
@@ -223,7 +226,7 @@
 <section id="interactions">
 	<div class="page-header">
 		<h1>Interaction <span id='interaction_header'></span></h1>
-		<a tal:attributes="href bioent.all_link('biorel', 'interaction')"><button class="btn btn-large btn-warning">All Interaction Evidence <i class="icon-chevron-right icon-white"></i></button></a>
+		<a tal:attributes="href link_maker.interaction_evidence_link"><button class="btn btn-large btn-warning">All Interaction Evidence <i class="icon-chevron-right icon-white"></i></button></a>
 		<br></br>
 		<h3>Cytoscape Visualization</h3>
 		<strong>Filter Interactions by # Total Evidence:</strong>
@@ -240,6 +243,7 @@
 				<table class='table table-striped table-bordered table-condensed tablesorter' id='interaction_table' width="100%">
 			<thead>
   			<tr>
+    			<th>Interactor</th>
     			<th>Interactor</th>
     			<th>Genetic Evidence</th>
     			<th>Physical Evidence</th>
@@ -324,7 +328,7 @@
 	$(document).ready(function() {
 
 		//Get go data
-  		$.getJSON('${bioent.go_link}', function(data) {
+  		$.getJSON('${link_maker.go_overview_table_link}', function(data) {
 			var go_c = data['go_c'];
   			var go_p = data['go_p'];
   			var go_f = data['go_f'];
@@ -335,21 +339,21 @@
 			document.getElementById("go_header").innerHTML = '(' + num_rows + ')';
 			
   			//Set up function table
-			var options = basic_datatable_options("go_f_header", '${bioent.go_f_filename}', "go_f_wrapper", "go_f_message");
+			var options = basic_datatable_options("go_f_header", '${link_maker.go_f_filename}', "go_f_wrapper", "go_f_message");
 			options["aaSorting"] = [[0, "asc"]];
 			options["aaData"] = go_f;
 			options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, {"bSearchable":false, "bVisible":false}, null]
 			$('#go_f_table').dataTable(options);
 			
 			//Set up process table
-			var options = basic_datatable_options("go_p_header", '${bioent.go_p_filename}', "go_p_wrapper", "go_p_message");
+			var options = basic_datatable_options("go_p_header", '${link_maker.go_p_filename}', "go_p_wrapper", "go_p_message");
 			options["aaSorting"] = [[0, "asc"]];
 			options["aaData"] = go_p;
 			options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, {"bSearchable":false, "bVisible":false}, null]
 			$('#go_p_table').dataTable(options);
 		
 			//Set up component table
-			var options = basic_datatable_options("go_c_header", '${bioent.go_c_filename}', "go_c_wrapper", "go_c_message");
+			var options = basic_datatable_options("go_c_header", '${link_maker.go_c_filename}', "go_c_wrapper", "go_c_message");
 			options["aaSorting"] = [[0, "asc"]];
 			options["aaData"] = go_c;
 			options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, {"bSearchable":false, "bVisible":false}, null]
@@ -361,40 +365,43 @@
   		});
 			
   		//Get phenotype data
-  		$.getJSON('${bioent.phenotype_link}', function(data) {
-  			var phenotype_table = data['phenotype'];
-  			var chemical_phenotype_table = data['chemical_phenotype'];
-  			var pp_rna_phenotype_table = data['pp_rna_phenotype'];
+  		$.getJSON('${link_maker.phenotype_overview_table_link}', function(data) {
+  			var phenotype_table = data['cellular_pheno'];
+  			var chemical_phenotype_table = data['chemical_pheno'];
+  			var pp_rna_phenotype_table = data['pp_rna_pheno'];
   			
 			//Set total phenotype count
 			var num_rows = phenotype_table.length + chemical_phenotype_table.length + pp_rna_phenotype_table.length;
 			document.getElementById("phenotype_header").innerHTML = '(' + num_rows + ')';
 			
-  			//Set up phenotype table
-			var options = basic_datatable_options("cellular_phenotype_header", '${bioent.phenotype_file_name}', "phenotype_wrapper", "phenotype_message");
+  			//Set up cellular phenotype table
+			var options = basic_datatable_options("cellular_phenotype_header", '${link_maker.cellular_phenotype_filename}', "phenotype_wrapper", "phenotype_message");
 			options["aaSorting"] = [[0, "asc"], [1, 'asc']];
 			options["aaData"] = phenotype_table;
+			options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null];
 			$('#phenotype_table').dataTable(options);
 		
 			//Set up chemical phenotype table
-			var options = basic_datatable_options("chemical_phenotype_header", '${bioent.chemical_phenotype_file_name}', "chemical_phenotype_wrapper", "chemical_phenotype_message");
-			options["aaSorting"] = [[0, "asc"]];
+			var options = basic_datatable_options("chemical_phenotype_header", '${link_maker.chemical_phenotype_filename}', "chemical_phenotype_wrapper", "chemical_phenotype_message");
+			options["aaSorting"] = [[1, "asc"]];
 			options["aaData"] = chemical_phenotype_table;
+			options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null];
 			$('#chemical_phenotype_table').dataTable(options);
 		
 			//Set up pp-rna phenotype table
-			var options = basic_datatable_options("pp_rna_phenotype_header", '${bioent.pp_rna_phenotype_file_name}', "pp_rna_phenotype_wrapper", "pp_rna_phenotype_message");
-			options["aaSorting"] = [[0, "asc"]];
+			var options = basic_datatable_options("pp_rna_phenotype_header", '${link_maker.pp_rna_phenotype_filename}', "pp_rna_phenotype_wrapper", "pp_rna_phenotype_message");
+			options["aaSorting"] = [[1, "asc"]];
 			options["aaData"] = pp_rna_phenotype_table;
+			options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null];
 			$('#pp_rna_phenotype_table').dataTable(options);
   		});
   		
   		//Set up interaction table
-		var options = basic_datatable_options("interaction_header", '${bioent.interaction_file_name}', "interaction_wrapper", "interaction_message");
-		options["aaSorting"] = [[3, "desc"]];
-		options["aoColumns"] = [null, null, null, {"sType":"num-html"}];
+		var options = basic_datatable_options("interaction_header", '${link_maker.interaction_filename}', "interaction_wrapper", "interaction_message");
+		options["aaSorting"] = [[4, "desc"]];
+		options["aoColumns"] = [{"bSearchable":false, "bVisible":false}, null, null, null, {"sType":"num-html"}];
 		options["bProcessing"] = true;
-		options["sAjaxSource"] = '${bioent.interaction_link}';
+		options["sAjaxSource"] = '${link_maker.interaction_overview_table_link}';
 		options["bPaginate"] = true;
 
 		$('#interaction_table').dataTable(options);
@@ -403,7 +410,7 @@
 
 <script type="text/javascript">
 window.onload=function() {
-	setup_cytoscape_vis("${bioent.interaction_graph_link}");   
+	setup_interaction_cytoscape_vis("${link_maker.interaction_graph_link}");   
 };           
 
 </script>

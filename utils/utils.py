@@ -33,10 +33,10 @@ def create_grouped_evidence_table(evidences, evidence_map, f):
         table.append(entries)     
     return table
 
-def create_simple_table(objs, f):
+def create_simple_table(objs, f, **kwargs):
     table = []
     for obj in objs:
-        entries = f(obj)
+        entries = f(obj, **kwargs)
         table.append(entries)
     return table
 
