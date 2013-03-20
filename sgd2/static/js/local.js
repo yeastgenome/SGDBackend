@@ -211,6 +211,129 @@ function setup_go_cytoscape_vis(graph_link) {
 		});          
 }
 
+function setup_go_ontology_cytoscape_vis(graph_link) {
+		// id of Cytoscape Web container div
+		var div_id = "cytoscapeweb";
+                                
+		// visual style we will use
+		var visual_style = {
+			nodes: {
+				color: {
+					discreteMapper: {
+						attrName: "sub_type",
+						entries: [
+							{attrValue: 'FOCUS', value: "#fade71" },
+							{attrValue: 'CELLULAR COMPONENT', value: '#E2A9F3'},
+							{attrValue: 'MOLECULAR FUNCTION', value: '#81F781'},
+							{attrValue: 'BIOLOGICAL PROCESS', value: '#5CB3FF'},
+						]
+					}
+				},
+				shape: {
+					discreteMapper: {
+						attrName: "bio_type",
+						entries: [
+							{attrValue: 'BIOENTITY', value: 'ELLIPSE',
+							attrValue: 'BIOCONCEPT', value: 'RECTANGLE'}
+						]
+					}
+				},
+				size: { defaultValue: 12, 
+                    continuousMapper: { attrName: "direct_gene_count", 
+                                        minValue: 12, 
+                                        maxValue: 100 } },
+				labelHorizontalAnchor: "center"
+			},
+		};
+                
+		// initialization options
+		var options = {
+			swfPath: "../static/js/CytoscapeWeb",
+			flashInstallerPath: "/swf/playerProductInstall"
+		};
+                
+		// init and draw
+		var vis = new org.cytoscapeweb.Visualization(div_id, options);
+		
+		// callback when Cytoscape Web has finished drawing
+    	vis.ready(function() {
+			// add a listener for when nodes are clicked
+			vis.addListener("click", "nodes", function(event) {
+				handle_click(event);
+			});
+                    
+			function handle_click(event) {
+				var target = event.target;   
+				var link = target.data['link']
+				window.location.href = link          
+			}
+			
+			//setup checkboxes
+        	var $checkboxes = $('input:checkbox[name=categories]');
+			$checkboxes.click(function() {
+				handle_check();	
+			});
+				
+			function handle_check() {
+				var ancestors = $('#ancestor_check').is(':checked');
+				var children = $('#child_check').is(':checked');
+				var no_genes = true;//$('#no_genes').is(':checked');
+
+    			vis.filter('nodes', function(item) {
+					return item.data.sub_type == 'FOCUS' || ((ancestors && !item.data.child) ||
+					(children && item.data.child)) && (no_genes || item.data.direct_gene_count > 0);
+				});
+				//if(ancestors && !children) {
+					var layout = {
+    					name:    "Tree",
+    					options: { orientation: "topToBottom", depthSpace: 50, breadthSpace: 50, subtreeSpace: 50 }
+					};
+					vis.layout(layout)
+				//}
+				//else {
+				//	vis.layout('ForceDirected');
+				//}
+				
+			}
+			handle_check();
+			
+			//setup radio buttons
+        	var $radios = $('input:radio[name=layout]');
+			$radios.click(function() {
+				handle_layout_change();	
+			});
+				
+			function handle_layout_change() {
+				var tree = $('#tree_layout').is(':checked');
+				var fd = $('#fd_layout').is(':checked');
+    			if(tree) {
+					var layout = {
+    					name:    "Tree",
+    					options: { orientation: "topToBottom", depthSpace: 50, breadthSpace: 20, subtreeSpace: 50 }
+					};
+					vis.layout(layout);
+				}
+				else {
+					vis.layout('ForceDirected');
+				}
+			}
+			
+			
+		});
+		
+		
+		
+		//Grab the network data via AJAX
+		$.get(graph_link, function(data) {
+			$('#tree_layout').prop('checked',true)
+			vis.draw({ network: data, visualStyle: visual_style});
+			if(!data['has_children']) {
+				$('#child_check').prop('checked',false)
+				$('#child_check').attr('disabled', true);
+			}
+		});          
+}
+
 function setup_phenotype_cytoscape_vis(graph_link) {
 		// id of Cytoscape Web container div
 		var div_id = "cytoscapeweb";

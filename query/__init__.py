@@ -1,4 +1,5 @@
-from model_new_schema.bioconcept import Bioconcept, BioentBiocon
+from model_new_schema.bioconcept import Bioconcept, BioentBiocon, BioconAncestor, \
+    BioconBiocon
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.biorelation import Biorelation
 from model_new_schema.evidence import Goevidence, Phenoevidence, Interevidence
@@ -9,7 +10,6 @@ import math
 
 
 def get_biocon(biocon_name, biocon_type):
-    biocon_name = biocon_name.replace('_', ' ')
     biocon = DBSession.query(Bioconcept).filter(Bioconcept.biocon_type==biocon_type).filter(Bioconcept.official_name==biocon_name).first()
     return biocon
 
@@ -54,6 +54,32 @@ def get_bioent_biocons(biocon_type, biocon=None, bioent=None):
     if biocon is not None:
         query = query.filter(BioentBiocon.biocon_id==biocon.id)
     return query.all()
+
+def get_biocon_family(biocon):
+    family = set([biocon])
+
+    biocon_ancs = DBSession.query(BioconAncestor).options(joinedload('ancestor_biocon')).filter(BioconAncestor.child_biocon_id==biocon.id).all()
+    family.update([biocon_anc.ancestor_biocon for biocon_anc in biocon_ancs])
+    
+    biocon_children = DBSession.query(BioconBiocon).options(joinedload('child_biocon')).filter(BioconBiocon.parent_biocon_id==biocon.id).all()
+    family.update([biocon_child.child_biocon for biocon_child in biocon_children])
+    
+    child_ids = set([biocon_child.child_biocon.id for biocon_child in biocon_children])
+    all_ids = set([b.id for b in family])
+    
+    return {'family':family, 'child_ids':child_ids, 'all_ids':all_ids}
+
+def get_biocon_biocons(biocon_ids):
+    biocon_ids = set(biocon_ids)
+    related_biocon_biocons = set()
+    
+    ancestor_in_list = DBSession.query(BioconBiocon).filter(BioconBiocon.parent_biocon_id.in_(biocon_ids)).all()
+    related_biocon_biocons.update([biocon_biocon for biocon_biocon in ancestor_in_list if biocon_biocon.child_biocon_id in biocon_ids])
+    
+    child_in_list = DBSession.query(BioconBiocon).filter(BioconBiocon.child_biocon_id.in_(biocon_ids)).all()
+    related_biocon_biocons.update([biocon_biocon for biocon_biocon in child_in_list if biocon_biocon.parent_biocon_id in biocon_ids])
+    
+    return related_biocon_biocons
 
 def get_related_bioent_biocons(biocon_ids):
     bioent_biocons = DBSession.query(BioentBiocon).options(joinedload('bioentity'), joinedload('bioconcept')).filter(BioentBiocon.biocon_id.in_(biocon_ids)).all()

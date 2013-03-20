@@ -1,4 +1,3 @@
-import model_new_schema
 import model_old_schema
 
 
@@ -24,7 +23,7 @@ def check_values(new_obj, old_obj, field_names):
     return match
 
 def cache(cls, mapping, key_maker, session, output_creator, output_message):
-    new_entries = dict([(key_maker(x), x) for x in model_new_schema.model.get(cls, session=session)])
+    new_entries = dict([(key_maker(x), x) for x in session.query(cls).all()])
     mapping.update(new_entries)
     output_creator.cached(output_message)
     
@@ -40,7 +39,7 @@ def add_or_check(new_obj, mapping, key_maker, values_to_check, session, output_c
         if not match:
             output_creator.changed(output_message)
     else:
-        model_new_schema.model.add(new_obj, session=session)
+        session.add(new_obj)
         mapping[key] = new_obj
         output_creator.added(output_message)
         

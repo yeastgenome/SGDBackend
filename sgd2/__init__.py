@@ -37,6 +37,7 @@ def main(global_config, **settings):
     config.add_route('go_overview_table', '/go_overview_table')
     config.add_route('go_evidence_table', '/go_evidence_table')
     config.add_route('go_graph', '/go_graph')
+    config.add_route('go_ontology_graph', '/go_ontology_graph')
     
     #Phenotype views
     config.add_route('phenotype', '/phenotype/{biocon_name}')

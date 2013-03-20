@@ -22,8 +22,6 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
     biocon_type = Column('biocon_type', String)
     official_name = Column('name', String)
-    evidence_count = Column('evidence_count', Integer)
-    evidence_desc = Column('evidence_desc', String)
     use_in_graph = Column('use_for_graph', String)    
     
     bioentity = relationship('Bioentity', uselist=False, backref='bioent_biocons')
@@ -41,23 +39,11 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     def name(self):
         return self.bioentity.name + link_symbol + self.bioconcept.name
     @hybrid_property
-    def name_for_biocon(self):
-        return link_symbol + self.bioentity.name 
-    @hybrid_property
-    def name_for_bioent(self):
-        return link_symbol + self.bioconcept.name
-    @hybrid_property
     def link(self):
         return bioent_biocon_link(self)
     @hybrid_property
     def name_with_link(self):
         return add_link(self.name, self.link)
-    @hybrid_property
-    def name_for_biocon_with_link(self):
-        return add_link(self.name_for_biocon, self.link)
-    @hybrid_property
-    def name_for_bioent_with_link(self):
-        return add_link(self.name_for_bioent, self.link)
 
     @hybrid_property
     def description(self):
@@ -66,13 +52,63 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     @classmethod
     def unique_hash(cls, bioent_id, biocon_id):
         return '%s_%s' % (bioent_id, biocon_id) 
-
     @classmethod
     def unique_filter(cls, query, bioent_id, biocon_id):
         return query.filter(BioentBiocon.bioent_id == bioent_id, BioentBiocon.biocon_id == biocon_id)
-    
 
-          
+class BioconBiocon(Base, EqualityByIDMixin, UniqueMixin):
+    __tablename__ = 'biocon_biocon'
+
+    id = Column('biocon_biocon_id', Integer, primary_key=True)
+    parent_biocon_id = Column('parent_biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    child_biocon_id = Column('child_biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    relationship_type = Column('relationship_type', String)
+   
+    parent_biocon = relationship('Bioconcept', uselist=False, backref='child_biocons', primaryjoin="BioconBiocon.parent_biocon_id==Bioconcept.id")
+    child_biocon = relationship('Bioconcept', uselist=False, backref='parent_biocons', primaryjoin="BioconBiocon.child_biocon_id==Bioconcept.id")
+    type = "BIOCON_BIOCON"
+
+    def __init__(self, parent_biocon_id, child_biocon_id, relationship_type, session=None, biocon_biocon_id=None):
+        self.parent_biocon_id = parent_biocon_id
+        self.child_biocon_id = child_biocon_id
+        self.relationship_type = relationship_type
+        
+        if session is None:
+            self.id = biocon_biocon_id
+
+    @classmethod
+    def unique_hash(cls, parent_biocon_id, child_biocon_id, relationship_type):
+        return '%s_%s' % (parent_biocon_id, child_biocon_id, relationship_type) 
+    @classmethod
+    def unique_filter(cls, query, parent_biocon_id, child_biocon_id, relationship_type):
+        return query.filter(BioconBiocon.parent_biocon_id == parent_biocon_id, BioconBiocon.child_biocon_id == child_biocon_id, BioconBiocon.relationship_type == relationship_type)  
+    
+class BioconAncestor(Base, EqualityByIDMixin, UniqueMixin):
+    __tablename__ = 'biocon_ancestor'
+
+    id = Column('biocon_ancestor_id', Integer, primary_key=True)
+    ancestor_biocon_id = Column('ancestor_biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    child_biocon_id = Column('child_biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    generation = Column('generation', Integer)
+   
+    ancestor_biocon = relationship('Bioconcept', uselist=False, primaryjoin="BioconAncestor.ancestor_biocon_id==Bioconcept.id")
+    child_biocon = relationship('Bioconcept', uselist=False, primaryjoin="BioconAncestor.child_biocon_id==Bioconcept.id")
+    type = "BIOCON_ANCESTOR"
+
+    def __init__(self, ancestor_biocon_id, child_biocon_id, session=None, biocon_ancestor_id=None):
+        self.ancestor_biocon_id = ancestor_biocon_id
+        self.child_biocon_id = child_biocon_id
+        
+        if session is None:
+            self.id = biocon_ancestor_id
+
+    @classmethod
+    def unique_hash(cls, parent_biocon_id, child_biocon_id):
+        return '%s_%s' % (parent_biocon_id, child_biocon_id) 
+    @classmethod
+    def unique_filter(cls, query, parent_biocon_id, child_biocon_id):
+        return query.filter(BioconBiocon.parent_biocon_id == parent_biocon_id, BioconBiocon.child_biocon_id == child_biocon_id)  
+    
 class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = "biocon"
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
@@ -92,21 +128,11 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     def link(self):
         return biocon_link(self)
     @hybrid_property
-    def link_name(self):
-        return self.official_name.replace(' ', '_')
-    @hybrid_property
     def name(self):
-        return self.official_name.title()
+        return self.official_name.title().replace('_', ' ')
     @hybrid_property
     def name_with_link(self):
         return add_link(self.name, self.link)
-    
-    @hybrid_property
-    def gene_file_name(self):
-        return self.link_name + '_genes'
-    @hybrid_property
-    def evidence_file_name(self):
-        return self.name + '_evidence' 
     
     @classmethod
     def unique_hash(cls, biocon_type, official_name):
@@ -169,6 +195,7 @@ class Go(Bioconcept):
     go_term = Column('go_term', String)
     go_aspect = Column('go_aspect', String)
     go_definition = Column('go_definition', String)
+    direct_gene_count = Column('direct_gene_count', Integer)
     
     @hybrid_property
     def description(self):
@@ -176,7 +203,8 @@ class Go(Bioconcept):
  
     
     def __init__(self, go_go_id, go_term, go_aspect, go_definition, session=None, biocon_id=None, date_created=None, created_by=None):
-        name = go_term
+        name = go_term.replace(' ', '_')
+        name = name.replace('/', '-')
         Bioconcept.__init__(self, 'GO', name, session=session, biocon_id=biocon_id, date_created=date_created, created_by=created_by)
         self.go_go_id = go_go_id
         self.go_term = go_term

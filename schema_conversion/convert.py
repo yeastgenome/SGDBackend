@@ -15,6 +15,9 @@ from schema_conversion.old_to_new_bioconcept import convert_go
 from schema_conversion.old_to_new_bioentity import feature_to_bioent
 from schema_conversion.old_to_new_biorelation import interaction_to_biorel
 from schema_conversion.old_to_new_reference import convert_reference
+from sqlalchemy.engine import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm.session import sessionmaker
 import datetime
 import model_new_schema
 import model_old_schema
@@ -102,17 +105,36 @@ def convert():
 
     #convert_sequences_to_sequences(old_model, new_model)
     
-    def f(session):
-        #fill_cache(session)
-        #update_phenotypes(old_model, 80000, 100000, session)
-        #go_to_bioconcept(old_model, session)
+    commit=True
+    session_maker = prepare_connection()
+    
+    try:
+        session = session_maker()
+        
         convert_go(old_model, session)
-        #convert_reference(old_model, session)
-    
-    new_model.execute(f, NEW_DBUSER, commit=True)
+        
+        if commit:
+            session.commit()
+    #except Exception as e:
+    #    session.rollback()
+    #    raise e
+    finally:
+        session.close()
 
+def prepare_connection():
+    model_new_schema.SCHEMA = NEW_SCHEMA
+    class Base(object):
+        __table_args__ = {'schema': NEW_SCHEMA, 'extend_existing':True}
 
-    
+    model_new_schema.Base = declarative_base(cls=Base)
+    model_new_schema.metadata = model_new_schema.Base.metadata
+    engine = create_engine("%s://%s:%s@%s/%s" % (NEW_DBTYPE, NEW_DBUSER, NEW_DBPASS, NEW_DBHOST, NEW_DBNAME), convert_unicode=True, pool_recycle=3600)
+    model_new_schema.Base.metadata.bind = engine
+    session_maker = sessionmaker(bind=engine)
+        
+    from model_new_schema.bioentity import create_bioentity_subclasses
+    create_bioentity_subclasses()
+    return session_maker
 
 def convert_features_to_bioents(old_model, new_model):
     print "Convert Features to Bioentities"

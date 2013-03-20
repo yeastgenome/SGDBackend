@@ -35,6 +35,7 @@ class LinkMaker():
         setattr(self, 'go_overview_table_link', add_official_name_params('/go_overview_table?', {'bioent_name':bioent, 'biocon_name': biocon, 'reference_name':reference}))
         setattr(self, 'go_evidence_table_link', add_official_name_params('/go_evidence_table?', {'bioent_name':bioent, 'biocon_name': biocon}))
         setattr(self, 'go_graph_link', add_official_name_params('/go_graph?', {'bioent_name':bioent, 'biocon_name': biocon}))
+        setattr(self, 'go_ontology_graph_link', add_official_name_params('/go_ontology_graph?', {'biocon_name': biocon}))
    
         setattr(self, 'go_f_filename', name + '_function_go_terms')
         setattr(self, 'go_p_filename', name + '_process_go_terms')
@@ -102,7 +103,7 @@ def bioent_biocon_reference_link(bioent_biocon):
 
 #Bioconcept links
 def biocon_link(biocon):
-    return '/' + lower(biocon.biocon_type) + '/' + biocon.link_name
+    return '/' + lower(biocon.biocon_type) + '/' + biocon.official_name
 
 #Reference links
 def reference_link(reference):

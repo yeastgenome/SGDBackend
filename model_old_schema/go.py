@@ -73,6 +73,18 @@ class GoQualifier(Base, EqualityByIDMixin):
     #Relationships
     go_ref = relationship(GoRef, uselist=False, backref=backref('go_qualifier', uselist=False, lazy='joined'))
     
+class GoPath(Base, EqualityByIDMixin):
+    __tablename__ = 'go_path'
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+
+    #Values
+    id = Column('go_path_no', Integer, primary_key = True)
+    ancestor_id = Column('ancestor_go_no', Integer)
+    child_id = Column('child_go_no', Integer)
+    generation = Column('generation', Integer)
+    relationship_type = Column('relationship_type', String)
+    ancestor_path = Column('ancestor_path', String)
+    
     
     
     

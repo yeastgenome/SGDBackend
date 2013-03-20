@@ -8,6 +8,7 @@
 ================================================== -->
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
+		<br></br>
 		<h1><span tal:content="biocon.name"></h1>
 		<p class="lead">
 			<span tal:content="biocon.description">
@@ -25,6 +26,7 @@
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
 			<li><h4><span tal:content="biocon.name"></h4></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
+			<li><a href="#ontology"><i class="icon-chevron-right"></i> Ontology</a></li>
 			<li><a href="#genes"><i class="icon-chevron-right"></i> Genes</a></li>
 			<li><a href="#evidence"><i class="icon-chevron-right"></i> Evidence</a></li>
 			<li><a href="#reference"><i class="icon-chevron-right"></i> Reference</a></li>
@@ -45,6 +47,36 @@
 			</ul>
 		</div>
 	</div>
+</section>
+
+<!-- Ontology
+================================================== -->
+<section id="ontology">
+	<div class="page-header">
+		<h1>Ontology</h1>
+			<label class="checkbox">
+      			<input id="ancestor_check" type="checkbox" checked="true" name="categories"> Show Ancestors
+    		</label>
+    		<label class="checkbox">
+      			<input id="child_check" type="checkbox" checked="true" name="categories"> Show Children
+    		</label>
+    		<!--
+    		<label class="checkbox">
+      			<input id="no_genes" type="checkbox" checked="true" name="categories"> Show Terms With No Genes
+    		</label>
+    		
+    		<label class="radio">
+      			<input id="tree_layout" type="radio" name="layout"> Tree Layout
+    		</label>
+    		<label class="radio">
+      			<input id="fd_layout" type="radio" name="layout"> Force Directed Layout
+    		</label>
+    		-->
+    		
+		<div id="cytoscapeweb">
+            Cytoscape visualization is loading...
+        </div>
+    </div>
 </section>
 
 <!-- Genes
@@ -108,7 +140,7 @@
 	$(document).ready(function() {
 		//Set up gene table
 		var options = basic_datatable_options("genes_header", 
-				'${biocon.gene_file_name}', "genes_wrapper", "genes_message");
+				'${link_maker.go_filename}', "genes_wrapper", "genes_message");
 		options["aaSorting"] = [[1, "asc"]];
 		options["aoColumns"] = [{"bSearchable":false, "bVisible":false}, null, null, null]
 		options["bProcessing"] = true;
@@ -142,6 +174,18 @@
   		});
 	} );
 </script>
+
+<script type="text/javascript">
+window.onload=function() {
+	setup_go_ontology_cytoscape_vis("${link_maker.go_ontology_graph_link}");   
+};           
+</script>
+        
+<style>
+	/* The Cytoscape Web container must have its dimensions set. */
+	html, body { height: 80%; width: 100%; padding: 0; margin: 0; }
+	#cytoscapeweb { width: 100%; height: 100%; }
+</style>
 
 </div>
 

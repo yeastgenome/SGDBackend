@@ -181,6 +181,7 @@
 		<!-- Chemical Phenotype Table
 		========================================== -->
 		<h3>Chemical Phenotype <span id='chemical_phenotype_header'></span></h3>
+		<span>* Chemical sensitivity information is not curated.</span>
 		<div>
 			<span id='chemical_phenotype_message'  class="hide">No known chemical phenotypes.</span>
 			<div id='chemical_phenotype_wrapper'>

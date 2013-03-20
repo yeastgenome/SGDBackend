@@ -179,7 +179,7 @@ class Goevidence(Evidence):
     date_last_reviewed = Column('date_last_reviewed', Date)
     qualifier = Column('qualifier', String)
     
-    bioent_biocon_id = Column('bioent_biocon_id', Integer, ForeignKey('sprout.bioent_biocon.bioent_biocon_id'))
+    bioent_biocon_id = Column('bioent_biocon_id', Integer, ForeignKey(BioentBiocon.id))
     
     bioent_biocon = relationship(BioentBiocon)
 
@@ -196,7 +196,7 @@ class Goevidence(Evidence):
         self.annotation_type = annotation_type
         self.source = source
         self.qualifier = qualifier
-        self.date_last_reviewed
+        self.date_last_reviewed = date_last_reviewed
         
 class Bioentevidence(Evidence):
     __tablename__ = "bioentevidence"

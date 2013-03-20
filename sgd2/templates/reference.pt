@@ -141,11 +141,11 @@
 			<table class='table table-striped table-bordered table-condensed tablesorter' id='interaction_table' width="100%">
 			<thead>
   			<tr>
-    			<th>Interactor 1</th>
-    			<th>Interactor 2</th>
-    			<th>Genetic Evidence</th>
-    			<th>Physical Evidence</th>
-    			<th>Evidence From This Reference</th>
+    			<th>Interactor</th>
+    			<th>Interactor</th>
+    			<th>Genetic Evidence from this Reference</th>
+    			<th>Physical Evidence from this Reference</th>
+    			<th>Total Evidence from this Reference</th>
   			</tr>
   			</thead>
 			</table>
@@ -171,7 +171,6 @@ $(document).ready(function() {
 		options["bProcessing"] = true
 		options["sAjaxSource"] = '${link_maker.interaction_overview_table_link}';
 		options["bPaginate"] = true;
-		options["aoColumns"] = [null, null, {"bSearchable":false, "bVisible":false}, {"bSearchable":false, "bVisible":false}, null]
 		$('#interaction_table').dataTable(options);
 			
   		//Get evidence data
