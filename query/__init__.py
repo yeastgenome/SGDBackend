@@ -4,6 +4,7 @@ from model_new_schema.bioentity import Bioentity
 from model_new_schema.biorelation import Biorelation
 from model_new_schema.evidence import Goevidence, Phenoevidence, Interevidence
 from model_new_schema.reference import Reference
+from model_new_schema.sequence import Sequence
 from sgd2.models import DBSession
 from sqlalchemy.orm import joinedload
 import math
@@ -138,4 +139,35 @@ def get_interaction_evidence(biorels):
 def get_interaction_evidence_ref(reference):
     return set(DBSession.query(Interevidence).options(joinedload('reference')).filter(Interevidence.reference_id==reference.id).all())
 
+def get_sequences(bioent, strain_id):
+    id_to_type = {}
+    if bioent.bioent_type == 'GENE':
+        id_to_type[bioent.id] = 'GENE'
+        for transcript in bioent.transcripts:
+            id_to_type[transcript.id] = 'TRANSCRIPT'
+            id_to_type.update([(protein_id, 'PROTEIN') for protein_id in transcript.protein_ids])
+    elif bioent.bioent_type == 'TRANSCRIPT':
+        id_to_type[bioent.id] = 'TRANSCRIPT'
+        id_to_type[bioent.gene_id] = 'GENE'
+        id_to_type.update([(protein_id, 'PROTEIN') for protein_id in bioent.protein_ids])
+    elif bioent.bioent_type == 'PROTEIN':
+        id_to_type[bioent.id] = 'PROTEIN'
+        id_to_type[bioent.transcript_id] = 'TRANSCRIPT'
+        id_to_type[bioent.transcript.gene_id] = 'GENE'
+         
+    seqs = DBSession.query(Sequence).filter(Sequence.bioent_id.in_(id_to_type.keys())).filter(Sequence.strain_id==strain_id).all()
+    
+    return {'GENE':[seq.formatted_residues for seq in seqs if id_to_type[seq.bioent_id]=='GENE'],
+            'TRANSCRIPT':[seq.formatted_residues for seq in seqs if id_to_type[seq.bioent_id]=='TRANSCRIPT'],
+            'PROTEIN':[seq.formatted_residues for seq in seqs if id_to_type[seq.bioent_id]=='PROTEIN']}
 
+        
+        
+        
+        
+        
+        
+        
+    
+    
+    

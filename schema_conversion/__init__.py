@@ -43,7 +43,7 @@ def add_or_check(new_obj, mapping, key_maker, values_to_check, session, output_c
         mapping[key] = new_obj
         output_creator.added(output_message)
         
-def create_or_update(old_objs, mapping, create, key_maker, values_to_check, old_model, session, output_creator, output_message, other_checks=None):
+def create_or_update(old_objs, mapping, create, key_maker, values_to_check, session, output_creator, output_message, other_checks=None):
     for old_obj in old_objs:
         new_obj = create(old_obj)
         if new_obj is not None:

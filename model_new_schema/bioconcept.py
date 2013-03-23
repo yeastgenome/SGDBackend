@@ -18,7 +18,7 @@ class BioentBiocon(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = 'bioent_biocon'
 
     id = Column('bioent_biocon_id', Integer, primary_key=True)
-    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.newbioent.bioent_id'))
     biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
     biocon_type = Column('biocon_type', String)
     official_name = Column('name', String)
@@ -164,6 +164,7 @@ class Phenotype(Bioconcept):
     
     id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
     observable = Column('observable', String)
+    phenotype_type = Column('phenotype_type', String)
        
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Bioconcept.id}

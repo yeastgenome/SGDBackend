@@ -94,7 +94,7 @@ class Allele(Base):
     __tablename__ = 'allele'
     id = Column('allele_id', Integer, primary_key=True)
     official_name = Column('name', String)
-    parent_id = Column('parent_bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    parent_id = Column('parent_bioent_id', Integer, ForeignKey('sprout.newbioent.bioent_id'))
     more_info = Column('description', String)
     
     @hybrid_property
@@ -109,8 +109,6 @@ class Allele(Base):
         self.name = name
         self.description = description
     
-    #Relationships
-    parent = relationship('Bioentity')
     
 class PhenoevidenceChemical(Base):
     __tablename__ = 'phenoevidence_chemical'
@@ -202,7 +200,7 @@ class Bioentevidence(Evidence):
     __tablename__ = "bioentevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.newbioent.bioent_id'))
     type = 'BIOENT_EVIDENCE'
     
     bioent = relationship(Bioentity)

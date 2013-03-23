@@ -1,5 +1,4 @@
 from .models import DBSession
-from model_new_schema.bioentity import create_bioentity_subclasses
 from model_new_schema.link_maker import LinkMaker
 from pyramid.config import Configurator
 from sgd2.config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE
@@ -14,7 +13,6 @@ def main(global_config, **settings):
 
     DBSession.configure(bind=engine)
     model_new_schema.Base.metadata.bind = engine
-    create_bioentity_subclasses(DBSession)
     config = Configurator(settings=settings)
     config.add_static_view('static', 'static', cache_max_age=3600)
     
@@ -54,6 +52,9 @@ def main(global_config, **settings):
        
     #Reference views
     config.add_route('reference', '/reference/{pubmed_id}')
+    
+    #Sequence views
+    config.add_route('sequence', '/sequence')
 
     config.scan()
     return config.make_wsgi_app()

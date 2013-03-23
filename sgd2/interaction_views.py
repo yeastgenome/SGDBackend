@@ -9,7 +9,6 @@ from pyramid.view import view_config
 from query import get_bioent, get_biorels, get_biorel, get_interaction_evidence, \
     get_interactions, get_reference, get_interaction_evidence_ref
 from sgd2.views import site_layout
-from utils.graph import create_interaction_graph
 from utils.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list, entry_with_link
 
@@ -239,7 +238,9 @@ def create_interaction_graph(bioent):
     bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in bioent.biorelations])
 
     bioents.add(bioent)
-    max_evidence_cutoff = max(bioent_to_evidence.values())
+    max_evidence_cutoff = 0
+    if len(bioent_to_evidence.values()) > 0:
+        max_evidence_cutoff = max(bioent_to_evidence.values())
     bioent_to_evidence[bioent] = max_evidence_cutoff
     
     usable_bioents, min_evidence_count = weed_out_by_evidence(bioents, bioent_to_evidence)

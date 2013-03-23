@@ -7,7 +7,9 @@ These classes are populated using SQLAlchemy to connect to the BUD schema on Fas
 Sequence module of the database schema.
 '''
 from model_old_schema import Base, EqualityByIDMixin, SCHEMA
+from model_old_schema.feature import Feature
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date, CLOB
@@ -19,14 +21,26 @@ class Sequence(Base, EqualityByIDMixin):
 
     id = Column('seq_no', Integer, primary_key = True)
     feature_id = Column('feature_no', String, ForeignKey('bud.feature.feature_no'))
-    version = Column('seq_version', Date)
-    type = Column('seq_type', String)
+    seq_version = Column('seq_version', Date)
+    seq_type = Column('seq_type', String)
+    source = Column('source', String)
     is_current = Column('is_current', String)
-    length = Column('seq_length', Integer)
+    seq_length = Column('seq_length', Integer)
     ftp_file = Column('ftp_file', String)
     residues = Column('residues', CLOB)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
+    
+    feat_locations = relationship('Feat_Location', primaryjoin="Feat_Location.sequence_id==Sequence.id", lazy='joined')
+    
+    
+    @hybrid_property
+    def current_feat_location(self):
+        current = [ofl for ofl in self.feat_locations if ofl.is_current == 'Y']
+        if len(current) > 0:
+            return current[0]
+        else:
+            return None
         
     def __repr__(self):
         data = self.length, self.type, self.is_current
@@ -47,9 +61,5 @@ class Feat_Location(Base, EqualityByIDMixin):
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
-    sequence = relationship('Sequence', uselist=False, primaryjoin="Feat_Location.sequence_id==Sequence.id")
-    seq_length = association_proxy('sequence', 'length')
-    ftp_file = association_proxy('sequence', 'ftp_file')
-    residues = association_proxy('sequence', 'resides')
 
     

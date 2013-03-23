@@ -49,9 +49,6 @@ class Model(object):
         model_new_schema.Base.metadata.bind = engine
         self.user_to_sessionmaker[username] = sessionmaker(bind=engine)
         
-        from model_new_schema.bioentity import create_bioentity_subclasses
-        self.execute(create_bioentity_subclasses(), username)
-
         return
     
     def is_connected(self, username):

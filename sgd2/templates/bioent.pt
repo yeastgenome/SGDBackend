@@ -30,9 +30,7 @@
           	<li><a href="#go"><i class="icon-chevron-right"></i> Gene Ontology</a></li>
           	<li><a href="#phenotype"><i class="icon-chevron-right"></i> Phenotype</a></li>
           	<li><a href="#interactions"><i class="icon-chevron-right"></i>Interaction</a></li>
-          	<li><a href="#expression"><i class="icon-chevron-right"></i> Expression</a></li>
           	<li><a href="#wiki"><i class="icon-chevron-right"></i> Wiki</a></li>
-			<li><a href="#history"><i class="icon-chevron-right"></i> History</a></li>
           	<li><a href="#literature"><i class="icon-chevron-right"></i> References</a></li>
 		</ul>
 	</div>
@@ -46,8 +44,11 @@
 		<h1>Summary</h1>
 		<div>
 			<ul class='unstyled'>
+				<li><strong>Standard Name: </strong><span tal:content="bioent.name"></li>
+				<li><strong>Systematic Name: </strong><span tal:content="bioent.official_name"></li>
+				<br></br>
 				<li tal:condition="python: len(bioent.aliases) > 0"><strong>Aliases: </strong><span tal:content="bioent.alias_str"></li>
-				<li tal:condition="python: bioent.bioent_type"><strong>Bioent-Type: </strong><span tal:content="bioent.bioent_type"></li>
+				<li tal:condition="python: bioent.bioent_type"><strong>Type: </strong><span tal:content="bioent.bioent_type"></li>
 				<li tal:condition="python: bioent.qualifier"><strong>Qualifier: </strong><span tal:content="bioent.qualifier"></li>
 				<br>
 				<li tal:condition="python: bioent.source"><strong>Source: </strong><span tal:content="bioent.source"></li>
@@ -67,18 +68,50 @@
 		
 		<!-- Brief
 		========================================== -->
-		<div class="container">
-			<ul class='unstyled'>
-				<li tal:condition="python: bioent.genetic_position"><strong>Genetic Position: </strong><span tal:content="bioent.genetic_position"></li>
-			</ul>
-		</div>
+		<h3>Strain Independent:</h3>
 
-		<!-- In-depth
-		========================================== 
-		<p class="collapse" id="viewdetails_location">
-           	This is the in-depth chromosomal location information. </p>
-		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_location">View details &raquo;</a></p>
-        -->
+		<ul class='unstyled'>
+			<li tal:condition="python: bioent.genetic_position"><strong>Genetic Position: </strong><span tal:content="bioent.genetic_position"></li>
+			<li tal:condition="python: bioent.genetic_position"><strong>Core/Rare: </strong>Core</li>
+		</ul>
+					
+		<strong>DNA Sequence Conservation</strong>
+		<div id='dna_conserve' width="100%"></div>
+		<div id='dna_conserve_seq' width="100%"></div>
+		
+		<strong>Protein Sequence Conservation</strong>
+		<div id='protein_conserve' width="100%"></div>
+		<div id='protein_conserve_seq' width="100%"></div>
+		
+		<h3>Strain Specific:</h3><select>
+    	<option value="S288C">S288C</option>
+    	<option value="Sigma1278b">Sigma1278b</option>
+    	<option value="SEY6210">SEY6210</option>
+    	<option value="W303">W303</option>
+    	<option value="Cen.PK">Cen.PK</option>
+    	<option value="SK1">SK1</option>
+    	<option value="FL100">FL100</option>
+    	<option value="JK9">JK9</option>
+    	<option value="D273">D273</option>
+    	<option value="Y55">Y55</option>
+  		</select>
+  		<br></br>
+  		
+		<strong>DNA Sequence</strong>
+		<div id='dna' width="100%"></div>
+		<div id='dna_seq'></div>
+
+		<strong>RNA Sequence</strong>
+		<div id='rna' width="100%"></div>
+		<div id='rna_seq' width="100%"></div>
+		
+		<strong>Protein Sequence</strong>
+		<div id='protein' width="100%"></div>
+		<div id='protein_seq' width="100%"></div>
+		
+		<div id='tools'>
+			<button id='zoom_out' class="btn" onclick="document.getElementById('zoom_out').disabled = zoom_out(legend) == 1;" disabled=true><i class="icon-minus"></i></button><button class="btn" onclick="zoom_full(legend); document.getElementById('zoom_out').disabled = true;"><i class="icon-resize-full"></i></button><button class="btn" onclick="zoom_in(legend); document.getElementById('zoom_out').disabled = false;"><i class="icon-plus"></i></button>
+		<div id='legend'></div>
 	</div>
 </section>
 
@@ -229,6 +262,8 @@
 		<h1>Interaction <span id='interaction_header'></span></h1>
 		<a tal:attributes="href link_maker.interaction_evidence_link"><button class="btn btn-large btn-warning">All Interaction Evidence <i class="icon-chevron-right icon-white"></i></button></a>
 		<br></br>
+		
+		<div>
 		<h3>Cytoscape Visualization</h3>
 		<strong>Filter Interactions by # Total Evidence:</strong>
 		<br></br>
@@ -237,7 +272,7 @@
 		<div id="cytoscapeweb">
             Cytoscape visualization is loading...
         </div>
-        
+        </div>
 		<span id='interaction_message' class="hide">No known interactions.</span>
 		<div id='interaction_wrapper'>					
 			<ul class='unstyled'>
@@ -259,50 +294,12 @@
 	</div>
 </section>
 
-<!-- Expression
-================================================== -->
-<section id="expression">
-	<div class="page-header">
-		<h1>Expression</h1>
-		
-		<!-- Brief
-		========================================== -->
-		<p>This is expression information.</p>
-
-		<!-- In-depth
-		========================================== 
-		<p class="collapse" id="viewdetails_expression">
-           	This is the in-depth expression information. </p>
-		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_expression">View details &raquo;</a></p>
-		-->
-	</div>
-</section>
-
 <!-- Wiki
 ================================================== -->
 <section id="wiki">
 	<div class="page-header">
 		<h1>Wiki</h1>
     	<span tal:content="structure bioent.wiki_name_with_link"></span>
-	</div>
-</section>
-
-<!-- History
-================================================== -->
-<section id="history">
-	<div class="page-header">
-		<h1>History</h1>
-		
-		<!-- Brief
-		========================================== -->
-		<p>This is history information.</p>
-
-		<!-- In-depth
-		========================================== 
-		<p class="collapse" id="viewdetails_history">
-           	This is the in-depth history information. </p>
-		<p><a class="btn" id="collapse_btn" name="collapse_btn" data-toggle="collapse" data-target="#viewdetails_history">View details &raquo;</a></p>
-        -->
 	</div>
 </section>
 
@@ -326,7 +323,25 @@
 </section>
 
 <script>
+	var stage1 = draw_sequence('dna_conserve', 'dna_conserve_seq', ' ');
+	var stage2 = draw_sequence('protein_conserve', 'protein_conserve_seq', ' ');
+
+	var stage3 = draw_sequence('dna', 'dna_seq', ' ');
+	var stage4 = draw_sequence('rna', 'rna_seq', ' ');
+	var stage5 = draw_sequence('protein', 'protein_seq', ' ');
+	
+	var legend = add_legend('legend', [stage1, stage2, stage3, stage4, stage5]);
+	
+</script>
+
+
+<script>
 	$(document).ready(function() {
+		//Get sequence data
+		$.getJSON('${link_maker.sequence_link}', function(data) {
+			set_seq(stage3, data['GENE'][0]);
+			set_seq(stage5, data['PROTEIN'][0]);
+		});
 
 		//Get go data
   		$.getJSON('${link_maker.go_overview_table_link}', function(data) {
@@ -408,6 +423,8 @@
 		$('#interaction_table').dataTable(options);
 	} );
 </script>
+
+
 
 <script type="text/javascript">
 window.onload=function() {

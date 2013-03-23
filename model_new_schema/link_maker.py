@@ -78,6 +78,9 @@ class LinkMaker():
         setattr(self, 'genetic_interaction_evidence_filename', name + '_genetic_interaction_evidence')
         setattr(self, 'physical_interaction_evidence_filename', name + '_physical_interaction_evidence')
 
+        #Sequence links
+        setattr(self, 'sequence_link', add_official_name_params('/sequence?', {'bioent_name': bioent}))
+
 #Biocon links
 def go_link(biocon):
     return '/go/' + biocon.official_name

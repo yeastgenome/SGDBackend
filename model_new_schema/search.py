@@ -15,7 +15,7 @@ class Typeahead(Base, EqualityByIDMixin):
     name = Column('name', String)
     full_name = Column('full_name', String)
     bio_type = Column('bio_type', String)
-    bio_id = Column('bio_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    bio_id = Column('bio_id', Integer, ForeignKey('sprout.newbioent.bioent_id'))
     
     #Relationships
     bio = relationship('Bioentity', uselist=False)

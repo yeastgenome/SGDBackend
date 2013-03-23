@@ -7,7 +7,6 @@ These classes are populated using SQLAlchemy to connect to the BUD schema on Fas
 Feature module of the database schema.
 '''
 from model_old_schema import Base, EqualityByIDMixin, SCHEMA
-from model_old_schema.sequence import Sequence
 from model_old_schema.taxonomy import Taxonomy
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
@@ -60,7 +59,6 @@ class Feature(Base, EqualityByIDMixin):
     annotation = relationship('Annotation', uselist=False)
    
     taxonomy = relationship(Taxonomy, uselist=False)
-    sequences = relationship(Sequence)
 
     aliases = relationship("AliasFeature", lazy='subquery')
     alias_names = association_proxy('aliases', 'name')
@@ -71,6 +69,18 @@ class Feature(Base, EqualityByIDMixin):
     def __repr__(self):
         data = self.name, self.gene_name
         return 'Feature(name=%s, gene_name=%s)' % data    
+    
+class FeatRel(Base, EqualityByIDMixin):
+    __tablename__ = 'feat_relationship'
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+
+    #Values
+    id = Column('feat_relationship_no', Integer, primary_key = True)
+    parent_id = Column('parent_feature_no', Integer, ForeignKey('bud.feature.feature_no'))
+    child_id = Column('child_feature_no', Integer, ForeignKey('bud.feature.feature_no'))
+    relationship_type = Column('relationship_type', String)
+    rank = Column('rank', Integer)
+    
     
 class Annotation(Base, EqualityByIDMixin):
     __tablename__ = 'feat_annotation'
@@ -86,6 +96,7 @@ class Annotation(Base, EqualityByIDMixin):
     def __repr__(self):
         data = self.headline, self.qualifier
         return 'Annotation(headline=%s, qualifier=%s)' % data
+    
     
 
 

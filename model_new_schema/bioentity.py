@@ -15,13 +15,14 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.sql.expression import distinct
-from sqlalchemy.types import Integer, String, Date, Float
+from sqlalchemy.types import Integer, String, Date
 import datetime
 # Following two imports are necessary for SQLAlchemy
 
+
+
 class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
-    __tablename__ = 'bioent'
+    __tablename__ = 'newbioent'
     
     id = Column('bioent_id', Integer, primary_key=True)
     official_name = Column('name', String)
@@ -31,39 +32,27 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     status = Column('status', String)
     secondary_name = Column('secondary_name', String)
     
-    qualifier = Column('qualifier', String)
-    attribute = Column('attribute', String)
-    name_description = Column('short_description', String)
-    headline = Column('headline', String)
-    description = Column('description', String)
-    genetic_position = Column('genetic_position', String)
-    
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
     __mapper_args__ = {'polymorphic_on': bioent_type,
-                       'polymorphic_identity':"BIOENTITY"}
+                       'polymorphic_identity':"BIOENTITY",
+                       'with_polymorphic':'*'}
     
     bioconcepts = association_proxy('bioent_biocon', 'bioconcept')
     aliases = relationship("Alias")
     alias_names = association_proxy('aliases', 'name')
+    seq_ids = association_proxy('sequences', 'id')
     type = "BIOENTITY"
             
-    def __init__(self, name, bioent_type, dbxref, source, status, secondary_name, 
-                 qualifier, attribute, short_description, headline, description, genetic_position,
+    def __init__(self, name, bioent_type, dbxref, source, status, secondary_name,
                  session=None, bioent_id=None, date_created=None, created_by=None):
-        self.name = name
+        self.official_name = name
         self.bioent_type = bioent_type
-        self.dbxref = dbxref
+        self.dbxref_id = dbxref
         self.source = source
         self.status = status
         self.secondary_name = secondary_name
-        self.qualifier = qualifier
-        self.attribute = attribute
-        self.short_description = short_description
-        self.headline = headline
-        self.description = description
-        self.genetic_position = genetic_position
         
         if session is None:
             self.id = bioent_id
@@ -115,12 +104,12 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     def __repr__(self):
         data = self.__class__.__name__, self.id, self.name, self.bioent_type
         return '%s(id=%s, name=%s, bioent_type=%s)' % data       
-    
+
 class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'
     
     id = Column('alias_id', Integer, primary_key=True)
-    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.newbioent.bioent_id'))
     name = Column('name', String)
     alias_type = Column('alias_type', String)
     used_for_search = Column('used_for_search', String)
@@ -145,54 +134,61 @@ class Gene(Bioentity):
     __tablename__ = "gene"
     
     id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
-    gene_name = Column('gene_name', String)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
+    qualifier = Column('qualifier', String)
+    attribute = Column('attribute', String)
+    name_description = Column('short_description', String)
+    headline = Column('headline', String)
+    description = Column('description', String)
+    genetic_position = Column('genetic_position', String)
+    gene_type = Column('gene_type', String)
     
-    __mapper_args__ = {'polymorphic_identity': 'ORF',
+    transcript_ids = association_proxy('transcripts', 'id')
+    
+    __mapper_args__ = {'polymorphic_identity': 'GENE',
                        'inherit_condition': id == Bioentity.id}
 
-    def __init__(self, name, bioent_type, taxon_id, dbxref, source, gene_name):
-        super(Bioentity, self).__init__(name, bioent_type, taxon_id, dbxref, source)
-        self.gene_name = gene_name
+    def __init__(self, name, gene_type, taxon_id, dbxref, source, secondary_name,
+                 qualifier, attribute, short_description, headline, description, genetic_position,
+                 session=None, bioent_id=None, date_created=None, created_by=None):
+        Bioentity.__init__(self, name, 'GENE', taxon_id, dbxref, source, secondary_name, 
+                            session=session, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
+        self.qualifier = qualifier
+        self.attribute = attribute
+        self.short_description = short_description
+        self.headline = headline
+        self.description = description
+        self.genetic_position = genetic_position
+        self.gene_type = gene_type
+        
+class Transcript(Bioentity):
+    __tablename__ = "transcript"
+    
+    id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
+    gene_id = Column('gene_id', Integer, ForeignKey(Gene.id))
+    
+    __mapper_args__ = {'polymorphic_identity': "TRANSCRIPT",
+                       'inherit_condition': id == Bioentity.id}
+    
+    gene = relationship('Gene', uselist=False, backref='transcripts', primaryjoin="Transcript.gene_id==Gene.id")
+    protein_ids = association_proxy('proteins', 'id')
+
+    def __init__(self, gene_id, status, bioent_id=None):
+        Bioentity.__init__(self, 'Transcript', 'TRANSCRIPT', None, 'SGD', status, None, bioent_id=bioent_id)
+        self.gene_id = gene_id
         
 class Protein(Bioentity):
     __tablename__ = "protein"
     
     id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
-    molecular_weight = Column('molecular_weight', Integer)
-    pi = Column('pi', Float)
-    cai = Column('cai', Float)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
-    #gene_id = Column('gene_id', Integer, ForeignKey('gene.bioent_id'))
+    transcript_id = Column('transcript_id', Integer, ForeignKey(Transcript.id))
     
-    #Relationships
-    #gene = relationship('Gene', backref='proteins')
+    transcript = relationship('Transcript', uselist=False, backref='proteins', primaryjoin="Protein.transcript_id==Transcript.id")
     
     __mapper_args__ = {'polymorphic_identity': "PROTEIN",
                        'inherit_condition': id == Bioentity.id}
 
-    def __init__(self, name, bioent_type, taxon_id, dbxref, source):
-        super(Bioentity, self).__init__(name, bioent_type, taxon_id, dbxref, source)
+    def __init__(self, transcript_id, status, bioent_id=None):
+        Bioentity.__init__(self, 'Protein', 'PROTEIN', None, 'SGD', status, None, bioent_id=bioent_id)
+        self.transcript_id = transcript_id
         
-#Gene Subclasses
-gene_subclass_names = {'TRNA', 'SNORNA', 'RRNA', 'NCRNA', 'SNRNA'}
-
-for gene_subclass_name in gene_subclass_names:
-    class_name = gene_subclass_name
-    globals()[class_name] = type(class_name, (Gene,), {'__mapper_args__':{'polymorphic_identity': gene_subclass_name, 'inherit_condition': id == Bioentity.id}}).__class__
-
-def create_bioentity_subclasses(session=None):
-    #All other subclasses of Bioentity.
-    def f(session):
-        result = session.query(distinct(Bioentity.bioent_type))
-        for row in result:
-            try:
-                bioent_type = str(row[0])
-                globals()[bioent_type.upper()]
-            except:
-                type(bioent_type.capitalize(), (Bioentity,), {'__mapper_args__':{'polymorphic_identity': bioent_type, 'inherit_condition': id == Bioentity.id}})
-    return f if session is None else f(session)
-
-
+        

@@ -76,55 +76,59 @@ function setup_interaction_cytoscape_vis(graph_link) {
 			var link = target.data['link']
 			window.location.href = link          
 		}
-		
-		//setup slider
-		var max_cutoff = Math.min(10, max_evidence_cutoff);
-		$( "#slider-range-min" ).slider({
-			range: "max",
-			value: 3,
-			min: min_evidence_cutoff,
-			max: max_cutoff,
-			step: 1,
-			slide: function( event, ui ) {
-				handle_slide(event, ui);
-			},
-			change: function( event, ui ) {
-				handle_slide(event, ui);
-			}
-		});
-		function handle_slide(event, ui) {
-			var val = $( "#amount" ).val( "$" + ui.value );
-			vis.filter(function(item) {
-				return item.data.evidence == -1 || item.data.evidence >= ui.value;
-			});
-			vis.layout('ForceDirected');
-		}
-		$( "#slider-range-min" ).slider('value', 3);
-			
-		var $slider =  $('#slider-range-min');
-		var max =  $slider.slider("option", "max") - $slider.slider("option", "min") + 1;    
- 		var spacing =  100 / (max -1);
-    	$slider.find('.ui-slider-tick-mark').remove();
-    	for (var i = 0; i < max ; i=i+1) {
-    		var value = (i+min_evidence_cutoff);
-    		if(value >= 10) {
-    			var left = ((spacing * i)-1)
-        		$('<span class="ui-slider-tick-mark muted">10+</span>').css('left', left + '%').appendTo($slider);
-    		}
-    		else {
-    			var left = ((spacing * i)-.5)
-				$('<span class="ui-slider-tick-mark muted">' +value+ '</span>').css('left', left + '%').appendTo($slider);
-    		}
-       }
+		handle_slide(vis, 3);
 	});
 		//Grab the network data via AJAX
 	$.get(graph_link, function(data) {
-		vis.draw({ network: data, visualStyle: visual_style});
-		var min_evidence_cutoff = data['min_evidence_cutoff'];
-		var max_evidence_cutoff = data['max_evidence_cutoff'];
+		if(data['max_evidence_cutoff'] == 0) {
+			document.getElementById(div_id).parentNode.style.display = 'none';
+		}
+		else {
+			vis.draw({ network: data, visualStyle: visual_style});
+			setup_slider(vis, data['min_evidence_cutoff'], data['max_evidence_cutoff'])
+		}
 	});          
 }
 
+function handle_slide(vis, value) {
+	vis.filter(function(item) {
+		return item.data.evidence >= value;
+	});
+	vis.layout('ForceDirected');
+}
+
+function setup_slider(vis, min_evidence_cutoff, max_evidence_cutoff) {
+	$('#slider-range-min').slider({
+		range: "max",
+		value: 3,
+		min: min_evidence_cutoff,
+		max: Math.min(10, max_evidence_cutoff),
+		step: 1,
+		slide: function( event, ui ) {
+				handle_slide(vis, ui.value);
+			},
+		change: function( event, ui ) {
+				handle_slide(vis, ui.value);
+			}
+	});
+	
+			
+	var $slider =  $('#slider-range-min');	
+	var max =  $slider.slider("option", "max") - $slider.slider("option", "min") + 1;    
+ 	var spacing =  100 / (max -1);
+    $slider.find('.ui-slider-tick-mark').remove();
+    for (var i = 0; i < max ; i=i+1) {
+    	var value = (i+min_evidence_cutoff);
+    	if(value >= 10) {
+    		var left = ((spacing * i)-1)
+        	$('<span class="ui-slider-tick-mark muted">10+</span>').css('left', left + '%').appendTo($slider);
+    	}
+    	else {
+    		var left = ((spacing * i)-.5)
+			$('<span class="ui-slider-tick-mark muted">' +value+ '</span>').css('left', left + '%').appendTo($slider);
+    	}
+	}
+}
 
 function setup_go_cytoscape_vis(graph_link) {
 		// id of Cytoscape Web container div

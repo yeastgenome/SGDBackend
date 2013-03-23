@@ -15,6 +15,7 @@ from schema_conversion.old_to_new_bioconcept import convert_go
 from schema_conversion.old_to_new_bioentity import feature_to_bioent
 from schema_conversion.old_to_new_biorelation import interaction_to_biorel
 from schema_conversion.old_to_new_reference import convert_reference
+from schema_conversion.old_to_new_sequence import convert_sequence
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.session import sessionmaker
@@ -111,7 +112,7 @@ def convert():
     try:
         session = session_maker()
         
-        convert_go(old_model, session)
+        convert_sequence(old_model, session)
         
         if commit:
             session.commit()
@@ -132,8 +133,6 @@ def prepare_connection():
     model_new_schema.Base.metadata.bind = engine
     session_maker = sessionmaker(bind=engine)
         
-    from model_new_schema.bioentity import create_bioentity_subclasses
-    create_bioentity_subclasses()
     return session_maker
 
 def convert_features_to_bioents(old_model, new_model):

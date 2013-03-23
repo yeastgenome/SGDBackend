@@ -231,8 +231,7 @@ def create_phenotype_edge(obj, source_obj, sink_obj):
 def create_phenotype_graph(bioent=None, biocon=None): 
     if bioent is not None:
         level_one = set([bioent_biocon for bioent_biocon in get_bioent_biocons('PHENOTYPE', bioent=bioent)])
-        level_one = [bioent_biocon for bioent_biocon in level_one if bioent_biocon.bioconcept.official_name not in chemical_phenotypes
-                     and bioent_biocon.bioconcept.official_name not in pp_rna_phenotypes]
+        level_one = [bioent_biocon for bioent_biocon in level_one if bioent_biocon.bioconcept.phenotype_type=='cellular']
 
         biocon_ids = [bioent_biocon.biocon_id for bioent_biocon in level_one]
         level_two = set([bioent_biocon for bioent_biocon in get_related_bioent_biocons(biocon_ids)])
@@ -276,19 +275,16 @@ def create_phenotype_graph(bioent=None, biocon=None):
 '''
 -------------------------------Utils---------------------------------------
 '''  
-pp_rna_phenotypes = set(['protein-peptide accumulation', 'protein-peptide distribution', 'protein-peptide modification', 'RNA accumulation', 'RNA localization', 'RNA modification'])
-chemical_phenotypes = set(['resistance to chemicals', 'chemical compound accumulation', 'chemical compund excretion'])
 def divide_phenoevidences(phenoevidences):
-    chemical_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.bioent_biocon.bioconcept.official_name in chemical_phenotypes]
-    pp_rna_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.bioent_biocon.bioconcept.official_name in pp_rna_phenotypes]
-    other_phenoevidences = phenoevidences.difference(chemical_phenoevidences)
-    other_phenoevidences = other_phenoevidences.difference(pp_rna_phenoevidences)
-    return {'cellular':other_phenoevidences, 'chemical':chemical_phenoevidences, 'pp_rna':pp_rna_phenoevidences}
+    chemical_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.bioent_biocon.bioconcept.phenotype_type == 'chemical']
+    pp_rna_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.bioent_biocon.bioconcept.phenotype_type == 'pp_rna']
+    cellular_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.bioent_biocon.bioconcept.phenotype_type == 'cellular']
+    return {'cellular':cellular_phenoevidences, 'chemical':chemical_phenoevidences, 'pp_rna':pp_rna_phenoevidences}
 
 def divide_bioent_biocons(bioent_biocons):
-    chemical_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.name in chemical_phenotypes]
-    pp_rna_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.name in pp_rna_phenotypes]
-    other_bioent_biocons = bioent_biocons.difference(chemical_bioent_biocons)
-    other_bioent_biocons = other_bioent_biocons.difference(other_bioent_biocons)
-    return {'cellular':other_bioent_biocons, 'chemical':chemical_bioent_biocons, 'pp_rna':pp_rna_bioent_biocons}
+    chemical_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.phenotype_type == 'chemical']
+    pp_rna_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.phenotype_type == 'pp_rna']
+    cellular_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.phenotype_type == 'cellular']
+
+    return {'cellular':cellular_bioent_biocons, 'chemical':chemical_bioent_biocons, 'pp_rna':pp_rna_bioent_biocons}
         
