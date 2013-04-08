@@ -319,12 +319,12 @@
 </section>
 
 <script>
-	var stage1 = draw_sequence('dna_conserve', 'dna_conserve_seq', ' ', [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']], '#FAFAFA');
-	var stage2 = draw_sequence('protein_conserve', 'protein_conserve_seq', ' ', [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']], '#FAFAFA');
+	var stage1 = draw_sequence('dna_conserve', 'dna_conserve_seq', ' ', '#FAFAFA');
+	var stage2 = draw_sequence('protein_conserve', 'protein_conserve_seq', ' ', '#FAFAFA');
 
-	var stage3 = draw_sequence('dna', 'dna_seq', ' ', [['Promoter Region', 5, 3, 'purple'], ['CDS', 20, 20, 'red'], ['Intron', 40, 10, 'green'], ['CDS', 50, 40, 'red']], 'silver');
-	var stage4 = draw_sequence('rna', 'rna_seq', ' ', [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]], 'silver');
-	var stage5 = draw_sequence('protein', 'protein_seq', ' ', [['Domain 1', 20, 5, 'blue'], ['Domain 2', 55, 5, 'blue'], ['spacer', 40, 10],  ['spacer', 0, 20], ['spacer', 90, 10], ['Domain 3', 70, 15, 'blue']], 'silver');
+	var stage3 = draw_sequence('dna', 'dna_seq', ' ', 'silver');
+	var stage4 = draw_sequence('rna', 'rna_seq', ' ', 'silver');
+	var stage5 = draw_sequence('protein', 'protein_seq', ' ', 'silver');
 	
 	var legend = add_legend('legend', [stage1, stage2, stage3, stage4, stage5]);
 	
@@ -335,8 +335,14 @@
 	$(document).ready(function() {
 		//Get sequence data
 		$.getJSON('${link_maker.sequence_link}', function(data) {
-			set_seq(stage3, data['GENE'][0]);
-			set_seq(stage5, data['PROTEIN'][0]);
+			set_seq(stage3, data['GENE'][0][0]);
+			set_seq(stage5, data['PROTEIN'][0][0]);
+			
+			set_tags(stage1, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
+			set_tags(stage2, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
+			set_tags(stage3, data['GENE'][0][1]);
+			set_tags(stage4, [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]]);
+			set_tags(stage5, [['Domain 1', 20, 5, 'blue'], ['Domain 2', 55, 5, 'blue'], ['spacer', 40, 10],  ['spacer', 0, 20], ['spacer', 90, 10], ['Domain 3', 70, 15, 'blue']]);
 		});
 
 		//Get go data

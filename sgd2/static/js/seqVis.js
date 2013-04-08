@@ -54,7 +54,7 @@ function draw_letters(stage) {
 }
 
 
-function draw_sequence(container_name, seq_name, sequence, tags, background_color) {
+function draw_sequence(container_name, seq_name, sequence, background_color) {
 	var stage = setup_stage(container_name);
 	var container = stage.getContainer();	
 	var layer_name = 'layer' + container_name;
@@ -72,18 +72,6 @@ function draw_sequence(container_name, seq_name, sequence, tags, background_colo
 	
 	// add the shape to the layer
 	layer.add(background);
-	
-	// add tags to the layer
-	var scale_factor = 100/stage.width
-	for(var i=0; i < tags.length; i=i+1) {
-		if(tags[i][0] == 'spacer') {
-			add_spacer(layer, tags[i][1], stage.getHeight()/2, tags[i][2]);
-		}
-		else {
-			add_tag(layer, tags[i][0], tags[i][1], stage.getHeight()/2, tags[i][2], tags[i][3], scale_factor);
-		}
-	}
-	//add_spacer(layer, 0, stage.getHeight()/2, 10);
 	
 	// add the layer to the stage
 	stage.add(layer);
@@ -103,6 +91,7 @@ function draw_sequence(container_name, seq_name, sequence, tags, background_colo
 	stage.sequence = sequence;
 	stage.seq_name = seq_name
 	stage.zoom = 1;
+	stage.layer = layer;
 	
 	zoom_sequence(stage, 1);
 	return stage;
@@ -419,6 +408,20 @@ function zoom_full(legend) {
 
 function set_seq(stage, sequence) {
 	stage.sequence = sequence;
+}
+function set_tags(stage, tags) {
+	var layer = stage.layer;
+	// add tags to the layer
+	var scale_factor = 100/stage.width
+	for(var i=0; i < tags.length; i=i+1) {
+		if(tags[i][0] == 'spacer') {
+			add_spacer(layer, tags[i][1], stage.getHeight()/2, tags[i][2]);
+		}
+		else {
+			add_tag(layer, tags[i][0], tags[i][1], stage.getHeight()/2, tags[i][2], tags[i][3], scale_factor);
+		}
+	}
+	zoom_full(stage.legend);
 }
 
 

@@ -248,6 +248,26 @@
     			<th>Atom</th>
     			<th>Count</th>
   			</tr>
+  			<tr>
+  				<td>H</td>
+  				<td tal:content="bioent.atomic_comp_H"></td>
+  			</tr>
+  			<tr>
+  				<td>S</td>
+  				<td tal:content="bioent.atomic_comp_S"></td>
+  			</tr>
+  			<tr>
+  				<td>N</td>
+  				<td tal:content="bioent.atomic_comp_N"></td>
+  			</tr>
+  			<tr>
+  				<td>O</td>
+  				<td tal:content="bioent.atomic_comp_O"></td>
+  			</tr>
+  			<tr>
+  				<td>C</td>
+  				<td tal:content="bioent.atomic_comp_C"></td>
+  			</tr>
   		</thead>
   		</table>
   		<br></br>
@@ -258,6 +278,18 @@
   			<tr>
     			<th>Organism</th>
     			<th>Half-Life</th>
+  			</tr>
+  			<tr>
+  				<td>Yeast (in vivo)</td>
+  				<td tal:content="bioent.half_life_yeast_in_vivo"></td>
+  			</tr>
+  			<tr>
+  				<td>E. coli (in vivo)</td>
+  				<td tal:content="bioent.half_life_ecoli_in_vivo"></td>
+  			</tr>
+  			<tr>
+  				<td>Mammalian Reticulocytes (in vitro)</td>
+  				<td tal:content="bioent.half_life_mammalian_reticulocytes_in_vitro"></td>
   			</tr>
   		</thead>
   		</table>
@@ -271,6 +303,22 @@
     			<th>Assumption</th>
     			<th>Coefficient (M<sup>-1</sup> cm<sup>-1</sup>)</th>
   			</tr>
+  			<tr>
+  				<td>All Cys residues appear as half cystines</td>
+  				<td tal:content="bioent.extinction_coeff_all_cys_residues_as_half_cystines"></td>
+  			</tr>
+  			<tr>
+  				<td>No Cys residues appear as half cystines</td>
+  				<td tal:content="bioent.extinction_coeff_no_cys_residues_as_half_cystines"></td>
+  			</tr>
+  			<tr>
+  				<td>All Cys residues are reduced</td>
+  				<td tal:content="bioent.extinction_coeff_all_cys_residues_reduced"></td>
+  			</tr>
+  			<tr>
+  				<td>All pairs of Cys residues form cystines</td>
+  				<td tal:content="bioent.extinction_coeff_all_cys_pairs_form_cystines"></td>
+  			</tr>
   		</thead>
   		</table>
   		<br></br>
@@ -281,6 +329,26 @@
   			<tr>
     			<th>Measurement</th>
     			<th>Value</th>
+  			</tr>
+  			<tr>
+  				<td>Codon Bias</td>
+  				<td></td>
+  			</tr>
+  			<tr>
+  				<td>Codon Adaptation Index</td>
+  				<td tal:content="bioent.cai"></td>
+  			</tr>
+  			<tr>
+  				<td>Frequency of Optimal Codons</td>
+  				<td></td>
+  			</tr>
+  			<tr>
+  				<td>Hydropathicity of Protein</td>
+  				<td tal:content="bioent.pi"></td>
+  			</tr>
+  			<tr>
+  				<td>Aromaticity Score</td>
+  				<td tal:content="bioent.aromaticity_score"></td>
   			</tr>
   		</thead>
   		</table>
@@ -293,6 +361,14 @@
     			<th>Index</th>
     			<th>Value</th>
   			</tr>
+  			<tr>
+  				<td>Instability Index</td>
+  				<td tal:content="bioent.instability_index"></td>
+  			</tr>
+  			<tr>
+  				<td>Aliphatic Index</td>
+  				<td tal:content="bioent.aliphatic_index"></td>
+  			</tr>
   		</thead>
   		</table>
   		<br></br>
@@ -301,25 +377,29 @@
 </div>
 
 <script>
-	var stage1 = draw_sequence('dna_conserve', 'dna_conserve_seq', ' ', [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']], '#FAFAFA');
-	var stage2 = draw_sequence('protein_conserve', 'protein_conserve_seq', ' ', [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']], '#FAFAFA');
+	var stage1 = draw_sequence('dna_conserve', 'dna_conserve_seq', ' ', '#FAFAFA');
+	var stage2 = draw_sequence('protein_conserve', 'protein_conserve_seq', ' ', '#FAFAFA');
 
-	var stage3 = draw_sequence('dna', 'dna_seq', ' ', [['Promoter Region', 5, 3, 'purple'], ['CDS', 20, 20, 'red'], ['Intron', 40, 10, 'green'], ['CDS', 50, 40, 'red']], 'silver');
-	var stage4 = draw_sequence('rna', 'rna_seq', ' ', [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]], 'silver');
-	var stage5 = draw_sequence('protein', 'protein_seq', ' ', [['Domain 1', 20, 5, 'blue'], ['Domain 2', 55, 5, 'blue'], ['spacer', 40, 10],  ['spacer', 0, 20], ['spacer', 90, 10], ['Domain 3', 70, 15, 'blue']], 'silver');
+	var stage3 = draw_sequence('dna', 'dna_seq', ' ', 'silver');
+	var stage4 = draw_sequence('rna', 'rna_seq', ' ', 'silver');
+	var stage5 = draw_sequence('protein', 'protein_seq', ' ', 'silver');
 	
 	var legend = add_legend('legend', [stage1, stage2, stage3, stage4, stage5]);
-	
-</script>
 
-<script>
-$(document).ready(function() {
+	
+	$(document).ready(function() {
 		//Get sequence data
 		$.getJSON('${link_maker.sequence_link}', function(data) {
-			set_seq(stage3, data['GENE'][0]);
-			set_seq(stage5, data['PROTEIN'][0]);
+			set_seq(stage3, data['GENE'][0][0]);
+			set_seq(stage5, data['PROTEIN'][0][0]);
+			
+			set_tags(stage1, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
+			set_tags(stage2, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
+			set_tags(stage3, data['GENE'][0][1]);
+			set_tags(stage4, [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]]);
+			set_tags(stage5, [['Domain 1', 20, 5, 'blue'], ['Domain 2', 55, 5, 'blue'], ['spacer', 40, 10],  ['spacer', 0, 20], ['spacer', 90, 10], ['Domain 3', 70, 15, 'blue']]);
 		});
-	}
+	});
 </script>
 </body>
 </div>

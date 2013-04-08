@@ -8,6 +8,7 @@ from model_old_schema import config as old_config
 from schema_conversion.old_to_new_bioentity import convert_feature, \
     convert_protein
 from schema_conversion.old_to_new_biorelation import interaction_to_biorel
+from schema_conversion.old_to_new_sequence import convert_sequence
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.session import sessionmaker
@@ -19,7 +20,7 @@ import model_old_schema
 
 
 def convert():    
-    commit=True
+    commit=False
     new_session_maker = prepare_schema_connection(model_new_schema, new_config)
     old_session_maker = prepare_schema_connection(model_old_schema, old_config)
     
@@ -28,7 +29,8 @@ def convert():
         old_session = old_session_maker()
         
         #convert_feature(old_session, new_session)
-        convert_protein(old_session, new_session)
+        #convert_protein(old_session, new_session)
+        convert_sequence(old_session, new_session)
                 
         if commit:
             new_session.commit()

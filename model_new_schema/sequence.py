@@ -42,6 +42,19 @@ class Sequence(Base, EqualityByIDMixin):
             #return self.residues
         else:
             return self.residues
+        
+    @hybrid_property
+    def formatted_tags(self):
+        colors = {'INTRON': 'green', 'CDS': 'red'}
+        tags = []  
+        for tag in self.seq_tags:
+            start = 100.0*(tag.chrom_coord-self.min_coord)/self.length
+            length = 100.0*tag.length/self.length
+            print tag.seqtag_type
+            print start
+            print length
+            tags.append([tag.seqtag_type, start, length, colors[tag.seqtag_type]])
+        return tags
             
     def __init__(self, bioent_id, seq_version, coord_version, min_coord, max_coord, strand, is_current, length,
                  ftp_file, residues, seq_type, source, rootseq_id, strain_id,

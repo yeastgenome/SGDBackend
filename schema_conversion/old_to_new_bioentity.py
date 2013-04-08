@@ -81,11 +81,11 @@ def create_protein(old_protein_info):
         secondary_name = secondary_name + 'p'
     
     aliphatic_index = None
-    atomic_comp_H = None
-    atomic_comp_S = None
-    atomic_comp_N = None
-    atomic_comp_O = None
-    atomic_comp_C = None
+    atomic_comp_H = 0
+    atomic_comp_S = 0
+    atomic_comp_N = 0
+    atomic_comp_O = 0
+    atomic_comp_C = 0
     half_life_yeast_in_vivo = None
     half_life_ecoli_in_vivo = None
     half_life_mammalian_reticulocytes_in_vitro = None
@@ -189,7 +189,7 @@ def convert_protein(old_session, new_session):
     values_to_check = ['official_name', 'bioent_type', 'dbxref_id', 'source', 'status', 'secondary_name', 'date_created', 'created_by',
                        'transcript_id', 'molecular_weight', 'pi', 'cai', 'length', 'n_term_seq', 'c_term_seq', 'codon_bias', 'fop_score', 'gravy_score', 'aromaticity_score',
                        'ala', 'arg', 'asn', 'asp', 'cys', 'gln', 'glu', 'gly', 'his', 'ile', 'leu', 'lys', 'met', 'phe', 'pro', 'thr', 'ser', 'trp', 'tyr', 'val',
-                       'aliphatic_index', 'atomic_comp_H', 'atomic_comp_N', 'atomic_comp_O', 'atomic_comp_C', 
+                       'aliphatic_index', 'atomic_comp_H', 'atomic_comp_S', 'atomic_comp_N', 'atomic_comp_O', 'atomic_comp_C', 
                        'half_life_yeast_in_vivo', 'half_life_ecoli_in_vivo', 'half_life_mammalian_reticulocytes_in_vitro', 
                        'extinction_coeff_no_cys_residues_as_half_cystines', 'extinction_coeff_all_cys_residues_reduced', 'extinction_coeff_all_cys_residues_as_half_cystines', 'extinction_coeff_all_cys_pairs_form_cystines',
                        'instability_index', 'molecules_per_cell']
