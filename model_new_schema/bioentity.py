@@ -15,7 +15,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String, Date, Numeric, Float
 import datetime
 # Following two imports are necessary for SQLAlchemy
 
@@ -182,13 +182,123 @@ class Protein(Bioentity):
     id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     transcript_id = Column('transcript_id', Integer, ForeignKey(Transcript.id))
     
+    molecular_weight = Column('molecular_weight', Integer)
+    pi = Column('pi', Float)
+    cai = Column('cai', Float)
+    length = Column('length', Integer)
+    n_term_seq = ('n_term_seq', String)
+    c_term_seq = ('c_term_seq', String)
+    codon_bias = ('codon_bias', Float)
+    fop_score = Column('fop_score', Float)
+    gravy_score = Column('gravy_score', Float)
+    aromaticity_score = Column('aromaticity_score', Float)
+    
+    ala = Column('ala', Integer)
+    arg = Column('arg', Integer)
+    asn = Column('asn', Integer)
+    asp = Column('asp', Integer)
+    cys = Column('cys', Integer)
+    gln = Column('gln', Integer)
+    glu = Column('glu', Integer)
+    gly = Column('gly', Integer)
+    his = Column('his', Integer)
+    ile = Column('ile', Integer)
+    leu = Column('leu', Integer)
+    lys = Column('lys', Integer)
+    met = Column('met', Integer)
+    phe = Column('phe', Integer)
+    pro = Column('pro', Integer)
+    thr = Column('thr', Integer)
+    ser = Column('ser', Integer)
+    trp = Column('trp', Integer)
+    tyr = Column('tyr', Integer)
+    val = Column('val', Integer)
+    
+    aliphatic_index = Column('aliphatic_index', Float)
+    atomic_comp_H = Column('atomic_comp_h', Integer)
+    atomic_comp_S = Column('atomic_comp_s', Integer)
+    atomic_comp_N = Column('atomic_comp_n', Integer)
+    atomic_comp_O = Column('atomic_comp_o', Integer)
+    atomic_comp_C = Column('atomic_comp_c', Integer)
+    half_life_yeast_in_vivo = Column('half_life_yeast_in_vivo', String)
+    half_life_ecoli_in_vivo = Column('half_life_ecoli_in_vivo', String)
+    half_life_mammalian_reticulocytes_in_vitro = Column('half_life_mammalian', String)
+    extinction_coeff_no_cys_residues_as_half_cystines = Column('extinction_coeff_no_half', Integer)
+    extinction_coeff_all_cys_residues_reduced = Column('extinction_coeff_all_reduced', Integer)
+    extinction_coeff_all_cys_residues_as_half_cystines = Column('extinction_coeff_all_half', Integer)
+    extinction_coeff_all_cys_pairs_form_cystines = Column('extinction_coeff_all_pairs', Integer)
+    instability_index = Column('instability_index', Float)
+    molecules_per_cell = Column('molecules_per_cell', Integer)
+     
     transcript = relationship('Transcript', uselist=False, backref='proteins', primaryjoin="Protein.transcript_id==Transcript.id")
     
     __mapper_args__ = {'polymorphic_identity': "PROTEIN",
                        'inherit_condition': id == Bioentity.id}
+    
+    def get_percent_aa(self, aa_abrev):
+        return "{0:.2f}".format(100*float(getattr(self, aa_abrev))/self.length) + '%'
 
-    def __init__(self, transcript_id, status, bioent_id=None):
-        Bioentity.__init__(self, 'Protein', 'PROTEIN', None, 'SGD', status, None, bioent_id=bioent_id)
+    def __init__(self, name, secondary_name, transcript_id, 
+                 molecular_weight, pi, cai, length, n_term_seq, c_term_seq,
+                 codon_bias, fop_score, gravy_score, aromaticity_score, 
+                 ala, arg, asn, asp, cys, gln, glu, gly, his, ile, leu, lys, met, phe, pro, thr, ser, trp, tyr, val, 
+                 aliphatic_index, atomic_comp_H, atomic_comp_S, atomic_comp_N, atomic_comp_O, atomic_comp_C,
+                 half_life_yeast_in_vivo, half_life_ecoli_in_vivo, half_life_mammalian_reticulocytes_in_vitro,
+                 extinction_coeff_no_cys_residues_as_half_cystines, extinction_coeff_all_cys_residues_reduced,
+                 extinction_coeff_all_cys_residues_appear_as_half_cystines, extinction_coeff_all_cys_pairs_form_cystines,
+                 instability_index, molecules_per_cell,
+                 bioent_id=None, date_created=None, created_by=None):
+        Bioentity.__init__(self, name, 'PROTEIN', None, 'SGD', None, secondary_name, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
         self.transcript_id = transcript_id
+        
+        self.molecular_weight = molecular_weight
+        self.pi = pi
+        self.cai = cai
+        self.length = length
+        self.n_term_seq = n_term_seq
+        self.c_term_seq = c_term_seq
+        self.codon_bias = codon_bias
+        self.fop_score = fop_score
+        self.gravy_score = gravy_score
+        self.aromaticity_score = aromaticity_score
+        
+        self.ala = ala
+        self.arg = arg
+        self.asn = asn
+        self.asp = asp
+        self.cys = cys
+        self.gln = gln
+        self.glu = glu
+        self.gly = gly
+        self.his = his
+        self.ile = ile
+        self.leu = leu
+        self.lys = lys
+        self.met = met
+        self.phe = phe
+        self.pro = pro
+        self.thr = thr
+        self.ser = ser
+        self.trp = trp
+        self.tyr = tyr
+        self.val = val
+        
+        self.aliphatic_index = aliphatic_index
+        self.atomic_comp_H = atomic_comp_H
+        self.atomic_comp_S = atomic_comp_S
+        self.atomic_comp_N = atomic_comp_N
+        self.atomic_comp_O = atomic_comp_O
+        self.atomic_comp_C = atomic_comp_C
+        self.half_life_yeast_in_vivo = half_life_yeast_in_vivo
+        self.half_life_ecoli_in_vivo = half_life_ecoli_in_vivo
+        self.half_life_mammalian_reticulocytes_in_vitro = half_life_mammalian_reticulocytes_in_vitro
+        self.extinction_coeff_all_cys_pairs_form_cystines = extinction_coeff_all_cys_pairs_form_cystines
+        self.extinction_coeff_all_cys_residues_as_half_cystines  = extinction_coeff_all_cys_residues_appear_as_half_cystines
+        self.extinction_coeff_all_cys_residues_reduced = extinction_coeff_all_cys_residues_reduced
+        self.extinction_coeff_no_cys_residues_as_half_cystines = extinction_coeff_no_cys_residues_as_half_cystines
+        self.instability_index = instability_index
+        self.molecules_per_cell = molecules_per_cell
+        
+
         
         

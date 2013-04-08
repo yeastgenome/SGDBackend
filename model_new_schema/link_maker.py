@@ -80,6 +80,15 @@ class LinkMaker():
 
         #Sequence links
         setattr(self, 'sequence_link', add_official_name_params('/sequence?', {'bioent_name': bioent}))
+        
+        #Protein composition filenames
+        setattr(self, 'aa_comp_filename', name + '_amino_acid_comp')
+        setattr(self, 'atomic_comp_filename', name + 'atomic_comp')
+        setattr(self, 'half_life_filename', name + '_half_life')
+        setattr(self, 'extinction_coeff_filename', name + '_extinction_coeffs')
+        setattr(self, 'coding_region_filename', name + '_coding_region_calcs')
+        setattr(self, 'indices_filename', name + '_indices')
+    
 
 #Biocon links
 def go_link(biocon):
@@ -89,7 +98,7 @@ def phenotype_link(biocon):
     
 #Bioentity links
 def bioent_link(bioent):
-    return '/bioent/' + bioent.official_name
+    return '/' + bioent.bioent_type.lower() + '/' + bioent.official_name
 def bioent_wiki_link(bioent):
     return 'http://wiki.yeastgenome.org/index.php/' + bioent.official_name
 

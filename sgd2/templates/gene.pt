@@ -68,22 +68,21 @@
 		
 		<!-- Brief
 		========================================== -->
-		<h3>Strain Independent:</h3>
+		<h3>Variation Map:</h3>
 
 		<ul class='unstyled'>
-			<li tal:condition="python: bioent.genetic_position"><strong>Genetic Position: </strong><span tal:content="bioent.genetic_position"></li>
-			<li tal:condition="python: bioent.genetic_position"><strong>Core/Rare: </strong>Core</li>
+			<li><strong>Pan-Genome: </strong>Core</li>
 		</ul>
 					
-		<strong>DNA Sequence Conservation</strong>
+		<strong>Gene</strong>
 		<div id='dna_conserve' width="100%"></div>
 		<div id='dna_conserve_seq' width="100%"></div>
 		
-		<strong>Protein Sequence Conservation</strong>
+		<strong>Protein</strong>
 		<div id='protein_conserve' width="100%"></div>
 		<div id='protein_conserve_seq' width="100%"></div>
 		
-		<h3>Strain Specific:</h3><select>
+		<h3>Gene Map:</h3><select>
     	<option value="S288C">S288C</option>
     	<option value="Sigma1278b">Sigma1278b</option>
     	<option value="SEY6210">SEY6210</option>
@@ -97,15 +96,15 @@
   		</select>
   		<br></br>
   		
-		<strong>DNA Sequence</strong>
+		<strong>Gene</strong>
 		<div id='dna' width="100%"></div>
 		<div id='dna_seq'></div>
 
-		<strong>RNA Sequence</strong>
+		<strong>Transcript</strong>
 		<div id='rna' width="100%"></div>
 		<div id='rna_seq' width="100%"></div>
 		
-		<strong>Protein Sequence</strong>
+		<strong>Protein</strong>
 		<div id='protein' width="100%"></div>
 		<div id='protein_seq' width="100%"></div>
 		
@@ -122,6 +121,7 @@
 		<h1>Gene Ontology <span id='go_header'></span></h1>
 		<a tal:attributes="href link_maker.go_evidence_link"><button class="btn btn-large btn-warning">All Gene Ontology Evidence <i class="icon-chevron-right icon-white"></i></button></a>
 		<br></br>
+		<p>* There are <span id='go_comp_message'></span> computational go terms curated for <span tal:content="bioent.name"></span>.</p>
 		
 		<h3>Molecular Function <span id='go_f_header'></span></h3>
 		<span id='go_f_message' class="hide">No known molecular function gene ontology associations.</span>
@@ -178,10 +178,6 @@
 			</table>
 			</ul>
 		</div>
-		<br></br>
-		<h3>Computational Curations <span id='go_comp_header'></span></h3>
-		<p>There are <span id='go_comp_message'></span> computational go terms curated for <span tal:content="bioent.name"></span>.</p>
-
 	</div>
 </section>
 
@@ -323,12 +319,12 @@
 </section>
 
 <script>
-	var stage1 = draw_sequence('dna_conserve', 'dna_conserve_seq', ' ');
-	var stage2 = draw_sequence('protein_conserve', 'protein_conserve_seq', ' ');
+	var stage1 = draw_sequence('dna_conserve', 'dna_conserve_seq', ' ', [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']], '#FAFAFA');
+	var stage2 = draw_sequence('protein_conserve', 'protein_conserve_seq', ' ', [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']], '#FAFAFA');
 
-	var stage3 = draw_sequence('dna', 'dna_seq', ' ');
-	var stage4 = draw_sequence('rna', 'rna_seq', ' ');
-	var stage5 = draw_sequence('protein', 'protein_seq', ' ');
+	var stage3 = draw_sequence('dna', 'dna_seq', ' ', [['Promoter Region', 5, 3, 'purple'], ['CDS', 20, 20, 'red'], ['Intron', 40, 10, 'green'], ['CDS', 50, 40, 'red']], 'silver');
+	var stage4 = draw_sequence('rna', 'rna_seq', ' ', [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]], 'silver');
+	var stage5 = draw_sequence('protein', 'protein_seq', ' ', [['Domain 1', 20, 5, 'blue'], ['Domain 2', 55, 5, 'blue'], ['spacer', 40, 10],  ['spacer', 0, 20], ['spacer', 90, 10], ['Domain 3', 70, 15, 'blue']], 'silver');
 	
 	var legend = add_legend('legend', [stage1, stage2, stage3, stage4, stage5]);
 	
@@ -376,7 +372,6 @@
 			$('#go_c_table').dataTable(options);
 			
 			//Set up computational message
-			document.getElementById("go_comp_header").innerHTML = '(' + comp_count + ')';
 			document.getElementById("go_comp_message").innerHTML = comp_count;
   		});
 			

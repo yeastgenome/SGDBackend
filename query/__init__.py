@@ -155,7 +155,7 @@ def get_sequences(bioent, strain_id):
         id_to_type[bioent.transcript_id] = 'TRANSCRIPT'
         id_to_type[bioent.transcript.gene_id] = 'GENE'
          
-    seqs = DBSession.query(Sequence).filter(Sequence.bioent_id.in_(id_to_type.keys())).filter(Sequence.strain_id==strain_id).all()
+    seqs = DBSession.query(Sequence).options(joinedload('seq_tags')).filter(Sequence.bioent_id.in_(id_to_type.keys())).filter(Sequence.strain_id==strain_id).all()
     
     return {'GENE':[seq.formatted_residues for seq in seqs if id_to_type[seq.bioent_id]=='GENE'],
             'TRANSCRIPT':[seq.formatted_residues for seq in seqs if id_to_type[seq.bioent_id]=='TRANSCRIPT'],

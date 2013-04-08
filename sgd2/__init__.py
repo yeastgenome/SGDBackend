@@ -27,7 +27,9 @@ def main(global_config, **settings):
     config.add_route('typeahead', '/typeahead')
    
     #Bioent views
-    config.add_route('bioent', '/bioent/{bioent_name}')
+    config.add_route('gene', '/gene/{gene_name}')
+    config.add_route('protein', '/protein/{protein_name}')
+
     
     #GO views
     config.add_route('go', '/go/{biocon_name}')

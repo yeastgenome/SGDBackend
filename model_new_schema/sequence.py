@@ -14,7 +14,7 @@ from sqlalchemy.types import Integer, String, Date, CLOB
 class Sequence(Base, EqualityByIDMixin):
     __tablename__ = 'seq'
 
-    id = Column('sequence_id', Integer, primary_key = True)
+    id = Column('seq_id', Integer, primary_key = True)
     bioent_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
     seq_version = Column('seq_version', Date)
     coord_version = Column('coord_version', Date)
@@ -31,6 +31,9 @@ class Sequence(Base, EqualityByIDMixin):
     strain_id = Column('strain_id', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
+    
+    seq_tags = relationship('Seqtag')
+    bioent = relationship('Bioentity', uselist=False, backref='sequences')
     
     @hybrid_property
     def formatted_residues(self):
@@ -81,6 +84,7 @@ class Seqtag(Base, EqualityByIDMixin):
     length = Column('length', Integer)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
+    old_feat_id = Column('old_feat_id', Integer)
     
     def __init__(self, seq_id, name, seqtag_type, dbxref_id, source, status, secondary_name, 
                  relative_coord, chrom_coord, length, 

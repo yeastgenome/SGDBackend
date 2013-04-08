@@ -63,6 +63,9 @@ class Feature(Base, EqualityByIDMixin):
     aliases = relationship("AliasFeature", lazy='subquery')
     alias_names = association_proxy('aliases', 'name')
     
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+    
     #phenotypes = relationship('Phenotype_Feature', lazy='joined')
     
     

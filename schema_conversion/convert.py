@@ -3,19 +3,11 @@ Created on Jan 16, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.config import DBTYPE as NEW_DBTYPE, DBHOST as NEW_DBHOST, \
-    DBNAME as NEW_DBNAME, SCHEMA as NEW_SCHEMA, DBUSER as NEW_DBUSER, \
-    DBPASS as NEW_DBPASS
-from model_new_schema.model import Model as NewModel
-from model_old_schema.config import DBTYPE as OLD_DBTYPE, DBHOST as OLD_DBHOST, \
-    DBNAME as OLD_DBNAME, SCHEMA as OLD_SCHEMA, DBUSER as OLD_DBUSER, \
-    DBPASS as OLD_DBPASS
-from model_old_schema.model import Model as OldModel
-from schema_conversion.old_to_new_bioconcept import convert_go
-from schema_conversion.old_to_new_bioentity import feature_to_bioent
+from model_new_schema import config as new_config
+from model_old_schema import config as old_config
+from schema_conversion.old_to_new_bioentity import convert_feature, \
+    convert_protein
 from schema_conversion.old_to_new_biorelation import interaction_to_biorel
-from schema_conversion.old_to_new_reference import convert_reference
-from schema_conversion.old_to_new_sequence import convert_sequence
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.session import sessionmaker
@@ -26,134 +18,35 @@ import model_old_schema
 
 
 
-def convert():
-    old_model = OldModel(OLD_DBTYPE, OLD_DBHOST, OLD_DBNAME, OLD_SCHEMA)
-    old_model.connect(OLD_DBUSER, OLD_DBPASS)
-    
-    new_model = NewModel(NEW_DBTYPE, NEW_DBHOST, NEW_DBNAME, NEW_SCHEMA)
-    new_model.connect(NEW_DBUSER, NEW_DBPASS)
-    
-    #convert_features_to_bioents(old_model, new_model)
-    #convert_references_to_references(old_model, new_model)
-    
-    #convert_interactions_to_biorels(old_model, new_model, 0, 400000)
-    #convert_interactions_to_biorels(old_model, new_model, 400000, 450000)
-    #convert_interactions_to_biorels(old_model, new_model, 450000, 500000)
-    #convert_interactions_to_biorels(old_model, new_model, 500000, 600000)
-    #convert_interactions_to_biorels(old_model, new_model, 600000, 900000)
-    #convert_interactions_to_biorels(old_model, new_model, 900000, 1000000)
-    #convert_interactions_to_biorels(old_model, new_model, 1000000, 1100000)
-    #convert_interactions_to_biorels(old_model, new_model, 1100000, 1120000)
-    #convert_interactions_to_biorels(old_model, new_model, 1120000, 1140000)
-    #convert_interactions_to_biorels(old_model, new_model, 1140000, 1141000)
-    #convert_interactions_to_biorels(old_model, new_model, 1141000, 1145000)
-    #convert_interactions_to_biorels(old_model, new_model, 1145000, 1150000)
-    #convert_interactions_to_biorels(old_model, new_model, 1150000, 1155000)
-    #convert_interactions_to_biorels(old_model, new_model, 1155000, 1160000)
-    #convert_interactions_to_biorels(old_model, new_model, 1160000, 1165000)
-    #convert_interactions_to_biorels(old_model, new_model, 1165000, 1170000)
-    #convert_interactions_to_biorels(old_model, new_model, 1170000, 1175000)
-    #convert_interactions_to_biorels(old_model, new_model, 1175000, 1180000)
-    #convert_interactions_to_biorels(old_model, new_model, 1180000, 1190000)
-    #convert_interactions_to_biorels(old_model, new_model, 1190000, 1200000)
-    #convert_interactions_to_biorels(old_model, new_model, 1200000, 1210000)
-    #convert_interactions_to_biorels(old_model, new_model, 1210000, 1220000)
-    #convert_interactions_to_biorels(old_model, new_model, 1220000, 1230000)
-    #convert_interactions_to_biorels(old_model, new_model, 1230000, 1240000)
-    #convert_interactions_to_biorels(old_model, new_model, 1240000, 1250000)
-    #convert_interactions_to_biorels(old_model, new_model, 1250000, 1260000)
-    #convert_interactions_to_biorels(old_model, new_model, 1260000, 1270000)
-    #convert_interactions_to_biorels(old_model, new_model, 1270000, 1280000)
-    #convert_interactions_to_biorels(old_model, new_model, 1280000, 1290000)
-    #convert_interactions_to_biorels(old_model, new_model, 1290000, 1300000)
-    #convert_interactions_to_biorels(old_model, new_model, 1300000, 1500000)
-    
-    #convert_phenotypes_to_bioconcepts(old_model, new_model, 0, 1000)
-    #convert_phenotypes_to_bioconcepts(old_model, new_model, 1000, 5000)
-    #convert_phenotypes_to_bioconcepts(old_model, new_model, 5000, 20000)
-    #convert_phenotypes_to_bioconcepts(old_model, new_model, 20000, 40000)
-    #convert_phenotypes_to_bioconcepts(old_model, new_model, 40000, 60000)
-    #convert_phenotypes_to_bioconcepts(old_model, new_model, 60000, 92000)
-    #convert_phenotypes_to_observable(old_model, new_model)
-    
-    
-
-    #fill_typeahead_table(old_model, new_model, 'ORF')
-    #fill_typeahead_table(old_model, new_model, 'ARS')
-    #fill_typeahead_table(old_model, new_model, 'CENTROMERE')
-    #fill_typeahead_table(old_model, new_model, 'GENE_CASSETTE')
-    #fill_typeahead_table(old_model, new_model, 'LONG_TERMINAL_REPEAT')
-    #fill_typeahead_table(old_model, new_model, 'MATING_LOCUS')
-    #fill_typeahead_table(old_model, new_model, 'MULTIGENE LOCUS')
-    #fill_typeahead_table(old_model, new_model, 'NCRNA')
-    #fill_typeahead_table(old_model, new_model, 'NOT IN SYSTEMATIC SEQUENCE OF S288C')
-    #fill_typeahead_table(old_model, new_model, 'NOT PHYSICALLY MAPPED')
-    #fill_typeahead_table(old_model, new_model, 'PSEUDOGENE')
-    #fill_typeahead_table(old_model, new_model, 'RETROTRANSPOSON')
-    #fill_typeahead_table(old_model, new_model, 'RRNA')
-    #fill_typeahead_table(old_model, new_model, 'SNORNA')
-    #fill_typeahead_table(old_model, new_model, 'SNRNA')
-    #fill_typeahead_table(old_model, new_model, 'TELOMERE')
-    #fill_typeahead_table(old_model, new_model, 'TELOMERIC_REPEAT')
-    #fill_typeahead_table(old_model, new_model, 'TRANSPOSABLE_ELEMENT_GENE')
-    #fill_typeahead_table(old_model, new_model, 'TRNA')
-    #fill_typeahead_table(old_model, new_model, 'X_ELEMENT_COMBINATORIAL_REPEATS')
-    #fill_typeahead_table(old_model, new_model, 'X_ELEMENT_CORE_SEQUENCE')
-    #fill_typeahead_table(old_model, new_model, "Y'_ELEMENT")
-    
-    #fill_typeahead_table_aliases(old_model, new_model)
-    #convert_alias_to_alias(old_model, new_model)
-
-    #convert_sequences_to_sequences(old_model, new_model)
-    
+def convert():    
     commit=True
-    session_maker = prepare_connection()
+    new_session_maker = prepare_schema_connection(model_new_schema, new_config)
+    old_session_maker = prepare_schema_connection(model_old_schema, old_config)
     
     try:
-        session = session_maker()
+        new_session = new_session_maker()
+        old_session = old_session_maker()
         
-        convert_sequence(old_model, session)
-        
+        #convert_feature(old_session, new_session)
+        convert_protein(old_session, new_session)
+                
         if commit:
-            session.commit()
-    #except Exception as e:
-    #    session.rollback()
-    #    raise e
+            new_session.commit()
     finally:
-        session.close()
+        new_session.close()
 
-def prepare_connection():
-    model_new_schema.SCHEMA = NEW_SCHEMA
+def prepare_schema_connection(model_cls, config_cls):
+    model_cls.SCHEMA = config_cls.SCHEMA
     class Base(object):
-        __table_args__ = {'schema': NEW_SCHEMA, 'extend_existing':True}
+        __table_args__ = {'schema': config_cls.SCHEMA, 'extend_existing':True}
 
-    model_new_schema.Base = declarative_base(cls=Base)
-    model_new_schema.metadata = model_new_schema.Base.metadata
-    engine = create_engine("%s://%s:%s@%s/%s" % (NEW_DBTYPE, NEW_DBUSER, NEW_DBPASS, NEW_DBHOST, NEW_DBNAME), convert_unicode=True, pool_recycle=3600)
-    model_new_schema.Base.metadata.bind = engine
+    model_cls.Base = declarative_base(cls=Base)
+    model_cls.metadata = model_cls.Base.metadata
+    engine = create_engine("%s://%s:%s@%s/%s" % (config_cls.DBTYPE, config_cls.DBUSER, config_cls.DBPASS, config_cls.DBHOST, config_cls.DBNAME), convert_unicode=True, pool_recycle=3600)
+    model_cls.Base.metadata.bind = engine
     session_maker = sessionmaker(bind=engine)
         
     return session_maker
-
-def convert_features_to_bioents(old_model, new_model):
-    print "Convert Features to Bioentities"
-    from model_old_schema.feature import Feature as OldFeature
-    from model_new_schema.bioentity import Bioentity as NewBioentity
-
-    fs = old_model.execute(model_old_schema.model.get(OldFeature), OLD_DBUSER)
-    
-    count = 0;
-    time = datetime.datetime.now()
-    for f in fs:
-        if not new_model.execute(model_new_schema.model.exists(NewBioentity, id=f.id), NEW_DBUSER):
-            b = feature_to_bioent(f)
-            new_model.execute(model_new_schema.model.add(b), NEW_DBUSER, commit=True)
-              
-        count = count+1
-        if count%1000 == 0:
-            new_time = datetime.datetime.now()
-            print str(count) + '/' + str(len(fs)) +  " " + str(new_time - time)
-            time = new_time
             
 def convert_references_to_references(session, old_model):
     print "Convert References to References"

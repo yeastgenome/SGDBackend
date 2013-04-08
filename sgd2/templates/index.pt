@@ -2,7 +2,7 @@
     <div metal:fill-slot="content">
         <header class="jumbotron masthead" id="overview">
 			<div class="container">
-				<h1>SGD2.0</h1>
+				<h1>SGD Next Gen.</h1>
 				<p>A new interface for the Saccharomyces Genome Database.</p>
 			</div>
 		</header>

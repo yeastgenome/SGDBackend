@@ -30,7 +30,7 @@ function draw_letters(stage) {
 	var letter_width = 8;
 	if(space_per_letter > letter_width) {
 		var letter_spacing = space_per_letter-letter_width;
-		if(space_per_letter - offset > letter_width) {
+		if(space_per_letter - 2*offset > letter_width) {
 			sequence_div.innerHTML = sequence.slice(begin_index, Math.min(letters_on_screen+begin_index+1, sequence.length));	
 		}
 		else {
@@ -54,7 +54,7 @@ function draw_letters(stage) {
 }
 
 
-function draw_sequence(container_name, seq_name, sequence) {
+function draw_sequence(container_name, seq_name, sequence, tags, background_color) {
 	var stage = setup_stage(container_name);
 	var container = stage.getContainer();	
 	var layer_name = 'layer' + container_name;
@@ -67,7 +67,7 @@ function draw_sequence(container_name, seq_name, sequence) {
 		y: stage.getHeight() / 2,
 		width: 100,
 		height: 20,
-        fill: 'silver'
+        fill: background_color
 	});
 	
 	// add the shape to the layer
@@ -75,17 +75,16 @@ function draw_sequence(container_name, seq_name, sequence) {
 	
 	// add tags to the layer
 	var scale_factor = 100/stage.width
-	add_tag(layer, 'Test 1', 10, stage.getHeight()/2, 10, 'red', scale_factor);
-	add_tag(layer, 'Test 2', 10, stage.getHeight()/2, 10, 'green', scale_factor);
-	add_tag(layer, 'Test 3', 20, stage.getHeight()/2, 10, 'red', scale_factor);
-	add_tag(layer, 'Test 4', 30, stage.getHeight()/2, 10, 'green', scale_factor);
-	add_tag(layer, 'Test 5', 40, stage.getHeight()/2, 10, 'red', scale_factor);
-	add_tag(layer, 'Test 6', 50, stage.getHeight()/2, 10, 'green', scale_factor);
-	add_tag(layer, 'Test 7', 60, stage.getHeight()/2, 10, 'red', scale_factor);
-	add_tag(layer, 'Test 8', 70, stage.getHeight()/2, 10, 'green', scale_factor);
-	add_tag(layer, 'Test 9', 80, stage.getHeight()/2, 10, 'red', scale_factor);
-	add_tag(layer, 'Test 10', 90, stage.getHeight()/2, 10, 'green', scale_factor);
+	for(var i=0; i < tags.length; i=i+1) {
+		if(tags[i][0] == 'spacer') {
+			add_spacer(layer, tags[i][1], stage.getHeight()/2, tags[i][2]);
+		}
+		else {
+			add_tag(layer, tags[i][0], tags[i][1], stage.getHeight()/2, tags[i][2], tags[i][3], scale_factor);
+		}
+	}
 	//add_spacer(layer, 0, stage.getHeight()/2, 10);
+	
 	// add the layer to the stage
 	stage.add(layer);
 	
@@ -173,6 +172,24 @@ function add_spacer(layer, x_pos, y_pos, width) {
         opacity: 1
 	});
     layer.add(tag1);
+    
+    if(x_pos != 0 && x_pos+width != 100) {
+    	var dotted_line = new Kinetic.Line({
+        points: [x_pos, y_pos+10, x_pos+width, y_pos+10],
+        stroke: '#424242',
+        strokeWidth: 2,
+        lineJoin: 'round',
+        /*
+         * line segments with a length of 33px
+         * with a gap of 10px
+         */
+        dashArray: [.25, .25]
+      	});
+		layer.add(dotted_line)
+    	
+    }
+    
+    
 }
 
 

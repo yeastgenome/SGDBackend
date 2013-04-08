@@ -4,8 +4,9 @@ Created on Mar 22, 2013
 @author: kpaskov
 '''
 from model_old_schema.config import DBUSER as OLD_DBUSER
-from schema_conversion import cache, create_or_update
-from schema_conversion.old_to_new_bioentity import id_to_bioent
+from schema_conversion import cache, create_or_update, add_or_check
+from schema_conversion.old_to_new_bioentity import id_to_bioent, \
+    create_protein_id, create_transcript_id
 from schema_conversion.output_manager import OutputCreator
 import model_old_schema
 
@@ -38,12 +39,6 @@ def create_sequence(old_seq):
                        date_created=old_seq.date_created, created_by=old_seq.created_by)
     else:
         return None
-    
-def create_transcript_id(gene_id):
-    return gene_id + 50000
-
-def create_protein_id(gene_id):
-    return gene_id + 100000
     
 def create_transcript(old_seq):
     from model_new_schema.bioentity import Transcript as NewTranscript
@@ -79,6 +74,13 @@ def create_seqtag2(child_id, parent_id):
     else:
         return None
     
+def create_seqtag3(seqtag, seqtag_id):
+    from model_new_schema.sequence import Seqtag as NewSeqtag
+    return NewSeqtag(None, seqtag.name, seqtag.seqtag_type, seqtag.dbxref_id, seqtag.source, seqtag.status, seqtag.secondary_name, 
+                     seqtag.relative_coord, seqtag.chrom_coord, seqtag.length, 
+                     seqtag_id=seqtag_id, date_created=seqtag.date_created, created_by=seqtag.created_by)
+    
+    
 """
 ---------------------Convert------------------------------
 """  
@@ -96,35 +98,59 @@ def convert_sequence(old_model, session):
     key_maker = lambda x: x.id
     cache(NewBioentity, id_to_bioent, key_maker, session, output_creator, 'bioent')
 
-    #Create new transcripts if they don't exist, or update the database if they do.
-    old_seqs = old_model.execute(model_old_schema.model.get(OldSequence), OLD_DBUSER)
-    values_to_check = ['gene_id']
-    create_or_update(old_seqs, id_to_bioent, create_transcript, key_maker, values_to_check, session, output_creator, 'transcript')
-    
-    #Create new proteins if they don't exist, or update the database if they do.
-    values_to_check = ['transcript_id']
-    create_or_update(old_seqs, id_to_bioent, create_protein, key_maker, values_to_check, session, output_creator, 'protein')
-
-    #Cache sequences
-    key_maker = lambda x: x.id
-    cache(NewSequence, id_to_sequence, key_maker, session, output_creator, 'sequence')
-    
-    #Create new sequences if they don't exist, or update the database if they do.
-    values_to_check = ['bioent_id', 'seq_version', 'coord_version', 'min_coord', 'max_coord', 'strand', 'is_current', 'length', 'ftp_file', 
-                       'residues', 'seq_type', 'rootseq_id', 'date_created', 'created_by']
-    create_or_update(old_seqs, id_to_sequence, create_sequence, key_maker, values_to_check, session, output_creator, 'sequence')
-    
+#    #Create new transcripts if they don't exist, or update the database if they do.
+#    old_seqs = old_model.execute(model_old_schema.model.get(OldSequence), OLD_DBUSER)
+#    values_to_check = ['gene_id']
+#    create_or_update(old_seqs, id_to_bioent, create_transcript, key_maker, values_to_check, session, output_creator, 'transcript')
+#    
+#    #Create new proteins if they don't exist, or update the database if they do.
+#    values_to_check = ['transcript_id']
+#    create_or_update(old_seqs, id_to_bioent, create_protein, key_maker, values_to_check, session, output_creator, 'protein')
+#
+#    #Cache sequences
+#    key_maker = lambda x: x.id
+#    cache(NewSequence, id_to_sequence, key_maker, session, output_creator, 'sequence')
+#    
+#    #Create new sequences if they don't exist, or update the database if they do.
+#    values_to_check = ['bioent_id', 'seq_version', 'coord_version', 'min_coord', 'max_coord', 'strand', 'is_current', 'length', 'ftp_file', 
+#                       'residues', 'seq_type', 'rootseq_id', 'date_created', 'created_by']
+#    create_or_update(old_seqs, id_to_sequence, create_sequence, key_maker, values_to_check, session, output_creator, 'sequence')
+#    
     #Cache seqtags
-    key_maker = lambda x: x.id
+    key_maker = lambda x: x.old_feat_id
     cache(NewSeqtag, id_to_seqtag, key_maker, session, output_creator, 'seqtag')
-    
-    #Update seqtag min_coord and length.
-    values_to_check = ['chrom_coord', 'length']
-    create_or_update(old_seqs, id_to_seqtag, create_seqtag, key_maker, values_to_check, session, output_creator, 'seqtag')
+#    
+#    #Update seqtag min_coord and length.
+#    values_to_check = ['chrom_coord', 'length']
+#    create_or_update(old_seqs, id_to_seqtag, create_seqtag, key_maker, values_to_check, session, output_creator, 'seqtag')
 
     #Update seqtag seq_id
+    values_to_check = ['seq_id']
+    child_to_parent = {}
     old_feat_rels = old_model.execute(model_old_schema.model.get(OldFeatRel, relationship_type='part of'), OLD_DBUSER)
-    
-    
+    for old_feat_rel in old_feat_rels:
+        child_to_parent[old_feat_rel.child_id] = old_feat_rel.parent_id
+        
+    for old_feat_rel in old_feat_rels:
+        orig_child_id = old_feat_rel.child_id
+        parent_id = old_feat_rel.parent_id
+        num_hops = 0
+        while parent_id != None:
+            if parent_id in id_to_bioent and orig_child_id in id_to_seqtag:
+                child_id = orig_child_id + num_hops*50000
+                if child_id in id_to_seqtag:
+                    seqtag = id_to_seqtag[child_id]
+                else:
+                    seqtag = create_seqtag3(id_to_seqtag[orig_child_id], child_id)
+                seq_ids = id_to_bioent[parent_id].seq_ids
+                if len(seq_ids) > 0:
+                    seqtag.seq_id = seq_ids[0]
+                add_or_check(seqtag, id_to_seqtag, key_maker, values_to_check, session, output_creator, 'seqtag')
+                num_hops = num_hops+1
+            if parent_id in child_to_parent:
+                parent_id = child_to_parent[parent_id]
+            else:
+                parent_id = None
+    output_creator.finished('seqtag')
     
     
