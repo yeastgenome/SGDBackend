@@ -391,7 +391,8 @@
 		//Get sequence data
 		$.getJSON('${link_maker.sequence_link}', function(data) {
 			set_seq(stage3, data['GENE'][0][0]);
-			set_seq(stage5, data['PROTEIN'][0][0]);
+			//set_seq(stage5, data['PROTEIN'][0][0]);
+			
 			
 			set_tags(stage1, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
 			set_tags(stage2, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);

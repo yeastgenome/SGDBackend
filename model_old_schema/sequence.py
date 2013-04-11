@@ -8,7 +8,6 @@ Sequence module of the database schema.
 '''
 from model_old_schema import Base, EqualityByIDMixin, SCHEMA
 from model_old_schema.feature import Feature
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
@@ -31,7 +30,7 @@ class Sequence(Base, EqualityByIDMixin):
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
-    feat_locations = relationship('Feat_Location', primaryjoin="Feat_Location.sequence_id==Sequence.id", lazy='joined')
+    feat_locations = relationship('Feat_Location', primaryjoin="Feat_Location.sequence_id==Sequence.id")
     
     @hybrid_property
     def current_feat_location(self):
@@ -42,8 +41,8 @@ class Sequence(Base, EqualityByIDMixin):
             return None
         
     def __repr__(self):
-        data = self.length, self.type, self.is_current
-        return 'Sequence(length=%s, type=%s, is_current=%s)' % data
+        data = self.id, self.seq_type, self.is_current
+        return 'Sequence(id=%s, type=%s, is_current=%s)' % data
     
 class Feat_Location(Base, EqualityByIDMixin):
     __tablename__ = 'feat_location'

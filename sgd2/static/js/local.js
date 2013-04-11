@@ -85,9 +85,11 @@ function setup_interaction_cytoscape_vis(graph_link) {
 		}
 		else {
 			vis.draw({ network: data, visualStyle: visual_style});
-			setup_slider(vis, data['min_evidence_cutoff'], data['max_evidence_cutoff'])
+			setup_slider(vis, data['min_evidence_cutoff'], data['max_evidence_cutoff']);
+			handle_slide(vis, Math.min(min_evidence_cutoff, 3));
 		}
-	});          
+	});     
+	return vis;     
 }
 
 function handle_slide(vis, value) {
@@ -212,7 +214,8 @@ function setup_go_cytoscape_vis(graph_link) {
 			if(data['disable_cellular']) {
 				$('#c_check').attr('disabled', true);
 			}
-		});          
+		});    
+	return vis;      
 }
 
 function setup_go_ontology_cytoscape_vis(graph_link) {
@@ -335,7 +338,8 @@ function setup_go_ontology_cytoscape_vis(graph_link) {
 				$('#child_check').prop('checked',false)
 				$('#child_check').attr('disabled', true);
 			}
-		});          
+		}); 
+	return vis;         
 }
 
 function setup_phenotype_cytoscape_vis(graph_link) {
@@ -399,7 +403,8 @@ function setup_phenotype_cytoscape_vis(graph_link) {
 		//Grab the network data via AJAX
 		$.get(graph_link, function(data) {
 			vis.draw({ network: data, visualStyle: visual_style});
-		});          
+		});     
+	return vis;     
 }
 
 

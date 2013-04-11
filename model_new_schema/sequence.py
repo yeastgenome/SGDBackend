@@ -8,7 +8,7 @@ from model_new_schema.bioentity import Bioentity
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String, Date, CLOB
+from sqlalchemy.types import Integer, String, Date, CLOB, Float
 
 
 class Sequence(Base, EqualityByIDMixin):
@@ -37,7 +37,7 @@ class Sequence(Base, EqualityByIDMixin):
     
     @hybrid_property
     def formatted_residues(self):
-        if self.seq_type == 'genomic':
+        if self.seq_type == 'DNA':
             return  ' '.join(self.residues[i:i+3] for i in range(0, len(self.residues), 3)) + ' '
             #return self.residues
         else:
@@ -45,18 +45,19 @@ class Sequence(Base, EqualityByIDMixin):
         
     @hybrid_property
     def formatted_tags(self):
-        colors = {'INTRON': 'green', 'CDS': 'red'}
+        colors = {'intron': 'green', 'CDS': 'red', 'X_region': 'blue', 'Y_region':'purple', 'Z1_region':'yellow', 'Z2_region':'orange'}
         tags = []  
         for tag in self.seq_tags:
-            start = 100.0*(tag.chrom_coord-self.min_coord)/self.length
-            length = 100.0*tag.length/self.length
-            print tag.seqtag_type
-            print start
-            print length
-            tags.append([tag.seqtag_type, start, length, colors[tag.seqtag_type]])
+            if (tag.seqtag_type != 'ORF' and tag.length < self.length) or len(self.seq_tags) == 1:
+                start = 100.0*tag.relative_coord/self.length
+                length = 100.0*tag.length/self.length
+                color = 'black'
+                if tag.seqtag_type in colors:
+                    color = colors[tag.seqtag_type]
+                tags.append([tag.seqtag_type, start, length, color])
         return tags
             
-    def __init__(self, bioent_id, seq_version, coord_version, min_coord, max_coord, strand, is_current, length,
+    def __init__(self, bioent_id, seq_version, coord_version, min_coord, max_coord, strand, length,
                  ftp_file, residues, seq_type, source, rootseq_id, strain_id,
                  session=None, sequence_id=None, date_created=None, created_by=None):
         self.bioent_id = bioent_id
@@ -65,7 +66,6 @@ class Sequence(Base, EqualityByIDMixin):
         self.min_coord = min_coord
         self.max_coord = max_coord
         self.strand = strand
-        self.is_current = is_current
         self.length = length
         self.ftp_file = ftp_file
         self.residues = residues
@@ -90,24 +90,26 @@ class Seqtag(Base, EqualityByIDMixin):
     seqtag_type = Column('seqtag_type', String)
     dbxref_id = Column('dbxref', String)
     source = Column('source', String)
-    status = Column('status', String)
     secondary_name = Column('secondary_name', String)
     relative_coord = Column('relative_coord', Integer)
     chrom_coord = Column('chrom_coord', Integer)
     length = Column('length', Integer)
+    orf_classification = Column('orf_classification', String)
+    score = Column('score', Float)
+    strand = Column('strand', String)
+    frame = Column('frame', Integer)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
-    old_feat_id = Column('old_feat_id', Integer)
     
-    def __init__(self, seq_id, name, seqtag_type, dbxref_id, source, status, secondary_name, 
+    def __init__(self, seq_id, name, seqtag_type, dbxref_id, source, secondary_name, 
                  relative_coord, chrom_coord, length, 
+                 score, strand, frame, orf_classification,
                  session=None, seqtag_id=None, date_created=None, created_by=None):
         self.seq_id = seq_id
         self.name = name
         self.seqtag_type = seqtag_type
         self.dbxref_id = dbxref_id
         self.source = source
-        self.status = status
         self.secondary_name = secondary_name
         self.relative_coord = relative_coord
         self.chrom_coord = chrom_coord
@@ -117,6 +119,37 @@ class Seqtag(Base, EqualityByIDMixin):
             self.id = seqtag_id
             self.date_created = date_created
             self.created_by = created_by
+            
+class Assembly(Base, EqualityByIDMixin):
+    __tablename__ = 'assembly'
+    
+    id = Column('assembly_id', Integer, primary_key = True)
+    name = Column('name', String)
+    description = Column('description', String)
+    filename = Column('filename', String)
+    coverage = Column('coverage', String)
+    mean_contig_size = Column('mean_contig_size', Integer)
+    n50 = Column('n50', Integer)
+    num_gene_features = Column('num_gene_features', Integer)
+    software = Column('software', String)
+    strain_id = Column('strain_id', String)
+    background_strain_id = Column('background_strain_id', String)
+    
+    def __init__(self, name, description, filename, coverage, mean_contig_size, n50, num_gene_features, software, strain_id, background_strain_id,
+                 assembly_id=None):
+        self.name = name
+        self.description = description
+        self.filename = filename
+        self.coverage = coverage
+        self.mean_contig_size = mean_contig_size
+        self.n50 = n50
+        self.num_gene_features = num_gene_features
+        self.software = software
+        self.strain_id = strain_id
+        self.background_strain_id = background_strain_id
+        
+        self.id = assembly_id
+    
         
     
     

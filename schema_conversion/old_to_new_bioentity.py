@@ -3,7 +3,6 @@ Created on Feb 4, 2013
 
 @author: kpaskov
 '''
-from decimal import Decimal
 from schema_conversion import cache, create_or_update_and_remove
 from schema_conversion.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
@@ -48,7 +47,7 @@ def create_gene(old_feature):
     bioent_type = create_gene_type(old_feature.type)
     if bioent_type is not None:
         bioent = NewGene(old_feature.name, bioent_type, old_feature.dbxref_id, 
-                          old_feature.source, old_feature.status, secondary_name, 
+                          old_feature.source, secondary_name, 
                           qualifier, attribute, short_description, headline, description, genetic_position,
                           bioent_id=old_feature.id, date_created=old_feature.date_created, created_by=old_feature.created_by)
         return bioent 
@@ -67,6 +66,12 @@ def create_gene_type(old_feature_type):
         return bioent_type
     else:
         return None
+    
+def create_transcript(new_gene):
+    from model_new_schema.bioentity import Transcript as NewTranscript
+    gene_id = new_gene.id
+    bioent_id = create_transcript_id(gene_id)
+    return NewTranscript(gene_id, bioent_id)
     
 def create_protein(old_protein_info):
     from model_new_schema.bioentity import Protein as NewProtein
@@ -98,18 +103,18 @@ def create_protein(old_protein_info):
     
     for detail in old_protein_info.details:
         if detail.group == 'Aliphatic index':
-            aliphatic_index = Decimal(detail.value)
+            aliphatic_index = float(detail.value)
         elif detail.group == 'Atomic composition':
             if detail.type == 'Hydrogen':
-                atomic_comp_H = Decimal(detail.value)
+                atomic_comp_H = float(detail.value)
             elif detail.type == 'Sulfur':
-                atomic_comp_S = Decimal(detail.value)
+                atomic_comp_S = float(detail.value)
             elif detail.type == 'Nitrogen':
-                atomic_comp_N = Decimal(detail.value)
+                atomic_comp_N = float(detail.value)
             elif detail.type == 'Oxygen':
-                atomic_comp_O = Decimal(detail.value)
+                atomic_comp_O = float(detail.value)
             elif detail.type == 'Carbon':
-                atomic_comp_C = Decimal(detail.value)
+                atomic_comp_C = float(detail.value)
         elif detail.group == 'Estimated half-life':
             if detail.type == 'yeast (in vivo)':
                 half_life_yeast_in_vivo = detail.value
@@ -127,7 +132,7 @@ def create_protein(old_protein_info):
             elif detail.type == 'assuming all pairs of Cys residues form cystines':
                 extinction_coeff_all_cys_pairs_form_cystines = int(detail.value)
         elif detail.group == 'Instability index':
-            instability_index = Decimal(detail.value)
+            instability_index = float(detail.value)
         elif detail.group == 'molecules/cell':
             molecules_per_cell = int(detail.value)
     
@@ -166,9 +171,28 @@ def convert_feature(old_session, new_session):
     old_feats = old_session.query(OldFeature).all()
     output_creator.pulled('feature', len(old_feats))
     
-    values_to_check = ['official_name', 'bioent_type', 'dbxref_id', 'source', 'status', 'secondary_name', 'date_created', 'created_by',
+    values_to_check = ['official_name', 'bioent_type', 'dbxref_id', 'source', 'secondary_name', 'date_created', 'created_by',
                        'qualifier', 'attribute', 'name_description', 'headline', 'description', 'genetic_position', 'gene_type']
     create_or_update_and_remove(old_feats, id_to_bioent, create_gene, key_maker, values_to_check, new_session, output_creator)
+    
+def convert_transcript(old_session, new_session):
+    from model_new_schema.bioentity import Transcript as NewTranscript, Gene as NewGene
+    
+    output_creator = OutputCreator('transcript')
+    
+    #Cache transcripts
+    key_maker = lambda x: x.id
+    cache(NewTranscript, id_to_bioent, key_maker, new_session, output_creator)
+    
+    #Create new transcripts if they don't exist, or update the database if they do.
+    #Remove any transcripts that don't match a gene.
+    genes = new_session.query(NewGene).all()
+    output_creator.pulled('genes', len(genes))
+    
+    values_to_check = ['official_name', 'bioent_type', 'dbxref_id', 'source', 'secondary_name', 'date_created', 'created_by',
+                       'gene_id']
+    create_or_update_and_remove(genes, id_to_bioent, create_transcript, key_maker, values_to_check, new_session, output_creator)
+
 
 def convert_protein(old_session, new_session):
     from model_new_schema.bioentity import Protein as NewProtein
@@ -186,7 +210,7 @@ def convert_protein(old_session, new_session):
     old_protein_infos = old_session.query(OldProteinInfo).options(joinedload('details'), joinedload('feature')).all()
     output_creator.pulled('protein_info', len(old_protein_infos))
     
-    values_to_check = ['official_name', 'bioent_type', 'dbxref_id', 'source', 'status', 'secondary_name', 'date_created', 'created_by',
+    values_to_check = ['official_name', 'bioent_type', 'dbxref_id', 'source', 'secondary_name', 'date_created', 'created_by',
                        'transcript_id', 'molecular_weight', 'pi', 'cai', 'length', 'n_term_seq', 'c_term_seq', 'codon_bias', 'fop_score', 'gravy_score', 'aromaticity_score',
                        'ala', 'arg', 'asn', 'asp', 'cys', 'gln', 'glu', 'gly', 'his', 'ile', 'leu', 'lys', 'met', 'phe', 'pro', 'thr', 'ser', 'trp', 'tyr', 'val',
                        'aliphatic_index', 'atomic_comp_H', 'atomic_comp_S', 'atomic_comp_N', 'atomic_comp_O', 'atomic_comp_C', 

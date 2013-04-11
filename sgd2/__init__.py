@@ -57,6 +57,9 @@ def main(global_config, **settings):
     
     #Sequence views
     config.add_route('sequence', '/sequence')
+    
+    #Misc views
+    config.add_route('download_graph', '/download_graph/{file_type}')
 
     config.scan()
     return config.make_wsgi_app()

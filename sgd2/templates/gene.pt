@@ -52,7 +52,6 @@
 				<li tal:condition="python: bioent.qualifier"><strong>Qualifier: </strong><span tal:content="bioent.qualifier"></li>
 				<br>
 				<li tal:condition="python: bioent.source"><strong>Source: </strong><span tal:content="bioent.source"></li>
-				<li tal:condition="python: bioent.status"><strong>Status: </strong><span tal:content="bioent.status"></li>
 				<li tal:condition="python: bioent.attribute"><strong>Attribute: </strong><span tal:content="bioent.attribute"></li>
 				<li tal:condition="python: bioent.name_description"><strong>Name Derived From: </strong><span tal:content="bioent.name_description"></li>
 			</ul>
@@ -268,7 +267,18 @@
 		<div id="cytoscapeweb">
             Cytoscape visualization is loading...
         </div>
+        <span>Export:</span>
+        <div class="btn-group">
+        	<a class="btn" onclick="vis.exportNetwork('png', '/download_graph/png')">png</a>
+        	<a class="btn" onclick="vis.exportNetwork('svg', '/download_graph/svg')">svg</a>
+        	<a class="btn" onclick="vis.exportNetwork('pdf', '/download_graph/pdf')">pdf</a>
+        	<a class="btn" onclick="vis.exportNetwork('xgmml', '/download_graph/xml')">xgmml</a>
+        	<a class="btn" onclick="vis.exportNetwork('graphml', '/download_graph/txt')">graphml</a>
+        	<a class="btn" onclick="vis.exportNetwork('sif', '/download_graph/txt', options={nodeAttr:'label', interactionAttr:'label'})">txt</a>
+
         </div>
+        </div>
+        <br></br>
 		<span id='interaction_message' class="hide">No known interactions.</span>
 		<div id='interaction_wrapper'>					
 			<ul class='unstyled'>
@@ -320,13 +330,13 @@
 
 <script>
 	var stage1 = draw_sequence('dna_conserve', 'dna_conserve_seq', ' ', '#FAFAFA');
-	var stage2 = draw_sequence('protein_conserve', 'protein_conserve_seq', ' ', '#FAFAFA');
+	//var stage2 = draw_sequence('protein_conserve', 'protein_conserve_seq', ' ', '#FAFAFA');
 
 	var stage3 = draw_sequence('dna', 'dna_seq', ' ', 'silver');
-	var stage4 = draw_sequence('rna', 'rna_seq', ' ', 'silver');
-	var stage5 = draw_sequence('protein', 'protein_seq', ' ', 'silver');
+	//var stage4 = draw_sequence('rna', 'rna_seq', ' ', 'silver');
+	//var stage5 = draw_sequence('protein', 'protein_seq', ' ', 'silver');
 	
-	var legend = add_legend('legend', [stage1, stage2, stage3, stage4, stage5]);
+	var legend = add_legend('legend', [stage1, stage3]);
 	
 </script>
 
@@ -336,13 +346,13 @@
 		//Get sequence data
 		$.getJSON('${link_maker.sequence_link}', function(data) {
 			set_seq(stage3, data['GENE'][0][0]);
-			set_seq(stage5, data['PROTEIN'][0][0]);
+			//set_seq(stage5, data['PROTEIN'][0][0]);
 			
 			set_tags(stage1, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
-			set_tags(stage2, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
+			//set_tags(stage2, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
 			set_tags(stage3, data['GENE'][0][1]);
-			set_tags(stage4, [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]]);
-			set_tags(stage5, [['Domain 1', 20, 5, 'blue'], ['Domain 2', 55, 5, 'blue'], ['spacer', 40, 10],  ['spacer', 0, 20], ['spacer', 90, 10], ['Domain 3', 70, 15, 'blue']]);
+			//set_tags(stage4, [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]]);
+			//set_tags(stage5, [['Domain 1', 20, 5, 'blue'], ['Domain 2', 55, 5, 'blue'], ['spacer', 40, 10],  ['spacer', 0, 20], ['spacer', 90, 10], ['Domain 3', 70, 15, 'blue']]);
 		});
 
 		//Get go data
@@ -428,8 +438,9 @@
 
 
 <script type="text/javascript">
+	var vis = null;
 window.onload=function() {
-	setup_interaction_cytoscape_vis("${link_maker.interaction_graph_link}");   
+	vis = setup_interaction_cytoscape_vis("${link_maker.interaction_graph_link}");   
 };           
 
 </script>

@@ -1,3 +1,6 @@
+from numbers import Number
+from sqlalchemy.types import Float
+from utils.utils import float_approx_equal
 import model_old_schema
 
 
@@ -5,14 +8,18 @@ import model_old_schema
 def check_value(new_obj, old_obj, field_name):
     new_obj_value = getattr(new_obj, field_name)
     old_obj_value = getattr(old_obj, field_name)
-    #print new_obj_value
-    #print old_obj_value
-    if new_obj_value != old_obj_value:
+
+    if isinstance(new_obj_value, (int, long, float, complex)) and isinstance(old_obj_value, (int, long, float, complex)):
+        if not float_approx_equal(new_obj_value, old_obj_value):
+            #print new_obj_value
+            #print old_obj_value
+            setattr(old_obj, field_name, new_obj_value)
+            return False
+    elif new_obj_value != old_obj_value:
         #print field_name
         #print new_obj_value
         #print old_obj_value
         setattr(old_obj, field_name, new_obj_value)
-        #print getattr(old_obj, field_name)
         return False
     return True
 

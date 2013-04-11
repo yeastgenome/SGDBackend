@@ -7,7 +7,7 @@ from string import lower
 def add_link(name, link):
     return '<a href="' + link + '">' + name + '</a>'
 
-link_symbol = unichr(8213)
+link_symbol = '---'
 
 def add_official_name_params(link, key_to_obj):
     params = {}

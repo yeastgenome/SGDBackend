@@ -50,3 +50,27 @@ def reference_view(request):
     if reference is None:
             return Response(status_int=500, body='Reference could not be found.') 
     return {'layout': site_layout(), 'page_title': reference.name, 'ref': reference, 'link_maker':LinkMaker(reference.name, reference=reference)}
+
+@view_config(route_name='download_graph')
+def download_graph_view(request):
+    file_type = request.matchdict['file_type']
+    headers = request.response.headers
+    if file_type == 'png':
+        headers['Content-Type'] = 'image/png'
+    elif file_type == 'pdf':
+        headers['Content-Type'] = 'application/pdf'
+    elif file_type == 'svg':
+        headers['Content-Type'] = 'image/svg+xml'
+    elif file_type == 'xml':
+        headers['Content-Type'] = 'text/xml'
+    elif file_type == 'txt':
+        headers['Content-Type'] = 'text/plain'
+    
+    request.response.body = request.body
+        
+    headers['Content-Disposition'] = str('attachment; filename=network.' + file_type)
+    headers['Content-Description'] = 'File Transfer'
+    return request.response
+
+
+

@@ -8,14 +8,12 @@ will eventually be the Bioentity classes/tables in the new SGD website schema. T
 schema on fasolt.
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
-from model_new_schema.bioconcept import BioentBiocon
-from model_new_schema.biorelation import Biorelation
 from model_new_schema.link_maker import add_link, bioent_link, bioent_wiki_link
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String, Date, Numeric, Float
+from sqlalchemy.types import Integer, String, Date, Float
 import datetime
 # Following two imports are necessary for SQLAlchemy
 
@@ -29,7 +27,6 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     bioent_type = Column('bioent_type', String)
     dbxref_id = Column('dbxref', String)
     source = Column('source', String)
-    status = Column('status', String)
     secondary_name = Column('secondary_name', String)
     
     date_created = Column('date_created', Date)
@@ -45,13 +42,12 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     seq_ids = association_proxy('sequences', 'id')
     type = "BIOENTITY"
             
-    def __init__(self, name, bioent_type, dbxref, source, status, secondary_name,
+    def __init__(self, name, bioent_type, dbxref, source, secondary_name,
                  session=None, bioent_id=None, date_created=None, created_by=None):
         self.official_name = name
         self.bioent_type = bioent_type
         self.dbxref_id = dbxref
         self.source = source
-        self.status = status
         self.secondary_name = secondary_name
         
         if session is None:
@@ -147,10 +143,10 @@ class Gene(Bioentity):
     __mapper_args__ = {'polymorphic_identity': 'GENE',
                        'inherit_condition': id == Bioentity.id}
 
-    def __init__(self, name, gene_type, taxon_id, dbxref, source, secondary_name,
+    def __init__(self, name, gene_type, dbxref, source, secondary_name,
                  qualifier, attribute, short_description, headline, description, genetic_position,
                  session=None, bioent_id=None, date_created=None, created_by=None):
-        Bioentity.__init__(self, name, 'GENE', taxon_id, dbxref, source, secondary_name, 
+        Bioentity.__init__(self, name, 'GENE', dbxref, source, secondary_name, 
                             session=session, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
         self.qualifier = qualifier
         self.attribute = attribute
@@ -172,8 +168,8 @@ class Transcript(Bioentity):
     gene = relationship('Gene', uselist=False, backref='transcripts', primaryjoin="Transcript.gene_id==Gene.id")
     protein_ids = association_proxy('proteins', 'id')
 
-    def __init__(self, gene_id, status, bioent_id=None):
-        Bioentity.__init__(self, 'Transcript', 'TRANSCRIPT', None, 'SGD', status, None, bioent_id=bioent_id)
+    def __init__(self, gene_id, bioent_id=None):
+        Bioentity.__init__(self, 'Transcript', 'TRANSCRIPT', None, 'SGD', None, bioent_id=bioent_id)
         self.gene_id = gene_id
         
 class Protein(Bioentity):
@@ -248,7 +244,7 @@ class Protein(Bioentity):
                  extinction_coeff_all_cys_residues_appear_as_half_cystines, extinction_coeff_all_cys_pairs_form_cystines,
                  instability_index, molecules_per_cell,
                  bioent_id=None, date_created=None, created_by=None):
-        Bioentity.__init__(self, name, 'PROTEIN', None, 'SGD', None, secondary_name, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
+        Bioentity.__init__(self, name, 'PROTEIN', None, 'SGD', secondary_name, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
         self.transcript_id = transcript_id
         
         self.molecular_weight = molecular_weight
@@ -298,6 +294,22 @@ class Protein(Bioentity):
         self.extinction_coeff_no_cys_residues_as_half_cystines = extinction_coeff_no_cys_residues_as_half_cystines
         self.instability_index = instability_index
         self.molecules_per_cell = molecules_per_cell
+        
+class Contig(Bioentity):
+    __tablename__ = 'contig'
+    
+    id = Column('bioent_id', Integer, primary_key = True)
+    assembly_id = Column('assembly_id', Integer, ForeignKey('sprout.assembly.assembly_id'))
+    internal_id = Column('internal_id', String)
+    length = Column('length', Integer)
+    chromosome_id = Column('chromosome', Integer)
+    
+    def __init__(self, name, source, dbxref, assembly_id, internal_id, length, chromosome_id, bioent_id=None, date_created=None, created_by=None):
+        Bioentity.__init__(self, name, 'CONTIG', dbxref, source, None, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
+        self.assembly_id = assembly_id
+        self.internal_id = internal_id
+        self.length = length
+        self.chromosome_id = chromosome_id
         
 
         
