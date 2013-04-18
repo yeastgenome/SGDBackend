@@ -10,6 +10,16 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date, CLOB, Float
 
+class Strain(Base, EqualityByIDMixin):
+    __tablename__ = 'strain'
+    
+    id = Column('strain_id', Integer, primary_key = True)
+    name = Column('name', String)
+    description = Column('description', String)
+    
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description
 
 class Sequence(Base, EqualityByIDMixin):
     __tablename__ = 'seq'
@@ -28,34 +38,13 @@ class Sequence(Base, EqualityByIDMixin):
     seq_type = Column('seq_type', String)
     source = Column('source', String)
     rootseq_id = Column('rootseq_id', Integer)
-    strain_id = Column('strain_id', String)
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
     seq_tags = relationship('Seqtag')
+    strain = relationship('Strain')
     bioent = relationship('Bioentity', uselist=False, backref='sequences')
-    
-    @hybrid_property
-    def formatted_residues(self):
-        if self.seq_type == 'DNA':
-            return  ' '.join(self.residues[i:i+3] for i in range(0, len(self.residues), 3)) + ' '
-            #return self.residues
-        else:
-            return self.residues
-        
-    @hybrid_property
-    def formatted_tags(self):
-        colors = {'intron': 'green', 'CDS': 'red', 'X_region': 'blue', 'Y_region':'purple', 'Z1_region':'yellow', 'Z2_region':'orange'}
-        tags = []  
-        for tag in self.seq_tags:
-            if (tag.seqtag_type != 'ORF' and tag.length < self.length) or len(self.seq_tags) == 1:
-                start = 100.0*tag.relative_coord/self.length
-                length = 100.0*tag.length/self.length
-                color = 'black'
-                if tag.seqtag_type in colors:
-                    color = colors[tag.seqtag_type]
-                tags.append([tag.seqtag_type, start, length, color])
-        return tags
             
     def __init__(self, bioent_id, seq_version, coord_version, min_coord, max_coord, strand, length,
                  ftp_file, residues, seq_type, source, rootseq_id, strain_id,
@@ -149,6 +138,7 @@ class Assembly(Base, EqualityByIDMixin):
         self.background_strain_id = background_strain_id
         
         self.id = assembly_id
+    
     
         
     

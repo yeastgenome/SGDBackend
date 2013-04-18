@@ -81,9 +81,10 @@
 		<div id='protein_conserve' width="100%"></div>
 		<div id='protein_conserve_seq' width="100%"></div>
 		
-		<h3>Gene Map:</h3><select>
+		<h3>Gene Map:</h3><select id='strain_select'>
     	<option value="S288C">S288C</option>
     	<option value="Sigma1278b">Sigma1278b</option>
+    	<option value="AWRI1631">AWRI1631</option>
     	<option value="SEY6210">SEY6210</option>
     	<option value="W303">W303</option>
     	<option value="Cen.PK">Cen.PK</option>
@@ -94,11 +95,14 @@
     	<option value="Y55">Y55</option>
   		</select>
   		<br></br>
+
   		
 		<strong>Gene</strong>
+		<div id='strand_dir'>Strand</div>
 		<div id='dna' width="100%"></div>
 		<div id='dna_seq'></div>
-
+		<span id='min_coord' style="float:left"></span><span id='max_coord' style="float:right"></span>
+		<br></br>
 		<strong>Transcript</strong>
 		<div id='rna' width="100%"></div>
 		<div id='rna_seq' width="100%"></div>
@@ -342,15 +346,50 @@
 
 
 <script>
+	function change_strain(strain_name, data) {
+		if(strain_name in data['GENE']) {
+			//add_axis(legend, 0, 100, 'min_coord', 'max_coord');
+			var strain_data = data['GENE'][strain_name];
+			set_seq(stage3, strain_data[0]);
+			set_tags(stage3, strain_data[1]);
+			if(strain_data[2] == '+') {
+				document.getElementById('strand_dir').innerHTML = 'Watson Strand';
+				document.getElementById('min_coord').innerHTML = strain_data[3];
+				document.getElementById('max_coord').innerHTML = strain_data[4];
+			}
+			else {
+				document.getElementById('strand_dir').innerHTML = 'Crick Strand';
+				document.getElementById('min_coord').innerHTML = strain_data[4];
+				document.getElementById('max_coord').innerHTML = strain_data[3];
+			}
+		}
+		else {
+			//set_seq(stage3, '');
+			set_tags(stage3, []);
+			document.getElementById('strand_dir').innerHTML = 'Strand ?';
+			document.getElementById('min_coord').innerHTML = '?';
+			document.getElementById('max_coord').innerHTML = '?';					
+		}
+	}	
 	$(document).ready(function() {
 		//Get sequence data
 		$.getJSON('${link_maker.sequence_link}', function(data) {
-			set_seq(stage3, data['GENE'][0][0]);
+			$('#strain_select').change(function() {
+				var e = document.getElementById("strain_select");
+				var strain_name = e.options[e.selectedIndex].value;
+				change_strain(strain_name, data);
+				
+			});
+			
+			var e = document.getElementById("strain_select");
+			var strain_name = e.options[e.selectedIndex].value;
+			change_strain(strain_name, data);
+					
 			//set_seq(stage5, data['PROTEIN'][0][0]);
 			
 			set_tags(stage1, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
 			//set_tags(stage2, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
-			set_tags(stage3, data['GENE'][0][1]);
+			//set_tags(stage3, data['GENE']['S288C'][1]);
 			//set_tags(stage4, [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]]);
 			//set_tags(stage5, [['Domain 1', 20, 5, 'blue'], ['Domain 2', 55, 5, 'blue'], ['spacer', 40, 10],  ['spacer', 0, 20], ['spacer', 90, 10], ['Domain 3', 70, 15, 'blue']]);
 		});

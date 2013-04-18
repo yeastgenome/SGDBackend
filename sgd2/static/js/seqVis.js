@@ -61,6 +61,8 @@ function draw_sequence(container_name, seq_name, sequence, background_color) {
 	var layer = new Kinetic.Layer({
 		id: layer_name
 	});
+	
+	var back_layer = new Kinetic.Layer();
 
 	var background = new Kinetic.Rect({
 		x: 0,
@@ -71,10 +73,12 @@ function draw_sequence(container_name, seq_name, sequence, background_color) {
 	});
 	
 	// add the shape to the layer
-	layer.add(background);
+	back_layer.add(background);
 	
 	// add the layer to the stage
+	stage.add(back_layer);
 	stage.add(layer);
+	
 	
 	var seq_layer_name = 'seq_layer' + container_name;
 	var seq_layer = new Kinetic.Layer({
@@ -411,6 +415,7 @@ function set_seq(stage, sequence) {
 }
 function set_tags(stage, tags) {
 	var layer = stage.layer;
+	layer.removeChildren();
 	// add tags to the layer
 	var scale_factor = 100/stage.width
 	for(var i=0; i < tags.length; i=i+1) {
@@ -421,7 +426,8 @@ function set_tags(stage, tags) {
 			add_tag(layer, tags[i][0], tags[i][1], stage.getHeight()/2, tags[i][2], tags[i][3], scale_factor);
 		}
 	}
-	zoom_full(stage.legend);
+	var center = (legend.selected.getX() + legend.selected.getWidth()/2)/legend.getWidth()
+	zoom_legend(stage.legend, stage.legend.zoom, center);
 }
 
 

@@ -3,21 +3,17 @@ Created on Mar 19, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.bioentity import Bioentity
-from model_new_schema.search import Typeahead
 from pyramid.response import Response
 from pyramid.view import view_config
-from sgd2.models import DBSession
+from query import search, typeahead
 from sgd2.views import site_layout
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.orm import joinedload
-from sqlalchemy.sql.expression import func
 
 @view_config(route_name='search', renderer='templates/search.pt')
 def search_view(request):
     try:
         search_str = request.matchdict['search_str'].upper()
-        bioents = DBSession.query(Bioentity).options(joinedload('aliases')).join(Typeahead).filter(Typeahead.bio_type == 'BIOENT', func.upper(Typeahead.name) == search_str).all()
+        bioents = search(search_str)
         from_name = []
         from_full_name = []
         other = []
@@ -39,8 +35,8 @@ def search_view(request):
 @view_config(route_name='typeahead', renderer="json")
 def typeahead_view(request):
     try:
-        q = request.POST.items()[0][1].upper()
-        possible = DBSession.query(Typeahead).filter(func.upper(Typeahead.name) == q).all()
+        search_str = request.POST.items()[0][1].upper()
+        possible = typeahead(search_str)
         full_names = [p.full_name for p in possible]
         return sorted(full_names)
     except DBAPIError:

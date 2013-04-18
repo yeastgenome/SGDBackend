@@ -298,18 +298,24 @@ class Protein(Bioentity):
 class Contig(Bioentity):
     __tablename__ = 'contig'
     
-    id = Column('bioent_id', Integer, primary_key = True)
+    id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key = True)
     assembly_id = Column('assembly_id', Integer, ForeignKey('sprout.assembly.assembly_id'))
     internal_id = Column('internal_id', String)
     length = Column('length', Integer)
-    chromosome_id = Column('chromosome', Integer)
+    chromosome_id = Column('chromosome_id', Integer)
+    
+    __mapper_args__ = {'polymorphic_identity': "CONTIG",
+                       'inherit_condition': id == Bioentity.id}
     
     def __init__(self, name, source, dbxref, assembly_id, internal_id, length, chromosome_id, bioent_id=None, date_created=None, created_by=None):
-        Bioentity.__init__(self, name, 'CONTIG', dbxref, source, None, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
+        Bioentity.__init__(self, name, 'CONTIG', dbxref, source, None, 
+                           session=None, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
         self.assembly_id = assembly_id
         self.internal_id = internal_id
         self.length = length
         self.chromosome_id = chromosome_id
+        
+
         
 
         

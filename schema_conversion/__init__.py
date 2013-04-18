@@ -11,8 +11,6 @@ def check_value(new_obj, old_obj, field_name):
 
     if isinstance(new_obj_value, (int, long, float, complex)) and isinstance(old_obj_value, (int, long, float, complex)):
         if not float_approx_equal(new_obj_value, old_obj_value):
-            #print new_obj_value
-            #print old_obj_value
             setattr(old_obj, field_name, new_obj_value)
             return False
     elif new_obj_value != old_obj_value:
@@ -37,11 +35,13 @@ def add_or_check(new_obj, mapping, key, values_to_check, session, output_creator
     if key in mapping:
         current_obj = mapping[key]
         check_values(new_obj, current_obj, values_to_check, output_creator, key)
+        return False
     else:
         session.add(new_obj)
         mapping[key] = new_obj
         output_creator.added()
-        
+        return True
+    
 def create_or_update(old_objs, mapping, create, key_maker, values_to_check, session, output_creator):
     for old_obj in old_objs:
         new_obj = create(old_obj)
