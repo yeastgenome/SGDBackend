@@ -30,7 +30,7 @@ def search_view(request):
         sorted_bioents.extend(sorted(other, key=lambda x:x.name))
     except DBAPIError:
         return Response("Error.", content_type='text/plain', status_int=500)
-    return {'layout': site_layout(), 'page_title': 'Search Results', 'bioents': sorted_bioents}
+    return {'layout': site_layout(), 'page_title': 'Search Results', 'results': sorted_bioents}
 
 @view_config(route_name='typeahead', renderer="json")
 def typeahead_view(request):

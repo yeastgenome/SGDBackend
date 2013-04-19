@@ -22,7 +22,6 @@
 
 	<script src="../static/js/jquery-1.9.1.js"></script>
 	<script src="../static/js/jquery-ui-1.10.1.custom.js"></script>
-	<script src="../static/js/json2.js"></script>		
 	<script src="../static/js/jquery.dataTables.js"></script>
 	<script src="../static/js/datatable.js"></script>
 	<script src="../static/js/TableTools.js"></script>
@@ -121,19 +120,7 @@ $(document).ready(function() {
 	<script src="../static/js/cytoscapeweb.min.js"></script>
 	
 <script src="../static/js/bootstrap.js"></script>
-<script src="../static/js/bootstrap-transition.js"></script>
-<script src="../static/js/bootstrap-alert.js"></script>
-<script src="../static/js/bootstrap-modal.js"></script>
-<script src="../static/js/bootstrap-dropdown.js"></script>
-<script src="../static/js/bootstrap-scrollspy.js"></script>
-<script src="../static/js/bootstrap-tab.js"></script>
-<script src="../static/js/bootstrap-tooltip.js"></script>
-<script src="../static/js/bootstrap-popover.js"></script>
-<script src="../static/js/bootstrap-button.js"></script>
-<script src="../static/js/bootstrap-collapse.js"></script>
-<script src="../static/js/bootstrap-carousel.js"></script>
 <script src="../static/js/bootstrap-typeahead.js"></script>
-<script src="../static/js/bootstrap-affix.js"></script>
 <script src="../static/js/application.js"></script>
 <script src="../static/js/AC_OETags.min.js"></script>
 

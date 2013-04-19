@@ -9,7 +9,7 @@ from pyramid.view import view_config
 from query import get_bioent, get_biorels, get_biorel, get_interaction_evidence, \
     get_interactions, get_reference, get_interaction_evidence_ref
 from sgd2.views import site_layout
-from utils.utils import create_grouped_evidence_table, create_simple_table, \
+from utils.utils import create_simple_table, \
     make_reference_list, entry_with_link
 
 
@@ -46,22 +46,23 @@ def interaction_evidence(request):
 @view_config(route_name='interaction_overview_table', renderer='json')
 def interaction_overview_table(request):
     if 'bioent_name' in request.GET:
-        #Need a GO overview table based on a bioent
+        #Need an interaction overview table based on a bioent
         bioent_name = request.GET['bioent_name']
         bioent = get_bioent(bioent_name)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
         biorels = get_biorels('INTERACTION', bioent)
-        interevidences = get_interaction_evidence(biorels)
-        return make_overview_tables(False, interevidences, bioent) 
+        #interevidences = get_interaction_evidence(biorels)
+        return make_overview_tables(False, biorels, bioent) 
     
     elif 'reference_name' in request.GET:
-        #Need a GO overview table based on a bioent
+        #Need an interaction overview table based on a reference
         ref_name = request.GET['reference_name']
         ref = get_reference(ref_name)
         if ref is None:
             return Response(status_int=500, body='Reference could not be found.')
         interevidences = get_interaction_evidence_ref(ref)
+        biorels = set([interevidence.biorel for interevidence in biorels])
         return make_overview_tables(False, interevidences) 
 
     else:
@@ -108,21 +109,30 @@ def interaction_graph(request):
 -------------------------------Overview Table---------------------------------------
 '''
 
-def make_overview_tables(divided, interevidences, bioent=None):
+def make_overview_tables(divided, biorels, bioent=None):
     tables = {}
             
     if divided:
-        divided_evidences = divide_interevidences(interevidences)
+        divided_biorels = divide_biorels(divided)
         
-        tables['physical'] = make_overview_table(divided_evidences['physical'], bioent)
-        tables['genetic'] = make_overview_table(divided_evidences['genetic'], bioent)
+        tables['physical'] = make_overview_table(divided_biorels['physical'], bioent)
+        tables['genetic'] = make_overview_table(divided_biorels['genetic'], bioent)
     else:
-        tables['aaData'] = make_overview_table(interevidences, bioent)
+        tables['aaData'] = make_overview_table(biorels, bioent)
     return tables    
 
-def make_overview_table(interevidences, bioent):
-    evidence_map = dict([(evidence.id, (evidence.biorel, bioent)) for evidence in interevidences])
-    return create_grouped_evidence_table(interevidences, evidence_map, make_overview_row) 
+def make_overview_table(biorels, bioent):
+    
+    def f(biorel, bioent):
+        if bioent is not None:
+            orig_bioent = bioent
+            opp_bioent = biorel.get_opposite(orig_bioent)
+        else:
+            orig_bioent = biorel.source_bioent
+            opp_bioent = biorel.sink_bioent
+        return [bioent.name_with_link, opp_bioent.name_with_link, biorel.genetic_evidence_count, biorel.physical_evidence_count, biorel.evidence_count]
+        
+    return create_simple_table(biorels, f, bioent=bioent) 
 
 def make_overview_row(biorel, evs_for_group, group_term):
     if group_term[1] is not None:
@@ -234,7 +244,7 @@ def create_interaction_graph(bioent):
     bioents = set()
     bioent_to_evidence = {}
 
-    bioents.update([interaction.get_opposite(bioent) for interaction in bioent.biorelations])
+    bioents.update([interaction.get_opposite(bioent) for interaction in get_biorels('INTERACTION', bioent)])
     bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in bioent.biorelations])
 
     bioents.add(bioent)
@@ -246,6 +256,7 @@ def create_interaction_graph(bioent):
     usable_bioents, min_evidence_count = weed_out_by_evidence(bioents, bioent_to_evidence)
     
     nodes = [create_interaction_node(b, bioent_to_evidence[b], bioent) for b in usable_bioents]
+    id_to_bioent = dict([(bioent.id, bioent) for bioent in usable_bioents])
     
     node_ids = set([b.id for b in usable_bioents])
     
@@ -254,7 +265,9 @@ def create_interaction_graph(bioent):
     edges = []
     for interaction in interactions:
         if interaction.evidence_count >= min_evidence_count and interaction.source_bioent_id in node_ids and interaction.sink_bioent_id in node_ids:
-            edges.append(create_interaction_edge(interaction, interaction.source_bioent, interaction.sink_bioent, interaction.evidence_count))  
+            source_bioent = id_to_bioent[interaction.source_bioent_id]
+            sink_bioent = id_to_bioent[interaction.sink_bioent_id]
+            edges.append(create_interaction_edge(interaction, source_bioent, sink_bioent, interaction.evidence_count)) 
         
     return {'dataSchema':interaction_schema, 'data': {'nodes': nodes, 'edges': edges}, 
             'min_evidence_cutoff':min_evidence_count, 'max_evidence_cutoff':max_evidence_cutoff}
@@ -268,6 +281,11 @@ def get_id(bio):
 def divide_interevidences(interevidences):
     physical = [interevidence for interevidence in interevidences if interevidence.interaction_type == 'physical']
     genetic = [interevidence for interevidence in interevidences if interevidence.interaction_type == 'genetic']
+    return {'physical':physical, 'genetic':genetic}
+
+def divide_biorels(biorels):
+    physical = [biorel for biorel in biorels if biorels.physical_evidence_count > 0]
+    genetic = [biorel for biorel in biorels if biorels.genetic_evidence_count > 0]
     return {'physical':physical, 'genetic':genetic}
 
         

@@ -142,7 +142,8 @@ def load_gff(assembly, filename, new_session):
     seqtag_output_creator.finished()
     
 def reverse_complement(residues):
-    code = {'G':'C', 'C':'G', 'A':'T', 'T':'A', 'R':'R', 'W':'W'}
+    code = {'G':'C', 'C':'G', 'A':'T', 'T':'A', 'R':'Y', 'Y':'R', 'W':'S', 'S':'W', 'M':'K', 'K':'M', 'V':'B', 'B':'V',
+            'H':'D', 'D':'H', 'N':'N', 'X':'X', 'U':'U'}
     reverse_complement = ''.join([code[letter] for letter in reversed(residues)])
     return reverse_complement
                     
@@ -163,19 +164,19 @@ if __name__ == "__main__":
     try:
         new_session = new_session_maker()
         
-        strain_name = 'Sigma1278b'
-        strain_description = 'Laboratory strain.'
-        
-        assembly_name = 'Sigma1278b_MIT'
-        assembly_description = "Assembly of the genome of S. cerevisiae strain Sigma1278b (WGS ID: ACVY00000000). Feature definitions (for coding sequences and features in the gff file) were assigned using Jim Kent's liftOver program with a blat alignment vs. the R64 (current) S288C reference sequence. This assembly contains 67 contigs (coverage: 45X, mean contig size: 177702, N50: 365700). Using liftOver, 6419 SGD gene features were found in the assembly. This data is preliminary and is subject to change without notice."
-        filename = 'Sigma1278b_ACVY01000000.gff'
-        coverage = '45X'
-        mean_contig_size = 177702
-        n50 = 365700
-        num_gene_features = 6419
-        software = 'liftOver'
-        background_strain_id = 1
-        file_location = '/Users/kpaskov/Downloads/' + filename
+#        strain_name = 'Sigma1278b'
+#        strain_description = 'Laboratory strain.'
+#        
+#        assembly_name = 'Sigma1278b_MIT'
+#        assembly_description = "Assembly of the genome of S. cerevisiae strain Sigma1278b (WGS ID: ACVY00000000). Feature definitions (for coding sequences and features in the gff file) were assigned using Jim Kent's liftOver program with a blat alignment vs. the R64 (current) S288C reference sequence. This assembly contains 67 contigs (coverage: 45X, mean contig size: 177702, N50: 365700). Using liftOver, 6419 SGD gene features were found in the assembly. This data is preliminary and is subject to change without notice."
+#        filename = 'Sigma1278b_ACVY01000000.gff'
+#        coverage = '45X'
+#        mean_contig_size = 177702
+#        n50 = 365700
+#        num_gene_features = 6419
+#        software = 'liftOver'
+#        background_strain_id = 1
+#        file_location = '/Users/kpaskov/Downloads/' + filename
 
 #        strain_name = 'AWRI1631'
 #        strain_description = 'Haploid derivative of South African commercial wine strain N96.'
@@ -190,6 +191,120 @@ if __name__ == "__main__":
 #        software = 'liftOver'
 #        background_strain_id = 1
 #        file_location = '/Users/kpaskov/Downloads/' + filename
+        
+#        strain_name = 'AWRI796'
+#        strain_description = 'South African red wine strain.'
+#        
+#        assembly_name = 'AWR1796'
+#        assembly_description = "This data is preliminary and is subject to change without notice."
+#        filename = 'AWRI796_ADVS01000000.gff'
+#        coverage = '20X'
+#        mean_contig_size = 111795
+#        n50 = 403341
+#        num_gene_features = 6295
+#        software = 'liftOver'
+#        background_strain_id = 1
+#        file_location = '/Users/kpaskov/Downloads/' + filename
+#        
+#        strain_name = 'BY4741'
+#        strain_description = 'S288C-derivative laboratory strain.'
+#        
+#        assembly_name = 'BY4741'
+#        assembly_description = "These data are preliminary and will be updated.  The genome fasta file does not currently include chr03, chr05, or chr12.  The gff file does not currently include the following features: YCR039C, YCR040W, YCR038W-A, YCR041W, YCL066W, YCR067C, ARS301, YCL068C, YCL065W, ARS302, YCR096C, YCR097W, ARS317, ARS318, and YCR097W-A.  The pep.fsa and cds.fsa files do not currently include the following ORFs: YCR039C, YCR040W, YCR038W-A, YCR041W, YCL066W, YCR067C, YCL068C, YCL065W, YCR096C, YCR097W, and YCR097W-A."
+#        filename = 'BY4741_Toronto_2012.gff'
+#        coverage = None
+#        mean_contig_size = None
+#        n50 = None
+#        num_gene_features = 6692
+#        software = 'liftOver'
+#        background_strain_id = 1
+#        file_location = '/Users/kpaskov/Downloads/' + filename
+        
+#        strain_name = 'BY4742'
+#        strain_description = 'S288C-derivative laboratory strain.'
+#        
+#        assembly_name = 'BY4742'
+#        assembly_description = "NOTE: These data are preliminary and will be updated. The genome fasta file does not currently contain chr02, chr03, or chr05."
+#        filename = 'BY4742_Toronto_2012.gff'
+#        coverage = None
+#        mean_contig_size = None
+#        n50 = None
+#        num_gene_features = 6692
+#        software = 'liftOver'
+#        background_strain_id = 1
+#        file_location = '/Users/kpaskov/Downloads/' + filename
+
+#        strain_name = 'CBS7960'
+#        strain_description = 'Brazilian bioethanol factory isolate.'
+#        
+#        assembly_name = strain_name
+#        assembly_description = "This data is preliminary and is subject to change without notice."
+#        filename = 'CBS7960_AEWL01000000.gff'
+#        coverage = '17X'
+#        mean_contig_size = 5161
+#        n50 = 18761
+#        num_gene_features = 5333
+#        software = 'liftOver'
+#        background_strain_id = 1
+#        file_location = '/Users/kpaskov/Downloads/' + filename
+#        
+#        strain_name = 'CEN.PK'
+#        strain_description = 'Laboratory strain.'
+#        
+#        assembly_name = strain_name
+#        assembly_description = "This data is preliminary and is subject to change without notice."
+#        filename = 'CEN.PK113-7D_AEHG00000000.gff'
+#        coverage = '18X'
+#        mean_contig_size = 19694
+#        n50 = 61000
+#        num_gene_features = 62528
+#        software = 'liftOver'
+#        background_strain_id = 1
+#        file_location = '/Users/kpaskov/Downloads/' + filename
+        
+#        strain_name = 'CLIB215'
+#        strain_description = 'New Zealand bakery isolate.'
+#        
+#        assembly_name = strain_name
+#        assembly_description = "This data is preliminary and is subject to change without notice."
+#        filename = 'CLIB215_AEWP01000000.gff'
+#        coverage = '16.9X'
+#        mean_contig_size = 7268
+#        n50 = 16813
+#        num_gene_features = 5051
+#        software = 'liftOver'
+#        background_strain_id = 1
+#        file_location = '/Users/kpaskov/Downloads/' + filename
+        
+#        strain_name = 'CLIB324'
+#        strain_description = 'Vietnamese bakery isolate.'
+#        
+#        assembly_name = strain_name
+#        assembly_description = "This data is preliminary and is subject to change without notice."
+#        filename = 'CLIB324_AEWM01000000.gff'
+#        coverage = '7.1X'
+#        mean_contig_size = 3079
+#        n50 = 4260
+#        num_gene_features = 3733
+#        software = 'liftOver'
+#        background_strain_id = 1
+#        file_location = '/Users/kpaskov/Downloads/' + filename
+        
+        strain_name = 'CLIB382'
+        strain_description = 'Irish beer isolate.'
+        
+        assembly_name = strain_name
+        assembly_description = "This data is preliminary and is subject to change without notice."
+        filename = 'CLIB382_AFDG01000000.gff'
+        coverage = '5.96X'
+        mean_contig_size = 683
+        n50 = 840
+        num_gene_features = 937
+        software = 'liftOver'
+        background_strain_id = 1
+        file_location = '/Users/kpaskov/Downloads/' + filename
+        
+        
         
         strain = new_session.query(Strain).filter(Strain.name == strain_name).first()
         if strain is None:

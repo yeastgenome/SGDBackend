@@ -85,14 +85,36 @@
     	<option value="S288C">S288C</option>
     	<option value="Sigma1278b">Sigma1278b</option>
     	<option value="AWRI1631">AWRI1631</option>
-    	<option value="SEY6210">SEY6210</option>
-    	<option value="W303">W303</option>
-    	<option value="Cen.PK">Cen.PK</option>
-    	<option value="SK1">SK1</option>
+    	<option value="AWRI796">AWRI796</option>
+    	<option value="BY4741">BY4741</option>
+    	<option value="BY4742">BY4742</option>
+    	<option value="CBS7960">CBS7960</option>
+    	<option value="CEN.PK">CEN.PK</option>
+    	<option value="CLIB215">CLIB215</option>
+    	<option value="CLIB324">CLIB324</option>
+    	<option value="CLIB382">CLIB382</option>
+    	<option value="EC1118">EC1118</option>
+    	<option value="EC9-8">EC9-8</option>
     	<option value="FL100">FL100</option>
-    	<option value="JK9">JK9</option>
-    	<option value="D273">D273</option>
-    	<option value="Y55">Y55</option>
+    	<option value="FostersB">FostersB</option>
+    	<option value="FostersO">FostersO</option>
+    	<option value="JAY291">JAY291</option>
+    	<option value="Kyokai7">Kyokai7</option>
+    	<option value="LalvinQA23">LalvinQA23</option>
+    	<option value="M22">M22</option>
+    	<option value="PW5">PW5</option>
+    	<option value="RM11-1a">RM11-1a</option>
+    	<option value="T7">T7</option>
+    	<option value="T73">T73</option>
+    	<option value="UC5">UC5</option>
+    	<option value="VIN13">VIN13</option>
+    	<option value="VL3">VL3</option>
+    	<option value="W303">W303</option>
+    	<option value="Y10">Y10</option>
+    	<option value="YJM269">YJM269</option>
+    	<option value="YJM789">YJM789</option>
+    	<option value="YPS163">YPS163</option>
+    	<option value="ZTW1">ZTW1</option>
   		</select>
   		<br></br>
 
@@ -384,10 +406,12 @@
 			var e = document.getElementById("strain_select");
 			var strain_name = e.options[e.selectedIndex].value;
 			change_strain(strain_name, data);
+			
+			set_tags(stage1, data['DNA_VAR'])
 					
 			//set_seq(stage5, data['PROTEIN'][0][0]);
 			
-			set_tags(stage1, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
+			//set_tags(stage1, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
 			//set_tags(stage2, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
 			//set_tags(stage3, data['GENE']['S288C'][1]);
 			//set_tags(stage4, [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]]);

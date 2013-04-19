@@ -27,8 +27,8 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     type = 'BIORELATION'
     
     #Relationships
-    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id", lazy='joined', backref='biorel_source')
-    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id", lazy='joined', backref='biorel_sink')
+    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id", backref='biorel_source')
+    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id", backref='biorel_sink')
         
     __mapper_args__ = {'polymorphic_on': biorel_type,
                        'polymorphic_identity':"BIORELATION",
@@ -125,4 +125,14 @@ class Structural(Biorelation):
 
 class ProteinBiosynthesis(Biorelation):
     __mapper_args__ = {'polymorphic_identity': "PROTEIN_BIOSYNTHESIS"}
+    
+class BioentBiorel(Base):
+    __tablename__ = "bioent_biorel"
+
+    id = Column('bioent_biorel_id', Integer, primary_key = True)
+    bioent_id = Column('bioent_id', Integer)
+    biorel_id = Column('biorel_id', Integer, ForeignKey(Biorelation.id))
+    
+    biorel = relationship(Biorelation)
+
 

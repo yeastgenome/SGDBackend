@@ -108,7 +108,7 @@
   				<th>Phenotype</th>
   				<th>Gene</th>
     			<th>Qualifier</th>
-    			<th>Experiment</th>
+    			<th>Experiment Type</th>
     			<th>Mutant</th>
     			<th>Allele</th>
     			<th>Reporter</th>

@@ -1,7 +1,7 @@
 from model_new_schema.bioconcept import Bioconcept, BioentBiocon, BioconAncestor, \
     BioconBiocon
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.biorelation import Biorelation
+from model_new_schema.biorelation import Biorelation, BioentBiorel
 from model_new_schema.evidence import Goevidence, Phenoevidence, Interevidence
 from model_new_schema.reference import Reference
 from model_new_schema.search import Typeahead
@@ -36,13 +36,19 @@ def get_reference(reference_name):
     if reference is None:
         reference = DBSession.query(Reference).filter(Reference.dbxref_id == reference_name).first() 
     return reference
-      
+ 
 
 def get_biorels(biorel_type, bioent):
-    return [biorel for biorel in bioent.biorelations if biorel.biorel_type == biorel_type]
+    biorels = set(DBSession.query(Biorelation).options(joinedload(Biorelation.source_bioent), joinedload(Biorelation.sink_bioent)).filter(Biorelation.biorel_type==biorel_type).filter(Biorelation.source_bioent_id == bioent.id))
+    biorels.update(DBSession.query(Biorelation).options(joinedload(Biorelation.source_bioent), joinedload(Biorelation.sink_bioent)).filter(Biorelation.biorel_type==biorel_type).filter(Biorelation.sink_bioent_id == bioent.id))
+    
+    #return [biorel for biorel in bioent.biorelations if biorel.biorel_type == biorel_type]
+    return biorels
 
 #Used for interaction graph
 def get_interactions(bioent_ids):
+    #bioentbiorels = DBSession.query(BioentBiorel).options(joinedload(BioentBiorel.biorel)).filter(BioentBiorel.bioent_id.in_(bioent_ids))
+    #interactions = [bioentbiorel.biorel for bioentbiorel in bioentbiorels if bioentbiorel.biorel.biorel_type=='INTERACTION' and bioentbiorel.biorel.source_bioent_id in bioent_ids and bioentbiorel.biorel.sink_bioent_id in bioent_ids]
     interactions = set(DBSession.query(Biorelation).filter(Biorelation.biorel_type=='INTERACTION').filter(Biorelation.source_bioent_id.in_(bioent_ids)).all())
     interactions.update(DBSession.query(Biorelation).filter(Biorelation.biorel_type=='INTERACTION').filter(Biorelation.sink_bioent_id.in_(bioent_ids)).all())
     return interactions

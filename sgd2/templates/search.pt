@@ -8,7 +8,7 @@
 		<h1>Search Results</h1>
 		<div class="span9">
 		<dl>
-		<p tal:repeat="item bioents">
+		<p tal:repeat="item results">
 			<dt><span tal:content="structure item.full_name_with_link"></span></dt>
 			<dd class="muted" tal:condition="python: len(item.aliases)>0">Aliases: <span tal:content="item.alias_str"></span></dd>
 			<dd><span tal:content="item.description"></span></dd><br>

@@ -1,6 +1,7 @@
 
 
 function basic_datatable_options(header_id, save_name, wrapper_id, message_id) {
+	TableTools.DEFAULTS.sSwfPath = "../static/js/copy_csv_xls_pdf.swf";
 	var options = {
 		"bPaginate":false,
 		"sPaginationType": "bootstrap",
@@ -27,7 +28,6 @@ function basic_datatable_options(header_id, save_name, wrapper_id, message_id) {
 					"sTitle": save_name + '.xls'
 				}	
 			],
-        	"sSwfPath": "../static/js/copy_csv_xls_pdf.swf"
 		}
 	};
 	return options;
