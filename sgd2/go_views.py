@@ -35,12 +35,23 @@ def go_evidence(request):
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
         name = 'GO Evidence for ' + bioent.name
-        description = 'Evidence for all GO terms associated with ' + bioent.name
-        return {'layout': site_layout(), 'page_title': name, 'name':name, 'description':description, 'gene_name':bioent.name_with_link,
-                'biocon_name':'All', 'link_maker':LinkMaker(bioent.name, bioent=bioent)}
-
+        name_with_link = 'GO Evidence for ' + bioent.name_with_link
+        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':True,
+                'link_maker':LinkMaker(bioent.name, bioent=bioent)}
+    elif 'biocon_name' in request.GET:
+        #Need a GO overview table based on a biocon
+        biocon_name = request.GET['biocon_name']
+        biocon = get_biocon(biocon_name, 'GO')
+        if biocon is None:
+            return Response(status_int=500, body='Biocon could not be found.')
+        
+        name = 'Evidence for GO Term:<br>' + biocon.name
+        name_with_link = 'Evidence for GO Term:<br>' + biocon.name_with_link
+       
+        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':False,
+                'link_maker':LinkMaker(biocon.name, biocon=biocon)}
     else:
-        return Response(status_int=500, body='No Bioent specified.')
+        return Response(status_int=500, body='No Bioent or Biocon specified.')
 
 @view_config(route_name='go_overview_table', renderer='json')
 def go_overview_table(request):

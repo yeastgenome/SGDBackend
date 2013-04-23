@@ -218,13 +218,22 @@ function setup_go_cytoscape_vis(graph_link) {
 	return vis;      
 }
 
-function setup_go_ontology_cytoscape_vis(graph_link) {
+function setup_ontology_cytoscape_vis(graph_link) {
 		// id of Cytoscape Web container div
 		var div_id = "cytoscapeweb";
                                 
 		// visual style we will use
 		var visual_style = {
 			nodes: {
+				borderWidth: 0,
+				//{
+				//	discreteMapper: {
+				//		attrName: "sub_type",
+				//		entries: [
+				//			{attrValue: 'NO_GENES', value: 0 },
+				//		]
+				//	}
+				//},
 				color: {
 					discreteMapper: {
 						attrName: "sub_type",
@@ -233,6 +242,8 @@ function setup_go_ontology_cytoscape_vis(graph_link) {
 							{attrValue: 'CELLULAR COMPONENT', value: '#E2A9F3'},
 							{attrValue: 'MOLECULAR FUNCTION', value: '#81F781'},
 							{attrValue: 'BIOLOGICAL PROCESS', value: '#5CB3FF'},
+							{attrValue: 'NORMAL', value: '#5CB3FF'},
+							{attrValue: 'NO_GENES', value: 'white'},
 						]
 					}
 				},
@@ -251,6 +262,9 @@ function setup_go_ontology_cytoscape_vis(graph_link) {
                                         maxValue: 100 } },
 				labelHorizontalAnchor: "center"
 			},
+			edges: {
+				width: 2,
+			}
 		};
                 
 		// initialization options

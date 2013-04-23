@@ -52,6 +52,7 @@ class LinkMaker():
         setattr(self, 'phenotype_overview_table_link', add_official_name_params('/phenotype_overview_table?', {'bioent_name':bioent, 'biocon_name': biocon, 'reference_name':reference}))
         setattr(self, 'phenotype_evidence_table_link', add_official_name_params('/phenotype_evidence_table?', {'bioent_name':bioent, 'biocon_name': biocon}))
         setattr(self, 'phenotype_graph_link', add_official_name_params('/phenotype_graph?', {'bioent_name':bioent, 'biocon_name': biocon}))
+        setattr(self, 'phenotype_ontology_graph_link', add_official_name_params('/phenotype_ontology_graph?', {'biocon_name': biocon}))
     
         setattr(self, 'cellular_phenotype_filename', name + '_cellular_phenotypes')
         setattr(self, 'chemical_phenotype_filename', name + '_chemical_phenotypes')

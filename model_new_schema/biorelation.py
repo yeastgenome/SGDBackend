@@ -36,20 +36,7 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     
     @hybrid_property
     def name(self):
-        return self.source_bioent.name + link_symbol + self.sink_bioent.name
-    @hybrid_property
-    def name_for_source(self):
-        return link_symbol + self.sink_bioent.name
-    @hybrid_property
-    def name_for_sink(self):
-        return link_symbol + self.source_bioent.name
-    def get_name_for(self, bioent):
-        if bioent == self.source_bioent:
-            return self.name_for_source
-        elif bioent == self.sink_bioent:
-            return self.name_for_sink
-        else:
-            return None
+        return 'Interaction between ' + self.source_bioent.name + ' and ' + self.sink_bioent.name
         
     def get_opposite(self, bioent):
         if bioent == self.source_bioent:
@@ -61,19 +48,11 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
         
     @hybrid_property
     def description(self):
-        return 'Interaction between ' + self.source_bioent.full_name + ' and ' + self.sink_bioent.full_name    
+        return 'Evidence for interaction between ' + self.source_bioent.full_name + ' and ' + self.sink_bioent.full_name    
         
     @hybrid_property
     def name_with_link(self):
-        return add_link(self.name, self.link)
-    @hybrid_property
-    def name_for_source_with_link(self):
-        return add_link(self.name_for_source, self.link)
-    @hybrid_property
-    def name_for_sink_with_link(self):
-        return add_link(self.name_for_sink, self.link)
-    def get_name_with_link_for(self, bioent):
-        return add_link(self.get_name_for(bioent), self.link)
+        return 'Interaction between ' + self.source_bioent.name_with_link + ' and ' + self.sink_bioent.name_with_link
     
     @classmethod
     def unique_hash(cls, biorel_type, source_bioent_id, sink_bioent_id):

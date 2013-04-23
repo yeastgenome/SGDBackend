@@ -23,8 +23,7 @@
 <div class="row-fluid">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav" id='navbar' name='navbar' style="margin-left:auto; margin-right:auto">
-			<li><h4><span tal:content="name"></h4></li>
-			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
+			<li><h4><span tal:content="structure name_with_link"></h4></li>
 			<li><a href="#genetic_evidence"><i class="icon-chevron-right"></i> Genetic Evidence</a></li>
 			<li><a href="#physical_evidence"><i class="icon-chevron-right"></i> Physical Evidence</a></li>
           	<li><a href="#literature"><i class="icon-chevron-right"></i> References</a></li>
@@ -33,23 +32,6 @@
 	
 	<div class="span9">  
 
-<!-- Summary
-================================================== -->
-<section id="summary">
-	<div class="page-header">
-		<h1>Summary</h1>
-		<div>
-			<dl>
-				<dt>Interacting Bioentities:</dt>
-				<span tal:content="structure bioent1.full_name_with_link"></span>
-				<dd tal:content="bioent1.description"></dd>
-				<span tal:condition="python: bioent2" tal:content="structure bioent2.full_name_with_link"></span>
-				<dd tal:condition="python: bioent2" tal:content="bioent2.description"></dd>
-
-			</dl>
-		</div>
-	</div>
-</section>
 
 <!-- Genetic Evidence
 ================================================== -->

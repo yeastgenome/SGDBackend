@@ -5,6 +5,7 @@ Created on Jan 16, 2013
 '''
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
+from schema_conversion.old_to_new_bioconcept import convert_phenotype
 from schema_conversion.old_to_new_bioentity import convert_feature, \
     convert_protein, convert_transcript
 from schema_conversion.old_to_new_sequence import convert_dna_sequence
@@ -29,7 +30,8 @@ def convert():
         #convert_feature(old_session, new_session)
         #convert_transcript(old_session, new_session)
         #convert_protein(old_session, new_session)
-        convert_dna_sequence(old_session, new_session)
+        #convert_dna_sequence(old_session, new_session)
+        convert_phenotype(old_session, new_session)
                 
         if commit:
             new_session.commit()

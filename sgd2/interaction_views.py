@@ -25,8 +25,7 @@ def interaction_evidence(request):
         if biorel is None:
             return Response(status_int=500, body='Biorel could not be found.')
         name = biorel.name
-        description = 'Interaction between ' + biorel.source_bioent.name + ' and ' + biorel.sink_bioent.name
-        return {'layout': site_layout(), 'page_title': name, 'name':name, 'description':description, 'hide_interactor':True,
+        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':biorel.name_with_link, 'description':biorel.description, 'hide_interactor':True,
                 'bioent1':biorel.source_bioent, 'bioent2':biorel.sink_bioent, 'link_maker':LinkMaker(biorel.name, biorel=biorel)}
         
     elif 'bioent_name' in request.GET:
@@ -35,9 +34,10 @@ def interaction_evidence(request):
         bioent = get_bioent(bioent_name)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        name = 'Interaction Evidence for ' + bioent.name
+        name = 'Evidence for interactions with ' + bioent.name
+        name_with_link = 'Evidence for interactions with ' + bioent.name_with_link
         description = 'Evidence for all interactions associated with ' + bioent.name
-        return {'layout': site_layout(), 'page_title': name, 'name':name, 'description':description, 'hide_interactor':False,
+        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'description':description, 'hide_interactor':False,
                 'bioent1':bioent, 'bioent2':None, 'link_maker':LinkMaker(bioent.name, bioent=bioent)}
 
     else:
@@ -130,7 +130,7 @@ def make_overview_table(biorels, bioent):
         else:
             orig_bioent = biorel.source_bioent
             opp_bioent = biorel.sink_bioent
-        return [bioent.name_with_link, opp_bioent.name_with_link, biorel.genetic_evidence_count, biorel.physical_evidence_count, biorel.evidence_count]
+        return [bioent.name_with_link, opp_bioent.name_with_link, biorel.genetic_evidence_count, biorel.physical_evidence_count, entry_with_link(str(biorel.evidence_count), biorel.link)]
         
     return create_simple_table(biorels, f, bioent=bioent) 
 

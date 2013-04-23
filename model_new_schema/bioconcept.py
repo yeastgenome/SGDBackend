@@ -119,6 +119,7 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     type = "BIOCONCEPT"
+    description = Column('description', String)
     
     __mapper_args__ = {'polymorphic_on': biocon_type,
                        'polymorphic_identity':"BIOCONCEPT",
@@ -142,9 +143,10 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
     def unique_filter(cls, query, biocon_type, official_name):
         return query.filter(Bioconcept.biocon_type == biocon_type, Bioconcept.official_name == official_name)
         
-    def __init__(self, biocon_type, official_name, session=None, biocon_id=None, date_created=None, created_by=None):
+    def __init__(self, biocon_type, official_name, description, session=None, biocon_id=None, date_created=None, created_by=None):
         self.biocon_type = biocon_type
         self.official_name = official_name
+        self.description = description
         
         if session is None:
             self.id=biocon_id
@@ -165,18 +167,17 @@ class Phenotype(Bioconcept):
     id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
     observable = Column('observable', String)
     phenotype_type = Column('phenotype_type', String)
+    direct_gene_count = Column('direct_gene_count', Integer)
        
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Bioconcept.id}
 
-    @hybrid_property
-    def description(self):
-        return 'All genes with phenotype ' + self.name + '.'
-
-    def __init__(self, observable, session=None, biocon_id=None, date_created=None, created_by=None):
-        name = observable
-        Bioconcept.__init__(self, 'PHENOTYPE', name, session=session, biocon_id=biocon_id, date_created=date_created, created_by=created_by)
+    def __init__(self, observable, phenotype_type, description, session=None, biocon_id=None, date_created=None, created_by=None):
+        name = observable.replace(' ', '_')
+        name = name.replace('/', '-')
+        Bioconcept.__init__(self, 'PHENOTYPE', name, description, session=session, biocon_id=biocon_id, date_created=date_created, created_by=created_by)
         self.observable = str(observable)
+        self.phenotype_type = phenotype_type
          
         
     @classmethod
@@ -198,15 +199,10 @@ class Go(Bioconcept):
     go_definition = Column('go_definition', String)
     direct_gene_count = Column('direct_gene_count', Integer)
     
-    @hybrid_property
-    def description(self):
-        return self.go_definition
- 
-    
     def __init__(self, go_go_id, go_term, go_aspect, go_definition, session=None, biocon_id=None, date_created=None, created_by=None):
         name = go_term.replace(' ', '_')
         name = name.replace('/', '-')
-        Bioconcept.__init__(self, 'GO', name, session=session, biocon_id=biocon_id, date_created=date_created, created_by=created_by)
+        Bioconcept.__init__(self, 'GO', name, go_definition, session=session, biocon_id=biocon_id, date_created=date_created, created_by=created_by)
         self.go_go_id = go_go_id
         self.go_term = go_term
         self.go_aspect = go_aspect

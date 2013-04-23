@@ -8,10 +8,11 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_bioent_biocons, get_biocon, get_bioent, \
     get_phenotype_evidence, get_related_bioent_biocons, get_reference, \
-    get_phenotype_evidence_ref
+    get_phenotype_evidence_ref, get_biocon_family, get_biocon_biocons
 from sgd2.views import site_layout
 from utils.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list
+import math
 
 
 '''
@@ -34,9 +35,19 @@ def phenotype_evidence(request):
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
         name = 'Phenotype Evidence for ' + bioent.name
-        description = 'Evidence for all phenotypes associated with ' + bioent.name
-        return {'layout': site_layout(), 'page_title': name, 'name':name, 'description':description, 'gene_name':bioent.name_with_link,
-                'biocon_name':'All', 'link_maker':LinkMaker(bioent.name, bioent=bioent)}
+        name_with_link = 'Phenotype Evidence for ' + bioent.name_with_link
+        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':True,
+                'link_maker':LinkMaker(bioent.name, bioent=bioent)}
+    elif 'biocon_name' in request.GET:
+        #Need a phenotype overview table based on a biocon
+        biocon_name = request.GET['biocon_name']
+        biocon = get_biocon(biocon_name, 'PHENOTYPE')
+        if biocon is None:
+            return Response(status_int=500, body='Biocon could not be found.')
+        name = 'Evidence for Phenotype:<br>' + biocon.name
+        name_with_link = 'Evidence for Phenotype:<br>' + biocon.name_with_link
+        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':False,
+                'link_maker':LinkMaker(biocon.name, biocon=biocon)}
 
     else:
         return Response(status_int=500, body='No Bioent specified.')
@@ -119,6 +130,19 @@ def phenotype_graph(request):
 
     else:
         return Response(status_int=500, body='No Bioent or Biocon specified.')
+    
+@view_config(route_name='phenotype_ontology_graph', renderer="json")
+def phenotype_ontology_graph(request):
+    if 'biocon_name' in request.GET:
+        #Need a phenotype ontology graph based on a biocon
+        biocon_name = request.GET['biocon_name']
+        biocon = get_biocon(biocon_name, 'PHENOTYPE')
+        if biocon is None:
+            return Response(status_int=500, body='Biocon could not be found.')
+        return create_phenotype_ontology_graph(biocon=biocon)
+
+    else:
+        return Response(status_int=500, body='No Biocon specified.')
 
 '''
 -------------------------------Overview Table---------------------------------------
@@ -204,6 +228,43 @@ def make_evidence_row(phenoevidence):
             phenoevidence.qualifier, phenoevidence.experiment_type, phenoevidence.mutant_type, allele_entry,
             phenoevidence.reporter, chemical_info, phenoevidence.strain_id, 
             phenoevidence.source, reference]
+    
+'''
+------------------------------Phenotype Ontology Graph-----------------------------
+'''
+go_ontology_schema = {'nodes': [ { 'name': "label", 'type': "string" }, 
+                         {'name':'link', 'type':'string'}, 
+                         {'name':'bio_type', 'type':'string'},
+                         {'name':'sub_type', 'type':'string'},
+                         {'name':'child', 'type':'boolean'},
+                         {'name':'direct_gene_count', 'type':'integer'}],
+                'edges': [{'name': "directed", 'type': "boolean", 'defValue': True}]}
+
+def create_phenotype_ontology_node(obj, focus_node, child):
+    sub_type = 'NORMAL'
+    direct_gene_count = obj.direct_gene_count
+    if direct_gene_count == 0:
+        sub_type = 'NO_GENES'
+    if obj == focus_node:
+        sub_type = 'FOCUS'
+    name = obj.name.replace(' ', '\n')
+    size = int(math.ceil(math.sqrt(direct_gene_count)))
+    return {'id':'BIOCONCEPT' + str(obj.id), 'label':name, 'link':obj.link, 'sub_type':sub_type, 'bio_type':obj.type, 
+            'child':child, 'direct_gene_count':size}
+
+def create_phenotype_ontology_edge(biocon_biocon):
+    return { 'id': 'BIOCON_BIOCON' + str(biocon_biocon.id), 'source': 'BIOCONCEPT' + str(biocon_biocon.parent_biocon_id), 'target': 'BIOCONCEPT' + str(biocon_biocon.child_biocon_id)}  
+
+    
+def create_phenotype_ontology_graph(biocon):
+    
+    biocon_family = get_biocon_family(biocon)
+    child_ids = biocon_family['child_ids']
+    nodes = [create_phenotype_ontology_node(b, biocon, b.id in child_ids) for b in biocon_family['family']]
+    edges = [create_phenotype_ontology_edge(e) for e in get_biocon_biocons(biocon_family['all_ids'])]
+        
+    return {'dataSchema':go_ontology_schema, 'data': {'nodes': nodes, 'edges': edges}, 'has_children':len(child_ids)>0}
+ 
 
 '''
 -------------------------------Graph---------------------------------------

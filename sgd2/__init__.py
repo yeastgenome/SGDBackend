@@ -45,6 +45,7 @@ def main(global_config, **settings):
     config.add_route('phenotype_overview_table', '/phenotype_overview_table')
     config.add_route('phenotype_evidence_table', '/phenotype_evidence_table')
     config.add_route('phenotype_graph', '/phenotype_graph')
+    config.add_route('phenotype_ontology_graph', '/phenotype_ontology_graph')
             
     #Interaction views
     config.add_route('interaction_evidence', '/interaction_evidence')

@@ -343,87 +343,133 @@ def convert_go(old_model, session):
     
             
     
-def convert_phenotyp(old_model, session):
+def convert_phenotype(old_session, new_session):
     from model_new_schema.evidence import Allele as NewAllele, PhenoevidenceChemical as NewPhenoevidenceChemical
     from model_new_schema.chemical import Chemical as NewChemical
     from model_new_schema.bioentity import Bioentity as NewBioentity
+    from model_new_schema.bioconcept import Phenotype as NewPhenotype, BioconBiocon as NewBioconBiocon, BioconAncestor as NewBioconAncestor
+
     from model_old_schema.phenotype import PhenotypeFeature as OldPhenotypeFeature, Phenotype as OldPhenotype
+    from model_old_schema.cv import CVTerm as OldCVTerm
     
-    output_creator = OutputCreator()
+#    output_creator = OutputCreator()
 
-    #Cache bioents
-    cache(NewBioentity, id_to_bioent, lambda x: x.id, session, output_creator, 'bioent')
-    output_creator.cached('bioent')
-     
-    #Cache phenotype_biocons
-    cache_biocon(session, 'PHENOTYPE')
-    output_creator.cached('biocon')
+#    #Cache bioents
+#    cache(NewBioentity, id_to_bioent, lambda x: x.id, session, output_creator, 'bioent')
+#    output_creator.cached('bioent')
+#     
+#    #Cache phenotype_biocons
+#    cache_biocon(session, 'PHENOTYPE')
+#    output_creator.cached('biocon')
+#
+#    #Create new phenotype_biocons if they don't exist, or update the database if they do.
+#    old_phenotypes = old_model.execute(model_old_schema.model.get(OldPhenotype), OLD_DBUSER)
+#    key_maker = lambda x: x.id
+#    values_to_check = ['observable']
+#    create_or_update(old_phenotypes, id_to_biocon, create_phenotype, key_maker, values_to_check, old_model, session, output_creator, 'phenotype', [check_biocon])
+#
+#    #Cache bioent_biocons
+#    cache_bioent_biocon(session, 'PHENOTYPE')
+#    output_creator.cached('bioent_biocon')
+#    
+#    #Create new bioent_biocons if they don't exist, or update the database if they do.
+#    old_phenotype_features = old_model.execute(model_old_schema.model.get(OldPhenotypeFeature), OLD_DBUSER)
+#    key_maker = lambda x: (x.bioent_id, x.biocon_id)
+#    values_to_check = ['bioent_id', 'biocon_id', 'official_name', 'biocon_type']
+#    create_or_update(old_phenotype_features, tuple_to_bioent_biocon, create_phenotype_bioent_biocon, key_maker, values_to_check, old_model, session, output_creator, 'bioent_biocon')
+#    
+#    #Cache phenoevidences
+#    cache_evidence(session, 'PHENOTYPE_EVIDENCE')
+#    output_creator.cached('phenoevidence')
+#    
+#    #Create new phenoevidences if they don't exist, or update the database if they do.
+#    key_maker = lambda x: x.id
+#    values_to_check = ['mutant_type', 'mutant_allele_id', 'source', 'qualifier', 'reporter', 'reporter_desc', 'strain_details', 
+#                       'budding_index', 'glutathione_excretion', 'z_score', 'relative_fitness_score', 'chitin_level', 'description']
+#    create_or_update(old_phenotype_features, id_to_evidence, key_maker, values_to_check, old_model, session, output_creator, 'phenoevidence', [check_evidence])
+#    
+#    #Cache bioent_biocon_evidences
+#    key_maker = lambda x: (x.bioent_biocon_id, x.evidence_id)
+#    output_message = 'bioent_biocon_evidence'
+#    cache(NewBioentBioconEvidence, tuple_to_bioent_biocon_evidence, key_maker, session, output_creator, output_message)
+#    
+#    #Create new bioent_biocon_evidences if they don't exist, or update the database if they do.
+#    values_to_check = ['bioent_biocon_id', 'evidence_id']
+#    create_or_update(old_phenotype_features, tuple_to_bioent_biocon_evidence, create_phenotype_bioent_biocon_evidence, key_maker, values_to_check,
+#                     old_model, session, output_creator, output_message)
+#    
+#    #Cache alleles
+#    key_maker = lambda x: x.name
+#    output_message = 'allele'
+#    cache(NewAllele, name_to_allele, key_maker, session, output_creator, output_message)
+#    
+#    #Create new alleles if they don't exist, or update the database if they do.
+#    values_to_check = ['name', 'description']
+#    create_or_update(old_phenotype_features, name_to_allele, create_allele, key_maker, values_to_check, old_model, output_creator, output_message)
+#
+#    #Cache chemicals
+#    key_maker = lambda x: x.name
+#    output_message = 'chemical'
+#    cache(NewChemical, name_to_chemical, key_maker, session, output_creator, output_message)
+#    
+#    #Create new chemicals if they don't exist, or update the database if they do.
+#    values_to_check = ['name', 'description']
+#    create_or_update(old_phenotype_features, name_to_allele, create_allele, key_maker, values_to_check, old_model, output_creator, output_message)
+#
+#    #Cache evidence_chemical
+#    key_maker = lambda x: (x.evidence_id, x.chemical_id)
+#    output_message = 'evidence_chemical'
+#    cache(NewPhenoevidenceChemical, tuple_to_phenoevidence_chemical, key_maker, session, output_creator, output_message)
+#    
+#    #Create new evidence_chemical if they don't exist, or update the database if they do.
+#    values_to_check = ['evidence_id', 'chemical_id', 'chemical_amt']
+#    create_or_update(old_phenotype_features, tuple_to_phenoevidence_chemical, create_phenoevidence_chemical, key_maker, values_to_check, 
+#                     old_model, output_creator, output_message)
 
-    #Create new phenotype_biocons if they don't exist, or update the database if they do.
-    old_phenotypes = old_model.execute(model_old_schema.model.get(OldPhenotype), OLD_DBUSER)
-    key_maker = lambda x: x.id
-    values_to_check = ['observable']
-    create_or_update(old_phenotypes, id_to_biocon, create_phenotype, key_maker, values_to_check, old_model, session, output_creator, 'phenotype', [check_biocon])
-
-    #Cache bioent_biocons
-    cache_bioent_biocon(session, 'PHENOTYPE')
-    output_creator.cached('bioent_biocon')
+    #Add definitions to phenotypes
+    name_to_phenotype = {}
+    phenotype_output_creator = OutputCreator('phenotype')
+    #Cache phenotypes
+    cache(NewPhenotype, name_to_phenotype, lambda x: x.observable, new_session, phenotype_output_creator)
+    cv_terms = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==6).all()
+    for cv_term in cv_terms:
+        new_phenotype = NewPhenotype(cv_term.name, get_phenotype_type(cv_term.name), cv_term.definition)
+        values_to_check = ['observable', 'phenotype_type', 
+                           'biocon_type', 'official_name', 'description']
+        add_or_check(new_phenotype, name_to_phenotype, new_phenotype.observable, values_to_check, new_session, phenotype_output_creator)
+    phenotype_output_creator.finished()   
     
-    #Create new bioent_biocons if they don't exist, or update the database if they do.
-    old_phenotype_features = old_model.execute(model_old_schema.model.get(OldPhenotypeFeature), OLD_DBUSER)
-    key_maker = lambda x: (x.bioent_id, x.biocon_id)
-    values_to_check = ['bioent_id', 'biocon_id', 'official_name', 'biocon_type']
-    create_or_update(old_phenotype_features, tuple_to_bioent_biocon, create_phenotype_bioent_biocon, key_maker, values_to_check, old_model, session, output_creator, 'bioent_biocon')
-    
-    #Cache phenoevidences
-    cache_evidence(session, 'PHENOTYPE_EVIDENCE')
-    output_creator.cached('phenoevidence')
-    
-    #Create new phenoevidences if they don't exist, or update the database if they do.
-    key_maker = lambda x: x.id
-    values_to_check = ['mutant_type', 'mutant_allele_id', 'source', 'qualifier', 'reporter', 'reporter_desc', 'strain_details', 
-                       'budding_index', 'glutathione_excretion', 'z_score', 'relative_fitness_score', 'chitin_level', 'description']
-    create_or_update(old_phenotype_features, id_to_evidence, key_maker, values_to_check, old_model, session, output_creator, 'phenoevidence', [check_evidence])
-    
-    #Cache bioent_biocon_evidences
-    key_maker = lambda x: (x.bioent_biocon_id, x.evidence_id)
-    output_message = 'bioent_biocon_evidence'
-    cache(NewBioentBioconEvidence, tuple_to_bioent_biocon_evidence, key_maker, session, output_creator, output_message)
-    
-    #Create new bioent_biocon_evidences if they don't exist, or update the database if they do.
-    values_to_check = ['bioent_biocon_id', 'evidence_id']
-    create_or_update(old_phenotype_features, tuple_to_bioent_biocon_evidence, create_phenotype_bioent_biocon_evidence, key_maker, values_to_check,
-                     old_model, session, output_creator, output_message)
-    
-    #Cache alleles
-    key_maker = lambda x: x.name
-    output_message = 'allele'
-    cache(NewAllele, name_to_allele, key_maker, session, output_creator, output_message)
-    
-    #Create new alleles if they don't exist, or update the database if they do.
-    values_to_check = ['name', 'description']
-    create_or_update(old_phenotype_features, name_to_allele, create_allele, key_maker, values_to_check, old_model, output_creator, output_message)
-
-    #Cache chemicals
-    key_maker = lambda x: x.name
-    output_message = 'chemical'
-    cache(NewChemical, name_to_chemical, key_maker, session, output_creator, output_message)
-    
-    #Create new chemicals if they don't exist, or update the database if they do.
-    values_to_check = ['name', 'description']
-    create_or_update(old_phenotype_features, name_to_allele, create_allele, key_maker, values_to_check, old_model, output_creator, output_message)
-
-    #Cache evidence_chemical
-    key_maker = lambda x: (x.evidence_id, x.chemical_id)
-    output_message = 'evidence_chemical'
-    cache(NewPhenoevidenceChemical, tuple_to_phenoevidence_chemical, key_maker, session, output_creator, output_message)
-    
-    #Create new evidence_chemical if they don't exist, or update the database if they do.
-    values_to_check = ['evidence_id', 'chemical_id', 'chemical_amt']
-    create_or_update(old_phenotype_features, tuple_to_phenoevidence_chemical, create_phenoevidence_chemical, key_maker, values_to_check, 
-                     old_model, output_creator, output_message)
+#    #Add phenotype ontology
+#    for cv_term in cv_terms:
+#        child_id = name_to_phenotype[cv_term.name].id
+#        for parent in cv_term.parents:
+#            parent_id = name_to_phenotype[parent.name].id
+#            
+#            biocon_biocon = NewBioconBiocon(parent_id, child_id, 'is a')
+#            new_session.add(biocon_biocon)
+#        
+#        parents = list(cv_term.parents)
+#        while len(parents) > 0:
+#            parent = parents.pop()
+#            biocon_ancestor = NewBioconAncestor(name_to_phenotype[parent.name].id, child_id)
+#            new_session.add(biocon_ancestor)
+#            parents.extend(parent.parents)
         
         
+            
+    
+def get_phenotype_type(observable):
+    if observable in {'chemical compound accumulation', 'resistance to chemicals', 'osmotic stress resistance', 'alkaline pH resistance',
+                      'ionic stress resistance', 'oxidative stress resistance', 'small molecule transport', 'metal resistance', 
+                      'acid pH resistance', 'hyperosmotic stress resistance', 'hypoosmotic stress resistance', 'chemical compound excretion'}:
+        return 'chemical'
+    elif observable in {'protein/peptide accumulation', 'protein/peptide modification', 'protein/peptide distribution', 
+                        'RNA accumulation', 'RNA localization', 'RNA modification'}:
+        return 'pp_rna'
+    else:
+        return 'cellular'
+    
+            
         
             
             
