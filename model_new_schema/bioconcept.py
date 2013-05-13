@@ -130,10 +130,21 @@ class Bioconcept(Base, EqualityByIDMixin, UniqueMixin):
         return biocon_link(self)
     @hybrid_property
     def name(self):
-        return self.official_name.title().replace('_', ' ')
+        return self.official_name.replace('_', ' ')
     @hybrid_property
     def name_with_link(self):
         return add_link(self.name, self.link)
+    
+    @hybrid_property
+    def search_entry_title(self):
+        return self.name_with_link
+    @hybrid_property
+    def search_description(self):
+        return self.description
+    @hybrid_property
+    def search_additional(self):
+        return None
+    
     
     @classmethod
     def unique_hash(cls, biocon_type, official_name):
@@ -168,6 +179,11 @@ class Phenotype(Bioconcept):
     observable = Column('observable', String)
     phenotype_type = Column('phenotype_type', String)
     direct_gene_count = Column('direct_gene_count', Integer)
+    type = "PHENOTYPE"
+    
+    @hybrid_property
+    def search_entry_type(self):
+        return 'Phenotype'
        
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Bioconcept.id}
@@ -198,7 +214,12 @@ class Go(Bioconcept):
     go_aspect = Column('go_aspect', String)
     go_definition = Column('go_definition', String)
     direct_gene_count = Column('direct_gene_count', Integer)
+    type = "GO"
     
+    @hybrid_property
+    def search_entry_type(self):
+        return 'Gene Ontology Term'
+
     def __init__(self, go_go_id, go_term, go_aspect, go_definition, session=None, biocon_id=None, date_created=None, created_by=None):
         name = go_term.replace(' ', '_')
         name = name.replace('/', '-')

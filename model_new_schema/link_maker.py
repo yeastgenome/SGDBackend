@@ -130,3 +130,6 @@ def reference_go_link(reference):
     return reference.link + '/go'
 def reference_interaction_link(reference):
     return reference.link + '/interaction'
+
+def author_link(author):
+    return '/author/' + author.name.replace(' ', '_')

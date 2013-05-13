@@ -62,8 +62,8 @@ def interaction_overview_table(request):
         if ref is None:
             return Response(status_int=500, body='Reference could not be found.')
         interevidences = get_interaction_evidence_ref(ref)
-        biorels = set([interevidence.biorel for interevidence in biorels])
-        return make_overview_tables(False, interevidences) 
+        biorels = set([interevidence.biorel for interevidence in interevidences])
+        return make_overview_tables(False, biorels) 
 
     else:
         return Response(status_int=500, body='No Bioent or Reference specified.')
@@ -130,7 +130,7 @@ def make_overview_table(biorels, bioent):
         else:
             orig_bioent = biorel.source_bioent
             opp_bioent = biorel.sink_bioent
-        return [bioent.name_with_link, opp_bioent.name_with_link, biorel.genetic_evidence_count, biorel.physical_evidence_count, entry_with_link(str(biorel.evidence_count), biorel.link)]
+        return [orig_bioent.name_with_link, opp_bioent.name_with_link, biorel.genetic_evidence_count, biorel.physical_evidence_count, entry_with_link(str(biorel.evidence_count), biorel.link)]
         
     return create_simple_table(biorels, f, bioent=bioent) 
 

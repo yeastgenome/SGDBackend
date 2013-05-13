@@ -72,63 +72,63 @@ class Experiment(Base, EqualityByIDMixin):
     @hybrid_property
     def chemicals(self):
         chemicals = []
-        for prop in self.experiment_properties:
+        for prop in self.properties:
             if prop.type == 'Chemical_pending' or prop.type == 'chebi_ontology':
                 chemicals.append((prop.value, prop.description))
         return chemicals
     
     @hybrid_property
     def allele(self):
-        for prop in self.experiment_comment:
+        for prop in self.properties:
             if prop.type == 'Allele':
                 return (prop.value, prop.description)
         return None
     
     @hybrid_property
     def reporter(self):
-        for prop in self.experiment_comment:
+        for prop in self.properties:
             if prop.type == 'Reporter':
                 return (prop.value, prop.description)
         return None
     
     @hybrid_property
     def strain(self):
-        for prop in self.experiment_comment:
+        for prop in self.properties:
             if prop.type == 'strain_background':
                 return (prop.value, prop.description)
         return None
     
     @hybrid_property
     def budding_index(self):
-        for prop in self.experiment_comment:
+        for prop in self.properties:
             if prop.type == 'Numerical_value' and prop.description == 'relative budding index compared to control':
                 return prop.value
         return None    
     
     @hybrid_property
     def glutathione_excretion(self):
-        for prop in self.experiment_comment:
+        for prop in self.properties:
             if prop.type == 'Numerical_value' and prop.description == 'Fold elevation of glutathione excretion':
                 return prop.value
         return None  
     
     @hybrid_property
     def z_score(self):
-        for prop in self.experiment_comment:
+        for prop in self.properties:
             if prop.type == 'Numerical_value' and prop.description == 'Fitness defect score (Z-score)':
                 return prop.value
         return None  
     
     @hybrid_property
     def relative_fitness_score(self):
-        for prop in self.experiment_comment:
+        for prop in self.properties:
             if prop.type == 'Numerical_value' and prop.description == 'Relative fitness score':
                 return prop.value
         return None  
     
     @hybrid_property
     def chitin_level(self):
-        for prop in self.experiment_comment:
+        for prop in self.properties:
             if prop.type == 'Numerical_value' and prop.description == 'Chitin level (nmole GlcNAc/mg dry weight)':
                 return prop.value
         return None  
@@ -136,7 +136,7 @@ class Experiment(Base, EqualityByIDMixin):
     @hybrid_property
     def condition(self):
         return_value = []
-        for prop in self.experiment_comment:
+        for prop in self.properties:
             if prop.type == 'Condition':
                 return_value.append((prop.value, prop.description))
         return return_value
@@ -144,9 +144,9 @@ class Experiment(Base, EqualityByIDMixin):
     @hybrid_property
     def details(self):
         return_value = []
-        for prop in self.experiment_comment:
+        for prop in self.properties:
             if prop.type == 'Details':
-                return return_value.append((prop.value, prop.description))
+                return_value.append((prop.value, prop.description))
         return return_value
     
                 

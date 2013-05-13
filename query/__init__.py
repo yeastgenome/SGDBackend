@@ -3,7 +3,7 @@ from model_new_schema.bioconcept import Bioconcept, BioentBiocon, BioconAncestor
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.biorelation import Biorelation, BioentBiorel
 from model_new_schema.evidence import Goevidence, Phenoevidence, Interevidence
-from model_new_schema.reference import Reference
+from model_new_schema.reference import Reference, Author
 from model_new_schema.search import Typeahead
 from model_new_schema.sequence import Sequence
 from sgd2.models import DBSession
@@ -36,6 +36,10 @@ def get_reference(reference_name):
     if reference is None:
         reference = DBSession.query(Reference).filter(Reference.dbxref_id == reference_name).first() 
     return reference
+
+def get_author(author_name):
+    author = DBSession.query(Author).options(joinedload('author_references')).filter(Author.name==author_name).first()
+    return author
  
 
 def get_biorels(biorel_type, bioent):
@@ -96,18 +100,24 @@ def get_related_bioent_biocons(biocon_ids):
 
 #Get Evidence
 chunk_size = 500
-def get_go_evidence(bioent_biocons):
-    bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in bioent_biocons]
-    num_chunks = int(math.ceil(float(len(bioent_biocons))/chunk_size))
-    evidences = set()
+def retrieve_in_chunks(ids, f):
+    num_chunks = int(math.ceil(float(len(ids))/chunk_size))
+    result = set()
     for i in range(0, num_chunks):
         min_index = i*chunk_size
         max_index = (i+1)*chunk_size
-        if max_index > len(bioent_biocons):
-            chunk_bioent_biocon_ids = bioent_biocon_ids[min_index:]
+        if max_index > len(ids):
+            chunk_ids = ids[min_index:]
         else:
-            chunk_bioent_biocon_ids = bioent_biocon_ids[min_index:max_index]
-        evidences.update(DBSession.query(Goevidence).options(joinedload('reference')).filter(Goevidence.bioent_biocon_id.in_(chunk_bioent_biocon_ids)).all())
+            chunk_ids = ids[min_index:max_index]
+        result.update(f(chunk_ids))
+    return result
+def get_go_evidence(bioent_biocons):
+    bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in bioent_biocons]
+    def f(chunk_bioent_biocon_ids):
+        return DBSession.query(Goevidence).options(joinedload('reference')).filter(Goevidence.bioent_biocon_id.in_(chunk_bioent_biocon_ids)).all()
+        
+    evidences = retrieve_in_chunks(bioent_biocon_ids, f)
     return evidences
 
 def get_go_evidence_ref(reference):
@@ -115,16 +125,10 @@ def get_go_evidence_ref(reference):
 
 def get_phenotype_evidence(bioent_biocons):
     bioent_biocon_ids = [bioent_biocon.id for bioent_biocon in bioent_biocons]
-    num_chunks = int(math.ceil(float(len(bioent_biocons))/chunk_size))
-    evidences = set()
-    for i in range(0, num_chunks):
-        min_index = i*chunk_size
-        max_index = (i+1)*chunk_size
-        if max_index > len(bioent_biocons):
-            chunk_bioent_biocon_ids = bioent_biocon_ids[min_index:]
-        else:
-            chunk_bioent_biocon_ids = bioent_biocon_ids[min_index:max_index]
-        evidences.update(DBSession.query(Phenoevidence).options(joinedload('reference'), joinedload('allele'), joinedload('phenoev_chemicals')).filter(Phenoevidence.bioent_biocon_id.in_(chunk_bioent_biocon_ids)).all())
+    def f(chunk_bioent_biocon_ids):
+        return DBSession.query(Phenoevidence).options(joinedload('reference'), joinedload('allele'), joinedload('phenoev_chemicals')).filter(Phenoevidence.bioent_biocon_id.in_(chunk_bioent_biocon_ids)).all()
+
+    evidences = retrieve_in_chunks(bioent_biocon_ids, f)
     return evidences
 
 def get_phenotype_evidence_ref(reference):
@@ -132,16 +136,9 @@ def get_phenotype_evidence_ref(reference):
 
 def get_interaction_evidence(biorels):
     biorel_ids = [biorel.id for biorel in biorels]
-    num_chunks = int(math.ceil(float(len(biorels))/chunk_size))
-    evidences = set()
-    for i in range(0, num_chunks):
-        min_index = i*chunk_size
-        max_index = (i+1)*chunk_size
-        if max_index > len(biorels):
-            chunk_biorel_ids = biorel_ids[min_index:]
-        else:
-            chunk_biorel_ids = biorel_ids[min_index:max_index]
-        evidences.update(DBSession.query(Interevidence).options(joinedload('reference')).filter(Interevidence.biorel_id.in_(chunk_biorel_ids)).all())
+    evidences = retrieve_in_chunks(biorel_ids, f)
+    def f(chunk_biorel_ids):
+        return DBSession.query(Interevidence).options(joinedload('reference')).filter(Interevidence.biorel_id.in_(chunk_biorel_ids)).all()
     return evidences
 
 def get_interaction_evidence_ref(reference):
@@ -166,13 +163,43 @@ def get_sequences(bioent):
     seqs = DBSession.query(Sequence).options(joinedload('seq_tags')).filter(Sequence.bioent_id.in_(id_to_type.keys())).all()
     return seqs, id_to_type;
     
-def search(search_str):      
-    bioents = DBSession.query(Bioentity).options(joinedload('aliases')).join(Typeahead).filter(Typeahead.bio_type == 'BIOENT', func.upper(Typeahead.name) == search_str).all()
-    return bioents
+def search(search_strs, bio_type):   
+    intersection = set()
+    first_try = True
+    for search_str in search_strs:  
+        if bio_type != None:
+            search_results = DBSession.query(Typeahead).filter(Typeahead.name == search_str.lower()).filter(Typeahead.bio_type == bio_type).all()        
+        else:
+            search_results = DBSession.query(Typeahead).filter(Typeahead.name == search_str.lower()).all()
+    
+    return search_results
         
 def typeahead(search_str):
-    possible = DBSession.query(Typeahead).filter(func.upper(Typeahead.name) == search_str).all()
+    possible = DBSession.query(Typeahead).filter(func.upper(Typeahead.name) == search_str).filter(Typeahead.use_for_typeahead == 'Y').all()
     return possible
+
+def get_objects(search_results):
+    tuple_to_obj = dict()
+    bioent_ids = [search_result.bio_id for search_result in search_results if search_result.bio_type == 'GENE']
+    biocon_ids = [search_result.bio_id for search_result in search_results if search_result.bio_type in {'PHENOTYPE', 'GO'}]
+    reference_ids = [search_result.bio_id for search_result in search_results if search_result.bio_type == 'REFERENCE']    
+    
+    if len(bioent_ids) > 0:
+        bioents = DBSession.query(Bioentity).options(joinedload('aliases')).filter(Bioentity.id.in_(bioent_ids)).all()
+        tuple_to_obj.update([((obj.type, obj.id), obj) for obj in bioents])
+    
+    if len(biocon_ids) > 0:
+        biocons = DBSession.query(Bioconcept).filter(Bioconcept.id.in_(biocon_ids)).all()
+        tuple_to_obj.update([((obj.type, obj.id), obj) for obj in biocons])
+     
+    if len(reference_ids) > 0:   
+        refs = DBSession.query(Reference).options(joinedload('abst')).filter(Reference.id.in_(reference_ids)).all()
+        tuple_to_obj.update([((obj.type, obj.id), obj) for obj in refs])
+        
+    ordered_objects = []    
+    for result in search_results:
+        ordered_objects.append(tuple_to_obj[(result.bio_type, result.bio_id)])
+    return ordered_objects
         
         
         

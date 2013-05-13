@@ -147,6 +147,8 @@ function setup_go_cytoscape_vis(graph_link) {
 							{attrValue: 'CELLULAR COMPONENT', value: '#E2A9F3'},
 							{attrValue: 'MOLECULAR FUNCTION', value: '#81F781'},
 							{attrValue: 'BIOLOGICAL PROCESS', value: '#5CB3FF'},
+							{attrValue: 'NORMAL', value: '#5CB3FF'},
+							{attrValue: 'NO_GENES', value: 'white'},
 						]
 					}
 				},
@@ -154,11 +156,15 @@ function setup_go_cytoscape_vis(graph_link) {
 					discreteMapper: {
 						attrName: "bio_type",
 						entries: [
-							{attrValue: 'BIOENTITY', value: 'ELLIPSE',
-							attrValue: 'BIOCONCEPT', value: 'RECTANGLE'}
+							{attrValue: 'GENE', value: 'ELLIPSE',
+							attrValue: 'GO', value: 'RECTANGLE'}
 						]
 					}
 				},
+				size: { defaultValue: 12, 
+                    continuousMapper: { attrName: "direct_gene_count", 
+                                        minValue: 12, 
+                                        maxValue: 100 } },
 				labelHorizontalAnchor: "center"
 			},
 		};
@@ -251,8 +257,8 @@ function setup_ontology_cytoscape_vis(graph_link) {
 					discreteMapper: {
 						attrName: "bio_type",
 						entries: [
-							{attrValue: 'BIOENTITY', value: 'ELLIPSE',
-							attrValue: 'BIOCONCEPT', value: 'RECTANGLE'}
+							{attrValue: 'GENE', value: 'ELLIPSE',
+							attrValue: 'GO', value: 'RECTANGLE'}
 						]
 					}
 				},
@@ -379,8 +385,8 @@ function setup_phenotype_cytoscape_vis(graph_link) {
 					discreteMapper: {
 						attrName: "bio_type",
 						entries: [
-							{attrValue: 'BIOENTITY', value: 'ELLIPSE',
-							attrValue: 'BIOCONCEPT', value: 'RECTANGLE'}
+							{attrValue: 'GENE', value: 'ELLIPSE',
+							attrValue: 'GO', value: 'RECTANGLE'}
 						]
 					}
 				},
@@ -419,6 +425,54 @@ function setup_phenotype_cytoscape_vis(graph_link) {
 			vis.draw({ network: data, visualStyle: visual_style});
 		});     
 	return vis;     
+}
+
+function highlightSearchTerms(searchText, highlightableArea, treatAsPhrase, warnOnFailure, highlightStartTag, highlightEndTag) {
+  // if the treatAsPhrase parameter is true, then we should search for 
+  // the entire phrase that was entered; otherwise, we will split the
+  // search string so that each word is searched for and highlighted
+  // individually
+  if (treatAsPhrase) {
+    searchArray = [searchText];
+  } else {
+    searchArray = searchText.split(" ");
+  }
+  
+  if (highlightableArea == null) {
+  	if (!document.body || typeof(document.body.innerHTML) == "undefined") {
+    	if (warnOnFailure) {
+      		alert("Sorry, for some reason the text of this page is unavailable. Searching will not work.");
+   	 	}
+    	return false;
+  	}
+  	highlightableArea=document.body;
+  }
+  
+  var bodyText = highlightableArea.innerHTML;
+  for (var i = 0; i < searchArray.length; i++) {
+    bodyText = simpleHighlight(bodyText, searchArray[i], highlightStartTag, highlightEndTag);
+  }
+  
+  highlightableArea.innerHTML = bodyText;
+
+  return true;
+}
+function simpleHighlight(bodyText, searchTerm, highlightStartTag, highlightEndTag) {
+	  // the highlightStartTag and highlightEndTag parameters are optional
+  if ((!highlightStartTag) || (!highlightEndTag)) {
+    highlightStartTag = "<font style='color:blue; background-color:yellow;'>";
+    highlightEndTag = "</font>";
+  }
+  
+	re = new RegExp(searchTerm, "gi");
+
+	func = function(match) {
+        return [highlightStartTag, match, highlightEndTag].join("");
+    };
+
+	bodyText = bodyText.replace(re, func);
+
+	return bodyText;
 }
 
 

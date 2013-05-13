@@ -265,7 +265,7 @@ go_schema = {'nodes': [ { 'name': "label", 'type': "string" },
 
 def create_go_node(obj, focus_node, f_include, p_include, c_include):
     sub_type = None
-    if obj.type == 'BIOCONCEPT':
+    if obj.type == 'GO':
         sub_type = obj.go_aspect.upper()
     if obj == focus_node:
         sub_type = 'FOCUS'
@@ -318,7 +318,7 @@ def create_go_graph(bioent=None, biocon=None):
          
     nodes = []  
     for usable in usable_bios:
-        if usable.type == 'BIOENTITY':
+        if usable.type == 'GENE':
             counts = bioent_to_edge_counts[usable]
             nodes.append(create_go_node(usable, bioent, counts[0]>1, counts[1]>1, counts[2]>1))
         else:

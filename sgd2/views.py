@@ -2,7 +2,7 @@ from model_new_schema.link_maker import LinkMaker
 from pyramid.renderers import get_renderer
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_bioent, get_reference
+from query import get_bioent, get_reference, get_author
  
 def site_layout():
     renderer = get_renderer("templates/global_layout.pt")
@@ -50,6 +50,14 @@ def reference_view(request):
     if reference is None:
             return Response(status_int=500, body='Reference could not be found.') 
     return {'layout': site_layout(), 'page_title': reference.name, 'ref': reference, 'link_maker':LinkMaker(reference.name, reference=reference)}
+
+@view_config(route_name='author', renderer='templates/author.pt')
+def author_view(request):
+    author_name = request.matchdict['author_name'].replace('_', ' ')
+    author = get_author(author_name)
+    if author is None:
+            return Response(status_int=500, body='Author could not be found.') 
+    return {'layout': site_layout(), 'page_title': author.name, 'author': author}
 
 @view_config(route_name='download_graph')
 def download_graph_view(request):

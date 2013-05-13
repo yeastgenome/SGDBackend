@@ -30,8 +30,6 @@ class OutputCreator():
             
     def obj_completed(self):
         self.num_completed = self.num_completed + 1
-        if self.num_completed%1000 == 0:
-            print str(self.num_completed) + '/' + str(self.old_total) + ' ' + self.old_obj_type + ' conversions complete.'
             
     def pulled(self, old_obj_type, old_total):
         self.old_obj_type = old_obj_type

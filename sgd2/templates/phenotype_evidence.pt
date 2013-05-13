@@ -54,6 +54,7 @@
     			<th>Strain</th>
     			<th>Source</th>
     			<th>Reference</th>
+    			<th>Comments</th>
   			</tr>
   			</thead>
   			</table>
@@ -79,6 +80,7 @@
     			<th>Strain</th>
     			<th>Source</th>
     			<th>Reference</th>
+    			<th>Comments</th>
   			</tr>
   			</thead>
   			</table>
@@ -86,7 +88,7 @@
 		<br></br>
 		
 		<h3>Chemical Phenotype Evidence <span id='chemical_evidence_header'></span></h3>
-		<span id='chemical_evidence_message' class="hide">No cellular phenotypes curated.</span>
+		<span id='chemical_evidence_message' class="hide">No chemical phenotypes curated.</span>
 		<div id='chemical_evidence_wrapper'>		
 			<table class='table table-striped table-bordered table-condensed tablesorter' id='chemical_evidence_table' width="100%">
 			<thead>
@@ -102,6 +104,7 @@
     			<th>Strain</th>
     			<th>Source</th>
     			<th>Reference</th>
+    			<th>Comments</th>
   			</tr>
   			</thead>
   			</table>
@@ -109,8 +112,8 @@
 		<br></br>
 		
 		<h3>Protein/Peptide and RNA Phenotype Evidence <span id='pp_rna_evidence_header'></span></h3>
-		<span id='pp_rna_evidence_message' class="hide">No cellular phenotypes curated.</span>
-		<div id='evidence_wrapper'>		
+		<span id='pp_rna_evidence_message' class="hide">No protein/peptide and RNA phenotypes curated.</span>
+		<div id='pp_rna_evidence_wrapper'>		
 			<table class='table table-striped table-bordered table-condensed tablesorter' id='pp_rna_evidence_table' width="100%">
 			<thead>
   			<tr>
@@ -125,6 +128,7 @@
     			<th>Strain</th>
     			<th>Source</th>
     			<th>Reference</th>
+    			<th>Comments</th>
   			</tr>
   			</thead>
   			</table>
@@ -166,15 +170,15 @@
 				var options = basic_datatable_options("cellular_evidence_header", 
 					'${link_maker.cellular_phenotype_evidence_filename}', "cellular_evidence_wrapper", "cellular_evidence_message");
 				options["aaData"] = cellular_evidence;
-				options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null, null, null, {"bSearchable":false, "bVisible":false}, null]
+				options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null, null, null, {"bSearchable":false, "bVisible":false}, null, {"bSearchable":false, "bVisible":false}]
 				options["aaSorting"] = [[0, "asc"]];
-				$('#cellular_evidence_table').dataTable(options);
+				var cellTable = $('#cellular_evidence_table').dataTable(options);
 			
 				//Set up chemical evidence table
 				var options = basic_datatable_options("chemical_evidence_header", 
 					'${link_maker.chemical_phenotype_evidence_filename}', "chemical_evidence_wrapper", "chemical_evidence_message");
 				options["aaData"] = chemical_evidence;
-				options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null, null, null, {"bSearchable":false, "bVisible":false}, null]
+				options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null, null, null, {"bSearchable":false, "bVisible":false}, null, {"bSearchable":false, "bVisible":false}]
 				options["aaSorting"] = [[7, "asc"]];
 				$('#chemical_evidence_table').dataTable(options);
 			
@@ -182,7 +186,7 @@
 				var options = basic_datatable_options("pp_rna_evidence_header", 
 					'${link_maker.pp_rna_phenotype_evidence_filename}', "pp_rna_evidence_wrapper", "pp_rna_evidence_message");
 				options["aaData"] = pp_rna_evidence;
-				options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null, null, null, {"bSearchable":false, "bVisible":false}, null]
+				options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null, null, null, {"bSearchable":false, "bVisible":false}, null, {"bSearchable":false, "bVisible":false}]
 				options["aaSorting"] = [[6, "asc"]];
 				$('#pp_rna_evidence_table').dataTable(options);
 			}
@@ -197,7 +201,7 @@
 				var options = basic_datatable_options("evidence_header", 
 					'${link_maker.phenotype_evidence_filename}', "evidence_wrapper", "evidence_message");
 				options["aaData"] = evidence;
-				options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null, null, null, {"bSearchable":false, "bVisible":false}, null]
+				options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null, null, null, null, null, null, null, {"bSearchable":false, "bVisible":false}, null, {"bSearchable":false, "bVisible":false}]
 				options["aaSorting"] = [[0, "asc"]];
 				$('#evidence_table').dataTable(options);
 			}
@@ -210,7 +214,48 @@
 				p.innerHTML = citation;
 				ref_list.appendChild(p);
 			}
+			
+			//Insert a 'details' column to the table
+    		var nCloneTh = document.createElement( 'th' );
+   			var nCloneTd = document.createElement( 'td' );
+    		nCloneTd.className = "center";
+    		var b = document.createElement('button');
+    		b.className = 'btn btn-link';
+    		b.innerHTML = '<i class="icon-plus-sign"></i>';
+         	nCloneTd.appendChild(b);
+
+    		$('#cellular_evidence_table thead tr').each( function () {
+       	 		this.insertBefore( nCloneTh, this.childNodes[0] );
+     
+    		} );
+     
+    		$('#cellular_evidence_table tbody tr').each( function () {
+    		    if(cellTable.fnGetData(this)[11] != null) {
+					this.insertBefore(  nCloneTd.cloneNode( true ), this.childNodes[0] );
+				}
+				else {
+					this.insertBefore(nCloneTh.cloneNode(true), this.childNodes[0]);
+				}
+   			} );
+   			
+
+   			$('#cellular_evidence_table tbody tr td button').click(function() {
+   				var nTr = $(this).parents('tr')[0];
+        		if ( cellTable.fnIsOpen(nTr) ) {
+            		// This row is already open - close it
+            	 	this.innerHTML = '<i class="icon-plus-sign"></i>';
+            		cellTable.fnClose( nTr );
+        		}
+        		else {
+            		// Open this row
+            	this.innerHTML = '<i class="icon-minus-sign"></i>';
+            	cellTable.fnOpen( nTr, cellTable.fnGetData(nTr)[11], 'details' );
+        		}
+   			});
+			
   		});
+  		
+  		
 	} );
 </script>
 

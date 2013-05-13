@@ -137,11 +137,27 @@ class Gene(Bioentity):
     description = Column('description', String)
     genetic_position = Column('genetic_position', String)
     gene_type = Column('gene_type', String)
+    type = "GENE"
     
     transcript_ids = association_proxy('transcripts', 'id')
     
     __mapper_args__ = {'polymorphic_identity': 'GENE',
                        'inherit_condition': id == Bioentity.id}
+    
+    @hybrid_property
+    def search_entry_title(self):
+        return self.full_name_with_link
+    @hybrid_property
+    def search_description(self):
+        return self.description
+    @hybrid_property
+    def search_additional(self):
+        if len(self.aliases) > 0:
+            return 'Aliases: ' + self.alias_str
+        return None
+    @hybrid_property
+    def search_entry_type(self):
+        return 'Gene'
 
     def __init__(self, name, gene_type, dbxref, source, secondary_name,
                  qualifier, attribute, short_description, headline, description, genetic_position,
@@ -161,12 +177,24 @@ class Transcript(Bioentity):
     
     id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     gene_id = Column('gene_id', Integer, ForeignKey(Gene.id))
+    type = "TRANSCRIPT"
     
     __mapper_args__ = {'polymorphic_identity': "TRANSCRIPT",
                        'inherit_condition': id == Bioentity.id}
     
     gene = relationship('Gene', uselist=False, backref='transcripts', primaryjoin="Transcript.gene_id==Gene.id")
     protein_ids = association_proxy('proteins', 'id')
+    
+    @hybrid_property
+    def search_entry_title(self):
+        return self.full_name_with_link
+    @hybrid_property
+    def search_entry(self):
+        entry = self.description
+        return entry
+    @hybrid_property
+    def search_entry_type(self):
+        return 'Transcript'
 
     def __init__(self, gene_id, bioent_id=None):
         Bioentity.__init__(self, 'Transcript', 'TRANSCRIPT', None, 'SGD', None, bioent_id=bioent_id)
@@ -188,6 +216,7 @@ class Protein(Bioentity):
     fop_score = Column('fop_score', Float)
     gravy_score = Column('gravy_score', Float)
     aromaticity_score = Column('aromaticity_score', Float)
+    type = "PROTEIN"
     
     ala = Column('ala', Integer)
     arg = Column('arg', Integer)
@@ -230,6 +259,19 @@ class Protein(Bioentity):
     
     __mapper_args__ = {'polymorphic_identity': "PROTEIN",
                        'inherit_condition': id == Bioentity.id}
+    
+    @hybrid_property
+    def search_entry_title(self):
+        return self.full_name_with_link
+    @hybrid_property
+    def search_entry(self):
+        entry = ''
+        if len(self.aliases) > 0:
+            entry = '<span class="muted">Aliases: ' + self.alias_str + '</span><br>'
+        return entry
+    @hybrid_property
+    def search_entry_type(self):
+        return 'Protein'
     
     def get_percent_aa(self, aa_abrev):
         return "{0:.2f}".format(100*float(getattr(self, aa_abrev))/self.length) + '%'
@@ -303,6 +345,7 @@ class Contig(Bioentity):
     internal_id = Column('internal_id', String)
     length = Column('length', Integer)
     chromosome_id = Column('chromosome_id', Integer)
+    type = "CONTIG"
     
     __mapper_args__ = {'polymorphic_identity': "CONTIG",
                        'inherit_condition': id == Bioentity.id}

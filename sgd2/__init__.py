@@ -23,7 +23,9 @@ def main(global_config, **settings):
     config.add_route('about', '/about')
     
     #Search views
-    config.add_route('search', '/search/{search_str}')
+    config.add_route('search', '/search')
+    config.add_route('search_results', '/search_results')
+
     config.add_route('typeahead', '/typeahead')
    
     #Bioent views
@@ -55,6 +57,7 @@ def main(global_config, **settings):
        
     #Reference views
     config.add_route('reference', '/reference/{pubmed_id}')
+    config.add_route('author', '/author/{author_name}')
     
     #Sequence views
     config.add_route('sequence', '/sequence')

@@ -14,9 +14,6 @@ def check_value(new_obj, old_obj, field_name):
             setattr(old_obj, field_name, new_obj_value)
             return False
     elif new_obj_value != old_obj_value:
-        #print field_name
-        #print new_obj_value
-        #print old_obj_value
         setattr(old_obj, field_name, new_obj_value)
         return False
     return True

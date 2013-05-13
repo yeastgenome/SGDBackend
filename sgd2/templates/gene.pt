@@ -26,7 +26,6 @@
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar' style="margin-left:auto; margin-right:auto">
 			<li><h3><span tal:content="bioent.full_name"></h3></li>
 			<li><a href="#summary"><i class="icon-chevron-right"></i> Summary</a></li>
-			<li><a href="#location"><i class="icon-chevron-right"></i> Sequence and Location</a></li>
           	<li><a href="#go"><i class="icon-chevron-right"></i> Gene Ontology</a></li>
           	<li><a href="#phenotype"><i class="icon-chevron-right"></i> Phenotype</a></li>
           	<li><a href="#interactions"><i class="icon-chevron-right"></i>Interaction</a></li>
@@ -56,86 +55,6 @@
 				<li tal:condition="python: bioent.name_description"><strong>Name Derived From: </strong><span tal:content="bioent.name_description"></li>
 			</ul>
 		</div>
-	</div>
-</section>
-
-<!-- Sequence and Location
-================================================== -->
-<section id="location">
-	<div class="page-header">
-		<h1>Sequence and Location</h1>
-		
-		<!-- Brief
-		========================================== -->
-		<h3>Variation Map:</h3>
-
-		<ul class='unstyled'>
-			<li><strong>Pan-Genome: </strong>Core</li>
-		</ul>
-					
-		<strong>Gene</strong>
-		<div id='dna_conserve' width="100%"></div>
-		<div id='dna_conserve_seq' width="100%"></div>
-		
-		<strong>Protein</strong>
-		<div id='protein_conserve' width="100%"></div>
-		<div id='protein_conserve_seq' width="100%"></div>
-		
-		<h3>Gene Map:</h3><select id='strain_select'>
-    	<option value="S288C">S288C</option>
-    	<option value="Sigma1278b">Sigma1278b</option>
-    	<option value="AWRI1631">AWRI1631</option>
-    	<option value="AWRI796">AWRI796</option>
-    	<option value="BY4741">BY4741</option>
-    	<option value="BY4742">BY4742</option>
-    	<option value="CBS7960">CBS7960</option>
-    	<option value="CEN.PK">CEN.PK</option>
-    	<option value="CLIB215">CLIB215</option>
-    	<option value="CLIB324">CLIB324</option>
-    	<option value="CLIB382">CLIB382</option>
-    	<option value="EC1118">EC1118</option>
-    	<option value="EC9-8">EC9-8</option>
-    	<option value="FL100">FL100</option>
-    	<option value="FostersB">FostersB</option>
-    	<option value="FostersO">FostersO</option>
-    	<option value="JAY291">JAY291</option>
-    	<option value="Kyokai7">Kyokai7</option>
-    	<option value="LalvinQA23">LalvinQA23</option>
-    	<option value="M22">M22</option>
-    	<option value="PW5">PW5</option>
-    	<option value="RM11-1a">RM11-1a</option>
-    	<option value="T7">T7</option>
-    	<option value="T73">T73</option>
-    	<option value="UC5">UC5</option>
-    	<option value="VIN13">VIN13</option>
-    	<option value="VL3">VL3</option>
-    	<option value="W303">W303</option>
-    	<option value="Y10">Y10</option>
-    	<option value="YJM269">YJM269</option>
-    	<option value="YJM789">YJM789</option>
-    	<option value="YPS163">YPS163</option>
-    	<option value="ZTW1">ZTW1</option>
-  		</select>
-  		<br></br>
-
-  		
-		<strong>Gene</strong>
-		<div id='strand_dir'>Strand</div>
-		<div id='dna' width="100%"></div>
-		<div id='dna_seq'></div>
-		<span id='min_coord' style="float:left"></span><span id='max_coord' style="float:right"></span>
-		<br></br>
-		<strong>Transcript</strong>
-		<div id='rna' width="100%"></div>
-		<div id='rna_seq' width="100%"></div>
-		
-		<strong>Protein</strong>
-		<div id='protein' width="100%"></div>
-		<div id='protein_seq' width="100%"></div>
-		
-		<div id='tools'>
-			<button id='zoom_out' class="btn" onclick="document.getElementById('zoom_out').disabled = zoom_out(legend) == 1;" disabled=true><i class="icon-minus"></i></button><button class="btn" onclick="zoom_full(legend); document.getElementById('zoom_out').disabled = true;"><i class="icon-resize-full"></i></button><button class="btn" onclick="zoom_in(legend); document.getElementById('zoom_out').disabled = false;"><i class="icon-plus"></i></button>
-		<div id='legend'></div>
 	</div>
 </section>
 
@@ -195,7 +114,7 @@
   			<tr>
     			<th>GO Term</th>
     			<th>Gene</th>
-    			<th>Gene Description</th>    			
+    			<th>Gene Description</th>    
     			<th>Evidence Codes</th>
   			</tr>
   			</thead>
@@ -368,55 +287,55 @@
 
 
 <script>
-	function change_strain(strain_name, data) {
-		if(strain_name in data['GENE']) {
-			//add_axis(legend, 0, 100, 'min_coord', 'max_coord');
-			var strain_data = data['GENE'][strain_name];
-			set_seq(stage3, strain_data[0]);
-			set_tags(stage3, strain_data[1]);
-			if(strain_data[2] == '+') {
-				document.getElementById('strand_dir').innerHTML = 'Watson Strand';
-				document.getElementById('min_coord').innerHTML = strain_data[3];
-				document.getElementById('max_coord').innerHTML = strain_data[4];
-			}
-			else {
-				document.getElementById('strand_dir').innerHTML = 'Crick Strand';
-				document.getElementById('min_coord').innerHTML = strain_data[4];
-				document.getElementById('max_coord').innerHTML = strain_data[3];
-			}
-		}
-		else {
-			//set_seq(stage3, '');
-			set_tags(stage3, []);
-			document.getElementById('strand_dir').innerHTML = 'Strand ?';
-			document.getElementById('min_coord').innerHTML = '?';
-			document.getElementById('max_coord').innerHTML = '?';					
-		}
-	}	
+	//function change_strain(strain_name, data) {
+	//	if(strain_name in data['GENE']) {
+	//		//add_axis(legend, 0, 100, 'min_coord', 'max_coord');
+	//		var strain_data = data['GENE'][strain_name];
+	//		set_seq(stage3, strain_data[0]);
+	//		set_tags(stage3, strain_data[1]);
+	//		if(strain_data[2] == '+') {
+	//			document.getElementById('strand_dir').innerHTML = 'Watson Strand';
+	//			document.getElementById('min_coord').innerHTML = strain_data[3];
+	//			document.getElementById('max_coord').innerHTML = strain_data[4];
+	//		}
+	//		else {
+	//			document.getElementById('strand_dir').innerHTML = 'Crick Strand';
+	//			document.getElementById('min_coord').innerHTML = strain_data[4];
+	//			document.getElementById('max_coord').innerHTML = strain_data[3];
+	//		}
+	//	}
+	//	else {
+	//		//set_seq(stage3, '');
+	//		set_tags(stage3, []);
+	//		document.getElementById('strand_dir').innerHTML = 'Strand ?';
+	//		document.getElementById('min_coord').innerHTML = '?';
+	//		document.getElementById('max_coord').innerHTML = '?';					
+	//	}
+	//}	
 	$(document).ready(function() {
 		//Get sequence data
-		$.getJSON('${link_maker.sequence_link}', function(data) {
-			$('#strain_select').change(function() {
-				var e = document.getElementById("strain_select");
-				var strain_name = e.options[e.selectedIndex].value;
-				change_strain(strain_name, data);
-				
-			});
-			
-			var e = document.getElementById("strain_select");
-			var strain_name = e.options[e.selectedIndex].value;
-			change_strain(strain_name, data);
-			
-			set_tags(stage1, data['DNA_VAR'])
-					
-			//set_seq(stage5, data['PROTEIN'][0][0]);
-			
-			//set_tags(stage1, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
-			//set_tags(stage2, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
-			//set_tags(stage3, data['GENE']['S288C'][1]);
-			//set_tags(stage4, [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]]);
-			//set_tags(stage5, [['Domain 1', 20, 5, 'blue'], ['Domain 2', 55, 5, 'blue'], ['spacer', 40, 10],  ['spacer', 0, 20], ['spacer', 90, 10], ['Domain 3', 70, 15, 'blue']]);
-		});
+		//$.getJSON('${link_maker.sequence_link}', function(data) {
+		//	$('#strain_select').change(function() {
+		//		var e = document.getElementById("strain_select");
+		//		var strain_name = e.options[e.selectedIndex].value;
+		//		change_strain(strain_name, data);
+		//		
+		//	});
+		//	
+		//	var e = document.getElementById("strain_select");
+		//	var strain_name = e.options[e.selectedIndex].value;
+		//	change_strain(strain_name, data);
+		//	
+		//	set_tags(stage1, data['DNA_VAR'])
+		//			
+		//	//set_seq(stage5, data['PROTEIN'][0][0]);
+		//	
+		//	//set_tags(stage1, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 75, 10, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
+		//	//set_tags(stage2, [['', 20, 3, 'red'], ['', 50, 5, 'red'], ['', 78, 5, '#F5A9A9'], ['', 30, 4, '#F5A9A9']]);
+		//	//set_tags(stage3, data['GENE']['S288C'][1]);
+		//	//set_tags(stage4, [['Spliced', 40, 10, '#424242'], ["5' UTR", 15, 5, '#424242'], ["3' UTR", 90, 5, '#424242'], ['spacer', 0, 15], ['spacer', 95, 5]]);
+		//	//set_tags(stage5, [['Domain 1', 20, 5, 'blue'], ['Domain 2', 55, 5, 'blue'], ['spacer', 40, 10],  ['spacer', 0, 20], ['spacer', 90, 10], ['Domain 3', 70, 15, 'blue']]);
+		//});
 
 		//Get go data
   		$.getJSON('${link_maker.go_overview_table_link}', function(data) {

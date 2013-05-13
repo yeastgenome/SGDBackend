@@ -68,7 +68,8 @@ class Interevidence(Evidence):
     
     type = 'BIOREL_EVIDENCE'
     
-    __mapper_args__ = {'polymorphic_identity': "INTERACTION_EVIDENCE"}
+    __mapper_args__ = {'polymorphic_identity': "INTERACTION_EVIDENCE",
+                       'inherit_condition': id==Evidence.id}
     
     biorel = relationship(Interaction, backref='evidences')
 
@@ -155,7 +156,8 @@ class Phenoevidence(Evidence):
 
     bioent_biocon = relationship(BioentBiocon)
     
-    __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE"}
+    __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE",
+                       'inherit_condition': id==Evidence.id}
     
 
 
@@ -183,7 +185,8 @@ class Goevidence(Evidence):
 
     type = 'BIOCON_EVIDENCE'
 
-    __mapper_args__ = {'polymorphic_identity': "GO_EVIDENCE"}
+    __mapper_args__ = {'polymorphic_identity': "GO_EVIDENCE",
+                       'inherit_condition': id==Evidence.id}
 
     
     def __init__(self, bioent_biocon_id, reference_id, go_evidence, annotation_type, source, qualifier, date_last_reviewed,
@@ -206,7 +209,8 @@ class Bioentevidence(Evidence):
     bioent = relationship(Bioentity)
 
 
-    __mapper_args__ = {'polymorphic_identity': "BIOENT_EVIDENCE"}
+    __mapper_args__ = {'polymorphic_identity': "BIOENT_EVIDENCE",
+                       'inherit_condition': id==Evidence.id}
 
     
     def __init__(self, bioent_id, reference_id, 

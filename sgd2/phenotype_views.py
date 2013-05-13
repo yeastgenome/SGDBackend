@@ -227,7 +227,7 @@ def make_evidence_row(phenoevidence):
     return [biocon.name_with_link, bioent.name_with_link, 
             phenoevidence.qualifier, phenoevidence.experiment_type, phenoevidence.mutant_type, allele_entry,
             phenoevidence.reporter, chemical_info, phenoevidence.strain_id, 
-            phenoevidence.source, reference]
+            phenoevidence.source, reference, phenoevidence.description]
     
 '''
 ------------------------------Phenotype Ontology Graph-----------------------------

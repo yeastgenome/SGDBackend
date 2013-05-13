@@ -7,7 +7,7 @@ These classes are populated using SQLAlchemy to connect to the BUD schema on Fas
 Reference module of the database schema.
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
-from model_new_schema.link_maker import add_link, reference_link
+from model_new_schema.link_maker import add_link, reference_link, author_link
 from model_new_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -41,6 +41,8 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     doi = Column('doi', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
+    fulltext_link = Column('fulltext_url', String)
+    type = "REFERENCE"
     
     #Relationships
     journal = relationship('Journal', uselist=False)
@@ -51,12 +53,10 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     
     abst = relationship("Abstract", cascade='all,delete', uselist=False)
         
-    author_references = relationship('AuthorReference', cascade='all,delete', collection_class=attribute_mapped_collection('order'))
+    author_references = relationship('AuthorReference', backref='reference')
     
     authorNames = association_proxy('author_references', 'author_name')
-    authors = association_proxy('author_references', 'author', 
-                                creator=lambda k, v: AuthorReference(session=None, author=v, order=k, ar_type='Author'))
-    
+
     reftype_references = relationship('RefReftype', cascade='all,delete',
                             collection_class=attribute_mapped_collection('id'))
     
@@ -129,7 +129,11 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
                 
             #Add the ref_type
             self.refType = Reftype.as_unique(session, name=pubmed.pub_type)
-            
+     
+    @hybrid_property
+    def authors(self):
+        sorted_author_refs = sorted(list(self.author_references), key=lambda x: x.order)
+        return [author_ref.author for author_ref in sorted_author_refs]     
     @hybrid_property
     def link(self):
         return reference_link(self)
@@ -158,6 +162,27 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     @hybrid_property
     def name_with_link(self):
         return self.author_year_with_link + self.small_pmid
+    
+    @hybrid_property
+    def pubmed_link(self):
+        return 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(self.pubmed_id)
+    
+    @hybrid_property
+    def search_entry_title(self):
+        return self.author_year_with_link
+    @hybrid_property
+    def search_description(self):
+        #return self.abst.text
+        return self.title
+    @hybrid_property
+    def search_additional(self):
+        if self.pubmed_id is not None:
+            return 'Pubmed ID: ' + str(self.pubmed_id)
+        return None
+    @hybrid_property
+    def search_entry_type(self):
+        return 'Reference'
+        
     @hybrid_property
     def author_year(self):
         return self.citation_db[:self.citation_db.find(')')+1]
@@ -271,6 +296,8 @@ class Author(Base, EqualityByIDMixin, UniqueMixin):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
+    authorNames = association_proxy('author_references', 'author_name')
+    
     def __init__(self, name, session=None, author_id=None, created_by=None, date_created=None):
         self.name = name
         
@@ -289,6 +316,19 @@ class Author(Base, EqualityByIDMixin, UniqueMixin):
     @classmethod
     def unique_filter(cls, query, name):
         return query.filter(Author.name == name)
+    
+    @hybrid_property
+    def link(self):
+        return author_link(self)
+    
+    @hybrid_property
+    def references(self):
+        sorted_references = sorted([author_ref.reference for author_ref in self.author_references], key=lambda x: x.date_published, reverse=True)
+        return sorted_references
+    
+    @hybrid_property
+    def name_with_link(self):
+        return add_link(self.name, self.link)
 
     def __repr__(self):
         data = self.name
@@ -321,8 +361,11 @@ class AuthorReference(Base, EqualityByIDMixin, UniqueMixin):
     def unique_filter(cls, query, author, reference_id, order, ar_type):
         return query.filter(AuthorReference.order == order, AuthorReference.author == author, AuthorReference.ar_type == ar_type)
     
-    author = relationship('Author') 
+    author = relationship('Author', backref='author_references') 
     author_name = association_proxy('author', 'name')
+    
+    def __repr__(self):
+        return 'AuthorReference(author=' + self.author.name + ', reference=' + self.reference.name + ')'
     
 class Abstract(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = 'abstract'
