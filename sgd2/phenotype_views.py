@@ -6,9 +6,9 @@ Created on Mar 15, 2013
 from model_new_schema.link_maker import LinkMaker
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_bioent_biocons, get_biocon, get_bioent, \
-    get_phenotype_evidence, get_related_bioent_biocons, get_reference, \
-    get_phenotype_evidence_ref, get_biocon_family, get_biocon_biocons
+from query import get_biofacts, get_biocon, get_bioent, \
+    get_phenotype_evidence, get_related_biofacts, get_reference, \
+    get_biocon_family, get_biocon_biocons
 from sgd2.views import site_layout
 from utils.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list
@@ -60,8 +60,7 @@ def phenotype_overview_table(request):
         biocon = get_biocon(biocon_name, 'PHENOTYPE')
         if biocon is None:
             return Response(status_int=500, body='Biocon could not be found.')
-        bioent_biocons = get_bioent_biocons('PHENOTYPE', biocon=biocon)
-        phenoevidences = get_phenotype_evidence(bioent_biocons)
+        phenoevidences = get_phenotype_evidence(biocon_id=biocon.id)
         return make_overview_tables(False, phenoevidences) 
         
     elif 'bioent_name' in request.GET:
@@ -70,8 +69,7 @@ def phenotype_overview_table(request):
         bioent = get_bioent(bioent_name)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        bioent_biocons = get_bioent_biocons('PHENOTYPE', bioent=bioent)
-        phenoevidences = get_phenotype_evidence(bioent_biocons)
+        phenoevidences = get_phenotype_evidence(bioent_id=bioent.id)
         return make_overview_tables(True, phenoevidences) 
     
     elif 'reference_name' in request.GET:
@@ -80,7 +78,7 @@ def phenotype_overview_table(request):
         ref = get_reference(ref_name)
         if ref is None:
             return Response(status_int=500, body='Reference could not be found.')
-        phenoevidences = get_phenotype_evidence_ref(ref)
+        phenoevidences = get_phenotype_evidence(reference_id=ref.id)
         return make_overview_tables(True, phenoevidences) 
 
     else:
@@ -95,8 +93,8 @@ def phenotype_evidence_table(request):
         biocon = get_biocon(biocon_name, 'PHENOTYPE')
         if biocon is None:
             return Response(status_int=500, body='Biocon could not be found.')
-        bioent_biocons = get_bioent_biocons('PHENOTYPE', biocon=biocon)
-        return make_evidence_tables(False, bioent_biocons) 
+        evidences = get_phenotype_evidence(biocon_id=biocon.id)
+        return make_evidence_tables(False, evidences) 
         
     elif 'bioent_name' in request.GET:
         #Need a phenotype overview table based on a bioent
@@ -104,8 +102,8 @@ def phenotype_evidence_table(request):
         bioent = get_bioent(bioent_name)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        bioent_biocons = get_bioent_biocons('PHENOTYPE', bioent=bioent)
-        return make_evidence_tables(True, bioent_biocons) 
+        evidences = get_phenotype_evidence(bioent_id=bioent.id)
+        return make_evidence_tables(True, evidences) 
     
     else:
         return Response(status_int=500, body='No Bioent or Biocon specified.')
@@ -162,34 +160,33 @@ def make_overview_tables(divided, phenoevidences):
     return tables    
 
 def make_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (evidence.bioent_biocon, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (evidence.bioentity, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_overview_row) 
 
 def make_chemical_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (', '.join([chem.name for chem in evidence.chemicals]), evidence.bioent_biocon, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (', '.join([chem.name for chem in evidence.chemicals]), evidence.bioentity, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_grouped_overview_row) 
 
 def make_pp_rna_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (evidence.reporter, evidence.bioent_biocon, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (evidence.reporter, evidence.bioentity, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_grouped_overview_row) 
 
-def make_overview_row(bioent_biocon, evs_for_group, group_term):
-    bioent = bioent_biocon.bioentity
-    biocon = bioent_biocon.bioconcept
-    return [biocon.name_with_link, bioent.name_with_link, group_term[1], group_term[2]]
+def make_overview_row(evs_for_group, group_term):
+    bioent = group_term[0]
+    biocon = group_term[1]
+    return [biocon.name_with_link, bioent.name_with_link, group_term[2], group_term[3]]
 
-def make_grouped_overview_row(bioent_biocon, evs_for_group, group_term):
-    bioent = bioent_biocon.bioentity
-    biocon = bioent_biocon.bioconcept
-    return [biocon.name_with_link, bioent.name_with_link, group_term[0], group_term[2], group_term[3]]
+def make_grouped_overview_row(evs_for_group, group_term):
+    bioent = group_term[1]
+    biocon = group_term[2]
+    return [biocon.name_with_link, bioent.name_with_link, group_term[0], group_term[3], group_term[4]]
     
 '''
 -------------------------------Evidence Table---------------------------------------
 '''
     
-def make_evidence_tables(divided, bioent_biocons):
+def make_evidence_tables(divided, phenoevidences):
     tables = {}
-    phenoevidences = get_phenotype_evidence(bioent_biocons)
 
     if divided:
         divided_evidences = divide_phenoevidences(phenoevidences)
@@ -206,8 +203,8 @@ def make_evidence_tables(divided, bioent_biocons):
     return tables    
 
 def make_evidence_row(phenoevidence): 
-    bioent = phenoevidence.bioent_biocon.bioentity
-    biocon = phenoevidence.bioent_biocon.bioconcept
+    bioent = phenoevidence.bioentity
+    biocon = phenoevidence.phenotype
     reference = ''
     if phenoevidence.reference is not None:
         reference = phenoevidence.reference.name_with_link
@@ -222,12 +219,16 @@ def make_evidence_row(phenoevidence):
             chemicals.append(chemical.chemical_name)
         else:
             chemicals.append(chemical.chemical_name + ': ' + chemical.chemical_amt)
-    chemical_info = ', '.join(chemicals)
+    if len(chemicals) > 0:
+        chemical_info = ', '.join(chemicals)
+    else:
+        chemical_info = None
+
      
     return [biocon.name_with_link, bioent.name_with_link, 
             phenoevidence.qualifier, phenoevidence.experiment_type, phenoevidence.mutant_type, allele_entry,
-            phenoevidence.reporter, chemical_info, phenoevidence.strain_id, 
-            phenoevidence.source, reference, phenoevidence.description]
+            phenoevidence.reporter, chemical_info, phenoevidence.experiment_details, phenoevidence.conditions, phenoevidence.details, 
+            phenoevidence.strain_id, phenoevidence.source, reference]
     
 '''
 ------------------------------Phenotype Ontology Graph-----------------------------
@@ -291,19 +292,19 @@ def create_phenotype_edge(obj, source_obj, sink_obj):
 
 def create_phenotype_graph(bioent=None, biocon=None): 
     if bioent is not None:
-        level_one = set([bioent_biocon for bioent_biocon in get_bioent_biocons('PHENOTYPE', bioent=bioent)])
-        level_one = [bioent_biocon for bioent_biocon in level_one if bioent_biocon.bioconcept.phenotype_type=='cellular']
+        level_one = set([biofact for biofact in get_biofacts('PHENOTYPE', bioent=bioent)])
+        level_one = [biofact for biofact in level_one if biofact.bioconcept.phenotype_type=='cellular']
 
-        biocon_ids = [bioent_biocon.biocon_id for bioent_biocon in level_one]
-        level_two = set([bioent_biocon for bioent_biocon in get_related_bioent_biocons(biocon_ids)])
+        biocon_ids = [biofact.biocon_id for biofact in level_one]
+        level_two = set([biofact for biofact in get_related_biofacts(biocon_ids)])
     
     usable_bios = set()       
     usable_bios.add(bioent)
-    usable_bios.update([bioent_biocon.bioconcept for bioent_biocon in level_one])
+    usable_bios.update([biofact.bioconcept for biofact in level_one])
     
     bioent_to_edge_count = {}
-    for bioent_biocon in level_two:
-        ent = bioent_biocon.bioentity
+    for biofact in level_two:
+        ent = biofact.bioentity
         if ent in bioent_to_edge_count:
             bioent_to_edge_count[ent] = bioent_to_edge_count[ent] + 1
         else:
@@ -322,14 +323,14 @@ def create_phenotype_graph(bioent=None, biocon=None):
             nodes.append(create_phenotype_node(usable, bioent))
     
     edges = []
-    for bioent_biocon in level_one:
-        if bioent_biocon.bioconcept in usable_bios and bioent_biocon.bioentity in usable_bios:
-            edges.append(create_phenotype_edge(bioent_biocon, bioent_biocon.bioentity, bioent_biocon.bioconcept))
+    for biofact in level_one:
+        if biofact.bioconcept in usable_bios and biofact.bioentity in usable_bios:
+            edges.append(create_phenotype_edge(biofact, biofact.bioentity, biofact.bioconcept))
     
-    for bioent_biocon in level_two:
-        if bioent_biocon.bioconcept in usable_bios and bioent_biocon.bioentity in usable_bios and \
-        bioent_biocon.bioentity != bioent:
-            edges.append(create_phenotype_edge(bioent_biocon, bioent_biocon.bioentity, bioent_biocon.bioconcept))
+    for biofact in level_two:
+        if biofact.bioconcept in usable_bios and biofact.bioentity in usable_bios and \
+        biofact.bioentity != bioent:
+            edges.append(create_phenotype_edge(biofact, biofact.bioentity, biofact.bioconcept))
     
     return {'dataSchema':phenotype_schema, 'data': {'nodes': nodes, 'edges': edges}}
 
@@ -337,15 +338,15 @@ def create_phenotype_graph(bioent=None, biocon=None):
 -------------------------------Utils---------------------------------------
 '''  
 def divide_phenoevidences(phenoevidences):
-    chemical_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.bioent_biocon.bioconcept.phenotype_type == 'chemical']
-    pp_rna_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.bioent_biocon.bioconcept.phenotype_type == 'pp_rna']
-    cellular_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.bioent_biocon.bioconcept.phenotype_type == 'cellular']
+    chemical_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.phenotype.phenotype_type == 'chemical']
+    pp_rna_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.phenotype.phenotype_type == 'pp_rna']
+    cellular_phenoevidences = [phenoevidence for phenoevidence in phenoevidences if phenoevidence.phenotype.phenotype_type == 'cellular']
     return {'cellular':cellular_phenoevidences, 'chemical':chemical_phenoevidences, 'pp_rna':pp_rna_phenoevidences}
 
-def divide_bioent_biocons(bioent_biocons):
-    chemical_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.phenotype_type == 'chemical']
-    pp_rna_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.phenotype_type == 'pp_rna']
-    cellular_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.phenotype_type == 'cellular']
+def divide_biofacts(biofacts):
+    chemical_biofacts = [biofact for biofact in biofacts if phenotype.phenotype_type == 'chemical']
+    pp_rna_biofacts = [biofact for biofact in biofacts if phenotype.phenotype_type == 'pp_rna']
+    cellular_biofacts = [biofact for biofact in biofacts if phenotype.phenotype_type == 'cellular']
 
-    return {'cellular':cellular_bioent_biocons, 'chemical':chemical_bioent_biocons, 'pp_rna':pp_rna_bioent_biocons}
+    return {'cellular':cellular_biofacts, 'chemical':chemical_biofacts, 'pp_rna':pp_rna_biofacts}
         

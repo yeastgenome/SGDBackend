@@ -199,6 +199,7 @@
 				var options = basic_datatable_options("evidence_header", '${link_maker.go_evidence_filename}', "evidence_wrapper", "evidence_message");
 				options["aaSorting"] = [[0, "asc"]];
 				options["aaData"] = go;
+				options['bPaginate'] = true;
 				options["aoColumns"] = [{"bSearchable":false, "bVisible":false}, null, null, null, null, null, null]
 				$('#evidence_table').dataTable(options);
 			}

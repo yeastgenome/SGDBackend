@@ -3,32 +3,50 @@ Created on Nov 27, 2012
 
 @author: kpaskov
 '''
-from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
-from model_new_schema.link_maker import link_symbol, add_link, interaction_link
+from model_new_schema import Base, EqualityByIDMixin, SCHEMA
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 import datetime
 
-class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
-    __tablename__ = "biorel"
+class Biofact(Base, EqualityByIDMixin):
+    __tablename__ = 'biofact'
+
+    id = Column('biofact_id', Integer, primary_key=True)
+    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    biocon_id = Column('biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    biocon_type = Column('biocon_type', String)
+    use_in_graph = Column('use_for_graph', String)
+
+    bioentity = relationship('Bioentity', uselist=False, backref='biofacts')
+    bioconcept = relationship('Bioconcept', uselist=False, backref='biofacts')
+    
+    type = "BIOFACT"
+
+    
+    def __init__(self, bioent_id, biocon_id, biocon_type):
+        self.bioent_id = bioent_id
+        self.biocon_id = biocon_id
+        self.biocon_type = biocon_type
+
+class BioentRelation(Base, EqualityByIDMixin):
+    __tablename__ = "bioentrel"
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
     
     id = Column('biorel_id', Integer, primary_key = True)
     official_name = Column('name', String)
     biorel_type = Column('biorel_type', String)
-    source_bioent_id = Column('bioent_id1', Integer, ForeignKey('sprout.newbioent.bioent_id'))
-    sink_bioent_id = Column('bioent_id2', Integer, ForeignKey('sprout.newbioent.bioent_id'))
-    evidence_count = Column('evidence_count', Integer)
+    source_bioent_id = Column('bioent_id1', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    sink_bioent_id = Column('bioent_id2', Integer, ForeignKey('sprout.bioent.bioent_id'))
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
     type = 'BIORELATION'
     
     #Relationships
-    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.source_bioent_id==Bioentity.id", backref='biorel_source')
-    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="Biorelation.sink_bioent_id==Bioentity.id", backref='biorel_sink')
+    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="BioentRelation.source_bioent_id==Bioentity.id", backref='biorel_source')
+    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="BioentRelation.sink_bioent_id==Bioentity.id", backref='biorel_sink')
         
     __mapper_args__ = {'polymorphic_on': biorel_type,
                        'polymorphic_identity':"BIORELATION",
@@ -54,14 +72,6 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
     def name_with_link(self):
         return 'Interaction between ' + self.source_bioent.name_with_link + ' and ' + self.sink_bioent.name_with_link
     
-    @classmethod
-    def unique_hash(cls, biorel_type, source_bioent_id, sink_bioent_id):
-        return '%s_%s_%s' % (biorel_type, source_bioent_id, sink_bioent_id) 
-
-    @classmethod
-    def unique_filter(cls, query, biorel_type, source_bioent_id, sink_bioent_id):
-        return query.filter(Biorelation.biorel_type == biorel_type, Biorelation.source_bioent_id == source_bioent_id, Biorelation.sink_bioent_id == sink_bioent_id)
-    
     def __init__(self, biorel_type, source_bioent_id, sink_bioent_id, session=None, biorel_id=None, created_by=None, date_created=None):
         self.source_bioent_id = source_bioent_id
         self.sink_bioent_id = sink_bioent_id
@@ -79,39 +89,42 @@ class Biorelation(Base, EqualityByIDMixin, UniqueMixin):
         data = self.__class__.__name__, self.id, self.source_bioent.name, self.sink_bioent.name
         return '%s(id=%s, source_name=%s, sink_name=%s)' % data
 
-class Interaction(Biorelation):
-    __tablename__ = "interaction"
+class BioconRelation(Base, EqualityByIDMixin):
+    __tablename__ = 'bioconrel'
 
-    id = Column('biorel_id', Integer, ForeignKey(Biorelation.id), primary_key = True)
-    physical_evidence_count = Column('physical_evidence_count', Integer)
-    genetic_evidence_count = Column('genetic_evidence_count', Integer)
-    
-    @hybrid_property
-    def link(self):
-        return interaction_link(self)
+    id = Column('biocon_biocon_id', Integer, primary_key=True)
+    parent_biocon_id = Column('parent_biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    child_biocon_id = Column('child_biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    relationship_type = Column('relationship_type', String)
+   
+    parent_biocon = relationship('Bioconcept', uselist=False, backref='child_biocons', primaryjoin="BioconRelation.parent_biocon_id==Bioconcept.id")
+    child_biocon = relationship('Bioconcept', uselist=False, backref='parent_biocons', primaryjoin="BioconRelation.child_biocon_id==Bioconcept.id")
+    type = "BIOCON_BIOCON"
+
+    def __init__(self, parent_biocon_id, child_biocon_id, relationship_type, session=None, biocon_biocon_id=None):
+        self.parent_biocon_id = parent_biocon_id
+        self.child_biocon_id = child_biocon_id
+        self.relationship_type = relationship_type
         
-    __mapper_args__ = {'polymorphic_identity': 'INTERACTION',
-                       'inherit_condition': id == Biorelation.id}
-    
-class Regulation(Biorelation):
-    __mapper_args__ = {'polymorphic_identity': "REGULATION"}
-    
-class Homology(Biorelation):
-    __mapper_args__ = {'polymorphic_identity': "HOMOLOGY"}
-    
-class Structural(Biorelation):
-    __mapper_args__ = {'polymorphic_identity': "STRUCTURAL"}
+        if session is None:
+            self.id = biocon_biocon_id
+  
+class BioconAncestor(Base, EqualityByIDMixin):
+    __tablename__ = 'biocon_ancestor'
 
-class ProteinBiosynthesis(Biorelation):
-    __mapper_args__ = {'polymorphic_identity': "PROTEIN_BIOSYNTHESIS"}
+    id = Column('biocon_ancestor_id', Integer, primary_key=True)
+    ancestor_biocon_id = Column('ancestor_biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    child_biocon_id = Column('child_biocon_id', Integer, ForeignKey('sprout.biocon.biocon_id'))
+    generation = Column('generation', Integer)
+   
+    ancestor_biocon = relationship('Bioconcept', uselist=False, primaryjoin="BioconAncestor.ancestor_biocon_id==Bioconcept.id")
+    child_biocon = relationship('Bioconcept', uselist=False, primaryjoin="BioconAncestor.child_biocon_id==Bioconcept.id")
+    type = "BIOCON_ANCESTOR"
+
+    def __init__(self, ancestor_biocon_id, child_biocon_id, session=None, biocon_ancestor_id=None):
+        self.ancestor_biocon_id = ancestor_biocon_id
+        self.child_biocon_id = child_biocon_id
+        
+        if session is None:
+            self.id = biocon_ancestor_id
     
-class BioentBiorel(Base):
-    __tablename__ = "bioent_biorel"
-
-    id = Column('bioent_biorel_id', Integer, primary_key = True)
-    bioent_id = Column('bioent_id', Integer)
-    biorel_id = Column('biorel_id', Integer, ForeignKey(Biorelation.id))
-    
-    biorel = relationship(Biorelation)
-
-

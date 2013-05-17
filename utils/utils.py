@@ -6,30 +6,26 @@ Created on Mar 12, 2013
 
 #Create evidence tables
 def create_grouped_evidence_table(evidences, evidence_map, f):
-    group_term__to_bb_and_ev = {}
+    group_term_to_evid = {}
    
     for evidence in evidences:
         group_term = evidence_map[evidence.id]
-        if evidence.type == 'BIOCON_EVIDENCE':
-            bb = evidence.bioent_biocon
-        elif evidence.type == 'BIOREL_EVIDENCE':
-            bb = evidence.biorel
                     
         if not isinstance(group_term, list):
-            if group_term in group_term__to_bb_and_ev:
-                group_term__to_bb_and_ev[group_term][1].append(evidence)
+            if group_term in group_term_to_evid:
+                group_term_to_evid[group_term].append(evidence)
             else:
-                group_term__to_bb_and_ev[group_term] = (bb, [evidence])
+                group_term_to_evid[group_term] = [evidence]
         else:
             for gt in group_term:
-                if gt in group_term__to_bb_and_ev:
-                    group_term__to_bb_and_ev[gt][1].append(evidence)
+                if gt in group_term_to_evid:
+                    group_term_to_evid[gt].append(evidence)
                 else:
-                    group_term__to_bb_and_ev[gt] = (bb, [evidence])
+                    group_term_to_evid[gt] = [evidence]
         
     table = []
-    for (group_term, (bioent_biocon, ev_for_group)) in group_term__to_bb_and_ev.iteritems():
-        entries = f(bioent_biocon, ev_for_group, group_term)
+    for (group_term, ev_for_group) in group_term_to_evid.iteritems():
+        entries = f(ev_for_group, group_term)
         table.append(entries)     
     return table
 

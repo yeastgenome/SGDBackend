@@ -3,13 +3,9 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
-from model_old_schema.config import DBUSER as OLD_DBUSER
-from schema_conversion import cache, create_or_update
-from schema_conversion.old_to_new_bioconcept import check_evidence
-from schema_conversion.old_to_new_bioentity import dbxref_id_to_bioent
+from schema_conversion import cache, create_or_update, \
+    create_or_update_and_remove
 from schema_conversion.output_manager import OutputCreator
-from sqlalchemy.orm import joinedload
-import model_old_schema
 
 
 """
@@ -99,73 +95,64 @@ def create_reference(old_reference):
     
     citation = create_citation(old_reference.citation)
     name = create_name(citation)
-    new_ref = NewReference(old_reference.pubmed_id, reference_id=old_reference.id, source=old_reference.source, status=old_reference.status, 
-                           pdf_status=old_reference.pdf_status, dbxref_id=old_reference.dbxref_id, citation=citation, year=old_reference.year, 
-                           date_published=old_reference.date_published, date_revised=old_reference.date_revised, 
-                           issue=old_reference.issue, page=old_reference.page, volume=old_reference.volume, title=old_reference.title,
-                           journal_id=old_reference.journal_id, book_id=old_reference.book_id, doi=old_reference.doi, name=name, 
-                           date_created=old_reference.date_created, created_by=old_reference.created_by)
+    new_ref = NewReference(old_reference.id, old_reference.pubmed_id, old_reference.source, old_reference.status, 
+                           old_reference.pdf_status, old_reference.dbxref_id, citation, old_reference.year, 
+                           old_reference.date_published, old_reference.date_revised, 
+                           old_reference.issue, old_reference.page, old_reference.volume, old_reference.title,
+                           old_reference.journal_id, old_reference.book_id, old_reference.doi, name, 
+                           old_reference.date_created, old_reference.created_by)
     return new_ref
 
-def create_bioentevidence(old_dbxrefref):
-    from model_new_schema.evidence import Bioentevidence as NewBioentevidence
-    dbxref = old_dbxrefref.dbxref
-    dbxref_id = dbxref.dbxref_id
-    bioent_id = dbxref_id_to_bioent[dbxref_id].id
-    
-    new_bioentevidence = NewBioentevidence(bioent_id, old_dbxrefref.reference_id, evidence_id=old_dbxrefref.id, date_created=dbxref.date_created, created_by=dbxref.created_by)
-    return new_bioentevidence
      
 """
 ---------------------Convert------------------------------
 """   
 
-def convert_reference(old_model, session):
+def convert_reference(old_session, new_session):
     from model_new_schema.reference import Journal as NewJournal, Book as NewBook, Abstract as NewAbstract, Author as NewAuthor, \
         Reftype as NewReftype, AuthorReference as NewAuthorReference, RefReftype as NewRefReftype, Reference as NewReference
-    from model_new_schema.evidence import Bioentevidence as NewBioentevidence
+
     from model_new_schema.bioentity import Bioentity as NewBioentity
         
     from model_old_schema.reference import Journal as OldJournal, Book as OldBook, Abstract as OldAbstract, Author as OldAuthor, \
         RefType as OldReftype, AuthorReference as OldAuthorReference, RefReftype as OldRefReftype, Reference as OldReference
     from model_old_schema.general import DbxrefRef as OldDbxrefRef
-    output_creator = OutputCreator()
 
-#    #Cache journals
-#    key_maker = lambda x: x.id
-#    output_message = 'journal'
-#    cache(NewJournal, id_to_journal, key_maker, session, output_creator, output_message)
-#    
-#    #Create new journals if they don't exist, or update the database if they do.
-#    old_objs = old_model.execute(model_old_schema.model.get(OldJournal), OLD_DBUSER)
-#    values_to_check = ['full_name', 'abbreviation', 'issn', 'essn', 'publisher', 'created_by', 'date_created']
-#    create_or_update(old_objs, id_to_journal, create_journal, key_maker, values_to_check, 
-#                     old_model, session, output_creator, output_message)
-#    
-#    #Cache books
-#    key_maker = lambda x: x.id
-#    output_message = 'book'
-#    cache(NewBook, id_to_book, key_maker, session, output_creator, output_message)
-#    
-#    #Create new books if they don't exist, or update the database if they do.
-#    old_objs = old_model.execute(model_old_schema.model.get(OldBook), OLD_DBUSER)
-#    values_to_check = ['title', 'volume_title', 'isbn', 'total_pages', 'publisher', 'publisher_location', 'created_by', 'date_created']
-#    create_or_update(old_objs, id_to_book, create_book, key_maker, values_to_check, 
-#                     old_model, session, output_creator, output_message)
-#    
-#    #Cache references
-#    key_maker = lambda x: x.id
-#    output_message = 'reference'
-#    cache(NewReference, id_to_reference, key_maker, session, output_creator, output_message)
-#    
-#    #Create new references if they don't exist, or update the database if they do.
-#    old_objs = old_model.execute(model_old_schema.model.get(OldReference), OLD_DBUSER)
-#    values_to_check = ['source', 'status', 'pdf_status', 'dbxref_id', 'citation_db', 'year', 'pubmed_id', 'date_published', 'date_revised',
-#                       'issue', 'page', 'volume', 'title', 'journal_id', 'book_id', 'doi', 'created_by', 'date_created']
-#    print values_to_check
-#    create_or_update(old_objs, id_to_reference, create_reference, key_maker, values_to_check, 
-#                     old_model, session, output_creator, output_message)
-#    
+    #Cache journals
+    key_maker = lambda x: x.id
+    journal_oc = OutputCreator('journal')
+    cache(NewJournal, id_to_journal, key_maker, new_session, journal_oc)
+    
+    #Create new journals if they don't exist, or update the database if they do.
+    old_objs = old_session.query(OldJournal).all()
+    values_to_check = ['full_name', 'abbreviation', 'issn', 'essn', 'publisher', 'created_by', 'date_created']
+    create_or_update_and_remove(old_objs, id_to_journal, create_journal, key_maker, values_to_check, 
+                     new_session, journal_oc)
+    new_session.commit()
+    #Cache books
+    key_maker = lambda x: x.id
+    book_oc = OutputCreator('book')
+    cache(NewBook, id_to_book, key_maker, new_session, book_oc)
+    
+    #Create new books if they don't exist, or update the database if they do.
+    old_objs = old_session.query(OldBook).all()
+    values_to_check = ['title', 'volume_title', 'isbn', 'total_pages', 'publisher', 'publisher_location', 'created_by', 'date_created']
+    create_or_update_and_remove(old_objs, id_to_book, create_book, key_maker, values_to_check, 
+                     new_session, book_oc)
+    new_session.commit()
+
+    #Cache references
+    key_maker = lambda x: x.id
+    reference_oc = OutputCreator('reference')
+    cache(NewReference, id_to_reference, key_maker, new_session, reference_oc)
+    
+    #Create new references if they don't exist, or update the database if they do.
+    old_objs = old_session.query(OldReference).all()
+    values_to_check = ['source', 'status', 'pdf_status', 'dbxref_id', 'citation_db', 'year', 'pubmed_id', 'date_published', 'date_revised',
+                       'issue', 'page', 'volume', 'title', 'journal_id', 'book_id', 'doi', 'created_by', 'date_created']
+    create_or_update_and_remove(old_objs, id_to_reference, create_reference, key_maker, values_to_check, 
+                     new_session, reference_oc)
+    
 #    #Cache abstracts
 #    key_maker = lambda x: x.reference_id
 #    output_message = 'abstract'
@@ -210,22 +197,22 @@ def convert_reference(old_model, session):
 #    create_or_update(old_objs, tuple_to_reftype_ref, create_reftype_reference, key_maker, values_to_check, 
 #                     old_model, session, output_creator, output_message)
         
-    #Cache bioents with dbxref_id
-    key_maker = lambda x: x.dbxref_id
-    output_message = 'bioent with dbxref_id'
-    cache(NewBioentity, dbxref_id_to_bioent, key_maker, session, output_creator, output_message)
-    
-    #Cache bioentevidences
-    key_maker = lambda x: x.id
-    output_message = 'bioentevidences'
-    cache(NewBioentevidence, id_to_bioentevidence, key_maker, session, output_creator, output_message)
-    
-    #Create new bioentevidences if they don't exist, or update the database if they do.
-    old_objs = old_model.user_to_sessionmaker[OLD_DBUSER]().query(OldDbxrefRef).options(joinedload('dbxref')).all()
-    values_to_check = ['bioent_id']
-    create_or_update(old_objs, id_to_bioentevidence, create_bioentevidence, key_maker, values_to_check, 
-                     old_model, session, output_creator, output_message, [check_evidence])
+#    #Cache bioents with dbxref_id
+#    key_maker = lambda x: x.dbxref_id
+#    output_message = 'bioent with dbxref_id'
+#    cache(NewBioentity, dbxref_id_to_bioent, key_maker, session, output_creator, output_message)
 #    
+#    #Cache bioentevidences
+#    key_maker = lambda x: x.id
+#    output_message = 'bioentevidences'
+#    cache(NewBioentevidence, id_to_bioentevidence, key_maker, session, output_creator, output_message)
+#    
+#    #Create new bioentevidences if they don't exist, or update the database if they do.
+#    old_objs = old_model.user_to_sessionmaker[OLD_DBUSER]().query(OldDbxrefRef).options(joinedload('dbxref')).all()
+#    values_to_check = ['bioent_id']
+#    create_or_update(old_objs, id_to_bioentevidence, create_bioentevidence, key_maker, values_to_check, 
+#                     old_model, session, output_creator, output_message, [check_evidence])
+##    
 #    #Cache author_refs
 #    key_maker = lambda x: (x.author_id, x.reference_id)
 #    output_message = 'author_ref'

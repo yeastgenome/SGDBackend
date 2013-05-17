@@ -43,7 +43,8 @@ def create_or_update(old_objs, mapping, create, key_maker, values_to_check, sess
     for old_obj in old_objs:
         new_obj = create(old_obj)
         if new_obj is not None:
-            add_or_check(new_obj, mapping, key_maker, values_to_check, session, output_creator)
+            key = key_maker(new_obj)
+            add_or_check(new_obj, mapping, key, values_to_check, session, output_creator)
     output_creator.finished()
     
 def create_or_update_and_remove(old_objs, mapping, create, key_maker, values_to_check, session, output_creator):
@@ -56,9 +57,7 @@ def create_or_update_and_remove(old_objs, mapping, create, key_maker, values_to_
             
             if key in to_be_removed:
                 to_be_removed.remove(key)
-        
-        output_creator.obj_completed()
-    
+            
     for r_id in to_be_removed:
         session.delete(mapping[r_id])
         output_creator.removed()

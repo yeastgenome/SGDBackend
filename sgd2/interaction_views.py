@@ -3,14 +3,15 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.link_maker import LinkMaker
+from model_new_schema.link_maker import LinkMaker, phenotype_link_from_name, \
+    add_link
 from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_bioent, get_biorels, get_biorel, get_interaction_evidence, \
     get_interactions, get_reference, get_interaction_evidence_ref
 from sgd2.views import site_layout
-from utils.utils import create_simple_table, \
-    make_reference_list, entry_with_link
+from utils.utils import create_simple_table, make_reference_list, \
+    entry_with_link
 
 
 '''
@@ -183,10 +184,18 @@ def make_evidence_row(interevidence, bioent=None):
     reference = ''
     if interevidence.reference is not None:
         reference = interevidence.reference.name_with_link
-    
+        
+    phenotype = None
+    if interevidence.qualifier is not None or interevidence.observable is not None:
+        phenotype = ''
+        if interevidence.qualifier is not None:
+            phenotype = interevidence.qualifier + ' ' 
+        if interevidence.observable is not None:
+            link = phenotype_link_from_name(interevidence.observable)
+            phenotype = phenotype + add_link(interevidence.observable, link)
      
     return [bioent1.name_with_link, bioent2.name_with_link, 
-            interevidence.experiment_type, interevidence.annotation_type, direction, interevidence.phenotype,
+            interevidence.experiment_type, interevidence.annotation_type, direction, phenotype,
             interevidence.modification, interevidence.source, reference]
     
 def reverse_direction(direction):

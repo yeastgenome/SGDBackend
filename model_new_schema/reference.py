@@ -71,64 +71,29 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     #curations = relationship('RefCuration', cascade='all,delete')
 
     
-    def __init__(self, pubmed_id, session=None, reference_id=None, source=None, status=None, pdf_status=None, dbxref_id=None, citation=None, 
-                 year=None, date_published=None, date_revised=None, issue=None, page=None, volume=None, title=None, 
-                 journal_id=None, book_id=None, date_created=None, created_by=None, doi=None, name=None):
-        if session is None:
-            self.id = reference_id
-            self.pubmed_id = pubmed_id
-            self.source=source
-            self.status = status
-            self.pdf_status = pdf_status
-            self.dbxref_id = dbxref_id
-            self.citation_db = citation
-            self.year = year
-            self.date_published = date_published
-            self.date_revised = date_revised
-            self.issue = issue
-            self.page = page
-            self.volume = volume
-            self.title = title
-            self.journal_id = journal_id
-            self.book_id = book_id
-            self.doi = doi
-            self.official_name = name
-            self.date_created = date_created
-            self.created_by = created_by
-        else:
-            self.pubmed_id = pubmed_id
-            self.pdf_status='N'
-            self.source='PubMed script'
-            self.created_by = session.user
-            self.date_created = datetime.datetime.now()
+    def __init__(self, reference_id, pubmed_id, source, status, pdf_status, dbxref_id, citation, 
+                 year, date_published, date_revised, issue, page, volume, title, 
+                 journal_id, book_id, doi, name, date_created, created_by):
+        self.id = reference_id
+        self.pubmed_id = pubmed_id
+        self.source=source
+        self.status = status
+        self.pdf_status = pdf_status
+        self.dbxref_id = dbxref_id
+        self.citation_db = citation
+        self.year = year
+        self.date_published = date_published
+        self.date_revised = date_revised
+        self.issue = issue
+        self.page = page
+        self.volume = volume
+        self.title = title
+        self.journal_id = journal_id
+        self.book_id = book_id
+        self.doi = doi
+        self.date_created = date_created
+        self.created_by = created_by
         
-            pubmed = get_medline_data(pubmed_id)
-            
-            #Set basic information for the reference.
-            self.status = pubmed.publish_status
-            self.citation_db = pubmed.citation
-            self.year = pubmed.year
-            self.pdf_status = pubmed.pdf_status
-            self.pages = pubmed.pages
-            self.volume = pubmed.volume
-            self.title = pubmed.title
-            self.issue = pubmed.issue
-                        
-            #Add the journal.
-            self.journal = Journal.as_unique(session, abbreviation=pubmed.journal_abbrev)
-        
-            #Add the abstract.
-            if pubmed.abstract_txt is not None and not pubmed.abstract_txt == "": 
-                self.abst = Abstract.as_unique(session, reference_id = self.id, text = pubmed.abstract_txt)
-                
-            #Add the authors.
-            order = 0
-            for author_name in pubmed.authors:
-                order += 1
-                self.authors[order] = Author.as_unique(session, name=author_name)
-                
-            #Add the ref_type
-            self.refType = Reftype.as_unique(session, name=pubmed.pub_type)
      
     @hybrid_property
     def authors(self):

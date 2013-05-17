@@ -6,8 +6,8 @@ Created on Mar 15, 2013
 from model_new_schema.link_maker import LinkMaker
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_bioent_biocons, get_go_evidence, get_biocon, get_bioent, \
-    get_reference, get_go_evidence_ref, get_related_bioent_biocons, \
+from query import get_biofacts, get_go_evidence, get_biocon, get_bioent, \
+    get_reference, get_related_biofacts, \
     get_biocon_family, get_biocon_biocons
 from sgd2.views import site_layout
 from utils.utils import create_grouped_evidence_table, create_simple_table, \
@@ -61,8 +61,7 @@ def go_overview_table(request):
         biocon = get_biocon(biocon_name, 'GO')
         if biocon is None:
             return Response(status_int=500, body='Biocon could not be found.')
-        bioent_biocons = get_bioent_biocons('GO', biocon=biocon)
-        goevidences = get_go_evidence(bioent_biocons)
+        goevidences = get_go_evidence(biocon_id=biocon.id)
         return make_overview_tables(False, goevidences) 
         
     elif 'bioent_name' in request.GET:
@@ -71,8 +70,7 @@ def go_overview_table(request):
         bioent = get_bioent(bioent_name)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        bioent_biocons = get_bioent_biocons('GO', bioent=bioent)
-        goevidences = get_go_evidence(bioent_biocons)
+        goevidences = get_go_evidence(bioent_id=bioent.id)
         return make_overview_tables(True, goevidences, False) 
     
     elif 'reference_name' in request.GET:
@@ -81,7 +79,7 @@ def go_overview_table(request):
         ref = get_reference(ref_name)
         if ref is None:
             return Response(status_int=500, body='Reference could not be found.')
-        goevidences = get_go_evidence_ref(ref)
+        goevidences = get_go_evidence(reference_id=ref.id)
         return make_overview_tables(False, goevidences, True) 
 
     else:
@@ -96,8 +94,8 @@ def go_evidence_table(request):
         biocon = get_biocon(biocon_name, 'GO')
         if biocon is None:
             return Response(status_int=500, body='Biocon could not be found.')
-        bioent_biocons = get_bioent_biocons('GO', biocon=biocon)
-        return make_evidence_tables(False, bioent_biocons) 
+        evidences = get_go_evidence(biocon_id=biocon.id)
+        return make_evidence_tables(False, evidences) 
         
     elif 'bioent_name' in request.GET:
         #Need a GO overview table based on a bioent
@@ -105,8 +103,8 @@ def go_evidence_table(request):
         bioent = get_bioent(bioent_name)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        bioent_biocons = get_bioent_biocons('GO', bioent=bioent)
-        return make_evidence_tables(True, bioent_biocons) 
+        evidences = get_go_evidence(bioent_id=bioent.id)
+        return make_evidence_tables(True, evidences) 
     
     else:
         return Response(status_int=500, body='No Bioent or Biocon specified.')
@@ -153,7 +151,7 @@ def make_overview_tables(divided, goevidences, include_comp=True):
     tables = {}
     
     if not include_comp:
-        tables['computational'] = len(set([evidence.bioent_biocon for evidence in goevidences if evidence.annotation_type == 'computational']))
+        tables['computational'] = len(set([(evidence.bioent_id, evidence.biocon_id) for evidence in goevidences if evidence.annotation_type == 'computational']))
         goevidences = [evidence for evidence in goevidences if evidence.annotation_type != 'computational']
         
     if divided:
@@ -167,26 +165,25 @@ def make_overview_tables(divided, goevidences, include_comp=True):
     return tables    
 
 def make_single_overview_table(goevidences):
-    evidence_map = dict([(evidence.id, evidence.bioent_biocon) for evidence in goevidences])
+    evidence_map = dict([(evidence.id, (evidence.bioentity, evidence.goterm)) for evidence in goevidences])
     return create_grouped_evidence_table(goevidences, evidence_map, make_overview_row)
 
-def make_overview_row(bioent_biocon, evs_for_group, group_term):
+def make_overview_row(evs_for_group, group_term):
     ev_codes = ''
     if evs_for_group is not None:
         evidence_codes = set([ev.go_evidence for ev in evs_for_group])
         ev_codes = ', '.join(sorted(evidence_codes))
         
-    bioent = bioent_biocon.bioentity
-    biocon = bioent_biocon.bioconcept
+    bioent = group_term[0]
+    biocon = group_term[1]
     return [biocon.name_with_link, bioent.name_with_link, bioent.description, ev_codes]
     
 '''
 -------------------------------Evidence Table---------------------------------------
 '''
     
-def make_evidence_tables(divided, bioent_biocons, include_comp=True):
+def make_evidence_tables(divided, goevidences, include_comp=True):
     tables = {}
-    goevidences = get_go_evidence(bioent_biocons)
 
     if not include_comp:
         goevidences = [evidence for evidence in goevidences if evidence.annotation_type != 'computational']
@@ -205,8 +202,8 @@ def make_evidence_tables(divided, bioent_biocons, include_comp=True):
     return tables    
 
 def make_evidence_row(goevidence): 
-    bioent = goevidence.bioent_biocon.bioentity
-    biocon = goevidence.bioent_biocon.bioconcept
+    bioent = goevidence.bioentity
+    biocon = goevidence.goterm
     reference = ''
     if goevidence.reference is not None:
         reference = goevidence.reference.name_with_link
@@ -260,8 +257,7 @@ go_schema = {'nodes': [ { 'name': "label", 'type': "string" },
                          {'name':'f_include', 'type':'boolean'},
                          {'name':'p_include', 'type':'boolean'},
                          {'name':'c_include', 'type':'boolean'}],
-                'edges': [ { 'name': "label", 'type': "string" }, 
-                          {'name':'link', 'type':'string'}]}
+                'edges': []}
 
 def create_go_node(obj, focus_node, f_include, p_include, c_include):
     sub_type = None
@@ -274,26 +270,26 @@ def create_go_node(obj, focus_node, f_include, p_include, c_include):
             'f_include':f_include, 'p_include':p_include, 'c_include':c_include}
 
 def create_go_edge(obj, source_obj, sink_obj):
-    return { 'id': get_id(obj), 'target': get_id(source_obj), 'source': get_id(sink_obj), 'label': obj.name, 'link':obj.link}  
+    return { 'id': get_id(obj), 'target': get_id(source_obj), 'source': get_id(sink_obj),}  
 
 aspect_to_index = {'molecular function':0, 'biological process':1, 'cellular component':2}
 def create_go_graph(bioent=None, biocon=None):
     
     if bioent is not None:
-        level_one = get_bioent_biocons('GO', bioent=bioent)
-        level_one = [bioent_biocon for bioent_biocon in level_one if bioent_biocon.use_in_graph == 'Y']
+        level_one = get_biofacts('GO', bioent=bioent)
+        level_one = [biofact for biofact in level_one if biofact.use_in_graph == 'Y']
 
-        biocon_ids = [bioent_biocon.biocon_id for bioent_biocon in level_one]
-        level_two = get_related_bioent_biocons(biocon_ids)
+        biocon_ids = [biofact.biocon_id for biofact in level_one]
+        level_two = get_related_biofacts(biocon_ids)
     
     usable_bios = set()       
     usable_bios.add(bioent)
-    usable_bios.update([bioent_biocon.bioconcept for bioent_biocon in level_one])
+    usable_bios.update([biofact.bioconcept for biofact in level_one])
     
     bioent_to_edge_counts = {}
-    for bioent_biocon in level_two:
-        ent = bioent_biocon.bioentity
-        con = bioent_biocon.bioconcept
+    for biofact in level_two:
+        ent = biofact.bioentity
+        con = biofact.bioconcept
         
         index = aspect_to_index[con.go_aspect]
             
@@ -309,10 +305,10 @@ def create_go_graph(bioent=None, biocon=None):
         disable_cellular = False
     else:
         usable_bios.difference_update([biocon for biocon in usable_bios if biocon.type == 'BIOENTITY' or biocon.go_aspect == 'cellular component'])
-        not_cellular_component = [bioent_biocon.bioentity for bioent_biocon in level_two 
-                                  if bioent_biocon.bioconcept.go_aspect != 'cellular component' 
-                                  and (bioent_to_edge_counts[bioent_biocon.bioentity][0] >1 
-                                       or bioent_to_edge_counts[bioent_biocon.bioentity][1] > 1)]
+        not_cellular_component = [biofact.bioentity for biofact in level_two 
+                                  if biofact.bioconcept.go_aspect != 'cellular component' 
+                                  and (bioent_to_edge_counts[biofact.bioentity][0] >1 
+                                       or bioent_to_edge_counts[biofact.bioentity][1] > 1)]
         usable_bios.update(not_cellular_component)
         disable_cellular = True
          
@@ -326,14 +322,14 @@ def create_go_graph(bioent=None, biocon=None):
             nodes.append(create_go_node(usable, bioent, index==0, index==1, index==2))
     
     edges = []
-    for bioent_biocon in level_one:
-        if bioent_biocon.bioconcept in usable_bios and bioent_biocon.bioentity in usable_bios:
-            edges.append(create_go_edge(bioent_biocon, bioent_biocon.bioentity, bioent_biocon.bioconcept))
+    for biofact in level_one:
+        if biofact.bioconcept in usable_bios and biofact.bioentity in usable_bios:
+            edges.append(create_go_edge(biofact, biofact.bioentity, biofact.bioconcept))
     
-    for bioent_biocon in level_two:
-        if bioent_biocon.bioconcept in usable_bios and bioent_biocon.bioentity in usable_bios and \
-        bioent_biocon.bioentity != bioent:
-            edges.append(create_go_edge(bioent_biocon, bioent_biocon.bioentity, bioent_biocon.bioconcept))
+    for biofact in level_two:
+        if biofact.bioconcept in usable_bios and biofact.bioentity in usable_bios and \
+        biofact.bioentity != bioent:
+            edges.append(create_go_edge(biofact, biofact.bioentity, biofact.bioconcept))
     
     return {'dataSchema':go_schema, 'data': {'nodes': nodes, 'edges': edges}, 
             'disable_cellular':disable_cellular}
@@ -342,18 +338,18 @@ def create_go_graph(bioent=None, biocon=None):
 -------------------------------Utils---------------------------------------
 '''  
 def divide_goevidences(goevidences):
-    process_evidences = [evidence for evidence in goevidences if evidence.bioent_biocon.bioconcept.go_aspect == 'biological process']
-    function_evidences = [evidence for evidence in goevidences if evidence.bioent_biocon.bioconcept.go_aspect == 'molecular function']
-    component_evidences = [evidence for evidence in goevidences if evidence.bioent_biocon.bioconcept.go_aspect == 'cellular component']
+    process_evidences = [evidence for evidence in goevidences if evidence.goterm.go_aspect == 'biological process']
+    function_evidences = [evidence for evidence in goevidences if evidence.goterm.go_aspect == 'molecular function']
+    component_evidences = [evidence for evidence in goevidences if evidence.goterm.go_aspect == 'cellular component']
 
     return {'process':process_evidences, 'function':function_evidences, 'component':component_evidences}
 
-def divide_bioent_biocons(bioent_biocons):
-    process_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.go_aspect == 'biological process']
-    function_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.go_aspect == 'molecular function']
-    component_bioent_biocons = [bioent_biocon for bioent_biocon in bioent_biocons if bioent_biocon.bioconcept.go_aspect == 'cellular component']
+def divide_biofacts(biofacts):
+    process_biofacts = [biofact for biofact in biofacts if biofact.bioconcept.go_aspect == 'biological process']
+    function_biofacts = [biofact for biofact in biofacts if biofact.bioconcept.go_aspect == 'molecular function']
+    component_biofacts = [biofact for biofact in biofacts if biofact.bioconcept.go_aspect == 'cellular component']
 
-    return {'process':process_bioent_biocons, 'function':function_bioent_biocons, 'component':component_bioent_biocons}
+    return {'process':process_biofacts, 'function':function_biofacts, 'component':component_biofacts}
   
 def get_id(bio):
     return bio.type + str(bio.id)

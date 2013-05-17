@@ -20,7 +20,7 @@ import datetime
 
 
 class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
-    __tablename__ = 'newbioent'
+    __tablename__ = 'bioent'
     
     id = Column('bioent_id', Integer, primary_key=True)
     official_name = Column('name', String)
@@ -36,7 +36,7 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
                        'polymorphic_identity':"BIOENTITY",
                        'with_polymorphic':'*'}
     
-    bioconcepts = association_proxy('bioent_biocon', 'bioconcept')
+    bioconcepts = association_proxy('biofacts', 'bioconcept')
     aliases = relationship("Alias")
     alias_names = association_proxy('aliases', 'name')
     seq_ids = association_proxy('sequences', 'id')
@@ -105,7 +105,7 @@ class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'
     
     id = Column('alias_id', Integer, primary_key=True)
-    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.newbioent.bioent_id'))
+    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
     name = Column('name', String)
     alias_type = Column('alias_type', String)
     used_for_search = Column('used_for_search', String)
@@ -357,6 +357,8 @@ class Contig(Bioentity):
         self.internal_id = internal_id
         self.length = length
         self.chromosome_id = chromosome_id
+        
+
         
 
         

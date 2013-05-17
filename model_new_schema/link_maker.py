@@ -95,7 +95,9 @@ class LinkMaker():
 def go_link(biocon):
     return '/go/' + biocon.official_name
 def phenotype_link(biocon):
-    return '/phenotype/' + biocon.official_name 
+    return phenotype_link_from_name(biocon.official_name)
+def phenotype_link_from_name(name):
+    return '/phenotype/' + name.replace(' ', '_')
     
 #Bioentity links
 def bioent_link(bioent):
@@ -106,10 +108,6 @@ def bioent_wiki_link(bioent):
 #Biorelation links
 def interaction_link(biorel):
     return add_official_name_params('/interaction_evidence?', {'biorel_name':biorel})
-
-#BioentBiocon links
-def bioent_biocon_link(bioent_biocon):
-    return '/bioent_biocon/' + lower(bioent_biocon.biocon_type) + '=' + bioent_biocon.official_name
 
 def bioent_biocon_reference_link(bioent_biocon):
     return bioent_biocon.link + '/reference'
