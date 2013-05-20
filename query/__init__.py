@@ -1,22 +1,30 @@
-from model_new_schema.bioconcept import Bioconcept
-from model_new_schema.bioentity import Bioentity
-from model_new_schema.biorelation import BioentRelation, BioconRelation, \
-    BioconAncestor, Biofact
-from model_new_schema.go import Goevidence
-from model_new_schema.interaction import Interevidence
+from model_new_schema.bioconcept import Bioconcept, BioconAncestor, \
+    BioconRelation
+from model_new_schema.bioentity import Bioentity, Gene, BioentRelation
+from model_new_schema.biofact import Biofact
+from model_new_schema.go import Goevidence, Go
+from model_new_schema.interaction import Interevidence, Interaction
+from model_new_schema.phenotype import Phenoevidence, Phenotype
 from model_new_schema.reference import Reference, Author
 from model_new_schema.search import Typeahead
 from model_new_schema.sequence import Sequence
-from phenotype import Phenoevidence
 from sgd2.models import DBSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, subqueryload_all
+from sqlalchemy.orm.util import with_polymorphic
 from sqlalchemy.sql.expression import func
 import math
 
-
+biocon_type_to_class = {'PHENOTYPE':Phenotype, 'GO':Go}
+biorel_type_to_class = {'INTERACTION':Interaction}
 def get_biocon(biocon_name, biocon_type):
-    biocon = DBSession.query(Bioconcept).filter(Bioconcept.biocon_type==biocon_type).filter(Bioconcept.official_name==biocon_name).first()
+    biocon = DBSession.query(with_polymorphic(Bioconcept, [biocon_type_to_class[biocon_type]])).filter(Bioconcept.biocon_type==biocon_type).filter(Bioconcept.official_name==biocon_name).first()
     return biocon
+
+def get_biocon_id(biocon_name, biocon_type):
+    biocon = DBSession.query(Bioconcept).filter(Bioconcept.biocon_type==biocon_type).filter(Bioconcept.official_name==biocon_name).first()
+    if biocon is not None:
+        return biocon.id
+    return None
 
 def get_bioent(bioent_name):
     bioent = DBSession.query(Bioentity).filter(Bioentity.official_name==bioent_name).first()
@@ -30,7 +38,7 @@ def get_reference(reference_name):
     reference = None
     try:
         float(reference_name)
-        reference = DBSession.query(Reference).filter(Reference.pubmed_id == reference_name).first() 
+        reference = DBSession.query(Reference).options(joinedload('author_references'), joinedload('author_references.author')).filter(Reference.pubmed_id == reference_name).first() 
         if reference is None:
             reference = DBSession.query(Reference).filter(Reference.id == reference_name).first()
     except:
@@ -45,8 +53,10 @@ def get_author(author_name):
  
 
 def get_biorels(biorel_type, bioent):
-    biorels = set(DBSession.query(BioentRelation).options(joinedload(BioentRelation.source_bioent), joinedload(BioentRelation.sink_bioent)).filter(BioentRelation.biorel_type==biorel_type).filter(BioentRelation.source_bioent_id == bioent.id))
-    biorels.update(DBSession.query(BioentRelation).options(joinedload(BioentRelation.source_bioent), joinedload(BioentRelation.sink_bioent)).filter(BioentRelation.biorel_type==biorel_type).filter(BioentRelation.sink_bioent_id == bioent.id))
+    biorel_class = biorel_type_to_class[biorel_type]
+    querycls = with_polymorphic(BioentRelation, [biorel_class])
+    biorels = set(DBSession.query(querycls).options(joinedload(querycls.source_bioent), joinedload(querycls.sink_bioent)).filter(querycls.biorel_type==biorel_type).filter(querycls.source_bioent_id == bioent.id))
+    biorels.update(DBSession.query(querycls).options(joinedload(querycls.source_bioent), joinedload(querycls.sink_bioent)).filter(querycls.biorel_type==biorel_type).filter(querycls.sink_bioent_id == bioent.id))
     
     #return [biorel for biorel in bioent.biorelations if biorel.biorel_type == biorel_type]
     return biorels
@@ -55,8 +65,10 @@ def get_biorels(biorel_type, bioent):
 def get_interactions(bioent_ids):
     #bioentbiorels = DBSession.query(BioentBiorel).options(joinedload(BioentBiorel.biorel)).filter(BioentBiorel.bioent_id.in_(bioent_ids))
     #interactions = [bioentbiorel.biorel for bioentbiorel in bioentbiorels if bioentbiorel.biorel.biorel_type=='INTERACTION' and bioentbiorel.biorel.source_bioent_id in bioent_ids and bioentbiorel.biorel.sink_bioent_id in bioent_ids]
-    interactions = set(DBSession.query(BioentRelation).filter(BioentRelation.biorel_type=='INTERACTION').filter(BioentRelation.source_bioent_id.in_(bioent_ids)).all())
-    interactions.update(DBSession.query(BioentRelation).filter(BioentRelation.biorel_type=='INTERACTION').filter(BioentRelation.sink_bioent_id.in_(bioent_ids)).all())
+    querycls = with_polymorphic(BioentRelation, [Interaction])
+    
+    interactions = set(DBSession.query(querycls).filter(querycls.biorel_type=='INTERACTION').filter(querycls.source_bioent_id.in_(bioent_ids)).all())
+    interactions.update(DBSession.query(querycls).filter(querycls.biorel_type=='INTERACTION').filter(querycls.sink_bioent_id.in_(bioent_ids)).all())
     return interactions
 
 def get_biofacts(biocon_type, biocon=None, bioent=None):
@@ -71,12 +83,12 @@ def get_biofacts(biocon_type, biocon=None, bioent=None):
     return query.all()
 
 def get_biocon_family(biocon):
+    biocon_class = biocon_type_to_class[biocon.biocon_type]
     family = set([biocon])
-
-    biocon_ancs = DBSession.query(BioconAncestor).options(joinedload('ancestor_biocon')).filter(BioconAncestor.child_biocon_id==biocon.id).all()
+    biocon_ancs = DBSession.query(BioconAncestor).options(joinedload(BioconAncestor.ancestor_biocon.of_type(biocon_class))).filter(BioconAncestor.child_id==biocon.id).all()
     family.update([biocon_anc.ancestor_biocon for biocon_anc in biocon_ancs])
     
-    biocon_children = DBSession.query(BioconRelation).options(joinedload('child_biocon')).filter(BioconRelation.parent_biocon_id==biocon.id).all()
+    biocon_children = DBSession.query(BioconRelation).options(joinedload(BioconRelation.child_biocon.of_type(biocon_class))).filter(BioconRelation.parent_id==biocon.id).all()
     family.update([biocon_child.child_biocon for biocon_child in biocon_children])
     
     child_ids = set([biocon_child.child_biocon.id for biocon_child in biocon_children])
@@ -96,8 +108,9 @@ def get_biocon_biocons(biocon_ids):
     
     return related_biocon_biocons
 
-def get_related_biofacts(biocon_ids):
-    biofacts = DBSession.query(Biofact).options(joinedload('bioentity'), joinedload('bioconcept')).filter(Biofact.biocon_id.in_(biocon_ids)).all()
+def get_related_biofacts(biocon_ids, biocon_type):
+    biocon_class = biocon_type_to_class[biocon_type]
+    biofacts = DBSession.query(Biofact).options(joinedload('bioentity'), joinedload(Biofact.bioconcept.of_type(biocon_class))).filter(Biofact.biocon_id.in_(biocon_ids)).all()
     return biofacts
 
 #Get Evidence
@@ -115,7 +128,7 @@ def retrieve_in_chunks(ids, f):
         result.update(f(chunk_ids))
     return result
 def get_go_evidence(bioent_id=None, biocon_id=None, reference_id=None):
-    query = DBSession.query(Goevidence).options(joinedload('reference'), joinedload('bioentity'), joinedload('goterm'))
+    query = DBSession.query(Goevidence).options(joinedload('reference'), joinedload(Goevidence.bioentity), joinedload(Goevidence.goterm))
     if bioent_id is not None:
         query = query.filter(Goevidence.bioent_id==bioent_id)
     if biocon_id is not None:
@@ -127,7 +140,7 @@ def get_go_evidence(bioent_id=None, biocon_id=None, reference_id=None):
     return evidences
 
 def get_phenotype_evidence(bioent_id=None, biocon_id=None, reference_id=None):
-    query = DBSession.query(Phenoevidence).options(joinedload('reference'), joinedload('bioentity'), joinedload('phenotype'))
+    query = DBSession.query(Phenoevidence).options(joinedload('reference'), joinedload('gene'), joinedload('phenotype'))
     if bioent_id is not None:
         query = query.filter(Phenoevidence.bioent_id==bioent_id)
     if biocon_id is not None:

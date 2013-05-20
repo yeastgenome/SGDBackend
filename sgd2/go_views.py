@@ -7,8 +7,8 @@ from model_new_schema.link_maker import LinkMaker
 from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_biofacts, get_go_evidence, get_biocon, get_bioent, \
-    get_reference, get_related_biofacts, \
-    get_biocon_family, get_biocon_biocons
+    get_reference, get_related_biofacts, get_biocon_family, get_biocon_biocons, \
+    get_biocon_id
 from sgd2.views import site_layout
 from utils.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list
@@ -58,10 +58,10 @@ def go_overview_table(request):
     if 'biocon_name' in request.GET:
         #Need a GO overview table based on a biocon
         biocon_name = request.GET['biocon_name']
-        biocon = get_biocon(biocon_name, 'GO')
-        if biocon is None:
+        biocon_id = get_biocon_id(biocon_name, 'GO')
+        if biocon_id is None:
             return Response(status_int=500, body='Biocon could not be found.')
-        goevidences = get_go_evidence(biocon_id=biocon.id)
+        goevidences = get_go_evidence(biocon_id=biocon_id)
         return make_overview_tables(False, goevidences) 
         
     elif 'bioent_name' in request.GET:
@@ -280,7 +280,7 @@ def create_go_graph(bioent=None, biocon=None):
         level_one = [biofact for biofact in level_one if biofact.use_in_graph == 'Y']
 
         biocon_ids = [biofact.biocon_id for biofact in level_one]
-        level_two = get_related_biofacts(biocon_ids)
+        level_two = get_related_biofacts(biocon_ids, 'GO')
     
     usable_bios = set()       
     usable_bios.add(bioent)

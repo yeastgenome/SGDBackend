@@ -1,7 +1,6 @@
 from numbers import Number
 from sqlalchemy.types import Float
 from utils.utils import float_approx_equal
-import model_old_schema
 
 
     

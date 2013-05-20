@@ -60,6 +60,7 @@ function setup_interaction_cytoscape_vis(graph_link) {
 	// init and draw
 	var vis = new org.cytoscapeweb.Visualization(div_id, options);
 		
+	var cutoff = 3;
 	// callback when Cytoscape Web has finished drawing
     vis.ready(function() {
                 
@@ -76,17 +77,17 @@ function setup_interaction_cytoscape_vis(graph_link) {
 			var link = target.data['link']
 			window.location.href = link          
 		}
-		handle_slide(vis, 3);
+		handle_slide(vis, cutoff);
 	});
-		//Grab the network data via AJAX
+	//Grab the network data via AJAX
 	$.get(graph_link, function(data) {
 		if(data['max_evidence_cutoff'] == 0) {
 			document.getElementById(div_id).parentNode.style.display = 'none';
 		}
 		else {
+			cutoff = Math.min(3, data['max_evidence_cutoff']);
 			vis.draw({ network: data, visualStyle: visual_style});
 			setup_slider(vis, data['min_evidence_cutoff'], data['max_evidence_cutoff']);
-			handle_slide(vis, Math.min(min_evidence_cutoff, 3));
 		}
 	});     
 	return vis;     
@@ -102,7 +103,7 @@ function handle_slide(vis, value) {
 function setup_slider(vis, min_evidence_cutoff, max_evidence_cutoff) {
 	$('#slider-range-min').slider({
 		range: "max",
-		value: 3,
+		value: Math.min(3, max_evidence_cutoff),
 		min: min_evidence_cutoff,
 		max: Math.min(10, max_evidence_cutoff),
 		step: 1,

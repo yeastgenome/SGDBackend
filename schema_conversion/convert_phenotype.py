@@ -15,6 +15,8 @@ tuple_to_bioent_biocon = {}
 tuple_to_reflink = {}
 name_to_allele = {}
 tuple_to_phenoevidence_chemical = {}
+tuple_to_bioconrel = {}
+tuple_to_bioconanc = {}
 
 def create_bioent_biocon_name(bioent, biocon):
     return bioent.official_name + '---' + biocon.official_name
@@ -42,13 +44,13 @@ def create_phenotype_type(observable):
         return 'cellular'
 
 def create_phenotype(old_phenotype):
-    from model_new_schema.bioconcept import Phenotype as NewPhenotype
+    from model_new_schema.phenotype import Phenotype as NewPhenotype
     new_phenotype = NewPhenotype(old_phenotype.observable, create_phenotype_type(old_phenotype.observable), None, 
                                  biocon_id=old_phenotype.id, date_created=old_phenotype.date_created, created_by=old_phenotype.created_by)
     return new_phenotype
 
 def create_bioent_biocon(old_phenotype_feature):
-    from model_new_schema.bioconcept import BioentBiocon as NewBioentBiocon
+    from model_new_schema.biofact import Biofact as NewBiofact
     bioent_id = old_phenotype_feature.feature_id
     biocon_observable = old_phenotype_feature.observable
         
@@ -56,12 +58,12 @@ def create_bioent_biocon(old_phenotype_feature):
         bioent = id_to_bioent[bioent_id]
         biocon = observable_to_phenotype[biocon_observable]
         name = create_bioent_biocon_name(bioent, biocon)
-        return NewBioentBiocon(bioent_id, biocon.id, name, biocon.biocon_type)
+        return NewBiofact(bioent_id, biocon.id, name, biocon.biocon_type)
     else:
         return None
 
 def create_allele(old_phenotype_feature):
-    from model_new_schema.evidence import Allele as NewAllele
+    from model_new_schema.misc import Allele as NewAllele
     if old_phenotype_feature.experiment is not None:
         allele_info = old_phenotype_feature.experiment.allele
         if allele_info is not None:
@@ -70,7 +72,7 @@ def create_allele(old_phenotype_feature):
     return None
 
 def create_phenoevidence(old_phenotype_feature):
-    from model_new_schema.evidence import Phenoevidence as NewPhenoevidence
+    from model_new_schema.phenotype import Phenoevidence as NewPhenoevidence
     evidence_id = create_phenoevidence_id(old_phenotype_feature.id)
     reference_id = tuple_to_reflink[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)].reference_id
     strain_id = None
@@ -135,12 +137,12 @@ def add_allele(old_phenotype_feature):
     return evidence
 
 def create_chemical(chemical_info):
-    from model_new_schema.chemical import Chemical as NewChemical
+    from model_new_schema.misc import Chemical as NewChemical
     new_chemical = NewChemical(chemical_info[0][0])
     return new_chemical
 
 def create_phenoevidence_chemical(chemical):
-    from model_new_schema.evidence import PhenoevidenceChemical as NewPhenoevidenceChemical
+    from model_new_schema.phenotype import PhenoevidenceChemical as NewPhenoevidenceChemical
     evidence_id = create_phenoevidence_id(chemical[1].id)
     chemical_info = chemical[0]
     chemical_id = name_to_chemical[chemical_info[0]].id
@@ -154,15 +156,13 @@ def create_phenoevidence_chemical(chemical):
 """  
 
 def convert_phenotype(old_session, new_session):
-    from model_new_schema.evidence import Allele as NewAllele, PhenoevidenceChemical as NewPhenoevidenceChemical, Phenoevidence as NewPhenoevidence
-    from model_new_schema.chemical import Chemical as NewChemical
-    from model_new_schema.bioentity import Bioentity as NewBioentity
-    from model_new_schema.bioconcept import Phenotype as NewPhenotype, BioconBiocon as NewBioconBiocon, BioconAncestor as NewBioconAncestor, \
-        BioentBiocon as NewBioentBiocon
 
     from model_old_schema.phenotype import PhenotypeFeature as OldPhenotypeFeature, Phenotype as OldPhenotype
     from model_old_schema.reference import Reflink as OldReflink
     from model_old_schema.cv import CVTerm as OldCVTerm
+    
+    from model_new_schema.phenotype import Phenotype as NewPhenotype
+    from model_new_schema.bioconcept import BioconAncestor as NewBioconAncestor, BioconRelation as NewBioconRelation
     
 
 #    #Cache bioents
@@ -178,18 +178,7 @@ def convert_phenotype(old_session, new_session):
 #    key_maker = lambda x: x.observable
 #    values_to_check = ['observable', 'phenotype_type']
 #    create_or_update_and_remove(old_phenotypes, observable_to_phenotype, create_phenotype, key_maker, values_to_check, new_session, phenotype_oc)
-#
-#    #Add definitions to phenotypes
-#    phenotype_output_creator = OutputCreator('phenotype')
-#    #Cache phenotypes
-#    cache(NewPhenotype, observable_to_phenotype, lambda x: x.observable, new_session, phenotype_output_creator)
-#    cv_terms = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==6).all()
-#    for cv_term in cv_terms:
-#        new_phenotype = NewPhenotype(cv_term.name, create_phenotype_type(cv_term.name), cv_term.definition)
-#        values_to_check = ['observable', 'phenotype_type', 
-#                           'biocon_type', 'official_name', 'description']
-#        add_or_check(new_phenotype, observable_to_phenotype, new_phenotype.observable, values_to_check, new_session, phenotype_output_creator)
-#    phenotype_output_creator.finished()   
+
 #
 #    #Cache bioent_biocons
 #    bioent_biocon_oc = OutputCreator('bioent_biocon')
@@ -197,7 +186,7 @@ def convert_phenotype(old_session, new_session):
 #    cache(NewBioentBiocon, tuple_to_bioent_biocon, lambda x: (x.bioent_id, x.biocon_id, x.biocon_type), new_session, bioent_biocon_oc)
 #    
 #    #Create new bioent_biocons if they don't exist, or update the database if they do.
-    old_phenotype_features = old_session.query(OldPhenotypeFeature).all()
+#    old_phenotype_features = old_session.query(OldPhenotypeFeature).all()
 #    values_to_check = ['bioent_id', 'biocon_id', 'official_name', 'biocon_type']
 #    create_or_update(old_phenotype_features, tuple_to_bioent_biocon, create_bioent_biocon, key_maker, values_to_check, new_session, bioent_biocon_oc)
 #    
@@ -254,21 +243,45 @@ def convert_phenotype(old_session, new_session):
 #    create_or_update_and_remove(chemical_infos, tuple_to_phenoevidence_chemical, create_phenoevidence_chemical, key_maker, values_to_check, 
 #                    new_session, output_creator_chemical)
     
+    #Add definitions to phenotypes
+    phenotype_output_creator = OutputCreator('phenotype')
+    #Cache phenotypes
+    cache(NewPhenotype, observable_to_phenotype, lambda x: x.observable, new_session, phenotype_output_creator)
+    cv_terms = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==6).all()
+    #for cv_term in cv_terms:
+    #    new_phenotype = NewPhenotype(cv_term.name, create_phenotype_type(cv_term.name), cv_term.definition)
+    #    values_to_check = ['observable', 'phenotype_type', 
+    #                       'biocon_type', 'official_name', 'description']
+    #    add_or_check(new_phenotype, observable_to_phenotype, new_phenotype.observable, values_to_check, new_session, phenotype_output_creator)
+    #phenotype_output_creator.finished()  
+     
     #Add phenotype ontology
+    #Cache BioconRelations
+    bioconrel_oc = OutputCreator('bioconrel')
+    cache(NewBioconRelation, tuple_to_bioconrel, lambda x: (x.child_id, x.parent_id, x.bioconrel_type, x.relationship_type) if x.relationship_type == 'PHENOTYPE_ONTOLOGY' else None, new_session, bioconrel_oc)
+    
+    #Cache BioconAncestors
+    bioconanc_oc = OutputCreator('bioconanc')
+    cache(NewBioconAncestor, tuple_to_bioconanc, lambda x: (x.child_id, x.ancestor_id), new_session, bioconanc_oc)
+    
+    #Add bioconrels and bioconancs
     for cv_term in cv_terms:
-        child_id = name_to_phenotype[cv_term.name].id
-        for parent in cv_term.parents:
-            parent_id = name_to_phenotype[parent.name].id
-            
-            biocon_biocon = NewBioconBiocon(parent_id, child_id, 'is a')
-            new_session.add(biocon_biocon)
+        if cv_term.name in observable_to_phenotype:
+            child_id = observable_to_phenotype[cv_term.name].id
+            for parent in cv_term.parents:
+                if parent.name in observable_to_phenotype:
+                    parent_id = observable_to_phenotype[parent.name].id
+                    biocon_biocon = NewBioconRelation(None, parent_id, child_id, 'PHENOTYPE_ONTOLOGY', 'is a')
+                    add_or_check(biocon_biocon, tuple_to_bioconrel, (biocon_biocon.child_id, biocon_biocon.parent_id, biocon_biocon.bioconrel_type, biocon_biocon.relationship_type), [], new_session, bioconrel_oc)
+    bioconrel_oc.finished()
         
-        parents = list(cv_term.parents)
-        while len(parents) > 0:
-            parent = parents.pop()
-            biocon_ancestor = NewBioconAncestor(name_to_phenotype[parent.name].id, child_id)
-            new_session.add(biocon_ancestor)
-            parents.extend(parent.parents)
+    #for cv_term in cv_terms:
+    #    parents = list(cv_term.parents)
+    #    while len(parents) > 0:
+    #        parent = parents.pop()
+    #        biocon_ancestor = NewBioconAncestor(observable_to_phenotype[parent.name].id, child_id)
+    #        add_or_check(biocon_ancestor, tuple_to_bioconanc, (biocon_ancestor.child_id, biocon_ancestor.ancestor_id), [], new_session, bioconanc_oc)
+            #parents.extend(parent.parents)
         
         
             

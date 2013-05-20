@@ -9,7 +9,8 @@ from model_new_schema.link_maker import add_link, biocon_link
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String
+
 
 class Bioconcept(Base, EqualityByIDMixin):
     __tablename__ = "biocon"
@@ -23,8 +24,7 @@ class Bioconcept(Base, EqualityByIDMixin):
     description = Column('description', String)
     
     __mapper_args__ = {'polymorphic_on': biocon_type,
-                       'polymorphic_identity':"BIOCONCEPT",
-                       'with_polymorphic':'*'}
+                       'polymorphic_identity':"BIOCONCEPT"}
     
     def __init__(self, biocon_id, biocon_type, official_name, description, date_created, created_by):
         self.id = biocon_id
@@ -58,7 +58,45 @@ class Bioconcept(Base, EqualityByIDMixin):
         data = self.__class__.__name__, self.id, self.official_name
         return '%s(id=%s, name=%s)' % data
       
+class BioconRelation(Base, EqualityByIDMixin):
+    __tablename__ = 'bioconrel'
 
+    id = Column('biocon_biocon_id', Integer, primary_key=True)
+    parent_id = Column('parent_biocon_id', Integer, ForeignKey(Bioconcept.id))
+    child_id = Column('child_biocon_id', Integer, ForeignKey(Bioconcept.id))
+    relationship_type = Column('relationship_type', String)
+    bioconrel_type = Column('bioconrel_type', String)
+   
+    parent_biocon = relationship('Bioconcept', uselist=False, backref='child_biocons', primaryjoin="BioconRelation.parent_id==Bioconcept.id")
+    child_biocon = relationship('Bioconcept', uselist=False, backref='parent_biocons', primaryjoin="BioconRelation.child_id==Bioconcept.id")
+    type = "BIOCON_BIOCON"
+
+    def __init__(self, biocon_biocon_id, parent_id, child_id, bioconrel_type, relationship_type):
+        self.id = biocon_biocon_id
+        self.parent_id = parent_id
+        self.child_id = child_id
+        self.bioconrel_type = bioconrel_type
+        self.relationship_type = relationship_type
+        
+  
+class BioconAncestor(Base, EqualityByIDMixin):
+    __tablename__ = 'biocon_ancestor'
+
+    id = Column('biocon_ancestor_id', Integer, primary_key=True)
+    ancestor_id = Column('ancestor_biocon_id', Integer, ForeignKey(Bioconcept.id))
+    child_id = Column('child_biocon_id', Integer, ForeignKey(Bioconcept.id))
+    generation = Column('generation', Integer)
+   
+    ancestor_biocon = relationship('Bioconcept', uselist=False, primaryjoin="BioconAncestor.ancestor_id==Bioconcept.id")
+    child_biocon = relationship('Bioconcept', uselist=False, primaryjoin="BioconAncestor.child_id==Bioconcept.id")
+    type = "BIOCON_ANCESTOR"
+
+    def __init__(self, ancestor_biocon_id, child_biocon_id, session=None, biocon_ancestor_id=None):
+        self.ancestor_biocon_id = ancestor_biocon_id
+        self.child_biocon_id = child_biocon_id
+        
+        if session is None:
+            self.id = biocon_ancestor_id
 
 
 

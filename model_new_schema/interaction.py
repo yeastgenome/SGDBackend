@@ -3,7 +3,7 @@ Created on May 16, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.biorelation import BioentRelation 
+from model_new_schema.bioentity import BioentRelation
 from model_new_schema.evidence import Evidence
 from model_new_schema.link_maker import interaction_link
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -37,7 +37,7 @@ class Interevidence(Evidence):
     modification = Column('modification', String)
     direction = Column('direction', String)
     interaction_type = Column('interaction_type', String)
-    biorel_id = Column('biorel_id', Integer, ForeignKey('sprout.interaction.biorel_id'))
+    biorel_id = Column('biorel_id', Integer, ForeignKey(Interaction.id))
     
     type = 'BIOREL_EVIDENCE'
     

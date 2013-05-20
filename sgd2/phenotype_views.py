@@ -160,15 +160,15 @@ def make_overview_tables(divided, phenoevidences):
     return tables    
 
 def make_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (evidence.bioentity, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (evidence.gene, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_overview_row) 
 
 def make_chemical_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (', '.join([chem.name for chem in evidence.chemicals]), evidence.bioentity, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (', '.join([chem.name for chem in evidence.chemicals]), evidence.gene, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_grouped_overview_row) 
 
 def make_pp_rna_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (evidence.reporter, evidence.bioentity, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (evidence.reporter, evidence.gene, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_grouped_overview_row) 
 
 def make_overview_row(evs_for_group, group_term):
@@ -203,7 +203,7 @@ def make_evidence_tables(divided, phenoevidences):
     return tables    
 
 def make_evidence_row(phenoevidence): 
-    bioent = phenoevidence.bioentity
+    bioent = phenoevidence.gene
     biocon = phenoevidence.phenotype
     reference = ''
     if phenoevidence.reference is not None:

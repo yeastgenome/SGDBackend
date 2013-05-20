@@ -5,8 +5,7 @@ Created on May 15, 2013
 '''
 from model_new_schema import SCHEMA
 from model_new_schema.bioconcept import Bioconcept
-from model_new_schema.bioentity import Bioentity
-from model_new_schema.biorelation import Biofact
+from model_new_schema.bioentity import Gene
 from model_new_schema.evidence import Evidence
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -50,10 +49,10 @@ class Goevidence(Evidence):
     date_last_reviewed = Column('date_last_reviewed', Date)
     qualifier = Column('qualifier', String)
     
-    bioent_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
+    bioent_id = Column('bioent_id', Integer, ForeignKey(Gene.id))
     biocon_id = Column('biocon_id', Integer, ForeignKey(Go.id))
     
-    bioentity = relationship(Bioentity)
+    bioentity = relationship(Gene)
     goterm = relationship(Go)
     
     type = 'BIOCON_EVIDENCE'

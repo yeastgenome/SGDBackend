@@ -33,8 +33,7 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     created_by = Column('created_by', String)
     
     __mapper_args__ = {'polymorphic_on': bioent_type,
-                       'polymorphic_identity':"BIOENTITY",
-                       'with_polymorphic':'*'}
+                       'polymorphic_identity':"BIOENTITY"}
     
     bioconcepts = association_proxy('biofacts', 'bioconcept')
     aliases = relationship("Alias")
@@ -99,13 +98,70 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     
     def __repr__(self):
         data = self.__class__.__name__, self.id, self.name, self.bioent_type
-        return '%s(id=%s, name=%s, bioent_type=%s)' % data       
+        return '%s(id=%s, name=%s, bioent_type=%s)' % data     
+    
+class BioentRelation(Base, EqualityByIDMixin):
+    __tablename__ = "bioentrel"
+    
+    id = Column('biorel_id', Integer, primary_key = True)
+    official_name = Column('name', String)
+    biorel_type = Column('biorel_type', String)
+    source_bioent_id = Column('bioent_id1', Integer, ForeignKey(Bioentity.id))
+    sink_bioent_id = Column('bioent_id2', Integer, ForeignKey(Bioentity.id))
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+    
+    type = 'BIORELATION'
+    
+    #Relationships
+    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="BioentRelation.source_bioent_id==Bioentity.id", backref='biorel_source')
+    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="BioentRelation.sink_bioent_id==Bioentity.id", backref='biorel_sink')
+        
+    __mapper_args__ = {'polymorphic_on': biorel_type,
+                       'polymorphic_identity':"BIORELATION"}
+    
+    @hybrid_property
+    def name(self):
+        return 'Interaction between ' + self.source_bioent.name + ' and ' + self.sink_bioent.name
+        
+    def get_opposite(self, bioent):
+        if bioent == self.source_bioent:
+            return self.sink_bioent
+        elif bioent == self.sink_bioent:
+            return self.source_bioent
+        else:
+            return None
+        
+    @hybrid_property
+    def description(self):
+        return 'Evidence for interaction between ' + self.source_bioent.full_name + ' and ' + self.sink_bioent.full_name    
+        
+    @hybrid_property
+    def name_with_link(self):
+        return 'Interaction between ' + self.source_bioent.name_with_link + ' and ' + self.sink_bioent.name_with_link
+    
+    def __init__(self, biorel_type, source_bioent_id, sink_bioent_id, session=None, biorel_id=None, created_by=None, date_created=None):
+        self.source_bioent_id = source_bioent_id
+        self.sink_bioent_id = sink_bioent_id
+        self.biorel_type = biorel_type
+        
+        if session is None:
+            self.created_by = created_by
+            self.date_created = date_created
+            self.id = biorel_id
+        else:
+            self.created_by = session.user
+            self.date_created = datetime.datetime.now()
+    
+    def __repr__(self):
+        data = self.__class__.__name__, self.id, self.source_bioent.name, self.sink_bioent.name
+        return '%s(id=%s, source_name=%s, sink_name=%s)' % data  
 
 class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'
     
     id = Column('alias_id', Integer, primary_key=True)
-    bioent_id = Column('bioent_id', Integer, ForeignKey('sprout.bioent.bioent_id'))
+    bioent_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
     name = Column('name', String)
     alias_type = Column('alias_type', String)
     used_for_search = Column('used_for_search', String)
@@ -337,26 +393,7 @@ class Protein(Bioentity):
         self.instability_index = instability_index
         self.molecules_per_cell = molecules_per_cell
         
-class Contig(Bioentity):
-    __tablename__ = 'contig'
-    
-    id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key = True)
-    assembly_id = Column('assembly_id', Integer, ForeignKey('sprout.assembly.assembly_id'))
-    internal_id = Column('internal_id', String)
-    length = Column('length', Integer)
-    chromosome_id = Column('chromosome_id', Integer)
-    type = "CONTIG"
-    
-    __mapper_args__ = {'polymorphic_identity': "CONTIG",
-                       'inherit_condition': id == Bioentity.id}
-    
-    def __init__(self, name, source, dbxref, assembly_id, internal_id, length, chromosome_id, bioent_id=None, date_created=None, created_by=None):
-        Bioentity.__init__(self, name, 'CONTIG', dbxref, source, None, 
-                           session=None, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
-        self.assembly_id = assembly_id
-        self.internal_id = internal_id
-        self.length = length
-        self.chromosome_id = chromosome_id
+
         
 
         

@@ -22,8 +22,7 @@ class Evidence(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     
     __mapper_args__ = {'polymorphic_on': evidence_type,
-                       'polymorphic_identity':"EVIDENCE",
-                       'with_polymorphic':'*'}
+                       'polymorphic_identity':"EVIDENCE"}
     
     #Relationships
     reference = relationship('Reference', backref='evidences', uselist=False)

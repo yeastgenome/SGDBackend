@@ -253,8 +253,9 @@ def create_interaction_graph(bioent):
     bioents = set()
     bioent_to_evidence = {}
 
-    bioents.update([interaction.get_opposite(bioent) for interaction in get_biorels('INTERACTION', bioent)])
-    bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in bioent.biorelations])
+    #bioents.update([interaction.get_opposite(bioent) for interaction in get_biorels('INTERACTION', bioent)])
+    bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in get_biorels('INTERACTION', bioent)])
+    bioents.update(bioent_to_evidence.keys())
 
     bioents.add(bioent)
     max_evidence_cutoff = 0
