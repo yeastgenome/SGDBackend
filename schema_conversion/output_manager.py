@@ -11,9 +11,6 @@ class OutputCreator():
     num_removed = 0
     
     
-    def __init__(self, new_obj_type):
-        self.new_obj_type = new_obj_type
-        
     def added(self):
         self.num_added = self.num_added+1
         
@@ -28,17 +25,14 @@ class OutputCreator():
             self.fields_changed[field_name] = 1
             
     def finished(self):
-        print 'In total ' + str(self.num_added) + ' ' + self.new_obj_type + 's added.'
-        print 'In total ' + str(self.num_changed) + ' ' + self.new_obj_type + 's changed.'
+        print 'In total ' + str(self.num_added) + ' added.'
+        print 'In total ' + str(self.num_changed) + ' changed.'
         for (field, changed) in self.fields_changed.iteritems():
             print '   ' + str(changed) + ' ' + field + 's changed.'
-        print 'In total ' + str(self.num_removed) + ' ' + self.new_obj_type + 's removed.'
+        print 'In total ' + str(self.num_removed) + ' removed.'
         
         self.num_added = 0
         self.num_changed = 0
         self.fields_changed = {}
         self.num_removed = 0
-        
-    def cached(self):
-        print 'Cache finished for ' + self.new_obj_type + '.'
     

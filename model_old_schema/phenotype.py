@@ -4,7 +4,6 @@ Created on Feb 4, 2013
 @author: kpaskov
 '''
 from model_old_schema import Base, EqualityByIDMixin, SCHEMA
-from model_old_schema.feature import Feature
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -20,8 +19,6 @@ class PhenotypeFeature(Base, EqualityByIDMixin):
     phenotype_id = Column('phenotype_no', Integer, ForeignKey('bud.phenotype.phenotype_no'))
     experiment_id = Column('experiment_no', Integer, ForeignKey('bud.experiment.experiment_no'))
     
-    feature = relationship(Feature, uselist=False)
-
     phenotype = relationship('Phenotype', lazy='joined', uselist=False)
     source = association_proxy('phenotype', 'source')
     experiment_type = association_proxy('phenotype', 'experiment_type')

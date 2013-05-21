@@ -33,6 +33,9 @@ class Bioconcept(Base, EqualityByIDMixin):
         self.description = description
         self.date_created = date_created
         self.created_by = created_by
+        
+    def unique_key(self):
+        return (self.official_name, self.biocon_type)
             
     @hybrid_property
     def link(self):

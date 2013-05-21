@@ -1,6 +1,8 @@
 from numbers import Number
+from schema_conversion.output_manager import OutputCreator
 from sqlalchemy.types import Float
 from utils.utils import float_approx_equal
+import datetime
 
 
     
@@ -22,10 +24,12 @@ def check_values(new_obj, old_obj, field_names, output_creator, key):
         if not check_value(new_obj, old_obj, field_name):
             output_creator.changed(key, field_name)
 
-def cache(cls, mapping, key_maker, session, output_creator):
-    new_entries = dict([(key_maker(x), x) for x in session.query(cls).all()])
-    mapping.update(new_entries)
-    output_creator.cached()
+def cache(cls, session, filter_f=None):
+    if filter_f is None:
+        cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).all()])
+    else:
+        cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).all() if filter_f(x)])
+    return cache_entries
     
 def add_or_check(new_obj, mapping, key, values_to_check, session, output_creator):
     if key in mapping:
@@ -38,29 +42,36 @@ def add_or_check(new_obj, mapping, key, values_to_check, session, output_creator
         output_creator.added()
         return True
     
-def create_or_update(old_objs, mapping, create, key_maker, values_to_check, session, output_creator):
-    for old_obj in old_objs:
-        new_obj = create(old_obj)
-        if new_obj is not None:
-            key = key_maker(new_obj)
-            add_or_check(new_obj, mapping, key, values_to_check, session, output_creator)
+def create_or_update(new_objs, mapping, values_to_check, session):
+    output_creator = OutputCreator()
+    for new_obj in new_objs:
+        key = new_obj.unique_key()
+        add_or_check(new_obj, mapping, key, values_to_check, session, output_creator)
     output_creator.finished()
     
-def create_or_update_and_remove(old_objs, mapping, create, key_maker, values_to_check, session, output_creator):
+def create_or_update_and_remove(new_objs, mapping, values_to_check, session):
+    output_creator = OutputCreator()
     to_be_removed = set(mapping.keys())
-    for old_obj in old_objs:
-        new_obj = create(old_obj)
-        if new_obj is not None:
-            key = key_maker(new_obj)
-            add_or_check(new_obj, mapping, key, values_to_check, session, output_creator)
+    for new_obj in new_objs:
+        key = new_obj.unique_key()
+        add_or_check(new_obj, mapping, key, values_to_check, session, output_creator)
             
-            if key in to_be_removed:
-                to_be_removed.remove(key)
+        if key in to_be_removed:
+            to_be_removed.remove(key)
             
     for r_id in to_be_removed:
         session.delete(mapping[r_id])
         output_creator.removed()
     output_creator.finished()
+    
+def ask_to_commit(new_session, start_time):
+    pause_begin = datetime.datetime.now()
+    user_input = raw_input('Commit these changes?')
+    pause_end = datetime.datetime.now()
+    if user_input == 'Y':
+        new_session.commit()
+    end_time = datetime.datetime.now()
+    print str(end_time - pause_end + pause_begin - start_time) + '\n'
     
     
     

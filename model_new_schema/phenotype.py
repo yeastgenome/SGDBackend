@@ -58,16 +58,16 @@ class Phenoevidence(Evidence):
     reporter = Column('reporter', String)
     reporter_desc = Column('reporter_desc', String)
     strain_details = Column('strain_details', String)
+    details = Column('details', String)
+    experiment_details = Column('experiment_details', String)
+    conditions = Column('conditions', String)
+    
     budding_index = Column('budding_index', String)
     glutathione_excretion = Column('glutathione_excretion', String)
     z_score = Column('z_score', String)
     relative_fitness_score = Column('relative_fitness_score', Float)
     chitin_level = Column('chitin_level', Float)
-    description = Column('description', String)
-    details = Column('details', String)
-    experiment_details = Column('experiment_details', String)
-    conditions = Column('conditions', String)
-    
+
     bioent_id = Column('bioent_id', Integer, ForeignKey(Gene.id))
     biocon_id = Column('biocon_id', Integer, ForeignKey(Phenotype.id))
     
@@ -86,15 +86,14 @@ class Phenoevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE",
                        'inherit_condition': id==Evidence.id}
     
-    def __init__(self, experiment_type, reference_id, strain_id, mutant_type, mutant_allele_id, source, 
-                 qualifier,
-                 bioent_biocon_id, evidence_type='PHENOTYPE_EVIDENCE', session=None, evidence_id=None, date_created=None, created_by=None):
-        Evidence.__init__(self, experiment_type, reference_id, evidence_type, strain_id, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
+    def __init__(self, evidence_id, experiment_type, reference_id, strain_id, source,
+                 mutant_type, qualifier, bioent_id, biocon_id,
+                 date_created, created_by):
+        Evidence.__init__(self, evidence_id, experiment_type, reference_id, 'PHENOTYPE_EVIDENCE', strain_id, source, date_created, created_by)
         self.mutant_type = mutant_type
-        self.mutant_allele_id = mutant_allele_id
-        self.source = source
         self.qualifier = qualifier
-        self.bioent_biocon_id = bioent_biocon_id
+        self.bioent_id = bioent_id
+        self.biocon_id = biocon_id
         
         
 class PhenoevidenceChemical(Base):
@@ -113,3 +112,6 @@ class PhenoevidenceChemical(Base):
     #Relationships
     chemical = relationship(Chemical, uselist=False, lazy='joined')
     chemical_name = association_proxy('chemical', 'name')
+    
+    def unique_key(self):
+        return (self.evidence_id, self.chemical_id)

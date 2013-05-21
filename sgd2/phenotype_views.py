@@ -254,7 +254,7 @@ def create_phenotype_ontology_node(obj, focus_node, child):
             'child':child, 'direct_gene_count':size}
 
 def create_phenotype_ontology_edge(biocon_biocon):
-    return { 'id': 'BIOCON_BIOCON' + str(biocon_biocon.id), 'source': 'BIOCONCEPT' + str(biocon_biocon.parent_biocon_id), 'target': 'BIOCONCEPT' + str(biocon_biocon.child_biocon_id)}  
+    return { 'id': 'BIOCON_BIOCON' + str(biocon_biocon.id), 'source': 'BIOCONCEPT' + str(biocon_biocon.parent_id), 'target': 'BIOCONCEPT' + str(biocon_biocon.child_id)}  
 
     
 def create_phenotype_ontology_graph(biocon):

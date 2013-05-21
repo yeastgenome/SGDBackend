@@ -94,6 +94,9 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
         self.date_created = date_created
         self.created_by = created_by
         
+    def unique_key(self):
+        return self.citation_db
+        
      
     @hybrid_property
     def authors(self):

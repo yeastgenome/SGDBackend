@@ -100,11 +100,11 @@ def get_biocon_biocons(biocon_ids):
     biocon_ids = set(biocon_ids)
     related_biocon_biocons = set()
     
-    ancestor_in_list = DBSession.query(BioconRelation).filter(BioconRelation.parent_biocon_id.in_(biocon_ids)).all()
-    related_biocon_biocons.update([biocon_biocon for biocon_biocon in ancestor_in_list if biocon_biocon.child_biocon_id in biocon_ids])
+    ancestor_in_list = DBSession.query(BioconRelation).filter(BioconRelation.parent_id.in_(biocon_ids)).all()
+    related_biocon_biocons.update([biocon_biocon for biocon_biocon in ancestor_in_list if biocon_biocon.child_id in biocon_ids])
     
-    child_in_list = DBSession.query(BioconRelation).filter(BioconRelation.child_biocon_id.in_(biocon_ids)).all()
-    related_biocon_biocons.update([biocon_biocon for biocon_biocon in child_in_list if biocon_biocon.parent_biocon_id in biocon_ids])
+    child_in_list = DBSession.query(BioconRelation).filter(BioconRelation.child_id.in_(biocon_ids)).all()
+    related_biocon_biocons.update([biocon_biocon for biocon_biocon in child_in_list if biocon_biocon.parent_id in biocon_ids])
     
     return related_biocon_biocons
 

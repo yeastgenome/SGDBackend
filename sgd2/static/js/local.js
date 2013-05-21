@@ -259,7 +259,8 @@ function setup_ontology_cytoscape_vis(graph_link) {
 						attrName: "bio_type",
 						entries: [
 							{attrValue: 'GENE', value: 'ELLIPSE',
-							attrValue: 'GO', value: 'RECTANGLE'}
+							attrValue: 'GO', value: 'RECTANGLE',
+							attrValue: 'PHENOTYPE', value:'RECTANGLE'}
 						]
 					}
 				},

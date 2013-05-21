@@ -3,20 +3,9 @@ Created on May 6, 2013
 
 @author: kpaskov
 '''
-from schema_conversion import cache, create_or_update, \
-    create_or_update_and_remove, add_or_check
-from schema_conversion.output_manager import OutputCreator
+from schema_conversion import cache, create_or_update_and_remove, ask_to_commit
+import datetime
 
-id_to_bioent = {}
-observable_to_phenotype = {}
-name_to_chemical = {}
-id_to_evidence = {}
-tuple_to_bioent_biocon = {}
-tuple_to_reflink = {}
-name_to_allele = {}
-tuple_to_phenoevidence_chemical = {}
-tuple_to_bioconrel = {}
-tuple_to_bioconanc = {}
 
 def create_bioent_biocon_name(bioent, biocon):
     return bioent.official_name + '---' + biocon.official_name
@@ -25,9 +14,6 @@ def create_bioent_biocon_name(bioent, biocon):
 """
 ------------Phenotype--------------
 """
-
-def create_phenotype_id(observable):
-    return observable_to_phenotype[observable].id
 
 def create_phenoevidence_id(old_evidence_id):
     return old_evidence_id
@@ -42,25 +28,17 @@ def create_phenotype_type(observable):
         return 'pp_rna'
     else:
         return 'cellular'
+    
+def create_phenotype_key(observable):
+    name = observable.replace(' ', '_')
+    name = name.replace('/', '-')
+    return (name, 'PHENOTYPE')
 
 def create_phenotype(old_phenotype):
     from model_new_schema.phenotype import Phenotype as NewPhenotype
-    new_phenotype = NewPhenotype(old_phenotype.observable, create_phenotype_type(old_phenotype.observable), None, 
-                                 biocon_id=old_phenotype.id, date_created=old_phenotype.date_created, created_by=old_phenotype.created_by)
+    new_phenotype = NewPhenotype(old_phenotype.id, old_phenotype.observable, create_phenotype_type(old_phenotype.observable), None,
+                                 old_phenotype.date_created, old_phenotype.created_by)
     return new_phenotype
-
-def create_bioent_biocon(old_phenotype_feature):
-    from model_new_schema.biofact import Biofact as NewBiofact
-    bioent_id = old_phenotype_feature.feature_id
-    biocon_observable = old_phenotype_feature.observable
-        
-    if bioent_id in id_to_bioent and biocon_observable in observable_to_phenotype:
-        bioent = id_to_bioent[bioent_id]
-        biocon = observable_to_phenotype[biocon_observable]
-        name = create_bioent_biocon_name(bioent, biocon)
-        return NewBiofact(bioent_id, biocon.id, name, biocon.biocon_type)
-    else:
-        return None
 
 def create_allele(old_phenotype_feature):
     from model_new_schema.misc import Allele as NewAllele
@@ -71,33 +49,36 @@ def create_allele(old_phenotype_feature):
             return new_allele
     return None
 
-def create_phenoevidence(old_phenotype_feature):
+def create_chemicals(old_phenotype_feature):
+    from model_new_schema.misc import Chemical as NewChemical
+    chemicals = []
+    if old_phenotype_feature.experiment is not None:
+        chemical_infos = old_phenotype_feature.experiment.chemicals
+        chemicals = [NewChemical(x[0]) for x in chemical_infos]
+        return chemicals
+    return None
+
+def create_phenoevidence(old_phenotype_feature, key_to_reflink, key_to_phenotype):
     from model_new_schema.phenotype import Phenoevidence as NewPhenoevidence
     evidence_id = create_phenoevidence_id(old_phenotype_feature.id)
-    reference_id = tuple_to_reflink[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)].reference_id
-    strain_id = None
-    allele_id = None
+    reference_id = key_to_reflink[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)].reference_id
     bioent_id = old_phenotype_feature.feature_id
-    biocon_id = create_phenotype_id(old_phenotype_feature.observable)
-    if (bioent_id, biocon_id, 'PHENOTYPE') in tuple_to_bioent_biocon:
-        bioent_biocon_id = tuple_to_bioent_biocon[(bioent_id, biocon_id, 'PHENOTYPE')].id
-    else:
-        bioent_biocon_id = None
+    biocon_id = key_to_phenotype[create_phenotype_key(old_phenotype_feature.observable)].id
 
-    new_phenoevidence = NewPhenoevidence(old_phenotype_feature.experiment_type, reference_id, strain_id, old_phenotype_feature.mutant_type, 
-                                         allele_id, old_phenotype_feature.source, old_phenotype_feature.qualifier, bioent_biocon_id,
-                                         session=None, evidence_id=evidence_id, date_created=old_phenotype_feature.date_created, created_by=old_phenotype_feature.created_by)
+    new_phenoevidence = NewPhenoevidence(evidence_id, old_phenotype_feature.experiment_type, reference_id, None, old_phenotype_feature.source,
+                                         old_phenotype_feature.mutant_type, old_phenotype_feature.qualifier, bioent_id, biocon_id,
+                                         old_phenotype_feature.date_created, old_phenotype_feature.created_by)
     if old_phenotype_feature.experiment is not None:
         experiment = old_phenotype_feature.experiment
         new_phenoevidence.reporter = None if experiment.reporter == None else experiment.reporter[0]
         new_phenoevidence.reporter_desc = None if experiment.reporter == None else experiment.reporter[1]
         new_phenoevidence.strain_id = None if experiment.strain == None else experiment.strain[0]
         new_phenoevidence.strain_details = None if experiment.strain == None else experiment.strain[1]
-        new_phenoevidence.budding_index = None if experiment.budding_index == None else float(experiment.budding_index)
-        new_phenoevidence.glutathione_excretion = None if experiment.glutathione_excretion == None else float(experiment.glutathione_excretion)
-        new_phenoevidence.z_score = experiment.z_score
-        new_phenoevidence.relative_fitness_score = None if experiment.relative_fitness_score == None else float(experiment.relative_fitness_score)
-        new_phenoevidence.chitin_level = None if experiment.chitin_level == None else float(experiment.chitin_level)
+        #new_phenoevidence.budding_index = None if experiment.budding_index == None else float(experiment.budding_index)
+        #new_phenoevidence.glutathione_excretion = None if experiment.glutathione_excretion == None else float(experiment.glutathione_excretion)
+        #new_phenoevidence.z_score = experiment.z_score
+        #new_phenoevidence.relative_fitness_score = None if experiment.relative_fitness_score == None else float(experiment.relative_fitness_score)
+        #new_phenoevidence.chitin_level = None if experiment.chitin_level == None else float(experiment.chitin_level)
     
         comment = experiment.experiment_comment
         if comment is not None:
@@ -125,27 +106,10 @@ def create_phenoevidence(old_phenotype_feature):
             
     return new_phenoevidence  
 
-def add_allele(old_phenotype_feature):
-    evidence_id = create_phenoevidence_id(old_phenotype_feature.id)
-    evidence = id_to_evidence[evidence_id]
-    
-    if old_phenotype_feature.experiment is not None:
-        allele_info = old_phenotype_feature.experiment.allele
-        if allele_info is not None:
-            allele_name = allele_info[0]
-            evidence.mutant_allele_id = name_to_allele[allele_name].id
-    return evidence
 
-def create_chemical(chemical_info):
-    from model_new_schema.misc import Chemical as NewChemical
-    new_chemical = NewChemical(chemical_info[0][0])
-    return new_chemical
-
-def create_phenoevidence_chemical(chemical):
+def create_phenoevidence_chemical(chemical_info, evidence_id, key_to_chemical):
     from model_new_schema.phenotype import PhenoevidenceChemical as NewPhenoevidenceChemical
-    evidence_id = create_phenoevidence_id(chemical[1].id)
-    chemical_info = chemical[0]
-    chemical_id = name_to_chemical[chemical_info[0]].id
+    chemical_id = key_to_chemical[chemical_info[0]].id
     chemical_amount = chemical_info[1]
     new_pheno_chemical = NewPhenoevidenceChemical(evidence_id, chemical_id, chemical_amount)
     return new_pheno_chemical
@@ -161,119 +125,152 @@ def convert_phenotype(old_session, new_session):
     from model_old_schema.reference import Reflink as OldReflink
     from model_old_schema.cv import CVTerm as OldCVTerm
     
-    from model_new_schema.phenotype import Phenotype as NewPhenotype
+    from model_new_schema.phenotype import Phenotype as NewPhenotype, Phenoevidence as NewPhenoevidence, PhenoevidenceChemical as NewPhenoevidenceChemical
     from model_new_schema.bioconcept import BioconAncestor as NewBioconAncestor, BioconRelation as NewBioconRelation
+    from model_new_schema.misc import Allele as NewAllele, Chemical as NewChemical
     
+    '''
+    Convert Phenotypes
+    '''
+    print 'Phenotypes'
+    start_time = datetime.datetime.now()
+    
+    #Cache phenotypes
+    key_to_phenotype = cache(NewPhenotype, new_session)
 
-#    #Cache bioents
-#    bioent_oc = OutputCreator('bioent')
-#    cache(NewBioentity, id_to_bioent, lambda x: x.id, new_session, bioent_oc)
-# 
-#    #Cache phenotypes
-#    phenotype_oc = OutputCreator('phenotype')
-#    cache(NewPhenotype, observable_to_phenotype, lambda x: x.observable, new_session, phenotype_oc)
-#
-#    #Create new phenotypes if they don't exist, or update the database if they do.
-#    old_phenotypes = old_session.query(OldPhenotype).all()
-#    key_maker = lambda x: x.observable
-#    values_to_check = ['observable', 'phenotype_type']
-#    create_or_update_and_remove(old_phenotypes, observable_to_phenotype, create_phenotype, key_maker, values_to_check, new_session, phenotype_oc)
-
-#
-#    #Cache bioent_biocons
-#    bioent_biocon_oc = OutputCreator('bioent_biocon')
-#    key_maker = lambda x: (x.bioent_id, x.biocon_id, x.biocon_type)
-#    cache(NewBioentBiocon, tuple_to_bioent_biocon, lambda x: (x.bioent_id, x.biocon_id, x.biocon_type), new_session, bioent_biocon_oc)
-#    
-#    #Create new bioent_biocons if they don't exist, or update the database if they do.
-#    old_phenotype_features = old_session.query(OldPhenotypeFeature).all()
-#    values_to_check = ['bioent_id', 'biocon_id', 'official_name', 'biocon_type']
-#    create_or_update(old_phenotype_features, tuple_to_bioent_biocon, create_bioent_biocon, key_maker, values_to_check, new_session, bioent_biocon_oc)
-#    
-#    #Cache reflinks
-#    output_creator_reflink = OutputCreator('reflink')
-#    cache(OldReflink, tuple_to_reflink, lambda x: (x.col_name, x.primary_key), old_session, output_creator_reflink)
-#    
-#    #Cache phenoevidences
-#    output_creator_phenoevidence = OutputCreator('phenoevidence')
-#    cache(NewPhenoevidence, id_to_evidence, lambda x: x.id, new_session, output_creator_phenoevidence)
-#
-#    #Create new phenoevidences if they don't exist, or update the database if they do.
-#    key_maker = lambda x: x.id
-#    values_to_check = ['mutant_type', 'source', 'qualifier', 'reporter', 'reporter_desc', 'strain_details', 
-#                       'budding_index', 'glutathione_excretion', 'z_score', 'relative_fitness_score', 'chitin_level', 'description', 'bioent_biocon_id',
-#                       'conditions', 'details', 'experiment_details',
-#                       'experiment_type', 'reference_id', 'evidence_type', 'strain_id', 'source', 'date_created', 'created_by']
-#    create_or_update_and_remove(old_phenotype_features, id_to_evidence, create_phenoevidence, key_maker, values_to_check, new_session, output_creator_phenoevidence)
-#
-#    #Cache alleles
-#    output_creator_allele = OutputCreator('allele')
-#    cache(NewAllele, name_to_allele, lambda x: x.official_name, new_session, output_creator_allele)
-#    
-#    #Create new alleles if they don't exist, or update the database if they do.
-#    values_to_check = ['parent_id', 'more_info']
-#    create_or_update_and_remove(old_phenotype_features, name_to_allele, create_allele, lambda x: x.official_name, values_to_check, new_session, output_creator_allele)
-#
-#    new_session.commit()
-#    values_to_check = ['mutant_allele_id']
-#    create_or_update(old_phenotype_features, id_to_evidence, add_allele, lambda x: x.id, values_to_check, new_session, output_creator_phenoevidence)
-
-#    #Cache chemicals
-#    key_maker = lambda x: x.name
-#    output_creator_chemical = OutputCreator('chemical')
-#    cache(NewChemical, name_to_chemical, key_maker, new_session, output_creator_chemical)
-#    
-#    #Create new chemicals if they don't exist, or update the database if they do.
-#    values_to_check = ['name']
-#    chemical_infos = []
-#    for old_phenotype_feature in old_phenotype_features:
-#        if old_phenotype_feature.experiment != None:
-#            more_chemicals = old_phenotype_feature.experiment.chemicals
-#            chemical_infos.extend([(x, old_phenotype_feature) for x in more_chemicals])
-#
-#    create_or_update_and_remove(chemical_infos, name_to_chemical, create_chemical, key_maker, values_to_check, new_session, output_creator_chemical)
-#
-#    #Cache evidence_chemical
-#    key_maker = lambda x: (x.evidence_id, x.chemical_id)
-#    output_creator_chemical = OutputCreator('evidence_chemical')
-#    cache(NewPhenoevidenceChemical, tuple_to_phenoevidence_chemical, key_maker, new_session, output_creator_chemical)
-#    
-#    #Create new evidence_chemical if they don't exist, or update the database if they do.
-#    values_to_check = ['evidence_id', 'chemical_id', 'chemical_amt']
-#    create_or_update_and_remove(chemical_infos, tuple_to_phenoevidence_chemical, create_phenoevidence_chemical, key_maker, values_to_check, 
-#                    new_session, output_creator_chemical)
+    #Create new phenotypes if they don't exist, or update the database if they do.
+    old_phenotypes = old_session.query(OldPhenotype).all()
+    new_phenotypes = filter(None, [create_phenotype(x) for x in old_phenotypes])
+    values_to_check = ['observable', 'phenotype_type']
+    create_or_update_and_remove(new_phenotypes, key_to_phenotype, values_to_check, new_session)
     
     #Add definitions to phenotypes
-    phenotype_output_creator = OutputCreator('phenotype')
-    #Cache phenotypes
-    cache(NewPhenotype, observable_to_phenotype, lambda x: x.observable, new_session, phenotype_output_creator)
     cv_terms = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==6).all()
-    #for cv_term in cv_terms:
-    #    new_phenotype = NewPhenotype(cv_term.name, create_phenotype_type(cv_term.name), cv_term.definition)
-    #    values_to_check = ['observable', 'phenotype_type', 
-    #                       'biocon_type', 'official_name', 'description']
-    #    add_or_check(new_phenotype, observable_to_phenotype, new_phenotype.observable, values_to_check, new_session, phenotype_output_creator)
-    #phenotype_output_creator.finished()  
-     
-    #Add phenotype ontology
-    #Cache BioconRelations
-    bioconrel_oc = OutputCreator('bioconrel')
-    cache(NewBioconRelation, tuple_to_bioconrel, lambda x: (x.child_id, x.parent_id, x.bioconrel_type, x.relationship_type) if x.relationship_type == 'PHENOTYPE_ONTOLOGY' else None, new_session, bioconrel_oc)
-    
-    #Cache BioconAncestors
-    bioconanc_oc = OutputCreator('bioconanc')
-    cache(NewBioconAncestor, tuple_to_bioconanc, lambda x: (x.child_id, x.ancestor_id), new_session, bioconanc_oc)
-    
-    #Add bioconrels and bioconancs
     for cv_term in cv_terms:
-        if cv_term.name in observable_to_phenotype:
-            child_id = observable_to_phenotype[cv_term.name].id
-            for parent in cv_term.parents:
-                if parent.name in observable_to_phenotype:
-                    parent_id = observable_to_phenotype[parent.name].id
-                    biocon_biocon = NewBioconRelation(None, parent_id, child_id, 'PHENOTYPE_ONTOLOGY', 'is a')
-                    add_or_check(biocon_biocon, tuple_to_bioconrel, (biocon_biocon.child_id, biocon_biocon.parent_id, biocon_biocon.bioconrel_type, biocon_biocon.relationship_type), [], new_session, bioconrel_oc)
-    bioconrel_oc.finished()
+        phenotype_key = create_phenotype_key(cv_term.name)
+        if phenotype_key in key_to_phenotype:
+            new_phenotype = key_to_phenotype[phenotype_key]
+            if new_phenotype.description != cv_term.definition:
+                new_phenotype.description = cv_term.definition
+                new_session.add(new_phenotype)
+                
+    ask_to_commit(new_session, start_time)
+
+    
+    '''
+    Convert Alleles
+    '''
+    print 'Alleles'
+    start_time = datetime.datetime.now()
+    
+    old_phenoevidences = old_session.query(OldPhenotypeFeature).all()
+
+    #Cache alleles
+    key_to_allele = cache(NewAllele, new_session)
+    
+    #Create new alleles if they don't exist, or update the database if they do.
+    values_to_check = ['more_info']
+    new_alleles = filter(None, [create_allele(x) for x in old_phenoevidences])
+    create_or_update_and_remove(new_alleles, key_to_allele, values_to_check, new_session)
+    
+    ask_to_commit(new_session, start_time)
+
+    
+    '''
+    Convert Chemicals
+    '''
+    print 'Chemicals'
+    start_time = datetime.datetime.now()
+
+    #Cache chemicals
+    key_to_chemical = cache(NewChemical, new_session)
+    
+    #Create new chemicals if they don't exist, or update the database if they do.
+    values_to_check = ['name']
+    chemicals = []
+    for old_phenoevidence in old_phenoevidences:
+        chems = create_chemicals(old_phenoevidence)
+        if chems != None:
+            chemicals.extend(chems)
+    create_or_update_and_remove(chemicals, key_to_chemical, values_to_check, new_session)
+    
+    ask_to_commit(new_session, start_time)
+    
+    '''
+    Convert Phenoevidences
+    '''
+    print 'Phenoevidences'
+    start_time = datetime.datetime.now()
+    
+    #Cache reflinks
+    key_to_reflink = cache(OldReflink, old_session)
+    
+    #Cache phenoevidences
+    key_to_phenoevidence = cache(NewPhenoevidence, new_session)
+
+    #Create new phenoevidences if they don't exist, or update the database if they do.    
+    new_phenoevidences = []
+    for old_phenoevidence in old_phenoevidences:
+        new_phenoevidence = create_phenoevidence(old_phenoevidence, key_to_reflink, key_to_phenotype)
+        if new_phenoevidence is not None:
+            new_phenoevidences.append(new_phenoevidence)
+            
+    values_to_check = ['experiment_type', 'reference_id', 'evidence_type', 'strain_id', 'source',
+                       'bioent_id', 'biocon_id', 'date_created', 'created_by',
+                       'mutant_type', 'qualifier', 'reporter', 'reporter_desc', 'strain_details', 
+                       'conditions', 'details', 'experiment_details']
+    create_or_update_and_remove(new_phenoevidences, key_to_phenoevidence, values_to_check, new_session)
+            
+    #Add alleles to phenoevidences
+    for old_phenoevidence in old_phenoevidences:
+        new_phenoevidence = key_to_phenoevidence[create_phenoevidence_id(old_phenoevidence.id)]
+        if old_phenoevidence.experiment is not None:
+            allele_info = old_phenoevidence.experiment.allele
+            if allele_info is not None:
+                allele_name = allele_info[0]
+                allele_id = key_to_allele[allele_name].id
+                if new_phenoevidence.mutant_allele_id != allele_id:
+                    new_phenoevidence.mutant_allele_id = allele_id
+                    new_session.add(new_phenoevidence)
+                
+    #Cache evidence_chemical
+    key_to_phenoevidence_chemical = cache(NewPhenoevidenceChemical, new_session)
+    
+    values_to_check = ['evidence_id', 'chemical_id', 'chemical_amt']
+    phenoevidence_chemicals = []
+    #Create new evidence_chemical if they don't exist, or update the database if they do.
+    for old_phenoevidence in old_phenoevidences:
+        new_phenoevidence_id = create_phenoevidence_id(old_phenoevidence.id)
+        if old_phenoevidence.experiment is not None:
+            chemical_infos = old_phenoevidence.experiment.chemicals
+            if chemical_infos is not None:   
+                phenoevidence_chemicals.extend([create_phenoevidence_chemical(x, new_phenoevidence_id, key_to_chemical) for x in chemical_infos])
+    create_or_update_and_remove(phenoevidence_chemicals, key_to_phenoevidence_chemical, values_to_check, new_session)
+
+    ask_to_commit(new_session, start_time)
+       
+
+
+#     
+#    #Add phenotype ontology
+#    #Cache BioconRelations
+#    bioconrel_oc = OutputCreator('bioconrel')
+#    cache(NewBioconRelation, tuple_to_bioconrel, lambda x: (x.child_id, x.parent_id, x.bioconrel_type, x.relationship_type) if x.relationship_type == 'PHENOTYPE_ONTOLOGY' else None, new_session, bioconrel_oc)
+#    
+#    #Cache BioconAncestors
+#    bioconanc_oc = OutputCreator('bioconanc')
+#    cache(NewBioconAncestor, tuple_to_bioconanc, lambda x: (x.child_id, x.ancestor_id), new_session, bioconanc_oc)
+#    
+#    #Add bioconrels and bioconancs
+#    for cv_term in cv_terms:
+#        if cv_term.name in observable_to_phenotype:
+#            child_id = observable_to_phenotype[cv_term.name].id
+#            for parent in cv_term.parents:
+#                if parent.name in observable_to_phenotype:
+#                    parent_id = observable_to_phenotype[parent.name].id
+#                    biocon_biocon = NewBioconRelation(None, parent_id, child_id, 'PHENOTYPE_ONTOLOGY', 'is a')
+#                    add_or_check(biocon_biocon, tuple_to_bioconrel, (biocon_biocon.child_id, biocon_biocon.parent_id, biocon_biocon.bioconrel_type, biocon_biocon.relationship_type), [], new_session, bioconrel_oc)
+#    bioconrel_oc.finished()
         
     #for cv_term in cv_terms:
     #    parents = list(cv_term.parents)

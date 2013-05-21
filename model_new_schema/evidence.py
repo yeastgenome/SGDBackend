@@ -27,14 +27,18 @@ class Evidence(Base, EqualityByIDMixin):
     #Relationships
     reference = relationship('Reference', backref='evidences', uselist=False)
     
-    def __init__(self, evidence_id, experiment_type, reference_id, evidence_type, strain_id, date_created, created_by):
+    def __init__(self, evidence_id, experiment_type, reference_id, evidence_type, strain_id, source, date_created, created_by):
         self.id = evidence_id
         self.experiment_type = experiment_type
         self.reference_id = reference_id
         self.evidence_type = evidence_type
         self.strain_id = strain_id
+        self.source = source
         self.date_created = date_created
         self.created_by = created_by
+        
+    def unique_key(self):
+        return self.id
     
     def __repr__(self):
         data = self.__class__.__name__, self.id
