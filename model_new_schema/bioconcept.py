@@ -74,12 +74,14 @@ class BioconRelation(Base, EqualityByIDMixin):
     child_biocon = relationship('Bioconcept', uselist=False, backref='parent_biocons', primaryjoin="BioconRelation.child_id==Bioconcept.id")
     type = "BIOCON_BIOCON"
 
-    def __init__(self, biocon_biocon_id, parent_id, child_id, bioconrel_type, relationship_type):
-        self.id = biocon_biocon_id
+    def __init__(self, parent_id, child_id, bioconrel_type, relationship_type):
         self.parent_id = parent_id
         self.child_id = child_id
         self.bioconrel_type = bioconrel_type
         self.relationship_type = relationship_type
+        
+    def unique_key(self):
+        return (self.parent_id, self.child_id, self.bioconrel_type, self.relationship_type)
         
   
 class BioconAncestor(Base, EqualityByIDMixin):
@@ -89,17 +91,20 @@ class BioconAncestor(Base, EqualityByIDMixin):
     ancestor_id = Column('ancestor_biocon_id', Integer, ForeignKey(Bioconcept.id))
     child_id = Column('child_biocon_id', Integer, ForeignKey(Bioconcept.id))
     generation = Column('generation', Integer)
+    bioconanc_type = Column('bioconanc_type', String)
    
     ancestor_biocon = relationship('Bioconcept', uselist=False, primaryjoin="BioconAncestor.ancestor_id==Bioconcept.id")
     child_biocon = relationship('Bioconcept', uselist=False, primaryjoin="BioconAncestor.child_id==Bioconcept.id")
     type = "BIOCON_ANCESTOR"
 
-    def __init__(self, ancestor_biocon_id, child_biocon_id, session=None, biocon_ancestor_id=None):
-        self.ancestor_biocon_id = ancestor_biocon_id
-        self.child_biocon_id = child_biocon_id
-        
-        if session is None:
-            self.id = biocon_ancestor_id
+    def __init__(self, ancestor_id, child_id, bioconanc_type, generation):
+        self.ancestor_id = ancestor_id
+        self.child_id = child_id
+        self.bioconanc_type = bioconanc_type
+        self.generation = generation
+
+    def unique_key(self):
+        return (self.ancestor_id, self.child_id, self.bioconanc_type)
 
 
 

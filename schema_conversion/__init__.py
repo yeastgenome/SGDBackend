@@ -1,10 +1,24 @@
 from numbers import Number
 from schema_conversion.output_manager import OutputCreator
+from sqlalchemy.engine import create_engine
+from sqlalchemy.ext.declarative.api import declarative_base
+from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.types import Float
 from utils.utils import float_approx_equal
 import datetime
 
+def prepare_schema_connection(model_cls, config_cls):
+    model_cls.SCHEMA = config_cls.SCHEMA
+    class Base(object):
+        __table_args__ = {'schema': config_cls.SCHEMA, 'extend_existing':True}
 
+    model_cls.Base = declarative_base(cls=Base)
+    model_cls.metadata = model_cls.Base.metadata
+    engine = create_engine("%s://%s:%s@%s/%s" % (config_cls.DBTYPE, config_cls.DBUSER, config_cls.DBPASS, config_cls.DBHOST, config_cls.DBNAME), convert_unicode=True, pool_recycle=3600)
+    model_cls.Base.metadata.bind = engine
+    session_maker = sessionmaker(bind=engine)
+        
+    return session_maker
     
 def check_value(new_obj, old_obj, field_name):
     new_obj_value = getattr(new_obj, field_name)
@@ -24,11 +38,8 @@ def check_values(new_obj, old_obj, field_names, output_creator, key):
         if not check_value(new_obj, old_obj, field_name):
             output_creator.changed(key, field_name)
 
-def cache(cls, session, filter_f=None):
-    if filter_f is None:
-        cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).all()])
-    else:
-        cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).all() if filter_f(x)])
+def cache(cls, session, **kwargs):
+    cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).filter_by(**kwargs).all()])
     return cache_entries
     
 def add_or_check(new_obj, mapping, key, values_to_check, session, output_creator):
@@ -66,7 +77,9 @@ def create_or_update_and_remove(new_objs, mapping, values_to_check, session):
     
 def ask_to_commit(new_session, start_time):
     pause_begin = datetime.datetime.now()
-    user_input = raw_input('Commit these changes?')
+    user_input = None
+    while user_input != 'Y' and user_input != 'N':
+        user_input = raw_input('Commit these changes (Y/N)?')
     pause_end = datetime.datetime.now()
     if user_input == 'Y':
         new_session.commit()

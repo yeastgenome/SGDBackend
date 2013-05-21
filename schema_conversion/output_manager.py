@@ -33,6 +33,6 @@ class OutputCreator():
         
         self.num_added = 0
         self.num_changed = 0
-        self.fields_changed = {}
+        self.fields_changed.clear()
         self.num_removed = 0
     

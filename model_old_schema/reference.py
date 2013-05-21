@@ -440,6 +440,4 @@ class Reflink(Base):
     primary_key = Column('primary_key', String)
     col_name = Column('col_name', String)
         
-    def unique_key(self):
-        return (self.col_name, self.primary_key)
     

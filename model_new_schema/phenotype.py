@@ -57,6 +57,7 @@ class Phenoevidence(Evidence):
     
     reporter = Column('reporter', String)
     reporter_desc = Column('reporter_desc', String)
+    allele_info = Column('allele_info', String)
     strain_details = Column('strain_details', String)
     details = Column('details', String)
     experiment_details = Column('experiment_details', String)
