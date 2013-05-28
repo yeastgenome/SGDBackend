@@ -6,9 +6,9 @@ Created on Mar 15, 2013
 from model_new_schema.link_maker import LinkMaker
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_biofacts, get_biocon, get_bioent, \
-    get_phenotype_evidence, get_related_biofacts, get_reference, \
-    get_biocon_family, get_biocon_biocons
+from query import get_biofacts, get_phenotype_evidence, get_related_biofacts, \
+    get_biocon_family, get_biocon_biocons, get_biocon_id, get_biocon, get_bioent, \
+    get_bioent_id, get_reference_id
 from sgd2.views import site_layout
 from utils.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list
@@ -57,28 +57,28 @@ def phenotype_overview_table(request):
     if 'biocon_name' in request.GET:
         #Need a phenotype overview table based on a biocon
         biocon_name = request.GET['biocon_name']
-        biocon = get_biocon(biocon_name, 'PHENOTYPE')
-        if biocon is None:
+        biocon_id = get_biocon_id(biocon_name, 'PHENOTYPE')
+        if biocon_id is None:
             return Response(status_int=500, body='Biocon could not be found.')
-        phenoevidences = get_phenotype_evidence(biocon_id=biocon.id)
+        phenoevidences = get_phenotype_evidence(biocon_id=biocon_id)
         return make_overview_tables(False, phenoevidences) 
         
     elif 'bioent_name' in request.GET:
         #Need a GO overview table based on a bioent
         bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
-        if bioent is None:
+        bioent_id = get_bioent_id(bioent_name)
+        if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        phenoevidences = get_phenotype_evidence(bioent_id=bioent.id)
+        phenoevidences = get_phenotype_evidence(bioent_id=bioent_id)
         return make_overview_tables(True, phenoevidences) 
     
     elif 'reference_name' in request.GET:
         #Need a GO overview table based on a bioent
         ref_name = request.GET['reference_name']
-        ref = get_reference(ref_name)
-        if ref is None:
+        ref_id = get_reference_id(ref_name)
+        if ref_id is None:
             return Response(status_int=500, body='Reference could not be found.')
-        phenoevidences = get_phenotype_evidence(reference_id=ref.id)
+        phenoevidences = get_phenotype_evidence(reference_id=ref_id)
         return make_overview_tables(True, phenoevidences) 
 
     else:
@@ -90,19 +90,19 @@ def phenotype_evidence_table(request):
     if 'biocon_name' in request.GET:
         #Need a phenotype overview table based on a biocon
         biocon_name = request.GET['biocon_name']
-        biocon = get_biocon(biocon_name, 'PHENOTYPE')
-        if biocon is None:
+        biocon_id = get_biocon_id(biocon_name, 'PHENOTYPE')
+        if biocon_id is None:
             return Response(status_int=500, body='Biocon could not be found.')
-        evidences = get_phenotype_evidence(biocon_id=biocon.id)
+        evidences = get_phenotype_evidence(biocon_id=biocon_id)
         return make_evidence_tables(False, evidences) 
         
     elif 'bioent_name' in request.GET:
         #Need a phenotype overview table based on a bioent
         bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
-        if bioent is None:
+        bioent_id = get_bioent_id(bioent_name)
+        if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        evidences = get_phenotype_evidence(bioent_id=bioent.id)
+        evidences = get_phenotype_evidence(bioent_id=bioent_id)
         return make_evidence_tables(True, evidences) 
     
     else:

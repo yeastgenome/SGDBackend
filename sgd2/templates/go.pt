@@ -42,7 +42,13 @@
 			<ul class='unstyled'>
 				<li><strong>GO ID: </strong><span tal:content="biocon.go_go_id"></li>
 				<li><strong>Namespace: </strong><span tal:content="biocon.go_aspect"></li>
+				<li><strong>Synonyms: </strong>
+					<span tal:repeat="synonym biocon.aliases">
+						<span tal:content="synonym.name"></span>,
+					</span>
+				</li>
 			</ul>
+			
 		</div>
 	</div>
 </section>

@@ -5,7 +5,7 @@ Created on Mar 4, 2013
 '''
 from model_new_schema import Base
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.schema import Column
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 
 class Chemical(Base):
@@ -40,3 +40,47 @@ class Allele(Base):
     def __init__(self, name, description):
         self.official_name = name
         self.more_info = description
+        
+#class Url(Base):
+#    __tablename__ = 'url'
+#    id = Column('url_id', Integer, primary_key=True)
+#    url = Column('url', String)
+#    source = Column('source', String)
+#    
+#    def __init__(self, url_id, url, source):
+#        self.id = url_id
+#        self.url = url
+#        self.source = source
+#        
+#    def unique_key(self):
+#        return self.url
+        
+class ExternalObject(Base):
+    __tablename__ = 'externalobj'
+    id = Column('externalobj_id', Integer, primary_key=True)
+    name = Column('name', String)
+    source = Column('source', String)
+    external_id = Column('external_id', String)
+    url_id = Column('primary_url_id', Integer)#, ForeignKey(Url))
+    assoc_bioent_id = Column('assoc_bioent_id', Integer, ForeignKey('bioent.bioent_id'))
+    assoc_biocon_id = Column('assoc_biocon_id', Integer, ForeignKey('biocon.biocon_id'))
+    
+    #relationships
+    #url = relationship(Url)
+    
+    def __init__(self, external_obj_id, name, source, external_id, assoc_bioent_id, assoc_biocon_id):
+        self.id = external_obj_id
+        self.name = name
+        self.source = source
+        self.external_id = external_id
+        self.assoc_bioent_id = assoc_bioent_id
+        self.assoc_biocon_id = assoc_biocon_id
+        
+    def unique_key(self):
+        return (self.name, self.source)
+        
+        
+        
+    
+    
+    

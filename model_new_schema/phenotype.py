@@ -23,10 +23,6 @@ class Phenotype(Bioconcept):
     phenotype_type = Column('phenotype_type', String)
     direct_gene_count = Column('direct_gene_count', Integer)
     type = "PHENOTYPE"
-    
-    @hybrid_property
-    def search_entry_type(self):
-        return 'Phenotype'
        
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Bioconcept.id}
@@ -37,15 +33,10 @@ class Phenotype(Bioconcept):
         Bioconcept.__init__(self, biocon_id, 'PHENOTYPE', name, description, date_created, created_by)
         self.observable = str(observable)
         self.phenotype_type = phenotype_type
-         
         
-    @classmethod
-    def unique_hash(cls, qualifier, observable):
-        return '%s_%s' % (qualifier, observable) 
-
-    @classmethod
-    def unique_filter(cls, query, qualifier, observable):
-        return query.filter(Phenotype.qualifier == qualifier, Phenotype.observable == observable)
+    @hybrid_property
+    def search_entry_type(self):
+        return 'Phenotype'
         
 class Phenoevidence(Evidence):
     __tablename__ = "phenoevidence"
@@ -76,14 +67,10 @@ class Phenoevidence(Evidence):
     
     #Relationship
     gene = relationship(Gene)
-    phenotype = relationship(Phenotype)
-    
-    
+    phenotype = relationship(Phenotype, cascade='all,delete')
     allele = relationship(Allele, lazy='subquery', uselist=False)
-    phenoev_chemicals = relationship('PhenoevidenceChemical', backref='evidence', lazy='joined')
     chemicals = association_proxy('phenoev_chemicals', 'chemical')
 
-    
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE",
                        'inherit_condition': id==Evidence.id}
     
@@ -96,23 +83,27 @@ class Phenoevidence(Evidence):
         self.bioent_id = bioent_id
         self.biocon_id = biocon_id
         
-        
 class PhenoevidenceChemical(Base):
     __tablename__ = 'phenoevidence_chemical'
     
-    id = Column('phenoevidence_chemical_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    id = Column('phenoevidence_chemical_id', Integer, primary_key=True)
     evidence_id = Column('evidence_id', Integer, ForeignKey(Phenoevidence.id))
     chemical_id = Column('chemical_id', Integer, ForeignKey(Chemical.id))
     chemical_amt = Column('chemical_amount', String)
+    
+    #Relationships
+    chemical = relationship(Chemical, uselist=False, lazy='joined')
+    evidence = relationship(Phenoevidence, backref='phenoev_chemicals')
+    chemical_name = association_proxy('chemical', 'name')
     
     def __init__(self, evidence_id, chemical_id, chemical_amt):
         self.evidence_id = evidence_id
         self.chemical_id = chemical_id
         self.chemical_amt = chemical_amt
     
-    #Relationships
-    chemical = relationship(Chemical, uselist=False, lazy='joined')
-    chemical_name = association_proxy('chemical', 'name')
-    
     def unique_key(self):
         return (self.evidence_id, self.chemical_id)
+        
+        
+
+    

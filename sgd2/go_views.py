@@ -6,9 +6,9 @@ Created on Mar 15, 2013
 from model_new_schema.link_maker import LinkMaker
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_biofacts, get_go_evidence, get_biocon, get_bioent, \
-    get_reference, get_related_biofacts, get_biocon_family, get_biocon_biocons, \
-    get_biocon_id
+from query import get_biofacts, get_go_evidence, get_related_biofacts, \
+    get_biocon_family, get_biocon_biocons, get_biocon_id, get_biocon, get_bioent, \
+    get_bioent_id, get_reference_id
 from sgd2.views import site_layout
 from utils.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list
@@ -67,19 +67,19 @@ def go_overview_table(request):
     elif 'bioent_name' in request.GET:
         #Need a GO overview table based on a bioent
         bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
-        if bioent is None:
+        bioent_id = get_bioent_id(bioent_name)
+        if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        goevidences = get_go_evidence(bioent_id=bioent.id)
+        goevidences = get_go_evidence(bioent_id=bioent_id)
         return make_overview_tables(True, goevidences, False) 
     
     elif 'reference_name' in request.GET:
         #Need a GO overview table based on a reference
         ref_name = request.GET['reference_name']
-        ref = get_reference(ref_name)
-        if ref is None:
+        ref_id = get_reference_id(ref_name)
+        if ref_id is None:
             return Response(status_int=500, body='Reference could not be found.')
-        goevidences = get_go_evidence(reference_id=ref.id)
+        goevidences = get_go_evidence(reference_id=ref_id)
         return make_overview_tables(False, goevidences, True) 
 
     else:
@@ -91,19 +91,19 @@ def go_evidence_table(request):
     if 'biocon_name' in request.GET:
         #Need a GO overview table based on a biocon
         biocon_name = request.GET['biocon_name']
-        biocon = get_biocon(biocon_name, 'GO')
-        if biocon is None:
+        biocon_id = get_biocon_id(biocon_name, 'GO')
+        if biocon_id is None:
             return Response(status_int=500, body='Biocon could not be found.')
-        evidences = get_go_evidence(biocon_id=biocon.id)
+        evidences = get_go_evidence(biocon_id=biocon_id)
         return make_evidence_tables(False, evidences) 
         
     elif 'bioent_name' in request.GET:
         #Need a GO overview table based on a bioent
         bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
-        if bioent is None:
+        bioent_id = get_bioent_id(bioent_name)
+        if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        evidences = get_go_evidence(bioent_id=bioent.id)
+        evidences = get_go_evidence(bioent_id=bioent_id)
         return make_evidence_tables(True, evidences) 
     
     else:
@@ -165,7 +165,7 @@ def make_overview_tables(divided, goevidences, include_comp=True):
     return tables    
 
 def make_single_overview_table(goevidences):
-    evidence_map = dict([(evidence.id, (evidence.bioentity, evidence.goterm)) for evidence in goevidences])
+    evidence_map = dict([(evidence.id, (evidence.gene, evidence.goterm)) for evidence in goevidences])
     return create_grouped_evidence_table(goevidences, evidence_map, make_overview_row)
 
 def make_overview_row(evs_for_group, group_term):
@@ -202,7 +202,7 @@ def make_evidence_tables(divided, goevidences, include_comp=True):
     return tables    
 
 def make_evidence_row(goevidence): 
-    bioent = goevidence.bioentity
+    bioent = goevidence.gene
     biocon = goevidence.goterm
     reference = ''
     if goevidence.reference is not None:
@@ -234,7 +234,7 @@ def create_go_ontology_node(obj, focus_node, child):
             'child':child, 'direct_gene_count':size}
 
 def create_go_ontology_edge(biocon_biocon):
-    return { 'id': 'BIOCON_BIOCON' + str(biocon_biocon.id), 'source': 'BIOCONCEPT' + str(biocon_biocon.parent_biocon_id), 'target': 'BIOCONCEPT' + str(biocon_biocon.child_biocon_id)}  
+    return { 'id': 'BIOCON_BIOCON' + str(biocon_biocon.id), 'source': 'BIOCONCEPT' + str(biocon_biocon.parent_id), 'target': 'BIOCONCEPT' + str(biocon_biocon.child_id)}  
 
     
 def create_go_ontology_graph(biocon):

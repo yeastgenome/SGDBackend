@@ -8,10 +8,20 @@ from model_old_schema.feature import Feature
 from model_old_schema.reference import Reference
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.schema import Column, ForeignKey, Table
 from sqlalchemy.types import Integer, String, Date
 
 
+class GoSynonym(Base, EqualityByIDMixin):
+    __tablename__ = 'go_synonym'
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+    
+    #Values
+    id = Column('go_synonym_no', Integer, primary_key=True)
+    go_synonym = Column('go_synonym', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+    
 class Go(Base, EqualityByIDMixin):
     __tablename__ = 'go'
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
@@ -23,6 +33,12 @@ class Go(Base, EqualityByIDMixin):
     go_definition = Column('go_definition', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
+    
+    #relationships
+    synonyms = relationship(GoSynonym, secondary= Table('go_gosyn', Base.metadata, 
+                                                        Column('go_no', Integer, ForeignKey('bud.go.go_no')),
+                                                        Column('go_synonym_no', Integer, ForeignKey('bud.go_synonym.go_synonym_no')),
+                                                        schema=SCHEMA), lazy='joined')
     
 class GoFeature(Base, EqualityByIDMixin):
     __tablename__ = 'go_annotation'
@@ -39,7 +55,7 @@ class GoFeature(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     
     #Relationships
-    go = relationship(Go, uselist=False)
+    go = relationship(Go, uselist=False, lazy='joined')
     feature = relationship(Feature, uselist=False)
     
 class GoRef(Base, EqualityByIDMixin):
@@ -79,11 +95,16 @@ class GoPath(Base, EqualityByIDMixin):
 
     #Values
     id = Column('go_path_no', Integer, primary_key = True)
-    ancestor_id = Column('ancestor_go_no', Integer)
-    child_id = Column('child_go_no', Integer)
+    ancestor_id = Column('ancestor_go_no', Integer, ForeignKey('bud.go.go_no'))
+    child_id = Column('child_go_no', Integer, ForeignKey('bud.go.go_no'))
     generation = Column('generation', Integer)
     relationship_type = Column('relationship_type', String)
     ancestor_path = Column('ancestor_path', String)
+    
+    child = relationship(Go, uselist=False, primaryjoin="GoPath.child_id==Go.id")
+    ancestor = relationship(Go, uselist=False, primaryjoin="GoPath.ancestor_id==Go.id")
+   
+
     
     
     

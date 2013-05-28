@@ -7,9 +7,9 @@ from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.config import SCHEMA
 from model_new_schema.link_maker import add_link, biocon_link
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String
+from sqlalchemy.types import Integer, String, Date
 
 
 class Bioconcept(Base, EqualityByIDMixin):
@@ -19,9 +19,11 @@ class Bioconcept(Base, EqualityByIDMixin):
     id = Column('biocon_id', Integer, primary_key = True)
     biocon_type = Column('biocon_type', String)
     official_name = Column('name', String)
-
     type = "BIOCONCEPT"
     description = Column('description', String)
+    
+    #Relationships
+    aliases = relationship("BioconAlias")
     
     __mapper_args__ = {'polymorphic_on': biocon_type,
                        'polymorphic_identity':"BIOCONCEPT"}
@@ -70,8 +72,8 @@ class BioconRelation(Base, EqualityByIDMixin):
     relationship_type = Column('relationship_type', String)
     bioconrel_type = Column('bioconrel_type', String)
    
-    parent_biocon = relationship('Bioconcept', uselist=False, backref='child_biocons', primaryjoin="BioconRelation.parent_id==Bioconcept.id")
-    child_biocon = relationship('Bioconcept', uselist=False, backref='parent_biocons', primaryjoin="BioconRelation.child_id==Bioconcept.id")
+    parent_biocon = relationship('Bioconcept', uselist=False, backref=backref('child_biocons', cascade='all,delete'), primaryjoin="BioconRelation.parent_id==Bioconcept.id")
+    child_biocon = relationship('Bioconcept', uselist=False, backref=backref('parent_biocons', cascade='all,delete'), primaryjoin="BioconRelation.child_id==Bioconcept.id")
     type = "BIOCON_BIOCON"
 
     def __init__(self, parent_id, child_id, bioconrel_type, relationship_type):
@@ -93,8 +95,8 @@ class BioconAncestor(Base, EqualityByIDMixin):
     generation = Column('generation', Integer)
     bioconanc_type = Column('bioconanc_type', String)
    
-    ancestor_biocon = relationship('Bioconcept', uselist=False, primaryjoin="BioconAncestor.ancestor_id==Bioconcept.id")
-    child_biocon = relationship('Bioconcept', uselist=False, primaryjoin="BioconAncestor.child_id==Bioconcept.id")
+    ancestor_biocon = relationship('Bioconcept', uselist=False, backref=backref('child_family', cascade='all,delete'), primaryjoin="BioconAncestor.ancestor_id==Bioconcept.id")
+    child_biocon = relationship('Bioconcept', uselist=False, backref=backref('parent_family', cascade='all,delete'), primaryjoin="BioconAncestor.child_id==Bioconcept.id")
     type = "BIOCON_ANCESTOR"
 
     def __init__(self, ancestor_id, child_id, bioconanc_type, generation):
@@ -105,6 +107,32 @@ class BioconAncestor(Base, EqualityByIDMixin):
 
     def unique_key(self):
         return (self.ancestor_id, self.child_id, self.bioconanc_type)
+    
+class BioconAlias(Base, EqualityByIDMixin):
+    __tablename__ = 'biocon_alias'
+    
+    id = Column('alias_id', Integer, primary_key=True)
+    biocon_id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id))
+    biocon_type = Column('biocon_type', String)
+    name = Column('name', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+    
+    def __init__(self, biocon_id, biocon_type, name, date_created, created_by):
+        self.biocon_id = biocon_id
+        self.biocon_type = biocon_type
+        self.name = name
+        self.date_created = date_created
+        self.created_by = created_by
+        
+    def unique_key(self):
+        return (self.biocon_id, self.name)
+    
+    
+    
+    
+    
+    
 
 
 

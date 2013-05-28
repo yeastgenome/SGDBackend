@@ -8,7 +8,6 @@ Reference module of the database schema.
 '''
 from model_new_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
 from model_new_schema.link_maker import add_link, reference_link, author_link
-from model_new_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -225,22 +224,13 @@ class Journal(Base, EqualityByIDMixin, UniqueMixin):
     date_created = Column('date_created', Date)
     
     def __init__(self, abbreviation, session=None, journal_id=None, full_name=None, issn=None, essn=None, created_by=None, date_created=None):
-        if session is None:
-            self.id = journal_id
-            self.abbreviation = abbreviation
-            self.full_name = full_name
-            self.issn =issn
-            self.essn = essn
-            self.created_by = created_by
-            self.date_created = date_created
-        else:
-            medlineJournal = MedlineJournal(abbreviation)
-            self.abbreviation = abbreviation
-            self.full_name = medlineJournal.journal_title
-            self.issn = medlineJournal.issn
-            self.essn = medlineJournal.essn
-            self.created_by = session.user
-            self.date_created = datetime.datetime.now()
+        self.id = journal_id
+        self.abbreviation = abbreviation
+        self.full_name = full_name
+        self.issn =issn
+        self.essn = essn
+        self.created_by = created_by
+        self.date_created = date_created
         
     @classmethod
     def unique_hash(cls, abbreviation):

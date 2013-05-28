@@ -7,8 +7,9 @@ from model_new_schema.link_maker import LinkMaker, phenotype_link_from_name, \
     add_link
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_bioent, get_biorels, get_biorel, get_interaction_evidence, \
-    get_interactions, get_reference, get_interaction_evidence_ref
+from query import get_biorels, get_interactions, \
+    get_biorel, get_bioent, get_reference_id, get_interaction_evidence, \
+    get_biorel_id
 from sgd2.views import site_layout
 from utils.utils import create_simple_table, make_reference_list, \
     entry_with_link
@@ -52,17 +53,17 @@ def interaction_overview_table(request):
         bioent = get_bioent(bioent_name)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        biorels = get_biorels('INTERACTION', bioent)
+        biorels = get_biorels('INTERACTION', bioent.id)
         #interevidences = get_interaction_evidence(biorels)
         return make_overview_tables(False, biorels, bioent) 
     
     elif 'reference_name' in request.GET:
         #Need an interaction overview table based on a reference
         ref_name = request.GET['reference_name']
-        ref = get_reference(ref_name)
-        if ref is None:
+        ref_id = get_reference_id(ref_name)
+        if ref_id is None:
             return Response(status_int=500, body='Reference could not be found.')
-        interevidences = get_interaction_evidence_ref(ref)
+        interevidences = get_interaction_evidence(reference_id=ref_id)
         biorels = set([interevidence.biorel for interevidence in interevidences])
         return make_overview_tables(False, biorels) 
 
@@ -75,10 +76,11 @@ def interaction_evidence_table(request):
     if 'biorel_name' in request.GET:
         #Need an interaction overview table based on a biorel
         biorel_name = request.GET['biorel_name']
-        biorel = get_biorel(biorel_name, 'INTERACTION')
-        if biorel is None:
+        biorel_id = get_biorel_id(biorel_name, 'INTERACTION')
+        if biorel_id is None:
             return Response(status_int=500, body='Biorel could not be found.')
-        return make_evidence_tables(True, [biorel]) 
+        interevidences = get_interaction_evidence(biorel_id=biorel_id)
+        return make_evidence_tables(True, interevidences) 
         
     elif 'bioent_name' in request.GET:
         #Need an interaction overview table based on a bioent
@@ -86,8 +88,8 @@ def interaction_evidence_table(request):
         bioent = get_bioent(bioent_name)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        biorels = get_biorels('INTERACTION', bioent=bioent)
-        return make_evidence_tables(True, biorels, bioent) 
+        interevidences = get_interaction_evidence(bioent_id=bioent.id)
+        return make_evidence_tables(True, interevidences, bioent) 
     
     else:
         return Response(status_int=500, body='No Bioent or Biorel specified.')
@@ -151,9 +153,8 @@ def make_overview_row(biorel, evs_for_group, group_term):
 -------------------------------Evidence Table---------------------------------------
 '''
     
-def make_evidence_tables(divided, biorels, bioent=None):
+def make_evidence_tables(divided, interevidences, bioent=None):
     tables = {}
-    interevidences = get_interaction_evidence(biorels)
 
     if divided:
         divided_evidences = divide_interevidences(interevidences)

@@ -20,7 +20,7 @@ class Biofact(Base, EqualityByIDMixin):
     use_in_graph = Column('use_for_graph', String)
 
     bioentity = relationship(Bioentity, uselist=False, backref='biofacts')
-    bioconcept = relationship(Bioconcept, uselist=False, backref='biofacts')
+    bioconcept = relationship(Bioconcept, uselist=False, backref='biofacts', cascade='all,delete')
     
     type = "BIOFACT"
 

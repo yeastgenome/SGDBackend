@@ -21,9 +21,16 @@ import model_old_schema
 """
 ------------ Create --------------
 """
+def create_phenotype_id(old_phenotype_id):
+    return old_phenotype_id
 
 def create_phenoevidence_id(old_evidence_id):
     return old_evidence_id
+
+def create_phenotype_key(observable):
+    name = observable.replace(' ', '_')
+    name = name.replace('/', '-')
+    return (name, 'PHENOTYPE')
 
 def create_phenotype_type(observable):
     if observable in {'chemical compound accumulation', 'resistance to chemicals', 'osmotic stress resistance', 'alkaline pH resistance',
@@ -35,15 +42,10 @@ def create_phenotype_type(observable):
         return 'pp_rna'
     else:
         return 'cellular'
-    
-def create_phenotype_key(observable):
-    name = observable.replace(' ', '_')
-    name = name.replace('/', '-')
-    return (name, 'PHENOTYPE')
 
 def create_phenotype(old_phenotype):
     from model_new_schema.phenotype import Phenotype as NewPhenotype
-    new_phenotype = NewPhenotype(old_phenotype.id, old_phenotype.observable, create_phenotype_type(old_phenotype.observable), None,
+    new_phenotype = NewPhenotype(create_phenotype_id(old_phenotype.id), old_phenotype.observable, create_phenotype_type(old_phenotype.observable), None,
                                  old_phenotype.date_created, old_phenotype.created_by)
     return new_phenotype
 
@@ -204,6 +206,19 @@ def convert(old_session_maker, new_session_maker):
         old_session.close()
         new_session.close()
         
+    # Update gene counts
+    print 'Phenotype gene counts'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        new_session = new_session_maker()
+                
+        update_gene_counts(new_session)
+        ask_to_commit(new_session, start_time)  
+    finally:
+        old_session.close()
+        new_session.close() 
+        
     # Convert biocon_relations
     print 'Biocon_relations'            
     start_time = datetime.datetime.now()
@@ -243,8 +258,7 @@ def convert_phenotypes(new_session, old_phenotypes, cv_terms):
 
     #Create new phenotypes if they don't exist, or update the database if they do.
     new_phenotypes = filter(None, [create_phenotype(x) for x in old_phenotypes])
-    values_to_check = ['observable', 'phenotype_type']
-    create_or_update_and_remove(new_phenotypes, key_to_phenotype, values_to_check, new_session)
+    values_to_check = ['observable', 'phenotype_type', 'biocon_type', 'official_name']
     
     #Add definitions to phenotypes
     for cv_term in cv_terms:
@@ -253,7 +267,8 @@ def convert_phenotypes(new_session, old_phenotypes, cv_terms):
             new_phenotype = key_to_phenotype[phenotype_key]
             if new_phenotype.description != cv_term.definition:
                 new_phenotype.description = cv_term.definition
-                new_session.add(new_phenotype)
+    create_or_update_and_remove(new_phenotypes, key_to_phenotype, values_to_check, new_session)
+
                 
 def convert_alleles(new_session, old_phenoevidences):
     '''
@@ -343,6 +358,30 @@ def convert_phenoevidence_chemicals(new_session, old_phenoevidences):
             if chemical_infos is not None:   
                 phenoevidence_chemicals.extend([create_phenoevidence_chemical(x, new_phenoevidence_id, key_to_chemical) for x in chemical_infos])
     create_or_update_and_remove(phenoevidence_chemicals, key_to_phenoevidence_chemical, values_to_check, new_session)
+
+def update_gene_counts(new_session):
+    '''
+    Update goterm gene counts
+    '''
+    from model_new_schema.phenotype import Phenoevidence as NewPhenoevidence, Phenotype as NewPhenotype
+
+    phenotypes = new_session.query(NewPhenotype).all()
+    phenoevidences = new_session.query(NewPhenoevidence).all()
+    biocon_id_to_bioent_ids = {}
+    
+    for phenotype in phenotypes:
+        biocon_id_to_bioent_ids[phenotype.id] = set()
+        
+    for phenoevidence in phenoevidences:
+        biocon_id_to_bioent_ids[phenoevidence.biocon_id].add(phenoevidence.bioent_id)
+        
+    num_changed = 0
+    for phenotype in phenotypes:
+        count = len(biocon_id_to_bioent_ids[phenotype.id])
+        if count != phenotype.direct_gene_count:
+            phenotype.direct_gene_count = count
+            num_changed = num_changed + 1
+    print 'In total ' + str(num_changed) + ' changed.'
 
 def convert_biocon_relations(new_session, old_cv_terms):
     '''
