@@ -12,7 +12,6 @@ from model_old_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.orm.session import Session
 from sqlalchemy.schema import Column, ForeignKey, Table
 from sqlalchemy.types import Integer, String, Date
 import datetime
@@ -41,38 +40,19 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     date_created = Column('date_created', Date)
     
     #Relationships
-    journal = relationship('Journal', uselist=False, lazy='subquery')
-    journal_abbrev = association_proxy('journal', 'abbreviation',
-                                    creator=lambda x: Journal.as_unique(Session.object_session(self), abbreviation=x))
-    
-    book = relationship('Book', uselist=False, lazy='subquery')
-    
-    abst = relationship("Abstract", cascade='all,delete', uselist=False, lazy='subquery')
+    journal = relationship('Journal', uselist=False)
+    book = relationship('Book', uselist=False)
+    abst = relationship("Abstract", cascade='all,delete', uselist=False, backref='reference')
     abstract = association_proxy('abst', 'text')
-    
     features = relationship(Feature, secondary= Table('ref_curation', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
-    
-    author_references = relationship('AuthorReference', cascade='all,delete', lazy='joined', 
+    author_references = relationship('AuthorReference', cascade='all,delete', 
                              backref=backref('reference'),
                             collection_class=attribute_mapped_collection('order'))
-    
-    authorNames = association_proxy('author_references', 'author_name')
-    authors = association_proxy('author_references', 'author', 
-                                creator=lambda k, v: AuthorReference(session=None, author=v, order=k, ar_type='Author'))
-    
-    reftype_references = relationship('RefReftype', cascade='all,delete', lazy='joined',
-                            collection_class=attribute_mapped_collection('id'))
-    
-    reftypeNames = association_proxy('reftype_references', 'reftype_name')
-    reftypes = association_proxy('reftype_references', 'reftype', 
-                                creator=lambda k, v: RefReftype(session=None, ref_reftype_id=k, reftype=v))
-    
+    reftype_references = relationship('RefReftype', cascade='all,delete',
+                            collection_class=attribute_mapped_collection('id'), backref='reference')
     litGuides = relationship("LitGuide", cascade='all,delete')
-    litGuideTopics = association_proxy('litGuides', 'topic')
-    
     curations = relationship('RefCuration', cascade='all,delete')
-    
-    dbxrefs = association_proxy('dbxrefrefs', 'dbxref')
+    dbxrefs = association_proxy('dbxrefrefs', 'dbxref') 
 
     
     def __init__(self, session, pubmed_id):
@@ -284,7 +264,7 @@ class AuthorReference(Base, EqualityByIDMixin, UniqueMixin):
     def unique_filter(cls, query, author, reference_id, order, ar_type):
         return query.filter(AuthorReference.order == order, AuthorReference.author == author, AuthorReference.ar_type == ar_type)
     
-    author = relationship('Author', lazy='joined') 
+    author = relationship('Author') 
     author_name = association_proxy('author', 'name')
     
 class Abstract(Base, EqualityByIDMixin, UniqueMixin):
@@ -349,7 +329,7 @@ class LitGuide(Base, EqualityByIDMixin, UniqueMixin):
     date_created = Column('date_created', Date)
     
     #Relationships
-    features = relationship("Feature", secondary= Table('litguide_feat', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True), lazy = 'subquery')
+    features = relationship("Feature", secondary= Table('litguide_feat', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
     feature_ids = association_proxy('features', 'id')
     
     def __init__(self, session, reference_id, topic):
@@ -428,7 +408,7 @@ class RefReftype(Base, EqualityByIDMixin, UniqueMixin):
     def unique_filter(cls, query, reference_id, reftype_id):
         return query.filter(RefReftype.reference_id == reference_id, RefReftype.reftype_id == reftype_id)
     
-    reftype = relationship('RefType', lazy='joined') 
+    reftype = relationship('RefType') 
     reftype_name = association_proxy('reftype', 'name')
     
 class Reflink(Base):

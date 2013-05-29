@@ -30,7 +30,7 @@ class DbxrefRef(Base, EqualityByIDMixin):
     dbxref_id = Column('dbxref_no', Integer, ForeignKey('bud.dbxref.dbxref_no'))
     reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
     
-    dbxref = relationship(Dbxref, uselist=False)
+    dbxref = relationship(Dbxref, uselist=False, lazy='joined')
     reference = relationship(Reference, uselist=False, backref= 'dbxrefrefs')
     
 class GorefDbxref(Base, EqualityByIDMixin):

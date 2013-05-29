@@ -7,6 +7,8 @@ from model_new_schema import config as new_config
 from model_old_schema import config as old_config
 from schema_conversion import cache, create_or_update_and_remove, ask_to_commit, \
     prepare_schema_connection
+from schema_conversion.auxillary_tables import update_biocon_gene_counts, \
+    convert_biocon_ancestors
 import datetime
 import model_new_schema
 import model_old_schema
@@ -213,7 +215,8 @@ def convert(old_session_maker, new_session_maker):
         old_session = old_session_maker()
         new_session = new_session_maker()
                 
-        update_gene_counts(new_session)
+        from model_new_schema.phenotype import Phenotype as NewPhenotype, Phenoevidence as NewPhenoevidence
+        update_biocon_gene_counts(new_session, NewPhenotype, NewPhenoevidence)
         ask_to_commit(new_session, start_time)  
     finally:
         old_session.close()
@@ -359,30 +362,6 @@ def convert_phenoevidence_chemicals(new_session, old_phenoevidences):
                 phenoevidence_chemicals.extend([create_phenoevidence_chemical(x, new_phenoevidence_id, key_to_chemical) for x in chemical_infos])
     create_or_update_and_remove(phenoevidence_chemicals, key_to_phenoevidence_chemical, values_to_check, new_session)
 
-def update_gene_counts(new_session):
-    '''
-    Update goterm gene counts
-    '''
-    from model_new_schema.phenotype import Phenoevidence as NewPhenoevidence, Phenotype as NewPhenotype
-
-    phenotypes = new_session.query(NewPhenotype).all()
-    phenoevidences = new_session.query(NewPhenoevidence).all()
-    biocon_id_to_bioent_ids = {}
-    
-    for phenotype in phenotypes:
-        biocon_id_to_bioent_ids[phenotype.id] = set()
-        
-    for phenoevidence in phenoevidences:
-        biocon_id_to_bioent_ids[phenoevidence.biocon_id].add(phenoevidence.bioent_id)
-        
-    num_changed = 0
-    for phenotype in phenotypes:
-        count = len(biocon_id_to_bioent_ids[phenotype.id])
-        if count != phenotype.direct_gene_count:
-            phenotype.direct_gene_count = count
-            num_changed = num_changed + 1
-    print 'In total ' + str(num_changed) + ' changed.'
-
 def convert_biocon_relations(new_session, old_cv_terms):
     '''
     Convert biocon_relations (add phenotype ontology)
@@ -407,42 +386,6 @@ def convert_biocon_relations(new_session, old_cv_terms):
                     biocon_biocon = NewBioconRelation(parent_id, child_id, 'PHENOTYPE_ONTOLOGY', 'is a')
                     bioconrels.append(biocon_biocon)
     create_or_update_and_remove(bioconrels, key_to_biocon_relations, [], new_session)
-    
-def convert_biocon_ancestors(new_session, old_cv_terms):
-    '''
-    Convert biocon_ancestors (continue adding phenotype ontology)
-    '''
-    from model_new_schema.phenotype import Phenotype as NewPhenotype
-    from model_new_schema.bioconcept import BioconAncestor as NewBioconAncestor
-    
-    #Cache BioconAncestors and phenotypes
-    key_to_biocon_ancestors = cache(NewBioconAncestor, new_session, bioconanc_type='PHENOTYPE_ONTOLOGY')
-    key_to_phenotype = cache(NewPhenotype, new_session)
-
-    biocon_ancestors = []
-    for cv_term in old_cv_terms:
-        child_phenotype_key = create_phenotype_key(cv_term.name)
-        if child_phenotype_key in key_to_phenotype:
-            child_id = key_to_phenotype[child_phenotype_key].id
-            family_id_to_generation = {}
-            current_gen = list(cv_term.parents)
-            next_gen = []
-            generation = 1
-            while len(current_gen) > 0:
-                for parent in current_gen:
-                    parent_phenotype_key = create_phenotype_key(parent.name)
-                    if parent_phenotype_key in key_to_phenotype:
-                        parent_id = key_to_phenotype[parent_phenotype_key].id
-                        if parent_id not in family_id_to_generation:
-                            family_id_to_generation[parent_id] = generation
-                            next_gen.extend(parent.parents)
-                del current_gen[:]
-                current_gen.extend(next_gen)
-                del next_gen[:]
-                generation = generation + 1
-            biocon_ancestors.extend([NewBioconAncestor(x, child_id, 'PHENOTYPE_ONTOLOGY', y) for x, y in family_id_to_generation.iteritems()])
-    create_or_update_and_remove(biocon_ancestors, key_to_biocon_ancestors, ['generation'], new_session)   
-
 
 if __name__ == "__main__":
     old_session_maker = prepare_schema_connection(model_old_schema, old_config)

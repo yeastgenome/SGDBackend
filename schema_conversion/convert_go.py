@@ -7,6 +7,8 @@ from model_new_schema import config as new_config
 from model_old_schema import config as old_config
 from schema_conversion import cache, create_or_update_and_remove, ask_to_commit, \
     prepare_schema_connection
+from schema_conversion.auxillary_tables import update_biocon_gene_counts, \
+    convert_biocon_ancestors
 import datetime
 import model_new_schema
 import model_old_schema
@@ -84,7 +86,7 @@ def create_biocon_ancestor(go_path, id_to_old_go, key_to_go):
 ---------------------Convert------------------------------
 """   
 
-def convert(old_session, new_session):
+def convert(old_session_maker, new_session_maker):
     from model_old_schema.go import Go as OldGo, GoFeature as OldGoFeature, GoPath as OldGoPath
       
     # Convert goterms
@@ -130,19 +132,6 @@ def convert(old_session, new_session):
         old_session.close()
         new_session.close() 
         
-    # Update gene counts
-    print 'Go term gene counts'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        new_session = new_session_maker()
-                
-        update_gene_counts(new_session)
-        ask_to_commit(new_session, start_time)  
-    finally:
-        old_session.close()
-        new_session.close() 
-        
     # Convert biocon_relations
     print 'Biocon_relations'            
     start_time = datetime.datetime.now()
@@ -155,25 +144,36 @@ def convert(old_session, new_session):
         ask_to_commit(new_session, start_time)  
     finally:
         old_session.close()
-        new_session.close()     
+        new_session.close()
+        
+    # Update gene counts
+    print 'Go term gene counts'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        new_session = new_session_maker()
+                
+        from model_new_schema.go import Go as NewGo, Goevidence as NewGoevidence
+        update_biocon_gene_counts(new_session, NewGo, NewGoevidence)
+        ask_to_commit(new_session, start_time)  
+    finally:
+        old_session.close()
+        new_session.close()  
   
     # Convert biocon_ancestors
     # For some reason, when I run this several time, it keeps removing a small number of 
     # biocon_ancestors - not clear why.
     print 'Biocon_ancestors' 
-    for i in range(1, 5):       
-        print 'Generation ' + str(i)    
-        start_time = datetime.datetime.now()
-        try:
-            old_session = old_session_maker()
-            new_session = new_session_maker()
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        new_session = new_session_maker()
         
-            old_go_paths = old_session.query(OldGoPath).filter(OldGoPath.generation==i).all()
-            convert_biocon_ancestors(new_session, i, old_go_paths, old_goterms)
-            ask_to_commit(new_session, start_time)  
-        finally:
-            old_session.close()
-            new_session.close()     
+        convert_biocon_ancestors(new_session, 'GO_ONTOLOGY', 5)
+        ask_to_commit(new_session, start_time)  
+    finally:
+        old_session.close()
+        new_session.close()     
 
 def convert_goterms(new_session, old_goterms):
     '''
@@ -228,30 +228,6 @@ def convert_goevidences(new_session, old_go_features):
     for old_go_feature in old_go_features: 
         new_evidences.extend([create_goevidence(old_go_feature, x, key_to_go) for x in old_go_feature.go_refs])
     create_or_update_and_remove(new_evidences, key_to_goevidence, values_to_check, new_session)
-    
-def update_gene_counts(new_session):
-    '''
-    Update goterm gene counts
-    '''
-    from model_new_schema.go import Goevidence as NewGoevidence, Go as NewGo
-
-    goterms = new_session.query(NewGo).all()
-    goevidences = new_session.query(NewGoevidence).all()
-    biocon_id_to_bioent_ids = {}
-    
-    for goterm in goterms:
-        biocon_id_to_bioent_ids[goterm.id] = set()
-        
-    for goevidence in goevidences:
-        biocon_id_to_bioent_ids[goevidence.biocon_id].add(goevidence.bioent_id)
-        
-    num_changed = 0
-    for goterm in goterms:
-        count = len(biocon_id_to_bioent_ids[goterm.id])
-        if count != goterm.direct_gene_count:
-            goterm.direct_gene_count = count
-            num_changed = num_changed + 1
-    print 'In total ' + str(num_changed) + ' changed.'
             
     
 def convert_biocon_relations(new_session, old_go_paths, old_goterms):
@@ -270,29 +246,11 @@ def convert_biocon_relations(new_session, old_go_paths, old_goterms):
     #Create new biocon_relations if they don't exist, or update the database if they do.
     new_biocon_relations = filter(None, [create_biocon_relation(x, id_to_old_go, key_to_go) for x in old_go_paths])
     create_or_update_and_remove(new_biocon_relations, key_to_biocon_relations, [], new_session) 
-    
-def convert_biocon_ancestors(new_session, generation, old_go_paths, old_goterms):
-    '''
-    Convert Biocon_ancestors
-    '''
-    from model_new_schema.bioconcept import BioconAncestor as NewBioconAncestor
-    from model_new_schema.go import Go as NewGo
-    
-    #Cache biocon_ancestors and goterms
-    key_to_biocon_ancestors = cache(NewBioconAncestor, new_session, bioconanc_type='GO_ONTOLOGY', generation=generation)
-    key_to_go = cache(NewGo, new_session)
-    
-    id_to_old_go = dict([(x.id, x) for x in old_goterms])
-    
-    #Create new biocon_ancestors if they don't exist, or update the database if they do.
-    new_biocon_ancestors = [create_biocon_ancestor(x, id_to_old_go, key_to_go) for x in old_go_paths]
-    create_or_update_and_remove(new_biocon_ancestors, key_to_biocon_ancestors, [], new_session) 
-   
+            
 if __name__ == "__main__":
     old_session_maker = prepare_schema_connection(model_old_schema, old_config)
     new_session_maker = prepare_schema_connection(model_new_schema, new_config)
     convert(old_session_maker, new_session_maker)
-            
     
 
     

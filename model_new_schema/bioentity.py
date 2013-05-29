@@ -231,39 +231,11 @@ class Gene(Bioentity):
         self.genetic_position = genetic_position
         self.gene_type = gene_type
         
-class Transcript(Bioentity):
-    __tablename__ = "transcript"
-    
-    id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
-    gene_id = Column('gene_id', Integer, ForeignKey(Gene.id))
-    type = "TRANSCRIPT"
-    
-    __mapper_args__ = {'polymorphic_identity': "TRANSCRIPT",
-                       'inherit_condition': id == Bioentity.id}
-    
-    gene = relationship('Gene', uselist=False, backref='transcripts', primaryjoin="Transcript.gene_id==Gene.id")
-    protein_ids = association_proxy('proteins', 'id')
-    
-    @hybrid_property
-    def search_entry_title(self):
-        return self.full_name_with_link
-    @hybrid_property
-    def search_entry(self):
-        entry = self.description
-        return entry
-    @hybrid_property
-    def search_entry_type(self):
-        return 'Transcript'
-
-    def __init__(self, gene_id, bioent_id=None):
-        Bioentity.__init__(self, 'Transcript', 'TRANSCRIPT', None, 'SGD', None, bioent_id=bioent_id)
-        self.gene_id = gene_id
-        
 class Protein(Bioentity):
     __tablename__ = "protein"
     
     id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
-    transcript_id = Column('transcript_id', Integer, ForeignKey(Transcript.id))
+    transcript_id = Column('transcript_id', Integer)
     
     molecular_weight = Column('molecular_weight', Integer)
     pi = Column('pi', Float)
@@ -313,9 +285,7 @@ class Protein(Bioentity):
     extinction_coeff_all_cys_pairs_form_cystines = Column('extinction_coeff_all_pairs', Integer)
     instability_index = Column('instability_index', Float)
     molecules_per_cell = Column('molecules_per_cell', Integer)
-     
-    transcript = relationship('Transcript', uselist=False, backref='proteins', primaryjoin="Protein.transcript_id==Transcript.id")
-    
+         
     __mapper_args__ = {'polymorphic_identity': "PROTEIN",
                        'inherit_condition': id == Bioentity.id}
     
@@ -395,31 +365,6 @@ class Protein(Bioentity):
         self.extinction_coeff_no_cys_residues_as_half_cystines = extinction_coeff_no_cys_residues_as_half_cystines
         self.instability_index = instability_index
         self.molecules_per_cell = molecules_per_cell
-        
-
-class Contig(Bioentity):
-    __tablename__ = 'contig'
-    
-    id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key = True)
-    assembly_id = Column('assembly_id', Integer, ForeignKey('sprout.assembly.assembly_id'))
-    internal_id = Column('internal_id', String)
-    length = Column('length', Integer)
-    chromosome_id = Column('chromosome_id', Integer)
-    type = "CONTIG"
-    
-    __mapper_args__ = {'polymorphic_identity': "CONTIG",
-                       'inherit_condition': id == Bioentity.id}
-    
-    def __init__(self, name, source, dbxref, assembly_id, internal_id, length, chromosome_id, bioent_id=None, date_created=None, created_by=None):
-        Bioentity.__init__(self, name, 'CONTIG', dbxref, source, None, 
-                           session=None, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
-        self.assembly_id = assembly_id
-        self.internal_id = internal_id
-        self.length = length
-        self.chromosome_id = chromosome_id        
-
-        
-
         
 
         

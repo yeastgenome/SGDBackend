@@ -64,20 +64,29 @@ def create_or_update(new_objs, mapping, values_to_check, session):
 def create_or_update_and_remove(new_objs, mapping, values_to_check, session):
     output_creator = OutputCreator()
     to_be_removed = set(mapping.keys())
-
     
-    # Check old objects or add new objects.
-    for new_obj in new_objs:
-        key = new_obj.unique_key()
-        add_or_check(new_obj, mapping, key, values_to_check, session, output_creator)
+    to_be_added = set([new_obj.id for new_obj in new_objs if new_obj.unique_key() not in mapping])
+    problem_objs = [old_obj for old_obj in mapping.values() if old_obj.id in to_be_added]
+    if len(problem_objs) > 0:
+        print str(len(problem_objs)) + ' problem objects exist and must be deleted to continue.'
+        print [problem.id for problem in problem_objs]
+        for obj in problem_objs:
+            session.delete(obj)
+        return False
+    else:
+        # Check old objects or add new objects.
+        for new_obj in new_objs:
+            key = new_obj.unique_key()
+            add_or_check(new_obj, mapping, key, values_to_check, session, output_creator)
             
-        if key in to_be_removed:
-            to_be_removed.remove(key)
+            if key in to_be_removed:
+                to_be_removed.remove(key)
             
-    for r_id in to_be_removed:
-        session.delete(mapping[r_id])
-        output_creator.removed()
-    output_creator.finished()
+        for r_id in to_be_removed:
+            session.delete(mapping[r_id])
+            output_creator.removed()
+        output_creator.finished()
+        return True
     
 def ask_to_commit(new_session, start_time):
     pause_begin = datetime.datetime.now()
@@ -89,6 +98,7 @@ def ask_to_commit(new_session, start_time):
         new_session.commit()
     end_time = datetime.datetime.now()
     print str(end_time - pause_end + pause_begin - start_time) + '\n'
+    
     
     
     
