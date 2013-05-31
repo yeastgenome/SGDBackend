@@ -24,7 +24,7 @@ def phenotype(request):
     biocon = get_biocon(biocon_name, 'PHENOTYPE')
     if biocon is None:
         return Response(status_int=500, body='Biocon could not be found.')
-    return {'layout': site_layout(), 'page_title': biocon.name, 'biocon': biocon, 'link_maker':LinkMaker(biocon.name, biocon=biocon)} 
+    return {'layout': site_layout(), 'page_title': biocon.display_name, 'biocon': biocon, 'link_maker':LinkMaker(biocon.format_name, biocon=biocon)} 
 
 @view_config(route_name='phenotype_evidence', renderer='templates/phenotype_evidence.pt')
 def phenotype_evidence(request):
@@ -34,20 +34,20 @@ def phenotype_evidence(request):
         bioent = get_bioent(bioent_name)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        name = 'Phenotype Evidence for ' + bioent.name
+        name = 'Phenotype Evidence for ' + bioent.display_name
         name_with_link = 'Phenotype Evidence for ' + bioent.name_with_link
         return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':True,
-                'link_maker':LinkMaker(bioent.name, bioent=bioent)}
+                'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
     elif 'biocon_name' in request.GET:
         #Need a phenotype overview table based on a biocon
         biocon_name = request.GET['biocon_name']
         biocon = get_biocon(biocon_name, 'PHENOTYPE')
         if biocon is None:
             return Response(status_int=500, body='Biocon could not be found.')
-        name = 'Evidence for Phenotype:<br>' + biocon.name
+        name = 'Evidence for Phenotype:<br>' + biocon.display_name
         name_with_link = 'Evidence for Phenotype:<br>' + biocon.name_with_link
         return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':False,
-                'link_maker':LinkMaker(biocon.name, biocon=biocon)}
+                'link_maker':LinkMaker(biocon.format_name, biocon=biocon)}
 
     else:
         return Response(status_int=500, body='No Bioent specified.')
@@ -248,7 +248,7 @@ def create_phenotype_ontology_node(obj, focus_node, child):
         sub_type = 'NO_GENES'
     if obj == focus_node:
         sub_type = 'FOCUS'
-    name = obj.name.replace(' ', '\n')
+    name = obj.display_name.replace(' ', '\n')
     size = int(math.ceil(math.sqrt(direct_gene_count)))
     return {'id':'BIOCONCEPT' + str(obj.id), 'label':name, 'link':obj.link, 'sub_type':sub_type, 'bio_type':obj.type, 
             'child':child, 'direct_gene_count':size}
@@ -256,9 +256,7 @@ def create_phenotype_ontology_node(obj, focus_node, child):
 def create_phenotype_ontology_edge(biocon_biocon):
     return { 'id': 'BIOCON_BIOCON' + str(biocon_biocon.id), 'source': 'BIOCONCEPT' + str(biocon_biocon.parent_id), 'target': 'BIOCONCEPT' + str(biocon_biocon.child_id)}  
 
-    
 def create_phenotype_ontology_graph(biocon):
-    
     biocon_family = get_biocon_family(biocon)
     child_ids = biocon_family['child_ids']
     nodes = [create_phenotype_ontology_node(b, biocon, b.id in child_ids) for b in biocon_family['family']]
@@ -266,73 +264,6 @@ def create_phenotype_ontology_graph(biocon):
         
     return {'dataSchema':go_ontology_schema, 'data': {'nodes': nodes, 'edges': edges}, 'has_children':len(child_ids)>0}
  
-
-'''
--------------------------------Graph---------------------------------------
-'''  
-    
-def get_id(bio, observable=None):
-    return bio.type + str(bio.id + '_' + observable)
-
-phenotype_schema = {'nodes': [ { 'name': "label", 'type': "string" }, 
-                         {'name':'link', 'type':'string'}, 
-                         {'name':'bio_type', 'type':'string'},
-                         {'name':'sub_type', 'type':'string'}],
-                'edges': [ { 'name': "label", 'type': "string" }, 
-                          {'name':'link', 'type':'string'}]}
-
-def create_phenotype_node(obj, focus_node, observable=None):
-    sub_type = obj.type
-    if obj == focus_node:
-        sub_type = 'FOCUS'
-    return {'id':get_id(obj, observable), 'label':obj.name, 'link':obj.link, 'sub_type':sub_type, 'bio_type':obj.type}
-
-def create_phenotype_edge(obj, source_obj, sink_obj):
-    return { 'id': get_id(obj), 'target': get_id(source_obj), 'source': get_id(sink_obj), 'label': obj.name, 'link':obj.link}  
-
-def create_phenotype_graph(bioent=None, biocon=None): 
-    if bioent is not None:
-        level_one = set([biofact for biofact in get_biofacts('PHENOTYPE', bioent=bioent)])
-        level_one = [biofact for biofact in level_one if biofact.bioconcept.phenotype_type=='cellular']
-
-        biocon_ids = [biofact.biocon_id for biofact in level_one]
-        level_two = set([biofact for biofact in get_related_biofacts(biocon_ids)])
-    
-    usable_bios = set()       
-    usable_bios.add(bioent)
-    usable_bios.update([biofact.bioconcept for biofact in level_one])
-    
-    bioent_to_edge_count = {}
-    for biofact in level_two:
-        ent = biofact.bioentity
-        if ent in bioent_to_edge_count:
-            bioent_to_edge_count[ent] = bioent_to_edge_count[ent] + 1
-        else:
-            bioent_to_edge_count[ent] = 1
-       
-    more_usable_bios = [bio for bio in bioent_to_edge_count.keys() if bioent_to_edge_count[bio] > 5]
-    if len(more_usable_bios) < 150:
-        usable_bios.update(more_usable_bios)
-
-         
-    nodes = []  
-    for usable in usable_bios:
-        if usable.type == 'BIOENTITY':
-            nodes.append(create_phenotype_node(usable, bioent))
-        else:
-            nodes.append(create_phenotype_node(usable, bioent))
-    
-    edges = []
-    for biofact in level_one:
-        if biofact.bioconcept in usable_bios and biofact.bioentity in usable_bios:
-            edges.append(create_phenotype_edge(biofact, biofact.bioentity, biofact.bioconcept))
-    
-    for biofact in level_two:
-        if biofact.bioconcept in usable_bios and biofact.bioentity in usable_bios and \
-        biofact.bioentity != bioent:
-            edges.append(create_phenotype_edge(biofact, biofact.bioentity, biofact.bioconcept))
-    
-    return {'dataSchema':phenotype_schema, 'data': {'nodes': nodes, 'edges': edges}}
 
 '''
 -------------------------------Utils---------------------------------------

@@ -43,8 +43,8 @@
 		<h1>Summary</h1>
 		<div>
 			<ul class='unstyled'>
-				<li><strong>Standard Name: </strong><span tal:content="bioent.name"></li>
-				<li><strong>Systematic Name: </strong><span tal:content="bioent.official_name"></li>
+				<li><strong>Standard Name: </strong><span tal:content="bioent.display_name"></li>
+				<li><strong>Systematic Name: </strong><span tal:content="bioent.format_name"></li>
 				<br></br>
 				<li tal:condition="python: len(bioent.aliases) > 0"><strong>Aliases: </strong><span tal:content="bioent.alias_str"></li>
 				<li tal:condition="python: bioent.bioent_type"><strong>Type: </strong><span tal:content="bioent.bioent_type"></li>
@@ -65,7 +65,7 @@
 		<h1>Gene Ontology <span id='go_header'></span></h1>
 		<a tal:attributes="href link_maker.go_evidence_link"><button class="btn btn-large btn-warning">All Gene Ontology Evidence <i class="icon-chevron-right icon-white"></i></button></a>
 		<br></br>
-		<p>* There are <span id='go_comp_message'></span> computational go terms curated for <span tal:content="bioent.name"></span>.</p>
+		<p>* There are <span id='go_comp_message'></span> computational go terms curated for <span tal:content="bioent.display_name"></span>.</p>
 		
 		<h3>Molecular Function <span id='go_f_header'></span></h3>
 		<span id='go_f_message' class="hide">No known molecular function gene ontology associations.</span>

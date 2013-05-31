@@ -410,6 +410,7 @@ class RefReftype(Base, EqualityByIDMixin, UniqueMixin):
     
     reftype = relationship('RefType') 
     reftype_name = association_proxy('reftype', 'name')
+    reftype_source = association_proxy('reftype', 'source')
     
 class Reflink(Base):
     __tablename__ = 'ref_link'

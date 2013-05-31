@@ -20,10 +20,9 @@
 <div class="row-fluid">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
-			<li><h3><span tal:content="ref.author_year"></h3></li>
+			<li><h3><span tal:content="ref.display_name"></h3></li>
 			<li><a href="#abstract"><i class="icon-chevron-right"></i> Abstract</a></li>
 			<li><a href="#cited_for_annotations"><i class="icon-chevron-right"></i> Cited For Annotations</a></li>
-
 		</ul>
 	</div>
 	
@@ -36,6 +35,11 @@
 		<h1>Abstract</h1>
 		<div>
 			<p tal:condition="python: ref.abstract" tal:content="structure ref.abstract"></p>
+			<p>Reference Type:
+			<span tal:repeat="reftype ref.reftypes">
+				<span tal:content="structure reftype.name"></span>,
+			</span>
+			</p>
 			<p>Authors:
 			<span tal:repeat="author ref.authors">
 				<a tal:content="structure author.name_with_link"></a>,

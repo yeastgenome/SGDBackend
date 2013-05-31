@@ -38,8 +38,12 @@ def check_values(new_obj, old_obj, field_names, output_creator, key):
         if not check_value(new_obj, old_obj, field_name):
             output_creator.changed(key, field_name)
 
-def cache(cls, session, **kwargs):
+def cache_by_key(cls, session, **kwargs):
     cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).filter_by(**kwargs).all()])
+    return cache_entries
+
+def cache_by_id(cls, session, **kwargs):
+    cache_entries = dict([(x.id, x) for x in session.query(cls).filter_by(**kwargs).all()])
     return cache_entries
     
 def add_or_check(new_obj, mapping, key, values_to_check, session, output_creator):
@@ -62,6 +66,7 @@ def create_or_update(new_objs, mapping, values_to_check, session):
     output_creator.finished()
     
 def create_or_update_and_remove(new_objs, mapping, values_to_check, session):
+    new_objs = filter(None, new_objs)
     output_creator = OutputCreator()
     to_be_removed = set(mapping.keys())
     
@@ -98,6 +103,11 @@ def ask_to_commit(new_session, start_time):
         new_session.commit()
     end_time = datetime.datetime.now()
     print str(end_time - pause_end + pause_begin - start_time) + '\n'
+    
+def create_format_name(display_name):
+    format_name = display_name.replace(' ', '_')
+    format_name = format_name.replace('/', '-')
+    return format_name
     
     
     

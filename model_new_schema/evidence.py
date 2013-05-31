@@ -4,6 +4,8 @@ Created on Dec 11, 2012
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema.reference import Reference
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 
@@ -18,6 +20,8 @@ class Evidence(Base, EqualityByIDMixin):
     source = Column('source', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
+    
+    reference = relationship(Reference, backref=backref('evidences', passive_deletes=True), uselist=False)
     
     __mapper_args__ = {'polymorphic_on': evidence_type,
                        'polymorphic_identity':"EVIDENCE"}

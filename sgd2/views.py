@@ -32,7 +32,7 @@ def gene_view(request):
     bioent = get_bioent(bioent_name)
     if bioent is None:
         return Response(status_int=500, body='Gene could not be found.')
-    return {'layout': site_layout(), 'page_title': bioent.name, 'bioent': bioent, 'link_maker':LinkMaker(bioent.name, bioent=bioent)}
+    return {'layout': site_layout(), 'page_title': bioent.display_name, 'bioent': bioent, 'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
   
 @view_config(route_name='protein', renderer='templates/protein.pt')
 def protein_view(request):
@@ -40,7 +40,7 @@ def protein_view(request):
     bioent = get_bioent(bioent_name)
     if bioent is None:
         return Response(status_int=500, body='Protein could not be found.')
-    return {'layout': site_layout(), 'page_title': bioent.name, 'bioent': bioent, 'link_maker':LinkMaker(bioent.name, bioent=bioent)}
+    return {'layout': site_layout(), 'page_title': bioent.display_name, 'bioent': bioent, 'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
  
 
 @view_config(route_name='reference', renderer='templates/reference.pt')
@@ -49,7 +49,7 @@ def reference_view(request):
     reference = get_reference(ref_name)   
     if reference is None:
             return Response(status_int=500, body='Reference could not be found.') 
-    return {'layout': site_layout(), 'page_title': reference.name, 'ref': reference, 'link_maker':LinkMaker(reference.name, reference=reference)}
+    return {'layout': site_layout(), 'page_title': reference.display_name, 'ref': reference, 'link_maker':LinkMaker(reference.format_name, reference=reference)}
 
 @view_config(route_name='author', renderer='templates/author.pt')
 def author_view(request):

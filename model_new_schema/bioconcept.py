@@ -18,9 +18,12 @@ class Bioconcept(Base, EqualityByIDMixin):
         
     id = Column('biocon_id', Integer, primary_key = True)
     biocon_type = Column('biocon_type', String)
-    official_name = Column('name', String)
-    type = "BIOCONCEPT"
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
     description = Column('description', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+    type = "BIOCONCEPT"
     
     #Relationships
     aliases = relationship("BioconAlias")
@@ -28,27 +31,24 @@ class Bioconcept(Base, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_on': biocon_type,
                        'polymorphic_identity':"BIOCONCEPT"}
     
-    def __init__(self, biocon_id, biocon_type, official_name, description, date_created, created_by):
+    def __init__(self, biocon_id, biocon_type, display_name, format_name, description, date_created, created_by):
         self.id = biocon_id
         self.biocon_type = biocon_type
-        self.official_name = official_name
+        self.display_name = display_name
+        self.format_name = format_name
         self.description = description
         self.date_created = date_created
         self.created_by = created_by
         
     def unique_key(self):
-        return (self.official_name, self.biocon_type)
+        return (self.format_name, self.biocon_type)
             
     @hybrid_property
     def link(self):
         return biocon_link(self)
     @hybrid_property
-    def name(self):
-        return self.official_name.replace('_', ' ')
-    @hybrid_property
     def name_with_link(self):
-        return add_link(self.name, self.link)
-    
+        return add_link(self.display_name, self.link)
     @hybrid_property
     def search_entry_title(self):
         return self.name_with_link
@@ -58,10 +58,6 @@ class Bioconcept(Base, EqualityByIDMixin):
     @hybrid_property
     def search_additional(self):
         return None
-    
-    def __repr__(self):
-        data = self.__class__.__name__, self.id, self.official_name
-        return '%s(id=%s, name=%s)' % data
       
 class BioconRelation(Base, EqualityByIDMixin):
     __tablename__ = 'bioconrel'

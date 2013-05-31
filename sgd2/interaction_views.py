@@ -3,8 +3,7 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.link_maker import LinkMaker, phenotype_link_from_name, \
-    add_link
+from model_new_schema.link_maker import LinkMaker, add_link
 from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_biorels, get_interactions, \
@@ -192,8 +191,7 @@ def make_evidence_row(interevidence, bioent=None):
         if interevidence.qualifier is not None:
             phenotype = interevidence.qualifier + ' ' 
         if interevidence.observable is not None:
-            link = phenotype_link_from_name(interevidence.observable)
-            phenotype = phenotype + add_link(interevidence.observable, link)
+            phenotype = phenotype + interevidence.observable
      
     return [bioent1.name_with_link, bioent2.name_with_link, 
             interevidence.experiment_type, interevidence.annotation_type, direction, phenotype,
@@ -221,10 +219,10 @@ def create_interaction_node(obj, evidence_count, focus_node):
     sub_type = None
     if obj == focus_node:
         sub_type = 'FOCUS'
-    return {'id':get_id(obj), 'label':obj.name, 'link':obj.link, 'evidence':evidence_count, 'sub_type':sub_type}
+    return {'id':get_id(obj), 'label':obj.display_name, 'link':obj.link, 'evidence':evidence_count, 'sub_type':sub_type}
 
 def create_interaction_edge(obj, source_obj, sink_obj, evidence_count):
-    return { 'id': get_id(obj), 'target': get_id(source_obj), 'source': get_id(sink_obj), 'label': obj.name, 'link':obj.link, 
+    return { 'id': get_id(obj), 'target': get_id(source_obj), 'source': get_id(sink_obj), 'label': obj.display_name, 'link':obj.link, 
             'evidence':evidence_count}  
     
 def weed_out_by_evidence(neighbors, neighbor_evidence_count, max_count=100):
@@ -255,7 +253,7 @@ def create_interaction_graph(bioent):
     bioent_to_evidence = {}
 
     #bioents.update([interaction.get_opposite(bioent) for interaction in get_biorels('INTERACTION', bioent)])
-    bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in get_biorels('INTERACTION', bioent)])
+    bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in get_biorels('INTERACTION', bioent.id)])
     bioents.update(bioent_to_evidence.keys())
 
     bioents.add(bioent)

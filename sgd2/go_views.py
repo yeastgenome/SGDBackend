@@ -24,7 +24,7 @@ def go(request):
     biocon = get_biocon(biocon_name, 'GO')
     if biocon is None:
         return Response(status_int=500, body='Biocon could not be found.')
-    return {'layout': site_layout(), 'page_title': biocon.name, 'biocon': biocon, 'link_maker':LinkMaker(biocon.name, biocon=biocon)} 
+    return {'layout': site_layout(), 'page_title': biocon.display_name, 'biocon': biocon, 'link_maker':LinkMaker(biocon.format_name, biocon=biocon)} 
 
 @view_config(route_name='go_evidence', renderer='templates/go_evidence.pt')
 def go_evidence(request):
@@ -34,10 +34,10 @@ def go_evidence(request):
         bioent = get_bioent(bioent_name)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        name = 'GO Evidence for ' + bioent.name
+        name = 'GO Evidence for ' + bioent.display_name
         name_with_link = 'GO Evidence for ' + bioent.name_with_link
         return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':True,
-                'link_maker':LinkMaker(bioent.name, bioent=bioent)}
+                'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
     elif 'biocon_name' in request.GET:
         #Need a GO overview table based on a biocon
         biocon_name = request.GET['biocon_name']
@@ -45,11 +45,11 @@ def go_evidence(request):
         if biocon is None:
             return Response(status_int=500, body='Biocon could not be found.')
         
-        name = 'Evidence for GO Term:<br>' + biocon.name
+        name = 'Evidence for GO Term:<br>' + biocon.display_name
         name_with_link = 'Evidence for GO Term:<br>' + biocon.name_with_link
        
         return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':False,
-                'link_maker':LinkMaker(biocon.name, biocon=biocon)}
+                'link_maker':LinkMaker(biocon.format_name, biocon=biocon)}
     else:
         return Response(status_int=500, body='No Bioent or Biocon specified.')
 
@@ -228,7 +228,7 @@ def create_go_ontology_node(obj, focus_node, child):
         sub_type = 'NO_GENES'
     if obj == focus_node:
         sub_type = 'FOCUS'
-    name = obj.name.replace(' ', '\n')
+    name = obj.display_name.replace(' ', '\n')
     size = 2*int(math.ceil(math.sqrt(direct_gene_count)))
     return {'id':'BIOCONCEPT' + str(obj.id), 'label':name, 'link':obj.link, 'sub_type':sub_type, 'bio_type':obj.type, 
             'child':child, 'direct_gene_count':size}
@@ -265,7 +265,7 @@ def create_go_node(obj, focus_node, f_include, p_include, c_include):
         sub_type = obj.go_aspect.upper()
     if obj == focus_node:
         sub_type = 'FOCUS'
-    name = obj.name.replace(' ', '\n')
+    name = obj.display_name.replace(' ', '\n')
     return {'id':get_id(obj), 'label':name, 'link':obj.link, 'sub_type':sub_type, 'bio_type':obj.type,
             'f_include':f_include, 'p_include':p_include, 'c_include':c_include}
 

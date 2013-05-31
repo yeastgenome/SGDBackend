@@ -3,7 +3,7 @@ Created on May 28, 2013
 
 @author: kpaskov
 '''
-from schema_conversion import cache, create_or_update_and_remove
+from schema_conversion import create_or_update_and_remove, cache_by_key
 
 def update_biocon_gene_counts(new_session, biocon_cls, evidence_cls):
     '''
@@ -32,7 +32,7 @@ def convert_biocon_ancestors(new_session, bioconrel_type, num_generations):
     from model_new_schema.bioconcept import BioconRelation as NewBioconRelation, BioconAncestor as NewBioconAncestor
     
     #Cache biocon_relations and biocon_ancestors
-    key_to_biocon_relations = cache(NewBioconRelation, new_session, bioconrel_type=bioconrel_type)
+    key_to_biocon_relations = cache_by_key(NewBioconRelation, new_session, bioconrel_type=bioconrel_type)
     
     child_to_parents = {}
     for biocon_relation in key_to_biocon_relations.values():
@@ -56,7 +56,7 @@ def convert_biocon_ancestors(new_session, bioconrel_type, num_generations):
     
     for generation in range(1, num_generations):
         print 'Generation ' + str(generation)
-        key_to_biocon_ancestors = cache(NewBioconAncestor, new_session, bioconanc_type='GO_ONTOLOGY', generation=generation)
+        key_to_biocon_ancestors = cache_by_key(NewBioconAncestor, new_session, bioconanc_type=bioconrel_type, generation=generation)
         new_biocon_ancestors = []    
 
         for child_id, all_ancestor_ids in child_to_ancestors.iteritems():

@@ -9,7 +9,7 @@
 <header class="jumbotron subhead" id="overview">
 	<div class="container">
 		<br></br>
-		<h1><span tal:content="'Phenotype: ' + biocon.name"></h1>
+		<h1><span tal:content="'Phenotype: ' + biocon.display_name"></h1>
 		<p class="lead">
 			<span tal:content="biocon.description">
 		</p>
@@ -24,7 +24,7 @@
 <div class="row-fluid">
 	<div class="span3 bs-docs-sidebar">
 		<ul class="nav nav-list bs-docs-sidenav affix-top" id='navbar' name='navbar'>
-			<li><h4><span tal:content="'Phenotype: ' + biocon.name"></h4></li>
+			<li><h4><span tal:content="'Phenotype: ' + biocon.display_name"></h4></li>
 			<li><a href="#ontology"><i class="icon-chevron-right"></i> Ontology</a></li>
 			<li><a href="#genes"><i class="icon-chevron-right"></i> Genes</a></li>
 		</ul>
@@ -88,7 +88,7 @@
 	$(document).ready(function() {
 		//Set up gene table
 		var options = basic_datatable_options("genes_header", 
-				'${biocon.name}_genes', "genes_wrapper", "genes_message");
+				'${link_maker.phenotype_filename}', "genes_wrapper", "genes_message");
 		options["aaSorting"] = [[1, "asc"]];
 		options["aoColumns"] = [{"bSearchable":false, "bVisible":false}, null, null, null]
 		options["bProcessing"] = true;

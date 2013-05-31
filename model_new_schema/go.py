@@ -16,28 +16,23 @@ class Go(Bioconcept):
     
     id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
     go_go_id = Column('go_go_id', Integer)
-    go_term = Column('go_term', String)
     go_aspect = Column('go_aspect', String)
-    go_definition = Column('go_definition', String)
     direct_gene_count = Column('direct_gene_count', Integer)
     type = "GO"
     
     __mapper_args__ = {'polymorphic_identity': "GO",
                        'inherit_condition': id==Bioconcept.id}   
      
-    def __init__(self, biocon_id, go_go_id, go_term, go_aspect, go_definition, date_created, created_by):
-        name = go_term.replace(' ', '_')
-        name = name.replace('/', '-')
-        Bioconcept.__init__(self, biocon_id, 'GO', name, go_definition, date_created, created_by)
+    def __init__(self, biocon_id, display_name, format_name, description, 
+                 go_go_id, go_aspect, date_created, created_by):
+        Bioconcept.__init__(self, biocon_id, 'GO', display_name, format_name, 
+                            description, date_created, created_by)
         self.go_go_id = go_go_id
-        self.go_term = go_term
         self.go_aspect = go_aspect
-        self.go_definition = go_definition
         
     @hybrid_property
     def search_entry_type(self):
         return 'Gene Ontology Term'
-
 
 class Goevidence(Evidence):
     __tablename__ = "goevidence"
@@ -52,8 +47,8 @@ class Goevidence(Evidence):
     type = 'BIOCON_EVIDENCE'  
     
     #Relationships 
-    gene = relationship(Gene)
-    goterm = relationship(Go, cascade='all,delete')
+    gene = relationship(Gene, uselist=False)
+    goterm = relationship(Go, uselist=False)
     
     __mapper_args__ = {'polymorphic_identity': "GO_EVIDENCE",
                        'inherit_condition': id==Evidence.id}

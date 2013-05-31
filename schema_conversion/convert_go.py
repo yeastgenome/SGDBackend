@@ -5,8 +5,8 @@ Created on Feb 27, 2013
 '''
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
-from schema_conversion import cache, create_or_update_and_remove, ask_to_commit, \
-    prepare_schema_connection
+from schema_conversion import create_or_update_and_remove, ask_to_commit, \
+    prepare_schema_connection, cache_by_key, cache_by_id, create_format_name
 from schema_conversion.auxillary_tables import update_biocon_gene_counts, \
     convert_biocon_ancestors
 import datetime
@@ -33,23 +33,41 @@ abbrev_to_go_aspect = {'C':'cellular component', 'F':'molecular function', 'P':'
 def create_go(old_go):
     from model_new_schema.go import Go as NewGo
     
-    new_go = NewGo(create_go_id(old_go.id), old_go.go_go_id, old_go.go_term, 
-                   abbrev_to_go_aspect[old_go.go_aspect], old_go.go_definition, 
+    display_name = old_go.go_term
+    format_name = create_format_name(display_name)
+    new_go = NewGo(create_go_id(old_go.id), display_name, format_name, old_go.go_definition,
+                   old_go.go_go_id, abbrev_to_go_aspect[old_go.go_aspect],  
                    old_go.date_created, old_go.created_by)
     return new_go
 
 def create_synonyms(old_go, key_to_go):
     from model_new_schema.bioconcept import BioconAlias as NewBioconAlias
-    biocon_id = key_to_go[create_go_key(old_go.go_term)].id
+    go_key = create_go_key(old_go.go_term)
+    if go_key not in key_to_go:
+        print 'GO term does not exist. ' + str(go_key)
+        return []
+    biocon_id = key_to_go[go_key].id
     new_aliases = [NewBioconAlias(biocon_id, 'GO', synonym.go_synonym, synonym.date_created, synonym.created_by) for synonym in old_go.synonyms]
     return new_aliases
 
-def create_goevidence(old_go_feature, go_ref, key_to_go):
+def create_goevidence(old_go_feature, go_ref, key_to_go, id_to_reference, id_to_bioent):
     from model_new_schema.go import Goevidence as NewGoevidence
     evidence_id = create_goevidence_id(go_ref.id)
     reference_id = go_ref.reference_id
+    if reference_id not in id_to_reference:
+        print 'Reference does not exist. ' + str(reference_id)
+        return None
+    
     bioent_id = old_go_feature.feature_id
-    biocon_id = key_to_go[create_go_key(old_go_feature.go.go_term)].id
+    if bioent_id not in id_to_bioent:
+        print 'Bioentity does not exist. ' + str(bioent_id)
+        return None
+    
+    go_key = create_go_key(old_go_feature.go.go_term)
+    if go_key not in key_to_go:
+        print 'Go term does not exist. ' + str(go_key)
+        return None
+    biocon_id = key_to_go[go_key].id
     
     qualifier = None
     if go_ref.go_qualifier is not None and go_ref.qualifier is not None:
@@ -71,16 +89,6 @@ def create_biocon_relation(go_path, id_to_old_go, key_to_go):
         return NewBioconRelation(parent_id, child_id, 'GO_ONTOLOGY', relationship_type)
     else:
         return None
-
-def create_biocon_ancestor(go_path, id_to_old_go, key_to_go):
-    from model_new_schema.bioconcept import BioconAncestor as NewBioconAncestor
-    ancestor = id_to_old_go[go_path.ancestor_id]
-    child = id_to_old_go[go_path.child_id]
-        
-    ancestor_id = key_to_go[create_go_key(ancestor.go_term)].id
-    child_id = key_to_go[create_go_key(child.go_term)].id
-    return NewBioconAncestor(ancestor_id, child_id, 'GO_ONTOLOGY', go_path.generation)
-
      
 """
 ---------------------Convert------------------------------
@@ -94,86 +102,97 @@ def convert(old_session_maker, new_session_maker):
     start_time = datetime.datetime.now()
     try:
         old_session = old_session_maker()
-        new_session = new_session_maker()
-        
         old_goterms = old_session.query(OldGo).all()
-
-        convert_goterms(new_session, old_goterms)
-        ask_to_commit(new_session, start_time)  
+        
+        success=False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_goterms(new_session, old_goterms)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
     finally:
         old_session.close()
         new_session.close()
         
-    # Convert aliases
-    print 'Go term aliases'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        new_session = new_session_maker()
-        
-        convert_aliases(new_session, old_goterms)
-        ask_to_commit(new_session, start_time)  
-    finally:
-        old_session.close()
-        new_session.close()
-        
-    # Convert goevidences
-    print 'Goevidences'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        new_session = new_session_maker()
-        
-        old_go_features = old_session.query(OldGoFeature).all()
-        
-        convert_goevidences(new_session, old_go_features)
-        ask_to_commit(new_session, start_time)  
-    finally:
-        old_session.close()
-        new_session.close() 
-        
-    # Convert biocon_relations
-    print 'Biocon_relations'            
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        new_session = new_session_maker()
-        
-        old_go_paths = old_session.query(OldGoPath).filter(OldGoPath.generation==1).all()
-        convert_biocon_relations(new_session, old_go_paths, old_goterms)
-        ask_to_commit(new_session, start_time)  
-    finally:
-        old_session.close()
-        new_session.close()
-        
-    # Update gene counts
-    print 'Go term gene counts'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        new_session = new_session_maker()
-                
-        from model_new_schema.go import Go as NewGo, Goevidence as NewGoevidence
-        update_biocon_gene_counts(new_session, NewGo, NewGoevidence)
-        ask_to_commit(new_session, start_time)  
-    finally:
-        old_session.close()
-        new_session.close()  
-  
-    # Convert biocon_ancestors
-    # For some reason, when I run this several time, it keeps removing a small number of 
-    # biocon_ancestors - not clear why.
-    print 'Biocon_ancestors' 
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        new_session = new_session_maker()
-        
-        convert_biocon_ancestors(new_session, 'GO_ONTOLOGY', 5)
-        ask_to_commit(new_session, start_time)  
-    finally:
-        old_session.close()
-        new_session.close()     
+#    # Convert aliases
+#    print 'Go term aliases'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        
+#        success=False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_aliases(new_session, old_goterms)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#        
+#    # Convert goevidences
+#    print 'Goevidences'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_go_features = old_session.query(OldGoFeature).all()
+#
+#        success=False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_goevidences(new_session, old_go_features)
+#            ask_to_commit(new_session, start_time) 
+#            new_session.close() 
+#    finally:
+#        old_session.close()
+#        new_session.close() 
+#        
+#    # Convert biocon_relations
+#    print 'Biocon_relations'            
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_go_paths = old_session.query(OldGoPath).filter(OldGoPath.generation==1).all()
+#        old_goterms = old_session.query(OldGo).all()
+#
+#        success=False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_biocon_relations(new_session, old_go_paths, old_goterms)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#        
+#    # Update gene counts
+#    print 'Go term gene counts'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        
+#        new_session = new_session_maker()
+#        from model_new_schema.go import Go as NewGo, Goevidence as NewGoevidence
+#        success = update_biocon_gene_counts(new_session, NewGo, NewGoevidence)
+#        ask_to_commit(new_session, start_time)  
+#    finally:
+#        old_session.close()
+#        new_session.close()  
+#  
+#    # Convert biocon_ancestors
+#    # For some reason, when I run this several time, it keeps removing a small number of 
+#    # biocon_ancestors - not clear why.
+#    print 'Biocon_ancestors' 
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        
+#        new_session = new_session_maker()
+#        success = convert_biocon_ancestors(new_session, 'GO_ONTOLOGY', 5)
+#        ask_to_commit(new_session, start_time) 
+#    finally:
+#        old_session.close()
+#        new_session.close()     
 
 def convert_goterms(new_session, old_goterms):
     '''
@@ -182,13 +201,14 @@ def convert_goterms(new_session, old_goterms):
     from model_new_schema.go import Go as NewGo
 
     #Cache goterms
-    key_to_go = cache(NewGo, new_session)
+    key_to_go = cache_by_key(NewGo, new_session)
     
     #Create new goterms if they don't exist, or update the database if they do.
     new_goterms = [create_go(x) for x in old_goterms]
     
-    values_to_check = ['go_go_id', 'go_term', 'go_aspect', 'go_definition', 'biocon_type', 'official_name']
-    create_or_update_and_remove(new_goterms, key_to_go, values_to_check, new_session)
+    values_to_check = ['go_go_id', 'go_aspect', 'biocon_type', 'display_name', 'format_name', 'description', 'date_created', 'created_by']
+    success = create_or_update_and_remove(new_goterms, key_to_go, values_to_check, new_session)
+    return success
    
 def convert_aliases(new_session, old_goterms):
     '''
@@ -198,8 +218,8 @@ def convert_aliases(new_session, old_goterms):
     from model_new_schema.bioconcept import BioconAlias as NewBioconAlias
 
     #Cache goterm aliases and goterms
-    key_to_alias = cache(NewBioconAlias, new_session, biocon_type='GO')
-    key_to_go = cache(NewGo, new_session)    
+    key_to_alias = cache_by_key(NewBioconAlias, new_session, biocon_type='GO')
+    key_to_go = cache_by_key(NewGo, new_session)    
     
     new_goterm_aliases = []
     for old_goterm in old_goterms:
@@ -207,28 +227,35 @@ def convert_aliases(new_session, old_goterms):
         
     #Create new aliases if they don't exist of update the dataset if they do.
     values_to_check = ['biocon_type', 'date_created', 'created_by']
-    create_or_update_and_remove(new_goterm_aliases, key_to_alias, values_to_check, new_session)
-    
+    success = create_or_update_and_remove(new_goterm_aliases, key_to_alias, values_to_check, new_session)
+    return success
     
 def convert_goevidences(new_session, old_go_features):
     '''
     Convert Goterms
     '''
     from model_new_schema.go import Goevidence as NewGoevidence, Go as NewGo
+    from model_new_schema.bioentity import Bioentity as NewBioentity
+    from model_new_schema.reference import Reference as NewReference
     
     #Cache goevidences and goterms
-    key_to_goevidence = cache(NewGoevidence, new_session)
-    key_to_go = cache(NewGo, new_session)
+    key_to_goevidence = cache_by_key(NewGoevidence, new_session)
+    key_to_go = cache_by_key(NewGo, new_session)
+    id_to_reference = cache_by_id(NewReference, new_session)
+    id_to_bioent = cache_by_id(NewBioentity, new_session)
     
+    print 1325263 in key_to_goevidence
+        
     #Create new goevidences if they don't exist, or update the database if they do.
     new_evidences = []
     values_to_check = ['go_evidence', 'annotation_type', 'date_last_reviewed', 'qualifier',
                        'bioent_id', 'biocon_id', 'experiment_type', 'reference_id', 'evidence_type',
                        'strain_id', 'source', 'date_created', 'created_by']
     for old_go_feature in old_go_features: 
-        new_evidences.extend([create_goevidence(old_go_feature, x, key_to_go) for x in old_go_feature.go_refs])
-    create_or_update_and_remove(new_evidences, key_to_goevidence, values_to_check, new_session)
-            
+        new_evidences.extend([create_goevidence(old_go_feature, x, key_to_go, id_to_reference, id_to_bioent) for x in old_go_feature.go_refs])
+    
+    success = create_or_update_and_remove(new_evidences, key_to_goevidence, values_to_check, new_session)
+    return success      
     
 def convert_biocon_relations(new_session, old_go_paths, old_goterms):
     '''
@@ -238,14 +265,15 @@ def convert_biocon_relations(new_session, old_go_paths, old_goterms):
     from model_new_schema.go import Go as NewGo
     
     #Cache biocon_relations and goterms
-    key_to_biocon_relations = cache(NewBioconRelation, new_session, bioconrel_type='GO_ONTOLOGY')
-    key_to_go = cache(NewGo, new_session)
+    key_to_biocon_relations = cache_by_key(NewBioconRelation, new_session, bioconrel_type='GO_ONTOLOGY')
+    key_to_go = cache_by_key(NewGo, new_session)
     
     id_to_old_go = dict([(x.id, x) for x in old_goterms])
     
     #Create new biocon_relations if they don't exist, or update the database if they do.
     new_biocon_relations = filter(None, [create_biocon_relation(x, id_to_old_go, key_to_go) for x in old_go_paths])
-    create_or_update_and_remove(new_biocon_relations, key_to_biocon_relations, [], new_session) 
+    success = create_or_update_and_remove(new_biocon_relations, key_to_biocon_relations, [], new_session) 
+    return success
             
 if __name__ == "__main__":
     old_session_maker = prepare_schema_connection(model_old_schema, old_config)

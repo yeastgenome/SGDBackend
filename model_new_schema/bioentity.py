@@ -7,7 +7,7 @@ This is some test code to experiment with working with SQLAlchemy - particularly
 will eventually be the Bioentity classes/tables in the new SGD website schema. This code is currently meant to run on the KPASKOV 
 schema on fasolt.
 '''
-from model_new_schema import Base, EqualityByIDMixin, UniqueMixin
+from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.link_maker import add_link, bioent_link, bioent_wiki_link
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -15,19 +15,16 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date, Float
 import datetime
-# Following two imports are necessary for SQLAlchemy
 
-
-
-class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
+class Bioentity(Base, EqualityByIDMixin):
     __tablename__ = 'bioent'
     
     id = Column('bioent_id', Integer, primary_key=True)
-    official_name = Column('name', String)
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
     bioent_type = Column('bioent_type', String)
     dbxref_id = Column('dbxref', String)
     source = Column('source', String)
-    secondary_name = Column('secondary_name', String)
     
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
@@ -35,6 +32,7 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     __mapper_args__ = {'polymorphic_on': bioent_type,
                        'polymorphic_identity':"BIOENTITY"}
     
+    #Relationships
     bioconcepts = association_proxy('biofacts', 'bioconcept')
     aliases = relationship("Alias")
     alias_names = association_proxy('aliases', 'name')
@@ -68,19 +66,16 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
     def alias_str(self):
         return ', '.join(self.alias_names)
     
-    #Names and links    
-    @hybrid_property
-    def name(self):
-        return self.official_name if self.secondary_name is None else self.secondary_name      
+    #Names and links     
     @hybrid_property
     def full_name(self, include_link=True):
-        return self.secondary_name + ' (' + self.official_name + ')'
+        return self.display_name + ' (' + self.format_name + ')'
     @hybrid_property
     def link(self):
         return bioent_link(self)
     @hybrid_property
     def name_with_link(self):
-        return add_link(self.name, self.link) 
+        return add_link(self.display_name, self.link) 
     @hybrid_property
     def full_name_with_link(self):
         return add_link(self.full_name, self.link) 
@@ -89,43 +84,28 @@ class Bioentity(Base, EqualityByIDMixin, UniqueMixin):
         return add_link(self.wiki_link, self.wiki_link)
     @hybrid_property
     def wiki_link(self):
-        return bioent_wiki_link(self)
-     
-    @classmethod
-    def unique_hash(cls, bioent_type, name):
-        return '%s_%s' % (bioent_type, name) 
-
-    @classmethod
-    def unique_filter(cls, query, bioent_type, name):
-        return query.filter(Bioentity.bioent_type == bioent_type, Bioentity.name == name)
-    
-    def __repr__(self):
-        data = self.__class__.__name__, self.id, self.name, self.bioent_type
-        return '%s(id=%s, name=%s, bioent_type=%s)' % data     
+        return bioent_wiki_link(self)    
     
 class BioentRelation(Base, EqualityByIDMixin):
     __tablename__ = "bioentrel"
     
     id = Column('biorel_id', Integer, primary_key = True)
-    official_name = Column('name', String)
+    format_name = Column('format_name', String)
+    display_name = Column('display_name', String)
+    description = Column('description', String)
     biorel_type = Column('biorel_type', String)
     source_bioent_id = Column('bioent_id1', Integer, ForeignKey(Bioentity.id))
     sink_bioent_id = Column('bioent_id2', Integer, ForeignKey(Bioentity.id))
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
-    
     type = 'BIORELATION'
+    
+    __mapper_args__ = {'polymorphic_on': biorel_type,
+                       'polymorphic_identity':"BIORELATION"}
     
     #Relationships
     source_bioent = relationship('Bioentity', uselist=False, primaryjoin="BioentRelation.source_bioent_id==Bioentity.id", backref='biorel_source')
     sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="BioentRelation.sink_bioent_id==Bioentity.id", backref='biorel_sink')
-        
-    __mapper_args__ = {'polymorphic_on': biorel_type,
-                       'polymorphic_identity':"BIORELATION"}
-    
-    @hybrid_property
-    def name(self):
-        return 'Interaction between ' + self.source_bioent.name + ' and ' + self.sink_bioent.name
         
     def get_opposite(self, bioent):
         if bioent == self.source_bioent:
@@ -134,14 +114,6 @@ class BioentRelation(Base, EqualityByIDMixin):
             return self.source_bioent
         else:
             return None
-        
-    @hybrid_property
-    def description(self):
-        return 'Evidence for interaction between ' + self.source_bioent.full_name + ' and ' + self.sink_bioent.full_name    
-        
-    @hybrid_property
-    def name_with_link(self):
-        return 'Interaction between ' + self.source_bioent.name_with_link + ' and ' + self.sink_bioent.name_with_link
     
     def __init__(self, biorel_type, source_bioent_id, sink_bioent_id, session=None, biorel_id=None, created_by=None, date_created=None):
         self.source_bioent_id = source_bioent_id
@@ -154,11 +126,7 @@ class BioentRelation(Base, EqualityByIDMixin):
             self.id = biorel_id
         else:
             self.created_by = session.user
-            self.date_created = datetime.datetime.now()
-    
-    def __repr__(self):
-        data = self.__class__.__name__, self.id, self.source_bioent.name, self.sink_bioent.name
-        return '%s(id=%s, source_name=%s, sink_name=%s)' % data  
+            self.date_created = datetime.datetime.now() 
 
 class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'

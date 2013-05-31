@@ -5,8 +5,8 @@ Created on Feb 27, 2013
 '''
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
-from schema_conversion import cache, create_or_update_and_remove, ask_to_commit, \
-    prepare_schema_connection
+from schema_conversion import create_or_update_and_remove, ask_to_commit, \
+    prepare_schema_connection, cache_by_key, cache_by_id
 from sqlalchemy.orm import joinedload
 import datetime
 import model_new_schema
@@ -32,9 +32,9 @@ def create_citation(citation):
     new_citation = new_citation.replace('()', '')
     return new_citation
 
-def create_name(citation):
-    name = citation[:citation.find(")")+1]
-    return name
+def create_display_name(citation):
+    display_name = citation[:citation.find(")")+1]
+    return display_name
 
 def create_book(old_book):
     from model_new_schema.reference import Book as NewBook
@@ -57,63 +57,84 @@ def create_author(old_author):
     new_author = NewAuthor(old_author.id, old_author.name, old_author.date_created, old_author.created_by)
     return new_author
 
-def create_reftype(old_reftype):
-    from model_new_schema.reference import Reftype as NewReftype
-    
-    new_reftype = NewReftype(old_reftype.id, old_reftype.name, old_reftype.source, 
-                             old_reftype.date_created, old_reftype.created_by)
-    return new_reftype
-
-def create_abstract(old_abstract, key_to_reference):
-    from model_new_schema.reference import Abstract as NewAbstract
-    
-    reference_id = key_to_reference[create_citation(old_abstract.reference.citation)].id
-    new_abstract = NewAbstract(old_abstract.text, reference_id)
-    return new_abstract
-
-def create_author_reference(old_author_reference, key_to_author, key_to_reference):
+def create_author_reference(old_author_reference, key_to_author, id_to_reference):
     from model_new_schema.reference import AuthorReference as NewAuthorReference
-    author_id = key_to_author[old_author_reference.author.name].id
-    reference_id = key_to_reference[create_citation(old_author_reference.reference.citation)].id
+    author_key = old_author_reference.author.name
+    if author_key not in key_to_author:
+        print 'Author does not exist. ' + str(author_key)
+        return None
+    author_id = key_to_author[author_key].id
+    
+    reference_id = old_author_reference.reference_id
+    if reference_id not in id_to_reference:
+        print 'Reference does not exist. ' + str(reference_id)
+        return None
+    
     new_author_reference = NewAuthorReference(old_author_reference.id, author_id, reference_id, 
                                               old_author_reference.order, old_author_reference.type)
     return new_author_reference
 
-def create_ref_reftype(old_ref_reftype, key_to_reftype, key_to_reference):
-    from model_new_schema.reference import RefReftype as NewRefReftype
-    reftype_id = key_to_reftype[old_ref_reftype.reftype.name].id
-    reference_id = key_to_reference[create_citation(old_ref_reftype.reference.citation)].id
-    new_ref_reftype = NewRefReftype(old_ref_reftype.id, reference_id, reftype_id)
-    return new_ref_reftype
+def create_reftype(old_ref_reftype, id_to_reference):
+    from model_new_schema.reference import Reftype as NewReftype
+    
+    reference_id = old_ref_reftype.reference_id
+    if reference_id not in id_to_reference:
+        print 'Reference does not exist. ' + str(reference_id)
+        return None
+    
+    new_reftype = NewReftype(old_ref_reftype.id, old_ref_reftype.reftype_name, 
+                             old_ref_reftype.reftype_source, reference_id)
+    return new_reftype
 
 def create_reference(old_reference, key_to_journal, key_to_book):
     from model_new_schema.reference import Reference as NewReference
     
     citation = create_citation(old_reference.citation)
-    name = create_name(citation)
+    display_name = create_display_name(citation)
+    format_name = old_reference.pubmed_id
+    if format_name is None:
+        format_name = old_reference.dbxref_id
+    
+    abstract = None
+    if old_reference.abst is not None:
+        abstract = old_reference.abstract
     
     journal_id = None
-    book_id = None
     journal = old_reference.journal
     if journal is not None:
-        journal_id = key_to_journal[(journal.full_name, journal.abbreviation, journal.issn, journal.essn, journal.publisher)].id
+        journal_key = (journal.full_name, journal.abbreviation, journal.issn, journal.essn, journal.publisher)
+        if journal_key not in key_to_journal:
+            print 'Journal does not exist. ' + str(journal_key)
+            return None
+        journal_id = key_to_journal[journal_key].id
+        
+    book_id = None
     book = old_reference.book
     if book is not None:
+        book_key = book.title
+        if book_key not in key_to_book:
+            print 'Book does not exist. ' + str(book_key)
+            return None
         book_id = key_to_book[book.title].id
       
     secondary_dbxref_id = None  
+    tertiary_dbxref_id = None
     secondary_dbxref_ids = [dbxref.dbxref_id for dbxref in old_reference.dbxrefs if dbxref.dbxref_type == 'DBID Secondary']
-    if len(secondary_dbxref_ids) > 1:
-        print 'Too many secondary dbxref_ids'
+    if len(secondary_dbxref_ids) > 2:
+        print 'Too many dbxref_ids.'
+    if len(secondary_dbxref_ids) == 2:
+        secondary_dbxref_id = secondary_dbxref_ids[0]
+        tertiary_dbxref_id = secondary_dbxref_ids[1]
     elif len(secondary_dbxref_ids) == 1:
         secondary_dbxref_id = secondary_dbxref_ids[0]
     
-    new_ref = NewReference(old_reference.id, old_reference.pubmed_id, old_reference.source, old_reference.status, 
-                           old_reference.pdf_status, old_reference.dbxref_id, secondary_dbxref_id,
+    new_ref = NewReference(old_reference.id, old_reference.pubmed_id, display_name, format_name,
+                           old_reference.source, old_reference.status, 
+                           old_reference.pdf_status, old_reference.dbxref_id, secondary_dbxref_id, tertiary_dbxref_id,
                            citation, old_reference.year, 
                            old_reference.date_published, old_reference.date_revised, 
                            old_reference.issue, old_reference.page, old_reference.volume, old_reference.title,
-                           journal_id, book_id, old_reference.doi, name, 
+                           journal_id, book_id, old_reference.doi, abstract,
                            old_reference.date_created, old_reference.created_by)
     return new_ref
 
@@ -123,8 +144,8 @@ def create_reference(old_reference, key_to_journal, key_to_book):
 """   
 
 def convert(old_session_maker, new_session_maker):
-    from model_old_schema.reference import Journal as OldJournal, Book as OldBook, Abstract as OldAbstract, Author as OldAuthor, \
-        RefType as OldReftype, AuthorReference as OldAuthorReference, RefReftype as OldRefReftype, Reference as OldReference
+    from model_old_schema.reference import Journal as OldJournal, Book as OldBook, Author as OldAuthor, \
+        AuthorReference as OldAuthorReference, RefReftype as OldRefReftype, Reference as OldReference
     from model_old_schema.general import DbxrefRef
 
 #    # Convert journals
@@ -179,29 +200,12 @@ def convert(old_session_maker, new_session_maker):
 #        old_session.close()
 #        new_session.close()
 #        
-#    # Convert reftypes
-#    print 'Reftype'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_reftypes = old_session.query(OldReftype).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_reftypes(new_session, old_reftypes)
-#            ask_to_commit(new_session, start_time)
-#            new_session.close()  
-#    finally:
-#        old_session.close()
-#        new_session.close()
-        
     # Convert references
     print 'References'
     start_time = datetime.datetime.now()
     try:
         old_session = old_session_maker()
-        old_references = old_session.query(OldReference).options(joinedload('book'), joinedload('journal'), joinedload('dbxrefrefs')).all()
+        old_references = old_session.query(OldReference).options(joinedload('book'), joinedload('journal'), joinedload('dbxrefrefs'), joinedload('abst')).all()
 
         success = False
         while not success:
@@ -212,57 +216,40 @@ def convert(old_session_maker, new_session_maker):
     finally:
         old_session.close()
         new_session.close()
-        
-    # Convert abstracts
-    print 'Abstracts'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_abstracts = old_session.query(OldAbstract).options(joinedload('reference')).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_abstracts(new_session, old_abstracts)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
-        
-    # Convert author_references
-    print 'AuthorReferences'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_author_references = old_session.query(OldAuthorReference).options(joinedload('reference'), joinedload('author')).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_author_references(new_session, old_author_references)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
-        
-    # Convert ref_reftypes
-    print 'RefReftypes'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_ref_reftypes = old_session.query(OldRefReftype).options(joinedload('reference'), joinedload('reftype')).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_ref_reftypes(new_session, old_ref_reftypes)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+#        
+#    # Convert author_references
+#    print 'AuthorReferences'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_author_references = old_session.query(OldAuthorReference).options(joinedload('author')).all()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_author_references(new_session, old_author_references)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#        
+#    # Convert reftypes
+#    print 'Reftypes'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_ref_reftypes = old_session.query(OldRefReftype).options(joinedload('reftype')).all()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_reftypes(new_session, old_ref_reftypes)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
     
 def convert_journals(new_session, old_journals):
     '''
@@ -271,7 +258,7 @@ def convert_journals(new_session, old_journals):
     from model_new_schema.reference import Journal as NewJournal
 
     #Cache journals
-    key_to_journal = cache(NewJournal, new_session)
+    key_to_journal = cache_by_key(NewJournal, new_session)
     
     #Create new journals if they don't exist, or update the database if they do.
     new_journals = [create_journal(x) for x in old_journals]
@@ -285,7 +272,7 @@ def convert_books(new_session, old_books):
     from model_new_schema.reference import Book as NewBook
 
     #Cache books
-    key_to_book = cache(NewBook, new_session)
+    key_to_book = cache_by_key(NewBook, new_session)
     
     #Create new books if they don't exist, or update the database if they do.
     new_journals = [create_book(x) for x in old_books]
@@ -298,25 +285,19 @@ def convert_references(new_session, old_references):
     Convert References
     '''
     from model_new_schema.reference import Reference as NewReference, Journal as NewJournal, Book as NewBook
-    #The following imports are needed in order to allow references to be deleted.
-    #References have a relationship with Evidence, so when a reference is deleted, any associated evidence
-    #must also be deleted to keep to foreign key constraints. In order to delete a piece of Evidence - 
-    #apparently SQLAlchemy must load it. So it needs to know about the various subtypes of evidence.
-    from model_new_schema.interaction import Interevidence
-    from model_new_schema.go import Goevidence
-    from model_new_schema.phenotype import Phenoevidence
-    from model_new_schema.reference import AuthorReference, RefReftype, Abstract
 
     #Cache references, journals, and books
-    key_to_reference = cache(NewReference, new_session)
-    key_to_journal = cache(NewJournal, new_session)
-    key_to_book = cache(NewBook, new_session)
+    key_to_reference = cache_by_key(NewReference, new_session)
+    key_to_journal = cache_by_key(NewJournal, new_session)
+    key_to_book = cache_by_key(NewBook, new_session)
     
     #Create new references if they don't exist, or update the database if they do.
     new_references = [create_reference(x, key_to_journal, key_to_book) for x in old_references]
-    values_to_check = ['source', 'status', 'pdf_status', 'primary_dbxref_id', 'secondary_dxref_id',
+    values_to_check = ['display_name', 'format_name',
+                       'source', 'status', 'pdf_status', 'primary_dbxref_id', 'secondary_dbxref_id', 'tertiary_dbxref_id',
                        'year', 'pubmed_id', 'date_published', 'date_revised',
-                       'issue', 'page', 'volume', 'title', 'journal_id', 'book_id', 'doi', 'created_by', 'date_created']
+                       'issue', 'page', 'volume', 'title', 'journal_id', 'book_id', 'doi', 'abstract',
+                       'created_by', 'date_created']
     success = create_or_update_and_remove(new_references, key_to_reference, values_to_check, new_session)
     return success
     
@@ -327,7 +308,7 @@ def convert_authors(new_session, old_authors):
     from model_new_schema.reference import Author as NewAuthor
 
     #Cache authors
-    key_to_author = cache(NewAuthor, new_session)
+    key_to_author = cache_by_key(NewAuthor, new_session)
     
     #Create new authors if they don't exist, or update the database if they do.
     new_authors = [create_author(x) for x in old_authors]
@@ -335,68 +316,36 @@ def convert_authors(new_session, old_authors):
     success = create_or_update_and_remove(new_authors, key_to_author, values_to_check, new_session)
     return success
     
-def convert_reftypes(new_session, old_reftypes):
-    '''
-    Convert Reftypes
-    '''
-    from model_new_schema.reference import Reftype as NewReftype
-
-    #Cache reftypes
-    key_to_reftype = cache(NewReftype, new_session)
-    
-    #Create new reftypes if they don't exist, or update the database if they do.
-    new_reftypes = [create_reftype(x) for x in old_reftypes]
-    values_to_check = ['source', 'created_by', 'date_created']
-    success = create_or_update_and_remove(new_reftypes, key_to_reftype, values_to_check, new_session)
-    return success
-    
-def convert_abstracts(new_session, old_abstracts):
-    '''
-    Convert Abstracts
-    '''
-    from model_new_schema.reference import Abstract as NewAbstract, Reference as NewReference
-
-    #Cache abstracts and references
-    key_to_abstract = cache(NewAbstract, new_session)
-    key_to_reference = cache(NewReference, new_session)
-    
-    #Create new abstracts if they don't exist, or update the database if they do.
-    new_abstracts = [create_abstract(x, key_to_reference) for x in old_abstracts]
-    values_to_check = ['text']
-    success = create_or_update_and_remove(new_abstracts, key_to_abstract, values_to_check, new_session)  
-    return success
-    
 def convert_author_references(new_session, old_author_references):
     '''
-    Convert Abstracts
+    Convert AuthorReferences
     '''
     from model_new_schema.reference import AuthorReference as NewAuthorReference, Author as NewAuthor, Reference as NewReference
 
     #Cache author_references
-    key_to_author_references = cache(NewAuthorReference, new_session)
-    key_to_author = cache(NewAuthor, new_session)
-    key_to_reference = cache(NewReference, new_session)
+    key_to_author_references = cache_by_key(NewAuthorReference, new_session)
+    key_to_author = cache_by_key(NewAuthor, new_session)
+    id_to_reference = cache_by_id(NewReference, new_session)
     
     #Create new author_references if they don't exist, or update the database if they do.
-    new_author_references = [create_author_reference(x, key_to_author, key_to_reference) for x in old_author_references]
+    new_author_references = [create_author_reference(x, key_to_author, id_to_reference) for x in old_author_references]
     values_to_check = ['order', 'author_type']
     success = create_or_update_and_remove(new_author_references, key_to_author_references, values_to_check, new_session)    
     return success
 
-def convert_ref_reftypes(new_session, old_ref_reftypes):
+def convert_reftypes(new_session, old_ref_reftypes):
     '''
-    Convert Abstracts
+    Convert Reftypes
     '''
-    from model_new_schema.reference import RefReftype as NewRefReftype, Reftype as NewReftype, Reference as NewReference
+    from model_new_schema.reference import Reftype as NewReftype, Reference as NewReference
 
-    #Cache ref_reftypes
-    key_to_ref_reftypes = cache(NewRefReftype, new_session)
-    key_to_reftype = cache(NewReftype, new_session)
-    key_to_reference = cache(NewReference, new_session)
+    #Cache reftypes
+    key_to_reftypes = cache_by_key(NewReftype, new_session)
+    id_to_reference = cache_by_id(NewReference, new_session)
     
-    #Create new ref_reftypes if they don't exist, or update the database if they do.
-    new_ref_reftypes = [create_ref_reftype(x, key_to_reftype, key_to_reference) for x in old_ref_reftypes]
-    success = create_or_update_and_remove(new_ref_reftypes, key_to_ref_reftypes, [], new_session)    
+    #Create new reftypes if they don't exist, or update the database if they do.
+    new_reftypes = [create_reftype(x, id_to_reference) for x in old_ref_reftypes]
+    success = create_or_update_and_remove(new_reftypes, key_to_reftypes, ['source'], new_session)    
     return success
    
 if __name__ == "__main__":

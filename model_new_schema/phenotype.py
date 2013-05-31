@@ -10,7 +10,7 @@ from model_new_schema.evidence import Evidence
 from model_new_schema.misc import Chemical, Allele
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Float
 
@@ -19,7 +19,6 @@ class Phenotype(Bioconcept):
     __tablename__ = "phenotype"
     
     id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
-    observable = Column('observable', String)
     phenotype_type = Column('phenotype_type', String)
     direct_gene_count = Column('direct_gene_count', Integer)
     type = "PHENOTYPE"
@@ -27,11 +26,10 @@ class Phenotype(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Bioconcept.id}
 
-    def __init__(self, biocon_id, observable, phenotype_type, description, date_created, created_by):
-        name = observable.replace(' ', '_')
-        name = name.replace('/', '-')
-        Bioconcept.__init__(self, biocon_id, 'PHENOTYPE', name, description, date_created, created_by)
-        self.observable = str(observable)
+    def __init__(self, biocon_id, display_name, format_name, 
+                 description, phenotype_type, date_created, created_by):
+        Bioconcept.__init__(self, biocon_id, 'PHENOTYPE', display_name, format_name, 
+                            description, date_created, created_by)
         self.phenotype_type = phenotype_type
         
     @hybrid_property
@@ -66,9 +64,9 @@ class Phenoevidence(Evidence):
     type = 'BIOCON_EVIDENCE'
     
     #Relationship
-    gene = relationship(Gene)
-    phenotype = relationship(Phenotype, cascade='all,delete')
-    allele = relationship(Allele, lazy='subquery', uselist=False)
+    gene = relationship(Gene, uselist=False)
+    phenotype = relationship(Phenotype, uselist=False)
+    allele = relationship(Allele, lazy='subquery', uselist=False, backref='phenoevidences')
     chemicals = association_proxy('phenoev_chemicals', 'chemical')
 
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE",
@@ -93,7 +91,7 @@ class PhenoevidenceChemical(Base):
     
     #Relationships
     chemical = relationship(Chemical, uselist=False, lazy='joined')
-    evidence = relationship(Phenoevidence, backref='phenoev_chemicals')
+    evidence = relationship(Phenoevidence, backref=backref('phenoev_chemicals', passive_deletes=True), uselist=False)
     chemical_name = association_proxy('chemical', 'name')
     
     def __init__(self, evidence_id, chemical_id, chemical_amt):
