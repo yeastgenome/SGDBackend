@@ -25,24 +25,6 @@ def help_view(request):
 def about_view(request):
     return {'layout': site_layout(), 'page_title': 'About'}
 
-
-@view_config(route_name='gene', renderer='templates/gene.pt')
-def gene_view(request):
-    bioent_name = request.matchdict['gene_name']
-    bioent = get_bioent(bioent_name)
-    if bioent is None:
-        return Response(status_int=500, body='Gene could not be found.')
-    return {'layout': site_layout(), 'page_title': bioent.display_name, 'bioent': bioent, 'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
-  
-@view_config(route_name='protein', renderer='templates/protein.pt')
-def protein_view(request):
-    bioent_name = request.matchdict['protein_name']
-    bioent = get_bioent(bioent_name)
-    if bioent is None:
-        return Response(status_int=500, body='Protein could not be found.')
-    return {'layout': site_layout(), 'page_title': bioent.display_name, 'bioent': bioent, 'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
- 
-
 @view_config(route_name='reference', renderer='templates/reference.pt')
 def reference_view(request):
     ref_name = request.matchdict['pubmed_id']

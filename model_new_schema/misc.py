@@ -6,7 +6,7 @@ Created on Mar 4, 2013
 from model_new_schema import Base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String
+from sqlalchemy.types import Integer, String, Date
 
 class Chemical(Base):
     __tablename__ = "chemical"
@@ -41,19 +41,23 @@ class Allele(Base):
         self.official_name = name
         self.more_info = description
         
-#class Url(Base):
-#    __tablename__ = 'url'
-#    id = Column('url_id', Integer, primary_key=True)
-#    url = Column('url', String)
-#    source = Column('source', String)
-#    
-#    def __init__(self, url_id, url, source):
-#        self.id = url_id
-#        self.url = url
-#        self.source = source
-#        
-#    def unique_key(self):
-#        return self.url
+class Url(Base):
+    __tablename__ = 'url'
+    id = Column('url_id', Integer, primary_key=True)
+    url = Column('url', String)
+    source = Column('source', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+    
+    def __init__(self, url_id, url, source, date_created, created_by):
+        self.id = url_id
+        self.url = url
+        self.source = source
+        self.date_created = date_created
+        self.created_by = created_by
+        
+    def unique_key(self):
+        return self.url
         
 class ExternalObject(Base):
     __tablename__ = 'externalobj'

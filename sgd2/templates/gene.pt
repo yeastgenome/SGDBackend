@@ -245,6 +245,30 @@
 	</div>
 </section>
 
+<!-- LitGuide
+================================================== -->
+<section id="litguide">
+	<div class="page-header">
+		<h1>Lit-Guide <span id='litguide_header'></span></h1>
+		
+		<span id='litguide_message' class="hide">No litguide information curated.</span>
+		<div id='litguide_wrapper'>					
+			<ul class='unstyled'>
+				<table class='table table-striped table-bordered table-condensed tablesorter' id='litguide_table' width="100%">
+			<thead>
+  			<tr>
+    			<th>Topic</th>
+    			<th>Gene</th>
+    			<th>Reference</th>
+  			</tr>
+  			</thead>
+			</table>
+			</ul>
+		</div>
+
+	</div>
+</section>
+
 <!-- Wiki
 ================================================== -->
 <section id="wiki">
@@ -412,8 +436,15 @@
 		options["bProcessing"] = true;
 		options["sAjaxSource"] = '${link_maker.interaction_overview_table_link}';
 		options["bPaginate"] = true;
-
 		$('#interaction_table').dataTable(options);
+		
+		//Set up litguide table
+		var options = basic_datatable_options("litguide_header", '${link_maker.bioent_evidence_filename}', "litguide_wrapper", "litguide_message");
+		options["aaSorting"] = [[0, "asc"]];
+		options["bProcessing"] = true
+		options["sAjaxSource"] = '${link_maker.bioent_evidence_table_link}';
+		options["aoColumns"] = [null, {"bSearchable":false, "bVisible":false}, null]
+		$('#litguide_table').dataTable(options);
 	} );
 </script>
 

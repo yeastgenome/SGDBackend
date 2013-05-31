@@ -8,6 +8,7 @@ will eventually be the Bioentity classes/tables in the new SGD website schema. T
 schema on fasolt.
 '''
 from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema.evidence import Evidence
 from model_new_schema.link_maker import add_link, bioent_link, bioent_wiki_link
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -25,6 +26,7 @@ class Bioentity(Base, EqualityByIDMixin):
     bioent_type = Column('bioent_type', String)
     dbxref_id = Column('dbxref', String)
     source = Column('source', String)
+    status = Column('status', String)
     
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
@@ -39,24 +41,20 @@ class Bioentity(Base, EqualityByIDMixin):
     seq_ids = association_proxy('sequences', 'id')
     type = "BIOENTITY"
             
-    def __init__(self, name, bioent_type, dbxref, source, secondary_name,
-                 session=None, bioent_id=None, date_created=None, created_by=None):
-        self.official_name = name
+    def __init__(self, bioent_id, display_name, format_name, bioent_type, dbxref, source, status,
+                 date_created, created_by):
+        self.id = bioent_id
+        self.display_name = display_name
+        self.format_name = format_name
         self.bioent_type = bioent_type
         self.dbxref_id = dbxref
         self.source = source
-        self.secondary_name = secondary_name
-        
-        if session is None:
-            self.id = bioent_id
-            self.date_created = date_created
-            self.created_by = created_by
-        else:
-            self.date_created = datetime.datetime.now()
-            self.created_by = session.user
+        self.status = status
+        self.date_created = date_created
+        self.created_by = created_by
             
     def unique_key(self):
-        return (self.official_name, self.bioent_type)
+        return (self.format_name, self.bioent_type)
     
     #Database hybrid properties
     @hybrid_property
@@ -186,18 +184,17 @@ class Gene(Bioentity):
     def search_entry_type(self):
         return 'Gene'
 
-    def __init__(self, name, gene_type, dbxref, source, secondary_name,
-                 qualifier, attribute, short_description, headline, description, genetic_position,
-                 session=None, bioent_id=None, date_created=None, created_by=None):
-        Bioentity.__init__(self, name, 'GENE', dbxref, source, secondary_name, 
-                            session=session, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
+    def __init__(self, bioent_id, display_name, format_name, dbxref, source, status,
+                 gene_type, qualifier, attribute, short_description, headline, description, genetic_position,
+                 date_created, created_by):
+        Bioentity.__init__(self, bioent_id, display_name, format_name, 'GENE', dbxref, source, status, date_created, created_by)
+        self.gene_type = gene_type
         self.qualifier = qualifier
         self.attribute = attribute
         self.short_description = short_description
         self.headline = headline
         self.description = description
         self.genetic_position = genetic_position
-        self.gene_type = gene_type
         
 class Protein(Bioentity):
     __tablename__ = "protein"
@@ -273,7 +270,8 @@ class Protein(Bioentity):
     def get_percent_aa(self, aa_abrev):
         return "{0:.2f}".format(100*float(getattr(self, aa_abrev))/self.length) + '%'
 
-    def __init__(self, name, secondary_name, transcript_id, 
+    def __init__(self, bioent_id, display_name, format_name, 
+                 transcript_id, 
                  molecular_weight, pi, cai, length, n_term_seq, c_term_seq,
                  codon_bias, fop_score, gravy_score, aromaticity_score, 
                  ala, arg, asn, asp, cys, gln, glu, gly, his, ile, leu, lys, met, phe, pro, thr, ser, trp, tyr, val, 
@@ -282,8 +280,8 @@ class Protein(Bioentity):
                  extinction_coeff_no_cys_residues_as_half_cystines, extinction_coeff_all_cys_residues_reduced,
                  extinction_coeff_all_cys_residues_appear_as_half_cystines, extinction_coeff_all_cys_pairs_form_cystines,
                  instability_index, molecules_per_cell,
-                 bioent_id=None, date_created=None, created_by=None):
-        Bioentity.__init__(self, name, 'PROTEIN', None, 'SGD', secondary_name, bioent_id=bioent_id, date_created=date_created, created_by=created_by)
+                 date_created, created_by):
+        Bioentity.__init__(self, bioent_id, display_name, format_name, 'PROTEIN', None, 'SGD', None, date_created, created_by)
         self.transcript_id = transcript_id
         
         self.molecular_weight = molecular_weight
@@ -334,6 +332,24 @@ class Protein(Bioentity):
         self.instability_index = instability_index
         self.molecules_per_cell = molecules_per_cell
         
+class Bioentevidence(Evidence):
+    __tablename__ = "bioentevidence"
+    
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    topic = Column('topic', String)
+    bioent_id = Column('bioent_id', Integer, ForeignKey(Gene.id))
+    type = 'BIOENT_EVIDENCE'  
+    
+    #Relationships 
+    gene = relationship(Gene, uselist=False)
+    
+    __mapper_args__ = {'polymorphic_identity': "BIOENT_EVIDENCE",
+                       'inherit_condition': id==Evidence.id}
 
+    def __init__(self, evidence_id, reference_id, topic,
+                bioent_id, date_created, created_by):
+        Evidence.__init__(self, evidence_id, None, reference_id, 'BIOENT_EVIDENCE', None, 'SGD', date_created, created_by)
+        self.topic = topic
+        self.bioent_id = bioent_id
         
         

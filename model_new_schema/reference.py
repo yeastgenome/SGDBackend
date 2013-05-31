@@ -8,6 +8,7 @@ Reference module of the database schema.
 '''
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.link_maker import add_link, reference_link, author_link
+from model_new_schema.misc import Url
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
@@ -102,6 +103,8 @@ class Reference(Base, EqualityByIDMixin):
     
     author_names = association_proxy('author_references', 'author_name')
     reftype_names = association_proxy('reftypes', 'name')
+    related_references = association_proxy('refrels', 'child_ref')
+    urls = association_proxy('ref_urls', 'url')
     
     def __init__(self, reference_id, pubmed_id, display_name, format_name, source, status, pdf_status, 
                  primary_dbxref_id, secondary_dbxref_id,tertiary_dbxref_id,
@@ -252,7 +255,48 @@ class Reftype(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return (self.name, self.reference_id)
+    
+class ReferenceRelation(Base, EqualityByIDMixin):
+    __tablename__ = 'referencerel'
 
+    id = Column('refrel_id', Integer, primary_key = True)
+    parent_id = Column('parent_reference_id', Integer, ForeignKey(Reference.id))
+    child_id = Column('child_reference_id', Integer, ForeignKey(Reference.id))
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+    
+    #Relationships
+    parent_ref = relationship(Reference, uselist=False, backref=backref('refrels', passive_deletes=True), primaryjoin="ReferenceRelation.parent_id==Reference.id")
+    child_ref = relationship(Reference, uselist=False, primaryjoin="ReferenceRelation.child_id==Reference.id")
+    
+    def __init__(self, refrel_id, parent_id, child_id, date_created, created_by):
+        self.id = refrel_id
+        self.parent_id = parent_id;
+        self.child_id = child_id
+        self.date_created = date_created
+        self.created_by = created_by
+        
+    def unique_key(self):
+        return (self.parent_id, self.child_id)
+    
+class Reference_Url(Base, EqualityByIDMixin):
+    __tablename__ = 'reference_url'
+    
+    id = Column('ref_url_id', Integer, primary_key = True)
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    url_id = Column('url_id', Integer, ForeignKey(Url.id))
+    
+    #Relationships
+    reference = relationship(Reference, uselist=False, backref=backref('ref_urls', passive_deletes=True))
+    url = relationship(Url, uselist=False)
+    
+    def __init__(self, ref_url_id, reference_id, url_id):
+        self.id = ref_url_id
+        self.reference_id = reference_id;
+        self.url_id = url_id
+        
+    def unique_key(self):
+        return (self.reference_id, self.url_id)
         
 
     

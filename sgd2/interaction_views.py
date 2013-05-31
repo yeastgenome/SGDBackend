@@ -73,7 +73,7 @@ def interaction_overview_table(request):
 @view_config(route_name='interaction_evidence_table', renderer='json')
 def interaction_evidence_table(request):
     if 'biorel_name' in request.GET:
-        #Need an interaction overview table based on a biorel
+        #Need an interaction evidence table based on a biorel
         biorel_name = request.GET['biorel_name']
         biorel_id = get_biorel_id(biorel_name, 'INTERACTION')
         if biorel_id is None:
@@ -82,7 +82,7 @@ def interaction_evidence_table(request):
         return make_evidence_tables(True, interevidences) 
         
     elif 'bioent_name' in request.GET:
-        #Need an interaction overview table based on a bioent
+        #Need an interaction evidence table based on a bioent
         bioent_name = request.GET['bioent_name']
         bioent = get_bioent(bioent_name)
         if bioent is None:

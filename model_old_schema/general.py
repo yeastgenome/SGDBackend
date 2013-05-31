@@ -4,8 +4,6 @@ Created on Mar 14, 2013
 @author: kpaskov
 '''
 from model_old_schema import Base, EqualityByIDMixin, SCHEMA
-from model_old_schema.go import GoRef
-from model_old_schema.reference import Reference
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
@@ -31,16 +29,16 @@ class DbxrefRef(Base, EqualityByIDMixin):
     reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
     
     dbxref = relationship(Dbxref, uselist=False, lazy='joined')
-    reference = relationship(Reference, uselist=False, backref= 'dbxrefrefs')
-    
-class GorefDbxref(Base, EqualityByIDMixin):
-    __tablename__ = 'goref_dbxref'
+    reference = relationship('Reference', uselist=False, backref= 'dbxrefrefs')
+
+class Url(Base, EqualityByIDMixin):
+    __tablename__ = 'url'
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
     
-    id = Column('goref_dbxref_no', Integer, primary_key = True)
-    go_ref_id = Column('go_ref_no', Integer, ForeignKey('bud.go_ref.go_ref_no'))
-    dbxref_id = Column('dbxref_no', Integer, ForeignKey('bud.dbxref.dbxref_no'))
-    support_type = Column('support_type', String)
-    
-    dbxref = relationship(Dbxref, uselist=False)
-    go_ref = relationship(GoRef, uselist=False, backref='goref_dbxrefs')
+    id = Column('url_no', Integer, primary_key = True)
+    source = Column('source', String)
+    url_type = Column('url_type', String)
+    url = Column('url', String)
+    substitution_value = Column('substitution_value', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)

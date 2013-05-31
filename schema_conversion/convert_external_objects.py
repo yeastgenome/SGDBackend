@@ -11,17 +11,6 @@ import datetime
 import model_new_schema
 import model_old_schema
 
-#http://stackoverflow.com/questions/1966086/how-can-i-determine-if-anything-at-the-given-url-does-exist
-#4xx and 5xx code probably mean that you cannot get anything from this URL. 
-#4xx status codes describe client errors (like "404 Not found") and 
-#5xx status codes describe server errors (like "500 Internal server error"):
-def check_url(url):
-    from urllib2 import urlopen
-    code = urlopen(url).code
-    if code >= 400:
-        return False
-    else:
-        return True
 
 """
 ---------------------Create------------------------------

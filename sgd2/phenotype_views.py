@@ -73,7 +73,7 @@ def phenotype_overview_table(request):
         return make_overview_tables(True, phenoevidences) 
     
     elif 'reference_name' in request.GET:
-        #Need a GO overview table based on a bioent
+        #Need a GO overview table based on a reference
         ref_name = request.GET['reference_name']
         ref_id = get_reference_id(ref_name)
         if ref_id is None:
@@ -105,27 +105,6 @@ def phenotype_evidence_table(request):
         evidences = get_phenotype_evidence(bioent_id=bioent_id)
         return make_evidence_tables(True, evidences) 
     
-    else:
-        return Response(status_int=500, body='No Bioent or Biocon specified.')
-    
-@view_config(route_name='phenotype_graph', renderer="json")
-def phenotype_graph(request):
-    if 'biocon_name' in request.GET:
-        #Need a GO graph based on a biocon
-        biocon_name = request.GET['biocon_name']
-        biocon = get_biocon(biocon_name, 'GO')
-        if biocon is None:
-            return Response(status_int=500, body='Biocon could not be found.')
-        return create_phenotype_graph(biocon=biocon)
-  
-    elif 'bioent_name' in request.GET:
-        #Need a GO graph based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
-        if bioent is None:
-            return Response(status_int=500, body='Bioent could not be found.')
-        return create_phenotype_graph(bioent=bioent)
-
     else:
         return Response(status_int=500, body='No Bioent or Biocon specified.')
     

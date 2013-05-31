@@ -1,7 +1,18 @@
 from model_new_schema import config as new_config
+from model_new_schema.bioconcept import Bioconcept, BioconAncestor, \
+    BioconRelation
+from model_new_schema.bioentity import Bioentity, Gene, BioentRelation, \
+    Bioentevidence
+from model_new_schema.biofact import Biofact
+from model_new_schema.go import Goevidence, Go
+from model_new_schema.interaction import Interevidence, Interaction
+from model_new_schema.phenotype import Phenoevidence, Phenotype
+from model_new_schema.reference import Reference, Author
+from model_new_schema.search import Typeahead
+from model_new_schema.sequence import Sequence
 from schema_conversion import prepare_schema_connection
 from sgd2.models import DBSession
-from sqlalchemy.orm import joinedload, subqueryload_all
+from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
 from sqlalchemy.orm.util import with_polymorphic
 from sqlalchemy.sql.expression import func
 import math
@@ -10,16 +21,6 @@ import model_new_schema
 session = DBSession
 #session = prepare_schema_connection(model_new_schema, new_config)()
 
-from model_new_schema.bioconcept import Bioconcept, BioconAncestor, \
-    BioconRelation
-from model_new_schema.bioentity import Bioentity, Gene, BioentRelation
-from model_new_schema.biofact import Biofact
-from model_new_schema.go import Goevidence, Go
-from model_new_schema.interaction import Interevidence, Interaction
-from model_new_schema.phenotype import Phenoevidence, Phenotype
-from model_new_schema.reference import Reference, Author
-from model_new_schema.search import Typeahead
-from model_new_schema.sequence import Sequence
 
 biocon_type_to_class = {'PHENOTYPE':Phenotype, 'GO':Go}
 biorel_type_to_class = {'INTERACTION':Interaction}
@@ -136,7 +137,7 @@ def get_reference(reference_name, print_query=False):
     WHERE sprout.reference.pubmed_id = :pubmed_id_1
     '''
     reference = None
-    orig_query = session.query(Reference).options(joinedload('author_references'), joinedload('author_references.author'), joinedload('reftypes'))
+    orig_query = session.query(Reference).options(subqueryload('author_references'), subqueryload('author_references.author'), subqueryload('reftypes'), subqueryload('refrels'), subqueryload('ref_urls'))
     try:
         float(reference_name)
         query = orig_query.filter(Reference.pubmed_id == reference_name)
@@ -418,6 +419,20 @@ def get_interaction_evidence(bioent_id=None, biorel_id=None, reference_id=None, 
     if print_query:
         print_query
     return interevidences
+
+#Used for bioent_evidence table.
+def get_bioent_evidence(bioent_id=None, reference_id=None, print_query=False):
+    query = session.query(Bioentevidence).options(joinedload('reference'), joinedload('gene'))
+    if bioent_id is not None:
+        query = query.filter(Bioentevidence.bioent_id==bioent_id)
+    if reference_id is not None:
+        query = query.filter(Phenoevidence.reference_id==reference_id)
+    
+    evidences = query.all()
+    
+    if print_query:
+        print query
+    return evidences
 
 def get_sequences(bioent, print_query=False):
     '''

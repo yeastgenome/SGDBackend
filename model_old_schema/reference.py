@@ -8,6 +8,7 @@ Reference module of the database schema.
 '''
 from model_old_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
 from model_old_schema.feature import Feature
+from model_old_schema.general import Url
 from model_old_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
@@ -421,4 +422,46 @@ class Reflink(Base):
     primary_key = Column('primary_key', String)
     col_name = Column('col_name', String)
         
+class RefRelation(Base):
+    __tablename__ = 'ref_relationship'
     
+    id = Column('ref_relationship_no', Integer, primary_key = True)
+    parent_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
+    child_id = Column('related_ref_no', Integer, ForeignKey('bud.reference.reference_no'))
+    description = Column('description', String)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+    
+class Ref_URL(Base):
+    __tablename__ = 'ref_url'
+    
+    id = Column('ref_url_no', Integer, primary_key = True)
+    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
+    url_id = Column('url_no', Integer, ForeignKey(Url.id))
+    
+    url = relationship(Url)
+    reference = relationship(Reference)
+    
+class Litguide(Base):
+    __tablename__ = 'lit_guide'
+    
+    id = Column('lit_guide_no', Integer, primary_key = True)
+    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
+    topic = Column('literature_topic', String)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+    
+    reference = relationship(Reference)
+    
+class LitguideFeat(Base):
+    __tablename__ = 'litguide_feat'
+    
+    id = Column('litguide_feat_no', Integer, primary_key = True)
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
+    litguide_id = Column('lit_guide_no', Integer, ForeignKey(Litguide.id))
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+    
+    litguide = relationship(Litguide)
+    feature = relationship(Feature)
+    topic = association_proxy('litguide', 'topic')

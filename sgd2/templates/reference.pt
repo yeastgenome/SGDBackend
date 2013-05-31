@@ -46,8 +46,19 @@
 			</span>
 			</p>
 			<p tal:condition="python: ref.pubmed_id">Pubmed ID: <a tal:attributes="href ref.pubmed_link" tal:content="ref.pubmed_id" target="_blank"></a></p>
-			<p tal:condition="python: ref.fulltext_link"><a tal:attributes="href ref.fulltext_link" target="_blank">Full Text Link</a></p>
-			
+			<p tal:condition="python: len(ref.related_references) > 0">Related References:
+			<ul type="none" tal:repeat="ref ref.related_references">
+				<li><a tal:content="structure ref.name_with_link"></a></li>
+			</ul>
+			</p>
+			<p tal:condition="python: len(ref.urls) > 0 or ref.fulltext_link is not None">Other Links:
+			<ul type="none">
+				<li tal:condition="python: ref.fulltext_link"><a tal:attributes="href ref.fulltext_link" target="_blank">Full Text Link</a></li>
+			</ul>
+			<ul type="none" tal:repeat="url ref.urls">
+				<li><a tal:attributes="href url.url" target="_blank" tal:content="url.url"></a></li>
+			</ul>
+			</p>
 		</div>
 	</div>
 </section>
@@ -158,8 +169,29 @@
   			</thead>
 			</table>
 		</div>
+	
+	<!-- Litguide
+================================================== -->
+		<div id='litguide_wrapper'>
+		<h3>Lit-Guide <span id='litguide_header'></h3>
+		<p id='litguide_message' style="display:none;">No litguide information curated from this reference.</p>
+		
+		<!-- Brief
+		========================================== -->
+			<table class='table table-striped table-bordered table-condensed tablesorter' id='litguide_table' width="100%">
+			<thead>
+  			<tr>
+    			<th>Topic</th>
+    			<th>Gene</th>
+    			<th>Reference</th>
+  			</tr>
+  			</thead>
+			</table>
+		</div>
 	</div>
+	
 </section>
+
 
 <script>
 $(document).ready(function() {
@@ -181,7 +213,7 @@ $(document).ready(function() {
 		options["bPaginate"] = true;
 		$('#interaction_table').dataTable(options);
 			
-  		//Get evidence data
+  		//Get phenoevidence data
   		$.getJSON('${link_maker.phenotype_overview_table_link}', function(data) {
   			var phenotype_table = data['cellular_pheno'];
   			var chemical_phenotype_table = data['chemical_pheno'];
@@ -216,6 +248,15 @@ $(document).ready(function() {
 			$('#pp_rna_phenotype_table').dataTable(options);
 			
   		});
+  		
+  		//Set up litguide table
+		var options = basic_datatable_options("litguide_header", '${link_maker.bioent_evidence_filename}', "litguide_wrapper", "litguide_message");
+		options["aaSorting"] = [[0, "asc"]];
+		options["bProcessing"] = true
+		options["sAjaxSource"] = '${link_maker.bioent_evidence_table_link}';
+		options["aoColumns"] = [null, null, {"bSearchable":false, "bVisible":false}]
+		options["bPaginate"] = true;
+		$('#litguide_table').dataTable(options);
 	} );
 </script>
 
