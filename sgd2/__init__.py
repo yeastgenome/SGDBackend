@@ -31,6 +31,8 @@ def main(global_config, **settings):
     #Bioent views
     config.add_route('gene', '/gene/{gene_name}')
     config.add_route('protein', '/protein/{protein_name}')
+    config.add_route('bioent_evidence', '/bioent_evidence')
+    config.add_route('bioent_overview_table', '/bioent_overview_table')
     config.add_route('bioent_evidence_table', '/bioent_evidence_table')
 
     #GO views

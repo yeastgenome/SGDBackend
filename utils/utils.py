@@ -38,7 +38,7 @@ def create_simple_table(objs, f, **kwargs):
 
 def make_reference_list(evidences):
     references = set([evidence.reference for evidence in evidences if evidence.reference is not None])
-    sorted_references = sorted(references, key=lambda x: x.display_name)
+    sorted_references = sorted(references, key=lambda x: x.display_name.lower())
     citations = [reference.citation for reference in sorted_references]
     return citations  
 

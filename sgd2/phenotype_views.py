@@ -29,7 +29,7 @@ def phenotype(request):
 @view_config(route_name='phenotype_evidence', renderer='templates/phenotype_evidence.pt')
 def phenotype_evidence(request):
     if 'bioent_name' in request.GET:
-        #Need a phenotype overview table based on a bioent
+        #Need a phenotype evidence page based on a bioent
         bioent_name = request.GET['bioent_name']
         bioent = get_bioent(bioent_name)
         if bioent is None:
@@ -39,7 +39,7 @@ def phenotype_evidence(request):
         return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':True,
                 'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
     elif 'biocon_name' in request.GET:
-        #Need a phenotype overview table based on a biocon
+        #Need a phenotype evidence page based on a biocon
         biocon_name = request.GET['biocon_name']
         biocon = get_biocon(biocon_name, 'PHENOTYPE')
         if biocon is None:

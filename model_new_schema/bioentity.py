@@ -333,7 +333,7 @@ class Protein(Bioentity):
         self.molecules_per_cell = molecules_per_cell
         
 class Bioentevidence(Evidence):
-    __tablename__ = "bioentevidence"
+    __tablename__ = "bioentevidence" 
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     topic = Column('topic', String)

@@ -250,10 +250,10 @@ $(document).ready(function() {
   		});
   		
   		//Set up litguide table
-		var options = basic_datatable_options("litguide_header", '${link_maker.bioent_evidence_filename}', "litguide_wrapper", "litguide_message");
+		var options = basic_datatable_options("litguide_header", '${link_maker.bioent_filename}', "litguide_wrapper", "litguide_message");
 		options["aaSorting"] = [[0, "asc"]];
 		options["bProcessing"] = true
-		options["sAjaxSource"] = '${link_maker.bioent_evidence_table_link}';
+		options["sAjaxSource"] = '${link_maker.bioent_overview_table_link}';
 		options["aoColumns"] = [null, null, {"bSearchable":false, "bVisible":false}]
 		options["bPaginate"] = true;
 		$('#litguide_table').dataTable(options);

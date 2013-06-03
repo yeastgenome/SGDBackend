@@ -80,7 +80,10 @@ class LinkMaker():
         setattr(self, 'physical_interaction_evidence_filename', name + '_physical_interaction_evidence')
         
         #Litguide links
-        setattr(self, 'bioent_evidence_table_link', add_format_name_params('/bioent_evidence_table?', {'bioent_name':bioent, 'reference_name': reference}))
+        setattr(self, 'bioent_evidence_link', add_format_name_params('/bioent_evidence?', {'bioent_name':bioent, 'reference_name': reference}))
+        setattr(self, 'bioent_overview_table_link', add_format_name_params('/bioent_overview_table?', {'bioent_name':bioent, 'reference_name': reference}))
+        setattr(self, 'bioent_evidence_table_link', add_format_name_params('/bioent_evidence_table?', {'bioent_name':bioent}))
+        setattr(self, 'bioent_filename', name + '_litguide')
         setattr(self, 'bioent_evidence_filename', name + '_litguide_evidence')
 
         #Sequence links
