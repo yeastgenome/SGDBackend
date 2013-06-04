@@ -4,7 +4,9 @@ Created on Jun 4, 2013
 @author: kpaskov
 '''
 from model_new_schema import Base
+from model_new_schema.link_maker import add_link, chemical_link
 from model_new_schema.misc import Alias, Altid
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
@@ -28,6 +30,13 @@ class Chemical(Base):
         
     def unique_key(self):
         return (self.format_name)
+    
+    @hybrid_property
+    def name_with_link(self):
+        return add_link(self.display_name, self.link)
+    @hybrid_property
+    def link(self):
+        return chemical_link(self)       
         
 class ChemicalRelation(Base):
     __tablename__ = "chemicalrel"

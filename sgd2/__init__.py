@@ -60,6 +60,7 @@ def main(global_config, **settings):
     #Reference views
     config.add_route('reference', '/reference/{pubmed_id}')
     config.add_route('author', '/author/{author_name}')
+    config.add_route('chemical', '/chemical/{chemical_name}')
     
     #Sequence views
     config.add_route('sequence', '/sequence')

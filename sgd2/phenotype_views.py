@@ -6,9 +6,9 @@ Created on Mar 15, 2013
 from model_new_schema.link_maker import LinkMaker
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_biofacts, get_phenotype_evidence, get_related_biofacts, \
+from query import get_phenotype_evidence, \
     get_biocon_family, get_biocon_biocons, get_biocon_id, get_biocon, get_bioent, \
-    get_bioent_id, get_reference_id
+    get_bioent_id, get_reference_id, get_chemical_id
 from sgd2.views import site_layout
 from utils.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list
@@ -64,7 +64,7 @@ def phenotype_overview_table(request):
         return make_overview_tables(False, phenoevidences) 
         
     elif 'bioent_name' in request.GET:
-        #Need a GO overview table based on a bioent
+        #Need a phenotype overview table based on a bioent
         bioent_name = request.GET['bioent_name']
         bioent_id = get_bioent_id(bioent_name)
         if bioent_id is None:
@@ -73,13 +73,22 @@ def phenotype_overview_table(request):
         return make_overview_tables(True, phenoevidences) 
     
     elif 'reference_name' in request.GET:
-        #Need a GO overview table based on a reference
+        #Need a phenotype overview table based on a reference
         ref_name = request.GET['reference_name']
         ref_id = get_reference_id(ref_name)
         if ref_id is None:
             return Response(status_int=500, body='Reference could not be found.')
         phenoevidences = get_phenotype_evidence(reference_id=ref_id)
         return make_overview_tables(True, phenoevidences) 
+    
+    elif 'chemical_name' in request.GET:
+        #Need a phenotype overview table based on a chemical
+        chem_name = request.GET['chemical_name']
+        chem_id = get_chemical_id(chem_name)
+        if chem_id is None:
+            return Response(status_int=500, body='Chemical could not be found.')
+        phenoevidences = get_phenotype_evidence(chemical_id=chem_id)
+        return make_overview_tables(False, phenoevidences) 
 
     else:
         return Response(status_int=500, body='No Bioent or Biocon specified.')
@@ -143,7 +152,7 @@ def make_overview_table(phenoevidences):
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_overview_row) 
 
 def make_chemical_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (', '.join([chem.display_name for chem in evidence.chemicals]), evidence.gene, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (', '.join([chem.name_with_link for chem in evidence.chemicals]), evidence.gene, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_grouped_overview_row) 
 
 def make_pp_rna_overview_table(phenoevidences):
@@ -195,9 +204,9 @@ def make_evidence_row(phenoevidence):
     chemicals = []
     for chemical in phenoevidence.phenoev_chemicals:
         if chemical.chemical_amt is None:
-            chemicals.append(chemical.chemical_name)
+            chemicals.append(chemical.chemical.name_with_link)
         else:
-            chemicals.append(chemical.chemical_name + ': ' + chemical.chemical_amt)
+            chemicals.append(chemical.chemical.name_with_link + ': ' + chemical.chemical_amt)
     if len(chemicals) > 0:
         chemical_info = ', '.join(chemicals)
     else:

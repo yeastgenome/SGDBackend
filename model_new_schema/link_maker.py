@@ -21,14 +21,14 @@ class LinkMaker():
     bioent=None
     biocon=None
     biorel=None
-
+    chemical=None
     
-    def __init__(self, name, bioent=None, biocon=None, biorel=None, reference=None):
+    def __init__(self, name, bioent=None, biocon=None, biorel=None, reference=None, chemical=None):
         self.bioent=bioent
         self.biocon=biocon
         self.biorel=biorel
         self.reference=reference
-
+        self.chemical=chemical
     
         #GO links    
         setattr(self, 'go_evidence_link', add_format_name_params('/go_evidence?', {'bioent_name':bioent, 'biocon_name': biocon}))
@@ -49,7 +49,7 @@ class LinkMaker():
 
         #Phenotype links
         setattr(self, 'phenotype_evidence_link', add_format_name_params('/phenotype_evidence?', {'bioent_name':bioent, 'biocon_name': biocon}))
-        setattr(self, 'phenotype_overview_table_link', add_format_name_params('/phenotype_overview_table?', {'bioent_name':bioent, 'biocon_name': biocon, 'reference_name':reference}))
+        setattr(self, 'phenotype_overview_table_link', add_format_name_params('/phenotype_overview_table?', {'bioent_name':bioent, 'biocon_name': biocon, 'reference_name':reference, 'chemical_name':chemical}))
         setattr(self, 'phenotype_evidence_table_link', add_format_name_params('/phenotype_evidence_table?', {'bioent_name':bioent, 'biocon_name': biocon}))
         setattr(self, 'phenotype_graph_link', add_format_name_params('/phenotype_graph?', {'bioent_name':bioent, 'biocon_name': biocon}))
         setattr(self, 'phenotype_ontology_graph_link', add_format_name_params('/phenotype_ontology_graph?', {'biocon_name': biocon}))
@@ -120,6 +120,10 @@ def bioent_biocon_reference_link(bioent_biocon):
 #Bioconcept links
 def biocon_link(biocon):
     return '/' + lower(biocon.biocon_type) + '/' + biocon.format_name
+
+#Chemical links
+def chemical_link(chemical):
+    return '/chemical/' + chemical.format_name
 
 #Reference links
 def reference_link(reference):

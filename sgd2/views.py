@@ -2,7 +2,7 @@ from model_new_schema.link_maker import LinkMaker
 from pyramid.renderers import get_renderer
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_bioent, get_reference, get_author
+from query import get_reference, get_author, get_chemical
  
 def site_layout():
     renderer = get_renderer("templates/global_layout.pt")
@@ -24,6 +24,15 @@ def help_view(request):
 @view_config(route_name='about', renderer='templates/about.pt')
 def about_view(request):
     return {'layout': site_layout(), 'page_title': 'About'}
+
+@view_config(route_name='chemical', renderer='templates/chemical.pt')
+def chemical(request):
+    chemical_name = request.matchdict['chemical_name']
+    chemical = get_chemical(chemical_name)
+    if chemical is None:
+        return Response(status_int=500, body='Chemical could not be found.')
+    return {'layout': site_layout(), 'page_title': chemical.display_name, 'chemical': chemical, 'link_maker':LinkMaker(chemical.format_name, chemical=chemical)} 
+
 
 @view_config(route_name='reference', renderer='templates/reference.pt')
 def reference_view(request):

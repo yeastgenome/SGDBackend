@@ -6,7 +6,7 @@ Created on Feb 27, 2013
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
 from schema_conversion import create_or_update_and_remove, ask_to_commit, \
-    prepare_schema_connection, cache_by_key, cache_by_id, check_url
+    prepare_schema_connection, cache_by_key, cache_by_id
 from sqlalchemy.orm import joinedload
 import datetime
 import model_new_schema
