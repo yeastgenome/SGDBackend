@@ -11,7 +11,7 @@ from sqlalchemy.exc import DBAPIError
 from datetime import datetime
 import math
 
-cat_to_biotype = {'genes':'GENE', 'goterms':'GO', 'phenotypes':'PHENOTYPE', 'proteins':'PROTEIN', 'references':'REFERENCE', 'sequences':'SEQUENCE', 'transcripts':'TRANSCRIPT',
+cat_to_biotype = {'genes':'LOCUS', 'goterms':'GO', 'phenotypes':'PHENOTYPE', 'proteins':'PROTEIN', 'references':'REFERENCE', 'sequences':'SEQUENCE', 'transcripts':'TRANSCRIPT',
                   'dna_sequences':'DNA_SEQUENCE', 'protein_sequences':'PROTEIN_SEQUENCE', 'all':'all'}
 
 results_per_page = 20
@@ -83,7 +83,7 @@ def typeahead_view(request):
     
 source_priorities = {'NAME':1, 'GENE_NAME':0, 'ALIAS':2, 'AUTHOR_YEAR':3, 'TITLE': 4, 'CITATION': 5, 'NAME_DESC':6, 'DESCRIPTION':7, 'ABSTRACT':8,
                      'PUBMED_ID':10, 'DOI':11}
-bio_type_priorities = {'GENE':0, 'GO':.1, 'PHENOTYPE':.2, 'REFERENCE':.3, 'PROTEIN':.4, 'SEQUENCE':.5, 'TRANSCRIPT':.6}
+bio_type_priorities = {'LOCUS':0, 'GO':.1, 'PHENOTYPE':.2, 'REFERENCE':.3, 'PROTEIN':.4, 'SEQUENCE':.5, 'TRANSCRIPT':.6}
 
 def sort_results(search_results):
     return sorted(search_results, key=lambda x: source_priorities[x.source] + bio_type_priorities[x.bio_type])

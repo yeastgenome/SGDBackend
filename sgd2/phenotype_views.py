@@ -143,7 +143,7 @@ def make_overview_table(phenoevidences):
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_overview_row) 
 
 def make_chemical_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (', '.join([chem.name for chem in evidence.chemicals]), evidence.gene, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (', '.join([chem.display_name for chem in evidence.chemicals]), evidence.gene, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_grouped_overview_row) 
 
 def make_pp_rna_overview_table(phenoevidences):

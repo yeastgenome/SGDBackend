@@ -10,9 +10,10 @@ schema on fasolt.
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.evidence import Evidence
 from model_new_schema.link_maker import add_link, bioent_link, bioent_wiki_link
+from model_new_schema.misc import Alias, Url, Altid
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date, Float
 import datetime
@@ -36,7 +37,6 @@ class Bioentity(Base, EqualityByIDMixin):
     
     #Relationships
     bioconcepts = association_proxy('biofacts', 'bioconcept')
-    aliases = relationship("Alias")
     alias_names = association_proxy('aliases', 'name')
     seq_ids = association_proxy('sequences', 'id')
     type = "BIOENTITY"
@@ -84,6 +84,13 @@ class Bioentity(Base, EqualityByIDMixin):
     def wiki_link(self):
         return bioent_wiki_link(self)    
     
+    @hybrid_property
+    def search_entry_title(self):
+        return self.full_name_with_link
+    @hybrid_property
+    def search_description(self):
+        return self.description
+    
 class BioentRelation(Base, EqualityByIDMixin):
     __tablename__ = "bioentrel"
     
@@ -102,8 +109,8 @@ class BioentRelation(Base, EqualityByIDMixin):
                        'polymorphic_identity':"BIORELATION"}
     
     #Relationships
-    source_bioent = relationship('Bioentity', uselist=False, primaryjoin="BioentRelation.source_bioent_id==Bioentity.id", backref='biorel_source')
-    sink_bioent = relationship('Bioentity', uselist=False, primaryjoin="BioentRelation.sink_bioent_id==Bioentity.id", backref='biorel_sink')
+    source_bioent = relationship('Bioentity', uselist=False, backref=backref('biorel_source', passive_deletes=True), primaryjoin="BioentRelation.source_bioent_id==Bioentity.id")
+    sink_bioent = relationship('Bioentity', uselist=False, backref=backref('biorel_sink', passive_deletes=True), primaryjoin="BioentRelation.sink_bioent_id==Bioentity.id")
         
     def get_opposite(self, bioent):
         if bioent == self.source_bioent:
@@ -126,33 +133,58 @@ class BioentRelation(Base, EqualityByIDMixin):
             self.created_by = session.user
             self.date_created = datetime.datetime.now() 
 
-class Alias(Base, EqualityByIDMixin):
-    __tablename__ = 'alias'
+class BioentAlias(Alias):
+    __tablename__ = 'bioentalias'
     
-    id = Column('alias_id', Integer, primary_key=True)
+    id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
     bioent_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
-    name = Column('name', String)
-    alias_type = Column('alias_type', String)
-    used_for_search = Column('used_for_search', String)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
+    
+    __mapper_args__ = {'polymorphic_identity': 'BIOENT_ALIAS',
+                       'inherit_condition': id == Alias.id}
         
-    def __init__(self, name, alias_type, used_for_search, session=None, alias_id=None, bioent_id=None, date_created=None, created_by=None):
-        self.name = name
-        self.alias_type = alias_type
-        self.used_for_search = used_for_search
+    #Relationships
+    bioent = relationship(Bioentity, uselist=False, backref=backref('aliases', passive_deletes=True))
         
-        if session is None:
-            self.id = alias_id
-            self.bioent_id = bioent_id
-            self.date_created = date_created
-            self.created_by = created_by
-        else:
-            self.date_created = datetime.datetime.now()
-            self.created_by = session.user             
+    def __init__(self, name, source, used_for_search, bioent_id, date_created, created_by):
+        Alias.__init__(self, name, 'BIOENT_ALIAS', source, used_for_search, date_created, created_by)
+        self.bioent_id = bioent_id
+        
+    def unique_key(self):
+        return (self.name, self.bioent_id)
+    
+class BioentAltid(Altid):
+    __tablename__ = 'bioentaltid'
+    
+    id = Column('altid_id', Integer, ForeignKey(Altid.id), primary_key=True)
+    bioent_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
+    
+    __mapper_args__ = {'polymorphic_identity': 'BIOENT_ALTID',
+                       'inherit_condition': id == Altid.id}
+        
+    #Relationships
+    bioent = relationship(Bioentity, uselist=False, backref=backref('altids', passive_deletes=True))
+        
+    def __init__(self, identifier, source, altid_name, bioent_id, date_created, created_by):
+        Altid.__init__(self, identifier, 'BIOENT_ALTID', source, altid_name, date_created, created_by)
+        self.bioent_id = bioent_id
+    
+class BioentUrl(Url):
+    __tablename__ = 'bioenturl'
+    id = Column('url_id', Integer, ForeignKey(Url.id), primary_key=True)
+    bioent_id = Column('bioent_id', ForeignKey(Bioentity.id))
+    
+    __mapper_args__ = {'polymorphic_identity': 'BIOENT_URL',
+                       'inherit_condition': id == Url.id}
+    
+    #Relationships
+    reference = relationship(Bioentity, uselist=False, backref=backref('urls', passive_deletes=True))
+    
+    def __init__(self, url, source, bioent_id, date_created, created_by):
+        Url.__init__(self, url, 'BIOENT_URL', source, date_created, created_by)
+        self.bioent_id = bioent_id
                        
-class Gene(Bioentity):
-    __tablename__ = "gene"
+class Locus(Bioentity):
+    __tablename__ = "locus"
     
     id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     qualifier = Column('qualifier', String)
@@ -161,20 +193,15 @@ class Gene(Bioentity):
     headline = Column('headline', String)
     description = Column('description', String)
     genetic_position = Column('genetic_position', String)
-    gene_type = Column('gene_type', String)
-    type = "GENE"
+    locus_type = Column('locus_type', String)
+    type = "LOCUS"
     
     transcript_ids = association_proxy('transcripts', 'id')
     
-    __mapper_args__ = {'polymorphic_identity': 'GENE',
+    __mapper_args__ = {'polymorphic_identity': 'LOCUS',
                        'inherit_condition': id == Bioentity.id}
     
-    @hybrid_property
-    def search_entry_title(self):
-        return self.full_name_with_link
-    @hybrid_property
-    def search_description(self):
-        return self.description
+    
     @hybrid_property
     def search_additional(self):
         if len(self.aliases) > 0:
@@ -182,13 +209,13 @@ class Gene(Bioentity):
         return None
     @hybrid_property
     def search_entry_type(self):
-        return 'Gene'
+        return 'Locus'
 
     def __init__(self, bioent_id, display_name, format_name, dbxref, source, status,
-                 gene_type, qualifier, attribute, short_description, headline, description, genetic_position,
+                 locus_type, qualifier, attribute, short_description, headline, description, genetic_position,
                  date_created, created_by):
-        Bioentity.__init__(self, bioent_id, display_name, format_name, 'GENE', dbxref, source, status, date_created, created_by)
-        self.gene_type = gene_type
+        Bioentity.__init__(self, bioent_id, display_name, format_name, 'LOCUS', dbxref, source, status, date_created, created_by)
+        self.locus_type = locus_type
         self.qualifier = qualifier
         self.attribute = attribute
         self.short_description = short_description
@@ -196,6 +223,41 @@ class Gene(Bioentity):
         self.description = description
         self.genetic_position = genetic_position
         
+class DNA(Bioentity):
+    __tablename__ = 'dna'
+    
+    id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
+    __mapper_args__ = {'polymorphic_identity': 'DNA',
+                       'inherit_condition': id == Bioentity.id}
+    
+    @hybrid_property
+    def search_additional(self):
+        return None
+    @hybrid_property
+    def search_entry_type(self):
+        return 'DNA'
+
+    def __init__(self, bioent_id, display_name, format_name, date_created, created_by):
+        Bioentity.__init__(self, bioent_id, display_name, format_name, 'DNA', None, 'SGD', None, date_created, created_by)
+
+class RNA(Bioentity):
+    __tablename__ = 'rna'
+    
+    id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
+    __mapper_args__ = {'polymorphic_identity': 'RNA',
+                       'inherit_condition': id == Bioentity.id}
+    
+    @hybrid_property
+    def search_additional(self):
+        return None
+    @hybrid_property
+    def search_entry_type(self):
+        return 'DNA'
+
+    def __init__(self, bioent_id, display_name, format_name, date_created, created_by):
+        Bioentity.__init__(self, bioent_id, display_name, format_name, 'RNA', None, 'SGD', None, date_created, created_by)
+
+
 class Protein(Bioentity):
     __tablename__ = "protein"
     
@@ -254,9 +316,7 @@ class Protein(Bioentity):
     __mapper_args__ = {'polymorphic_identity': "PROTEIN",
                        'inherit_condition': id == Bioentity.id}
     
-    @hybrid_property
-    def search_entry_title(self):
-        return self.full_name_with_link
+
     @hybrid_property
     def search_entry(self):
         entry = ''
@@ -337,11 +397,11 @@ class Bioentevidence(Evidence):
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     topic = Column('topic', String)
-    bioent_id = Column('bioent_id', Integer, ForeignKey(Gene.id))
+    bioent_id = Column('bioent_id', Integer, ForeignKey(Locus.id))
     type = 'BIOENT_EVIDENCE'  
     
     #Relationships 
-    gene = relationship(Gene, uselist=False)
+    gene = relationship(Locus, uselist=False)
     
     __mapper_args__ = {'polymorphic_identity': "BIOENT_EVIDENCE",
                        'inherit_condition': id==Evidence.id}

@@ -11,7 +11,7 @@ from query import get_bioent, get_bioent_id, get_bioent_evidence, \
 from sgd2.views import site_layout
 from utils.utils import create_simple_table, make_reference_list
 
-@view_config(route_name='gene', renderer='templates/gene.pt')
+@view_config(route_name='locus', renderer='templates/locus.pt')
 def gene_view(request):
     bioent_name = request.matchdict['gene_name']
     bioent = get_bioent(bioent_name)
@@ -51,7 +51,8 @@ def bioent_overview_table(request):
         if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
         bioentevidences = get_bioent_evidence(bioent_id=bioent_id)
-        return make_reference_list(bioentevidences) 
+        primary_bioentevidences = [evidence for evidence in bioentevidences if evidence.topic=='Primary Literature']
+        return make_reference_list(primary_bioentevidences) 
     elif 'reference_name' in request.GET:
         #Need a bioent overview table based on a reference
         ref_name = request.GET['reference_name']

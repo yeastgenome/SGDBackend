@@ -114,20 +114,20 @@ def create_url(old_ref_url):
                               old_ref_url.url.date_created, old_ref_url.url.created_by)
     return new_ref_relation
 
-def create_ref_url(old_ref_url, id_to_reference, id_to_url):
-    from model_new_schema.reference import Reference_Url as NewReference_Url
+def create_ref_url(old_ref_url, id_to_reference):
+    from model_new_schema.reference import ReferenceUrl as NewReferenceUrl
+    
+    url = old_ref_url.url.url
+    if old_ref_url.url.substitution_value is not None:
+        url = url.replace('_SUBSTITUTE_THIS_', str(old_ref_url.reference.pubmed_id))
     
     reference_id = old_ref_url.reference_id
     if reference_id not in id_to_reference:
         print 'Reference does not exist. ' + str(reference_id)
         return None
     
-    url_id = old_ref_url.id
-    if url_id not in id_to_url:
-        print 'Url does not exist. ' + str(url_id)
-        return None
-    
-    new_ref_url = NewReference_Url(old_ref_url.id, reference_id, url_id)
+    new_ref_url = NewReferenceUrl(url, old_ref_url.url.source, reference_id, 
+                                  old_ref_url.url.date_created, old_ref_url.url.created_by)
     return new_ref_url
 
 def create_reference(old_reference, key_to_journal, key_to_book):
@@ -160,27 +160,35 @@ def create_reference(old_reference, key_to_journal, key_to_book):
             print 'Book does not exist. ' + str(book_key)
             return None
         book_id = key_to_book[book.title].id
-      
-    secondary_dbxref_id = None  
-    tertiary_dbxref_id = None
-    secondary_dbxref_ids = [dbxref.dbxref_id for dbxref in old_reference.dbxrefs if dbxref.dbxref_type == 'DBID Secondary']
-    if len(secondary_dbxref_ids) > 2:
-        print 'Too many dbxref_ids.'
-    if len(secondary_dbxref_ids) == 2:
-        secondary_dbxref_id = secondary_dbxref_ids[0]
-        tertiary_dbxref_id = secondary_dbxref_ids[1]
-    elif len(secondary_dbxref_ids) == 1:
-        secondary_dbxref_id = secondary_dbxref_ids[0]
     
-    new_ref = NewReference(old_reference.id, old_reference.pubmed_id, display_name, format_name,
+    new_ref = NewReference(old_reference.id, display_name, format_name,
                            old_reference.source, old_reference.status, 
-                           old_reference.pdf_status, old_reference.dbxref_id, secondary_dbxref_id, tertiary_dbxref_id,
-                           citation, old_reference.year, 
+                           old_reference.pdf_status, citation, old_reference.year, 
                            old_reference.date_published, old_reference.date_revised, 
                            old_reference.issue, old_reference.page, old_reference.volume, old_reference.title,
                            journal_id, book_id, old_reference.doi, abstract,
                            old_reference.date_created, old_reference.created_by)
     return new_ref
+
+def create_altids(old_reference, id_to_reference):
+    from model_new_schema.reference import ReferenceAltid as NewReferenceAltid
+    
+    reference_id = old_reference.id
+    if reference_id not in id_to_reference:
+        return []
+    
+    new_alt_ids = []
+    
+    pubmed_id = old_reference.pubmed_id
+    if pubmed_id is not None:
+        new_alt_ids.append(NewReferenceAltid(pubmed_id, 'Pubmed', 'Pubmed_ID', reference_id, 
+                                            old_reference.date_created, old_reference.created_by))
+    for dbxref in old_reference.dbxrefs:
+        identifier = dbxref.dbxref_id
+        altid_name = dbxref.dbxref_type
+        new_alt_ids.append(NewReferenceAltid(identifier, 'SGD', altid_name, reference_id, 
+                                            old_reference.date_created, old_reference.created_by))
+    return new_alt_ids
 
      
 """
@@ -250,7 +258,7 @@ def convert(old_session_maker, new_session_maker):
 #    start_time = datetime.datetime.now()
 #    try:
 #        old_session = old_session_maker()
-#        old_references = old_session.query(OldReference).options(joinedload('book'), joinedload('journal'), joinedload('dbxrefrefs'), joinedload('abst')).all()
+#        old_references = old_session.query(OldReference).options(joinedload('book'), joinedload('journal'), joinedload('abst')).all()
 #
 #        success = False
 #        while not success:
@@ -261,6 +269,23 @@ def convert(old_session_maker, new_session_maker):
 #    finally:
 #        old_session.close()
 #        new_session.close()
+
+    # Convert altids
+    print 'Altids'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_references = old_session.query(OldReference).options(joinedload('dbxrefrefs'), joinedload('dbxrefrefs.dbxref')).all()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_altids(new_session, old_references)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
 #        
 #    # Convert author_references
 #    print 'AuthorReferences'
@@ -329,22 +354,6 @@ def convert(old_session_maker, new_session_maker):
 #    finally:
 #        old_session.close()
 #        new_session.close()
-#
-#    # Convert ref_urls
-#    print 'Ref_Urls'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_ref_urls(new_session, old_ref_urls)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
     
 def convert_journals(new_session, old_journals):
     '''
@@ -389,11 +398,29 @@ def convert_references(new_session, old_references):
     #Create new references if they don't exist, or update the database if they do.
     new_references = [create_reference(x, key_to_journal, key_to_book) for x in old_references]
     values_to_check = ['display_name', 'format_name',
-                       'source', 'status', 'pdf_status', 'primary_dbxref_id', 'secondary_dbxref_id', 'tertiary_dbxref_id',
-                       'year', 'pubmed_id', 'date_published', 'date_revised',
+                       'source', 'status', 'pdf_status',
+                       'year', 'date_published', 'date_revised',
                        'issue', 'page', 'volume', 'title', 'journal_id', 'book_id', 'doi', 'abstract',
                        'created_by', 'date_created']
     success = create_or_update_and_remove(new_references, key_to_reference, values_to_check, new_session)
+    return success
+
+def convert_altids(new_session, old_references):
+    '''
+    Convert Altids
+    '''
+    from model_new_schema.reference import ReferenceAltid as NewReferenceAltid, Reference as NewReference
+
+    #Cache references, journals, and books
+    key_to_altids = cache_by_key(NewReferenceAltid, new_session)
+    id_to_reference = cache_by_id(NewReference, new_session)
+    
+    #Create new altids if they don't exist, or update the database if they do.
+    new_altids = []
+    for old_reference in old_references:
+        new_altids.extend(create_altids(old_reference, id_to_reference))
+    values_to_check = ['reference_id', 'source', 'altid_name', 'date_created', 'created_by']
+    success = create_or_update_and_remove(new_altids, key_to_altids, values_to_check, new_session)
     return success
     
 def convert_authors(new_session, old_authors):
@@ -458,35 +485,19 @@ def convert_ref_relations(new_session, old_ref_relations):
     success = create_or_update_and_remove(new_ref_relations, key_to_ref_relations, ['created_by', 'date_created'], new_session)    
     return success
 
-def convert_urls(new_session, old_urls):
-    '''
-    Convert Urls
-    '''
-    from model_new_schema.misc import Url as NewUrl
-
-    #Cache urls
-    key_to_url = cache_by_key(NewUrl, new_session)
-    
-    #Create new urls if they don't exist, or update the database if they do.
-    new_urls = [create_url(x) for x in old_urls]
-    success = create_or_update_and_remove(new_urls, key_to_url, ['source', 'date_created', 'created_by'], new_session)    
-    return success
-
-def convert_ref_urls(new_session, olf_ref_urls):
+def convert_urls(new_session, olf_ref_urls):
     '''
     Convert ReferenceRelations
     '''
-    from model_new_schema.reference import Reference_Url as NewReference_Url, Reference as NewReference
-    from model_new_schema.misc import Url as NewUrl
+    from model_new_schema.reference import ReferenceUrl as NewReferenceUrl, Reference as NewReference
 
-    #Cache ref_urls
-    key_to_ref_url = cache_by_key(NewReference_Url, new_session)
+    #Cache refurls
+    key_to_ref_url = cache_by_key(NewReferenceUrl, new_session)
     id_to_reference = cache_by_id(NewReference, new_session)
-    id_to_url = cache_by_id(NewUrl, new_session)
     
-    #Create new ref_urls if they don't exist, or update the database if they do.
-    new_ref_urls = [create_ref_url(x, id_to_reference, id_to_url) for x in olf_ref_urls]
-    success = create_or_update_and_remove(new_ref_urls, key_to_ref_url, [], new_session)    
+    #Create new refurls if they don't exist, or update the database if they do.
+    new_ref_urls = [create_ref_url(x, id_to_reference) for x in olf_ref_urls]
+    success = create_or_update_and_remove(new_ref_urls, key_to_ref_url, ['source', 'date_created', 'created_by', 'reference_id'], new_session)    
     return success
    
 if __name__ == "__main__":

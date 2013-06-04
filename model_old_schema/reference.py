@@ -8,7 +8,6 @@ Reference module of the database schema.
 '''
 from model_old_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
 from model_old_schema.feature import Feature
-from model_old_schema.general import Url
 from model_old_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
@@ -437,9 +436,9 @@ class Ref_URL(Base):
     
     id = Column('ref_url_no', Integer, primary_key = True)
     reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
-    url_id = Column('url_no', Integer, ForeignKey(Url.id))
+    url_id = Column('url_no', Integer, ForeignKey('bud.url.url_no'))
     
-    url = relationship(Url)
+    url = relationship('Url')
     reference = relationship(Reference)
     
 class Litguide(Base):

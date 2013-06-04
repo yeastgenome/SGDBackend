@@ -47,7 +47,8 @@ def create_synonyms(old_go, key_to_go):
         print 'GO term does not exist. ' + str(go_key)
         return []
     biocon_id = key_to_go[go_key].id
-    new_aliases = [NewBioconAlias(biocon_id, 'GO', synonym.go_synonym, synonym.date_created, synonym.created_by) for synonym in old_go.synonyms]
+    
+    new_aliases = [NewBioconAlias(synonym.go_synonym, biocon_id, 'GO', synonym.date_created, synonym.created_by) for synonym in old_go.synonyms]
     return new_aliases
 
 def create_goevidence(old_go_feature, go_ref, key_to_go, id_to_reference, id_to_bioent):
@@ -114,21 +115,21 @@ def convert(old_session_maker, new_session_maker):
         old_session.close()
         new_session.close()
         
-#    # Convert aliases
-#    print 'Go term aliases'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        
-#        success=False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_aliases(new_session, old_goterms)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
+    # Convert aliases
+    print 'Go term aliases'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        
+        success=False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_aliases(new_session, old_goterms)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
 #        
 #    # Convert goevidences
 #    print 'Goevidences'

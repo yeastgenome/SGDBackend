@@ -4,6 +4,7 @@ Created on Mar 14, 2013
 @author: kpaskov
 '''
 from model_old_schema import Base, EqualityByIDMixin, SCHEMA
+from model_old_schema.reference import Reference
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
@@ -26,10 +27,10 @@ class DbxrefRef(Base, EqualityByIDMixin):
     
     id = Column('dbxref_ref_no', Integer, primary_key = True)
     dbxref_id = Column('dbxref_no', Integer, ForeignKey('bud.dbxref.dbxref_no'))
-    reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
+    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
     
     dbxref = relationship(Dbxref, uselist=False, lazy='joined')
-    reference = relationship('Reference', uselist=False, backref= 'dbxrefrefs')
+    reference = relationship(Reference, uselist=False, backref= 'dbxrefrefs')
 
 class Url(Base, EqualityByIDMixin):
     __tablename__ = 'url'

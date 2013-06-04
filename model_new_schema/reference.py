@@ -8,7 +8,7 @@ Reference module of the database schema.
 '''
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.link_maker import add_link, reference_link, author_link
-from model_new_schema.misc import Url
+from model_new_schema.misc import Url, Altid
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
@@ -75,13 +75,10 @@ class Reference(Base, EqualityByIDMixin):
     format_name = Column('format_name', String)
     source = Column('source', String)
     status = Column('status', String)
+    pubmed_id = Column('pubmed_id', Integer)
     pdf_status = Column('pdf_status', String)
-    primary_dbxref_id = Column('primary_dbxref_id', String)
-    secondary_dbxref_id = Column('secondary_dbxref_id', String)
-    tertiary_dbxref_id = Column('tertiary_dbxref_id', String)
     citation_db = Column('citation', String)
     year = Column('year', Integer)
-    pubmed_id = Column('pubmed_id', Integer)
     date_published = Column('date_published', String)
     date_revised = Column('date_revised', String)
     issue = Column('issue', String)
@@ -104,22 +101,16 @@ class Reference(Base, EqualityByIDMixin):
     author_names = association_proxy('author_references', 'author_name')
     reftype_names = association_proxy('reftypes', 'name')
     related_references = association_proxy('refrels', 'child_ref')
-    urls = association_proxy('ref_urls', 'url')
     
-    def __init__(self, reference_id, pubmed_id, display_name, format_name, source, status, pdf_status, 
-                 primary_dbxref_id, secondary_dbxref_id,tertiary_dbxref_id,
+    def __init__(self, reference_id, display_name, format_name, source, status, pdf_status, 
                  citation, year, date_published, date_revised, issue, page, volume, title, 
                  journal_id, book_id, doi, abstract, date_created, created_by):
         self.id = reference_id
-        self.pubmed_id = pubmed_id
         self.display_name = display_name
         self.format_name = format_name
         self.source=source
         self.status = status
         self.pdf_status = pdf_status
-        self.primary_dbxref_id = primary_dbxref_id
-        self.secondary_dbxref_id = secondary_dbxref_id
-        self.tertiary_dbxref_id = tertiary_dbxref_id
         self.citation_db = citation
         self.year = year
         self.date_published = date_published
@@ -279,25 +270,36 @@ class ReferenceRelation(Base, EqualityByIDMixin):
     def unique_key(self):
         return (self.parent_id, self.child_id)
     
-class Reference_Url(Base, EqualityByIDMixin):
-    __tablename__ = 'reference_url'
+class ReferenceUrl(Url):
+    __tablename__ = 'referenceurl'
+    id = Column('url_id', Integer, ForeignKey(Url.id), primary_key=True)
+    reference_id = Column('reference_id', ForeignKey(Reference.id))
     
-    id = Column('ref_url_id', Integer, primary_key = True)
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
-    url_id = Column('url_id', Integer, ForeignKey(Url.id))
+    __mapper_args__ = {'polymorphic_identity': 'REFERENCE_URL',
+                       'inherit_condition': id == Url.id}
     
     #Relationships
-    reference = relationship(Reference, uselist=False, backref=backref('ref_urls', passive_deletes=True))
-    url = relationship(Url, uselist=False)
+    reference = relationship(Reference, uselist=False, backref=backref('urls', passive_deletes=True))
     
-    def __init__(self, ref_url_id, reference_id, url_id):
-        self.id = ref_url_id
-        self.reference_id = reference_id;
-        self.url_id = url_id
+    def __init__(self, url, source, reference_id, date_created, created_by):
+        Url.__init__(self, url, 'REFERENCE_URL', source, date_created, created_by)
+        self.reference_id = reference_id
         
-    def unique_key(self):
-        return (self.reference_id, self.url_id)
+class ReferenceAltid(Altid):
+    __tablename__ = 'referencealtid'
+    
+    id = Column('altid_id', Integer, ForeignKey(Altid.id), primary_key=True)
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    
+    __mapper_args__ = {'polymorphic_identity': 'REFERENCE_ALTID',
+                       'inherit_condition': id == Altid.id}
         
+    #Relationships
+    reference = relationship(Reference, uselist=False, backref=backref('altids', passive_deletes=True))
+        
+    def __init__(self, identifier, source, altid_name, reference_id, date_created, created_by):
+        Altid.__init__(self, identifier, 'REFERENCE_ALTID', source, altid_name, date_created, created_by)
+        self.reference_id = reference_id
 
     
  

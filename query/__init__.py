@@ -1,8 +1,8 @@
 from model_new_schema import config as new_config
 from model_new_schema.bioconcept import Bioconcept, BioconAncestor, \
     BioconRelation
-from model_new_schema.bioentity import Bioentity, Gene, BioentRelation, \
-    Bioentevidence
+from model_new_schema.bioentity import Bioentity, BioentRelation, Bioentevidence, \
+    Locus
 from model_new_schema.biofact import Biofact
 from model_new_schema.go import Goevidence, Go
 from model_new_schema.interaction import Interevidence, Interaction
@@ -70,7 +70,7 @@ def get_bioent(bioent_name, print_query=False):
     FROM sprout.bioent LEFT OUTER JOIN sprout.gene ON sprout.gene.bioent_id = sprout.bioent.bioent_id 
     WHERE sprout.bioent.name = :name_1
     '''
-    query = session.query(with_polymorphic(Bioentity, [Gene])).filter(Bioentity.format_name==bioent_name)
+    query = session.query(with_polymorphic(Bioentity, [Locus])).filter(Bioentity.format_name==bioent_name)
     bioent = query.first()
     if print_query:
         print query
@@ -137,7 +137,7 @@ def get_reference(reference_name, print_query=False):
     WHERE sprout.reference.pubmed_id = :pubmed_id_1
     '''
     reference = None
-    orig_query = session.query(Reference).options(subqueryload('author_references'), subqueryload('author_references.author'), subqueryload('reftypes'), subqueryload('refrels'), subqueryload('ref_urls'))
+    orig_query = session.query(Reference).options(subqueryload('author_references'), subqueryload('author_references.author'), subqueryload('reftypes'), subqueryload('refrels'), subqueryload('urls'))
     try:
         float(reference_name)
         query = orig_query.filter(Reference.pubmed_id == reference_name)
@@ -513,7 +513,7 @@ def get_objects(search_results, print_query=False):
     None
     '''
     tuple_to_obj = dict()
-    bioent_ids = [search_result.bio_id for search_result in search_results if search_result.bio_type == 'GENE']
+    bioent_ids = [search_result.bio_id for search_result in search_results if search_result.bio_type == 'LOCUS']
     biocon_ids = [search_result.bio_id for search_result in search_results if search_result.bio_type in {'PHENOTYPE', 'GO'}]
     reference_ids = [search_result.bio_id for search_result in search_results if search_result.bio_type == 'REFERENCE']    
     

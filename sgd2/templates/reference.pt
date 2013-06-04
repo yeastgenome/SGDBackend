@@ -51,7 +51,7 @@
 				<li><a tal:content="structure ref.name_with_link"></a></li>
 			</ul>
 			</p>
-			<p tal:condition="python: len(ref.urls) > 0 or ref.fulltext_link is not None">Other Links:
+			<p tal:condition="python: len(ref.urls) > 0 or ref.fulltext_link is not None">External Links:
 			<ul type="none">
 				<li tal:condition="python: ref.fulltext_link"><a tal:attributes="href ref.fulltext_link" target="_blank">Full Text Link</a></li>
 			</ul>

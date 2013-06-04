@@ -6,6 +6,7 @@ Created on Nov 28, 2012
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.config import SCHEMA
 from model_new_schema.link_maker import add_link, biocon_link
+from model_new_schema.misc import Alias
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
@@ -24,9 +25,6 @@ class Bioconcept(Base, EqualityByIDMixin):
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     type = "BIOCONCEPT"
-    
-    #Relationships
-    aliases = relationship("BioconAlias")
     
     __mapper_args__ = {'polymorphic_on': biocon_type,
                        'polymorphic_identity':"BIOCONCEPT"}
@@ -104,25 +102,26 @@ class BioconAncestor(Base, EqualityByIDMixin):
     def unique_key(self):
         return (self.ancestor_id, self.child_id, self.bioconanc_type)
     
-class BioconAlias(Base, EqualityByIDMixin):
-    __tablename__ = 'biocon_alias'
+class BioconAlias(Alias):
+    __tablename__ = 'bioconalias'
     
-    id = Column('alias_id', Integer, primary_key=True)
+    id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
     biocon_id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id))
     biocon_type = Column('biocon_type', String)
-    name = Column('name', String)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
     
-    def __init__(self, biocon_id, biocon_type, name, date_created, created_by):
+    __mapper_args__ = {'polymorphic_identity': 'BIOCON_ALIAS',
+                       'inherit_condition': id == Alias.id}
+        
+    #Relationships
+    biocon = relationship(Bioconcept, uselist=False, backref=backref('aliases', passive_deletes=True))
+        
+    def __init__(self, name, biocon_id, biocon_type, date_created, created_by):
+        Alias.__init__(self, name, 'BIOCON_ALIAS', None, None, date_created, created_by)
         self.biocon_id = biocon_id
         self.biocon_type = biocon_type
-        self.name = name
-        self.date_created = date_created
-        self.created_by = created_by
         
     def unique_key(self):
-        return (self.biocon_id, self.name)
+        return (self.name, self.biocon_id)
     
     
     

@@ -29,7 +29,7 @@ def main(global_config, **settings):
     config.add_route('typeahead', '/typeahead')
    
     #Bioent views
-    config.add_route('gene', '/gene/{gene_name}')
+    config.add_route('locus', '/locus/{gene_name}')
     config.add_route('protein', '/protein/{protein_name}')
     config.add_route('bioent_evidence', '/bioent_evidence')
     config.add_route('bioent_overview_table', '/bioent_overview_table')

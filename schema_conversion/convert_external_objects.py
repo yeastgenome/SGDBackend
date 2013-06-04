@@ -5,8 +5,8 @@ Created on May 23, 2013
 '''
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
-from schema_conversion import cache, create_or_update_and_remove, ask_to_commit, \
-    prepare_schema_connection
+from schema_conversion import ask_to_commit, \
+    prepare_schema_connection, check_url, cache_by_key, create_or_update_and_remove
 import datetime
 import model_new_schema
 import model_old_schema
@@ -67,7 +67,7 @@ def convert_externalobjs(new_session, old_externalobjs):
     from model_new_schema.misc import ExternalObject as NewExternalObject
     
     #Cache external objects
-    key_to_externalobj = cache(NewExternalObject, new_session, source='AspGD')
+    key_to_externalobj = cache_by_key(NewExternalObject, new_session, source='AspGD')
 
     #Create new external objects if they don't exist, or update the database if they do.
     new_externalobjs = filter(None, [create_externalobj(x) for x in old_externalobjs])

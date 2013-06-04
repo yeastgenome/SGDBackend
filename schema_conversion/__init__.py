@@ -58,12 +58,25 @@ def add_or_check(new_obj, mapping, key, values_to_check, session, output_creator
         return True
     
 def create_or_update(new_objs, mapping, values_to_check, session):
+    new_objs = filter(None, new_objs)
     output_creator = OutputCreator()
     
-    for new_obj in new_objs:
-        key = new_obj.unique_key()
-        add_or_check(new_obj, mapping, key, values_to_check, session, output_creator)
-    output_creator.finished()
+    to_be_added = set([new_obj.id for new_obj in new_objs if new_obj.unique_key() not in mapping])
+    problem_objs = [old_obj for old_obj in mapping.values() if old_obj.id in to_be_added]
+    if len(problem_objs) > 0:
+        print str(len(problem_objs)) + ' problem objects exist and must be deleted to continue.'
+        print [problem.id for problem in problem_objs]
+        for obj in problem_objs:
+            session.delete(obj)
+        return False
+    else:
+        # Check old objects or add new objects.
+        for new_obj in new_objs:
+            key = new_obj.unique_key()
+            add_or_check(new_obj, mapping, key, values_to_check, session, output_creator)
+            
+        output_creator.finished()
+        return True
     
 def create_or_update_and_remove(new_objs, mapping, values_to_check, session):
     new_objs = filter(None, new_objs)
