@@ -1,6 +1,7 @@
 from .models import DBSession
 from model_new_schema.link_maker import LinkMaker
 from pyramid.config import Configurator
+from pyramid.renderers import JSONP
 from sgd2.config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
@@ -15,28 +16,26 @@ def main(global_config, **settings):
     model_new_schema.Base.metadata.bind = engine
     config = Configurator(settings=settings)
     config.add_static_view('static', 'static', cache_max_age=3600)
-    
-    #Basic views
-    config.add_route('home', '/')
-    config.add_route('my_sgd', '/my_sgd')
-    config.add_route('help', '/help')
-    config.add_route('about', '/about')
+    config.add_renderer('jsonp', JSONP(param_name='callback'))
     
     #Search views
-    config.add_route('search', '/search')
     config.add_route('search_results', '/search_results')
-
     config.add_route('typeahead', '/typeahead')
    
     #Bioent views
-    config.add_route('locus', '/locus/{gene_name}')
-    config.add_route('protein', '/protein/{protein_name}')
-    config.add_route('bioent_evidence', '/bioent_evidence')
+    config.add_route('bioent', '/bioent/{bioent_type}/{bioent}')
+    config.add_route('locus', '/locus/{bioent}')
     config.add_route('bioent_overview_table', '/bioent_overview_table')
     config.add_route('bioent_evidence_table', '/bioent_evidence_table')
+    
+    #Biocon views
+    config.add_route('biocon', '/biocon/{biocon_type}/{biocon}')
+    
+    #Biorel views
+    config.add_route('biorel', '/biorel/{biorel_type}/{biorel}')
 
     #GO views
-    config.add_route('go', '/go/{biocon_name}')
+    config.add_route('go', '/go/{biocon}')
     config.add_route('go_evidence', '/go_evidence')
     config.add_route('go_overview_table', '/go_overview_table')
     config.add_route('go_evidence_table', '/go_evidence_table')
@@ -44,7 +43,7 @@ def main(global_config, **settings):
     config.add_route('go_ontology_graph', '/go_ontology_graph')
     
     #Phenotype views
-    config.add_route('phenotype', '/phenotype/{biocon_name}')
+    config.add_route('phenotype', '/phenotype/{biocon}')
     config.add_route('phenotype_evidence', '/phenotype_evidence')
     config.add_route('phenotype_overview_table', '/phenotype_overview_table')
     config.add_route('phenotype_evidence_table', '/phenotype_evidence_table')
@@ -58,15 +57,15 @@ def main(global_config, **settings):
     config.add_route('interaction_graph', '/interaction_graph') 
        
     #Reference views
-    config.add_route('reference', '/reference/{pubmed_id}')
-    config.add_route('author', '/author/{author_name}')
-    config.add_route('chemical', '/chemical/{chemical_name}')
+    config.add_route('reference', '/reference/{reference}')
+    config.add_route('author', '/author/{author}')
+    config.add_route('assoc_references', '/assoc_references')
+
+    #Chemical views    
+    config.add_route('chemical', '/chemical/{chemical}')
     
     #Sequence views
     config.add_route('sequence', '/sequence')
-    
-    #Misc views
-    config.add_route('download_graph', '/download_graph/{file_type}')
 
     config.scan()
     return config.make_wsgi_app()

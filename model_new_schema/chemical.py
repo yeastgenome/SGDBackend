@@ -6,6 +6,7 @@ Created on Jun 4, 2013
 from model_new_schema import Base
 from model_new_schema.link_maker import add_link, chemical_link
 from model_new_schema.misc import Alias, Altid
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
@@ -21,6 +22,9 @@ class Chemical(Base):
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
+    #Relationships
+    aliases = association_proxy('chemaliases', 'name')
+    
     def __init__(self, display_name, format_name, source, date_created, created_by):
         self.display_name = display_name
         self.format_name = format_name
@@ -31,6 +35,9 @@ class Chemical(Base):
     def unique_key(self):
         return (self.format_name)
     
+    @hybrid_property
+    def alias_str(self):
+        return ', '.join(self.aliases)
     @hybrid_property
     def name_with_link(self):
         return add_link(self.display_name, self.link)
@@ -71,7 +78,7 @@ class ChemicalAlias(Alias):
                        'inherit_condition': id == Alias.id}
         
     #Relationships
-    chemical = relationship(Chemical, uselist=False, backref=backref('aliases', passive_deletes=True))
+    chemical = relationship(Chemical, uselist=False, backref=backref('chemaliases', passive_deletes=True))
         
     def __init__(self, name, source, chemical_id, date_created, created_by):
         Alias.__init__(self, name, 'CHEMICAL_ALIAS', source, None, date_created, created_by)

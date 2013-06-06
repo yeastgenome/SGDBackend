@@ -3,59 +3,50 @@ Created on May 31, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.link_maker import LinkMaker
 from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_bioent, get_bioent_id, get_bioent_evidence, \
     get_reference_id
-from sgd2.views import site_layout
 from utils.utils import create_simple_table, make_reference_list
 
-@view_config(route_name='locus', renderer='templates/locus.pt')
-def gene_view(request):
-    bioent_name = request.matchdict['gene_name']
-    bioent = get_bioent(bioent_name)
+@view_config(route_name='locus', renderer='json')
+def locus(request):
+    bioent_name = request.matchdict['bioent']
+    bioent = get_bioent(bioent_name, 'LOCUS')
     if bioent is None:
-        return Response(status_int=500, body='Gene could not be found.')
-    return {'layout': site_layout(), 'page_title': bioent.display_name, 'bioent': bioent, 'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
-  
-@view_config(route_name='protein', renderer='templates/protein.pt')
-def protein_view(request):
-    bioent_name = request.matchdict['protein_name']
-    bioent = get_bioent(bioent_name)
-    if bioent is None:
-        return Response(status_int=500, body='Protein could not be found.')
-    return {'layout': site_layout(), 'page_title': bioent.display_name, 'bioent': bioent, 'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
- 
-@view_config(route_name='bioent_evidence', renderer='templates/bioent_evidence.pt')
-def phenotype_evidence(request):
-    if 'bioent_name' in request.GET:
-        #Need a bioent evidence table based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
-        if bioent is None:
-            return Response(status_int=500, body='Bioent could not be found.')
-        name = 'Litguide for ' + bioent.display_name
-        name_with_link = 'Litguide for ' + bioent.name_with_link
-        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':True,
-                'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
-    else:
-        return Response(status_int=500, body='No Bioent specified.')
+        return Response(status_int=500, body='Locus could not be found.')
+    
+    bioent_json = {
+                   'display_name': bioent.display_name, 
+                   'format_name': bioent.format_name,
+                   'full_name': bioent.full_name,
+                   'description': bioent.description,
+                   
+                   'source': bioent.source,
+                   'attribute': bioent.attribute,
+                   'name_description': bioent.name_description,
+                   'qualifier': bioent.qualifier,
+                   'bioent_type': bioent.bioent_type,
+                   'aliases': bioent.alias_str,
+                   'wiki_name_with_link': bioent.wiki_name_with_link,
+    
+                   }
+    return bioent_json 
 
-@view_config(route_name='bioent_overview_table', renderer='json')
+@view_config(route_name='bioent_overview_table', renderer='jsonp')
 def bioent_overview_table(request):
-    if 'bioent_name' in request.GET:
+    if 'bioent' in request.GET:
         #Need a bioent overview table based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent_id = get_bioent_id(bioent_name)
+        bioent_name = request.GET['bioent']
+        bioent_id = get_bioent_id(bioent_name, 'LOCUS')
         if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
         bioentevidences = get_bioent_evidence(bioent_id=bioent_id)
         primary_bioentevidences = [evidence for evidence in bioentevidences if evidence.topic=='Primary Literature']
         return make_reference_list(primary_bioentevidences) 
-    elif 'reference_name' in request.GET:
+    elif 'reference' in request.GET:
         #Need a bioent overview table based on a reference
-        ref_name = request.GET['reference_name']
+        ref_name = request.GET['reference']
         ref_id = get_reference_id(ref_name)
         if ref_id is None:
             return Response(status_int=500, body='Reference could not be found.')
@@ -64,12 +55,12 @@ def bioent_overview_table(request):
     else:
         return Response(status_int=500, body='No Bioent or Reference specified.')
 
-@view_config(route_name='bioent_evidence_table', renderer='json')
+@view_config(route_name='bioent_evidence_table', renderer='jsonp')
 def bioent_evidence_table(request):
-    if 'bioent_name' in request.GET:
+    if 'bioent' in request.GET:
         #Need a bioentevidence table based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent_id = get_bioent_id(bioent_name)
+        bioent_name = request.GET['bioent']
+        bioent_id = get_bioent_id(bioent_name, 'LOCUS')
         if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
         bioentevidences = get_bioent_evidence(bioent_id=bioent_id)

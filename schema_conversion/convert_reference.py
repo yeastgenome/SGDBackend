@@ -6,7 +6,7 @@ Created on Feb 27, 2013
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
 from schema_conversion import create_or_update_and_remove, ask_to_commit, \
-    prepare_schema_connection, cache_by_key, cache_by_id
+    prepare_schema_connection, cache_by_key, cache_by_id, create_format_name
 from sqlalchemy.orm import joinedload
 import datetime
 import model_new_schema
@@ -54,7 +54,9 @@ def create_journal(old_journal):
 def create_author(old_author):
     from model_new_schema.reference import Author as NewAuthor
     
-    new_author = NewAuthor(old_author.id, old_author.name, old_author.date_created, old_author.created_by)
+    display_name = old_author.name
+    format_name = create_format_name(display_name)
+    new_author = NewAuthor(old_author.id, display_name, format_name, old_author.date_created, old_author.created_by)
     return new_author
 
 def create_author_reference(old_author_reference, key_to_author, id_to_reference):
@@ -236,22 +238,22 @@ def convert(old_session_maker, new_session_maker):
 #        old_session.close()
 #        new_session.close()
 #        
-#    # Convert authors
-#    print 'Authors'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_authors = old_session.query(OldAuthor).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_authors(new_session, old_authors)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
+    # Convert authors
+    print 'Authors'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_authors = old_session.query(OldAuthor).all()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_authors(new_session, old_authors)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
 #        
 #    # Convert references
 #    print 'References'
@@ -269,23 +271,23 @@ def convert(old_session_maker, new_session_maker):
 #    finally:
 #        old_session.close()
 #        new_session.close()
-
-    # Convert altids
-    print 'Altids'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_references = old_session.query(OldReference).options(joinedload('dbxrefrefs'), joinedload('dbxrefrefs.dbxref')).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_altids(new_session, old_references)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+#
+#    # Convert altids
+#    print 'Altids'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_references = old_session.query(OldReference).options(joinedload('dbxrefrefs'), joinedload('dbxrefrefs.dbxref')).all()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_altids(new_session, old_references)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
 #        
 #    # Convert author_references
 #    print 'AuthorReferences'
@@ -434,7 +436,7 @@ def convert_authors(new_session, old_authors):
     
     #Create new authors if they don't exist, or update the database if they do.
     new_authors = [create_author(x) for x in old_authors]
-    values_to_check = ['created_by', 'date_created']
+    values_to_check = ['created_by', 'date_created', 'display_name', 'format_name']
     success = create_or_update_and_remove(new_authors, key_to_author, values_to_check, new_session)
     return success
     

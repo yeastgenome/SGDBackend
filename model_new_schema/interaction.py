@@ -5,7 +5,7 @@ Created on May 16, 2013
 '''
 from model_new_schema.bioentity import BioentRelation
 from model_new_schema.evidence import Evidence
-from model_new_schema.link_maker import interaction_link
+from model_new_schema.link_maker import interaction_link, add_link
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
@@ -22,6 +22,12 @@ class Interaction(BioentRelation):
     @hybrid_property
     def link(self):
         return interaction_link(self)
+    @hybrid_property
+    def name_with_link(self):
+        return add_link(str(self.display_name), self.link)
+    @hybrid_property
+    def description(self):
+        return 'Interaction between ' + self.source_bioent.name_with_link + ' and ' + self.sink_bioent.name_with_link
         
     __mapper_args__ = {'polymorphic_identity': 'INTERACTION',
                        'inherit_condition': id == BioentRelation.id}

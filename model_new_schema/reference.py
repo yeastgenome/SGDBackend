@@ -174,22 +174,43 @@ class Reference(Base, EqualityByIDMixin):
     def search_entry_type(self):
         return 'Reference'
     
+    @hybrid_property
+    def reftype_str(self):
+        return ', '.join([reftype.name for reftype in self.reftypes])
+    @hybrid_property
+    def author_str(self):
+        return ', '.join([author.name_with_link for author in self.authors])
+    @hybrid_property
+    def related_ref_str(self):
+        return ', '.join([ref.name_with_link for ref in self.related_references])
+    @hybrid_property
+    def url_str(self):
+        return '<br>' + '<br>'.join([add_link(url.url, url.url, new_window=True) for url in self.urls])
+    @hybrid_property
+    def pubmed_id_with_link(self):
+        if self.pubmed_id is not None:
+            return add_link(str(self.pubmed_id), self.pubmed_link, new_window=True)
+        else:
+            return ''
+    
 class Author(Base, EqualityByIDMixin):
     __tablename__ = 'author'
 
     id = Column('author_id', Integer, primary_key = True)
-    name = Column('author_name', String)
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
         
-    def __init__(self, author_id, name, date_created, created_by):
+    def __init__(self, author_id, display_name, format_name, date_created, created_by):
         self.id = author_id
-        self.name = name
+        self.display_name = display_name
+        self.format_name = format_name
         self.created_by = created_by
         self.date_created = date_created
         
     def unique_key(self):
-        return self.name
+        return self.format_name
     
     @hybrid_property
     def link(self):
@@ -202,7 +223,7 @@ class Author(Base, EqualityByIDMixin):
     
     @hybrid_property
     def name_with_link(self):
-        return add_link(self.name, self.link) 
+        return add_link(self.display_name, self.link) 
     
 class AuthorReference(Base, EqualityByIDMixin):
     __tablename__ = 'author_reference'

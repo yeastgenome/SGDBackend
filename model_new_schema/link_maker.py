@@ -4,8 +4,11 @@ Created on Mar 6, 2013
 @author: kpaskov
 '''
 from string import lower
-def add_link(name, link):
-    return '<a href="' + link + '">' + name + '</a>'
+def add_link(name, link, new_window=False):
+    if new_window:
+        return '<a href="' + link + '" target="_blank">' + name + '</a>'
+    else:
+        return '<a href="' + link + '">' + name + '</a>'
 
 link_symbol = '---'
 
@@ -112,7 +115,7 @@ def bioent_wiki_link(bioent):
 
 #Biorelation links
 def interaction_link(biorel):
-    return add_format_name_params('/interaction_evidence?', {'biorel_name':biorel})
+    return add_format_name_params('/interaction_evidence?', {'biorel':biorel})
 
 def bioent_biocon_reference_link(bioent_biocon):
     return bioent_biocon.link + '/reference'
@@ -139,4 +142,4 @@ def reference_interaction_link(reference):
     return reference.link + '/interaction'
 
 def author_link(author):
-    return '/author/' + author.name.replace(' ', '_')
+    return '/author/' + author.format_name

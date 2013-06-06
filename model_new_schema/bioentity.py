@@ -37,7 +37,7 @@ class Bioentity(Base, EqualityByIDMixin):
     
     #Relationships
     bioconcepts = association_proxy('biofacts', 'bioconcept')
-    alias_names = association_proxy('aliases', 'name')
+    aliases = association_proxy('bioentaliases', 'name')
     seq_ids = association_proxy('sequences', 'id')
     type = "BIOENTITY"
             
@@ -62,7 +62,7 @@ class Bioentity(Base, EqualityByIDMixin):
         return set(self.biorel_source + self.biorel_sink)
     @hybrid_property
     def alias_str(self):
-        return ', '.join(self.alias_names)
+        return ', '.join(self.aliases)
     
     #Names and links     
     @hybrid_property
@@ -97,7 +97,6 @@ class BioentRelation(Base, EqualityByIDMixin):
     id = Column('biorel_id', Integer, primary_key = True)
     format_name = Column('format_name', String)
     display_name = Column('display_name', String)
-    description = Column('description', String)
     biorel_type = Column('biorel_type', String)
     source_bioent_id = Column('bioent_id1', Integer, ForeignKey(Bioentity.id))
     sink_bioent_id = Column('bioent_id2', Integer, ForeignKey(Bioentity.id))
@@ -143,7 +142,7 @@ class BioentAlias(Alias):
                        'inherit_condition': id == Alias.id}
         
     #Relationships
-    bioent = relationship(Bioentity, uselist=False, backref=backref('aliases', passive_deletes=True))
+    bioent = relationship(Bioentity, uselist=False, backref=backref('bioentaliases', passive_deletes=True))
         
     def __init__(self, name, source, used_for_search, bioent_id, date_created, created_by):
         Alias.__init__(self, name, 'BIOENT_ALIAS', source, used_for_search, date_created, created_by)

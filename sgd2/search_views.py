@@ -3,39 +3,16 @@ Created on Mar 19, 2013
 
 @author: kpaskov
 '''
+from datetime import datetime
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import search, typeahead, get_objects
-from sgd2.views import site_layout
+from query import search, get_objects, typeahead
 from sqlalchemy.exc import DBAPIError
-from datetime import datetime
 import math
 
-cat_to_biotype = {'genes':'LOCUS', 'goterms':'GO', 'phenotypes':'PHENOTYPE', 'proteins':'PROTEIN', 'references':'REFERENCE', 'sequences':'SEQUENCE', 'transcripts':'TRANSCRIPT',
-                  'dna_sequences':'DNA_SEQUENCE', 'protein_sequences':'PROTEIN_SEQUENCE', 'all':'all'}
-
 results_per_page = 20
-@view_config(route_name='search', renderer='templates/search.pt')
-def search_view(request):
-    try:
-        search_str = request.GET['keyword']
-        page = 0
-        if 'page' in request.GET:
-            page = int(request.GET['page'])
-        category = 'all'
-        biotype = 'all'
-        if 'category' in request.GET and request.GET['category'] != None:
-            category = request.GET['category']
-            biotype = cat_to_biotype[category]
-            
-        results_url = '/search_results?keyword=' + str(search_str) + '&bio_type=' + str(biotype) + '&page=' + str(page)
-        
-    except DBAPIError:
-        return Response("Error.", content_type='text/plain', status_int=500)
-    return {'layout': site_layout(), 'page_title': 'Search Results',
-            'keyword':search_str, 'category':category, 'page':page, 'results_url':results_url}
     
-@view_config(route_name='search_results', renderer='json')
+@view_config(route_name='search_results', renderer='jsonp')
 def search_results(request):
     try:
         keywords = request.GET['keyword'].lower().split()
@@ -71,7 +48,7 @@ def search_results(request):
         return Response("Error.", content_type='text/plain', status_int=500)
     return {'results': search_result_jsons, 'num_pages':num_pages, 'num_results':num_results, 'counts':counts}
 
-@view_config(route_name='typeahead', renderer="json")
+@view_config(route_name='typeahead', renderer="jsonp")
 def typeahead_view(request):
     try:
         search_str = request.POST.items()[0][1].upper()

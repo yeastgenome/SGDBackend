@@ -3,13 +3,11 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.link_maker import LinkMaker
 from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_biofacts, get_go_evidence, get_related_biofacts, \
     get_biocon_family, get_biocon_biocons, get_biocon_id, get_biocon, get_bioent, \
     get_bioent_id, get_reference_id
-from sgd2.views import site_layout
 from utils.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list
 import math
@@ -18,64 +16,47 @@ import math
 '''
 -------------------------------Views---------------------------------------
 '''
-@view_config(route_name='go', renderer='templates/go.pt')
+@view_config(route_name='go', renderer='json')
 def go(request):
-    biocon_name = request.matchdict['biocon_name']
+    biocon_name = request.matchdict['biocon']
     biocon = get_biocon(biocon_name, 'GO')
     if biocon is None:
         return Response(status_int=500, body='Biocon could not be found.')
-    return {'layout': site_layout(), 'page_title': biocon.display_name, 'biocon': biocon, 'link_maker':LinkMaker(biocon.format_name, biocon=biocon)} 
-
-@view_config(route_name='go_evidence', renderer='templates/go_evidence.pt')
-def go_evidence(request):
-    if 'bioent_name' in request.GET:
-        #Need a GO overview table based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
-        if bioent is None:
-            return Response(status_int=500, body='Bioent could not be found.')
-        name = 'GO Evidence for ' + bioent.display_name
-        name_with_link = 'GO Evidence for ' + bioent.name_with_link
-        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':True,
-                'link_maker':LinkMaker(bioent.format_name, bioent=bioent)}
-    elif 'biocon_name' in request.GET:
-        #Need a GO overview table based on a biocon
-        biocon_name = request.GET['biocon_name']
-        biocon = get_biocon(biocon_name, 'GO')
-        if biocon is None:
-            return Response(status_int=500, body='Biocon could not be found.')
         
-        name = 'Evidence for GO Term:<br>' + biocon.display_name
-        name_with_link = 'Evidence for GO Term:<br>' + biocon.name_with_link
-       
-        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'split':False,
-                'link_maker':LinkMaker(biocon.format_name, biocon=biocon)}
-    else:
-        return Response(status_int=500, body='No Bioent or Biocon specified.')
+    biocon_json = {
+                    'display_name': biocon.display_name, 
+                    'format_name': biocon.format_name,
+                    'description': biocon.description,
+                    
+                    'go_go_id': biocon.go_go_id,
+                    'go_aspect':biocon.go_aspect,
+                    'aliases': biocon.alias_str
+                   }
+    return biocon_json
 
-@view_config(route_name='go_overview_table', renderer='json')
+@view_config(route_name='go_overview_table', renderer='jsonp')
 def go_overview_table(request):
-    if 'biocon_name' in request.GET:
+    if 'biocon' in request.GET:
         #Need a GO overview table based on a biocon
-        biocon_name = request.GET['biocon_name']
+        biocon_name = request.GET['biocon']
         biocon_id = get_biocon_id(biocon_name, 'GO')
         if biocon_id is None:
             return Response(status_int=500, body='Biocon could not be found.')
         goevidences = get_go_evidence(biocon_id=biocon_id)
         return make_overview_tables(False, goevidences) 
         
-    elif 'bioent_name' in request.GET:
+    elif 'bioent' in request.GET:
         #Need a GO overview table based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent_id = get_bioent_id(bioent_name)
+        bioent_name = request.GET['bioent']
+        bioent_id = get_bioent_id(bioent_name, 'LOCUS')
         if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
         goevidences = get_go_evidence(bioent_id=bioent_id)
         return make_overview_tables(True, goevidences, False) 
     
-    elif 'reference_name' in request.GET:
+    elif 'reference' in request.GET:
         #Need a GO overview table based on a reference
-        ref_name = request.GET['reference_name']
+        ref_name = request.GET['reference']
         ref_id = get_reference_id(ref_name)
         if ref_id is None:
             return Response(status_int=500, body='Reference could not be found.')
@@ -86,21 +67,21 @@ def go_overview_table(request):
         return Response(status_int=500, body='No Bioent or Biocon or Reference specified.')
 
 
-@view_config(route_name='go_evidence_table', renderer='json')
+@view_config(route_name='go_evidence_table', renderer='jsonp')
 def go_evidence_table(request):
-    if 'biocon_name' in request.GET:
+    if 'biocon' in request.GET:
         #Need a GO overview table based on a biocon
-        biocon_name = request.GET['biocon_name']
+        biocon_name = request.GET['biocon']
         biocon_id = get_biocon_id(biocon_name, 'GO')
         if biocon_id is None:
             return Response(status_int=500, body='Biocon could not be found.')
         evidences = get_go_evidence(biocon_id=biocon_id)
         return make_evidence_tables(False, evidences) 
         
-    elif 'bioent_name' in request.GET:
+    elif 'bioent' in request.GET:
         #Need a GO overview table based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent_id = get_bioent_id(bioent_name)
+        bioent_name = request.GET['bioent']
+        bioent_id = get_bioent_id(bioent_name, 'LOCUS')
         if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
         evidences = get_go_evidence(bioent_id=bioent_id)
@@ -109,20 +90,20 @@ def go_evidence_table(request):
     else:
         return Response(status_int=500, body='No Bioent or Biocon specified.')
     
-@view_config(route_name='go_graph', renderer="json")
+@view_config(route_name='go_graph', renderer="jsonp")
 def go_graph(request):
-    if 'biocon_name' in request.GET:
+    if 'biocon' in request.GET:
         #Need a GO graph based on a biocon
-        biocon_name = request.GET['biocon_name']
+        biocon_name = request.GET['biocon']
         biocon = get_biocon(biocon_name, 'GO')
         if biocon is None:
             return Response(status_int=500, body='Biocon could not be found.')
         return create_go_graph(biocon=biocon)
   
-    elif 'bioent_name' in request.GET:
+    elif 'bioent' in request.GET:
         #Need a GO graph based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
+        bioent_name = request.GET['bioent']
+        bioent = get_bioent(bioent_name, 'LOCUS')
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
         return create_go_graph(bioent=bioent)
@@ -130,11 +111,11 @@ def go_graph(request):
     else:
         return Response(status_int=500, body='No Bioent or Biocon specified.')
     
-@view_config(route_name='go_ontology_graph', renderer="json")
+@view_config(route_name='go_ontology_graph', renderer="jsonp")
 def go_ontology_graph(request):
-    if 'biocon_name' in request.GET:
+    if 'biocon' in request.GET:
         #Need a GO ontology graph based on a biocon
-        biocon_name = request.GET['biocon_name']
+        biocon_name = request.GET['biocon']
         biocon = get_biocon(biocon_name, 'GO')
         if biocon is None:
             return Response(status_int=500, body='Biocon could not be found.')
@@ -274,17 +255,28 @@ def create_go_edge(obj, source_obj, sink_obj):
 
 aspect_to_index = {'molecular function':0, 'biological process':1, 'cellular component':2}
 def create_go_graph(bioent=None, biocon=None):
-    
+
+    usable_bios = set()       
+   
     if bioent is not None:
         level_one = get_biofacts('GO', bioent=bioent)
         level_one = [biofact for biofact in level_one if biofact.use_in_graph == 'Y']
 
         biocon_ids = [biofact.biocon_id for biofact in level_one]
-        level_two = get_related_biofacts(biocon_ids, 'GO')
+        level_two = get_related_biofacts('GO', biocon_ids=biocon_ids)
+        
+        usable_bios.add(bioent)
+        usable_bios.update([biofact.bioconcept for biofact in level_one])
+    elif biocon is not None:
+        level_one = get_biofacts('GO', biocon=biocon)
+        level_one = [biofact for biofact in level_one if biofact.use_in_graph == 'Y']
+
+        bioent_ids = [biofact.bioent_id for biofact in level_one]
+        level_two = get_related_biofacts('GO', bioent_ids=bioent_ids)
+        
+        usable_bios.add(biocon)
+        usable_bios.update([biofact.bioentity for biofact in level_one])
     
-    usable_bios = set()       
-    usable_bios.add(bioent)
-    usable_bios.update([biofact.bioconcept for biofact in level_one])
     
     bioent_to_edge_counts = {}
     for biofact in level_two:
@@ -314,7 +306,7 @@ def create_go_graph(bioent=None, biocon=None):
          
     nodes = []  
     for usable in usable_bios:
-        if usable.type == 'GENE':
+        if usable.type == 'LOCUS':
             counts = bioent_to_edge_counts[usable]
             nodes.append(create_go_node(usable, bioent, counts[0]>1, counts[1]>1, counts[2]>1))
         else:

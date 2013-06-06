@@ -3,62 +3,29 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.link_maker import LinkMaker, add_link
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_biorels, get_interactions, \
-    get_biorel, get_bioent, get_reference_id, get_interaction_evidence, \
-    get_biorel_id
-from sgd2.views import site_layout
+from query import get_biorels, get_interactions, get_bioent, \
+    get_reference_id, get_interaction_evidence, get_biorel_id
 from utils.utils import create_simple_table, make_reference_list, \
     entry_with_link
 
 
-'''
--------------------------------Views---------------------------------------
-'''
-@view_config(route_name='interaction_evidence', renderer='templates/interaction_evidence.pt')
-def interaction_evidence(request):
-    if 'biorel_name' in request.GET:
-        #Need an interaction evidence page based on a biorel
-        biorel_name = request.GET['biorel_name']
-        biorel = get_biorel(biorel_name, 'INTERACTION')
-        if biorel is None:
-            return Response(status_int=500, body='Biorel could not be found.')
-        name = biorel.name
-        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':biorel.name_with_link, 'description':biorel.description, 'hide_interactor':True,
-                'bioent1':biorel.source_bioent, 'bioent2':biorel.sink_bioent, 'link_maker':LinkMaker(biorel.name, biorel=biorel)}
-        
-    elif 'bioent_name' in request.GET:
-        #Need an interaction evidence page based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
-        if bioent is None:
-            return Response(status_int=500, body='Bioent could not be found.')
-        name = 'Evidence for interactions with ' + bioent.name
-        name_with_link = 'Evidence for interactions with ' + bioent.name_with_link
-        description = 'Evidence for all interactions associated with ' + bioent.name
-        return {'layout': site_layout(), 'page_title': name, 'name':name, 'name_with_link':name_with_link, 'description':description, 'hide_interactor':False,
-                'bioent1':bioent, 'bioent2':None, 'link_maker':LinkMaker(bioent.name, bioent=bioent)}
-
-    else:
-        return Response(status_int=500, body='No Bioent or Biorel specified.')
-
-@view_config(route_name='interaction_overview_table', renderer='json')
+@view_config(route_name='interaction_overview_table', renderer='jsonp')
 def interaction_overview_table(request):
-    if 'bioent_name' in request.GET:
+    if 'bioent' in request.GET:
         #Need an interaction overview table based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
+        bioent_name = request.GET['bioent']
+        bioent = get_bioent(bioent_name, 'LOCUS')
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
         biorels = get_biorels('INTERACTION', bioent.id)
         #interevidences = get_interaction_evidence(biorels)
         return make_overview_tables(False, biorels, bioent) 
     
-    elif 'reference_name' in request.GET:
+    elif 'reference' in request.GET:
         #Need an interaction overview table based on a reference
-        ref_name = request.GET['reference_name']
+        ref_name = request.GET['reference']
         ref_id = get_reference_id(ref_name)
         if ref_id is None:
             return Response(status_int=500, body='Reference could not be found.')
@@ -70,21 +37,21 @@ def interaction_overview_table(request):
         return Response(status_int=500, body='No Bioent or Reference specified.')
 
 
-@view_config(route_name='interaction_evidence_table', renderer='json')
+@view_config(route_name='interaction_evidence_table', renderer='jsonp')
 def interaction_evidence_table(request):
-    if 'biorel_name' in request.GET:
+    if 'biorel' in request.GET:
         #Need an interaction evidence table based on a biorel
-        biorel_name = request.GET['biorel_name']
+        biorel_name = request.GET['biorel']
         biorel_id = get_biorel_id(biorel_name, 'INTERACTION')
         if biorel_id is None:
             return Response(status_int=500, body='Biorel could not be found.')
         interevidences = get_interaction_evidence(biorel_id=biorel_id)
         return make_evidence_tables(True, interevidences) 
         
-    elif 'bioent_name' in request.GET:
+    elif 'bioent' in request.GET:
         #Need an interaction evidence table based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
+        bioent_name = request.GET['bioent']
+        bioent = get_bioent(bioent_name, 'LOCUS')
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
         interevidences = get_interaction_evidence(bioent_id=bioent.id)
@@ -93,12 +60,12 @@ def interaction_evidence_table(request):
     else:
         return Response(status_int=500, body='No Bioent or Biorel specified.')
     
-@view_config(route_name='interaction_graph', renderer="json")
+@view_config(route_name='interaction_graph', renderer="jsonp")
 def interaction_graph(request):
-    if 'bioent_name' in request.GET:
+    if 'bioent' in request.GET:
         #Need an interaction graph based on a bioent
-        bioent_name = request.GET['bioent_name']
-        bioent = get_bioent(bioent_name)
+        bioent_name = request.GET['bioent']
+        bioent = get_bioent(bioent_name, 'LOCUS')
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
         return create_interaction_graph(bioent=bioent)

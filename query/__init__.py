@@ -9,7 +9,7 @@ from model_new_schema.go import Goevidence, Go
 from model_new_schema.interaction import Interevidence, Interaction
 from model_new_schema.phenotype import Phenoevidence, Phenotype, \
     PhenoevidenceChemical
-from model_new_schema.reference import Reference, Author
+from model_new_schema.reference import Reference, Author, AuthorReference
 from model_new_schema.search import Typeahead
 from model_new_schema.sequence import Sequence
 from schema_conversion import prepare_schema_connection
@@ -25,6 +25,7 @@ session = DBSession
 
 
 biocon_type_to_class = {'PHENOTYPE':Phenotype, 'GO':Go}
+bioent_type_to_class = {'LOCUS':Locus}
 biorel_type_to_class = {'INTERACTION':Interaction}
 
 #Used for go and phenotype pages and go_evidence, phenotype_evidence pages
@@ -64,7 +65,7 @@ def get_biocon_id(biocon_name, biocon_type, print_query=False):
 #Used for LSP (Locus summary page) and go_evidence, phenotype_evidence, interaction_evidence pages. 
 #Also used for interaction_overview, interaction_evidence table
 #Also used for go_graph, interaction_graph.
-def get_bioent(bioent_name, print_query=False):
+def get_bioent(bioent_name, bioent_type, print_query=False):
     '''
     get_bioent('YFL039C', print_query=True)
 
@@ -72,14 +73,14 @@ def get_bioent(bioent_name, print_query=False):
     FROM sprout.bioent LEFT OUTER JOIN sprout.gene ON sprout.gene.bioent_id = sprout.bioent.bioent_id 
     WHERE sprout.bioent.name = :name_1
     '''
-    query = session.query(with_polymorphic(Bioentity, [Locus])).filter(Bioentity.format_name==bioent_name)
+    query = session.query(with_polymorphic(Bioentity, [bioent_type_to_class[bioent_type]])).filter(Bioentity.format_name==bioent_name)
     bioent = query.first()
     if print_query:
         print query
     return bioent
 
 #Used to create go_overview, phenotype_overview, go_evidence, and phenotype_evidence tables
-def get_bioent_id(bioent_name, print_query=False):
+def get_bioent_id(bioent_name, bioent_type, print_query=False):
     '''
     get_bioent_id('YFL039C', print_query=True)
 
@@ -87,7 +88,7 @@ def get_bioent_id(bioent_name, print_query=False):
     FROM sprout.bioent 
     WHERE sprout.bioent.name = :name_1
     '''
-    query = session.query(Bioentity).filter(Bioentity.format_name==bioent_name)
+    query = session.query(Bioentity).filter(Bioentity.bioent_type==bioent_type).filter(Bioentity.format_name==bioent_name)
     bioent = query.first()
     bioent_id = None
     if bioent is not None:
@@ -193,11 +194,31 @@ def get_author(author_name, print_query=False):
     FROM sprout.author LEFT OUTER JOIN sprout.author_reference author_reference_1 ON sprout.author.author_id = author_reference_1.author_id 
     WHERE sprout.author.author_name = :author_name_1
     '''
-    query = session.query(Author).options(joinedload('author_references')).filter(Author.name==author_name)
+    query = session.query(Author).options(joinedload('author_references')).filter(Author.format_name==author_name)
     author = query.first()
     if print_query:
         print query
     return author
+
+#Used for Author page.
+def get_author_id(author_name, print_query=False):
+    query = session.query(Author).filter(Author.format_name==author_name)
+    author = query.first()
+    author_id = None
+    if author is not None:
+        author_id = author.id
+    if print_query:
+        print query
+    return author_id
+
+#Used for Author page.
+def get_assoc_reference(author_id=None, print_query=False):
+    query = session.query(AuthorReference).options(joinedload('reference')).filter(AuthorReference.author_id==author_id)
+    auth_refs = query.all()
+    references = [auth_ref.reference for auth_ref in auth_refs]
+    if print_query:
+        print query
+    return references
  
 #Used for interaction_overview_table.
 def get_biorels(biorel_type, bioent_id, print_query=False):
@@ -328,7 +349,7 @@ def get_biocon_biocons(biocon_ids, print_query=False):
     return related_biocon_biocons
 
 #Used for go_graph.
-def get_related_biofacts(biocon_ids, biocon_type, print_query=False):
+def get_related_biofacts(biocon_type, biocon_ids=None, bioent_ids=None, print_query=False):
     '''
     get_related_biofacts([get_biocon_id('DNA_repair', 'GO')], 'GO', print_query=True)
     
@@ -338,7 +359,12 @@ def get_related_biofacts(biocon_ids, biocon_type, print_query=False):
     WHERE sprout.biofact.biocon_id IN (:biocon_id_1)
     '''
     biocon_class = biocon_type_to_class[biocon_type]
-    query = session.query(Biofact).options(joinedload('bioentity'), joinedload(Biofact.bioconcept.of_type(biocon_class))).filter(Biofact.biocon_id.in_(biocon_ids))
+    query = session.query(Biofact).filter(Biofact.biocon_type==biocon_type).options(joinedload('bioentity'), joinedload(Biofact.bioconcept.of_type(biocon_class)))
+    
+    if biocon_ids is not None:
+        query = query.filter(Biofact.biocon_id.in_(biocon_ids))
+    if bioent_ids is not None:
+        query = query.filter(Biofact.bioent_id.in_(bioent_ids))
     biofacts = query.all()
     if print_query:
         print query
@@ -355,7 +381,7 @@ def get_go_evidence(bioent_id=None, biocon_id=None, reference_id=None, print_que
     FROM sprout.biocon JOIN sprout.goterm ON sprout.goterm.biocon_id = sprout.biocon.biocon_id) anon_2 ON anon_2.sprout_goterm_biocon_id = sprout.goevidence.biocon_id LEFT OUTER JOIN sprout.reference reference_1 ON reference_1.reference_id = sprout.evidence.reference_id 
     WHERE sprout.goevidence.bioent_id = :bioent_id_1
     '''
-    query = session.query(Goevidence).options(joinedload('reference'), joinedload(Goevidence.gene), joinedload(Goevidence.goterm))
+    query = session.query(Goevidence).options(joinedload('reference'), joinedload('gene'), joinedload('goterm'))
     if bioent_id is not None:
         query = query.filter(Goevidence.bioent_id==bioent_id)
     if biocon_id is not None:
@@ -557,7 +583,7 @@ def get_objects(search_results, print_query=False):
     query2 = None
     query3 = None
     if len(bioent_ids) > 0:
-        query1 = session.query(Bioentity).options(joinedload('aliases')).filter(Bioentity.id.in_(bioent_ids))
+        query1 = session.query(Bioentity).options(joinedload('bioentaliases')).filter(Bioentity.id.in_(bioent_ids))
         bioents = query1.all()
         tuple_to_obj.update([((obj.type, obj.id), obj) for obj in bioents])
     

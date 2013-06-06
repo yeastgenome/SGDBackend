@@ -7,6 +7,7 @@ from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.config import SCHEMA
 from model_new_schema.link_maker import add_link, biocon_link
 from model_new_schema.misc import Alias
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
@@ -29,6 +30,9 @@ class Bioconcept(Base, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_on': biocon_type,
                        'polymorphic_identity':"BIOCONCEPT"}
     
+    #Relationships
+    aliases = association_proxy('bioconaliases', 'name')
+    
     def __init__(self, biocon_id, biocon_type, display_name, format_name, description, date_created, created_by):
         self.id = biocon_id
         self.biocon_type = biocon_type
@@ -47,6 +51,9 @@ class Bioconcept(Base, EqualityByIDMixin):
     @hybrid_property
     def name_with_link(self):
         return add_link(self.display_name, self.link)
+    @hybrid_property
+    def alias_str(self):
+        return ', '.join(self.aliases)
     @hybrid_property
     def search_entry_title(self):
         return self.name_with_link
@@ -113,7 +120,7 @@ class BioconAlias(Alias):
                        'inherit_condition': id == Alias.id}
         
     #Relationships
-    biocon = relationship(Bioconcept, uselist=False, backref=backref('aliases', passive_deletes=True))
+    biocon = relationship(Bioconcept, uselist=False, backref=backref('bioconaliases', passive_deletes=True))
         
     def __init__(self, name, biocon_id, biocon_type, date_created, created_by):
         Alias.__init__(self, name, 'BIOCON_ALIAS', None, None, date_created, created_by)
