@@ -62,7 +62,6 @@ def assoc_references(request):
 
 
 def add_bioent_hyperlinks(text):
-    text = str(text) 
     if text is None:
         return None
     bioentities = find_bioentities(text)
