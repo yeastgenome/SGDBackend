@@ -1,8 +1,7 @@
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_reference, get_author, get_chemical, get_bioent, \
-    get_biocon, get_biorel, get_author_id, get_assoc_reference
-from utils.utils import make_reference_list
+from query import get_chemical, get_bioent, \
+    get_biocon, get_biorel
 
 
 @view_config(route_name='bioent', renderer='json')
@@ -65,54 +64,6 @@ def chemical(request):
                      'aliases': chemical.alias_str
                      }
     return chemical_json
-
-@view_config(route_name='reference', renderer='json')
-def reference_view(request):
-    ref_name = request.matchdict['reference']
-    reference = get_reference(ref_name)   
-    if reference is None:
-        return Response(status_int=500, body='Reference could not be found.') 
-    
-    reference_json = {
-                     'format_name': reference.format_name,
-                     'display_name': reference.display_name,
-                     'name_with_link': reference.name_with_link,
-                     'abstract': reference.abstract,
-                     'pubmed_id': reference.pubmed_id_with_link,
-                     'authors': reference.author_str,
-                     'reftypes': reference.reftype_str,
-                     'related_references': reference.related_ref_str,
-                     'urls': reference.url_str,
-                     'citation': reference.citation_db
-                     }
-    return reference_json
-
-@view_config(route_name='author', renderer='json')
-def author_view(request):
-    author_name = request.matchdict['author']
-    author = get_author(author_name)
-    if author is None:
-            return Response(status_int=500, body='Author could not be found.') 
-        
-    author_json = {
-                    'format_name': author.format_name,
-                     'display_name': author.display_name,
-                     'name_with_link': author.name_with_link
-                   }
-    return author_json
-
-@view_config(route_name='assoc_references', renderer='jsonp')
-def assoc_references(request):
-    if 'author' in request.GET:
-        #Need associated references for an author.
-        author_name = request.GET['author']
-        author_id = get_author_id(author_name)
-        if author_id is None:
-            return Response(status_int=500, body='Author could not be found.')
-        references = get_assoc_reference(author_id=author_id)
-        return make_reference_list(references=references)
-    else:
-        return Response(status_int=500, body='No Author specified.')
 
 
 
