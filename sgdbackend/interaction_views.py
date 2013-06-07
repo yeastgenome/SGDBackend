@@ -3,12 +3,13 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
+from model_new_schema.link_maker import add_link
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_biorels, get_interactions, get_bioent, \
-    get_reference_id, get_interaction_evidence, get_biorel_id
-from utils.utils import create_simple_table, make_reference_list, \
-    entry_with_link
+from query import get_biorels, get_interactions, get_bioent, get_reference_id, \
+    get_interaction_evidence, get_biorel_id
+from sgdbackend.utils import create_simple_table, make_reference_list
+
 
 
 @view_config(route_name='interaction_overview_table', renderer='jsonp')
@@ -99,7 +100,7 @@ def make_overview_table(biorels, bioent):
         else:
             orig_bioent = biorel.source_bioent
             opp_bioent = biorel.sink_bioent
-        return [orig_bioent.name_with_link, opp_bioent.name_with_link, biorel.genetic_evidence_count, biorel.physical_evidence_count, entry_with_link(str(biorel.evidence_count), biorel.link)]
+        return [orig_bioent.name_with_link, opp_bioent.name_with_link, biorel.genetic_evidence_count, biorel.physical_evidence_count, add_link(str(biorel.evidence_count), biorel.link)]
         
     return create_simple_table(biorels, f, bioent=bioent) 
 
@@ -111,7 +112,7 @@ def make_overview_row(biorel, evs_for_group, group_term):
         orig_bioent = biorel.source_bioent
         opp_bioent = biorel.sink_bioent
     divided_evidences = divide_interevidences(evs_for_group)
-    total = entry_with_link(str(len(evs_for_group)), biorel.link)
+    total = add_link(str(len(evs_for_group)), biorel.link)
     return [orig_bioent.name_with_link, opp_bioent.name_with_link, len(divided_evidences['genetic']), len(divided_evidences['physical']), total]
 
     

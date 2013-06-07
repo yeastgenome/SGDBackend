@@ -1,10 +1,13 @@
 #SGD Website Project
 
-There are six packages in this project...
+This project is a backend webaplication used for the SGD Nextgen Redesign. It returns data in JSON format at a 
+variety of URLs.
+
+There are seven packages in this project...
 
 1. **model_new_schema**
 
- This is a fairly well-developed SQLAlchemy back-end based off of the new SGD schema available on cherry-vm08, as SPROUT.
+ This is a well-developed SQLAlchemy back-end based off of the new SGD schema available on cherry-vm08, as SPROUT.
 
 2. **model_old_schema**
 
@@ -12,19 +15,23 @@ There are six packages in this project...
 
 3. **query**
 
- This is a very simple package with common queries used throughout the front-end. I've put them together to make it 
+ This is a very simple package with all queries used throughout the front-end. I've put them together to make it 
 easier to work on query optimization.
 
 4. **schema_conversion**
 
  This package pulls data from the old schema and inserts it into the new_schema using the two SQLAlchemy backends in 
-model_new_schema and model_old_schema. This package needs to be cleaned up quite a bit. Right now, old_to_new_sequence 
-and old_to_new_bioentity are the two best examples of what this package will eventually look like.
+model_new_schema and model_old_schema. All of the convert_X scripts work by reading in data from the BUD schema,
+transforming the data into SPROUT objects, then comparing these objects to the objects already in the SPROUT database.
+If a transformed object matches a stored object (matching done using unique keys), then the stored object is updated
+to match the transformed object. If a transformed object does not match any of the stored objects, then it is inserted
+into the database.
 
-5. **sgd2**
+5. **sgdbackend**
 
- This package contains the new SGD2.0 web application. The application is built using the Pyramid web framework.
+ This package uses the Pyramid webframework to serve JSON.
+ 
+6. **loading_scripts**
 
-6. **utils**
-
- This is a catch all package for any useful methods that may be useful throughout the application.
+ This package will eventually be used for scripts that load data from other sources (flat files for example) into
+ the SPROUT database.

@@ -13,12 +13,13 @@ from model_new_schema.reference import Reference, Author, AuthorReference
 from model_new_schema.search import Typeahead
 from model_new_schema.sequence import Sequence
 from schema_conversion import prepare_schema_connection
-from sgd2.models import DBSession
+from sgdbackend.models import DBSession
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
 from sqlalchemy.orm.util import with_polymorphic
 from sqlalchemy.sql.expression import func
 import math
 import model_new_schema
+import string
 
 session = DBSession
 #session = prepare_schema_connection(model_new_schema, new_config)()
@@ -606,6 +607,27 @@ def get_objects(search_results, print_query=False):
         print query2
         print query3
     return ordered_objects
+
+#Used to make bioent_names into links for reference abstracts.
+def find_bioentities(text, print_query=False):
+    """
+    Find all bioentities (format_name/display_name) within a piece of text.
+    """            
+    
+    name_to_feature = {}
+
+    if text is not None and text != '':
+        words = text.upper().translate(string.maketrans("",""), string.punctuation).split()
+    
+        upper_words = [x.upper() for x in words]
+        bioents_by_format_name = set(session.query(Bioentity).filter(func.upper(Bioentity.format_name).in_(upper_words)).all())
+        bioents_by_display_name = set(session.query(Bioentity).filter(func.upper(Bioentity.display_name).in_(upper_words)).all())
+                  
+        #Create table mapping name -> Feature        
+        name_to_feature.update([(bioent.format_name, bioent) for bioent in bioents_by_format_name])
+        name_to_feature.update([(bioent.display_name, bioent) for bioent in bioents_by_display_name])
+              
+    return name_to_feature
         
 #Used to break very large queries into a manageable size.
 chunk_size = 500

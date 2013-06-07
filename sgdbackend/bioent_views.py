@@ -7,7 +7,7 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_bioent, get_bioent_id, get_bioent_evidence, \
     get_reference_id
-from utils.utils import create_simple_table, make_reference_list
+from sgdbackend.utils import make_reference_list, create_simple_table
 
 @view_config(route_name='locus', renderer='json')
 def locus(request):

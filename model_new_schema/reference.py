@@ -129,7 +129,7 @@ class Reference(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return self.citation_db
-        
+            
     @hybrid_property
     def authors(self):
         sorted_author_refs = sorted(list(self.author_references), key=lambda x: x.order)

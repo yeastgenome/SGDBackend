@@ -1,5 +1,0 @@
-cytoscape_web
-model_new_schema
-sgd2
-model_old_schema
-schema_conversion

@@ -4,7 +4,6 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative.api import declarative_base
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.types import Float
-from utils.utils import float_approx_equal
 import datetime
 
 def prepare_schema_connection(model_cls, config_cls):
@@ -137,6 +136,16 @@ def check_url(url):
             return True
     except Exception:
         return False
+    
+def float_approx_equal(x, y, tol=1e-18, rel=1e-7):
+    #http://code.activestate.com/recipes/577124-approximately-equal/
+    if tol is rel is None:
+        raise TypeError('cannot specify both absolute and relative errors are None')
+    tests = []
+    if tol is not None: tests.append(tol)
+    if rel is not None: tests.append(rel*abs(x))
+    assert tests
+    return abs(x - y) <= max(tests)
     
     
     

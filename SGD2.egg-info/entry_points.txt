@@ -1,5 +1,0 @@
-      [paste.app_factory]
-      main = sgd2:main
-      [console_scripts]
-      initialize_SGD2_db = sgd2.scripts.initializedb:main
-      
