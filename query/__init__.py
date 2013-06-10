@@ -5,10 +5,10 @@ from model_new_schema.bioentity import Bioentity, BioentRelation, Bioentevidence
     Locus
 from model_new_schema.biofact import Biofact
 from model_new_schema.chemical import Chemical
+from model_new_schema.evidence import EvidenceChemical
 from model_new_schema.go import Goevidence, Go
 from model_new_schema.interaction import Interevidence, Interaction
-from model_new_schema.phenotype import Phenoevidence, Phenotype, \
-    PhenoevidenceChemical
+from model_new_schema.phenotype import Phenoevidence, Phenotype
 from model_new_schema.reference import Reference, Author, AuthorReference
 from model_new_schema.search import Typeahead
 from model_new_schema.sequence import Sequence
@@ -410,7 +410,7 @@ def get_phenotype_evidence(bioent_id=None, biocon_id=None, reference_id=None, ch
     query = session.query(Phenoevidence).options(joinedload('reference'), joinedload('gene'), joinedload('phenotype'))
     phenoevidences = None
     if chemical_id is not None:
-        phenoevidence_ids = [x.evidence_id for x in session.query(PhenoevidenceChemical).filter(PhenoevidenceChemical.chemical_id==chemical_id).all()]
+        phenoevidence_ids = [x.evidence_id for x in session.query(EvidenceChemical).filter(EvidenceChemical.chemical_id==chemical_id).all()]
         phenoevidences = set()
         def f(chunk_phenoevidence_ids):
             new_query = query.filter(Phenoevidence.id.in_(chunk_phenoevidence_ids))

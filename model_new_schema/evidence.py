@@ -4,7 +4,9 @@ Created on Dec 11, 2012
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema.chemical import Chemical
 from model_new_schema.reference import Reference
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
@@ -22,6 +24,7 @@ class Evidence(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     
     reference = relationship(Reference, backref=backref('evidences', passive_deletes=True), uselist=False)
+    chemicals = association_proxy('ev_chemicals', 'chemical')
     
     __mapper_args__ = {'polymorphic_on': evidence_type,
                        'polymorphic_identity':"EVIDENCE"}
@@ -40,9 +43,26 @@ class Evidence(Base, EqualityByIDMixin):
     def unique_key(self):
         return self.id
     
-    def __repr__(self):
-        data = self.__class__.__name__, self.id
-        return '%s(id=%s)' % data
+class EvidenceChemical(Base):
+    __tablename__ = 'evidence_chemical'
+    
+    id = Column('evidence_chemical_id', Integer, primary_key=True)
+    evidence_id = Column('evidence_id', Integer, ForeignKey(Evidence.id))
+    chemical_id = Column('chemical_id', Integer, ForeignKey(Chemical.id))
+    chemical_amt = Column('chemical_amount', String)
+    
+    #Relationships
+    chemical = relationship(Chemical, uselist=False, lazy='joined')
+    evidence = relationship(Evidence, backref=backref('ev_chemicals', passive_deletes=True), uselist=False)
+    chemical_name = association_proxy('chemical', 'display_name')
+    
+    def __init__(self, evidence_id, chemical_id, chemical_amt):
+        self.evidence_id = evidence_id
+        self.chemical_id = chemical_id
+        self.chemical_amt = chemical_amt
+    
+    def unique_key(self):
+        return (self.evidence_id, self.chemical_id)
     
 
         

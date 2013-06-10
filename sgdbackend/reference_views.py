@@ -65,7 +65,6 @@ def add_bioent_hyperlinks(text):
     if text is None:
         return None
     bioentities = find_bioentities(text)
-    print bioentities 
     word_to_link = {}
     for name, bioent in bioentities.iteritems():
         word_to_link[name.upper()] = bioent.link

@@ -3,15 +3,12 @@ Created on May 15, 2013
 
 @author: kpaskov
 '''
-from model_new_schema import Base
 from model_new_schema.bioconcept import Bioconcept
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.chemical import Chemical
 from model_new_schema.evidence import Evidence
 from model_new_schema.misc import Allele
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Float
 
@@ -68,7 +65,6 @@ class Phenoevidence(Evidence):
     gene = relationship(Bioentity, uselist=False)
     phenotype = relationship(Phenotype, uselist=False)
     allele = relationship(Allele, lazy='subquery', uselist=False, backref='phenoevidences')
-    chemicals = association_proxy('phenoev_chemicals', 'chemical')
 
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE",
                        'inherit_condition': id==Evidence.id}
@@ -81,27 +77,7 @@ class Phenoevidence(Evidence):
         self.qualifier = qualifier
         self.bioent_id = bioent_id
         self.biocon_id = biocon_id
-        
-class PhenoevidenceChemical(Base):
-    __tablename__ = 'phenoevidence_chemical'
     
-    id = Column('phenoevidence_chemical_id', Integer, primary_key=True)
-    evidence_id = Column('evidence_id', Integer, ForeignKey(Phenoevidence.id))
-    chemical_id = Column('chemical_id', Integer, ForeignKey(Chemical.id))
-    chemical_amt = Column('chemical_amount', String)
-    
-    #Relationships
-    chemical = relationship(Chemical, uselist=False, lazy='joined')
-    evidence = relationship(Phenoevidence, backref=backref('phenoev_chemicals', passive_deletes=True), uselist=False)
-    chemical_name = association_proxy('chemical', 'display_name')
-    
-    def __init__(self, evidence_id, chemical_id, chemical_amt):
-        self.evidence_id = evidence_id
-        self.chemical_id = chemical_id
-        self.chemical_amt = chemical_amt
-    
-    def unique_key(self):
-        return (self.evidence_id, self.chemical_id)
         
         
 
