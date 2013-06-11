@@ -33,6 +33,7 @@ class Url(Base):
     __tablename__ = 'url'
     id = Column('url_id', Integer, primary_key=True)
     url = Column('url', String)
+    display_name = Column('display_name', String)
     source = Column('source', String)
     url_type = Column('url_type', String)
     date_created = Column('date_created', Date)
@@ -41,8 +42,9 @@ class Url(Base):
     __mapper_args__ = {'polymorphic_on': url_type,
                        'polymorphic_identity':"URL"}
     
-    def __init__(self, url, url_type, source, date_created, created_by):
+    def __init__(self, url, display_name, url_type, source, date_created, created_by):
         self.url = url
+        self.display_name = display_name
         self.url_type = url_type
         self.source = source
         self.date_created = date_created

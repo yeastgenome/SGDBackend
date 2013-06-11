@@ -16,7 +16,7 @@ class Evidence(Base, EqualityByIDMixin):
     
     id = Column('evidence_id', Integer, primary_key=True)
     experiment_type = Column('experiment_type', String)
-    reference_id = Column('reference_id', Integer, ForeignKey('sprout.reference.reference_id'))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     evidence_type = Column('evidence_type', String)
     strain_id = Column('strain_id', String)
     source = Column('source', String)
@@ -43,7 +43,7 @@ class Evidence(Base, EqualityByIDMixin):
     def unique_key(self):
         return self.id
     
-class EvidenceChemical(Base):
+class EvidenceChemical(Base, EqualityByIDMixin):
     __tablename__ = 'evidence_chemical'
     
     id = Column('evidence_chemical_id', Integer, primary_key=True)
@@ -63,8 +63,8 @@ class EvidenceChemical(Base):
     
     def unique_key(self):
         return (self.evidence_id, self.chemical_id)
-    
 
+    
         
 
     

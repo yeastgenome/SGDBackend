@@ -80,7 +80,7 @@ class Reference(Base, EqualityByIDMixin):
     citation_db = Column('citation', String)
     year = Column('year', Integer)
     date_published = Column('date_published', String)
-    date_revised = Column('date_revised', String)
+    date_revised = Column('date_revised', Integer)
     issue = Column('issue', String)
     page = Column('page', String)
     volume = Column('volume', String)
@@ -102,7 +102,7 @@ class Reference(Base, EqualityByIDMixin):
     reftype_names = association_proxy('reftypes', 'name')
     related_references = association_proxy('refrels', 'child_ref')
     
-    def __init__(self, reference_id, display_name, format_name, source, status, pdf_status, 
+    def __init__(self, reference_id, display_name, format_name, source, status, pubmed_id, pdf_status, 
                  citation, year, date_published, date_revised, issue, page, volume, title, 
                  journal_id, book_id, doi, abstract, date_created, created_by):
         self.id = reference_id

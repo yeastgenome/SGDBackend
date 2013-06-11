@@ -118,13 +118,19 @@ def create_url(old_url, id_to_bioentity):
         url = url.replace('_SUBSTITUTE_THIS_', str(old_url.feature.name))
     else:
         print "Can't handle this url. " + old_url.url.url_id
+        
+    display_name = None
+    for display in old_url.url.displays:
+        potential_name = display.label_name
+        if potential_name != 'default' and (display_name is None or len(potential_name) > len(display_name)):
+            display_name = potential_name
 
     bioent_id = old_url.feature_id
     if bioent_id not in id_to_bioentity:
         print 'Bioentity does not exist.'
         return None
     
-    new_url = NewBioentUrl(url, old_url.url.source, bioent_id, old_url.url.date_created, old_url.url.created_by)
+    new_url = NewBioentUrl(url, display_name, old_url.url.source, bioent_id, old_url.url.date_created, old_url.url.created_by)
     return new_url 
 
 def create_bioentevidence_id(old_bioentevidence_id):
@@ -156,7 +162,8 @@ def create_bioentevidence(old_bioentevidence, id_to_reference, id_to_bioentity):
 
 def convert(old_session_maker, new_session_maker):
     from model_old_schema.reference import LitguideFeat as OldLitguideFeat
-    from model_old_schema.feature import Feature as OldFeature, AliasFeature as OldAliasFeature, FeatUrl as OldFeatUrl
+    from model_old_schema.feature import Feature as OldFeature, AliasFeature as OldAliasFeature
+    from model_old_schema.general import FeatUrl as OldFeatUrl
     
 #    # Convert Locus
 #    print 'Locus'
@@ -217,7 +224,7 @@ def convert(old_session_maker, new_session_maker):
     new_session = new_session_maker()
     try:
         old_session = old_session_maker()
-        old_urls = old_session.query(OldFeatUrl).options(joinedload('url'), joinedload('feature')).all()
+        old_urls = old_session.query(OldFeatUrl).options(joinedload('url'), joinedload('feature'), joinedload('url.displays')).all()
 
         success = False
         while not success:
@@ -306,7 +313,7 @@ def convert_urls(new_session, old_urls):
     #Create new urls if they don't exist, or update the database if they do. 
     new_urls = [create_url(x, id_to_bioentity) for x in old_urls]
     
-    values_to_check = ['source', 'bioent_id', 'created_by', 'date_created']
+    values_to_check = ['display_name', 'source', 'bioent_id', 'created_by', 'date_created']
     success = create_or_update_and_remove(new_urls, key_to_url, values_to_check, new_session)
     return success
         

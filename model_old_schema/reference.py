@@ -431,16 +431,6 @@ class RefRelation(Base):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
-class Ref_URL(Base):
-    __tablename__ = 'ref_url'
-    
-    id = Column('ref_url_no', Integer, primary_key = True)
-    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
-    url_id = Column('url_no', Integer, ForeignKey('bud.url.url_no'))
-    
-    url = relationship('Url')
-    reference = relationship(Reference)
-    
 class Litguide(Base):
     __tablename__ = 'lit_guide'
     

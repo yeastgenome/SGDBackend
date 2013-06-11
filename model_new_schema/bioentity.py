@@ -178,8 +178,8 @@ class BioentUrl(Url):
     #Relationships
     reference = relationship(Bioentity, uselist=False, backref=backref('urls', passive_deletes=True))
     
-    def __init__(self, url, source, bioent_id, date_created, created_by):
-        Url.__init__(self, url, 'BIOENT_URL', source, date_created, created_by)
+    def __init__(self, url, display_name, source, bioent_id, date_created, created_by):
+        Url.__init__(self, url, display_name, 'BIOENT_URL', source, date_created, created_by)
         self.bioent_id = bioent_id
                        
 class Locus(Bioentity):

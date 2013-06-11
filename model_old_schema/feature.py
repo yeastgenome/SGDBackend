@@ -84,19 +84,6 @@ class FeatRel(Base, EqualityByIDMixin):
     relationship_type = Column('relationship_type', String)
     rank = Column('rank', Integer)
     
-class FeatUrl(Base, EqualityByIDMixin):
-    __tablename__ = 'feat_url'
-    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
-
-    #Values
-    id = Column('feat_url_no', Integer, primary_key = True)
-    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
-    url_id = Column('url_no', Integer, ForeignKey('bud.url.url_no'))
-    
-    #Relationships
-    feature = relationship(Feature, uselist=False)
-    url = relationship('Url', uselist=False)
-    
 class Annotation(Base, EqualityByIDMixin):
     __tablename__ = 'feat_annotation'
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
