@@ -17,6 +17,9 @@ class Phenotype(Bioconcept):
     __tablename__ = "phenotype"
     
     id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
+    observable = Column('observable', String)
+    qualifier = Column('qualifier', String)
+    mutant_type = Column('mutant_type', String)
     phenotype_type = Column('phenotype_type', String)
     direct_gene_count = Column('direct_gene_count', Integer)
     type = "PHENOTYPE"
@@ -25,10 +28,14 @@ class Phenotype(Bioconcept):
                        'inherit_condition': id==Bioconcept.id}
 
     def __init__(self, biocon_id, display_name, format_name, 
-                 description, phenotype_type, date_created, created_by):
+                 observable, qualifier, mutant_type,
+                 phenotype_type, date_created, created_by):
         Bioconcept.__init__(self, biocon_id, 'PHENOTYPE', display_name, format_name, 
-                            description, date_created, created_by)
+                            None, date_created, created_by)
         self.phenotype_type = phenotype_type
+        self.observable = observable
+        self.qualifier = qualifier
+        self.mutant_type = mutant_type
         
     @hybrid_property
     def search_entry_type(self):
@@ -38,9 +45,7 @@ class Phenoevidence(Evidence):
     __tablename__ = "phenoevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    mutant_type = Column('mutant_type', String)
     mutant_allele_id = Column('mutant_allele', Integer, ForeignKey(Allele.id))
-    qualifier = Column('qualifier', String)
     
     reporter = Column('reporter', String)
     reporter_desc = Column('reporter_desc', String)
@@ -70,13 +75,11 @@ class Phenoevidence(Evidence):
                        'inherit_condition': id==Evidence.id}
     
     def __init__(self, evidence_id, experiment_type, reference_id, strain_id, source,
-                 mutant_type, qualifier, bioent_id, biocon_id,
+                 bioent_id, biocon_id,
                  mutant_allele_id, allele_info,
                  reporter, reporter_desc, strain_details, experiment_details, conditions, details,
                  date_created, created_by):
         Evidence.__init__(self, evidence_id, experiment_type, reference_id, 'PHENOTYPE_EVIDENCE', strain_id, source, date_created, created_by)
-        self.mutant_type = mutant_type
-        self.qualifier = qualifier
         self.bioent_id = bioent_id
         self.biocon_id = biocon_id
         

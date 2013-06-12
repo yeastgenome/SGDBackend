@@ -126,26 +126,26 @@ def make_overview_tables(divided, phenoevidences):
     return tables    
 
 def make_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (evidence.gene, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (evidence.gene, evidence.phenotype)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_overview_row) 
 
 def make_chemical_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (', '.join([chem.name_with_link for chem in evidence.chemicals]), evidence.gene, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (', '.join([chem.name_with_link for chem in evidence.chemicals]), evidence.gene, evidence.phenotype)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_grouped_overview_row) 
 
 def make_pp_rna_overview_table(phenoevidences):
-    evidence_map = dict([(evidence.id, (evidence.reporter, evidence.gene, evidence.phenotype, evidence.qualifier, evidence.mutant_type)) for evidence in phenoevidences])
+    evidence_map = dict([(evidence.id, (evidence.reporter, evidence.gene, evidence.phenotype)) for evidence in phenoevidences])
     return create_grouped_evidence_table(phenoevidences, evidence_map, make_grouped_overview_row) 
 
 def make_overview_row(evs_for_group, group_term):
     bioent = group_term[0]
     biocon = group_term[1]
-    return [biocon.name_with_link, bioent.name_with_link, group_term[2], group_term[3]]
+    return [biocon.observable, bioent.name_with_link, biocon.qualifier, biocon.mutant_type]
 
 def make_grouped_overview_row(evs_for_group, group_term):
     bioent = group_term[1]
     biocon = group_term[2]
-    return [biocon.name_with_link, bioent.name_with_link, group_term[0], group_term[3], group_term[4]]
+    return [biocon.observable, bioent.name_with_link, group_term[0], biocon.qualifier, biocon.mutant_type]
     
 '''
 -------------------------------Evidence Table---------------------------------------
@@ -191,8 +191,8 @@ def make_evidence_row(phenoevidence):
         chemical_info = None
 
      
-    return [biocon.name_with_link, bioent.name_with_link, 
-            phenoevidence.qualifier, phenoevidence.experiment_type, phenoevidence.mutant_type, allele_entry,
+    return [biocon.observable, bioent.name_with_link, 
+            biocon.qualifier, biocon.mutant_type, phenoevidence.experiment_type, allele_entry,
             phenoevidence.reporter, chemical_info, phenoevidence.experiment_details, phenoevidence.conditions, phenoevidence.details, 
             phenoevidence.strain_id, phenoevidence.source, reference]
     

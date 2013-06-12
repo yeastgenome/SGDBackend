@@ -8,6 +8,8 @@ from model_old_schema import config as old_config
 from schema_conversion import create_or_update_and_remove, ask_to_commit, \
     prepare_schema_connection, cache_by_key, cache_by_id, create_format_name, \
     create_or_update
+from schema_conversion.auxillary_tables import update_biocon_gene_counts, \
+    convert_biocon_ancestors
 from sqlalchemy.orm import joinedload
 import datetime
 import model_new_schema
@@ -29,10 +31,18 @@ def create_phenotype_id(old_phenotype_id):
 def create_phenoevidence_id(old_evidence_id):
     return old_evidence_id
 
-def create_phenotype_key(observable):
-    name = observable.replace(' ', '_')
-    name = name.replace('/', '-')
-    return (name, 'PHENOTYPE')
+def create_phenotype_display_name(observable, qualifier, mutant_type):
+    if mutant_type is None:
+        mutant_type = 'None'
+    if qualifier is None:
+        display_name = observable + ' in ' + mutant_type + ' mutant'
+    else:
+        display_name = qualifier + ' ' + observable + ' in ' + mutant_type + ' mutant'
+    return display_name
+def create_phenotype_key(observable, qualifier, mutant_type):
+    display_name = create_phenotype_display_name(observable, qualifier, mutant_type)
+    format_name = create_format_name(display_name)
+    return (format_name, 'PHENOTYPE')
 
 def create_phenotype_type(observable):
     if observable in {'chemical compound accumulation', 'resistance to chemicals', 'osmotic stress resistance', 'alkaline pH resistance',
@@ -47,10 +57,15 @@ def create_phenotype_type(observable):
 
 def create_phenotype(old_phenotype):
     from model_new_schema.phenotype import Phenotype as NewPhenotype
-    display_name = old_phenotype.observable
+    observable = old_phenotype.observable
+    qualifier = old_phenotype.qualifier
+    mutant_type = old_phenotype.mutant_type
+    
+    display_name = create_phenotype_display_name(observable, qualifier, mutant_type)
     format_name = create_format_name(display_name)
     new_phenotype = NewPhenotype(create_phenotype_id(old_phenotype.id), display_name, format_name,
-                                 None, create_phenotype_type(old_phenotype.observable),
+                                 observable, qualifier, mutant_type, 
+                                 create_phenotype_type(old_phenotype.observable),
                                  old_phenotype.date_created, old_phenotype.created_by)
     return new_phenotype
 
@@ -92,18 +107,28 @@ def create_phenoevidence(old_phenotype_feature, key_to_reflink, key_to_phenotype
         print 'Bioentity does not exist. ' + str(bioent_id)
         return None
     
-    phenotype_key = create_phenotype_key(old_phenotype_feature.observable)
+    phenotype_key = create_phenotype_key(old_phenotype_feature.observable, old_phenotype_feature.qualifier, old_phenotype_feature.mutant_type)
     if phenotype_key not in key_to_phenotype:
         print 'Phenotype does not exist. ' + str(phenotype_key)
         return None
     biocon_id = key_to_phenotype[phenotype_key].id
     
-    experiment_key = old_phenotype_feature.experiment_type
+    experiment_key = create_format_name(old_phenotype_feature.experiment_type)
     if experiment_key not in key_to_experiment:
         print 'Experiment does not exist. ' + str(experiment_key)
         return None
     experiment_id = key_to_experiment[experiment_key].id
 
+    strain_id = None
+    mutant_allele_id = None
+    allele_info = None
+    reporter = None 
+    reporter_desc = None
+    strain_details = None
+    experiment_details = None
+    conditions = None
+    details = None
+                                        
     if old_phenotype_feature.experiment is not None:
         experiment = old_phenotype_feature.experiment
         reporter = None if experiment.reporter == None else experiment.reporter[0]
@@ -152,7 +177,7 @@ def create_phenoevidence(old_phenotype_feature, key_to_reflink, key_to_phenotype
             details = detail_info
         
     new_phenoevidence = NewPhenoevidence(evidence_id, experiment_id, reference_id, strain_id, old_phenotype_feature.source,
-                                         old_phenotype_feature.mutant_type, old_phenotype_feature.qualifier, bioent_id, biocon_id,
+                                         bioent_id, biocon_id,
                                          mutant_allele_id, allele_info, 
                                          reporter, reporter_desc, strain_details, experiment_details, conditions, details,
                                          old_phenotype_feature.date_created, old_phenotype_feature.created_by)
@@ -211,131 +236,131 @@ def convert(old_session_maker, new_session_maker):
         old_session.close()
         new_session.close()
 
-    # Convert aliases
-    print 'Aliases'
+#    # Convert aliases
+#    print 'Aliases'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        success=False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_aliases(new_session, old_cv_terms)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+    
+    # Convert alleles
+    print 'Alleles'
     start_time = datetime.datetime.now()
     try:
         old_session = old_session_maker()
+        old_phenoevidences = old_session.query(OldPhenotypeFeature).all()
+
         success=False
         while not success:
             new_session = new_session_maker()
-            success = convert_aliases(new_session, old_cv_terms)
+            success = convert_alleles(new_session, old_phenoevidences)
             ask_to_commit(new_session, start_time)  
             new_session.close()
     finally:
         old_session.close()
         new_session.close()
-#    
-#    # Convert alleles
-#    print 'Alleles'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_phenoevidences = old_session.query(OldPhenotypeFeature).all()
-#
-#        success=False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_alleles(new_session, old_phenoevidences)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert phenoevidences
-#    print 'Phenoevidences'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_reflinks = old_session.query(OldReflink).all()
-#
-#        success=False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_phenoevidences(new_session, old_phenoevidences, old_reflinks)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#      
-#    # Convert chemicals
-#    print 'Chemicals'            
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_expt_properties = old_session.query(OldExperimentProperty).filter(OldExperimentProperty.type=='Chemical_pending').all()
-#        
-#        success=False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_chemicals(new_session, old_expt_properties)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#          
-#    # Convert phenoevidence_chemicals
-#    print 'Phenoevidence_Chemicals'            
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        
-#        success=False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_phenoevidence_chemicals(new_session, old_phenoevidences)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Update gene counts
-#    print 'Phenotype gene counts'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        
-#        new_session = new_session_maker()        
-#        from model_new_schema.phenotype import Phenotype as NewPhenotype, Phenoevidence as NewPhenoevidence
-#        update_biocon_gene_counts(new_session, NewPhenotype, NewPhenoevidence)
-#        ask_to_commit(new_session, start_time)  
-#    finally:
-#        old_session.close()
-#        new_session.close() 
-#        
-#    # Convert biocon_relations
-#    print 'Biocon_relations'            
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_cv_terms = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==6).all()
-#        
-#        success=False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_biocon_relations(new_session, old_cv_terms)
-#            ask_to_commit(new_session, start_time) 
-#            new_session.close() 
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert biocon_ancestors
-#    print 'Biocon_ancestors'            
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        
-#        new_session = new_session_maker()                
-#        success = convert_biocon_ancestors(new_session, 'PHENOTYPE_ONTOLOGY', 4)
-#        ask_to_commit(new_session, start_time)  
-#    finally:
-#        old_session.close()
-#        new_session.close()
+        
+    # Convert phenoevidences
+    print 'Phenoevidences'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_reflinks = old_session.query(OldReflink).all()
+
+        success=False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_phenoevidences(new_session, old_phenoevidences, old_reflinks)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+      
+    # Convert chemicals
+    print 'Chemicals'            
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_expt_properties = old_session.query(OldExperimentProperty).filter(OldExperimentProperty.type=='Chemical_pending').all()
+        
+        success=False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_chemicals(new_session, old_expt_properties)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+          
+    # Convert phenoevidence_chemicals
+    print 'Evidence_Chemicals'            
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        
+        success=False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_phenoevidence_chemicals(new_session, old_phenoevidences)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+        
+    # Update gene counts
+    print 'Phenotype gene counts'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        
+        new_session = new_session_maker()        
+        from model_new_schema.phenotype import Phenotype as NewPhenotype, Phenoevidence as NewPhenoevidence
+        update_biocon_gene_counts(new_session, NewPhenotype, NewPhenoevidence)
+        ask_to_commit(new_session, start_time)  
+    finally:
+        old_session.close()
+        new_session.close() 
+        
+    # Convert biocon_relations
+    print 'Biocon_relations'            
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_cv_terms = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==6).all()
+        
+        success=False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_biocon_relations(new_session, old_cv_terms)
+            ask_to_commit(new_session, start_time) 
+            new_session.close() 
+    finally:
+        old_session.close()
+        new_session.close()
+        
+    # Convert biocon_ancestors
+    print 'Biocon_ancestors'            
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        
+        new_session = new_session_maker()                
+        success = convert_biocon_ancestors(new_session, 'PHENOTYPE_ONTOLOGY', 4)
+        ask_to_commit(new_session, start_time)  
+    finally:
+        old_session.close()
+        new_session.close()
         
 def convert_phenotypes(new_session, old_phenotypes, cv_terms):
     '''
@@ -348,15 +373,15 @@ def convert_phenotypes(new_session, old_phenotypes, cv_terms):
 
     #Create new phenotypes if they don't exist, or update the database if they do.
     new_phenotypes = filter(None, [create_phenotype(x) for x in old_phenotypes])
-    new_key_to_phenotypes = dict([(x.unique_key(), x) for x in new_phenotypes])
+    #new_key_to_phenotypes = dict([(x.unique_key(), x) for x in new_phenotypes])
     values_to_check = ['phenotype_type', 'biocon_type', 'display_name', 'format_name', 'description']
     
     #Add definitions to phenotypes
-    for cv_term in cv_terms:
-        phenotype_key = create_phenotype_key(cv_term.name)
-        if phenotype_key in new_key_to_phenotypes:
-            new_phenotype = new_key_to_phenotypes[phenotype_key]
-            new_phenotype.description = cv_term.definition
+    #for cv_term in cv_terms:
+    #    phenotype_key = create_phenotype_key(cv_term.name)
+    #    if phenotype_key in new_key_to_phenotypes:
+    #        new_phenotype = new_key_to_phenotypes[phenotype_key]
+    #        new_phenotype.description = cv_term.definition
             
     success = create_or_update_and_remove(new_phenotypes, key_to_phenotype, values_to_check, new_session)
     return success
@@ -440,7 +465,7 @@ def convert_phenoevidences(new_session, old_phenoevidences, old_reflinks):
    
     values_to_check = ['experiment_type', 'reference_id', 'evidence_type', 'strain_id', 'source',
                        'bioent_id', 'biocon_id', 'date_created', 'created_by',
-                       'mutant_type', 'qualifier', 'reporter', 'reporter_desc', 'strain_details', 
+                       'reporter', 'reporter_desc', 'strain_details', 
                        'conditions', 'details', 'experiment_details', 'allele_info', 'mutant_allele_id']
     success = create_or_update_and_remove(new_phenoevidences, key_to_phenoevidence, values_to_check, new_session)
     return success
