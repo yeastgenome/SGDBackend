@@ -130,70 +130,70 @@ def convert(old_session_maker, new_session_maker):
     finally:
         old_session.close()
         new_session.close()
-#        
-#    # Convert goevidences
-#    print 'Goevidences'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_go_features = old_session.query(OldGoFeature).all()
-#
-#        success=False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_goevidences(new_session, old_go_features)
-#            ask_to_commit(new_session, start_time) 
-#            new_session.close() 
-#    finally:
-#        old_session.close()
-#        new_session.close() 
-#        
-#    # Convert biocon_relations
-#    print 'Biocon_relations'            
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_go_paths = old_session.query(OldGoPath).filter(OldGoPath.generation==1).all()
-#        old_goterms = old_session.query(OldGo).all()
-#
-#        success=False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_biocon_relations(new_session, old_go_paths, old_goterms)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Update gene counts
-#    print 'Go term gene counts'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        
-#        new_session = new_session_maker()
-#        from model_new_schema.go import Go as NewGo, Goevidence as NewGoevidence
-#        success = update_biocon_gene_counts(new_session, NewGo, NewGoevidence)
-#        ask_to_commit(new_session, start_time)  
-#    finally:
-#        old_session.close()
-#        new_session.close()  
-#  
-#    # Convert biocon_ancestors
-#    # For some reason, when I run this several time, it keeps removing a small number of 
-#    # biocon_ancestors - not clear why.
-#    print 'Biocon_ancestors' 
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        
-#        new_session = new_session_maker()
-#        success = convert_biocon_ancestors(new_session, 'GO_ONTOLOGY', 5)
-#        ask_to_commit(new_session, start_time) 
-#    finally:
-#        old_session.close()
-#        new_session.close()     
+        
+    # Convert goevidences
+    print 'Goevidences'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_go_features = old_session.query(OldGoFeature).all()
+
+        success=False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_goevidences(new_session, old_go_features)
+            ask_to_commit(new_session, start_time) 
+            new_session.close() 
+    finally:
+        old_session.close()
+        new_session.close() 
+        
+    # Convert biocon_relations
+    print 'Biocon_relations'            
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_go_paths = old_session.query(OldGoPath).filter(OldGoPath.generation==1).all()
+        old_goterms = old_session.query(OldGo).all()
+
+        success=False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_biocon_relations(new_session, old_go_paths, old_goterms)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+        
+    # Update gene counts
+    print 'Go term gene counts'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        
+        new_session = new_session_maker()
+        from model_new_schema.go import Go as NewGo, Goevidence as NewGoevidence
+        success = update_biocon_gene_counts(new_session, NewGo, NewGoevidence)
+        ask_to_commit(new_session, start_time)  
+    finally:
+        old_session.close()
+        new_session.close()  
+  
+    # Convert biocon_ancestors
+    # For some reason, when I run this several time, it keeps removing a small number of 
+    # biocon_ancestors - not clear why.
+    print 'Biocon_ancestors' 
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        
+        new_session = new_session_maker()
+        success = convert_biocon_ancestors(new_session, 'GO_ONTOLOGY', 5)
+        ask_to_commit(new_session, start_time) 
+    finally:
+        old_session.close()
+        new_session.close()     
 
 def convert_goterms(new_session, old_goterms):
     '''

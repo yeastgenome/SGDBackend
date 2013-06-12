@@ -20,11 +20,25 @@ import model_old_schema
 other_bioent_types = set(['CHROMOSOME', 'PLASMID', 'ARS', 'CENTROMERE', 'TELOMERE', 
                          'RETROTRANSPOSON'])
 
-locus_bioent_types = {'NCRNA':['DNA', 'RNA'], 'RRNA':['DNA', 'RNA'], 'SNRNA':['DNA', 'RNA'], 'SNORNA':['DNA', 'RNA'], 'TRNA':['DNA', 'RNA'], 
-                         'TRANSCRIPTION_FACTOR':['DNA', 'RNA', 'PROTEIN'], 'ORF':['DNA', 'RNA', 'Protein'], 
-                         'GENE_CASSETTE':[], 'MATING_LOCUS':[], 'MULTIGENE_LOCUS':[], 
-                         'PSEUDOGENE':['DNA', 'RNA', 'PROTEIN'], 'TRANSPOSABLE_ELEMENT_GENE':['DNA', 'RNA', 'PROTEIN'],
-                         'NOT_IN_SYSTEMATIC_SEQUENCE_OF_S288C':['DNA', 'RNA', 'PROTEIN'], 'NOT_PHYSICALLY_MAPPED':['DNA', 'RNA', 'PROTEIN']}
+locus_bioent_types = {'NCRNA', 'RRNA', 'SNRNA', 'SNORNA', 'TRNA', 'TRANSCRIPTION_FACTOR', 'ORF', 
+                         'GENE_CASSETTE', 'MATING_LOCUS', 'MULTIGENE_LOCUS', 'PSEUDOGENE', 'TRANSPOSABLE_ELEMENT_GENE',
+                         'NOT_IN_SYSTEMATIC_SEQUENCE_OF_S288C', 'NOT_PHYSICALLY_MAPPED'}
+
+dna_bioent_types = {'NCRNA', 'RRNA', 'SNRNA', 'SNORNA', 'TRNA', 'TRANSCRIPTION_FACTOR', 'ORF', 'PSEUDOGENE', 'TRANSPOSABLE_ELEMENT_GENE', 
+                   'NOT_IN_SYSTEMATIC_SEQUENCE_OF_S288C', 'NOT_PHYSICALLY_MAPPED'}
+rna_bioent_types = {'NCRNA', 'RRNA', 'SNRNA', 'SNORNA', 'TRNA', 'TRANSCRIPTION_FACTOR', 'ORF', 'PSEUDOGENE', 'TRANSPOSABLE_ELEMENT_GENE',
+                    'NOT_IN_SYSTEMATIC_SEQUENCE_OF_S288C', 'NOT_PHYSICALLY_MAPPED'}
+protein_bioent_types = {'TRANSCRIPTION_FACTOR', 'ORF', 'PSEUDOGENE', 'TRANSPOSABLE_ELEMENT_GENE', 'NOT_IN_SYSTEMATIC_SEQUENCE_OF_S288C',
+                        'NOT_PHYSICALLY_MAPPED'}
+
+protein_alias_types = {'NCBI protein name', 'Gene product'}
+locus_alias_types = {'Non-uniform', 'Retired name', 'Uniform'}
+
+protein_altid_types = {'NCBI protein GI', 'Protein version ID', 'UniProt/Swiss-Prot ID', 'UniParc ID', 'RefSeq protein version ID',
+                      'TPA protein version ID'}
+dna_altid_types = {'Gene ID', 'DNA accession ID', 'RefSeq nucleotide version ID', 'DNA version ID'}
+locus_altid_types = {'DBID Primary', 'DBID Secondary'}
+chromosome_altid_types = {'RefSeq Accession', 'TPA Accession', 'Chromosome accession ID'}
 
 #real_bioent_types = set(['ARS', 'CENTROMERE', 'GENE_CASSETTE', 'LONG_TERMINAL_REPEAT', 'MATING_LOCUS', 
 #                         'MULTIGENE_LOCUS', 'NCRNA', 'NOT_IN_SYSTEMATIC_SEQUENCE_OF_S288C', 'NOT_PHYSICALLY_MAPPED',
@@ -46,6 +60,15 @@ def create_bioent_type(old_feature_type):
         return bioent_type
     else:
         return None
+    
+def create_dna_id(bioent_id):
+    return bioent_id+300000
+
+def create_rna_id(bioent_id):
+    return bioent_id+200000
+
+def create_protein_id(bioent_id):
+    return bioent_id+100000
         
 def create_locus(old_bioentity):
     from model_new_schema.bioentity import Locus as NewLocus
@@ -74,10 +97,72 @@ def create_locus(old_bioentity):
         description = ann.description
         genetic_position = ann.genetic_position
     
-    bioent = NewLocus(old_bioentity.id, display_name, old_bioentity.name, old_bioentity.dbxref_id, old_bioentity.source, old_bioentity.status, 
+    bioent = NewLocus(old_bioentity.id, display_name, old_bioentity.name, old_bioentity.source, old_bioentity.status, 
                          locus_type, qualifier, attribute, short_description, headline, description, genetic_position, 
                          old_bioentity.date_created, old_bioentity.created_by)
     return bioent 
+
+def create_dna(old_bioentity):
+    from model_new_schema.bioentity import DNA as NewDNA
+    
+    locus_type = create_locus_type(old_bioentity.type)
+    if locus_type is None:
+        return None
+    
+    if locus_type not in dna_bioent_types:
+        return None
+    
+    display_name = old_bioentity.gene_name
+    if display_name is None:
+        display_name = old_bioentity.name
+    format_name = old_bioentity.name + 'd'
+    
+    bioent = NewDNA(create_dna_id(old_bioentity.id), display_name, format_name, 
+                        old_bioentity.date_created, old_bioentity.created_by)
+    return bioent
+
+def create_rna(old_bioentity):
+    from model_new_schema.bioentity import RNA as NewRNA
+    
+    locus_type = create_locus_type(old_bioentity.type)
+    if locus_type is None:
+        return None
+    
+    if locus_type not in rna_bioent_types:
+        return None
+    
+    display_name = old_bioentity.gene_name
+    if display_name is None:
+        display_name = old_bioentity.name
+    format_name = old_bioentity.name + 'r'
+    
+    bioent = NewRNA(create_rna_id(old_bioentity.id), display_name, format_name, 
+                        old_bioentity.date_created, old_bioentity.created_by)
+    return bioent
+
+def create_protein(old_bioentity):
+    from model_new_schema.bioentity import Protein as NewProtein
+    
+    locus_type = create_locus_type(old_bioentity.type)
+    if locus_type is None:
+        return None
+    
+    if locus_type not in protein_bioent_types:
+        return None
+    
+    display_name = old_bioentity.gene_name
+    if display_name is None:
+        display_name = old_bioentity.name
+    format_name = old_bioentity.name + 'p'
+    
+    bioent = NewProtein(create_protein_id(old_bioentity.id), display_name, format_name, 
+                        None, None, None, None, None, None, None, None, None, None, 
+                        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, 
+                        None, 
+                        None, None, None, None, None, 
+                        None, None, 
+                        old_bioentity.date_created, old_bioentity.created_by)
+    return bioent
 
 def create_bioentity(old_bioentity):
     from model_new_schema.bioentity import Bioentity as NewBioentity
@@ -91,7 +176,7 @@ def create_bioentity(old_bioentity):
         display_name = old_bioentity.name
     
     bioent = NewBioentity(old_bioentity.id, display_name, old_bioentity.name, 'BIOENTITY', 
-                          old_bioentity.dbxref_id, old_bioentity.source, old_bioentity.status, 
+                          old_bioentity.source, old_bioentity.status, 
                           old_bioentity.date_created, old_bioentity.created_by)
     return bioent 
 
@@ -99,6 +184,9 @@ def create_alias(old_alias, id_to_bioentity):
     from model_new_schema.bioentity import BioentAlias as NewBioentAlias
 
     bioent_id = old_alias.feature_id
+    if old_alias.alias_type in protein_alias_types:
+        bioent_id = create_protein_id(bioent_id)
+    
     if bioent_id is None or not bioent_id in id_to_bioentity:
         print 'Bioentity does not exist.'
         return None
@@ -106,6 +194,32 @@ def create_alias(old_alias, id_to_bioentity):
     new_alias = NewBioentAlias(old_alias.alias_name, old_alias.alias_type, 
                                old_alias.used_for_search, bioent_id, old_alias.date_created, old_alias.created_by)
     return new_alias 
+
+def create_altid(old_altid, id_to_bioentity):
+    from model_new_schema.bioentity import BioentAltid as NewBioentAltid
+
+    bioent_id = old_altid.feature_id
+    dbxref = old_altid.dbxref
+    dbxref_type = dbxref.dbxref_type
+
+    if dbxref_type in locus_altid_types:
+        bioent_id = bioent_id
+    elif dbxref_type in protein_altid_types:
+        bioent_id = create_protein_id(bioent_id)
+    elif dbxref_type in dna_altid_types:
+        bioent_id = create_dna_id(bioent_id)
+    elif dbxref_type in chromosome_altid_types:
+        bioent_id = bioent_id
+    else:
+        return None
+        
+    if bioent_id is None or not bioent_id in id_to_bioentity:
+        print 'Bioentity does not exist.'
+        return None
+    
+    new_altid = NewBioentAltid(dbxref.dbxref_id, dbxref.source, dbxref.dbxref_type, bioent_id, 
+                               dbxref.date_created, dbxref.created_by)
+    return new_altid 
 
 def create_url(old_url, id_to_bioentity):
     from model_new_schema.bioentity import BioentUrl as NewBioentUrl
@@ -163,7 +277,7 @@ def create_bioentevidence(old_bioentevidence, id_to_reference, id_to_bioentity):
 def convert(old_session_maker, new_session_maker):
     from model_old_schema.reference import LitguideFeat as OldLitguideFeat
     from model_old_schema.feature import Feature as OldFeature, AliasFeature as OldAliasFeature
-    from model_old_schema.general import FeatUrl as OldFeatUrl
+    from model_old_schema.general import FeatUrl as OldFeatUrl, DbxrefFeat as OldDbxrefFeat
     
 #    # Convert Locus
 #    print 'Locus'
@@ -200,6 +314,57 @@ def convert(old_session_maker, new_session_maker):
 #        old_session.close()
 #        new_session.close()
 #        
+#    # Convert dna
+#    print 'DNA'
+#    start_time = datetime.datetime.now()
+#    new_session = new_session_maker()
+#    try:
+#        old_session = old_session_maker()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_dnas(new_session, old_bioentity)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#        
+#    # Convert rna
+#    print 'RNA'
+#    start_time = datetime.datetime.now()
+#    new_session = new_session_maker()
+#    try:
+#        old_session = old_session_maker()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_rnas(new_session, old_bioentity)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#        
+#    # Convert protein
+#    print 'Protein'
+#    start_time = datetime.datetime.now()
+#    new_session = new_session_maker()
+#    try:
+#        old_session = old_session_maker()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_proteins(new_session, old_bioentity)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#        
 #    # Convert aliases
 #    print 'Alias'
 #    start_time = datetime.datetime.now()
@@ -217,25 +382,60 @@ def convert(old_session_maker, new_session_maker):
 #    finally:
 #        old_session.close()
 #        new_session.close()
-        
-    # Convert urls
-    print 'Url'
+ 
+    # Convert altid_urls
+    print 'Altid Urls'
     start_time = datetime.datetime.now()
     new_session = new_session_maker()
     try:
         old_session = old_session_maker()
-        old_urls = old_session.query(OldFeatUrl).options(joinedload('url'), joinedload('feature'), joinedload('url.displays')).all()
+        old_altids = old_session.query(OldDbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).all()
 
         success = False
         while not success:
             new_session = new_session_maker()
-            success = convert_urls(new_session, old_urls)
+            success = convert_altid_urls(new_session, old_altids)
             ask_to_commit(new_session, start_time)  
             new_session.close()
     finally:
         old_session.close()
         new_session.close()
-    
+               
+    # Convert altids
+    print 'Altids'
+    start_time = datetime.datetime.now()
+    new_session = new_session_maker()
+    try:
+        old_session = old_session_maker()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_altids(new_session, old_altids)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+        
+#    # Convert urls
+#    print 'Url'
+#    start_time = datetime.datetime.now()
+#    new_session = new_session_maker()
+#    try:
+#        old_session = old_session_maker()
+#        old_urls = old_session.query(OldFeatUrl).options(joinedload('url'), joinedload('feature'), joinedload('url.displays')).all()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_urls(new_session, old_urls)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#    
 #    # Convert Bioentevidence
 #    print 'Bioentevidence'
 #    start_time = datetime.datetime.now()
@@ -268,7 +468,7 @@ def convert_locuses(new_session, old_bioentity):
     #Create new genes if they don't exist, or update the database if they do. 
     new_bioentities = [create_locus(x) for x in old_bioentity]
     
-    values_to_check = ['display_name', 'dbxref_id', 'source', 'status', 'date_created', 'created_by',
+    values_to_check = ['display_name', 'source', 'status', 'date_created', 'created_by',
                        'qualifier', 'attribute', 'name_description', 'headline', 'description', 'genetic_position', 'locus_type']
     success = create_or_update_and_remove(new_bioentities, key_to_bioentity, values_to_check, new_session)
     return success
@@ -283,7 +483,49 @@ def convert_other_bioentities(new_session, old_bioentity):
     #Create new bioentities if they don't exist, or update the database if they do. 
     new_bioentities = [create_bioentity(x) for x in old_bioentity]
     
-    values_to_check = ['display_name', 'dbxref_id', 'source', 'status', 'date_created', 'created_by']
+    values_to_check = ['display_name', 'source', 'status', 'date_created', 'created_by']
+    success = create_or_update_and_remove(new_bioentities, key_to_bioentity, values_to_check, new_session)
+    return success
+
+def convert_dnas(new_session, old_bioentity):
+    
+    from model_new_schema.bioentity import DNA as NewDNA
+    
+    #Cache bioentities
+    key_to_bioentity = cache_by_key(NewDNA, new_session)
+    
+    #Create new dnas if they don't exist, or update the database if they do. 
+    new_bioentities = [create_dna(x) for x in old_bioentity]
+    
+    values_to_check = ['display_name', 'date_created', 'created_by']
+    success = create_or_update_and_remove(new_bioentities, key_to_bioentity, values_to_check, new_session)
+    return success
+
+def convert_rnas(new_session, old_bioentity):
+    
+    from model_new_schema.bioentity import RNA as NewRNA
+    
+    #Cache bioentities
+    key_to_bioentity = cache_by_key(NewRNA, new_session)
+    
+    #Create new rnas if they don't exist, or update the database if they do. 
+    new_bioentities = [create_rna(x) for x in old_bioentity]
+    
+    values_to_check = ['display_name', 'date_created', 'created_by']
+    success = create_or_update_and_remove(new_bioentities, key_to_bioentity, values_to_check, new_session)
+    return success
+
+def convert_proteins(new_session, old_bioentity):
+    
+    from model_new_schema.bioentity import Protein as NewProtein
+    
+    #Cache bioentities
+    key_to_bioentity = cache_by_key(NewProtein, new_session)
+    
+    #Create new rnas if they don't exist, or update the database if they do. 
+    new_bioentities = [create_protein(x) for x in old_bioentity]
+    
+    values_to_check = ['display_name', 'date_created', 'created_by']
     success = create_or_update_and_remove(new_bioentities, key_to_bioentity, values_to_check, new_session)
     return success
 
@@ -300,6 +542,35 @@ def convert_aliases(new_session, old_aliases):
     
     values_to_check = ['source', 'used_for_search', 'created_by', 'date_created']
     success = create_or_update_and_remove(new_aliases, key_to_alias, values_to_check, new_session)
+    return success
+
+def convert_altid_urls(new_session, old_altids):
+    
+    from model_new_schema.bioentity import Bioentity as NewBioentity, BioentAltid as NewBioentAltid
+    
+    #Cache altid urls
+    key_to_url = cache_by_key(NewUrl, new_session)
+    
+    #Create new altid urls if they don't exist, or update the database if they do. 
+    new_altids = [create_altid(x, id_to_bioentity) for x in old_altids]
+    
+    values_to_check = ['source', 'altid_name', 'bioent_id', 'created_by', 'date_created']
+    success = create_or_update_and_remove(new_altids, key_to_altid, values_to_check, new_session)
+    return success
+
+def convert_altids(new_session, old_altids):
+    
+    from model_new_schema.bioentity import Bioentity as NewBioentity, BioentAltid as NewBioentAltid
+    
+    #Cache altids
+    key_to_altid = cache_by_key(NewBioentAltid, new_session)
+    id_to_bioentity = cache_by_id(NewBioentity, new_session)
+    
+    #Create new altids if they don't exist, or update the database if they do. 
+    new_altids = [create_altid(x, id_to_bioentity) for x in old_altids]
+    
+    values_to_check = ['source', 'altid_name', 'bioent_id', 'created_by', 'date_created']
+    success = create_or_update_and_remove(new_altids, key_to_altid, values_to_check, new_session)
     return success
 
 def convert_urls(new_session, old_urls):

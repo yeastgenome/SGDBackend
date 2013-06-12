@@ -261,108 +261,108 @@ def convert(old_session_maker, new_session_maker):
 #    finally:
 #        old_session.close()
 #        new_session.close()
-        
-    # Convert references
-    print 'References'
+#        
+#    # Convert references
+#    print 'References'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_references = old_session.query(OldReference).options(joinedload('book'), joinedload('journal'), joinedload('abst')).all()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_references(new_session, old_references)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+
+    # Convert altids
+    print 'Altids'
     start_time = datetime.datetime.now()
     try:
         old_session = old_session_maker()
-        old_references = old_session.query(OldReference).options(joinedload('book'), joinedload('journal'), joinedload('abst')).all()
+        old_references = old_session.query(OldReference).options(joinedload('dbxrefrefs'), joinedload('dbxrefrefs.dbxref')).all()
 
         success = False
         while not success:
             new_session = new_session_maker()
-            success = convert_references(new_session, old_references)
+            success = convert_altids(new_session, old_references)
             ask_to_commit(new_session, start_time)  
             new_session.close()
     finally:
         old_session.close()
         new_session.close()
-#
-#    # Convert altids
-#    print 'Altids'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_references = old_session.query(OldReference).options(joinedload('dbxrefrefs'), joinedload('dbxrefrefs.dbxref')).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_altids(new_session, old_references)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert author_references
-#    print 'AuthorReferences'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_author_references = old_session.query(OldAuthorReference).options(joinedload('author')).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_author_references(new_session, old_author_references)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert reftypes
-#    print 'Reftypes'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_ref_reftypes = old_session.query(OldRefReftype).options(joinedload('reftype')).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_reftypes(new_session, old_ref_reftypes)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#
-#    # Convert reference_relations
-#    print 'ReferenceRelations'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_ref_relations = old_session.query(OldRefRelation).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_ref_relations(new_session, old_ref_relations)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#
-#    # Convert relevant urls
-#    print 'Urls'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_ref_urls = old_session.query(OldRef_URL).options(joinedload('url'), joinedload('reference')).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_urls(new_session, old_ref_urls)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
+        
+    # Convert author_references
+    print 'AuthorReferences'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_author_references = old_session.query(OldAuthorReference).options(joinedload('author')).all()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_author_references(new_session, old_author_references)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+        
+    # Convert reftypes
+    print 'Reftypes'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_ref_reftypes = old_session.query(OldRefReftype).options(joinedload('reftype')).all()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_reftypes(new_session, old_ref_reftypes)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+
+    # Convert reference_relations
+    print 'ReferenceRelations'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_ref_relations = old_session.query(OldRefRelation).all()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_ref_relations(new_session, old_ref_relations)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+
+    # Convert relevant urls
+    print 'Urls'
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        old_ref_urls = old_session.query(OldRef_URL).options(joinedload('url'), joinedload('reference')).all()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_urls(new_session, old_ref_urls)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
     
 def convert_journals(new_session, old_journals):
     '''
@@ -408,7 +408,9 @@ def convert_references(new_session, old_references):
     new_references = [create_reference(x, key_to_journal, key_to_book) for x in old_references]
     values_to_check = ['display_name', 'format_name',
                        'source', 'status', 'pdf_status',
-                       'year', 'date_published', 'date_revised',
+                       'year', 
+                       'date_published', 
+                       'date_revised',
                        'issue', 'page', 'volume', 'title', 'journal_id', 'book_id', 'doi', 'abstract',
                        'created_by', 'date_created']
     success = create_or_update_and_remove(new_references, key_to_reference, values_to_check, new_session)

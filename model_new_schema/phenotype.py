@@ -71,12 +71,24 @@ class Phenoevidence(Evidence):
     
     def __init__(self, evidence_id, experiment_type, reference_id, strain_id, source,
                  mutant_type, qualifier, bioent_id, biocon_id,
+                 mutant_allele_id, allele_info,
+                 reporter, reporter_desc, strain_details, experiment_details, conditions, details,
                  date_created, created_by):
         Evidence.__init__(self, evidence_id, experiment_type, reference_id, 'PHENOTYPE_EVIDENCE', strain_id, source, date_created, created_by)
         self.mutant_type = mutant_type
         self.qualifier = qualifier
         self.bioent_id = bioent_id
         self.biocon_id = biocon_id
+        
+        self.mutant_allele_id = mutant_allele_id
+        self.allele_info = allele_info
+        self.reporter = reporter
+        self.reporter_desc = reporter_desc
+        self.strain_details = strain_details
+        self.experiment_details = experiment_details
+        self.conditions = conditions
+        self.details = details
+
     
         
         

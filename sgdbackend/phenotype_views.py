@@ -180,7 +180,7 @@ def make_evidence_row(phenoevidence):
         allele_entry = phenoevidence.allele.name
                 
     chemicals = []
-    for chemical in phenoevidence.phenoev_chemicals:
+    for chemical in phenoevidence.ev_chemicals:
         if chemical.chemical_amt is None:
             chemicals.append(chemical.chemical.name_with_link)
         else:

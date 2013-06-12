@@ -25,7 +25,6 @@ class Bioentity(Base, EqualityByIDMixin):
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     bioent_type = Column('bioent_type', String)
-    dbxref_id = Column('dbxref', String)
     source = Column('source', String)
     status = Column('status', String)
     
@@ -41,13 +40,12 @@ class Bioentity(Base, EqualityByIDMixin):
     seq_ids = association_proxy('sequences', 'id')
     type = "BIOENTITY"
             
-    def __init__(self, bioent_id, display_name, format_name, bioent_type, dbxref, source, status,
+    def __init__(self, bioent_id, display_name, format_name, bioent_type, source, status,
                  date_created, created_by):
         self.id = bioent_id
         self.display_name = display_name
         self.format_name = format_name
         self.bioent_type = bioent_type
-        self.dbxref_id = dbxref
         self.source = source
         self.status = status
         self.date_created = date_created
@@ -210,10 +208,10 @@ class Locus(Bioentity):
     def search_entry_type(self):
         return 'Locus'
 
-    def __init__(self, bioent_id, display_name, format_name, dbxref, source, status,
+    def __init__(self, bioent_id, display_name, format_name, source, status,
                  locus_type, qualifier, attribute, short_description, headline, description, genetic_position,
                  date_created, created_by):
-        Bioentity.__init__(self, bioent_id, display_name, format_name, 'LOCUS', dbxref, source, status, date_created, created_by)
+        Bioentity.__init__(self, bioent_id, display_name, format_name, 'LOCUS', source, status, date_created, created_by)
         self.locus_type = locus_type
         self.qualifier = qualifier
         self.attribute = attribute
@@ -237,7 +235,7 @@ class DNA(Bioentity):
         return 'DNA'
 
     def __init__(self, bioent_id, display_name, format_name, date_created, created_by):
-        Bioentity.__init__(self, bioent_id, display_name, format_name, 'DNA', None, 'SGD', None, date_created, created_by)
+        Bioentity.__init__(self, bioent_id, display_name, format_name, 'DNA', 'SGD', None, date_created, created_by)
 
 class RNA(Bioentity):
     __tablename__ = 'rna'
@@ -254,14 +252,13 @@ class RNA(Bioentity):
         return 'DNA'
 
     def __init__(self, bioent_id, display_name, format_name, date_created, created_by):
-        Bioentity.__init__(self, bioent_id, display_name, format_name, 'RNA', None, 'SGD', None, date_created, created_by)
+        Bioentity.__init__(self, bioent_id, display_name, format_name, 'RNA', 'SGD', None, date_created, created_by)
 
 
 class Protein(Bioentity):
     __tablename__ = "protein"
     
     id = Column('bioent_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
-    transcript_id = Column('transcript_id', Integer)
     
     molecular_weight = Column('molecular_weight', Integer)
     pi = Column('pi', Float)
@@ -302,13 +299,7 @@ class Protein(Bioentity):
     atomic_comp_N = Column('atomic_comp_n', Integer)
     atomic_comp_O = Column('atomic_comp_o', Integer)
     atomic_comp_C = Column('atomic_comp_c', Integer)
-    half_life_yeast_in_vivo = Column('half_life_yeast_in_vivo', String)
-    half_life_ecoli_in_vivo = Column('half_life_ecoli_in_vivo', String)
-    half_life_mammalian_reticulocytes_in_vitro = Column('half_life_mammalian', String)
-    extinction_coeff_no_cys_residues_as_half_cystines = Column('extinction_coeff_no_half', Integer)
-    extinction_coeff_all_cys_residues_reduced = Column('extinction_coeff_all_reduced', Integer)
-    extinction_coeff_all_cys_residues_as_half_cystines = Column('extinction_coeff_all_half', Integer)
-    extinction_coeff_all_cys_pairs_form_cystines = Column('extinction_coeff_all_pairs', Integer)
+    
     instability_index = Column('instability_index', Float)
     molecules_per_cell = Column('molecules_per_cell', Integer)
          
@@ -330,18 +321,13 @@ class Protein(Bioentity):
         return "{0:.2f}".format(100*float(getattr(self, aa_abrev))/self.length) + '%'
 
     def __init__(self, bioent_id, display_name, format_name, 
-                 transcript_id, 
                  molecular_weight, pi, cai, length, n_term_seq, c_term_seq,
                  codon_bias, fop_score, gravy_score, aromaticity_score, 
                  ala, arg, asn, asp, cys, gln, glu, gly, his, ile, leu, lys, met, phe, pro, thr, ser, trp, tyr, val, 
                  aliphatic_index, atomic_comp_H, atomic_comp_S, atomic_comp_N, atomic_comp_O, atomic_comp_C,
-                 half_life_yeast_in_vivo, half_life_ecoli_in_vivo, half_life_mammalian_reticulocytes_in_vitro,
-                 extinction_coeff_no_cys_residues_as_half_cystines, extinction_coeff_all_cys_residues_reduced,
-                 extinction_coeff_all_cys_residues_appear_as_half_cystines, extinction_coeff_all_cys_pairs_form_cystines,
                  instability_index, molecules_per_cell,
                  date_created, created_by):
-        Bioentity.__init__(self, bioent_id, display_name, format_name, 'PROTEIN', None, 'SGD', None, date_created, created_by)
-        self.transcript_id = transcript_id
+        Bioentity.__init__(self, bioent_id, display_name, format_name, 'PROTEIN', 'SGD', None, date_created, created_by)
         
         self.molecular_weight = molecular_weight
         self.pi = pi
@@ -381,13 +367,7 @@ class Protein(Bioentity):
         self.atomic_comp_N = atomic_comp_N
         self.atomic_comp_O = atomic_comp_O
         self.atomic_comp_C = atomic_comp_C
-        self.half_life_yeast_in_vivo = half_life_yeast_in_vivo
-        self.half_life_ecoli_in_vivo = half_life_ecoli_in_vivo
-        self.half_life_mammalian_reticulocytes_in_vitro = half_life_mammalian_reticulocytes_in_vitro
-        self.extinction_coeff_all_cys_pairs_form_cystines = extinction_coeff_all_cys_pairs_form_cystines
-        self.extinction_coeff_all_cys_residues_as_half_cystines  = extinction_coeff_all_cys_residues_appear_as_half_cystines
-        self.extinction_coeff_all_cys_residues_reduced = extinction_coeff_all_cys_residues_reduced
-        self.extinction_coeff_no_cys_residues_as_half_cystines = extinction_coeff_no_cys_residues_as_half_cystines
+        
         self.instability_index = instability_index
         self.molecules_per_cell = molecules_per_cell
         

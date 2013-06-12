@@ -78,7 +78,8 @@ def create_allele(old_phenotype_feature):
             return new_allele
     return None
 
-def create_phenoevidence(old_phenotype_feature, key_to_reflink, key_to_phenotype, id_to_reference, id_to_bioent):
+def create_phenoevidence(old_phenotype_feature, key_to_reflink, key_to_phenotype, 
+                         id_to_reference, id_to_bioent, key_to_strain, key_to_experiment, key_to_allele):
     from model_new_schema.phenotype import Phenoevidence as NewPhenoevidence
     evidence_id = create_phenoevidence_id(old_phenotype_feature.id)
     reference_id = key_to_reflink[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)].reference_id
@@ -96,25 +97,39 @@ def create_phenoevidence(old_phenotype_feature, key_to_reflink, key_to_phenotype
         print 'Phenotype does not exist. ' + str(phenotype_key)
         return None
     biocon_id = key_to_phenotype[phenotype_key].id
+    
+    experiment_key = old_phenotype_feature.experiment_type
+    if experiment_key not in key_to_experiment:
+        print 'Experiment does not exist. ' + str(experiment_key)
+        return None
+    experiment_id = key_to_experiment[experiment_key].id
 
-    new_phenoevidence = NewPhenoevidence(evidence_id, old_phenotype_feature.experiment_type, reference_id, None, old_phenotype_feature.source,
-                                         old_phenotype_feature.mutant_type, old_phenotype_feature.qualifier, bioent_id, biocon_id,
-                                         old_phenotype_feature.date_created, old_phenotype_feature.created_by)
     if old_phenotype_feature.experiment is not None:
         experiment = old_phenotype_feature.experiment
-        new_phenoevidence.reporter = None if experiment.reporter == None else experiment.reporter[0]
-        new_phenoevidence.reporter_desc = None if experiment.reporter == None else experiment.reporter[1]
-        new_phenoevidence.strain_id = None if experiment.strain == None else experiment.strain[0]
-        new_phenoevidence.strain_details = None if experiment.strain == None else experiment.strain[1]
+        reporter = None if experiment.reporter == None else experiment.reporter[0]
+        reporter_desc = None if experiment.reporter == None else experiment.reporter[1]
+        strain_key = None if experiment.strain == None else experiment.strain[0]
+        strain_details = None if experiment.strain == None else experiment.strain[1]
         #new_phenoevidence.budding_index = None if experiment.budding_index == None else float(experiment.budding_index)
         #new_phenoevidence.glutathione_excretion = None if experiment.glutathione_excretion == None else float(experiment.glutathione_excretion)
         #new_phenoevidence.z_score = experiment.z_score
         #new_phenoevidence.relative_fitness_score = None if experiment.relative_fitness_score == None else float(experiment.relative_fitness_score)
         #new_phenoevidence.chitin_level = None if experiment.chitin_level == None else float(experiment.chitin_level)
     
+        if strain_key not in key_to_strain:
+            print 'Strain does not exist. ' + str(strain_key)
+            return None
+        strain_id = key_to_strain[strain_key].id
+        
+        allele_info = experiment.allele
+        if allele_info is not None:
+            allele_name = allele_info[0]
+            mutant_allele_id = key_to_allele[allele_name].id
+            allele_info = allele_info[1]
+    
         comment = experiment.experiment_comment
         if comment is not None:
-            new_phenoevidence.experiment_details = comment
+            experiment_details = comment
             
         if len(experiment.condition) > 0:
             conditions = []
@@ -124,7 +139,7 @@ def create_phenoevidence(old_phenotype_feature, key_to_reflink, key_to_phenotype
                 else:
                     conditions.append(a + '- ' + b)
             condition_info = ', '.join(conditions)
-            new_phenoevidence.conditions = condition_info
+            conditions = condition_info
             
         if len(experiment.details) > 0:
             details = []
@@ -134,8 +149,13 @@ def create_phenoevidence(old_phenotype_feature, key_to_reflink, key_to_phenotype
                 else:
                     details.append(a + '- ' + b)
             detail_info = ', '.join(details)
-            new_phenoevidence.details = detail_info
-            
+            details = detail_info
+        
+    new_phenoevidence = NewPhenoevidence(evidence_id, experiment_id, reference_id, strain_id, old_phenotype_feature.source,
+                                         old_phenotype_feature.mutant_type, old_phenotype_feature.qualifier, bioent_id, biocon_id,
+                                         mutant_allele_id, allele_info, 
+                                         reporter, reporter_desc, strain_details, experiment_details, conditions, details,
+                                         old_phenotype_feature.date_created, old_phenotype_feature.created_by)
     return new_phenoevidence  
 
 def create_chemicals(expt_property):
@@ -146,8 +166,8 @@ def create_chemicals(expt_property):
     new_chemical = NewChemical(display_name, format_name, 'SGD', expt_property.date_created, expt_property.created_by)
     return new_chemical
 
-def create_phenoevidence_chemical(chemical_info, evidence_id, key_to_chemical, id_to_phenoevidence):
-    from model_new_schema.phenotype import PhenoevidenceChemical as NewPhenoevidenceChemical
+def create_evidence_chemical(chemical_info, evidence_id, key_to_chemical, id_to_phenoevidence):
+    from model_new_schema.evidence import EvidenceChemical as NewEvidenceChemical
     chemical_key = create_format_name(chemical_info[0])
     if chemical_key not in key_to_chemical:
         print 'Chemical does not exist. ' + chemical_key
@@ -159,7 +179,7 @@ def create_phenoevidence_chemical(chemical_info, evidence_id, key_to_chemical, i
         print 'Phenoevidence does not exist. ' + str(evidence_id)
         return None
     
-    new_pheno_chemical = NewPhenoevidenceChemical(evidence_id, chemical_id, chemical_amount)
+    new_pheno_chemical = NewEvidenceChemical(evidence_id, chemical_id, chemical_amount)
     return new_pheno_chemical
   
 """
@@ -400,6 +420,7 @@ def convert_phenoevidences(new_session, old_phenoevidences, old_reflinks):
     from model_new_schema.reference import Reference as NewReference
     from model_new_schema.bioentity import Bioentity as NewBioentity
     from model_new_schema.misc import Allele as NewAllele
+    from model_new_schema.evelement import Strain as NewStrain, Experiment as NewExperiment
     
     #Cache reflinks
     key_to_reflink = dict([((x.col_name, x.primary_key), x) for x in old_reflinks])
@@ -410,21 +431,13 @@ def convert_phenoevidences(new_session, old_phenoevidences, old_reflinks):
     key_to_phenoevidence = cache_by_key(NewPhenoevidence, new_session)
     id_to_reference = cache_by_id(NewReference, new_session)
     id_to_bioent = cache_by_id(NewBioentity, new_session)
+    key_to_strain = cache_by_key(NewStrain, new_session)
+    key_to_experiment = cache_by_key(NewExperiment, new_session)
 
     #Create new phenoevidences if they don't exist, or update the database if they do.    
-    new_phenoevidences = []
-    for old_phenoevidence in old_phenoevidences:
-        new_phenoevidence = create_phenoevidence(old_phenoevidence, key_to_reflink, key_to_phenotype, id_to_reference, id_to_bioent)
-        if new_phenoevidence is not None:
-            #Add alleles to phenoevidence
-            if old_phenoevidence.experiment is not None:
-                allele_info = old_phenoevidence.experiment.allele
-                if allele_info is not None:
-                    allele_name = allele_info[0]
-                    new_phenoevidence.mutant_allele_id = key_to_allele[allele_name].id
-                    new_phenoevidence.allele_info = allele_info[1]
-            new_phenoevidences.append(new_phenoevidence)
-                    
+    new_phenoevidences = [create_phenoevidence(old_phenoevidence, key_to_reflink, key_to_phenotype, id_to_reference, id_to_bioent, key_to_strain, key_to_experiment, key_to_allele)
+                            for old_phenoevidence in old_phenoevidences]
+   
     values_to_check = ['experiment_type', 'reference_id', 'evidence_type', 'strain_id', 'source',
                        'bioent_id', 'biocon_id', 'date_created', 'created_by',
                        'mutant_type', 'qualifier', 'reporter', 'reporter_desc', 'strain_details', 
@@ -436,11 +449,12 @@ def convert_phenoevidence_chemicals(new_session, old_phenoevidences):
     '''
     Convert Phenoevidence_chemicals
     '''
-    from model_new_schema.phenotype import PhenoevidenceChemical as NewPhenoevidenceChemical, Phenoevidence as NewPhenoevidence
+    from model_new_schema.evidence import EvidenceChemical as NewEvidenceChemical
+    from model_new_schema.phenotype import Phenoevidence as NewPhenoevidence
     from model_new_schema.chemical import Chemical as NewChemical
     
     #Cache evidence_chemical and chemical
-    key_to_phenoevidence_chemical = cache_by_key(NewPhenoevidenceChemical, new_session)
+    key_to_phenoevidence_chemical = cache_by_key(NewEvidenceChemical, new_session)
     key_to_chemical = cache_by_key(NewChemical, new_session)
     id_to_phenoevidence = cache_by_id(NewPhenoevidence, new_session)
     
@@ -452,7 +466,7 @@ def convert_phenoevidence_chemicals(new_session, old_phenoevidences):
         if old_phenoevidence.experiment is not None:
             chemical_infos = old_phenoevidence.experiment.chemicals
             if chemical_infos is not None:   
-                phenoevidence_chemicals.extend([create_phenoevidence_chemical(x, new_phenoevidence_id, key_to_chemical, id_to_phenoevidence) for x in chemical_infos])
+                phenoevidence_chemicals.extend([create_evidence_chemical(x, new_phenoevidence_id, key_to_chemical, id_to_phenoevidence) for x in chemical_infos])
     success = create_or_update_and_remove(phenoevidence_chemicals, key_to_phenoevidence_chemical, values_to_check, new_session)
     return success
 
