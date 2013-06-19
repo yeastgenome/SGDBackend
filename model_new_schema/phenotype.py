@@ -40,6 +40,9 @@ class Phenotype(Bioconcept):
     @hybrid_property
     def search_entry_type(self):
         return 'Phenotype'
+    @hybrid_property
+    def weight(self):
+        return self.direct_gene_count
         
 class Phenoevidence(Evidence):
     __tablename__ = "phenoevidence"
@@ -67,8 +70,8 @@ class Phenoevidence(Evidence):
     type = 'BIOCON_EVIDENCE'
     
     #Relationship
-    gene = relationship(Bioentity, uselist=False)
-    phenotype = relationship(Phenotype, uselist=False)
+    bioentity = relationship(Bioentity, uselist=False)
+    bioconcept = relationship(Phenotype, uselist=False)
     allele = relationship(Allele, lazy='subquery', uselist=False, backref='phenoevidences')
 
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE_EVIDENCE",

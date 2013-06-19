@@ -33,6 +33,12 @@ class Go(Bioconcept):
     @hybrid_property
     def search_entry_type(self):
         return 'Gene Ontology Term'
+    @hybrid_property
+    def subtype(self):
+        return self.go_aspect
+    @hybrid_property
+    def weight(self):
+        return self.direct_gene_count
 
 class Goevidence(Evidence):
     __tablename__ = "goevidence"
@@ -47,8 +53,8 @@ class Goevidence(Evidence):
     type = 'BIOCON_EVIDENCE'  
     
     #Relationships 
-    gene = relationship(Bioentity, uselist=False)
-    goterm = relationship(Go, uselist=False)
+    bioentity = relationship(Bioentity, uselist=False)
+    bioconcept = relationship(Go, uselist=False)
     
     __mapper_args__ = {'polymorphic_identity': "GO_EVIDENCE",
                        'inherit_condition': id==Evidence.id}

@@ -5,6 +5,7 @@ Created on Dec 11, 2012
 '''
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.chemical import Chemical
+from model_new_schema.evelement import Experiment, Strain
 from model_new_schema.reference import Reference
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
@@ -15,15 +16,17 @@ class Evidence(Base, EqualityByIDMixin):
     __tablename__ = "evidence"
     
     id = Column('evidence_id', Integer, primary_key=True)
-    experiment_type = Column('experiment_type', String)
+    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     evidence_type = Column('evidence_type', String)
-    strain_id = Column('strain_id', String)
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
     source = Column('source', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
     reference = relationship(Reference, backref=backref('evidences', passive_deletes=True), uselist=False)
+    experiment = relationship(Experiment, uselist=False)
+    strain = relationship(Strain, uselist=False)
     chemicals = association_proxy('ev_chemicals', 'chemical')
     
     __mapper_args__ = {'polymorphic_on': evidence_type,

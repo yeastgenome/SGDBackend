@@ -8,6 +8,7 @@ from pyramid.view import view_config
 from query import get_biofacts, get_go_evidence, get_related_biofacts, \
     get_biocon_family, get_biocon_biocons, get_biocon_id, get_biocon, get_bioent, \
     get_bioent_id, get_reference_id
+from sgdbackend.graph_views import create_graph
 from sgdbackend.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list
 import math
@@ -99,7 +100,12 @@ def go_graph(request):
         biocon = get_biocon(biocon_name, 'GO')
         if biocon is None:
             return Response(status_int=500, body='Biocon could not be found.')
-        return create_go_graph(biocon=biocon)
+        
+        evidence_filter = lambda x: x.evidence_type != 'GO_EVIDENCE' or x.annotation_type != 'computational'
+        l1_filter = lambda x, y: True
+        l2_filter = lambda x, y: x.biocon_type == 'GO' and len(y) > 1
+        return create_graph(['BIOENTITY'], ['BIOCONCEPT'], evidence_filter, l1_filter, l2_filter, seed_biocons=[biocon]) 
+
   
     elif 'bioent' in request.GET:
         #Need a GO graph based on a bioent
@@ -107,7 +113,11 @@ def go_graph(request):
         bioent = get_bioent(bioent_name, 'LOCUS')
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        return create_go_graph(bioent=bioent)
+
+        evidence_filter = lambda x: x.evidence_type != 'GO_EVIDENCE' or x.annotation_type != 'computational'
+        l1_filter = lambda x, y: x.biocon_type == 'GO'
+        l2_filter = lambda x, y: len(y) > 1
+        return create_graph(['BIOCONCEPT'], ['BIOENTITY'], evidence_filter, l1_filter, l2_filter, seed_bioents=[bioent]) 
 
     else:
         return Response(status_int=500, body='No Bioent or Biocon specified.')
@@ -147,7 +157,7 @@ def make_overview_tables(divided, goevidences, include_comp=True):
     return tables    
 
 def make_single_overview_table(goevidences):
-    evidence_map = dict([(evidence.id, (evidence.gene, evidence.goterm)) for evidence in goevidences])
+    evidence_map = dict([(evidence.id, (evidence.bioentity, evidence.bioconcept)) for evidence in goevidences])
     return create_grouped_evidence_table(goevidences, evidence_map, make_overview_row)
 
 def make_overview_row(evs_for_group, group_term):
@@ -184,8 +194,8 @@ def make_evidence_tables(divided, goevidences, include_comp=True):
     return tables    
 
 def make_evidence_row(goevidence): 
-    bioent = goevidence.gene
-    biocon = goevidence.goterm
+    bioent = goevidence.bioentity
+    biocon = goevidence.bioconcept
     reference = ''
     if goevidence.reference is not None:
         reference = goevidence.reference.name_with_link
@@ -331,9 +341,9 @@ def create_go_graph(bioent=None, biocon=None):
 -------------------------------Utils---------------------------------------
 '''  
 def divide_goevidences(goevidences):
-    process_evidences = [evidence for evidence in goevidences if evidence.goterm.go_aspect == 'biological process']
-    function_evidences = [evidence for evidence in goevidences if evidence.goterm.go_aspect == 'molecular function']
-    component_evidences = [evidence for evidence in goevidences if evidence.goterm.go_aspect == 'cellular component']
+    process_evidences = [evidence for evidence in goevidences if evidence.bioconcept.go_aspect == 'biological process']
+    function_evidences = [evidence for evidence in goevidences if evidence.bioconcept.go_aspect == 'molecular function']
+    component_evidences = [evidence for evidence in goevidences if evidence.bioconcept.go_aspect == 'cellular component']
 
     return {'process':process_evidences, 'function':function_evidences, 'component':component_evidences}
 

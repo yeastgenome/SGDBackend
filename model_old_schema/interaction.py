@@ -8,7 +8,6 @@ from model_old_schema.phenotype import Phenotype
 from model_old_schema.reference import Reference
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 import datetime
@@ -26,16 +25,13 @@ class Interaction(Base, EqualityByIDMixin):
     date_created = Column('date_created', Date)
     
     #Relationships
-    interaction_reference = relationship('Interaction_Reference', lazy='subquery')
-    notes = association_proxy('interaction_reference', 'note')
-    references = association_proxy('interaction_reference', 'reference')
+    interaction_references = relationship('Interaction_Reference', lazy='subquery')
+    reference_ids = association_proxy('interaction_references', 'reference_id')
     
-    interaction_phenotype = relationship('Interaction_Phenotype', lazy='subquery')
-    qualifiers = association_proxy('interaction_phenotype', 'qualifier')
-    observables = association_proxy('interaction_phenotype', 'observable')
+    interaction_phenotypes = relationship('Interaction_Phenotype', lazy='subquery')
     
-    feature_interactions = relationship('Interaction_Feature', collection_class=attribute_mapped_collection('action'), lazy='joined')
-    features = association_proxy('feature_interactions', 'feature')
+    feature_interactions = relationship('Interaction_Feature')
+    feature_ids = association_proxy('feature_interactions', 'feature_id')
     
     def __init__(self, session, interaction_type, experiment_type, annotation_type, source, modification):
         self.interaction_type = interaction_type

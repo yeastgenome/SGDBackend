@@ -9,14 +9,14 @@ schema on fasolt.
 '''
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.evidence import Evidence
-from model_new_schema.link_maker import add_link, bioent_link, bioent_wiki_link
+from model_new_schema.link_maker import add_link, bioent_link, bioent_wiki_link, \
+    bioentrel_link, bioentmultirel_link
 from model_new_schema.misc import Alias, Url, Altid
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date, Float
-import datetime
 
 class Bioentity(Base, EqualityByIDMixin):
     __tablename__ = 'bioent'
@@ -117,18 +117,88 @@ class BioentRelation(Base, EqualityByIDMixin):
         else:
             return None
     
-    def __init__(self, biorel_type, source_bioent_id, sink_bioent_id, session=None, biorel_id=None, created_by=None, date_created=None):
+    def __init__(self, biorel_id, biorel_type, source_bioent_id, sink_bioent_id, date_created, created_by):
+        self.id = biorel_id
         self.source_bioent_id = source_bioent_id
         self.sink_bioent_id = sink_bioent_id
         self.biorel_type = biorel_type
+        self.created_by = created_by
+        self.date_created = date_created
         
-        if session is None:
-            self.created_by = created_by
-            self.date_created = date_created
-            self.id = biorel_id
-        else:
-            self.created_by = session.user
-            self.date_created = datetime.datetime.now() 
+    def unique_key(self):
+        return (self.source_bioent_id, self.sink_bioent_id, self.biorel_type)
+        
+    @hybrid_property
+    def link(self):
+        return bioentrel_link(self)
+    @hybrid_property
+    def name_with_link(self):
+        return add_link(str(self.display_name), self.link)
+    @hybrid_property
+    def description(self):
+        return self.biorel_type.lower() + ' between ' + self.source_bioent.name_with_link + ' and ' + self.sink_bioent.name_with_link
+    
+        
+class BioentMultiRelation(Base, EqualityByIDMixin):
+    __tablename__ = "bioentmultirel"
+    
+    id = Column('biorel_id', Integer, primary_key = True)
+    format_name = Column('format_name', String)
+    display_name = Column('display_name', String)
+    biorel_type = Column('biorel_type', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+    type = 'BIOENTMUTLIRELATION'
+    
+    __mapper_args__ = {'polymorphic_on': biorel_type,
+                       'polymorphic_identity':"BIOENTMULTIRELATION"}
+    
+    #Relationships
+    bioentities = association_proxy('bioentmultirel_bioents', 'bioentity')
+    
+    
+    def __init__(self, biorel_id, display_name, format_name, biorel_type, date_created, created_by):
+        self.id = biorel_id
+        self.display_name = display_name
+        self.format_name = format_name
+        self.biorel_type = biorel_type
+        self.created_by = created_by
+        self.date_created = date_created
+        
+    def unique_key(self):
+        return (self.format_name, self.biorel_type)
+        
+    @hybrid_property
+    def link(self):
+        return bioentmultirel_link(self)
+    @hybrid_property
+    def name_with_link(self):
+        return add_link(str(self.display_name), self.link)
+    @hybrid_property
+    def description(self):
+        return self.biorel_type.lower() + ' between ' + ','.join([bioent.name_with_link for bioent in self.bioentities])
+    
+        
+class BioentMultiRelationBioent(Base, EqualityByIDMixin):
+    __tablename__ = 'bioentmultirel_bioent'
+    id = Column('bioentmultirel_bioent_id', Integer, primary_key = True)
+    biorel_id = Column('biorel_id', Integer, ForeignKey(BioentMultiRelation.id))
+    bioent_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
+    biorel_type = Column('biorel_type', String)
+    
+    #Relationships
+    biorel = relationship(BioentMultiRelation, uselist=False, backref=backref('bioentmultirel_bioents', order_by=bioent_id))
+    bioentity = relationship(Bioentity, uselist=False, backref='bioentmultirel_bioents')
+    
+    def __init__(self, biorel_id, bioent_id, biorel_type):
+        self.biorel_id = biorel_id
+        self.bioent_id = bioent_id
+        self.biorel_type = biorel_type
+        
+    def unique_key(self):
+        return (self.biorel_id, self.bioent_id)
+    
+    
 
 class BioentAlias(Alias):
     __tablename__ = 'bioentalias'
@@ -376,11 +446,11 @@ class Bioentevidence(Evidence):
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     topic = Column('topic', String)
-    bioent_id = Column('bioent_id', Integer, ForeignKey(Locus.id))
+    bioent_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
     type = 'BIOENT_EVIDENCE'  
     
     #Relationships 
-    gene = relationship(Locus, uselist=False)
+    bioentity = relationship(Bioentity, uselist=False)
     
     __mapper_args__ = {'polymorphic_identity': "BIOENT_EVIDENCE",
                        'inherit_condition': id==Evidence.id}

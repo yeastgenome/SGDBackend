@@ -3,69 +3,81 @@ Created on May 16, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.bioentity import BioentRelation
+from model_new_schema.phenotype import Phenotype
+from model_new_schema.bioentity import BioentMultiRelation
 from model_new_schema.evidence import Evidence
-from model_new_schema.link_maker import interaction_link, add_link
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 
-class Interaction(BioentRelation):
-    __tablename__ = "interaction"
+class GeneticInteraction(BioentMultiRelation):
+    __tablename__ = "geneticinteraction"
 
-    id = Column('biorel_id', Integer, ForeignKey(BioentRelation.id), primary_key = True)
-    physical_evidence_count = Column('physical_evidence_count', Integer)
-    genetic_evidence_count = Column('genetic_evidence_count', Integer)
+    id = Column('biorel_id', Integer, ForeignKey(BioentMultiRelation.id),primary_key = True)
+    evidence_count = Column('evidence_count', Integer)
+
+    __mapper_args__ = {'polymorphic_identity': "GENETIC_INTERACTION",
+                       'inherit_condition': id==BioentMultiRelation.id}
+    
+    def __init__(self, biorel_id, display_name, format_name, date_created, created_by):
+        BioentMultiRelation.__init__(self, biorel_id, display_name, format_name, 'GENETIC_INTERACTION', date_created, created_by)
+        
+class PhysicalInteraction(BioentMultiRelation):
+    __tablename__ = "physicalinteraction"
+
+    id = Column('biorel_id', Integer, ForeignKey(BioentMultiRelation.id),primary_key = True)
     evidence_count = Column('evidence_count', Integer)
     
-    @hybrid_property
-    def link(self):
-        return interaction_link(self)
-    @hybrid_property
-    def name_with_link(self):
-        return add_link(str(self.display_name), self.link)
-    @hybrid_property
-    def description(self):
-        return 'Interaction between ' + self.source_bioent.name_with_link + ' and ' + self.sink_bioent.name_with_link
-        
-    __mapper_args__ = {'polymorphic_identity': 'INTERACTION',
-                       'inherit_condition': id == BioentRelation.id}
+    __mapper_args__ = {'polymorphic_identity': "PHYSICAL_INTERACTION",
+                       'inherit_condition': id==BioentMultiRelation.id}
     
-class Interevidence(Evidence):
-    __tablename__ = "interevidence"
+    def __init__(self, biorel_id, display_name, format_name, date_created, created_by):
+        BioentMultiRelation.__init__(self, biorel_id, display_name, format_name, 'PHYSICAL_INTERACTION', date_created, created_by)
+                    
+    
+class GeneticInterevidence(Evidence):
+    __tablename__ = "geneticinterevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    observable = Column('observable', String)
-    qualifier = Column('qualifier', String)
-    note = Column('note', String)
+    phenotype_id = Column('phenotype_id', Integer, ForeignKey(Phenotype.id))
     annotation_type = Column('annotation_type', String)
-    modification = Column('modification', String)
-    direction = Column('direction', String)
-    interaction_type = Column('interaction_type', String)
-    biorel_id = Column('biorel_id', Integer, ForeignKey(Interaction.id))
-    
-    type = 'BIOREL_EVIDENCE'
-    
-    __mapper_args__ = {'polymorphic_identity': "INTERACTION_EVIDENCE",
+    bait_hit = Column('bait_hit', String)
+    biorel_id = Column('biorel_id', Integer, ForeignKey(GeneticInteraction.id))
+        
+    __mapper_args__ = {'polymorphic_identity': "GENETIC_INTERACTION_EVIDENCE",
                        'inherit_condition': id==Evidence.id}
     
-    biorel = relationship(Interaction, backref='evidences')
+    #Relationships
+    biorel = relationship(GeneticInteraction, backref='evidences')
 
-    @hybrid_property
-    def phenotype(self):
-        if self.qualifier is not None:
-            return self.qualifier + ' ' + self.observable
-        else:
-            return None
+    def __init__(self, evidence_id, biorel_id, experiment_id, reference_id, strain_id, annotation_type, source, phenotype_id, bait_hit, date_created, created_by):
+        Evidence.__init__(self, evidence_id, experiment_id, reference_id, 'GENETIC_INTERACTION_EVIDENCE', strain_id, source, date_created, created_by)
+        self.annotation_type = annotation_type
+        self.phenotype_id = phenotype_id
+        self.bait_hit = bait_hit
+        self.biorel_id = biorel_id
         
-    def __init__(self, experiment_type, reference_id, strain_id, direction, annotation_type, modification, source, observable, qualifier, note, interaction_type, session=None, evidence_id=None, date_created=None, created_by=None):
-        Evidence.__init__(self, experiment_type, reference_id, 'INTERACTION_EVIDENCE', strain_id, session=session, evidence_id=evidence_id, date_created=date_created, created_by=created_by)
-        self.direction = direction
+class PhysicalInterevidence(Evidence):
+    __tablename__ = "physicalinterevidence"
+    
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    modification = Column('modification', String)
+    annotation_type = Column('annotation_type', String)
+    bait_hit = Column('bait_hit', String)
+    biorel_id = Column('biorel_id', Integer, ForeignKey(PhysicalInteraction.id))
+        
+    __mapper_args__ = {'polymorphic_identity': "PHYSICAL_INTERACTION_EVIDENCE",
+                       'inherit_condition': id==Evidence.id}
+    
+    #Relationships
+    biorel = relationship(PhysicalInteraction, backref='evidences')
+        
+    def __init__(self, evidence_id, biorel_id, experiment_id, reference_id, strain_id, annotation_type, source, modification, bait_hit, date_created, created_by):
+        Evidence.__init__(self, evidence_id, experiment_id, reference_id, 'PHYSICAL_INTERACTION_EVIDENCE', strain_id, source, date_created, created_by)
         self.annotation_type = annotation_type
         self.modification = modification
-        self.source = source
-        self.observable = observable
-        self.qualifier = qualifier
-        self.note = note
-        self.interaction_type = interaction_type
+        self.bait_hit = bait_hit
+        self.biorel_id = biorel_id
+        
+        
+        

@@ -302,8 +302,8 @@ class ReferenceUrl(Url):
     #Relationships
     reference = relationship(Reference, uselist=False, backref=backref('urls', passive_deletes=True))
     
-    def __init__(self, url, source, reference_id, date_created, created_by):
-        Url.__init__(self, url, 'REFERENCE_URL', source, date_created, created_by)
+    def __init__(self, url, display_name, source, reference_id, date_created, created_by):
+        Url.__init__(self, url, display_name, 'REFERENCE_URL', source, date_created, created_by)
         self.reference_id = reference_id
         
 class ReferenceAltid(Altid):

@@ -7,7 +7,7 @@ from model_new_schema.link_maker import add_link
 from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_biorels, get_interactions, get_bioent, get_reference_id, \
-    get_interaction_evidence, get_biorel_id
+    get_genetic_interaction_evidence, get_physical_interaction_evidence, get_biorel_id
 from sgdbackend.utils import create_simple_table, make_reference_list
 
 
@@ -20,9 +20,9 @@ def interaction_overview_table(request):
         bioent = get_bioent(bioent_name, 'LOCUS')
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        biorels = get_biorels('INTERACTION', bioent.id)
-        #interevidences = get_interaction_evidence(biorels)
-        return make_overview_tables(False, biorels, bioent) 
+        genetic = get_biorels('GENETIC_INTERACTION', bioent.id)
+        physical = get_biorels('PHYSICAL_INTERACTION', bioent.id)
+        return make_overview_tables(genetic, physical, bioent) 
     
     elif 'reference' in request.GET:
         #Need an interaction overview table based on a reference
@@ -30,9 +30,11 @@ def interaction_overview_table(request):
         ref_id = get_reference_id(ref_name)
         if ref_id is None:
             return Response(status_int=500, body='Reference could not be found.')
-        interevidences = get_interaction_evidence(reference_id=ref_id)
-        biorels = set([interevidence.biorel for interevidence in interevidences])
-        return make_overview_tables(False, biorels) 
+        genetic_interevidences = get_genetic_interaction_evidence(reference_id=ref_id)
+        physical_interevidences = get_physical_interaction_evidence(reference_id=ref_id)
+        genetic = set([interevidence.biorel for interevidence in genetic_interevidences])
+        physical = set([interevidence.biorel for interevidence in physical_interevidences])
+        return make_overview_tables(genetic, physical) 
 
     else:
         return Response(status_int=500, body='No Bioent or Reference specified.')
@@ -79,30 +81,60 @@ def interaction_graph(request):
 -------------------------------Overview Table---------------------------------------
 '''
 
-def make_overview_tables(divided, biorels, bioent=None):
+def make_overview_tables(genetic, physical, bioent=None):
     tables = {}
             
-    if divided:
-        divided_biorels = divide_biorels(divided)
-        
-        tables['physical'] = make_overview_table(divided_biorels['physical'], bioent)
-        tables['genetic'] = make_overview_table(divided_biorels['genetic'], bioent)
-    else:
-        tables['aaData'] = make_overview_table(biorels, bioent)
+    tables['aaData'] = make_overview_table(genetic, physical, bioent)
     return tables    
 
-def make_overview_table(biorels, bioent):
+def make_overview_table(genetic, physical, bioent):
+    inters_to_counts = dict()
     
-    def f(biorel, bioent):
-        if bioent is not None:
-            orig_bioent = bioent
-            opp_bioent = biorel.get_opposite(orig_bioent)
+    for x in genetic:
+        inters = tuple(x.bioentities)
+        if inters in inters_to_counts:
+            genetic_count, physical_count = inters_to_counts[inters]
+            inters_to_counts[inters] = (genetic_count+1, physical_count)
         else:
-            orig_bioent = biorel.source_bioent
-            opp_bioent = biorel.sink_bioent
-        return [orig_bioent.name_with_link, opp_bioent.name_with_link, biorel.genetic_evidence_count, biorel.physical_evidence_count, add_link(str(biorel.evidence_count), biorel.link)]
+            inters_to_counts[inters] = (1, 0) 
+           
+    for x in physical:
+        inters = tuple(x.bioentities)
+        if inters in inters_to_counts:
+            genetic_count, physical_count = inters_to_counts[inters]
+            inters_to_counts[inters] = (genetic_count, physical_count+1)
+        else:
+            inters_to_counts[inters] = (0, 1) 
+                
+    def f(inters, bioent):
+        if len(inters) == 1:
+            orig_bioent_link = inters[0].name_with_link
+            opp_bioent_link = inters[0].name_with_link
+        elif len(inters) > 2:
+            if bioent is not None:
+                orig_bioent = bioent
+            else:
+                orig_bioent = inters[0]
+            orig_bioent_link = orig_bioent.name_with_link
+            opp_bioents = list(inters)
+            opp_bioents.remove(orig_bioent)
+            opp_bioent_link = ', '.join([x.name_with_link for x in opp_bioents])
+        else:
+            if bioent is not None:
+                orig_bioent = bioent
+            else:
+                orig_bioent = inters[0]
+            orig_bioent_link = orig_bioent.name_with_link
+            opp_bioents = list(inters)
+            opp_bioents.remove(orig_bioent)
+            opp_bioent_link = opp_bioents[0].name_with_link
+            
+        genetic_count = inters_to_counts[inters][0]
+        physical_count = inters_to_counts[inters][1]
+        total_count = genetic_count + physical_count
+        return [orig_bioent_link, opp_bioent_link, genetic_count, physical_count, total_count]
         
-    return create_simple_table(biorels, f, bioent=bioent) 
+    return create_simple_table(inters_to_counts.keys(), f, bioent=bioent) 
 
 def make_overview_row(biorel, evs_for_group, group_term):
     if group_term[1] is not None:
@@ -221,7 +253,7 @@ def create_interaction_graph(bioent):
     bioent_to_evidence = {}
 
     #bioents.update([interaction.get_opposite(bioent) for interaction in get_biorels('INTERACTION', bioent)])
-    bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in get_biorels('INTERACTION', bioent.id)])
+    bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in get_biorels('PHYSICAL_INTERACTION', bioent.id)])
     bioents.update(bioent_to_evidence.keys())
 
     bioents.add(bioent)
@@ -255,14 +287,3 @@ def create_interaction_graph(bioent):
 def get_id(bio):
     return bio.type + str(bio.id)
 
-def divide_interevidences(interevidences):
-    physical = [interevidence for interevidence in interevidences if interevidence.interaction_type == 'physical']
-    genetic = [interevidence for interevidence in interevidences if interevidence.interaction_type == 'genetic']
-    return {'physical':physical, 'genetic':genetic}
-
-def divide_biorels(biorels):
-    physical = [biorel for biorel in biorels if biorels.physical_evidence_count > 0]
-    genetic = [biorel for biorel in biorels if biorels.genetic_evidence_count > 0]
-    return {'physical':physical, 'genetic':genetic}
-
-        

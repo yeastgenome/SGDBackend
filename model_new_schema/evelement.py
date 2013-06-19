@@ -5,7 +5,9 @@ Created on Jun 10, 2013
 '''
 
 from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema.link_maker import add_link, experiment_link, strain_link
 from model_new_schema.misc import Altid
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
@@ -30,6 +32,14 @@ class Experiment(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return self.format_name
+
+    @hybrid_property
+    def link(self):
+        return experiment_link(self)
+    @hybrid_property
+    def name_with_link(self):
+        return add_link(self.display_name, self.link) 
+    
     
 class ExperimentRelation(Base, EqualityByIDMixin):
     __tablename__ = 'experimentrel'
@@ -89,3 +99,10 @@ class Strain(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return self.format_name
+    
+    @hybrid_property
+    def link(self):
+        return strain_link(self)
+    @hybrid_property
+    def name_with_link(self):
+        return add_link(self.display_name, self.link) 

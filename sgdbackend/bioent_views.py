@@ -51,7 +51,10 @@ def bioent_overview_table(request):
         if ref_id is None:
             return Response(status_int=500, body='Reference could not be found.')
         bioentevidences = get_bioent_evidence(reference_id=ref_id)
-        return make_overview_table(bioentevidences) 
+        primary = ', '.join([evidence.bioentity.name_with_link for evidence in bioentevidences if evidence.topic=='Primary Literature'])
+        additional = ', '.join([evidence.bioentity.name_with_link for evidence in bioentevidences if evidence.topic=='Additional Literature'])
+        review = ', '.join([evidence.bioentity.name_with_link for evidence in bioentevidences if evidence.topic=='Reviews'])
+        return {'primary': primary, 'additional': additional, 'review': review}
     else:
         return Response(status_int=500, body='No Bioent or Reference specified.')
 
@@ -67,17 +70,6 @@ def bioent_evidence_table(request):
         return make_evidence_table(bioentevidences) 
     else:
         return Response(status_int=500, body='No Bioent specified.')
-    
-def make_overview_table(bioentevidences):
-
-    def f(bioentevidence):
-        gene = bioentevidence.gene
-        reference = bioentevidence.reference
-        return [bioentevidence.topic, gene.name_with_link, reference.name_with_link]
-        
-    tables = {}
-    tables['aaData'] = create_simple_table(bioentevidences, f) 
-    return tables
     
 def make_evidence_table(bioentevidences):
     primary_evs = [evidence for evidence in bioentevidences if evidence.topic=='Primary Literature']

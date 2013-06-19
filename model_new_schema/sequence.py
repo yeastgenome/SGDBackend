@@ -5,21 +5,11 @@ Created on Mar 22, 2013
 '''
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.bioentity import Bioentity
-from sqlalchemy.ext.hybrid import hybrid_property
+from model_new_schema.evelement import Strain
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date, CLOB, Float
 
-class Strain(Base, EqualityByIDMixin):
-    __tablename__ = 'strain'
-    
-    id = Column('strain_id', Integer, primary_key = True)
-    name = Column('name', String)
-    description = Column('description', String)
-    
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
 
 class Sequence(Base, EqualityByIDMixin):
     __tablename__ = 'seq'

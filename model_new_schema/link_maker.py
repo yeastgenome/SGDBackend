@@ -124,6 +124,14 @@ def bioent_biocon_reference_link(bioent_biocon):
 def biocon_link(biocon):
     return '/' + lower(biocon.biocon_type) + '/' + biocon.format_name
 
+#Bioentrel links
+def bioentrel_link(bioentrel):
+    return '/' + lower(bioentrel.biorel_type) + '/' + bioentrel.format_name
+
+#Bioentmultirel links
+def bioentmultirel_link(bioentmultirel):
+    return '/' + lower(bioentmultirel.biorel_type) + '/' + bioentmultirel.format_name
+
 #Chemical links
 def chemical_link(chemical):
     return '/chemical/' + chemical.format_name
@@ -143,3 +151,8 @@ def reference_interaction_link(reference):
 
 def author_link(author):
     return '/author/' + author.format_name
+
+def experiment_link(experiment):
+    return '/experiment/' + experiment.format_name
+def strain_link(strain):
+    return '/strain/' + strain.format_name

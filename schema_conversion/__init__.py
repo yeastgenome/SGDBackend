@@ -41,9 +41,17 @@ def cache_by_key(cls, session, **kwargs):
     cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).filter_by(**kwargs).all()])
     return cache_entries
 
+def cache_by_key_in_range(cls, session, min_id, max_id):
+    cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).filter(cls.id >= min_id).filter(cls.id < max_id).all()])
+    return cache_entries
+
 def cache_by_id(cls, session, **kwargs):
     cache_entries = dict([(x.id, x) for x in session.query(cls).filter_by(**kwargs).all()])
     return cache_entries
+
+def cache_ids(cls, session, **kwargs):
+    cache_ids = session.query(cls.id).filter_by(**kwargs).all()
+    return cache_ids
     
 def add_or_check(new_obj, mapping, key, values_to_check, session, output_creator):
     if key in mapping:

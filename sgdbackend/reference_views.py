@@ -8,6 +8,7 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_reference, get_author, get_author_id, get_assoc_reference, \
     find_bioentities
+from sgdbackend.graph_views import create_graph
 from sgdbackend.utils import make_reference_list
 import string
 
@@ -31,6 +32,23 @@ def reference_view(request):
                      'citation': reference.citation_db
                      }
     return reference_json
+
+@view_config(route_name='reference_graph', renderer="jsonp")
+def reference_graph(request):
+    if 'reference' in request.GET:
+        #Need a reference graph based on a reference
+        reference_name = request.GET['reference']
+        reference = get_reference(reference_name)
+        if reference is None:
+            return Response(status_int=500, body='Reference could not be found.')
+        
+        evidence_filter = lambda x: x.evidence_type != 'BIOENT_EVIDENCE' or x.topic=='Primary Literature'
+        l1_filter = lambda x, y: True
+        l2_filter = lambda x, y: len(y) > 1
+        return create_graph(['BIOENTITY'], ['REFERENCE'], evidence_filter, l1_filter, l2_filter, seed_refs=[reference]) 
+
+    else:
+        return Response(status_int=500, body='No Reference specified.')
 
 @view_config(route_name='author', renderer='json')
 def author_view(request):

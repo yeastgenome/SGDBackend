@@ -58,6 +58,7 @@ def main(global_config, **settings):
        
     #Reference views
     config.add_route('reference', '/reference/{reference}')
+    config.add_route('reference_graph', '/reference_graph')
     config.add_route('author', '/author/{author}')
     config.add_route('assoc_references', '/assoc_references')
 
