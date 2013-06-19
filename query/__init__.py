@@ -159,9 +159,7 @@ def get_reference(reference_name, print_query=False):
     FROM sprout.reference LEFT OUTER JOIN sprout.abstract abstract_1 ON sprout.reference.reference_id = abstract_1.reference_id LEFT OUTER JOIN sprout.author_reference author_reference_1 ON sprout.reference.reference_id = author_reference_1.reference_id LEFT OUTER JOIN sprout.author author_1 ON author_1.author_id = author_reference_1.author_id 
     WHERE sprout.reference.pubmed_id = :pubmed_id_1
     '''
-    query = session.query(Reference).options(
-            subqueryload('author_references'), subqueryload('author_references.author'), 
-            subqueryload('reftypes'), subqueryload('refrels'), subqueryload('urls')).filter(Reference.format_name==reference_name)
+    query = session.query(Reference).filter(Reference.format_name==reference_name)
     
     reference = query.first() 
     
