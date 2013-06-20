@@ -21,6 +21,7 @@ class GeneticInteraction(BioentMultiRelation):
     
     def __init__(self, biorel_id, display_name, format_name, date_created, created_by):
         BioentMultiRelation.__init__(self, biorel_id, display_name, format_name, 'GENETIC_INTERACTION', date_created, created_by)
+        self.evidence_count = 0
         
 class PhysicalInteraction(BioentMultiRelation):
     __tablename__ = "physicalinteraction"
@@ -33,7 +34,7 @@ class PhysicalInteraction(BioentMultiRelation):
     
     def __init__(self, biorel_id, display_name, format_name, date_created, created_by):
         BioentMultiRelation.__init__(self, biorel_id, display_name, format_name, 'PHYSICAL_INTERACTION', date_created, created_by)
-                    
+        self.evidence_count = 0                    
     
 class GeneticInterevidence(Evidence):
     __tablename__ = "geneticinterevidence"

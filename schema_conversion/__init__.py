@@ -85,8 +85,12 @@ def create_or_update(new_objs, mapping, values_to_check, session):
         output_creator.finished()
         return True
     
-def create_or_update_and_remove(new_objs, mapping, values_to_check, session):
+def create_or_update_and_remove(new_objs, mapping, values_to_check, session, full_mapping=None):
+    if full_mapping is None:
+        full_mapping = mapping
+    
     new_objs = filter(None, new_objs)
+    new_objs.sort()
     output_creator = OutputCreator()
     to_be_removed = set(mapping.keys())
     
@@ -102,7 +106,7 @@ def create_or_update_and_remove(new_objs, mapping, values_to_check, session):
         # Check old objects or add new objects.
         for new_obj in new_objs:
             key = new_obj.unique_key()
-            add_or_check(new_obj, mapping, key, values_to_check, session, output_creator)
+            add_or_check(new_obj, full_mapping, key, values_to_check, session, output_creator)
             
             if key in to_be_removed:
                 to_be_removed.remove(key)

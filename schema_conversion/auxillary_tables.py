@@ -27,6 +27,25 @@ def update_biocon_gene_counts(new_session, biocon_cls, evidence_cls):
             biocon.direct_gene_count = count
             num_changed = num_changed + 1
     print 'In total ' + str(num_changed) + ' changed.'
+    
+def update_biorel_evidence_counts(new_session, biorel_cls, evidence_cls):
+    biorels = new_session.query(biorel_cls).all()
+    evidences = new_session.query(evidence_cls).all()
+    biorel_id_to_evidence_count = {}
+    
+    for biorel in biorels:
+        biorel_id_to_evidence_count[biorel.id] = 0
+        
+    for evidence in evidences:
+        biorel_id_to_evidence_count[evidence.biorel_id] = biorel_id_to_evidence_count[evidence.biorel_id]+1
+        
+    num_changed = 0
+    for biorel in biorels:
+        count = biorel_id_to_evidence_count[biorel.id]
+        if count != biorel.evidence_count:
+            biorel.evidence_count = count
+            num_changed = num_changed + 1
+    print 'In total ' + str(num_changed) + ' changed.'
 
 def convert_biocon_ancestors(new_session, bioconrel_type, num_generations):
     from model_new_schema.bioconcept import BioconRelation as NewBioconRelation, BioconAncestor as NewBioconAncestor
@@ -63,3 +82,4 @@ def convert_biocon_ancestors(new_session, bioconrel_type, num_generations):
             this_generation = all_ancestor_ids[generation-1]
             new_biocon_ancestors.extend([NewBioconAncestor(ancestor_id, child_id, bioconrel_type, generation) for ancestor_id in this_generation])
         create_or_update_and_remove(new_biocon_ancestors, key_to_biocon_ancestors, [], new_session) 
+        

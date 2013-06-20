@@ -273,12 +273,21 @@ def get_interactions(bioent_ids, print_query=False):
     FROM sprout.bioentrel LEFT OUTER JOIN sprout.interaction ON sprout.interaction.biorel_id = sprout.bioentrel.biorel_id 
     WHERE sprout.bioentrel.biorel_type = :biorel_type_1 AND sprout.bioentrel.bioent_id2 IN (:bioent_id2_1)
     '''
-    query = session.query(BioentMultiRelationBioent).filter(BioentMultiRelationBioent.bioent_id.in_(bioent_ids)).filter(
+    query1 = session.query(BioentMultiRelationBioent).filter(BioentMultiRelationBioent.bioent_id.in_(bioent_ids)).filter(
                             or_(BioentMultiRelationBioent.biorel_type=='GENETIC_INTERACTION', 
-                                BioentMultiRelationBioent=='PHYSICAL_INTERACTION')).options(joinedload('biorel'))
-    interactions = [bmrb.biorel for bmrb in query.all()]
+                                BioentMultiRelationBioent.biorel_type=='PHYSICAL_INTERACTION'))
+    biorel_ids = [x.biorel_id for x in query1.all()]
+    
+    def f(chunk_biorel_ids):
+        new_query = session.query(BioentMultiRelation).filter(BioentMultiRelation.id.in_(chunk_biorel_ids)).options(joinedload('bioentmultirel_bioents'))
+        biorels = set(new_query.all())
+        if print_query:
+            print new_query
+        return biorels
+    interactions = set(retrieve_in_chunks(biorel_ids, f))
+        
     if print_query:
-        print query
+        print query1
     return interactions
 
 def get_biofacts(biocon_type, biocon=None, bioent=None, print_query=False):

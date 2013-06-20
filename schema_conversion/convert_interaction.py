@@ -8,6 +8,7 @@ from model_old_schema import config as old_config
 from schema_conversion import create_or_update_and_remove, ask_to_commit, \
     prepare_schema_connection, cache_by_key, cache_by_id, create_format_name, \
     cache_by_key_in_range, create_or_update, cache_ids
+from schema_conversion.auxillary_tables import update_biorel_evidence_counts
 from schema_conversion.convert_phenotype import create_phenotype_key
 from sqlalchemy.orm import joinedload
 import datetime
@@ -29,7 +30,7 @@ def create_interevidence_id(old_evidence_id):
     return old_evidence_id
 
 def create_interaction_format_name(bioents):
-    bioents.sort()
+    bioents.sort(key=lambda x: x.id)
     format_name = '__'.join([bioent.format_name for bioent in bioents])
     return format_name
 
@@ -239,7 +240,7 @@ def convert(old_session_maker, new_session_maker, min_id, max_id):
             new_session.close()
     finally:
         old_session.close()
-        new_session.close()
+        new_session.close() 
 
     # Convert physic_interactions
     print 'Physical Interaction'
@@ -321,19 +322,29 @@ def convert(old_session_maker, new_session_maker, min_id, max_id):
         old_session.close()
         new_session.close()
         
-#    # Update evidence counts
-#    print 'Interaction evidence counts'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        
-#        new_session = new_session_maker()        
-#        from model_new_schema.phenotype import Phenotype as NewPhenotype, Phenoevidence as NewPhenoevidence
-#        update_biocon_gene_counts(new_session, NewPhenotype, NewPhenoevidence)
-#        ask_to_commit(new_session, start_time)  
-#    finally:
-#        old_session.close()
-#        new_session.close() 
+    # Update evidence_counts for genetic_interactions
+    print 'Genetic interaction evidence counts'
+    start_time = datetime.datetime.now()
+    try:        
+        new_session = new_session_maker()
+        from model_new_schema.interaction import GeneticInteraction as NewGeneticInteraction, GeneticInterevidence as NewGeneticInterevidence
+        success = update_biorel_evidence_counts(new_session, NewGeneticInteraction, NewGeneticInterevidence)
+        ask_to_commit(new_session, start_time)  
+    finally:
+        old_session.close()
+        new_session.close() 
+        
+    # Update evidence_counts for physical_interactions
+    print 'Physical interaction evidence counts'
+    start_time = datetime.datetime.now()
+    try:        
+        new_session = new_session_maker()
+        from model_new_schema.interaction import PhysicalInteraction as NewPhysicalInteraction, PhysicalInterevidence as NewPhysicalInterevidence
+        success = update_biorel_evidence_counts(new_session, NewPhysicalInteraction, NewPhysicalInterevidence)
+        ask_to_commit(new_session, start_time)  
+    finally:
+        old_session.close()
+        new_session.close()  
         
         
 def convert_genetic_interactions(new_session, old_interactions, min_id, max_id):
@@ -344,14 +355,15 @@ def convert_genetic_interactions(new_session, old_interactions, min_id, max_id):
     from model_new_schema.bioentity import Bioentity as NewBioentity
     
     #Cache genetic interactions
-    key_to_genetic_interactions = cache_by_key_in_range(NewGeneticInteraction, new_session, min_id, max_id)
+    full_mapping = cache_by_key(NewGeneticInteraction, new_session)
+    key_to_genetic_interactions = dict([(x, y) for x, y in full_mapping.iteritems() if y.id >= min_id and y.id < max_id])
     id_to_bioent = cache_by_id(NewBioentity, new_session)
 
     #Create new genetic interactions if they don't exist, or update the database if they do.
     new_genetic_interactions = [create_genetic_interaction(x, id_to_bioent) for x in old_interactions]
 
     values_to_check = ['biorel_type', 'display_name', 'date_created', 'created_by']
-    success = create_or_update_and_remove(new_genetic_interactions, key_to_genetic_interactions, values_to_check, new_session)
+    success = create_or_update_and_remove(new_genetic_interactions, key_to_genetic_interactions, values_to_check, new_session, full_mapping=full_mapping)
     return success
 
 def convert_physical_interactions(new_session, old_interactions, min_id, max_id):
@@ -362,14 +374,15 @@ def convert_physical_interactions(new_session, old_interactions, min_id, max_id)
     from model_new_schema.bioentity import Bioentity as NewBioentity
     
     #Cache physical interactions
-    key_to_physical_interactions = cache_by_key_in_range(NewPhysicalInteraction, new_session, min_id, max_id)
+    full_mapping = cache_by_key(NewPhysicalInteraction, new_session)
+    key_to_physical_interactions = dict([(x, y) for x, y in full_mapping.iteritems() if y.id >= min_id and y.id < max_id])
     id_to_bioent = cache_by_id(NewBioentity, new_session)
 
     #Create new physical interactions if they don't exist, or update the database if they do.
     new_physical_interactions = [create_physical_interaction(x, id_to_bioent) for x in old_interactions]
 
     values_to_check = ['biorel_type', 'display_name', 'date_created', 'created_by']
-    success = create_or_update_and_remove(new_physical_interactions, key_to_physical_interactions, values_to_check, new_session)
+    success = create_or_update_and_remove(new_physical_interactions, key_to_physical_interactions, values_to_check, new_session, full_mapping=full_mapping)
     return success
                 
 def convert_genetic_interaction_bioents(new_session, old_interactions, min_id, max_id):
@@ -438,7 +451,7 @@ def convert_genetic_interevidences(new_session, old_interactions, min_id, max_id
     new_genetic_interevidences = [create_genetic_interevidence(x, key_to_biorel, id_to_bioent, reference_ids, key_to_phenotype, key_to_experiment)
                             for x in old_interactions]
    
-    values_to_check = ['experiment_type', 'reference_id', 'evidence_type', 'strain_id', 'source',
+    values_to_check = ['experiment_id', 'reference_id', 'evidence_type', 'strain_id', 'source',
                        'biorel_id', 'phenotype_id', 'date_created', 'created_by',
                        'annotation_type']
     success = create_or_update_and_remove(new_genetic_interevidences, key_to_interevidence, values_to_check, new_session)
@@ -464,7 +477,7 @@ def convert_physical_interevidences(new_session, old_interactions, min_id, max_i
     new_physical_interevidences = [create_physical_interevidence(x, key_to_biorel, id_to_bioent, reference_ids, key_to_experiment)
                             for x in old_interactions]
    
-    values_to_check = ['experiment_type', 'reference_id', 'evidence_type', 'strain_id', 'source',
+    values_to_check = ['experiment_id', 'reference_id', 'evidence_type', 'strain_id', 'source',
                        'biorel_id', 'modification', 'date_created', 'created_by',
                        'annotation_type']
     success = create_or_update_and_remove(new_physical_interevidences, key_to_interevidence, values_to_check, new_session)
@@ -475,7 +488,7 @@ def convert_physical_interevidences(new_session, old_interactions, min_id, max_i
 if __name__ == "__main__":
     old_session_maker = prepare_schema_connection(model_old_schema, old_config)
     new_session_maker = prepare_schema_connection(model_new_schema, new_config)
-    convert(old_session_maker, new_session_maker, 300000, 400000)
+#    convert(old_session_maker, new_session_maker, 300000, 400000)
 #    convert(old_session_maker, new_session_maker, 400000, 500000)
 #    convert(old_session_maker, new_session_maker, 500000, 600000)
 #    convert(old_session_maker, new_session_maker, 600000, 700000)
@@ -485,6 +498,6 @@ if __name__ == "__main__":
 #    convert(old_session_maker, new_session_maker, 1000000, 1100000)
 #    convert(old_session_maker, new_session_maker, 1100000, 1200000)
 #    convert(old_session_maker, new_session_maker, 1200000, 1300000)
-#    convert(old_session_maker, new_session_maker, 1300000, 1400000)
+    convert(old_session_maker, new_session_maker, 1300000, 1400000)
    
     

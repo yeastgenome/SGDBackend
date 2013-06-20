@@ -94,17 +94,17 @@ def make_overview_table(genetic, physical, bioent):
         inters = tuple(x.bioentities)
         if inters in inters_to_counts:
             genetic_count, physical_count = inters_to_counts[inters]
-            inters_to_counts[inters] = (genetic_count+1, physical_count)
+            inters_to_counts[inters] = (x.evidence_count, physical_count)
         else:
-            inters_to_counts[inters] = (1, 0) 
+            inters_to_counts[inters] = (x.evidence_count, 0) 
            
     for x in physical:
         inters = tuple(x.bioentities)
         if inters in inters_to_counts:
             genetic_count, physical_count = inters_to_counts[inters]
-            inters_to_counts[inters] = (genetic_count, physical_count+1)
+            inters_to_counts[inters] = (genetic_count, x.evidence_count)
         else:
-            inters_to_counts[inters] = (0, 1) 
+            inters_to_counts[inters] = (0, x.evidence_count) 
                 
     def f(inters, bioent):
         if len(inters) == 1:
@@ -253,7 +253,12 @@ def create_interaction_graph(bioent):
     bioent_to_evidence = {}
 
     #bioents.update([interaction.get_opposite(bioent) for interaction in get_biorels('INTERACTION', bioent)])
-    bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in get_biorels('PHYSICAL_INTERACTION', bioent.id)])
+    for interaction in get_biorels('PHYSICAL_INTERACTION', bioent.id):
+        endpoints = set(interaction.bioentities)
+        if len(endpoints) == 2:
+            endpoints.remove(bioent)
+            opposite = endpoints.pop()
+            bioent_to_evidence[opposite] = interaction.evidence_count
     bioents.update(bioent_to_evidence.keys())
 
     bioents.add(bioent)
@@ -273,9 +278,10 @@ def create_interaction_graph(bioent):
 
     edges = []
     for interaction in interactions:
-        if interaction.evidence_count >= min_evidence_count and interaction.source_bioent_id in node_ids and interaction.sink_bioent_id in node_ids:
-            source_bioent = id_to_bioent[interaction.source_bioent_id]
-            sink_bioent = id_to_bioent[interaction.sink_bioent_id]
+        bioent_ids = set([bioent.id for bioent in interaction.bioentities])
+        if interaction.evidence_count >= min_evidence_count and len(bioent_ids) == 2 and bioent_ids.issubset(node_ids):
+            source_bioent = id_to_bioent[bioent_ids.pop()]
+            sink_bioent = id_to_bioent[bioent_ids.pop()]
             edges.append(create_interaction_edge(interaction, source_bioent, sink_bioent, interaction.evidence_count)) 
         
     return {'dataSchema':interaction_schema, 'data': {'nodes': nodes, 'edges': edges}, 

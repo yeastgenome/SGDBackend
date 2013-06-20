@@ -187,8 +187,8 @@ class BioentMultiRelationBioent(Base, EqualityByIDMixin):
     biorel_type = Column('biorel_type', String)
     
     #Relationships
-    biorel = relationship(BioentMultiRelation, uselist=False, backref=backref('bioentmultirel_bioents', order_by=bioent_id))
-    bioentity = relationship(Bioentity, uselist=False, backref='bioentmultirel_bioents')
+    biorel = relationship(BioentMultiRelation, uselist=False, backref=backref('bioentmultirel_bioents', passive_deletes=True, order_by=bioent_id))
+    bioentity = relationship(Bioentity, uselist=False, backref=backref('bioentmultirel_bioents', passive_deletes=True))
     
     def __init__(self, biorel_id, bioent_id, biorel_type):
         self.biorel_id = biorel_id
