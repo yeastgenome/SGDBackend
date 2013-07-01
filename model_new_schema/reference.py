@@ -40,7 +40,7 @@ class Book(Base, EqualityByIDMixin):
         self.created_by = created_by
         
     def unique_key(self):
-        return self.title
+        return (self.title, self.volume_title)
     
 class Journal(Base, EqualityByIDMixin):
     __tablename__ = 'journal'
@@ -65,7 +65,7 @@ class Journal(Base, EqualityByIDMixin):
         self.date_created = date_created
         
     def unique_key(self):
-        return (self.full_name, self.abbreviation, self.issn, self.essn, self.publisher)
+        return (self.full_name, self.abbreviation)
 
 class Reference(Base, EqualityByIDMixin):
     __tablename__ = 'reference'

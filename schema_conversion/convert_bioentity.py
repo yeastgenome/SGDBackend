@@ -8,7 +8,6 @@ from model_old_schema import config as old_config
 from schema_conversion import create_or_update_and_remove, ask_to_commit, \
     prepare_schema_connection, cache_by_key, cache_by_id
 from sqlalchemy.orm import joinedload
-from sqlalchemy.sql.expression import or_
 import datetime
 import model_new_schema
 import model_old_schema
@@ -279,109 +278,109 @@ def convert(old_session_maker, new_session_maker):
     from model_old_schema.feature import Feature as OldFeature, AliasFeature as OldAliasFeature
     from model_old_schema.general import FeatUrl as OldFeatUrl, DbxrefFeat as OldDbxrefFeat
     
-#    # Convert Locus
-#    print 'Locus'
-#    start_time = datetime.datetime.now()
-#    new_session = new_session_maker()
-#    try:
-#        old_session = old_session_maker()
-#        old_bioentity = old_session.query(OldFeature).options(joinedload('annotation')).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_locuses(new_session, old_bioentity)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert other bioentities
-#    print 'Other Bioentity'
-#    start_time = datetime.datetime.now()
-#    new_session = new_session_maker()
-#    try:
-#        old_session = old_session_maker()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_other_bioentities(new_session, old_bioentity)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert dna
-#    print 'DNA'
-#    start_time = datetime.datetime.now()
-#    new_session = new_session_maker()
-#    try:
-#        old_session = old_session_maker()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_dnas(new_session, old_bioentity)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert rna
-#    print 'RNA'
-#    start_time = datetime.datetime.now()
-#    new_session = new_session_maker()
-#    try:
-#        old_session = old_session_maker()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_rnas(new_session, old_bioentity)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert protein
-#    print 'Protein'
-#    start_time = datetime.datetime.now()
-#    new_session = new_session_maker()
-#    try:
-#        old_session = old_session_maker()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_proteins(new_session, old_bioentity)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert aliases
-#    print 'Alias'
-#    start_time = datetime.datetime.now()
-#    new_session = new_session_maker()
-#    try:
-#        old_session = old_session_maker()
-#        old_aliases = old_session.query(OldAliasFeature).options(joinedload('alias')).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_aliases(new_session, old_aliases)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
+    # Convert Locus
+    print 'Locus'
+    start_time = datetime.datetime.now()
+    new_session = new_session_maker()
+    try:
+        old_session = old_session_maker()
+        old_bioentity = old_session.query(OldFeature).options(joinedload('annotation')).all()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_locuses(new_session, old_bioentity)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+        
+    # Convert other bioentities
+    print 'Other Bioentity'
+    start_time = datetime.datetime.now()
+    new_session = new_session_maker()
+    try:
+        old_session = old_session_maker()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_other_bioentities(new_session, old_bioentity)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+        
+    # Convert dna
+    print 'DNA'
+    start_time = datetime.datetime.now()
+    new_session = new_session_maker()
+    try:
+        old_session = old_session_maker()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_dnas(new_session, old_bioentity)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+        
+    # Convert rna
+    print 'RNA'
+    start_time = datetime.datetime.now()
+    new_session = new_session_maker()
+    try:
+        old_session = old_session_maker()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_rnas(new_session, old_bioentity)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+        
+    # Convert protein
+    print 'Protein'
+    start_time = datetime.datetime.now()
+    new_session = new_session_maker()
+    try:
+        old_session = old_session_maker()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_proteins(new_session, old_bioentity)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+        
+    # Convert aliases
+    print 'Alias'
+    start_time = datetime.datetime.now()
+    new_session = new_session_maker()
+    try:
+        old_session = old_session_maker()
+        old_aliases = old_session.query(OldAliasFeature).options(joinedload('alias')).all()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_aliases(new_session, old_aliases)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
  
     # Convert altid_urls
     print 'Altid Urls'
@@ -418,45 +417,45 @@ def convert(old_session_maker, new_session_maker):
         old_session.close()
         new_session.close()
         
-#    # Convert urls
-#    print 'Url'
-#    start_time = datetime.datetime.now()
-#    new_session = new_session_maker()
-#    try:
-#        old_session = old_session_maker()
-#        old_urls = old_session.query(OldFeatUrl).options(joinedload('url'), joinedload('feature'), joinedload('url.displays')).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_urls(new_session, old_urls)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#    
-#    # Convert Bioentevidence
-#    print 'Bioentevidence'
-#    start_time = datetime.datetime.now()
-#    new_session = new_session_maker()
-#    try:
-#        old_session = old_session_maker()
-#        old_bioentevidence = old_session.query(OldLitguideFeat).filter(
-#                            or_(OldLitguideFeat.topic=='Additional Literature',
-#                                OldLitguideFeat.topic=='Primary Literature',
-#                                OldLitguideFeat.topic=='Omics',
-#                                OldLitguideFeat.topic=='Reviews')).options(joinedload('litguide')).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_bioentevidence(new_session, old_bioentevidence)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
+    # Convert urls
+    print 'Url'
+    start_time = datetime.datetime.now()
+    new_session = new_session_maker()
+    try:
+        old_session = old_session_maker()
+        old_urls = old_session.query(OldFeatUrl).options(joinedload('url'), joinedload('feature'), joinedload('url.displays')).all()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_urls(new_session, old_urls)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
+    
+    # Convert Bioentevidence
+    print 'Bioentevidence'
+    start_time = datetime.datetime.now()
+    new_session = new_session_maker()
+    try:
+        old_session = old_session_maker()
+        old_bioentevidence = old_session.query(OldLitguideFeat).filter(
+                            or_(OldLitguideFeat.topic=='Additional Literature',
+                                OldLitguideFeat.topic=='Primary Literature',
+                                OldLitguideFeat.topic=='Omics',
+                                OldLitguideFeat.topic=='Reviews')).options(joinedload('litguide')).all()
+
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_bioentevidence(new_session, old_bioentevidence)
+            ask_to_commit(new_session, start_time)  
+            new_session.close()
+    finally:
+        old_session.close()
+        new_session.close()
 
 def convert_locuses(new_session, old_bioentity):
     

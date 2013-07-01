@@ -47,7 +47,11 @@ def create_book(old_book):
 def create_journal(old_journal):
     from model_new_schema.reference import Journal as NewJournal
     
-    new_journal = NewJournal(old_journal.id, old_journal.abbreviation, old_journal.full_name, old_journal.issn, 
+    abbreviation = old_journal.abbreviation
+    if old_journal.issn == '0948-5023':
+        abbreviation = 'J Mol Model (Online)'
+    
+    new_journal = NewJournal(old_journal.id, abbreviation, old_journal.full_name, old_journal.issn, 
                              old_journal.essn, old_journal.publisher, old_journal.date_created, old_journal.created_by)
     return new_journal
 
@@ -132,7 +136,7 @@ def create_reference(old_reference, key_to_journal, key_to_book):
     
     citation = create_citation(old_reference.citation)
     display_name = create_display_name(citation)
-    format_name = old_reference.pubmed_id
+    format_name = str(old_reference.pubmed_id)
     if format_name is None:
         format_name = old_reference.dbxref_id
     
@@ -143,7 +147,10 @@ def create_reference(old_reference, key_to_journal, key_to_book):
     journal_id = None
     journal = old_reference.journal
     if journal is not None:
-        journal_key = (journal.full_name, journal.abbreviation, journal.issn, journal.essn, journal.publisher)
+        abbreviation = journal.abbreviation
+        if journal.issn == '0948-5023':
+            abbreviation = 'J Mol Model (Online)'
+        journal_key = (journal.full_name, abbreviation)
         if journal_key not in key_to_journal:
             print 'Journal does not exist. ' + str(journal_key)
             return None
@@ -152,11 +159,11 @@ def create_reference(old_reference, key_to_journal, key_to_book):
     book_id = None
     book = old_reference.book
     if book is not None:
-        book_key = book.title
+        book_key = (book.title, book.volume_title)
         if book_key not in key_to_book:
             print 'Book does not exist. ' + str(book_key)
             return None
-        book_id = key_to_book[book.title].id
+        book_id = key_to_book[book_key].id
         
     pubmed_id = None
     if old_reference.pubmed_id is not None:
@@ -190,7 +197,7 @@ def create_altids(old_reference, id_to_reference):
     
     pubmed_id = old_reference.pubmed_id
     if pubmed_id is not None:
-        new_alt_ids.append(NewReferenceAltid(pubmed_id, 'Pubmed', 'Pubmed_ID', reference_id, 
+        new_alt_ids.append(NewReferenceAltid(str(pubmed_id), 'Pubmed', 'Pubmed_ID', reference_id, 
                                             old_reference.date_created, old_reference.created_by))
     for dbxref in old_reference.dbxrefs:
         identifier = dbxref.dbxref_id
@@ -210,91 +217,91 @@ def convert(old_session_maker, new_session_maker):
         RefRelation as OldRefRelation
     from model_old_schema.general import Ref_URL as OldRef_URL
 
-    # Convert journals
-    print 'Journals'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_journals = old_session.query(OldJournal).all()
-        
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_journals(new_session, old_journals)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-        
-    finally:
-        old_session.close()
-        new_session.close()
-        
-    # Convert books
-    print 'Books'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_books = old_session.query(OldBook).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_books(new_session, old_books)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
-        
-    # Convert authors
-    print 'Authors'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_authors = old_session.query(OldAuthor).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_authors(new_session, old_authors)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
-        
-    # Convert references
-    print 'References'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_references = old_session.query(OldReference).options(joinedload('book'), joinedload('journal'), joinedload('abst')).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_references(new_session, old_references)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
-
-    # Convert altids
-    print 'Altids'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_references = old_session.query(OldReference).options(joinedload('dbxrefrefs'), joinedload('dbxrefrefs.dbxref')).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_altids(new_session, old_references)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+#    # Convert journals
+#    print 'Journals'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_journals = old_session.query(OldJournal).all()
+#        
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_journals(new_session, old_journals)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#        
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#        
+#    # Convert books
+#    print 'Books'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_books = old_session.query(OldBook).all()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_books(new_session, old_books)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#        
+#    # Convert authors
+#    print 'Authors'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_authors = old_session.query(OldAuthor).all()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_authors(new_session, old_authors)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#        
+#    # Convert references
+#    print 'References'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_references = old_session.query(OldReference).options(joinedload('book'), joinedload('journal'), joinedload('abst')).all()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_references(new_session, old_references)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
+#
+#    # Convert altids
+#    print 'Altids'
+#    start_time = datetime.datetime.now()
+#    try:
+#        old_session = old_session_maker()
+#        old_references = old_session.query(OldReference).options(joinedload('dbxrefrefs'), joinedload('dbxrefrefs.dbxref')).all()
+#
+#        success = False
+#        while not success:
+#            new_session = new_session_maker()
+#            success = convert_altids(new_session, old_references)
+#            ask_to_commit(new_session, start_time)  
+#            new_session.close()
+#    finally:
+#        old_session.close()
+#        new_session.close()
         
     # Convert author_references
     print 'AuthorReferences'
@@ -431,6 +438,7 @@ def convert_altids(new_session, old_references):
     for old_reference in old_references:
         new_altids.extend(create_altids(old_reference, id_to_reference))
     values_to_check = ['reference_id', 'source', 'altid_name', 'date_created', 'created_by']
+    
     success = create_or_update_and_remove(new_altids, key_to_altids, values_to_check, new_session)
     return success
     
@@ -462,7 +470,7 @@ def convert_author_references(new_session, old_author_references):
     
     #Create new author_references if they don't exist, or update the database if they do.
     new_author_references = [create_author_reference(x, key_to_author, id_to_reference) for x in old_author_references]
-    values_to_check = ['order', 'author_type']
+    values_to_check = ['author_type']
     success = create_or_update_and_remove(new_author_references, key_to_author_references, values_to_check, new_session)    
     return success
 

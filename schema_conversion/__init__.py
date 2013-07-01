@@ -25,9 +25,15 @@ def check_value(new_obj, old_obj, field_name):
 
     if isinstance(new_obj_value, (int, long, float, complex)) and isinstance(old_obj_value, (int, long, float, complex)):
         if not float_approx_equal(new_obj_value, old_obj_value):
+            print field_name
+            print old_obj_value
+            print new_obj_value
             setattr(old_obj, field_name, new_obj_value)
             return False
     elif new_obj_value != old_obj_value:
+        print field_name
+        print old_obj_value
+        print new_obj_value
         setattr(old_obj, field_name, new_obj_value)
         return False
     return True

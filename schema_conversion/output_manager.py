@@ -36,3 +36,5 @@ class OutputCreator():
         self.fields_changed.clear()
         self.num_removed = 0
     
+    def change_made(self):
+        return self.num_added + self.num_changed + self.num_removed != 0
