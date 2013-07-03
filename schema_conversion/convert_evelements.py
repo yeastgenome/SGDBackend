@@ -8,6 +8,7 @@ from model_old_schema import config as old_config
 from schema_conversion import create_or_update_and_remove, \
     prepare_schema_connection, cache_by_key, create_format_name, create_or_update, \
     execute_conversion
+from schema_conversion.output_manager import write_to_output_file
 from sqlalchemy.orm import joinedload
 import model_new_schema
 import model_old_schema
@@ -81,27 +82,27 @@ def convert(old_session_maker, new_session_maker, ask=True):
     from model_old_schema.cv import CVTerm as OldCVTerm
 
     # Convert experiments
-    print 'Experiment'
+    write_to_output_file('Experiment')
     execute_conversion(convert_experiments, old_session_maker, new_session_maker, ask,
                        old_cv_terms=lambda old_session: old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==7).all())
     
         
     # Convert experiment altids
-    print 'Experiment Altid'
+    write_to_output_file('Experiment Altid')
     execute_conversion(convert_experiment_altids, old_session_maker, new_session_maker, ask,
                        old_cv_terms=lambda old_session: old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==7).options(
                                                     joinedload('cv_dbxrefs'), 
                                                     joinedload('cv_dbxrefs.dbxref')).all())
 
     # Convert experiment relations
-    print 'ExperimentRelation'
+    write_to_output_file('ExperimentRelation')
     execute_conversion(convert_experiment_rels, old_session_maker, new_session_maker, ask,
                        old_cv_terms=lambda old_session: old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==7).options(
                                                     joinedload('parent_rels'), 
                                                     joinedload('parent_rels.parent'), ).all())
         
     # Convert strains
-    print 'Strain'
+    write_to_output_file('ExperimentRelation')
     execute_conversion(convert_strains, old_session_maker, new_session_maker, ask,
                        old_cv_terms=lambda old_session: old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==7).all())
 

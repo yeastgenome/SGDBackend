@@ -7,7 +7,7 @@ from model_new_schema import config as new_config
 from model_old_schema import config as old_config
 from schema_conversion import create_or_update_and_remove, ask_to_commit, \
     prepare_schema_connection, cache_by_key, cache_by_id, create_format_name, \
-    cache_by_key_in_range, create_or_update, cache_ids
+    cache_by_key_in_range, create_or_update, cache_ids, execute_conversion
 from schema_conversion.auxillary_tables import update_biorel_evidence_counts
 from schema_conversion.convert_phenotype import create_phenotype_key
 from sqlalchemy.orm import joinedload
@@ -215,136 +215,112 @@ def create_physical_interevidence(old_interaction, key_to_biorel, id_to_bioent, 
 ---------------------Convert------------------------------
 """  
 
-def convert(old_session_maker, new_session_maker, min_id, max_id):
+def convert(old_session_maker, new_session_maker, ask=True):
 
     from model_old_schema.interaction import Interaction as OldInteraction
+    from model_new_schema.interaction import GeneticInteraction as NewGeneticInteraction, GeneticInterevidence as NewGeneticInterevidence, \
+                        PhysicalInteraction as NewPhysicalInteraction, PhysicalInterevidence as NewPhysicalInterevidence
     
+    intervals = [300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000, 1300000, 1400000]
+        
     # Convert genetic_interactions
     print 'Genetic Interaction'
-    start_time = datetime.datetime.now()
-    new_session = new_session_maker()
-    try:
-        old_session = old_session_maker()
-        old_interactions = old_session.query(OldInteraction).filter(
-                                                                    OldInteraction.id >= min_id).filter(
-                                                                    OldInteraction.id < max_id).options(
-                                                                     joinedload('interaction_references'),
-                                                                     joinedload('interaction_phenotypes'),
-                                                                     joinedload('feature_interactions')).all()
-
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_genetic_interactions(new_session, old_interactions, min_id, max_id)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close() 
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        execute_conversion(convert_genetic_interactions, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('feature_interactions')).all())
 
     # Convert physic_interactions
     print 'Physical Interaction'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_physical_interactions(new_session, old_interactions, min_id, max_id)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        execute_conversion(convert_physical_interactions, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('feature_interactions')).all())
         
     # Convert genetic interaction_bioents
     print 'Genetic Interaction_Bioents'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_genetic_interaction_bioents(new_session, old_interactions, min_id, max_id)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        execute_conversion(convert_genetic_interaction_bioents, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('feature_interactions')).all())
         
     # Convert physical interaction_bioents
     print 'Physical Interaction_Bioents'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_physical_interaction_bioents(new_session, old_interactions, min_id, max_id)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        execute_conversion(convert_physical_interaction_bioents, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('feature_interactions')).all())
         
     # Convert genetic interevidences
     print 'GeneticInterevidences'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_genetic_interevidences(new_session, old_interactions, min_id, max_id)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        execute_conversion(convert_genetic_interevidences, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('interaction_references'),
+                                                            joinedload('interaction_phenotypes'),
+                                                            joinedload('feature_interactions')).all())
       
     # Convert physical interevidences
     print 'PhysicalInterevidences'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_physical_interevidences(new_session, old_interactions, min_id, max_id)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        execute_conversion(convert_physical_interevidences, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('interaction_references'),
+                                                            joinedload('feature_interactions')).all())
         
-#    # Update evidence_counts for genetic_interactions
-#    print 'Genetic interaction evidence counts'
-#    start_time = datetime.datetime.now()
-#    try:        
-#        new_session = new_session_maker()
-#        from model_new_schema.interaction import GeneticInteraction as NewGeneticInteraction, GeneticInterevidence as NewGeneticInterevidence
-#        success = update_biorel_evidence_counts(new_session, NewGeneticInteraction, NewGeneticInterevidence)
-#        ask_to_commit(new_session, start_time)  
-#    finally:
-#        old_session.close()
-#        new_session.close() 
-#        
-#    # Update evidence_counts for physical_interactions
-#    print 'Physical interaction evidence counts'
-#    start_time = datetime.datetime.now()
-#    try:        
-#        new_session = new_session_maker()
-#        from model_new_schema.interaction import PhysicalInteraction as NewPhysicalInteraction, PhysicalInterevidence as NewPhysicalInterevidence
-#        success = update_biorel_evidence_counts(new_session, NewPhysicalInteraction, NewPhysicalInterevidence)
-#        ask_to_commit(new_session, start_time)  
-#    finally:
-#        old_session.close()
-#        new_session.close()  
+    # Update evidence_counts for genetic_interactions
+    print 'Genetic interaction evidence counts'
+    execute_conversion(update_biorel_evidence_counts, old_session_maker, new_session_maker, ask,
+                       biorel_cls = lambda old_session : NewGeneticInteraction,
+                       evidence_cls = lambda old_session : NewGeneticInterevidence)
+        
+    # Update evidence_counts for physical_interactions
+    print 'Physical interaction evidence counts'
+    execute_conversion(update_biorel_evidence_counts, old_session_maker, new_session_maker, ask,
+                       biorel_cls = lambda old_session : NewPhysicalInteraction,
+                       evidence_cls = lambda old_session : NewPhysicalInterevidence)
         
         
 def convert_genetic_interactions(new_session, old_interactions, min_id, max_id):
@@ -441,7 +417,7 @@ def convert_genetic_interevidences(new_session, old_interactions, min_id, max_id
     
     #Cache interevidences
     key_to_biorel = cache_by_key(NewGeneticInteraction, new_session)
-    key_to_interevidence = cache_by_key_in_range(NewGeneticInterevidence, new_session, min_id, max_id)
+    key_to_interevidence = cache_by_key_in_range(NewGeneticInterevidence, NewGeneticInterevidence.biorel_id, new_session, min_id, max_id)
     id_to_bioent = cache_by_id(NewBioentity, new_session)
     key_to_experiment = cache_by_key(NewExperiment, new_session)
     key_to_phenotype = cache_by_key(NewPhenotype, new_session)
@@ -468,7 +444,7 @@ def convert_physical_interevidences(new_session, old_interactions, min_id, max_i
     
     #Cache interevidences
     key_to_biorel = cache_by_key(NewPhysicalInteraction, new_session)
-    key_to_interevidence = cache_by_key_in_range(NewPhysicalInterevidence, new_session, min_id, max_id)
+    key_to_interevidence = cache_by_key_in_range(NewPhysicalInterevidence, NewPhysicalInterevidence.biorel_id, new_session, min_id, max_id)
     id_to_bioent = cache_by_id(NewBioentity, new_session)
     key_to_experiment = cache_by_key(NewExperiment, new_session)
     reference_ids = cache_ids(NewReference, new_session)
@@ -488,16 +464,6 @@ def convert_physical_interevidences(new_session, old_interactions, min_id, max_i
 if __name__ == "__main__":
     old_session_maker = prepare_schema_connection(model_old_schema, old_config)
     new_session_maker = prepare_schema_connection(model_new_schema, new_config)
-#    convert(old_session_maker, new_session_maker, 300000, 400000)
-#    convert(old_session_maker, new_session_maker, 400000, 500000)
-#    convert(old_session_maker, new_session_maker, 500000, 600000)
-#    convert(old_session_maker, new_session_maker, 600000, 700000)
-#    convert(old_session_maker, new_session_maker, 700000, 800000)
-#    convert(old_session_maker, new_session_maker, 800000, 900000)
-#    convert(old_session_maker, new_session_maker, 900000, 1000000)
-#    convert(old_session_maker, new_session_maker, 1000000, 1100000)
-#    convert(old_session_maker, new_session_maker, 1100000, 1200000)
-#    convert(old_session_maker, new_session_maker, 1200000, 1300000)
-    convert(old_session_maker, new_session_maker, 1300000, 1400000)
+    convert(old_session_maker, new_session_maker, False)
    
     

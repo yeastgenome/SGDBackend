@@ -5,9 +5,10 @@ Created on Feb 27, 2013
 '''
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
-from schema_conversion import create_or_update_and_remove,  \
+from schema_conversion import create_or_update_and_remove, \
     prepare_schema_connection, cache_by_key, cache_by_id, create_format_name, \
     execute_conversion
+from schema_conversion.output_manager import write_to_output_file
 from sqlalchemy.orm import joinedload
 import model_new_schema
 import model_old_schema
@@ -218,22 +219,22 @@ def convert(old_session_maker, new_session_maker, ask=True):
     from model_old_schema.general import Ref_URL as OldRef_URL
 
     # Convert journals
-    print 'Journals'
+    write_to_output_file('Journals')
     execute_conversion(convert_journals, old_session_maker, new_session_maker, ask, 
                        old_journals=lambda old_session: old_session.query(OldJournal).all())
         
     # Convert books
-    print 'Books'
+    write_to_output_file('Books')
     execute_conversion(convert_books, old_session_maker, new_session_maker, ask,
                        old_books=lambda old_session: old_session.query(OldBook).all())
         
     # Convert authors
-    print 'Authors'
+    write_to_output_file('Authors')
     execute_conversion(convert_authors, old_session_maker, new_session_maker, ask,
                        old_authors=lambda old_session: old_session.query(OldAuthor).all())
         
     # Convert references
-    print 'References'
+    write_to_output_file('References')
     execute_conversion(convert_references, old_session_maker, new_session_maker, ask,
                        old_references=lambda old_session: old_session.query(OldReference).options(
                                             joinedload('book'), 
@@ -241,7 +242,7 @@ def convert(old_session_maker, new_session_maker, ask=True):
                                             joinedload('abst')).all())
 
     # Convert altids
-    print 'Altids'
+    write_to_output_file('Altids')
     execute_conversion(convert_altids, old_session_maker, new_session_maker, ask,
                        old_references=lambda old_session: old_session.query(OldReference).options(
                                             joinedload('book'), 
@@ -249,24 +250,24 @@ def convert(old_session_maker, new_session_maker, ask=True):
                                             joinedload('abst')).all())
         
     # Convert author_references
-    print 'AuthorReferences'
+    write_to_output_file('AuthorReferences')
     execute_conversion(convert_author_references, old_session_maker, new_session_maker, ask,
                        old_author_references=lambda old_session: old_session.query(OldAuthorReference).options(
                                             joinedload('author')).all())
         
     # Convert reftypes
-    print 'Reftypes'
+    write_to_output_file('Reftypes')
     execute_conversion(convert_reftypes, old_session_maker, new_session_maker, ask,
                        old_ref_reftypes=lambda old_session: old_session.query(OldRefReftype).options(
                                             joinedload('reftype')).all())
 
     # Convert reference_relations
-    print 'ReferenceRelations'
+    write_to_output_file('ReferenceRelations')
     execute_conversion(convert_ref_relations, old_session_maker, new_session_maker, ask,
                        old_ref_relations=lambda old_session: old_session.query(OldRefRelation).all())
 
     # Convert relevant urls
-    print 'Urls'
+    write_to_output_file('Urls')
     execute_conversion(convert_urls, old_session_maker, new_session_maker, ask,
                        olf_ref_urls=lambda old_session: old_session.query(OldRef_URL).options(
                                             joinedload('url'), 

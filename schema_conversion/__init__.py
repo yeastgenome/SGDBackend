@@ -1,5 +1,5 @@
 from numbers import Number
-from schema_conversion.output_manager import OutputCreator
+from schema_conversion.output_manager import OutputCreator, write_to_output_file
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative.api import declarative_base
 from sqlalchemy.orm.session import sessionmaker
@@ -72,8 +72,8 @@ def create_or_update(new_objs, mapping, values_to_check, session):
     to_be_added = set([new_obj.id for new_obj in new_objs if new_obj.unique_key() not in mapping])
     problem_objs = [old_obj for old_obj in mapping.values() if old_obj.id in to_be_added]
     if len(problem_objs) > 0:
-        print str(len(problem_objs)) + ' problem objects exist and must be deleted to continue.'
-        print [problem.id for problem in problem_objs]
+        write_to_output_file( str(len(problem_objs)) + ' problem objects exist and must be deleted to continue.' )
+        write_to_output_file( [problem.id for problem in problem_objs] )
         for obj in problem_objs:
             session.delete(obj)
         return False
@@ -98,8 +98,8 @@ def create_or_update_and_remove(new_objs, mapping, values_to_check, session, ful
     to_be_added = set([new_obj.id for new_obj in new_objs if new_obj.unique_key() not in mapping])
     problem_objs = [old_obj for old_obj in mapping.values() if old_obj.id in to_be_added]
     if len(problem_objs) > 0:
-        print str(len(problem_objs)) + ' problem objects exist and must be deleted to continue.'
-        print [problem.id for problem in problem_objs]
+        write_to_output_file( str(len(problem_objs)) + ' problem objects exist and must be deleted to continue.' )
+        write_to_output_file( [problem.id for problem in problem_objs] )
         for obj in problem_objs:
             session.delete(obj)
         return False
@@ -127,12 +127,12 @@ def ask_to_commit(new_session, start_time):
     if user_input == 'Y':
         new_session.commit()
     end_time = datetime.datetime.now()
-    print str(end_time - pause_end + pause_begin - start_time) + '\n'
+    write_to_output_file( str(end_time - pause_end + pause_begin - start_time) + '\n' )
     
 def commit_without_asking(new_session, start_time):
     new_session.commit()
     end_time = datetime.datetime.now()
-    print str(end_time - start_time) + '\n'
+    write_to_output_file(str(end_time - start_time) + '\n')
     
 def create_format_name(display_name):
     format_name = display_name.replace(' ', '_')
@@ -164,7 +164,7 @@ def execute_conversion(convert_f, old_session_maker, new_session_maker, ask, **k
                 commit_without_asking(new_session, start_time)
             new_session.close()
     except Exception:
-        print "Unexpected error:", sys.exc_info()[0]
+        write_to_output_file( "Unexpected error:", sys.exc_info()[0] )
         raise
     finally:
         old_session.close()

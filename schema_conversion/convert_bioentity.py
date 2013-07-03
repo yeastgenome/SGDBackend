@@ -12,6 +12,7 @@ from sqlalchemy.orm import joinedload
 import datetime
 import model_new_schema
 import model_old_schema
+from schema_conversion.output_manager import write_to_output_file
 
 
 """
@@ -316,33 +317,33 @@ def convert(old_session_maker, new_session_maker, ask=True):
     from model_old_schema.general import FeatUrl as OldFeatUrl, DbxrefFeat as OldDbxrefFeat
     
     # Convert Locus
-    print 'Locus'
+    write_to_output_file('Locus')
     execute_conversion(convert_locuses, old_session_maker, new_session_maker, ask,
                        old_bioentity=lambda old_session: old_session.query(OldFeature).options(
                                                         joinedload('annotation')).all())
 
     # Convert other bioentities
-    print 'Other Bioentity'
+    write_to_output_file('Other Bioentity')
     execute_conversion(convert_other_bioentities, old_session_maker, new_session_maker, ask,
                        old_bioentity=lambda old_session: old_session.query(OldFeature).all())
     
     # Convert dna
-    print 'DNA'
+    write_to_output_file('DNA')
     execute_conversion(convert_dnas, old_session_maker, new_session_maker, ask,
                        old_bioentity=lambda old_session: old_session.query(OldFeature).all())
     
     # Convert rna
-    print 'RNA'
+    write_to_output_file('RNA')
     execute_conversion(convert_rnas, old_session_maker, new_session_maker, ask,
                        old_bioentity=lambda old_session: old_session.query(OldFeature).all())
         
     # Convert protein
-    print 'Protein'
+    write_to_output_file('Protein')
     execute_conversion(convert_proteins, old_session_maker, new_session_maker, ask,
                        old_bioentity=lambda old_session: old_session.query(OldFeature).all())
         
     # Convert aliases
-    print 'Alias'
+    write_to_output_file('Alias')
     execute_conversion(convert_aliases, old_session_maker, new_session_maker, ask,
                        old_aliases=lambda old_session: old_session.query(OldAliasFeature).options(
                                                         joinedload('alias')).all(),
@@ -350,18 +351,18 @@ def convert(old_session_maker, new_session_maker, ask=True):
                                                         joinedload('dbxref')).all())
     
     # Convert altids
-    print 'Altids'
+    write_to_output_file('Altids')
     execute_conversion(convert_altids, old_session_maker, new_session_maker, ask,
                        old_altids=lambda old_session: old_session.query(OldDbxrefFeat).options(
                                                         joinedload('dbxref')).all())
         
     # Convert urls
-    print 'Url'
+    write_to_output_file('Url')
     intervals = [0, 1000, 2000, 3000, 4000, 5000, 7000, 50000]
     for i in range(0, len(intervals)-1):
         min_id = intervals[i]
         max_id = intervals[i+1]
-        print 'Feature ids between ' + str(min_id) + ' and ' + str(max_id)
+        write_to_output_file('Feature ids between ' + str(min_id) + ' and ' + str(max_id))
         execute_conversion(convert_urls, old_session_maker, new_session_maker, ask, 
                         min_id = lambda old_session : min_id,
                         max_id = lambda old_session : max_id,
