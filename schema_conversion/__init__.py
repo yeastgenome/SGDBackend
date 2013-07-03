@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative.api import declarative_base
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.types import Float
 import datetime
+import sys
 
 def prepare_schema_connection(model_cls, config_cls):
     model_cls.SCHEMA = config_cls.SCHEMA
@@ -25,15 +26,9 @@ def check_value(new_obj, old_obj, field_name):
 
     if isinstance(new_obj_value, (int, long, float, complex)) and isinstance(old_obj_value, (int, long, float, complex)):
         if not float_approx_equal(new_obj_value, old_obj_value):
-            print field_name
-            print old_obj_value
-            print new_obj_value
             setattr(old_obj, field_name, new_obj_value)
             return False
     elif new_obj_value != old_obj_value:
-        print field_name
-        print old_obj_value
-        print new_obj_value
         setattr(old_obj, field_name, new_obj_value)
         return False
     return True
@@ -47,8 +42,8 @@ def cache_by_key(cls, session, **kwargs):
     cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).filter_by(**kwargs).all()])
     return cache_entries
 
-def cache_by_key_in_range(cls, session, min_id, max_id):
-    cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).filter(cls.id >= min_id).filter(cls.id < max_id).all()])
+def cache_by_key_in_range(cls, col, session, min_id, max_id):
+    cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).filter(col >= min_id).filter(col < max_id).all()])
     return cache_entries
 
 def cache_by_id(cls, session, **kwargs):
@@ -134,6 +129,11 @@ def ask_to_commit(new_session, start_time):
     end_time = datetime.datetime.now()
     print str(end_time - pause_end + pause_begin - start_time) + '\n'
     
+def commit_without_asking(new_session, start_time):
+    new_session.commit()
+    end_time = datetime.datetime.now()
+    print str(end_time - start_time) + '\n'
+    
 def create_format_name(display_name):
     format_name = display_name.replace(' ', '_')
     format_name = format_name.replace('/', '-')
@@ -148,7 +148,24 @@ def float_approx_equal(x, y, tol=1e-18, rel=1e-7):
     if rel is not None: tests.append(rel*abs(x))
     assert tests
     return abs(x - y) <= max(tests)
-    
-    
-    
-    
+
+def execute_conversion(convert_f, old_session_maker, new_session_maker, ask, **kwargs):
+    start_time = datetime.datetime.now()
+    try:
+        old_session = old_session_maker()
+        kwargs = dict([(x, y(old_session)) for x, y in kwargs.iteritems()])
+        success = False
+        while not success:
+            new_session = new_session_maker()
+            success = convert_f(new_session, **kwargs)
+            if ask:
+                ask_to_commit(new_session, start_time)  
+            else:
+                commit_without_asking(new_session, start_time)
+            new_session.close()
+    except Exception:
+        print "Unexpected error:", sys.exc_info()[0]
+        raise
+    finally:
+        old_session.close()
+        new_session.close()    

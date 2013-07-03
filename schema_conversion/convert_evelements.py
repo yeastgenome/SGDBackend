@@ -5,10 +5,10 @@ Created on Jun 4, 2013
 '''
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
-from schema_conversion import create_or_update_and_remove, ask_to_commit, \
-    prepare_schema_connection, cache_by_key, create_format_name, create_or_update
+from schema_conversion import create_or_update_and_remove, \
+    prepare_schema_connection, cache_by_key, create_format_name, create_or_update, \
+    execute_conversion
 from sqlalchemy.orm import joinedload
-import datetime
 import model_new_schema
 import model_old_schema
 
@@ -77,81 +77,36 @@ def create_strain(old_cv_term):
 ---------------------Convert------------------------------
 """  
 
-def convert(old_session_maker, new_session_maker):
+def convert(old_session_maker, new_session_maker, ask=True):
     from model_old_schema.cv import CVTerm as OldCVTerm
 
     # Convert experiments
     print 'Experiment'
-    new_session = new_session_maker()
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_cv_terms = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==7).options(joinedload('parent_rels'), joinedload('parent_rels.parent'), joinedload('cv_dbxrefs'), joinedload('cv_dbxrefs.dbxref')).all()
-
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_experiments(new_session, old_cv_terms)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    execute_conversion(convert_experiments, old_session_maker, new_session_maker, ask,
+                       old_cv_terms=lambda old_session: old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==7).all())
+    
         
     # Convert experiment altids
     print 'Experiment Altid'
-    new_session = new_session_maker()
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
+    execute_conversion(convert_experiment_altids, old_session_maker, new_session_maker, ask,
+                       old_cv_terms=lambda old_session: old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==7).options(
+                                                    joinedload('cv_dbxrefs'), 
+                                                    joinedload('cv_dbxrefs.dbxref')).all())
 
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_experiment_altids(new_session, old_cv_terms)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
-        
     # Convert experiment relations
     print 'ExperimentRelation'
-    new_session = new_session_maker()
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_experiment_rels(new_session, old_cv_terms)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    execute_conversion(convert_experiment_rels, old_session_maker, new_session_maker, ask,
+                       old_cv_terms=lambda old_session: old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==7).options(
+                                                    joinedload('parent_rels'), 
+                                                    joinedload('parent_rels.parent'), ).all())
         
     # Convert strains
     print 'Strain'
-    new_session = new_session_maker()
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_cv_terms = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==10).all()
-
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_strains(new_session, old_cv_terms)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    execute_conversion(convert_strains, old_session_maker, new_session_maker, ask,
+                       old_cv_terms=lambda old_session: old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==7).all())
 
         
-def convert_experiments(new_session, old_cv_terms):
+def convert_experiments(new_session, old_cv_terms=None):
     '''
     Convert Experiments
     '''
@@ -166,7 +121,7 @@ def convert_experiments(new_session, old_cv_terms):
     success = create_or_update_and_remove(new_experiments, key_to_experiment, values_to_check, new_session)
     return success
 
-def convert_experiment_altids(new_session, old_cv_terms):
+def convert_experiment_altids(new_session, old_cv_terms=None):
     '''
     Convert Experiment Altids
     '''
@@ -185,7 +140,7 @@ def convert_experiment_altids(new_session, old_cv_terms):
     success = create_or_update_and_remove(new_altids, key_to_altid, values_to_check, new_session)
     return success
 
-def convert_experiment_rels(new_session, old_cv_terms):
+def convert_experiment_rels(new_session, old_cv_terms=None):
     '''
     Convert ExperimentRelations
     '''
@@ -204,7 +159,7 @@ def convert_experiment_rels(new_session, old_cv_terms):
     success = create_or_update_and_remove(new_rels, key_to_rels, values_to_check, new_session)
     return success
 
-def convert_strains(new_session, old_cv_terms):
+def convert_strains(new_session, old_cv_terms=None):
     '''
     Convert Strains
     '''

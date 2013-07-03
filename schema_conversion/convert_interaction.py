@@ -322,29 +322,29 @@ def convert(old_session_maker, new_session_maker, min_id, max_id):
         old_session.close()
         new_session.close()
         
-    # Update evidence_counts for genetic_interactions
-    print 'Genetic interaction evidence counts'
-    start_time = datetime.datetime.now()
-    try:        
-        new_session = new_session_maker()
-        from model_new_schema.interaction import GeneticInteraction as NewGeneticInteraction, GeneticInterevidence as NewGeneticInterevidence
-        success = update_biorel_evidence_counts(new_session, NewGeneticInteraction, NewGeneticInterevidence)
-        ask_to_commit(new_session, start_time)  
-    finally:
-        old_session.close()
-        new_session.close() 
-        
-    # Update evidence_counts for physical_interactions
-    print 'Physical interaction evidence counts'
-    start_time = datetime.datetime.now()
-    try:        
-        new_session = new_session_maker()
-        from model_new_schema.interaction import PhysicalInteraction as NewPhysicalInteraction, PhysicalInterevidence as NewPhysicalInterevidence
-        success = update_biorel_evidence_counts(new_session, NewPhysicalInteraction, NewPhysicalInterevidence)
-        ask_to_commit(new_session, start_time)  
-    finally:
-        old_session.close()
-        new_session.close()  
+#    # Update evidence_counts for genetic_interactions
+#    print 'Genetic interaction evidence counts'
+#    start_time = datetime.datetime.now()
+#    try:        
+#        new_session = new_session_maker()
+#        from model_new_schema.interaction import GeneticInteraction as NewGeneticInteraction, GeneticInterevidence as NewGeneticInterevidence
+#        success = update_biorel_evidence_counts(new_session, NewGeneticInteraction, NewGeneticInterevidence)
+#        ask_to_commit(new_session, start_time)  
+#    finally:
+#        old_session.close()
+#        new_session.close() 
+#        
+#    # Update evidence_counts for physical_interactions
+#    print 'Physical interaction evidence counts'
+#    start_time = datetime.datetime.now()
+#    try:        
+#        new_session = new_session_maker()
+#        from model_new_schema.interaction import PhysicalInteraction as NewPhysicalInteraction, PhysicalInterevidence as NewPhysicalInterevidence
+#        success = update_biorel_evidence_counts(new_session, NewPhysicalInteraction, NewPhysicalInterevidence)
+#        ask_to_commit(new_session, start_time)  
+#    finally:
+#        old_session.close()
+#        new_session.close()  
         
         
 def convert_genetic_interactions(new_session, old_interactions, min_id, max_id):

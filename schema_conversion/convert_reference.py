@@ -5,10 +5,10 @@ Created on Feb 27, 2013
 '''
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
-from schema_conversion import create_or_update_and_remove, ask_to_commit, \
-    prepare_schema_connection, cache_by_key, cache_by_id, create_format_name
+from schema_conversion import create_or_update_and_remove,  \
+    prepare_schema_connection, cache_by_key, cache_by_id, create_format_name, \
+    execute_conversion
 from sqlalchemy.orm import joinedload
-import datetime
 import model_new_schema
 import model_old_schema
 
@@ -211,167 +211,69 @@ def create_altids(old_reference, id_to_reference):
 ---------------------Convert------------------------------
 """   
 
-def convert(old_session_maker, new_session_maker):
+def convert(old_session_maker, new_session_maker, ask=True):
     from model_old_schema.reference import Journal as OldJournal, Book as OldBook, Author as OldAuthor, \
         AuthorReference as OldAuthorReference, RefReftype as OldRefReftype, Reference as OldReference, \
         RefRelation as OldRefRelation
     from model_old_schema.general import Ref_URL as OldRef_URL
 
-#    # Convert journals
-#    print 'Journals'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_journals = old_session.query(OldJournal).all()
-#        
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_journals(new_session, old_journals)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#        
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert books
-#    print 'Books'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_books = old_session.query(OldBook).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_books(new_session, old_books)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert authors
-#    print 'Authors'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_authors = old_session.query(OldAuthor).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_authors(new_session, old_authors)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#        
-#    # Convert references
-#    print 'References'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_references = old_session.query(OldReference).options(joinedload('book'), joinedload('journal'), joinedload('abst')).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_references(new_session, old_references)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
-#
-#    # Convert altids
-#    print 'Altids'
-#    start_time = datetime.datetime.now()
-#    try:
-#        old_session = old_session_maker()
-#        old_references = old_session.query(OldReference).options(joinedload('dbxrefrefs'), joinedload('dbxrefrefs.dbxref')).all()
-#
-#        success = False
-#        while not success:
-#            new_session = new_session_maker()
-#            success = convert_altids(new_session, old_references)
-#            ask_to_commit(new_session, start_time)  
-#            new_session.close()
-#    finally:
-#        old_session.close()
-#        new_session.close()
+    # Convert journals
+    print 'Journals'
+    execute_conversion(convert_journals, old_session_maker, new_session_maker, ask, 
+                       old_journals=lambda old_session: old_session.query(OldJournal).all())
+        
+    # Convert books
+    print 'Books'
+    execute_conversion(convert_books, old_session_maker, new_session_maker, ask,
+                       old_books=lambda old_session: old_session.query(OldBook).all())
+        
+    # Convert authors
+    print 'Authors'
+    execute_conversion(convert_authors, old_session_maker, new_session_maker, ask,
+                       old_authors=lambda old_session: old_session.query(OldAuthor).all())
+        
+    # Convert references
+    print 'References'
+    execute_conversion(convert_references, old_session_maker, new_session_maker, ask,
+                       old_references=lambda old_session: old_session.query(OldReference).options(
+                                            joinedload('book'), 
+                                            joinedload('journal'), 
+                                            joinedload('abst')).all())
+
+    # Convert altids
+    print 'Altids'
+    execute_conversion(convert_altids, old_session_maker, new_session_maker, ask,
+                       old_references=lambda old_session: old_session.query(OldReference).options(
+                                            joinedload('book'), 
+                                            joinedload('journal'), 
+                                            joinedload('abst')).all())
         
     # Convert author_references
     print 'AuthorReferences'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_author_references = old_session.query(OldAuthorReference).options(joinedload('author')).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_author_references(new_session, old_author_references)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    execute_conversion(convert_author_references, old_session_maker, new_session_maker, ask,
+                       old_author_references=lambda old_session: old_session.query(OldAuthorReference).options(
+                                            joinedload('author')).all())
         
     # Convert reftypes
     print 'Reftypes'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_ref_reftypes = old_session.query(OldRefReftype).options(joinedload('reftype')).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_reftypes(new_session, old_ref_reftypes)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    execute_conversion(convert_reftypes, old_session_maker, new_session_maker, ask,
+                       old_ref_reftypes=lambda old_session: old_session.query(OldRefReftype).options(
+                                            joinedload('reftype')).all())
 
     # Convert reference_relations
     print 'ReferenceRelations'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_ref_relations = old_session.query(OldRefRelation).all()
-
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_ref_relations(new_session, old_ref_relations)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    execute_conversion(convert_ref_relations, old_session_maker, new_session_maker, ask,
+                       old_ref_relations=lambda old_session: old_session.query(OldRefRelation).all())
 
     # Convert relevant urls
     print 'Urls'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_ref_urls = old_session.query(OldRef_URL).options(joinedload('url'), joinedload('reference')).all()
+    execute_conversion(convert_urls, old_session_maker, new_session_maker, ask,
+                       olf_ref_urls=lambda old_session: old_session.query(OldRef_URL).options(
+                                            joinedload('url'), 
+                                            joinedload('reference')).all())
 
-        success = False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_urls(new_session, old_ref_urls)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
     
-def convert_journals(new_session, old_journals):
+def convert_journals(new_session, old_journals=None):
     '''
     Convert Journals
     '''
@@ -385,7 +287,7 @@ def convert_journals(new_session, old_journals):
     success = create_or_update_and_remove(new_journals, key_to_journal, [], new_session)
     return success
     
-def convert_books(new_session, old_books):
+def convert_books(new_session, old_books=None):
     '''
     Convert Books
     '''
@@ -400,7 +302,7 @@ def convert_books(new_session, old_books):
     success = create_or_update_and_remove(new_journals, key_to_book, values_to_check, new_session)
     return success
     
-def convert_references(new_session, old_references):
+def convert_references(new_session, old_references=None):
     '''
     Convert References
     '''
@@ -423,7 +325,7 @@ def convert_references(new_session, old_references):
     success = create_or_update_and_remove(new_references, key_to_reference, values_to_check, new_session)
     return success
 
-def convert_altids(new_session, old_references):
+def convert_altids(new_session, old_references=None):
     '''
     Convert Altids
     '''
@@ -442,7 +344,7 @@ def convert_altids(new_session, old_references):
     success = create_or_update_and_remove(new_altids, key_to_altids, values_to_check, new_session)
     return success
     
-def convert_authors(new_session, old_authors):
+def convert_authors(new_session, old_authors=None):
     '''
     Convert Authors
     '''
@@ -457,7 +359,7 @@ def convert_authors(new_session, old_authors):
     success = create_or_update_and_remove(new_authors, key_to_author, values_to_check, new_session)
     return success
     
-def convert_author_references(new_session, old_author_references):
+def convert_author_references(new_session, old_author_references=None):
     '''
     Convert AuthorReferences
     '''
@@ -474,7 +376,7 @@ def convert_author_references(new_session, old_author_references):
     success = create_or_update_and_remove(new_author_references, key_to_author_references, values_to_check, new_session)    
     return success
 
-def convert_reftypes(new_session, old_ref_reftypes):
+def convert_reftypes(new_session, old_ref_reftypes=None):
     '''
     Convert Reftypes
     '''
@@ -489,7 +391,7 @@ def convert_reftypes(new_session, old_ref_reftypes):
     success = create_or_update_and_remove(new_reftypes, key_to_reftypes, ['source'], new_session)    
     return success
 
-def convert_ref_relations(new_session, old_ref_relations):
+def convert_ref_relations(new_session, old_ref_relations=None):
     '''
     Convert ReferenceRelations
     '''
@@ -504,7 +406,7 @@ def convert_ref_relations(new_session, old_ref_relations):
     success = create_or_update_and_remove(new_ref_relations, key_to_ref_relations, ['created_by', 'date_created'], new_session)    
     return success
 
-def convert_urls(new_session, olf_ref_urls):
+def convert_urls(new_session, olf_ref_urls=None):
     '''
     Convert ReferenceRelations
     '''
@@ -522,6 +424,6 @@ def convert_urls(new_session, olf_ref_urls):
 if __name__ == "__main__":
     old_session_maker = prepare_schema_connection(model_old_schema, old_config)
     new_session_maker = prepare_schema_connection(model_new_schema, new_config)
-    convert(old_session_maker, new_session_maker)   
+    convert(old_session_maker, new_session_maker, False)   
    
 
