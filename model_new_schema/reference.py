@@ -306,6 +306,9 @@ class ReferenceUrl(Url):
         Url.__init__(self, url, display_name, 'REFERENCE_URL', source, date_created, created_by)
         self.reference_id = reference_id
         
+    def unique_key(self):
+        return (self.url, self.reference_id)
+        
 class ReferenceAltid(Altid):
     __tablename__ = 'referencealtid'
     

@@ -7,7 +7,8 @@ from model_new_schema.link_maker import add_link
 from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_biorels, get_interactions, get_bioent, get_reference_id, \
-    get_genetic_interaction_evidence, get_physical_interaction_evidence, get_biorel_id
+    get_genetic_interaction_evidence, get_physical_interaction_evidence, \
+    get_biorel_id
 from sgdbackend.utils import create_simple_table, make_reference_list
 
 
@@ -48,8 +49,9 @@ def interaction_evidence_table(request):
         biorel_id = get_biorel_id(biorel_name, 'INTERACTION')
         if biorel_id is None:
             return Response(status_int=500, body='Biorel could not be found.')
-        interevidences = get_interaction_evidence(biorel_id=biorel_id)
-        return make_evidence_tables(True, interevidences) 
+        genetic_interevidences = get_genetic_interaction_evidence(biorel_id=biorel_id)
+        physical_interevidences = get_physical_interaction_evidence(biorel_id=biorel_id)
+        return make_evidence_tables(True, genetic_interevidences, physical_interevidences) 
         
     elif 'bioent' in request.GET:
         #Need an interaction evidence table based on a bioent
@@ -57,8 +59,9 @@ def interaction_evidence_table(request):
         bioent = get_bioent(bioent_name, 'LOCUS')
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        interevidences = get_interaction_evidence(bioent_id=bioent.id)
-        return make_evidence_tables(True, interevidences, bioent) 
+        genetic_interevidences = get_genetic_interaction_evidence(bioent_id=bioent.id)
+        physical_interevidences = get_physical_interaction_evidence(bioent_id=bioent.id)
+        return make_evidence_tables(True, genetic_interevidences, physical_interevidences, bioent) 
     
     else:
         return Response(status_int=500, body='No Bioent or Biorel specified.')
@@ -135,67 +138,70 @@ def make_overview_table(genetic, physical, bioent):
         return [orig_bioent_link, opp_bioent_link, genetic_count, physical_count, total_count]
         
     return create_simple_table(inters_to_counts.keys(), f, bioent=bioent) 
-
-def make_overview_row(biorel, evs_for_group, group_term):
-    if group_term[1] is not None:
-        orig_bioent = group_term[1]
-        opp_bioent = biorel.get_opposite(orig_bioent)
-    else:
-        orig_bioent = biorel.source_bioent
-        opp_bioent = biorel.sink_bioent
-    divided_evidences = divide_interevidences(evs_for_group)
-    total = add_link(str(len(evs_for_group)), biorel.link)
-    return [orig_bioent.name_with_link, opp_bioent.name_with_link, len(divided_evidences['genetic']), len(divided_evidences['physical']), total]
-
     
 '''
 -------------------------------Evidence Table---------------------------------------
 '''
     
-def make_evidence_tables(divided, interevidences, bioent=None):
+def make_evidence_tables(divided, genetic_interevidences, physical_interevidences, bioent=None):
     tables = {}
 
-    if divided:
-        divided_evidences = divide_interevidences(interevidences)
+    all_interevidences = [x for x in genetic_interevidences]
+    all_interevidences.extend(physical_interevidences)
 
-        tables['genetic'] = create_simple_table(divided_evidences['genetic'], make_evidence_row, bioent=bioent)
-        tables['physical'] = create_simple_table(divided_evidences['physical'], make_evidence_row, bioent=bioent)
+    if divided:
+        tables['genetic'] = create_simple_table(genetic_interevidences, make_evidence_row, bioent=bioent)
+        tables['physical'] = create_simple_table(physical_interevidences, make_evidence_row, bioent=bioent)
         
     else:
-        tables['aaData'] = create_simple_table(interevidences, make_evidence_row, bioent)
+        tables['aaData'] = create_simple_table(all_interevidences, make_evidence_row, bioent)
         
-    tables['reference'] = make_reference_list(interevidences)
+    tables['reference'] = make_reference_list(all_interevidences)
         
     return tables    
 
 def make_evidence_row(interevidence, bioent=None): 
-    if bioent is None:
-        bioent1 = interevidence.biorel.source_bioent
-        bioent2 = interevidence.biorel.sink_bioent
-        direction = interevidence.direction
-    else:
-        bioent1 = bioent
-        bioent2 = interevidence.biorel.get_opposite(bioent1)
-        if interevidence.biorel.source_bioent == bioent1:
-            direction = interevidence.direction
+    inters = tuple(interevidence.biorel.bioentities)
+    if len(inters) == 1:
+        orig_bioent_link = inters[0].name_with_link
+        opp_bioent_link = inters[0].name_with_link
+    elif len(inters) > 2:
+        if bioent is not None:
+            orig_bioent = bioent
         else:
-            direction = reverse_direction(interevidence.direction)
+            orig_bioent = inters[0]
+        orig_bioent_link = orig_bioent.name_with_link
+        opp_bioents = list(inters)
+        opp_bioents.remove(orig_bioent)
+        opp_bioent_link = ', '.join([x.name_with_link for x in opp_bioents])
+    else:
+        if bioent is not None:
+            orig_bioent = bioent
+        else:
+            orig_bioent = inters[0]
+        orig_bioent_link = orig_bioent.name_with_link
+        opp_bioents = list(inters)
+        opp_bioents.remove(orig_bioent)
+        opp_bioent_link = opp_bioents[0].name_with_link
+
     
     reference = ''
     if interevidence.reference is not None:
-        reference = interevidence.reference.name_with_link
+        reference = interevidence.reference.name_with_link 
+    experiment = ''
+    if interevidence.experiment is not None:
+        experiment = interevidence.experiment.name_with_link
         
-    phenotype = None
-    if interevidence.qualifier is not None or interevidence.observable is not None:
-        phenotype = ''
-        if interevidence.qualifier is not None:
-            phenotype = interevidence.qualifier + ' ' 
-        if interevidence.observable is not None:
-            phenotype = phenotype + interevidence.observable
+    phenotype = ''
+    if interevidence.evidence_type == 'GENETIC_INTERACTION_EVIDENCE' and interevidence.phenotype is not None:
+        phenotype = interevidence.phenotype.name_with_link
+    modification = ''
+    if interevidence.evidence_type == 'PHYSICAL_INTERACTION_EVIDENCE' and interevidence.modification is not None:
+        modification = interevidence.modification
      
-    return [bioent1.name_with_link, bioent2.name_with_link, 
-            interevidence.experiment_type, interevidence.annotation_type, direction, phenotype,
-            interevidence.modification, interevidence.source, reference]
+    return [orig_bioent_link, opp_bioent_link, 
+            experiment, interevidence.annotation_type, None, phenotype,
+            modification, interevidence.source, reference]
     
 def reverse_direction(direction):
     if direction == 'bait-hit':

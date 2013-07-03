@@ -480,7 +480,7 @@ def get_genetic_interaction_evidence(bioent_id=None, biorel_id=None, reference_i
     query = session.query(GeneticInterevidence).options(joinedload('reference'))
     interevidences = None
     if bioent_id is not None:
-        biorel_ids = [biorel.id for biorel in get_biorels('INTERACTION', bioent_id)]
+        biorel_ids = [biorel.id for biorel in get_biorels('GENETIC_INTERACTION', bioent_id)]
         def f(chunk_biorel_ids):
             new_query = query.filter(GeneticInterevidence.biorel_id.in_(chunk_biorel_ids))
             interevidences = set(new_query.all())
@@ -518,7 +518,7 @@ def get_physical_interaction_evidence(bioent_id=None, biorel_id=None, reference_
     query = session.query(PhysicalInterevidence).options(joinedload('reference'))
     interevidences = None
     if bioent_id is not None:
-        biorel_ids = [biorel.id for biorel in get_biorels('INTERACTION', bioent_id)]
+        biorel_ids = [biorel.id for biorel in get_biorels('PHYSICAL_INTERACTION', bioent_id)]
         def f(chunk_biorel_ids):
             new_query = query.filter(GeneticInterevidence.biorel_id.in_(chunk_biorel_ids))
             interevidences = set(new_query.all())

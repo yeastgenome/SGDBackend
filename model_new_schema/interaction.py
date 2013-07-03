@@ -44,12 +44,13 @@ class GeneticInterevidence(Evidence):
     annotation_type = Column('annotation_type', String)
     bait_hit = Column('bait_hit', String)
     biorel_id = Column('biorel_id', Integer, ForeignKey(GeneticInteraction.id))
-        
+       
     __mapper_args__ = {'polymorphic_identity': "GENETIC_INTERACTION_EVIDENCE",
                        'inherit_condition': id==Evidence.id}
     
     #Relationships
     biorel = relationship(GeneticInteraction, backref='evidences')
+    phenotype = relationship(Phenotype)
 
     def __init__(self, evidence_id, biorel_id, experiment_id, reference_id, strain_id, annotation_type, source, phenotype_id, bait_hit, date_created, created_by):
         Evidence.__init__(self, evidence_id, experiment_id, reference_id, 'GENETIC_INTERACTION_EVIDENCE', strain_id, source, date_created, created_by)

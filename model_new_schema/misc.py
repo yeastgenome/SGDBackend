@@ -49,9 +49,6 @@ class Url(Base):
         self.source = source
         self.date_created = date_created
         self.created_by = created_by
-        
-    def unique_key(self):
-        return self.url
     
 class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'
@@ -98,7 +95,7 @@ class Altid(Base, EqualityByIDMixin):
         self.created_by = created_by
         
     def unique_key(self):
-        return (self.identifier, self.altid_type)
+        return (self.identifier, self.altid_type, self.altid_name)
        
         
         
