@@ -2,7 +2,7 @@ from .models import DBSession
 from model_new_schema.link_maker import LinkMaker
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
-from sgdbackend.config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE
+from model_new_schema.config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
 import model_new_schema

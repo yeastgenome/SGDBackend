@@ -51,7 +51,7 @@ if __name__ == "__main__":
     try:
         convert_bioentity.convert(old_session_maker, new_session_maker, ask=False)  
     except Exception:
-        write_to_output_file( "Unexpected error:", sys.exc_info()[0])
+        write_to_output_file( "Unexpected error:" + str(sys.exc_info()[0]) )
         
     write_to_output_file( '----------------------------------------')
     write_to_output_file( 'Convert References')
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     try:
         convert_reference.convert(old_session_maker, new_session_maker, ask=False)
     except Exception:
-        write_to_output_file( "Unexpected error:", sys.exc_info()[0])
+        write_to_output_file( "Unexpected error:" + str(sys.exc_info()[0]) )
       
     write_to_output_file( '----------------------------------------')
     write_to_output_file( 'Convert Evelements')
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     try:
         convert_evelements.convert(old_session_maker, new_session_maker, ask=False)
     except Exception:
-        write_to_output_file( "Unexpected error:", sys.exc_info()[0])
+        write_to_output_file( "Unexpected error:" + str(sys.exc_info()[0]) )
         
     send_output_email()
         

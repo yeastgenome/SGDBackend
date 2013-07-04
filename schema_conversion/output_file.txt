@@ -1,0 +1,57 @@
+----------------------------------------
+Convert Bioentities
+----------------------------------------
+Locus
+In total 0 added.
+In total 0 changed.
+In total 0 removed.
+0:00:07.655158
+
+Other Bioentity
+In total 0 added.
+In total 0 changed.
+In total 0 removed.
+0:00:03.377607
+
+DNA
+In total 0 added.
+In total 0 changed.
+In total 0 removed.
+0:00:05.176985
+
+RNA
+In total 0 added.
+In total 0 changed.
+In total 0 removed.
+0:00:05.546688
+
+Protein
+In total 0 added.
+In total 0 changed.
+In total 0 removed.
+0:00:07.515328
+
+Alias
+In total 0 added.
+In total 20 changed.
+   5 sources changed.
+   5 used_for_searchs changed.
+   5 created_bys changed.
+   5 date_createds changed.
+In total 0 removed.
+0:01:06.699936
+
+Altids
+In total 0 added.
+In total 0 changed.
+In total 0 removed.
+0:00:33.930209
+
+Url
+Feature ids between 0 and 1000
+In total 0 added.
+In total 0 changed.
+In total 0 removed.
+0:00:50.505702
+
+Feature ids between 1000 and 2000

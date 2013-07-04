@@ -5,11 +5,10 @@ Created on May 31, 2013
 '''
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
-from schema_conversion import create_or_update_and_remove, ask_to_commit, \
+from schema_conversion import create_or_update_and_remove, \
     prepare_schema_connection, cache_by_key, cache_by_id, cache_by_key_in_range, \
     execute_conversion
 from sqlalchemy.orm import joinedload
-import datetime
 import model_new_schema
 import model_old_schema
 from schema_conversion.output_manager import write_to_output_file

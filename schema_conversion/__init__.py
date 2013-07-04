@@ -164,7 +164,7 @@ def execute_conversion(convert_f, old_session_maker, new_session_maker, ask, **k
                 commit_without_asking(new_session, start_time)
             new_session.close()
     except Exception:
-        write_to_output_file( "Unexpected error:", sys.exc_info()[0] )
+        write_to_output_file( "Unexpected error:" + str(sys.exc_info()[0]) )
         raise
     finally:
         old_session.close()

@@ -5,13 +5,12 @@ Created on May 6, 2013
 '''
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
-from schema_conversion import create_or_update_and_remove, ask_to_commit, \
+from schema_conversion import create_or_update_and_remove, \
     prepare_schema_connection, cache_by_key, cache_by_id, create_format_name, \
     cache_by_key_in_range, create_or_update, cache_ids, execute_conversion
 from schema_conversion.auxillary_tables import update_biorel_evidence_counts
 from schema_conversion.convert_phenotype import create_phenotype_key
 from sqlalchemy.orm import joinedload
-import datetime
 import model_new_schema
 import model_old_schema
 
