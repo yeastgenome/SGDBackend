@@ -9,7 +9,7 @@ from model_new_schema import config as new_config
 from model_old_schema import config as old_config
 from schema_conversion import prepare_schema_connection, convert_reference, \
     convert_bioentity, convert_evelements
-from schema_conversion.output_manager import output_file, write_to_output_file
+from schema_conversion.output_manager import output, write_to_output_file
 import model_new_schema
 import model_old_schema
 import smtplib
@@ -17,10 +17,8 @@ import sys
 
 def send_output_email():
 
-    fp = open(output_file, 'rb')
     # Create a text/plain message
-    msg = MIMEText(fp.read())
-    fp.close()
+    msg = MIMEText('\n'.join(output), 'plain')
 
     # me == the sender's email address
     # you == the recipient's email address
@@ -39,9 +37,8 @@ def send_output_email():
     s.quit()
 
 if __name__ == "__main__":
-    f = open(output_file, 'w')
-    f.close()
-
+    output[:] = []
+    
     old_session_maker = prepare_schema_connection(model_old_schema, old_config)
     new_session_maker = prepare_schema_connection(model_new_schema, new_config)
     

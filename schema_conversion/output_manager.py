@@ -4,14 +4,11 @@ Created on Mar 8, 2013
 @author: kpaskov
 '''
 
-output_file = 'output_file.txt'
+output = []
 
 def write_to_output_file(text):
     print text
-    f = open(output_file, 'a')
-    f.write(text)
-    f.write('\n')
-    f.close()
+    output.append(text)
     
 class OutputCreator():
     num_added = 0
