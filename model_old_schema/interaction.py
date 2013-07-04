@@ -32,16 +32,6 @@ class Interaction(Base, EqualityByIDMixin):
     
     feature_interactions = relationship('Interaction_Feature')
     feature_ids = association_proxy('feature_interactions', 'feature_id')
-    
-    def __init__(self, session, interaction_type, experiment_type, annotation_type, source, modification):
-        self.interaction_type = interaction_type
-        self.experiment_type = experiment_type
-        self.annotation_type = annotation_type
-        self.source = source
-        self.modification = modification
-        
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
 
     def __repr__(self):
         data = self.experiment_type

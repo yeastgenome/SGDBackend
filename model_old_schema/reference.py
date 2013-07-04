@@ -8,13 +8,11 @@ Reference module of the database schema.
 '''
 from model_old_schema import Base, EqualityByIDMixin, UniqueMixin, SCHEMA
 from model_old_schema.feature import Feature
-from model_old_schema.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Column, ForeignKey, Table
 from sqlalchemy.types import Integer, String, Date
-import datetime
        
 class Reference(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = 'reference'
@@ -54,43 +52,6 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     curations = relationship('RefCuration', cascade='all,delete')
     dbxrefs = association_proxy('dbxrefrefs', 'dbxref') 
 
-    
-    def __init__(self, session, pubmed_id):
-        self.pubmed_id = pubmed_id
-        self.pdf_status='N'
-        self.source='PubMed script'
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
-        
-        pubmed = get_medline_data(pubmed_id)
-            
-        #Set basic information for the reference.
-        self.status = pubmed.publish_status
-        self.citation = pubmed.citation
-        self.year = pubmed.year
-        self.pdf_status = pubmed.pdf_status
-        self.page = pubmed.pages
-        self.volume = pubmed.volume
-        self.title = pubmed.title
-        self.issue = pubmed.issue
-                        
-        pubmed = get_medline_data(self.pubmed_id)
-
-        #Add the journal.
-        self.journal = Journal.as_unique(session, abbreviation=pubmed.journal_abbrev)
-        
-        #Add the abstract.
-        if pubmed.abstract_txt is not None and not pubmed.abstract_txt == "": 
-            self.abst = Abstract.as_unique(session, reference_id = self.id, text = pubmed.abstract_txt)
-                
-        #Add the authors.
-        order = 0
-        for author_name in pubmed.authors:
-            order += 1
-            self.authors[order] = Author.as_unique(session, name=author_name)
-                
-        #Add the ref_type
-        self.refType = RefType.as_unique(session, name=pubmed.pub_type)
         
     @classmethod
     def unique_hash(cls, pubmed_id):
@@ -134,15 +95,6 @@ class Journal(Base, EqualityByIDMixin, UniqueMixin):
     publisher = Column('publisher', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
-    
-    def __init__(self, session, abbreviation):
-        medlineJournal = MedlineJournal(abbreviation)
-        self.abbreviation = abbreviation
-        self.full_name = medlineJournal.journal_title
-        self.issn = medlineJournal.issn
-        self.essn = medlineJournal.essn
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
         
     @classmethod
     def unique_hash(cls, abbreviation):
@@ -167,16 +119,6 @@ class RefTemp(Base, EqualityByIDMixin, UniqueMixin):
     abstract = Column('abstract', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
-
-    def __init__(self, session, pubmed_id):    
-        self.pubmed_id = pubmed_id
-
-        pubmed = get_medline_data(pubmed_id)
-        self.citation = pubmed.citation
-        self.abstract = pubmed.abstract_txt
-
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
         
     @classmethod
     def unique_hash(cls, pubmed_id):
@@ -198,12 +140,6 @@ class RefBad(Base, EqualityByIDMixin, UniqueMixin):
     dbxref_id = Column('dbxref_id', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
-
-    def __init__(self, session, pubmed_id, dbxref_id=None):
-        self.pubmed_id = pubmed_id
-        self.dbxref_id = dbxref_id
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
         
     @classmethod
     def unique_hash(cls, pubmed_id):
@@ -225,11 +161,6 @@ class Author(Base, EqualityByIDMixin, UniqueMixin):
     name = Column('author_name', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
-    
-    def __init__(self, session, name):
-        self.name = name
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
         
     @classmethod
     def unique_hash(cls, name):
@@ -253,11 +184,6 @@ class AuthorReference(Base, EqualityByIDMixin, UniqueMixin):
     order = Column('author_order', Integer)
     type = Column('author_type', String)
         
-    def __init__(self, session, author, order, ar_type):
-        self.author = author
-        self.order = order
-        self.type = ar_type
-        
     @classmethod
     def unique_hash(cls, author, order, ar_type):
         return '%s_%s_%s_%s' % (author, order, ar_type)  
@@ -275,10 +201,7 @@ class Abstract(Base, EqualityByIDMixin, UniqueMixin):
 
     reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'), primary_key = True)
     text = Column('abstract', String)
-   
-    def __init__(self, session, text, reference_id):
-        self.text = text
-        self.reference_id = reference_id
+
         
     @classmethod
     def unique_hash(cls, text, reference_id):
@@ -301,12 +224,6 @@ class RefType(Base, EqualityByIDMixin, UniqueMixin):
     name = Column('ref_type', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
-    
-    def __init__(self, session, name):
-        self.name = name;
-        self.source = 'NCBI'
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
         
     @classmethod
     def unique_hash(cls, name):
@@ -333,12 +250,6 @@ class LitGuide(Base, EqualityByIDMixin, UniqueMixin):
     #Relationships
     features = relationship("Feature", secondary= Table('litguide_feat', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
     feature_ids = association_proxy('features', 'id')
-    
-    def __init__(self, session, reference_id, topic):
-        self.reference_id = reference_id
-        self.topic = topic
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
         
     @classmethod
     def unique_hash(cls, reference_id, topic):
@@ -366,13 +277,6 @@ class RefCuration(Base, EqualityByIDMixin, UniqueMixin):
     
     #Relationships
     feature = relationship('Feature', uselist=False)
-
-    def __init__(self, session, reference_id, task, feature_id):
-        self.task = task
-        self.reference_id = reference_id
-        self.feature_id = feature_id
-        self.created_by = session.user
-        self.date_created = datetime.datetime.now()
         
     @classmethod
     def unique_hash(cls, reference_id, task, feature_id):
@@ -396,11 +300,6 @@ class RefReftype(Base, EqualityByIDMixin, UniqueMixin):
     id = Column('ref_reftype_no', Integer, primary_key = True)
     reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
     reftype_id = Column('ref_type_no', Integer, ForeignKey('bud.ref_type.ref_type_no'))
-        
-    def __init__(self, session=None, ref_reftype_id=None, reftype=None):
-        if session is None:
-            self.id = ref_reftype_id
-            self.reftype = reftype
         
     @classmethod
     def unique_hash(cls, reference_id, reftype_id):
