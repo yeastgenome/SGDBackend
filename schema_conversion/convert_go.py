@@ -22,7 +22,7 @@ def create_go_id(old_go_id):
     return old_go_id+87636
 
 def create_goevidence_id(old_evidence_id):
-    return old_evidence_id+1322521  
+    return old_evidence_id+1400000  
 
 def create_go_key(go_term):
     name = go_term.replace(' ', '_')

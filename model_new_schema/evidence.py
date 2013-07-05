@@ -33,9 +33,9 @@ class Evidence(Base, EqualityByIDMixin):
                        'polymorphic_identity':"EVIDENCE"}
     
     
-    def __init__(self, evidence_id, experiment_type, reference_id, evidence_type, strain_id, source, date_created, created_by):
+    def __init__(self, evidence_id, experiment_id, reference_id, evidence_type, strain_id, source, date_created, created_by):
         self.id = evidence_id
-        self.experiment_type = experiment_type
+        self.experiment_id = experiment_id
         self.reference_id = reference_id
         self.evidence_type = evidence_type
         self.strain_id = strain_id

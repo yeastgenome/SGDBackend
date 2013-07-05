@@ -10,6 +10,7 @@ from schema_conversion import create_or_update_and_remove, \
     cache_by_key_in_range, create_or_update, cache_ids, execute_conversion
 from schema_conversion.auxillary_tables import update_biorel_evidence_counts
 from schema_conversion.convert_phenotype import create_phenotype_key
+from schema_conversion.output_manager import write_to_output_file
 from sqlalchemy.orm import joinedload
 import model_new_schema
 import model_old_schema
@@ -223,11 +224,11 @@ def convert(old_session_maker, new_session_maker, ask=True):
     intervals = [300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000, 1300000, 1400000]
         
     # Convert genetic_interactions
-    print 'Genetic Interaction'
+    write_to_output_file( 'Genetic Interaction')
     for i in range(0, len(intervals)-1):
         min_id = intervals[i]
         max_id = intervals[i+1]
-        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
         execute_conversion(convert_genetic_interactions, old_session_maker, new_session_maker, ask,
                        min_id = lambda old_session : min_id,
                        max_id = lambda old_session : max_id,
@@ -237,11 +238,11 @@ def convert(old_session_maker, new_session_maker, ask=True):
                                                             joinedload('feature_interactions')).all())
 
     # Convert physic_interactions
-    print 'Physical Interaction'
+    write_to_output_file( 'Physical Interaction')
     for i in range(0, len(intervals)-1):
         min_id = intervals[i]
         max_id = intervals[i+1]
-        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
         execute_conversion(convert_physical_interactions, old_session_maker, new_session_maker, ask,
                        min_id = lambda old_session : min_id,
                        max_id = lambda old_session : max_id,
@@ -251,11 +252,11 @@ def convert(old_session_maker, new_session_maker, ask=True):
                                                             joinedload('feature_interactions')).all())
         
     # Convert genetic interaction_bioents
-    print 'Genetic Interaction_Bioents'
+    write_to_output_file('Genetic Interaction_Bioents')
     for i in range(0, len(intervals)-1):
         min_id = intervals[i]
         max_id = intervals[i+1]
-        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
         execute_conversion(convert_genetic_interaction_bioents, old_session_maker, new_session_maker, ask,
                        min_id = lambda old_session : min_id,
                        max_id = lambda old_session : max_id,
@@ -265,11 +266,11 @@ def convert(old_session_maker, new_session_maker, ask=True):
                                                             joinedload('feature_interactions')).all())
         
     # Convert physical interaction_bioents
-    print 'Physical Interaction_Bioents'
+    write_to_output_file('Physical Interaction_Bioents')
     for i in range(0, len(intervals)-1):
         min_id = intervals[i]
         max_id = intervals[i+1]
-        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        write_to_output_file('Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
         execute_conversion(convert_physical_interaction_bioents, old_session_maker, new_session_maker, ask,
                        min_id = lambda old_session : min_id,
                        max_id = lambda old_session : max_id,
@@ -279,11 +280,11 @@ def convert(old_session_maker, new_session_maker, ask=True):
                                                             joinedload('feature_interactions')).all())
         
     # Convert genetic interevidences
-    print 'GeneticInterevidences'
+    write_to_output_file('GeneticInterevidences')
     for i in range(0, len(intervals)-1):
         min_id = intervals[i]
         max_id = intervals[i+1]
-        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        write_to_output_file('Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
         execute_conversion(convert_genetic_interevidences, old_session_maker, new_session_maker, ask,
                        min_id = lambda old_session : min_id,
                        max_id = lambda old_session : max_id,
@@ -295,11 +296,11 @@ def convert(old_session_maker, new_session_maker, ask=True):
                                                             joinedload('feature_interactions')).all())
       
     # Convert physical interevidences
-    print 'PhysicalInterevidences'
+    write_to_output_file( 'PhysicalInterevidences')
     for i in range(0, len(intervals)-1):
         min_id = intervals[i]
         max_id = intervals[i+1]
-        print 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id)
+        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
         execute_conversion(convert_physical_interevidences, old_session_maker, new_session_maker, ask,
                        min_id = lambda old_session : min_id,
                        max_id = lambda old_session : max_id,
@@ -310,13 +311,13 @@ def convert(old_session_maker, new_session_maker, ask=True):
                                                             joinedload('feature_interactions')).all())
         
     # Update evidence_counts for genetic_interactions
-    print 'Genetic interaction evidence counts'
+    write_to_output_file( 'Genetic interaction evidence counts')
     execute_conversion(update_biorel_evidence_counts, old_session_maker, new_session_maker, ask,
                        biorel_cls = lambda old_session : NewGeneticInteraction,
                        evidence_cls = lambda old_session : NewGeneticInterevidence)
         
     # Update evidence_counts for physical_interactions
-    print 'Physical interaction evidence counts'
+    write_to_output_file( 'Physical interaction evidence counts')
     execute_conversion(update_biorel_evidence_counts, old_session_maker, new_session_maker, ask,
                        biorel_cls = lambda old_session : NewPhysicalInteraction,
                        evidence_cls = lambda old_session : NewPhysicalInterevidence)
@@ -416,7 +417,7 @@ def convert_genetic_interevidences(new_session, old_interactions, min_id, max_id
     
     #Cache interevidences
     key_to_biorel = cache_by_key(NewGeneticInteraction, new_session)
-    key_to_interevidence = cache_by_key_in_range(NewGeneticInterevidence, NewGeneticInterevidence.biorel_id, new_session, min_id, max_id)
+    key_to_interevidence = cache_by_key_in_range(NewGeneticInterevidence, NewGeneticInterevidence.id, new_session, min_id, max_id)
     id_to_bioent = cache_by_id(NewBioentity, new_session)
     key_to_experiment = cache_by_key(NewExperiment, new_session)
     key_to_phenotype = cache_by_key(NewPhenotype, new_session)
@@ -443,7 +444,7 @@ def convert_physical_interevidences(new_session, old_interactions, min_id, max_i
     
     #Cache interevidences
     key_to_biorel = cache_by_key(NewPhysicalInteraction, new_session)
-    key_to_interevidence = cache_by_key_in_range(NewPhysicalInterevidence, NewPhysicalInterevidence.biorel_id, new_session, min_id, max_id)
+    key_to_interevidence = cache_by_key_in_range(NewPhysicalInterevidence, NewPhysicalInterevidence.id, new_session, min_id, max_id)
     id_to_bioent = cache_by_id(NewBioentity, new_session)
     key_to_experiment = cache_by_key(NewExperiment, new_session)
     reference_ids = cache_ids(NewReference, new_session)

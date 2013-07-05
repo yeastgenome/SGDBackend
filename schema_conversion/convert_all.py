@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
 from schema_conversion import prepare_schema_connection, convert_reference, \
-    convert_bioentity, convert_evelements
+    convert_bioentity, convert_evelements, convert_interaction
 from schema_conversion.output_manager import output, write_to_output_file
 import model_new_schema
 import model_old_schema
@@ -63,6 +63,14 @@ if __name__ == "__main__":
     write_to_output_file( '----------------------------------------'  )
     try:
         convert_evelements.convert(old_session_maker, new_session_maker, ask=False)
+    except Exception:
+        write_to_output_file( "Unexpected error:" + str(sys.exc_info()[0]) )
+        
+    write_to_output_file( '----------------------------------------')
+    write_to_output_file( 'Convert Interactions')
+    write_to_output_file( '----------------------------------------'  )
+    try:
+        convert_interaction.convert(old_session_maker, new_session_maker, ask=False)
     except Exception:
         write_to_output_file( "Unexpected error:" + str(sys.exc_info()[0]) )
         
