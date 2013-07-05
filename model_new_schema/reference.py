@@ -185,7 +185,7 @@ class Reference(Base, EqualityByIDMixin):
         return ', '.join([ref.name_with_link for ref in self.related_references])
     @hybrid_property
     def url_str(self):
-        return '<br>' + '<br>'.join([add_link(url.url, url.url, new_window=True) for url in self.urls])
+        return '<br>' + '<br>'.join([url.name_with_link for url in self.urls])
     @hybrid_property
     def pubmed_id_with_link(self):
         if self.pubmed_id is not None:

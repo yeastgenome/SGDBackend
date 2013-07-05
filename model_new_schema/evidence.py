@@ -6,6 +6,7 @@ Created on Dec 11, 2012
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.chemical import Chemical
 from model_new_schema.evelement import Experiment, Strain
+from model_new_schema.misc import Note
 from model_new_schema.reference import Reference
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
@@ -66,6 +67,24 @@ class EvidenceChemical(Base, EqualityByIDMixin):
     
     def unique_key(self):
         return (self.evidence_id, self.chemical_id)
+    
+class EvidenceNote(Note):
+    __tablename__ = 'evidencenote'
+    id = Column('note_id', Integer, ForeignKey(Note.id), primary_key=True)
+    evidence_id = Column('evidence_id', ForeignKey(Evidence.id))
+    
+    __mapper_args__ = {'polymorphic_identity': 'EVIDENCE_NOTE',
+                       'inherit_condition': id == Note.id}
+    
+    #Relationships
+    evidence = relationship(Evidence, uselist=False, backref=backref('notes', passive_deletes=True))
+    
+    def __init__(self, note, evidence_id, date_created, created_by):
+        Note.__init__(self, note, 'EVIDENCE_NOTE', date_created, created_by)
+        self.evidence_id = evidence_id
+        
+    def unique_key(self):
+        return (self.note, self.evidence_id)
 
     
         

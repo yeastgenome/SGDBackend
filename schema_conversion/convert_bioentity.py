@@ -266,8 +266,10 @@ def create_url(old_url, id_to_bioentity):
         print "Can't handle this url. " + old_url.url.url_id
         
     display_name = None
+    category = None
     for display in old_url.url.displays:
         potential_name = display.label_name
+        category = display.label_location
         if potential_name != 'default' and (display_name is None or len(potential_name) > len(display_name)):
             display_name = potential_name
 
@@ -276,7 +278,7 @@ def create_url(old_url, id_to_bioentity):
         #print 'Bioentity does not exist.'
         return None
     
-    new_url = NewBioentUrl(url, display_name, old_url.url.source, bioent_id, old_url.url.date_created, old_url.url.created_by)
+    new_url = NewBioentUrl(url, display_name, category, old_url.url.source, bioent_id, old_url.url.date_created, old_url.url.created_by)
     return new_url 
 
 def create_url_from_altid(old_altid, id_to_bioentity):
@@ -297,14 +299,11 @@ def create_url_from_altid(old_altid, id_to_bioentity):
         else:
             print "Can't handle this url. " + str(old_url.id)
         
-        display_name = None
         for display in old_url.displays:
-            potential_name = display.label_name
-            if potential_name != 'default' and (display_name is None or len(potential_name) > len(display_name)):
-                display_name = potential_name
-
-        new_url = NewBioentUrl(url, display_name, old_url.source, bioent_id, old_url.date_created, old_url.created_by)
-        new_urls.append(new_url)
+            display_name = display.label_name
+            category = display.label_location
+            new_url = NewBioentUrl(url, display_name, category, old_url.source, bioent_id, old_url.date_created, old_url.created_by)
+            new_urls.append(new_url)
     return new_urls
 
 """
@@ -315,45 +314,45 @@ def convert(old_session_maker, new_session_maker, ask=True):
     from model_old_schema.feature import Feature as OldFeature, AliasFeature as OldAliasFeature
     from model_old_schema.general import FeatUrl as OldFeatUrl, DbxrefFeat as OldDbxrefFeat
     
-    # Convert Locus
-    write_to_output_file('Locus')
-    execute_conversion(convert_locuses, old_session_maker, new_session_maker, ask,
-                       old_bioentity=lambda old_session: old_session.query(OldFeature).options(
-                                                        joinedload('annotation')).all())
-
-    # Convert other bioentities
-    write_to_output_file('Other Bioentity')
-    execute_conversion(convert_other_bioentities, old_session_maker, new_session_maker, ask,
-                       old_bioentity=lambda old_session: old_session.query(OldFeature).all())
-    
-    # Convert dna
-    write_to_output_file('DNA')
-    execute_conversion(convert_dnas, old_session_maker, new_session_maker, ask,
-                       old_bioentity=lambda old_session: old_session.query(OldFeature).all())
-    
-    # Convert rna
-    write_to_output_file('RNA')
-    execute_conversion(convert_rnas, old_session_maker, new_session_maker, ask,
-                       old_bioentity=lambda old_session: old_session.query(OldFeature).all())
-        
-    # Convert protein
-    write_to_output_file('Protein')
-    execute_conversion(convert_proteins, old_session_maker, new_session_maker, ask,
-                       old_bioentity=lambda old_session: old_session.query(OldFeature).all())
-        
-    # Convert aliases
-    write_to_output_file('Alias')
-    execute_conversion(convert_aliases, old_session_maker, new_session_maker, ask,
-                       old_aliases=lambda old_session: old_session.query(OldAliasFeature).options(
-                                                        joinedload('alias')).all(),
-                       old_altids=lambda old_session: old_session.query(OldDbxrefFeat).options(
-                                                        joinedload('dbxref')).all())
-    
-    # Convert altids
-    write_to_output_file('Altids')
-    execute_conversion(convert_altids, old_session_maker, new_session_maker, ask,
-                       old_altids=lambda old_session: old_session.query(OldDbxrefFeat).options(
-                                                        joinedload('dbxref')).all())
+#    # Convert Locus
+#    write_to_output_file('Locus')
+#    execute_conversion(convert_locuses, old_session_maker, new_session_maker, ask,
+#                       old_bioentity=lambda old_session: old_session.query(OldFeature).options(
+#                                                        joinedload('annotation')).all())
+#
+#    # Convert other bioentities
+#    write_to_output_file('Other Bioentity')
+#    execute_conversion(convert_other_bioentities, old_session_maker, new_session_maker, ask,
+#                       old_bioentity=lambda old_session: old_session.query(OldFeature).all())
+#    
+#    # Convert dna
+#    write_to_output_file('DNA')
+#    execute_conversion(convert_dnas, old_session_maker, new_session_maker, ask,
+#                       old_bioentity=lambda old_session: old_session.query(OldFeature).all())
+#    
+#    # Convert rna
+#    write_to_output_file('RNA')
+#    execute_conversion(convert_rnas, old_session_maker, new_session_maker, ask,
+#                       old_bioentity=lambda old_session: old_session.query(OldFeature).all())
+#        
+#    # Convert protein
+#    write_to_output_file('Protein')
+#    execute_conversion(convert_proteins, old_session_maker, new_session_maker, ask,
+#                       old_bioentity=lambda old_session: old_session.query(OldFeature).all())
+#        
+#    # Convert aliases
+#    write_to_output_file('Alias')
+#    execute_conversion(convert_aliases, old_session_maker, new_session_maker, ask,
+#                       old_aliases=lambda old_session: old_session.query(OldAliasFeature).options(
+#                                                        joinedload('alias')).all(),
+#                       old_altids=lambda old_session: old_session.query(OldDbxrefFeat).options(
+#                                                        joinedload('dbxref')).all())
+#    
+#    # Convert altids
+#    write_to_output_file('Altids')
+#    execute_conversion(convert_altids, old_session_maker, new_session_maker, ask,
+#                       old_altids=lambda old_session: old_session.query(OldDbxrefFeat).options(
+#                                                        joinedload('dbxref')).all())
         
     # Convert urls
     write_to_output_file('Url')
@@ -375,7 +374,9 @@ def convert(old_session_maker, new_session_maker, ask=True):
                                                         OldDbxrefFeat.feature_id >= min_id).filter(
                                                         OldDbxrefFeat.feature_id < max_id).options(
                                                         joinedload('dbxref'), 
-                                                        joinedload('dbxref.dbxref_urls')).all())
+                                                        joinedload('dbxref.dbxref_urls'),
+                                                        joinedload('dbxref.dbxref_urls.url'),
+                                                        joinedload('dbxref.dbxref_urls.url.displays')).all())
 
 def convert_locuses(new_session, old_bioentity=None):
     
@@ -492,7 +493,7 @@ def convert_urls(new_session, old_urls=None, old_altids=None, min_id=None, max_i
     for x in old_altids:
         new_urls.extend(create_url_from_altid(x, id_to_bioentity))
     
-    values_to_check = ['display_name', 'source', 'bioent_id', 'created_by', 'date_created']
+    values_to_check = ['display_name', 'category', 'source', 'bioent_id', 'created_by', 'date_created']
     success = create_or_update_and_remove(new_urls, key_to_url, values_to_check, new_session)
     return success
 

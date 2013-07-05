@@ -218,60 +218,61 @@ def convert(old_session_maker, new_session_maker, ask=True):
         RefRelation as OldRefRelation
     from model_old_schema.general import Ref_URL as OldRef_URL
 
-#    # Convert journals
-#    write_to_output_file('Journals')
-#    execute_conversion(convert_journals, old_session_maker, new_session_maker, ask, 
-#                       old_journals=lambda old_session: old_session.query(OldJournal).all())
-#        
-#    # Convert books
-#    write_to_output_file('Books')
-#    execute_conversion(convert_books, old_session_maker, new_session_maker, ask,
-#                       old_books=lambda old_session: old_session.query(OldBook).all())
-#        
-#    # Convert authors
-#    write_to_output_file('Authors')
-#    execute_conversion(convert_authors, old_session_maker, new_session_maker, ask,
-#                       old_authors=lambda old_session: old_session.query(OldAuthor).all())
-#        
-#    # Convert references
-#    write_to_output_file('References')
-#    execute_conversion(convert_references, old_session_maker, new_session_maker, ask,
-#                       old_references=lambda old_session: old_session.query(OldReference).options(
-#                                            joinedload('book'), 
-#                                            joinedload('journal'), 
-#                                            joinedload('abst')).all())
-#
-#    # Convert altids
-#    write_to_output_file('Altids')
-#    execute_conversion(convert_altids, old_session_maker, new_session_maker, ask,
-#                       old_references=lambda old_session: old_session.query(OldReference).options(
-#                                            joinedload('dbxrefrefs')).all())
+    # Convert journals
+    write_to_output_file('Journals')
+    execute_conversion(convert_journals, old_session_maker, new_session_maker, ask, 
+                       old_journals=lambda old_session: old_session.query(OldJournal).all())
+        
+    # Convert books
+    write_to_output_file('Books')
+    execute_conversion(convert_books, old_session_maker, new_session_maker, ask,
+                       old_books=lambda old_session: old_session.query(OldBook).all())
+        
+    # Convert authors
+    write_to_output_file('Authors')
+    execute_conversion(convert_authors, old_session_maker, new_session_maker, ask,
+                       old_authors=lambda old_session: old_session.query(OldAuthor).all())
+        
+    # Convert references
+    write_to_output_file('References')
+    execute_conversion(convert_references, old_session_maker, new_session_maker, ask,
+                       old_references=lambda old_session: old_session.query(OldReference).options(
+                                            joinedload('book'), 
+                                            joinedload('journal'), 
+                                            joinedload('abst')).all())
+
+    # Convert altids
+    write_to_output_file('Altids')
+    execute_conversion(convert_altids, old_session_maker, new_session_maker, ask,
+                       old_references=lambda old_session: old_session.query(OldReference).options(
+                                            joinedload('dbxrefrefs')).all())
+    
     intervals = [0, 10000, 20000, 35000, 50000, 60000, 70000, 80000, 100000]
         
-#    # Convert author_references
-#    write_to_output_file('AuthorReferences')
-#    for i in range(0, len(intervals)-1):
-#        min_id = intervals[i]
-#        max_id = intervals[i+1]
-#        write_to_output_file('Reference ids between ' + str(min_id) + ' and ' + str(max_id))
-#        execute_conversion(convert_author_references, old_session_maker, new_session_maker, ask,
-#                       min_id=lambda old_session: min_id,
-#                       max_id=lambda old_session: max_id,
-#                       old_author_references=lambda old_session: old_session.query(OldAuthorReference).filter(
-#                                            OldAuthorReference.reference_id >= min_id).filter(
-#                                            OldAuthorReference.reference_id < max_id).options(
-#                                            joinedload('author')).all())
-#        
-#    # Convert reftypes
-#    write_to_output_file('Reftypes')
-#    execute_conversion(convert_reftypes, old_session_maker, new_session_maker, ask,
-#                       old_ref_reftypes=lambda old_session: old_session.query(OldRefReftype).options(
-#                                            joinedload('reftype')).all())
-#
-#    # Convert reference_relations
-#    write_to_output_file('ReferenceRelations')
-#    execute_conversion(convert_ref_relations, old_session_maker, new_session_maker, ask,
-#                       old_ref_relations=lambda old_session: old_session.query(OldRefRelation).all())
+    # Convert author_references
+    write_to_output_file('AuthorReferences')
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        write_to_output_file('Reference ids between ' + str(min_id) + ' and ' + str(max_id))
+        execute_conversion(convert_author_references, old_session_maker, new_session_maker, ask,
+                       min_id=lambda old_session: min_id,
+                       max_id=lambda old_session: max_id,
+                       old_author_references=lambda old_session: old_session.query(OldAuthorReference).filter(
+                                            OldAuthorReference.reference_id >= min_id).filter(
+                                            OldAuthorReference.reference_id < max_id).options(
+                                            joinedload('author')).all())
+        
+    # Convert reftypes
+    write_to_output_file('Reftypes')
+    execute_conversion(convert_reftypes, old_session_maker, new_session_maker, ask,
+                       old_ref_reftypes=lambda old_session: old_session.query(OldRefReftype).options(
+                                            joinedload('reftype')).all())
+
+    # Convert reference_relations
+    write_to_output_file('ReferenceRelations')
+    execute_conversion(convert_ref_relations, old_session_maker, new_session_maker, ask,
+                       old_ref_relations=lambda old_session: old_session.query(OldRefRelation).all())
 
     # Convert relevant urls
     write_to_output_file('Urls')

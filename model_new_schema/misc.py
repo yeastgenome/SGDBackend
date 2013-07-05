@@ -4,8 +4,9 @@ Created on Mar 4, 2013
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema.link_maker import add_link
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.schema import Column
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 
 class Allele(Base):
@@ -34,6 +35,7 @@ class Url(Base):
     id = Column('url_id', Integer, primary_key=True)
     url = Column('url', String)
     display_name = Column('display_name', String)
+    category = Column('category', String)
     source = Column('source', String)
     url_type = Column('url_type', String)
     date_created = Column('date_created', Date)
@@ -42,13 +44,18 @@ class Url(Base):
     __mapper_args__ = {'polymorphic_on': url_type,
                        'polymorphic_identity':"URL"}
     
-    def __init__(self, url, display_name, url_type, source, date_created, created_by):
+    def __init__(self, url, display_name, category, url_type, source, date_created, created_by):
         self.url = url
         self.display_name = display_name
+        self.category = category
         self.url_type = url_type
         self.source = source
         self.date_created = date_created
         self.created_by = created_by
+        
+    @hybrid_property
+    def name_with_link(self):
+        return add_link(self.display_name, self.url, new_window=True) 
     
 class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'
@@ -96,6 +103,24 @@ class Altid(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return (self.identifier, self.altid_type, self.altid_name)
+    
+class Note(Base, EqualityByIDMixin):
+    __tablename__ = 'note'
+    
+    id = Column('note_id', Integer, primary_key=True)
+    note = Column('note', String)
+    note_type = Column('note_type', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+    
+    __mapper_args__ = {'polymorphic_on': note_type,
+                       'polymorphic_identity':"NOTE"}
+        
+    def __init__(self, note, note_type, date_created, created_by):
+        self.note = note
+        self.note_type = note_type
+        self.date_created = date_created
+        self.created_by = created_by
        
         
         

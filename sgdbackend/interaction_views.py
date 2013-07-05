@@ -8,7 +8,7 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_biorels, get_interactions, get_bioent, get_reference_id, \
     get_genetic_interaction_evidence, get_physical_interaction_evidence, \
-    get_biorel_id
+    get_biorel_id, get_bioent_id, get_resources
 from sgdbackend.utils import create_simple_table, make_reference_list
 
 
@@ -76,6 +76,21 @@ def interaction_graph(request):
             return Response(status_int=500, body='Bioent could not be found.')
         return create_interaction_graph(bioent=bioent)
 
+    else:
+        return Response(status_int=500, body='No Bioent specified.')
+    
+@view_config(route_name='interaction_evidence_resources', renderer='jsonp')
+def interaction_evidence_resources(request):
+    if 'bioent' in request.GET:
+        #Need interaction evidence resources based on a bioent
+        bioent_name = request.GET['bioent']
+        bioent_id = get_bioent_id(bioent_name, 'LOCUS')
+        if bioent_id is None:
+            return Response(status_int=500, body='Bioent could not be found.')
+        resources = get_resources('Interaction Resources', bioent_id=bioent_id)
+        resources.sort(key=lambda x: x.display_name)
+        return [url.name_with_link for url in resources]
+    
     else:
         return Response(status_int=500, body='No Bioent specified.')
     
@@ -165,6 +180,7 @@ def make_evidence_row(interevidence, bioent=None):
     if len(inters) == 1:
         orig_bioent_link = inters[0].name_with_link
         opp_bioent_link = inters[0].name_with_link
+        direction = 'Bait/Hit'
     elif len(inters) > 2:
         if bioent is not None:
             orig_bioent = bioent
@@ -174,6 +190,11 @@ def make_evidence_row(interevidence, bioent=None):
         opp_bioents = list(inters)
         opp_bioents.remove(orig_bioent)
         opp_bioent_link = ', '.join([x.name_with_link for x in opp_bioents])
+        
+        pos = list(interevidence.biorel.bioentities).index(orig_bioent)
+        bait_hit_desig = interevidence.bait_hit.split('-')
+        bait_hit_desig.pop(pos)
+        direction = ', '.join(bait_hit_desig)
     else:
         if bioent is not None:
             orig_bioent = bioent
@@ -183,7 +204,11 @@ def make_evidence_row(interevidence, bioent=None):
         opp_bioents = list(inters)
         opp_bioents.remove(orig_bioent)
         opp_bioent_link = opp_bioents[0].name_with_link
-
+        pos = list(interevidence.biorel.bioentities).index(orig_bioent)
+        
+        bait_hit_desig = interevidence.bait_hit.split('-')
+        bait_hit_desig.pop(pos)
+        direction = ', '.join(bait_hit_desig)
     
     reference = ''
     if interevidence.reference is not None:
@@ -198,10 +223,16 @@ def make_evidence_row(interevidence, bioent=None):
     modification = ''
     if interevidence.evidence_type == 'PHYSICAL_INTERACTION_EVIDENCE' and interevidence.modification is not None:
         modification = interevidence.modification
+        
+    notes = [note.note for note in interevidence.notes]
+    if len(notes) == 0:
+        note = None
+    else:
+        note = '; '.join(notes)
      
-    return [orig_bioent_link, opp_bioent_link, 
-            experiment, interevidence.annotation_type, None, phenotype,
-            modification, interevidence.source, reference]
+    return [None, orig_bioent_link, opp_bioent_link, 
+            experiment, interevidence.annotation_type, direction, phenotype,
+            modification, interevidence.source, reference, note]
     
 def reverse_direction(direction):
     if direction == 'bait-hit':

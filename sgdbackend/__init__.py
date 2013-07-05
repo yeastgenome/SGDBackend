@@ -55,6 +55,7 @@ def main(global_config, **settings):
     config.add_route('interaction_overview_table', '/interaction_overview_table')
     config.add_route('interaction_evidence_table', '/interaction_evidence_table')
     config.add_route('interaction_graph', '/interaction_graph') 
+    config.add_route('interaction_evidence_resources', '/interaction_evidence_resources')
        
     #Reference views
     config.add_route('reference', '/reference/{reference}')

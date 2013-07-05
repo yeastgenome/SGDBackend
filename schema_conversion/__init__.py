@@ -50,6 +50,10 @@ def cache_by_id(cls, session, **kwargs):
     cache_entries = dict([(x.id, x) for x in session.query(cls).filter_by(**kwargs).all()])
     return cache_entries
 
+def cache_by_id_in_range(cls, col, session, min_id, max_id):
+    cache_entries = dict([(x.id, x) for x in session.query(cls).filter(col >= min_id).filter(col < max_id).all()])
+    return cache_entries
+
 def cache_ids(cls, session, **kwargs):
     cache_ids = session.query(cls.id).filter_by(**kwargs).all()
     return cache_ids

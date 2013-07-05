@@ -7,7 +7,8 @@ from model_new_schema import config as new_config
 from model_old_schema import config as old_config
 from schema_conversion import create_or_update_and_remove, \
     prepare_schema_connection, cache_by_key, cache_by_id, create_format_name, \
-    cache_by_key_in_range, create_or_update, cache_ids, execute_conversion
+    cache_by_key_in_range, create_or_update, cache_ids, execute_conversion, \
+    cache_by_id_in_range
 from schema_conversion.auxillary_tables import update_biorel_evidence_counts
 from schema_conversion.convert_phenotype import create_phenotype_key
 from schema_conversion.output_manager import write_to_output_file
@@ -210,6 +211,22 @@ def create_physical_interevidence(old_interaction, key_to_biorel, id_to_bioent, 
         return new_genetic_interevidence  
     return None
 
+def create_interevidence_note(old_interaction, key_to_interevidence):
+    from model_new_schema.evidence import EvidenceNote as NewEvidenceNote
+    
+    evidence_id = create_interevidence_id(old_interaction.id)
+    interaction_refs = old_interaction.interaction_references
+    if len(interaction_refs) != 1:
+        print 'Too many references'
+        return None
+    
+    note = interaction_refs[0].note
+    if note is None:
+        return None
+    
+    new_evidence_note = NewEvidenceNote(note, evidence_id, interaction_refs[0].date_created, interaction_refs[0].created_by)
+    return new_evidence_note  
+
   
 """
 ---------------------Convert------------------------------
@@ -223,92 +240,106 @@ def convert(old_session_maker, new_session_maker, ask=True):
     
     intervals = [300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000, 1300000, 1400000]
         
-    # Convert genetic_interactions
-    write_to_output_file( 'Genetic Interaction')
-    for i in range(0, len(intervals)-1):
-        min_id = intervals[i]
-        max_id = intervals[i+1]
-        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-        execute_conversion(convert_genetic_interactions, old_session_maker, new_session_maker, ask,
-                       min_id = lambda old_session : min_id,
-                       max_id = lambda old_session : max_id,
-                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-                                                            OldInteraction.id >= min_id).filter(
-                                                            OldInteraction.id < max_id).options(
-                                                            joinedload('feature_interactions')).all())
+#    # Convert genetic_interactions
+#    write_to_output_file( 'Genetic Interaction')
+#    for i in range(0, len(intervals)-1):
+#        min_id = intervals[i]
+#        max_id = intervals[i+1]
+#        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+#        execute_conversion(convert_genetic_interactions, old_session_maker, new_session_maker, ask,
+#                       min_id = lambda old_session : min_id,
+#                       max_id = lambda old_session : max_id,
+#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+#                                                            OldInteraction.id >= min_id).filter(
+#                                                            OldInteraction.id < max_id).options(
+#                                                            joinedload('feature_interactions')).all())
+#
+#    # Convert physic_interactions
+#    write_to_output_file( 'Physical Interaction')
+#    for i in range(0, len(intervals)-1):
+#        min_id = intervals[i]
+#        max_id = intervals[i+1]
+#        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+#        execute_conversion(convert_physical_interactions, old_session_maker, new_session_maker, ask,
+#                       min_id = lambda old_session : min_id,
+#                       max_id = lambda old_session : max_id,
+#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+#                                                            OldInteraction.id >= min_id).filter(
+#                                                            OldInteraction.id < max_id).options(
+#                                                            joinedload('feature_interactions')).all())
+#        
+#    # Convert genetic interaction_bioents
+#    write_to_output_file('Genetic Interaction_Bioents')
+#    for i in range(0, len(intervals)-1):
+#        min_id = intervals[i]
+#        max_id = intervals[i+1]
+#        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+#        execute_conversion(convert_genetic_interaction_bioents, old_session_maker, new_session_maker, ask,
+#                       min_id = lambda old_session : min_id,
+#                       max_id = lambda old_session : max_id,
+#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+#                                                            OldInteraction.id >= min_id).filter(
+#                                                            OldInteraction.id < max_id).options(
+#                                                            joinedload('feature_interactions')).all())
+#        
+#    # Convert physical interaction_bioents
+#    write_to_output_file('Physical Interaction_Bioents')
+#    for i in range(0, len(intervals)-1):
+#        min_id = intervals[i]
+#        max_id = intervals[i+1]
+#        write_to_output_file('Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+#        execute_conversion(convert_physical_interaction_bioents, old_session_maker, new_session_maker, ask,
+#                       min_id = lambda old_session : min_id,
+#                       max_id = lambda old_session : max_id,
+#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+#                                                            OldInteraction.id >= min_id).filter(
+#                                                            OldInteraction.id < max_id).options(
+#                                                            joinedload('feature_interactions')).all())
+#        
+#    # Convert genetic interevidences
+#    write_to_output_file('GeneticInterevidences')
+#    for i in range(0, len(intervals)-1):
+#        min_id = intervals[i]
+#        max_id = intervals[i+1]
+#        write_to_output_file('Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+#        execute_conversion(convert_genetic_interevidences, old_session_maker, new_session_maker, ask,
+#                       min_id = lambda old_session : min_id,
+#                       max_id = lambda old_session : max_id,
+#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+#                                                            OldInteraction.id >= min_id).filter(
+#                                                            OldInteraction.id < max_id).options(
+#                                                            joinedload('interaction_references'),
+#                                                            joinedload('interaction_phenotypes'),
+#                                                            joinedload('feature_interactions')).all())
+#      
+#    # Convert physical interevidences
+#    write_to_output_file( 'PhysicalInterevidences')
+#    for i in range(0, len(intervals)-1):
+#        min_id = intervals[i]
+#        max_id = intervals[i+1]
+#        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+#        execute_conversion(convert_physical_interevidences, old_session_maker, new_session_maker, ask,
+#                       min_id = lambda old_session : min_id,
+#                       max_id = lambda old_session : max_id,
+#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+#                                                            OldInteraction.id >= min_id).filter(
+#                                                            OldInteraction.id < max_id).options(
+#                                                            joinedload('interaction_references'),
+#                                                            joinedload('feature_interactions')).all())
 
-    # Convert physic_interactions
-    write_to_output_file( 'Physical Interaction')
-    for i in range(0, len(intervals)-1):
-        min_id = intervals[i]
-        max_id = intervals[i+1]
-        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-        execute_conversion(convert_physical_interactions, old_session_maker, new_session_maker, ask,
-                       min_id = lambda old_session : min_id,
-                       max_id = lambda old_session : max_id,
-                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-                                                            OldInteraction.id >= min_id).filter(
-                                                            OldInteraction.id < max_id).options(
-                                                            joinedload('feature_interactions')).all())
-        
-    # Convert genetic interaction_bioents
-    write_to_output_file('Genetic Interaction_Bioents')
-    for i in range(0, len(intervals)-1):
-        min_id = intervals[i]
-        max_id = intervals[i+1]
-        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-        execute_conversion(convert_genetic_interaction_bioents, old_session_maker, new_session_maker, ask,
-                       min_id = lambda old_session : min_id,
-                       max_id = lambda old_session : max_id,
-                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-                                                            OldInteraction.id >= min_id).filter(
-                                                            OldInteraction.id < max_id).options(
-                                                            joinedload('feature_interactions')).all())
-        
-    # Convert physical interaction_bioents
-    write_to_output_file('Physical Interaction_Bioents')
+    # Convert interevidence notes
+    write_to_output_file('Interevidence Notes')
     for i in range(0, len(intervals)-1):
         min_id = intervals[i]
         max_id = intervals[i+1]
         write_to_output_file('Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-        execute_conversion(convert_physical_interaction_bioents, old_session_maker, new_session_maker, ask,
+        execute_conversion(convert_interevidence_notes, old_session_maker, new_session_maker, ask,
                        min_id = lambda old_session : min_id,
                        max_id = lambda old_session : max_id,
                        old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
                                                             OldInteraction.id >= min_id).filter(
                                                             OldInteraction.id < max_id).options(
-                                                            joinedload('feature_interactions')).all())
-        
-    # Convert genetic interevidences
-    write_to_output_file('GeneticInterevidences')
-    for i in range(0, len(intervals)-1):
-        min_id = intervals[i]
-        max_id = intervals[i+1]
-        write_to_output_file('Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-        execute_conversion(convert_genetic_interevidences, old_session_maker, new_session_maker, ask,
-                       min_id = lambda old_session : min_id,
-                       max_id = lambda old_session : max_id,
-                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-                                                            OldInteraction.id >= min_id).filter(
-                                                            OldInteraction.id < max_id).options(
-                                                            joinedload('interaction_references'),
-                                                            joinedload('interaction_phenotypes'),
-                                                            joinedload('feature_interactions')).all())
-      
-    # Convert physical interevidences
-    write_to_output_file( 'PhysicalInterevidences')
-    for i in range(0, len(intervals)-1):
-        min_id = intervals[i]
-        max_id = intervals[i+1]
-        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-        execute_conversion(convert_physical_interevidences, old_session_maker, new_session_maker, ask,
-                       min_id = lambda old_session : min_id,
-                       max_id = lambda old_session : max_id,
-                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-                                                            OldInteraction.id >= min_id).filter(
-                                                            OldInteraction.id < max_id).options(
-                                                            joinedload('interaction_references'),
-                                                            joinedload('feature_interactions')).all())
+                                                            joinedload('interaction_references')).all())
         
     # Update evidence_counts for genetic_interactions
     write_to_output_file( 'Genetic interaction evidence counts')
@@ -459,7 +490,24 @@ def convert_physical_interevidences(new_session, old_interactions, min_id, max_i
     success = create_or_update_and_remove(new_physical_interevidences, key_to_interevidence, values_to_check, new_session)
     return success
     
+def convert_interevidence_notes(new_session, old_interactions, min_id, max_id):
+    '''
+    Convert Interevidence Notes
+    '''
+    from model_new_schema.interaction import GeneticInterevidence as NewGeneticInterevidence, PhysicalInterevidence as NewPhysicalInterevidence
+    from model_new_schema.evidence import EvidenceNote as NewEvidenceNote
+    
+    #Cache interevidences
+    id_to_interevidence = cache_by_id_in_range(NewGeneticInterevidence, NewGeneticInterevidence.id, new_session, min_id, max_id)
+    id_to_interevidence.update(cache_by_id_in_range(NewPhysicalInterevidence, NewPhysicalInterevidence.id, new_session, min_id, max_id))
+    key_to_evidence_notes = cache_by_key_in_range(NewEvidenceNote, NewEvidenceNote.evidence_id, new_session, min_id, max_id)
 
+    #Create new genetic interevidences if they don't exist, or update the database if they do.    
+    new_interevidence_notes = [create_interevidence_note(x, id_to_interevidence) for x in old_interactions]
+   
+    values_to_check = ['date_created', 'created_by']
+    success = create_or_update_and_remove(new_interevidence_notes, key_to_evidence_notes, values_to_check, new_session)
+    return success
 
 if __name__ == "__main__":
     old_session_maker = prepare_schema_connection(model_old_schema, old_config)
