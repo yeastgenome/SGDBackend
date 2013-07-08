@@ -87,7 +87,7 @@ def interaction_evidence_resources(request):
         bioent_id = get_bioent_id(bioent_name, 'LOCUS')
         if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        resources = get_resources('Interaction Resources', bioent_id=bioent_id)
+        resources = get_resources('Interactions Resources', bioent_id=bioent_id)
         resources.sort(key=lambda x: x.display_name)
         return [url.name_with_link for url in resources]
     

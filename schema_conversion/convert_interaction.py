@@ -240,92 +240,92 @@ def convert(old_session_maker, new_session_maker, ask=True):
     
     intervals = [300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000, 1300000, 1400000]
         
-#    # Convert genetic_interactions
-#    write_to_output_file( 'Genetic Interaction')
-#    for i in range(0, len(intervals)-1):
-#        min_id = intervals[i]
-#        max_id = intervals[i+1]
-#        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-#        execute_conversion(convert_genetic_interactions, old_session_maker, new_session_maker, ask,
-#                       min_id = lambda old_session : min_id,
-#                       max_id = lambda old_session : max_id,
-#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-#                                                            OldInteraction.id >= min_id).filter(
-#                                                            OldInteraction.id < max_id).options(
-#                                                            joinedload('feature_interactions')).all())
-#
-#    # Convert physic_interactions
-#    write_to_output_file( 'Physical Interaction')
-#    for i in range(0, len(intervals)-1):
-#        min_id = intervals[i]
-#        max_id = intervals[i+1]
-#        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-#        execute_conversion(convert_physical_interactions, old_session_maker, new_session_maker, ask,
-#                       min_id = lambda old_session : min_id,
-#                       max_id = lambda old_session : max_id,
-#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-#                                                            OldInteraction.id >= min_id).filter(
-#                                                            OldInteraction.id < max_id).options(
-#                                                            joinedload('feature_interactions')).all())
-#        
-#    # Convert genetic interaction_bioents
-#    write_to_output_file('Genetic Interaction_Bioents')
-#    for i in range(0, len(intervals)-1):
-#        min_id = intervals[i]
-#        max_id = intervals[i+1]
-#        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-#        execute_conversion(convert_genetic_interaction_bioents, old_session_maker, new_session_maker, ask,
-#                       min_id = lambda old_session : min_id,
-#                       max_id = lambda old_session : max_id,
-#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-#                                                            OldInteraction.id >= min_id).filter(
-#                                                            OldInteraction.id < max_id).options(
-#                                                            joinedload('feature_interactions')).all())
-#        
-#    # Convert physical interaction_bioents
-#    write_to_output_file('Physical Interaction_Bioents')
-#    for i in range(0, len(intervals)-1):
-#        min_id = intervals[i]
-#        max_id = intervals[i+1]
-#        write_to_output_file('Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-#        execute_conversion(convert_physical_interaction_bioents, old_session_maker, new_session_maker, ask,
-#                       min_id = lambda old_session : min_id,
-#                       max_id = lambda old_session : max_id,
-#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-#                                                            OldInteraction.id >= min_id).filter(
-#                                                            OldInteraction.id < max_id).options(
-#                                                            joinedload('feature_interactions')).all())
-#        
-#    # Convert genetic interevidences
-#    write_to_output_file('GeneticInterevidences')
-#    for i in range(0, len(intervals)-1):
-#        min_id = intervals[i]
-#        max_id = intervals[i+1]
-#        write_to_output_file('Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-#        execute_conversion(convert_genetic_interevidences, old_session_maker, new_session_maker, ask,
-#                       min_id = lambda old_session : min_id,
-#                       max_id = lambda old_session : max_id,
-#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-#                                                            OldInteraction.id >= min_id).filter(
-#                                                            OldInteraction.id < max_id).options(
-#                                                            joinedload('interaction_references'),
-#                                                            joinedload('interaction_phenotypes'),
-#                                                            joinedload('feature_interactions')).all())
-#      
-#    # Convert physical interevidences
-#    write_to_output_file( 'PhysicalInterevidences')
-#    for i in range(0, len(intervals)-1):
-#        min_id = intervals[i]
-#        max_id = intervals[i+1]
-#        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
-#        execute_conversion(convert_physical_interevidences, old_session_maker, new_session_maker, ask,
-#                       min_id = lambda old_session : min_id,
-#                       max_id = lambda old_session : max_id,
-#                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
-#                                                            OldInteraction.id >= min_id).filter(
-#                                                            OldInteraction.id < max_id).options(
-#                                                            joinedload('interaction_references'),
-#                                                            joinedload('feature_interactions')).all())
+    # Convert genetic_interactions
+    write_to_output_file( 'Genetic Interaction')
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+        execute_conversion(convert_genetic_interactions, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('feature_interactions')).all())
+
+    # Convert physic_interactions
+    write_to_output_file( 'Physical Interaction')
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+        execute_conversion(convert_physical_interactions, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('feature_interactions')).all())
+        
+    # Convert genetic interaction_bioents
+    write_to_output_file('Genetic Interaction_Bioents')
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+        execute_conversion(convert_genetic_interaction_bioents, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('feature_interactions')).all())
+        
+    # Convert physical interaction_bioents
+    write_to_output_file('Physical Interaction_Bioents')
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        write_to_output_file('Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+        execute_conversion(convert_physical_interaction_bioents, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('feature_interactions')).all())
+        
+    # Convert genetic interevidences
+    write_to_output_file('GeneticInterevidences')
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        write_to_output_file('Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+        execute_conversion(convert_genetic_interevidences, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('interaction_references'),
+                                                            joinedload('interaction_phenotypes'),
+                                                            joinedload('feature_interactions')).all())
+      
+    # Convert physical interevidences
+    write_to_output_file( 'PhysicalInterevidences')
+    for i in range(0, len(intervals)-1):
+        min_id = intervals[i]
+        max_id = intervals[i+1]
+        write_to_output_file( 'Interaction ids between ' + str(min_id) + ' and ' + str(max_id))
+        execute_conversion(convert_physical_interevidences, old_session_maker, new_session_maker, ask,
+                       min_id = lambda old_session : min_id,
+                       max_id = lambda old_session : max_id,
+                       old_interactions=lambda old_session: old_session.query(OldInteraction).filter(
+                                                            OldInteraction.id >= min_id).filter(
+                                                            OldInteraction.id < max_id).options(
+                                                            joinedload('interaction_references'),
+                                                            joinedload('feature_interactions')).all())
 
     # Convert interevidence notes
     write_to_output_file('Interevidence Notes')

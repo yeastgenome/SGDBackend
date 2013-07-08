@@ -1,4 +1,4 @@
-from .models import DBSession
+from models import DBSession
 from model_new_schema.link_maker import LinkMaker
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP

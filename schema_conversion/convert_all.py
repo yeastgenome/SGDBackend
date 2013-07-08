@@ -45,10 +45,10 @@ if __name__ == "__main__":
     write_to_output_file( '----------------------------------------')
     write_to_output_file( 'Convert Bioentities')
     write_to_output_file( '----------------------------------------')
-    try:
-        convert_bioentity.convert(old_session_maker, new_session_maker, ask=False)  
-    except Exception:
-        write_to_output_file( "Unexpected error:" + str(sys.exc_info()[0]) )
+    #try:
+    convert_bioentity.convert(old_session_maker, new_session_maker, ask=False)  
+    #except Exception:
+    #    write_to_output_file( "Unexpected error:" + str(sys.exc_info()[0]) )
         
     write_to_output_file( '----------------------------------------')
     write_to_output_file( 'Convert References')

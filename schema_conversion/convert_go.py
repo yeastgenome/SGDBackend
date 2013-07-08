@@ -5,11 +5,12 @@ Created on Feb 27, 2013
 '''
 from model_new_schema import config as new_config
 from model_old_schema import config as old_config
-from schema_conversion import create_or_update_and_remove, ask_to_commit, \
-    prepare_schema_connection, cache_by_key, cache_by_id, create_format_name
+from schema_conversion import create_or_update_and_remove, \
+    prepare_schema_connection, cache_by_key, cache_by_id, create_format_name, \
+    execute_conversion
 from schema_conversion.auxillary_tables import update_biocon_gene_counts, \
     convert_biocon_ancestors
-import datetime
+from schema_conversion.output_manager import write_to_output_file
 import model_new_schema
 import model_old_schema
 
@@ -95,105 +96,44 @@ def create_biocon_relation(go_path, id_to_old_go, key_to_go):
 ---------------------Convert------------------------------
 """   
 
-def convert(old_session_maker, new_session_maker):
+def convert(old_session_maker, new_session_maker, ask):
     from model_old_schema.go import Go as OldGo, GoFeature as OldGoFeature, GoPath as OldGoPath
+    from model_new_schema.go import Go as NewGo, Goevidence as NewGoevidence
       
     # Convert goterms
-    print 'Go terms'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_goterms = old_session.query(OldGo).all()
-        
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_goterms(new_session, old_goterms)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    write_to_output_file( 'Go terms')
+    execute_conversion(convert_goterms, old_session_maker, new_session_maker, ask,
+                       old_goterms=lambda old_session: old_session.query(OldGo).all())
         
     # Convert aliases
-    print 'Go term aliases'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_aliases(new_session, old_goterms)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    write_to_output_file( 'Go term aliases')
+    execute_conversion(convert_aliases, old_session_maker, new_session_maker, ask,
+                       old_goterms=lambda old_session: old_session.query(OldGo).all())
         
     # Convert goevidences
-    print 'Goevidences'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_go_features = old_session.query(OldGoFeature).all()
-
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_goevidences(new_session, old_go_features)
-            ask_to_commit(new_session, start_time) 
-            new_session.close() 
-    finally:
-        old_session.close()
-        new_session.close() 
+    write_to_output_file('Goevidences')
+    execute_conversion(convert_goevidences, old_session_maker, new_session_maker, ask,
+                       old_go_features=lambda old_session: old_session.query(OldGoFeature).all())
         
     # Convert biocon_relations
-    print 'Biocon_relations'            
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        old_go_paths = old_session.query(OldGoPath).filter(OldGoPath.generation==1).all()
-        old_goterms = old_session.query(OldGo).all()
-
-        success=False
-        while not success:
-            new_session = new_session_maker()
-            success = convert_biocon_relations(new_session, old_go_paths, old_goterms)
-            ask_to_commit(new_session, start_time)  
-            new_session.close()
-    finally:
-        old_session.close()
-        new_session.close()
+    write_to_output_file( 'Biocon_relations')  
+    execute_conversion(convert_biocon_relations, old_session_maker, new_session_maker, ask,
+                       old_go_paths=lambda old_session:old_session.query(OldGoPath).filter(OldGoPath.generation==1).all(),
+                       old_goterms=lambda old_session:old_session.query(OldGo).all())     
         
     # Update gene counts
-    print 'Go term gene counts'
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        
-        new_session = new_session_maker()
-        from model_new_schema.go import Go as NewGo, Goevidence as NewGoevidence
-        success = update_biocon_gene_counts(new_session, NewGo, NewGoevidence)
-        ask_to_commit(new_session, start_time)  
-    finally:
-        old_session.close()
-        new_session.close()  
+    write_to_output_file( 'Go term gene counts')
+    execute_conversion(update_biocon_gene_counts, old_session_maker, new_session_maker, ask,
+                       biocon_cls=lambda old_session:NewGo,
+                       evidence_cls=lambda old_session:NewGoevidence)   
   
     # Convert biocon_ancestors
     # For some reason, when I run this several time, it keeps removing a small number of 
     # biocon_ancestors - not clear why.
-    print 'Biocon_ancestors' 
-    start_time = datetime.datetime.now()
-    try:
-        old_session = old_session_maker()
-        
-        new_session = new_session_maker()
-        success = convert_biocon_ancestors(new_session, 'GO_ONTOLOGY', 5)
-        ask_to_commit(new_session, start_time) 
-    finally:
-        old_session.close()
-        new_session.close()     
+    write_to_output_file( 'Biocon_ancestors' )
+    execute_conversion(convert_biocon_ancestors, old_session_maker, new_session_maker, ask,
+                       bioconrel_type=lambda old_session:'GO_ONTOLOGY',
+                       num_generations=lambda old_session:5)   
 
 def convert_goterms(new_session, old_goterms):
     '''
@@ -244,13 +184,11 @@ def convert_goevidences(new_session, old_go_features):
     key_to_go = cache_by_key(NewGo, new_session)
     id_to_reference = cache_by_id(NewReference, new_session)
     id_to_bioent = cache_by_id(NewBioentity, new_session)
-    
-    print 1325263 in key_to_goevidence
-        
+            
     #Create new goevidences if they don't exist, or update the database if they do.
     new_evidences = []
     values_to_check = ['go_evidence', 'annotation_type', 'date_last_reviewed', 'qualifier',
-                       'bioent_id', 'biocon_id', 'experiment_type', 'reference_id', 'evidence_type',
+                       'bioent_id', 'biocon_id', 'experiment_id', 'reference_id', 'evidence_type',
                        'strain_id', 'source', 'date_created', 'created_by']
     for old_go_feature in old_go_features: 
         new_evidences.extend([create_goevidence(old_go_feature, x, key_to_go, id_to_reference, id_to_bioent) for x in old_go_feature.go_refs])
@@ -279,7 +217,7 @@ def convert_biocon_relations(new_session, old_go_paths, old_goterms):
 if __name__ == "__main__":
     old_session_maker = prepare_schema_connection(model_old_schema, old_config)
     new_session_maker = prepare_schema_connection(model_new_schema, new_config)
-    convert(old_session_maker, new_session_maker)
+    convert(old_session_maker, new_session_maker, False)
     
 
     
