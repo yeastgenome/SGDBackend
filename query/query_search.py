@@ -61,7 +61,7 @@ def get_objects(search_results, print_query=False):
         tuple_to_obj.update([((obj.type, obj.id), obj) for obj in biocons])
      
     if len(reference_ids) > 0:   
-        query3 = session.query(Reference).options(joinedload('abst')).filter(Reference.id.in_(reference_ids))
+        query3 = session.query(Reference).filter(Reference.id.in_(reference_ids))
         refs = query3.all()
         tuple_to_obj.update([((obj.type, obj.id), obj) for obj in refs])
         

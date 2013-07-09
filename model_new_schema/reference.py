@@ -158,7 +158,7 @@ class Reference(Base, EqualityByIDMixin):
     
     @hybrid_property
     def search_entry_title(self):
-        return self.author_year_with_link
+        return self.name_with_link
     @hybrid_property
     def search_description(self):
         #return self.abst.text
