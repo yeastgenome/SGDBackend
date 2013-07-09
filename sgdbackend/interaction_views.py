@@ -5,9 +5,12 @@ Created on Mar 15, 2013
 '''
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_biorels, get_interactions, get_bioent, get_reference_id, \
-    get_genetic_interaction_evidence, get_physical_interaction_evidence, \
-    get_biorel_id, get_bioent_id, get_resources
+from query import get_resources
+from query.query_bioent import get_bioent, get_bioent_id
+from query.query_evidence import get_genetic_interaction_evidence, \
+    get_physical_interaction_evidence
+from query.query_interaction import get_interactions, get_interaction_family
+from query.query_reference import get_reference_id
 from sgdbackend.utils import create_simple_table, make_reference_list
 
 
@@ -20,8 +23,8 @@ def interaction_overview_table(request):
         bioent = get_bioent(bioent_name, 'LOCUS')
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
-        genetic = get_biorels('GENETIC_INTERACTION', bioent.id)
-        physical = get_biorels('PHYSICAL_INTERACTION', bioent.id)
+        genetic = get_interactions('GENETIC_INTERACTION', bioent.id)
+        physical = get_interactions('PHYSICAL_INTERACTION', bioent.id)
         return make_overview_tables(genetic, physical, bioent) 
     
     elif 'reference' in request.GET:
@@ -42,17 +45,7 @@ def interaction_overview_table(request):
 
 @view_config(route_name='interaction_evidence_table', renderer='jsonp')
 def interaction_evidence_table(request):
-    if 'biorel' in request.GET:
-        #Need an interaction evidence table based on a biorel
-        biorel_name = request.GET['biorel']
-        biorel_id = get_biorel_id(biorel_name, 'INTERACTION')
-        if biorel_id is None:
-            return Response(status_int=500, body='Biorel could not be found.')
-        genetic_interevidences = get_genetic_interaction_evidence(biorel_id=biorel_id)
-        physical_interevidences = get_physical_interaction_evidence(biorel_id=biorel_id)
-        return make_evidence_tables(True, genetic_interevidences, physical_interevidences) 
-        
-    elif 'bioent' in request.GET:
+    if 'bioent' in request.GET:
         #Need an interaction evidence table based on a bioent
         bioent_name = request.GET['bioent']
         bioent = get_bioent(bioent_name, 'LOCUS')
@@ -63,7 +56,7 @@ def interaction_evidence_table(request):
         return make_evidence_tables(True, genetic_interevidences, physical_interevidences, bioent) 
     
     else:
-        return Response(status_int=500, body='No Bioent or Biorel specified.')
+        return Response(status_int=500, body='No Bioent specified.')
     
 @view_config(route_name='interaction_graph', renderer="jsonp")
 def interaction_graph(request):
@@ -187,33 +180,25 @@ def make_evidence_row(interevidence, bioent=None):
     return [None, orig_bioent_link, opp_bioent_link, 
             experiment_link, interevidence.annotation_type, direction, phenotype_link,
             modification, interevidence.source, reference_link, note]
-    
-def reverse_direction(direction):
-    if direction == 'bait-hit':
-        return 'hit-bait'
-    else:
-        return 'bait-hit'
 
 '''
 -------------------------------Graph---------------------------------------
 '''  
     
-interaction_schema = {'nodes': [ { 'name': "label", 'type': "string" }, 
-                         {'name':'link', 'type':'string'}, 
+interaction_schema = {'nodes': [ { 'name': "label", 'type': "string" },  
+                         { 'name': "link", 'type': "string" },
                          {'name':'evidence', 'type':'integer'},
                          {'name':'sub_type', 'type':'string'}],
-                'edges': [ { 'name': "label", 'type': "string" }, 
-                          {'name':'link', 'type':'string'}, 
-                          {'name':'evidence', 'type':'integer'}]}
+                'edges': [{'name':'evidence', 'type':'integer'}]}
 
-def create_interaction_node(obj, evidence_count, focus_node):
+def create_interaction_node(bioent_id, bioent_name, bioent_link, is_focus, evidence_count):
     sub_type = None
-    if obj == focus_node:
+    if is_focus:
         sub_type = 'FOCUS'
-    return {'id':get_id(obj), 'label':obj.display_name, 'link':obj.link, 'evidence':evidence_count, 'sub_type':sub_type}
+    return {'id':'Node' + str(bioent_id), 'label':bioent_name, 'link': bioent_link, 'evidence':evidence_count, 'sub_type':sub_type}
 
-def create_interaction_edge(obj, source_obj, sink_obj, evidence_count):
-    return { 'id': get_id(obj), 'target': get_id(source_obj), 'source': get_id(sink_obj), 'label': obj.display_name, 'link':obj.link, 
+def create_interaction_edge(interaction_id, bioent1_id, bioent2_id, evidence_count):
+    return { 'id': 'Edge' + str(interaction_id), 'target': 'Node' + str(bioent1_id), 'source': 'Node' + str(bioent2_id), 
             'evidence':evidence_count}  
     
 def weed_out_by_evidence(neighbors, neighbor_evidence_count, max_count=100):
@@ -239,44 +224,49 @@ def weed_out_by_evidence(neighbors, neighbor_evidence_count, max_count=100):
     return keep, min_evidence_count
     
 def create_interaction_graph(bioent):
-        
-    bioents = set()
-    bioent_to_evidence = {}
-
-    #bioents.update([interaction.get_opposite(bioent) for interaction in get_biorels('INTERACTION', bioent)])
-    for interaction in get_biorels('PHYSICAL_INTERACTION', bioent.id):
-        endpoints = set(interaction.bioentities)
-        if len(endpoints) == 2:
-            endpoints.remove(bioent)
-            opposite = endpoints.pop()
-            bioent_to_evidence[opposite] = interaction.evidence_count
-    bioents.update(bioent_to_evidence.keys())
-
-    bioents.add(bioent)
-    max_evidence_cutoff = 0
-    if len(bioent_to_evidence.values()) > 0:
-        max_evidence_cutoff = max(bioent_to_evidence.values())
-    bioent_to_evidence[bioent] = max_evidence_cutoff
+    interaction_families = get_interaction_family(bioent.id)
     
-    usable_bioents, min_evidence_count = weed_out_by_evidence(bioents, bioent_to_evidence)
-    
-    nodes = [create_interaction_node(b, bioent_to_evidence[b], bioent) for b in usable_bioents]
-    id_to_bioent = dict([(bioent.id, bioent) for bioent in usable_bioents])
-    
-    node_ids = set([b.id for b in usable_bioents])
-    
-    interactions = get_interactions(node_ids)
-
+    id_to_node = {}
     edges = []
-    for interaction in interactions:
-        bioent_ids = set([bioent.id for bioent in interaction.bioentities])
-        if interaction.evidence_count >= min_evidence_count and len(bioent_ids) == 2 and bioent_ids.issubset(node_ids):
-            source_bioent = id_to_bioent[bioent_ids.pop()]
-            sink_bioent = id_to_bioent[bioent_ids.pop()]
-            edges.append(create_interaction_edge(interaction, source_bioent, sink_bioent, interaction.evidence_count)) 
-        
-    return {'dataSchema':interaction_schema, 'data': {'nodes': nodes, 'edges': edges}, 
-            'min_evidence_cutoff':min_evidence_count, 'max_evidence_cutoff':max_evidence_cutoff}
+    min_evidence_count = None
+    max_evidence_count = None
+    evidence_cutoffs = [0, 0, 0, 0]
+    
+    for interaction_family in interaction_families:
+        evidence_count = interaction_family.evidence_count
+        index = min(evidence_count, 3)
+        evidence_cutoffs[index] = evidence_cutoffs[index]+1
+        if min_evidence_count is None or evidence_count < min_evidence_count:
+            min_evidence_count = evidence_count
+        if max_evidence_count is None or evidence_count > max_evidence_count:
+            max_evidence_count = evidence_count
+            
+    if evidence_cutoffs[2] + evidence_cutoffs[3] > 100:
+        min_evidence_count = 3
+    elif evidence_cutoffs[1] + evidence_cutoffs[2] + evidence_cutoffs[3] > 100:
+        min_evidence_count = 2
+    else:
+        min_evidence_count = 1
+            
+    for interaction_family in interaction_families:
+        bioent1_id = interaction_family.bioent1_id
+        bioent2_id = interaction_family.bioent2_id
+        evidence_count = interaction_family.evidence_count
+        if evidence_count >= min_evidence_count:
+            if bioent1_id != bioent.id and bioent1_id not in id_to_node:
+                bioent_name = interaction_family.bioent1_display_name
+                bioent_link = interaction_family.bioent1_link
+                id_to_node[bioent1_id] = create_interaction_node(bioent1_id, bioent_name, bioent_link, False, evidence_count)
+            if bioent2_id != bioent.id and bioent2_id not in id_to_node:
+                bioent_name = interaction_family.bioent2_display_name
+                bioent_link = interaction_family.bioent2_link
+                id_to_node[bioent2_id] = create_interaction_node(bioent2_id, bioent_name, bioent_link, False, evidence_count)
+            edges.append(create_interaction_edge(interaction_family.id, bioent1_id, bioent2_id, evidence_count))
+            
+    id_to_node[bioent.id] = create_interaction_node(bioent.id, bioent.display_name, bioent.link, True, max_evidence_count)
+    
+    return {'dataSchema':interaction_schema, 'data': {'nodes': id_to_node.values(), 'edges': edges}, 
+            'min_evidence_cutoff':min_evidence_count, 'max_evidence_cutoff':max_evidence_count}
 
 '''
 -------------------------------Utils---------------------------------------

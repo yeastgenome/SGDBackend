@@ -6,7 +6,7 @@ Created on Mar 19, 2013
 from datetime import datetime
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import search, get_objects, typeahead
+from query.query_search import search, get_objects
 from sqlalchemy.exc import DBAPIError
 import math
 
@@ -47,16 +47,6 @@ def search_results(request):
     except DBAPIError:
         return Response("Error.", content_type='text/plain', status_int=500)
     return {'results': search_result_jsons, 'num_pages':num_pages, 'num_results':num_results, 'counts':counts}
-
-@view_config(route_name='typeahead', renderer="jsonp")
-def typeahead_view(request):
-    try:
-        search_str = request.POST.items()[0][1].upper()
-        possible = typeahead(search_str)
-        full_names = [p.full_name for p in possible]
-        return sorted(full_names)
-    except DBAPIError:
-        return ['Error']
     
 source_priorities = {'NAME':1, 'GENE_NAME':0, 'ALIAS':2, 'AUTHOR_YEAR':3, 'TITLE': 4, 'CITATION': 5, 'NAME_DESC':6, 'DESCRIPTION':7, 'ABSTRACT':8,
                      'PUBMED_ID':10, 'DOI':11}

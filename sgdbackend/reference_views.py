@@ -6,8 +6,8 @@ Created on Jun 7, 2013
 from model_new_schema.link_maker import add_link
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_reference, get_author, get_author_id, get_assoc_reference, \
-    find_bioentities
+from query.query_reference import get_reference, get_author, get_author_id, \
+    find_bioentities, get_assoc_reference
 from sgdbackend.graph_views import create_graph
 from sgdbackend.utils import make_reference_list
 import string

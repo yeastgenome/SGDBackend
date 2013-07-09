@@ -5,9 +5,12 @@ Created on Mar 15, 2013
 '''
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_phenotype_evidence, get_biocon_family, get_biocon_biocons, \
-    get_biocon_id, get_biocon, get_bioent_id, get_reference_id, get_chemical_id, \
-    get_bioent
+from query import get_chemical_id
+from query.query_biocon import get_biocon, get_biocon_id, get_biocon_family, \
+    get_biocon_biocons
+from query.query_bioent import get_bioent_id, get_bioent
+from query.query_evidence import get_phenotype_evidence
+from query.query_reference import get_reference_id
 from sgdbackend.graph_views import create_graph
 from sgdbackend.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list

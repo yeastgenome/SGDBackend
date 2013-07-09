@@ -6,118 +6,71 @@ Created on May 16, 2013
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.evidence import Evidence
-from model_new_schema.link_maker import add_link, bioent_link_from_basics, \
-    bioentrel_link
 from model_new_schema.phenotype import Phenotype
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String
 
-class BioentRelation(Base, EqualityByIDMixin):
-    __tablename__ = "bioentrel"
+class Interaction(Base, EqualityByIDMixin):
+    __tablename__ = "interaction"
     
-    id = Column('biorel_id', Integer, primary_key = True)
+    id = Column('interaction_id', Integer, primary_key = True)
     format_name = Column('format_name', String)
     display_name = Column('display_name', String)
-    biorel_type = Column('biorel_type', String)
-    source_bioent_id = Column('bioent_id1', Integer, ForeignKey(Bioentity.id))
-    sink_bioent_id = Column('bioent_id2', Integer, ForeignKey(Bioentity.id))
-    source_format_name = Column('bioent_format_name1', String)
-    sink_format_name = Column('bioent_format_name2', String)
-    source_display_name = Column('bioent_display_name1', String)
-    sink_display_name = Column('bioent_display_name2', String)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
-    type = 'BIORELATION'
+    interaction_type = Column('interaction_type', String)
+    bioent1_id = Column('bioent1_id', Integer)
+    bioent2_id = Column('bioent2_id', Integer)
+    bioent1_name_with_link = Column('bioent1_name_with_link', String)
+    bioent2_name_with_link = Column('bioent2_name_with_link', String)
+    evidence_count = Column('evidence_count', Integer)
+    type = 'INTERACTION'
     
-    __mapper_args__ = {'polymorphic_on': biorel_type,
-                       'polymorphic_identity':"BIORELATION"}
-    
-    #Relationships
-    #source_bioent = relationship('Bioentity', uselist=False, backref=backref('biorel_source', passive_deletes=True), primaryjoin="BioentRelation.source_bioent_id==Bioentity.id")
-    #sink_bioent = relationship('Bioentity', uselist=False, backref=backref('biorel_sink', passive_deletes=True), primaryjoin="BioentRelation.sink_bioent_id==Bioentity.id")
-    
-    def __init__(self, biorel_id, display_name, format_name, biorel_type, source_bioent_id, sink_bioent_id, source_format_name, sink_format_name, source_display_name, sink_display_name, date_created, created_by):
-        self.id = biorel_id
+    def __init__(self, interaction_id, display_name, format_name, interaction_type, bioent1_id, bioent2_id, 
+                 bioent1_name_with_link, bioent2_name_with_link):
+        self.id = interaction_id
         self.display_name = display_name
         self.format_name = format_name
-        self.source_bioent_id = source_bioent_id
-        self.sink_bioent_id = sink_bioent_id
-        self.source_format_name = source_format_name
-        self.sink_format_name = sink_format_name
-        self.source_display_name = source_display_name
-        self.sink_display_name = sink_display_name
-        self.biorel_type = biorel_type
-        self.created_by = created_by
-        self.date_created = date_created
+        self.bioent1_id = bioent1_id
+        self.bioent2_id = bioent2_id
+        self.bioent1_name_with_link = bioent1_name_with_link
+        self.bioent2_name_with_link = bioent2_name_with_link
+        self.interaction_type = interaction_type
         
     def unique_key(self):
-        return (self.format_name, self.biorel_type)
+        return (self.format_name, self.interaction_type)
     
     @hybrid_property
     def endpoint_name_with_links(self):
-        return self.source_name_with_link, self.sink_name_with_link
-    @hybrid_property
-    def source_name_with_link(self):
-        return add_link(self.source_display_name, bioent_link_from_basics('LOCUS', self.source_format_name))
-    @hybrid_property
-    def sink_name_with_link(self):
-        return add_link(self.sink_display_name, bioent_link_from_basics('LOCUS', self.sink_format_name))
-    @hybrid_property
-    def link(self):
-        return bioentrel_link(self)
-    @hybrid_property
-    def name_with_link(self):
-        return add_link(str(self.display_name), self.link)
-    @hybrid_property
-    def description(self):
-        return self.biorel_type.lower() + ' between ' + self.source_bioent.name_with_link + ' and ' + self.sink_bioent.name_with_link
-
-
-class GeneticInteraction(BioentRelation):
-    __tablename__ = "geneticinteraction"
-
-    id = Column('biorel_id', Integer, ForeignKey(BioentRelation.id),primary_key = True)
-    evidence_count = Column('evidence_count', Integer)
-
-    __mapper_args__ = {'polymorphic_identity': "GENETIC_INTERACTION",
-                       'inherit_condition': id==BioentRelation.id}
+        return self.bioent1_name_with_link, self.bioent2_name_with_link
     
-    def __init__(self, biorel_id, display_name, format_name, 
-                                source_bioent_id, sink_bioent_id, 
-                                source_format_name, sink_format_name, 
-                                source_display_name, sink_display_name, 
-                                date_created, created_by):
-        BioentRelation.__init__(self, biorel_id, display_name, format_name, 'GENETIC_INTERACTION', 
-                                source_bioent_id, sink_bioent_id, 
-                                source_format_name, sink_format_name, 
-                                source_display_name, sink_display_name, 
-                                date_created, created_by)
-        self.evidence_count = 0
-   
+class InteractionFamily(Base, EqualityByIDMixin):
+    __tablename__ = "interaction_family"
+    
+    id = Column('interaction_family_id', Integer, primary_key = True)
+    bioent_id = Column('bioent_id', Integer)
+    bioent1_id = Column('bioent1_id', Integer)
+    bioent2_id = Column('bioent2_id', Integer)
+    bioent1_display_name = Column('bioent1_display_name', String)
+    bioent2_display_name = Column('bioent2_display_name', String)
+    bioent1_link = Column('bioent1_link', String)
+    bioent2_link = Column('bioent2_link', String)
+    evidence_count = Column('evidence_count', Integer)
+    
+    def __init__(self, bioent_id, bioent1_id, bioent2_id, 
+                 bioent1_display_name, bioent2_display_name, bioent1_link, bioent2_link, evidence_count):
+        self.bioent_id = bioent_id
+        self.bioent1_id = bioent1_id
+        self.bioent2_id = bioent2_id
+        self.bioent1_display_name = bioent1_display_name
+        self.bioent2_display_name = bioent2_display_name
+        self.bioent1_link = bioent1_link
+        self.bioent2_link = bioent2_link
+        self.evidence_count = evidence_count
         
-class PhysicalInteraction(BioentRelation):
-    __tablename__ = "physicalinteraction"
+    def unique_key(self):
+        return (self.bioent_id, self.bioent1_id, self.bioent2_id)
 
-    id = Column('biorel_id', Integer, ForeignKey(BioentRelation.id),primary_key = True)
-    evidence_count = Column('evidence_count', Integer)
-    
-    __mapper_args__ = {'polymorphic_identity': "PHYSICAL_INTERACTION",
-                       'inherit_condition': id==BioentRelation.id}
-    
-    def __init__(self, biorel_id, display_name, format_name, 
-                            source_bioent_id, sink_bioent_id, 
-                            source_format_name, sink_format_name,
-                            source_display_name, sink_display_name,
-                            date_created, created_by):
-        BioentRelation.__init__(self, biorel_id, display_name, format_name, 'PHYSICAL_INTERACTION', 
-                                source_bioent_id, sink_bioent_id, 
-                                source_format_name, sink_format_name, 
-                                source_display_name, sink_display_name, 
-                                date_created, created_by)
-        self.evidence_count = 0                    
-    
 class GeneticInterevidence(Evidence):
     __tablename__ = "geneticinterevidence"
     
@@ -131,7 +84,6 @@ class GeneticInterevidence(Evidence):
     bioent1_name_with_link = Column('bioent1_name_with_link', String)
     bioent2_name_with_link = Column('bioent2_name_with_link', String)
     note = Column('note', String)
-    #biorel_id = Column('biorel_id', Integer, ForeignKey(GeneticInteraction.id))
        
     __mapper_args__ = {'polymorphic_identity': "GENETIC_INTERACTION_EVIDENCE",
                        'inherit_condition': id==Evidence.id}

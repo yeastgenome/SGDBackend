@@ -3,12 +3,15 @@ Created on Jun 17, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.litguide import Bioentevidence
 from model_new_schema.evidence import Evidence, EvidenceChemical
 from model_new_schema.go import Goevidence
+from model_new_schema.litguide import Bioentevidence
 from model_new_schema.phenotype import Phenoevidence
-from query import get_reference, get_bioent, get_biocon, get_experiment, \
-    get_strain, get_chemical
+from query import get_experiment, get_strain, get_chemical
+from query.query_biocon import get_biocon
+from query.query_bioent import get_bioent
+from query.query_interaction import get_interactions
+from query.query_reference import get_reference
 from sgdbackend.models import DBSession
 from sqlalchemy.orm import joinedload
  
@@ -806,7 +809,7 @@ def create_interaction_graph(bioent):
     bioent_to_evidence = {}
 
     #bioents.update([interaction.get_opposite(bioent) for interaction in get_biorels('INTERACTION', bioent)])
-    bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in get_biorels('PHYSICAL_INTERACTION', bioent.id)])
+    bioent_to_evidence.update([(interaction.get_opposite(bioent), interaction.evidence_count) for interaction in get_interactions('PHYSICAL_INTERACTION', bioent.id)])
     bioents.update(bioent_to_evidence.keys())
 
     bioents.add(bioent)

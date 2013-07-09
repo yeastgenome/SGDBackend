@@ -5,9 +5,10 @@ Created on May 31, 2013
 '''
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_bioent, get_bioent_id, get_bioent_evidence, \
-    get_reference_id
-from sgdbackend.utils import make_reference_list, create_simple_table
+from query.query_bioent import get_bioent, get_bioent_id
+from query.query_evidence import get_bioent_evidence
+from query.query_reference import get_reference_id
+from sgdbackend.utils import make_reference_list
 
 @view_config(route_name='locus', renderer='json')
 def locus(request):

@@ -20,7 +20,6 @@ def main(global_config, **settings):
     
     #Search views
     config.add_route('search_results', '/search_results')
-    config.add_route('typeahead', '/typeahead')
    
     #Bioent views
     config.add_route('bioent', '/bioent/{bioent_type}/{bioent}')
@@ -30,9 +29,6 @@ def main(global_config, **settings):
     
     #Biocon views
     config.add_route('biocon', '/biocon/{biocon_type}/{biocon}')
-    
-    #Biorel views
-    config.add_route('biorel', '/biorel/{biorel_type}/{biorel}')
 
     #GO views
     config.add_route('go', '/go/{biocon}')
