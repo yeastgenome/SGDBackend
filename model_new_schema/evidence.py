@@ -18,9 +18,13 @@ class Evidence(Base, EqualityByIDMixin):
     
     id = Column('evidence_id', Integer, primary_key=True)
     experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
+    experiment_name_with_link = Column('experiment_name_with_link', String)
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    reference_name_with_link = Column('reference_name_with_link', String)
+    reference_citation = Column('reference_citation', String)
     evidence_type = Column('evidence_type', String)
     strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+    strain_name_with_link = Column('strain_name_with_link', String)
     source = Column('source', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
@@ -34,13 +38,19 @@ class Evidence(Base, EqualityByIDMixin):
                        'polymorphic_identity':"EVIDENCE"}
     
     
-    def __init__(self, evidence_id, experiment_id, reference_id, evidence_type, strain_id, source, date_created, created_by):
+    def __init__(self, evidence_id, experiment_id, experiment_name_with_link, 
+                 reference_id, reference_name_with_link, reference_citation, strain_id, strain_name_with_link,
+                 source, evidence_type, date_created, created_by):
         self.id = evidence_id
         self.experiment_id = experiment_id
+        self.experiment_name_with_link = experiment_name_with_link
         self.reference_id = reference_id
-        self.evidence_type = evidence_type
+        self.reference_name_with_link = reference_name_with_link
+        self.reference_citation = reference_citation
         self.strain_id = strain_id
+        self.strain_name_with_link = strain_name_with_link
         self.source = source
+        self.evidence_type = evidence_type
         self.date_created = date_created
         self.created_by = created_by
         

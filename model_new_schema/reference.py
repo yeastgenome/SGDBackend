@@ -78,6 +78,7 @@ class Reference(Base, EqualityByIDMixin):
     pubmed_id = Column('pubmed_id', Integer)
     pdf_status = Column('pdf_status', String)
     citation_db = Column('citation', String)
+    citation = Column('citation_html', String)
     year = Column('year', Integer)
     date_published = Column('date_published', String)
     date_revised = Column('date_revised', Integer)
@@ -93,6 +94,7 @@ class Reference(Base, EqualityByIDMixin):
     fulltext_link = Column('fulltext_url', String)
     abstract = Column('abstract', CLOB)
     type = "REFERENCE"
+    name_with_link = Column('name_with_link', String)
     
     #Relationships  
     book = relationship(Book, uselist=False)
@@ -121,9 +123,11 @@ class Reference(Base, EqualityByIDMixin):
         self.title = title
         self.journal_id = journal_id
         self.book_id = book_id
+        self.pubmed_id = pubmed_id
         self.doi = doi
         self.abstract = abstract
-
+        self.citation = add_link(self.display_name, self.link) + self.citation_db[self.citation_db.find(')')+1:] + self.small_pmid
+        self.name_with_link = add_link(self.display_name, self.link) + self.small_pmid
         self.date_created = date_created
         self.created_by = created_by
         
@@ -134,9 +138,7 @@ class Reference(Base, EqualityByIDMixin):
     def authors(self):
         sorted_author_refs = sorted(list(self.author_references), key=lambda x: x.order)
         return [author_ref.author for author_ref in sorted_author_refs]   
-    @hybrid_property
-    def citation(self):
-        return add_link(self.display_name, self.link) + self.citation_db[self.citation_db.find(')')+1:] + self.small_pmid
+
     @hybrid_property
     def description(self):
         return self.title
@@ -150,10 +152,6 @@ class Reference(Base, EqualityByIDMixin):
             return ''
         else:
             return ' <small>PMID:' + str(self.pubmed_id) + '</small>'
-    @hybrid_property
-    def name_with_link(self):
-        return add_link(self.display_name, self.link) + self.small_pmid
-    
     @hybrid_property
     def pubmed_link(self):
         return 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(self.pubmed_id)

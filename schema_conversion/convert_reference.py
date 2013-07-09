@@ -336,7 +336,7 @@ def convert_references(new_session, old_references=None):
                        'source', 'status', 'pdf_status',
                        'year', 
                        'date_published', 
-                       'date_revised',
+                       'date_revised', 'name_with_link', 'citation', 'pubmed_id',
                        'issue', 'page', 'volume', 'title', 'journal_id', 'book_id', 'doi', 'abstract',
                        'created_by', 'date_created']
     success = create_or_update_and_remove(new_references, key_to_reference, values_to_check, new_session)

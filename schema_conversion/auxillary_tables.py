@@ -34,7 +34,7 @@ def update_biorel_evidence_counts(new_session, biorel_cls, evidence_cls):
     evidences = new_session.query(evidence_cls).all()
     biorel_id_to_evidence_count = {}
     
-    for biorel in biorels:
+    for biorel in biorels: 
         biorel_id_to_evidence_count[biorel.id] = 0
         
     for evidence in evidences:

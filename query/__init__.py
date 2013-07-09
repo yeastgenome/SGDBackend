@@ -1,15 +1,15 @@
 from model_new_schema import config as new_config
 from model_new_schema.bioconcept import Bioconcept, BioconAncestor, \
     BioconRelation
-from model_new_schema.bioentity import Bioentity, BioentRelation, Bioentevidence, \
-    Locus, BioentMultiRelationBioent, BioentMultiRelation, BioentUrl
+from model_new_schema.bioentity import Bioentity, Locus, BioentUrl
 from model_new_schema.biofact import Biofact
 from model_new_schema.chemical import Chemical
 from model_new_schema.evelement import Experiment, Strain
 from model_new_schema.evidence import EvidenceChemical
 from model_new_schema.go import Goevidence, Go
 from model_new_schema.interaction import GeneticInterevidence, \
-    GeneticInteraction, PhysicalInterevidence, PhysicalInteraction
+    GeneticInteraction, PhysicalInterevidence, PhysicalInteraction, BioentRelation
+from model_new_schema.litguide import Bioentevidence
 from model_new_schema.misc import Url
 from model_new_schema.phenotype import Phenoevidence, Phenotype
 from model_new_schema.reference import Reference, Author, AuthorReference
@@ -20,6 +20,7 @@ from sgdbackend.models import DBSession
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
 from sqlalchemy.orm.util import with_polymorphic
 from sqlalchemy.sql.expression import func, or_
+import datetime
 import math
 import model_new_schema
 import string
@@ -260,13 +261,12 @@ def get_biorels(biorel_type, bioent_id, print_query=False):
     FROM sprout.bioentrel LEFT OUTER JOIN sprout.interaction ON sprout.interaction.biorel_id = sprout.bioentrel.biorel_id LEFT OUTER JOIN sprout.bioent bioent_1 ON sprout.bioentrel.bioent_id1 = bioent_1.bioent_id LEFT OUTER JOIN sprout.bioent bioent_2 ON sprout.bioentrel.bioent_id2 = bioent_2.bioent_id 
     WHERE sprout.bioentrel.biorel_type = :biorel_type_1 AND sprout.bioentrel.bioent_id2 = :bioent_id2_1
     '''
-    biorel_class = biorel_type_to_class[biorel_type]
     
-    query = session.query(BioentMultiRelationBioent).filter(BioentMultiRelationBioent.bioent_id == bioent_id).filter(
-                                BioentMultiRelationBioent.biorel_type==biorel_type).options(
-                                joinedload(BioentMultiRelationBioent.biorel.of_type(biorel_class)))
-                                                                                           
-    interactions = [bmrb.biorel for bmrb in query.all()]
+    query = session.query(with_polymorphic(BioentRelation, [biorel_type_to_class[biorel_type]])).filter(
+                                or_(BioentRelation.source_bioent_id == bioent_id, 
+                                    BioentRelation.sink_bioent_id == bioent_id)).filter(
+                                BioentRelation.biorel_type==biorel_type)                                                                                    
+    interactions = query.all()
     if print_query:
         print query
     return interactions
@@ -283,13 +283,13 @@ def get_interactions(bioent_ids, print_query=False):
     FROM sprout.bioentrel LEFT OUTER JOIN sprout.interaction ON sprout.interaction.biorel_id = sprout.bioentrel.biorel_id 
     WHERE sprout.bioentrel.biorel_type = :biorel_type_1 AND sprout.bioentrel.bioent_id2 IN (:bioent_id2_1)
     '''
-    query1 = session.query(BioentMultiRelationBioent).filter(BioentMultiRelationBioent.bioent_id.in_(bioent_ids)).filter(
+    query1 = session.query(BioentRelation).filter(BioentRelation.bioent_id.in_(bioent_ids)).filter(
                             or_(BioentMultiRelationBioent.biorel_type=='GENETIC_INTERACTION', 
                                 BioentMultiRelationBioent.biorel_type=='PHYSICAL_INTERACTION'))
     biorel_ids = [x.biorel_id for x in query1.all()]
     
     def f(chunk_biorel_ids):
-        new_query = session.query(BioentMultiRelation).filter(BioentMultiRelation.id.in_(chunk_biorel_ids)).options(joinedload('bioentmultirel_bioents'))
+        new_query = session.query(BioentMultiRelation).filter(BioentMultiRelation.id.in_(chunk_biorel_ids))
         biorels = set(new_query.all())
         if print_query:
             print new_query
@@ -479,7 +479,7 @@ def get_phenotype_evidence(bioent_id=None, biocon_id=None, reference_id=None, ch
     return phenoevidences
 
 #Used for interaction_overview and interaction_evidence tables.
-def get_genetic_interaction_evidence(bioent_id=None, biorel_id=None, reference_id=None, print_query=False):
+def get_genetic_interaction_evidence(bioent_id=None, reference_id=None, print_query=False):
     '''
     get_interaction_evidence(bioent_id=get_bioent_id('YFL039C'), print_query=True)
     
@@ -487,33 +487,18 @@ def get_genetic_interaction_evidence(bioent_id=None, biorel_id=None, reference_i
     FROM sprout.evidence JOIN sprout.interevidence ON sprout.interevidence.evidence_id = sprout.evidence.evidence_id LEFT OUTER JOIN sprout.reference reference_1 ON reference_1.reference_id = sprout.evidence.reference_id 
     WHERE sprout.interevidence.biorel_id IN (:biorel_id_1, :biorel_id_2, :biorel_id_3, :biorel_id_4, :biorel_id_5, :biorel_id_6, :biorel_id_7, :biorel_id_8, :biorel_id_9, :biorel_id_10, :biorel_id_11, :biorel_id_12, :biorel_id_13, :biorel_id_14, :biorel_id_15, :biorel_id_16, :biorel_id_17, :biorel_id_18, :biorel_id_19, :biorel_id_20, :biorel_id_21, :biorel_id_22, :biorel_id_23, :biorel_id_24, :biorel_id_25, :biorel_id_26, :biorel_id_27, :biorel_id_28, :biorel_id_29, :biorel_id_30, :biorel_id_31, :biorel_id_32, :biorel_id_33, :biorel_id_34, :biorel_id_35, :biorel_id_36, :biorel_id_37, :biorel_id_38, :biorel_id_39, :biorel_id_40, :biorel_id_41, :biorel_id_42, :biorel_id_43, :biorel_id_44, :biorel_id_45, :biorel_id_46, :biorel_id_47, :biorel_id_48, :biorel_id_49, :biorel_id_50, :biorel_id_51, :biorel_id_52, :biorel_id_53, :biorel_id_54, :biorel_id_55, :biorel_id_56, :biorel_id_57, :biorel_id_58, :biorel_id_59, :biorel_id_60, :biorel_id_61, :biorel_id_62, :biorel_id_63, :biorel_id_64, :biorel_id_65, :biorel_id_66, :biorel_id_67, :biorel_id_68, :biorel_id_69, :biorel_id_70, :biorel_id_71, :biorel_id_72, :biorel_id_73, :biorel_id_74, :biorel_id_75, :biorel_id_76, :biorel_id_77, :biorel_id_78, :biorel_id_79, :biorel_id_80, :biorel_id_81, :biorel_id_82, :biorel_id_83, :biorel_id_84, :biorel_id_85, :biorel_id_86, :biorel_id_87, :biorel_id_88, :biorel_id_89, :biorel_id_90, :biorel_id_91, :biorel_id_92, :biorel_id_93, :biorel_id_94, :biorel_id_95, :biorel_id_96, :biorel_id_97, :biorel_id_98, :biorel_id_99, :biorel_id_100, :biorel_id_101, :biorel_id_102, :biorel_id_103, :biorel_id_104, :biorel_id_105, :biorel_id_106, :biorel_id_107, :biorel_id_108, :biorel_id_109, :biorel_id_110, :biorel_id_111, :biorel_id_112, :biorel_id_113, :biorel_id_114, :biorel_id_115, :biorel_id_116, :biorel_id_117, :biorel_id_118, :biorel_id_119, :biorel_id_120, :biorel_id_121, :biorel_id_122, :biorel_id_123, :biorel_id_124, :biorel_id_125, :biorel_id_126, :biorel_id_127, :biorel_id_128, :biorel_id_129, :biorel_id_130, :biorel_id_131, :biorel_id_132, :biorel_id_133, :biorel_id_134, :biorel_id_135, :biorel_id_136, :biorel_id_137, :biorel_id_138, :biorel_id_139, :biorel_id_140, :biorel_id_141, :biorel_id_142, :biorel_id_143, :biorel_id_144, :biorel_id_145, :biorel_id_146, :biorel_id_147, :biorel_id_148, :biorel_id_149, :biorel_id_150, :biorel_id_151, :biorel_id_152, :biorel_id_153, :biorel_id_154, :biorel_id_155, :biorel_id_156, :biorel_id_157, :biorel_id_158, :biorel_id_159, :biorel_id_160, :biorel_id_161, :biorel_id_162, :biorel_id_163, :biorel_id_164, :biorel_id_165, :biorel_id_166, :biorel_id_167, :biorel_id_168, :biorel_id_169, :biorel_id_170, :biorel_id_171, :biorel_id_172, :biorel_id_173, :biorel_id_174, :biorel_id_175, :biorel_id_176, :biorel_id_177, :biorel_id_178, :biorel_id_179, :biorel_id_180, :biorel_id_181, :biorel_id_182, :biorel_id_183, :biorel_id_184, :biorel_id_185, :biorel_id_186, :biorel_id_187, :biorel_id_188, :biorel_id_189, :biorel_id_190, :biorel_id_191, :biorel_id_192, :biorel_id_193, :biorel_id_194, :biorel_id_195, :biorel_id_196, :biorel_id_197, :biorel_id_198, :biorel_id_199, :biorel_id_200, :biorel_id_201, :biorel_id_202, :biorel_id_203, :biorel_id_204, :biorel_id_205, :biorel_id_206, :biorel_id_207, :biorel_id_208, :biorel_id_209, :biorel_id_210, :biorel_id_211, :biorel_id_212, :biorel_id_213, :biorel_id_214, :biorel_id_215, :biorel_id_216, :biorel_id_217, :biorel_id_218, :biorel_id_219, :biorel_id_220, :biorel_id_221, :biorel_id_222, :biorel_id_223, :biorel_id_224, :biorel_id_225, :biorel_id_226, :biorel_id_227, :biorel_id_228, :biorel_id_229, :biorel_id_230, :biorel_id_231, :biorel_id_232, :biorel_id_233, :biorel_id_234, :biorel_id_235, :biorel_id_236, :biorel_id_237, :biorel_id_238, :biorel_id_239, :biorel_id_240, :biorel_id_241, :biorel_id_242, :biorel_id_243, :biorel_id_244, :biorel_id_245, :biorel_id_246, :biorel_id_247, :biorel_id_248, :biorel_id_249, :biorel_id_250, :biorel_id_251, :biorel_id_252, :biorel_id_253, :biorel_id_254, :biorel_id_255, :biorel_id_256, :biorel_id_257, :biorel_id_258, :biorel_id_259, :biorel_id_260, :biorel_id_261, :biorel_id_262, :biorel_id_263, :biorel_id_264, :biorel_id_265, :biorel_id_266, :biorel_id_267, :biorel_id_268, :biorel_id_269, :biorel_id_270, :biorel_id_271, :biorel_id_272, :biorel_id_273, :biorel_id_274, :biorel_id_275, :biorel_id_276, :biorel_id_277, :biorel_id_278, :biorel_id_279, :biorel_id_280, :biorel_id_281, :biorel_id_282, :biorel_id_283, :biorel_id_284, :biorel_id_285, :biorel_id_286, :biorel_id_287, :biorel_id_288, :biorel_id_289, :biorel_id_290, :biorel_id_291, :biorel_id_292, :biorel_id_293, :biorel_id_294, :biorel_id_295, :biorel_id_296, :biorel_id_297, :biorel_id_298, :biorel_id_299, :biorel_id_300, :biorel_id_301, :biorel_id_302, :biorel_id_303, :biorel_id_304, :biorel_id_305, :biorel_id_306, :biorel_id_307, :biorel_id_308, :biorel_id_309, :biorel_id_310, :biorel_id_311, :biorel_id_312, :biorel_id_313, :biorel_id_314, :biorel_id_315, :biorel_id_316, :biorel_id_317, :biorel_id_318, :biorel_id_319, :biorel_id_320, :biorel_id_321, :biorel_id_322, :biorel_id_323, :biorel_id_324, :biorel_id_325, :biorel_id_326, :biorel_id_327, :biorel_id_328, :biorel_id_329, :biorel_id_330, :biorel_id_331, :biorel_id_332, :biorel_id_333, :biorel_id_334, :biorel_id_335, :biorel_id_336, :biorel_id_337, :biorel_id_338, :biorel_id_339, :biorel_id_340, :biorel_id_341, :biorel_id_342, :biorel_id_343, :biorel_id_344, :biorel_id_345, :biorel_id_346, :biorel_id_347, :biorel_id_348, :biorel_id_349, :biorel_id_350, :biorel_id_351, :biorel_id_352, :biorel_id_353, :biorel_id_354, :biorel_id_355, :biorel_id_356, :biorel_id_357, :biorel_id_358, :biorel_id_359, :biorel_id_360, :biorel_id_361, :biorel_id_362, :biorel_id_363, :biorel_id_364, :biorel_id_365, :biorel_id_366, :biorel_id_367, :biorel_id_368, :biorel_id_369, :biorel_id_370, :biorel_id_371, :biorel_id_372, :biorel_id_373, :biorel_id_374, :biorel_id_375, :biorel_id_376, :biorel_id_377, :biorel_id_378, :biorel_id_379, :biorel_id_380, :biorel_id_381, :biorel_id_382, :biorel_id_383, :biorel_id_384, :biorel_id_385, :biorel_id_386, :biorel_id_387, :biorel_id_388, :biorel_id_389, :biorel_id_390, :biorel_id_391, :biorel_id_392, :biorel_id_393, :biorel_id_394, :biorel_id_395, :biorel_id_396, :biorel_id_397, :biorel_id_398, :biorel_id_399, :biorel_id_400, :biorel_id_401, :biorel_id_402, :biorel_id_403, :biorel_id_404, :biorel_id_405, :biorel_id_406, :biorel_id_407, :biorel_id_408, :biorel_id_409, :biorel_id_410, :biorel_id_411, :biorel_id_412, :biorel_id_413, :biorel_id_414, :biorel_id_415, :biorel_id_416, :biorel_id_417, :biorel_id_418, :biorel_id_419, :biorel_id_420, :biorel_id_421, :biorel_id_422, :biorel_id_423, :biorel_id_424, :biorel_id_425, :biorel_id_426, :biorel_id_427, :biorel_id_428, :biorel_id_429, :biorel_id_430, :biorel_id_431, :biorel_id_432, :biorel_id_433, :biorel_id_434, :biorel_id_435, :biorel_id_436, :biorel_id_437, :biorel_id_438, :biorel_id_439, :biorel_id_440, :biorel_id_441, :biorel_id_442, :biorel_id_443, :biorel_id_444, :biorel_id_445, :biorel_id_446, :biorel_id_447, :biorel_id_448, :biorel_id_449, :biorel_id_450, :biorel_id_451, :biorel_id_452, :biorel_id_453, :biorel_id_454, :biorel_id_455, :biorel_id_456, :biorel_id_457, :biorel_id_458, :biorel_id_459, :biorel_id_460, :biorel_id_461, :biorel_id_462, :biorel_id_463, :biorel_id_464, :biorel_id_465, :biorel_id_466, :biorel_id_467, :biorel_id_468, :biorel_id_469, :biorel_id_470, :biorel_id_471, :biorel_id_472, :biorel_id_473, :biorel_id_474, :biorel_id_475, :biorel_id_476, :biorel_id_477, :biorel_id_478, :biorel_id_479, :biorel_id_480, :biorel_id_481, :biorel_id_482, :biorel_id_483, :biorel_id_484, :biorel_id_485, :biorel_id_486, :biorel_id_487, :biorel_id_488, :biorel_id_489, :biorel_id_490, :biorel_id_491, :biorel_id_492, :biorel_id_493, :biorel_id_494, :biorel_id_495, :biorel_id_496, :biorel_id_497, :biorel_id_498, :biorel_id_499, :biorel_id_500)
     '''
-    query = session.query(GeneticInterevidence).options(joinedload('reference'))
-    interevidences = None
+    start_time = datetime.datetime.now()
+    print start_time
+    query = session.query(GeneticInterevidence)
     if bioent_id is not None:
-        biorel_ids = [biorel.id for biorel in get_biorels('GENETIC_INTERACTION', bioent_id)]
-        def f(chunk_biorel_ids):
-            new_query = query.filter(GeneticInterevidence.biorel_id.in_(chunk_biorel_ids))
-            interevidences = set(new_query.all())
-            if print_query:
-                print new_query
-            return interevidences
-        interevidences = set(retrieve_in_chunks(biorel_ids, f))
-    if biorel_id is not None:
-        query = query.filter(GeneticInterevidence.biorel_id==biorel_id)
-        new_interevidences = set(query.all())
-        if interevidences is None:
-            interevidences = new_interevidences
-        else:
-            interevidences = interevidences.intersection(new_interevidences)
+        query = query.filter(or_(GeneticInterevidence.bioent1_id == bioent_id, GeneticInterevidence.bioent2_id == bioent_id))
     if reference_id is not None:
         query = query.filter(GeneticInterevidence.reference_id==reference_id)
-        new_interevidences = set(query.all())
-        if interevidences is None:
-            interevidences = new_interevidences
-        else:
-            interevidences = interevidences.intersection(new_interevidences)
+    
+    interevidences = query.all()
     if print_query:
-        print_query
+        print query
+    print datetime.datetime.now() - start_time
     return interevidences
 
 #Used for interaction_overview and interaction_evidence tables.
@@ -525,31 +510,13 @@ def get_physical_interaction_evidence(bioent_id=None, biorel_id=None, reference_
     FROM sprout.evidence JOIN sprout.interevidence ON sprout.interevidence.evidence_id = sprout.evidence.evidence_id LEFT OUTER JOIN sprout.reference reference_1 ON reference_1.reference_id = sprout.evidence.reference_id 
     WHERE sprout.interevidence.biorel_id IN (:biorel_id_1, :biorel_id_2, :biorel_id_3, :biorel_id_4, :biorel_id_5, :biorel_id_6, :biorel_id_7, :biorel_id_8, :biorel_id_9, :biorel_id_10, :biorel_id_11, :biorel_id_12, :biorel_id_13, :biorel_id_14, :biorel_id_15, :biorel_id_16, :biorel_id_17, :biorel_id_18, :biorel_id_19, :biorel_id_20, :biorel_id_21, :biorel_id_22, :biorel_id_23, :biorel_id_24, :biorel_id_25, :biorel_id_26, :biorel_id_27, :biorel_id_28, :biorel_id_29, :biorel_id_30, :biorel_id_31, :biorel_id_32, :biorel_id_33, :biorel_id_34, :biorel_id_35, :biorel_id_36, :biorel_id_37, :biorel_id_38, :biorel_id_39, :biorel_id_40, :biorel_id_41, :biorel_id_42, :biorel_id_43, :biorel_id_44, :biorel_id_45, :biorel_id_46, :biorel_id_47, :biorel_id_48, :biorel_id_49, :biorel_id_50, :biorel_id_51, :biorel_id_52, :biorel_id_53, :biorel_id_54, :biorel_id_55, :biorel_id_56, :biorel_id_57, :biorel_id_58, :biorel_id_59, :biorel_id_60, :biorel_id_61, :biorel_id_62, :biorel_id_63, :biorel_id_64, :biorel_id_65, :biorel_id_66, :biorel_id_67, :biorel_id_68, :biorel_id_69, :biorel_id_70, :biorel_id_71, :biorel_id_72, :biorel_id_73, :biorel_id_74, :biorel_id_75, :biorel_id_76, :biorel_id_77, :biorel_id_78, :biorel_id_79, :biorel_id_80, :biorel_id_81, :biorel_id_82, :biorel_id_83, :biorel_id_84, :biorel_id_85, :biorel_id_86, :biorel_id_87, :biorel_id_88, :biorel_id_89, :biorel_id_90, :biorel_id_91, :biorel_id_92, :biorel_id_93, :biorel_id_94, :biorel_id_95, :biorel_id_96, :biorel_id_97, :biorel_id_98, :biorel_id_99, :biorel_id_100, :biorel_id_101, :biorel_id_102, :biorel_id_103, :biorel_id_104, :biorel_id_105, :biorel_id_106, :biorel_id_107, :biorel_id_108, :biorel_id_109, :biorel_id_110, :biorel_id_111, :biorel_id_112, :biorel_id_113, :biorel_id_114, :biorel_id_115, :biorel_id_116, :biorel_id_117, :biorel_id_118, :biorel_id_119, :biorel_id_120, :biorel_id_121, :biorel_id_122, :biorel_id_123, :biorel_id_124, :biorel_id_125, :biorel_id_126, :biorel_id_127, :biorel_id_128, :biorel_id_129, :biorel_id_130, :biorel_id_131, :biorel_id_132, :biorel_id_133, :biorel_id_134, :biorel_id_135, :biorel_id_136, :biorel_id_137, :biorel_id_138, :biorel_id_139, :biorel_id_140, :biorel_id_141, :biorel_id_142, :biorel_id_143, :biorel_id_144, :biorel_id_145, :biorel_id_146, :biorel_id_147, :biorel_id_148, :biorel_id_149, :biorel_id_150, :biorel_id_151, :biorel_id_152, :biorel_id_153, :biorel_id_154, :biorel_id_155, :biorel_id_156, :biorel_id_157, :biorel_id_158, :biorel_id_159, :biorel_id_160, :biorel_id_161, :biorel_id_162, :biorel_id_163, :biorel_id_164, :biorel_id_165, :biorel_id_166, :biorel_id_167, :biorel_id_168, :biorel_id_169, :biorel_id_170, :biorel_id_171, :biorel_id_172, :biorel_id_173, :biorel_id_174, :biorel_id_175, :biorel_id_176, :biorel_id_177, :biorel_id_178, :biorel_id_179, :biorel_id_180, :biorel_id_181, :biorel_id_182, :biorel_id_183, :biorel_id_184, :biorel_id_185, :biorel_id_186, :biorel_id_187, :biorel_id_188, :biorel_id_189, :biorel_id_190, :biorel_id_191, :biorel_id_192, :biorel_id_193, :biorel_id_194, :biorel_id_195, :biorel_id_196, :biorel_id_197, :biorel_id_198, :biorel_id_199, :biorel_id_200, :biorel_id_201, :biorel_id_202, :biorel_id_203, :biorel_id_204, :biorel_id_205, :biorel_id_206, :biorel_id_207, :biorel_id_208, :biorel_id_209, :biorel_id_210, :biorel_id_211, :biorel_id_212, :biorel_id_213, :biorel_id_214, :biorel_id_215, :biorel_id_216, :biorel_id_217, :biorel_id_218, :biorel_id_219, :biorel_id_220, :biorel_id_221, :biorel_id_222, :biorel_id_223, :biorel_id_224, :biorel_id_225, :biorel_id_226, :biorel_id_227, :biorel_id_228, :biorel_id_229, :biorel_id_230, :biorel_id_231, :biorel_id_232, :biorel_id_233, :biorel_id_234, :biorel_id_235, :biorel_id_236, :biorel_id_237, :biorel_id_238, :biorel_id_239, :biorel_id_240, :biorel_id_241, :biorel_id_242, :biorel_id_243, :biorel_id_244, :biorel_id_245, :biorel_id_246, :biorel_id_247, :biorel_id_248, :biorel_id_249, :biorel_id_250, :biorel_id_251, :biorel_id_252, :biorel_id_253, :biorel_id_254, :biorel_id_255, :biorel_id_256, :biorel_id_257, :biorel_id_258, :biorel_id_259, :biorel_id_260, :biorel_id_261, :biorel_id_262, :biorel_id_263, :biorel_id_264, :biorel_id_265, :biorel_id_266, :biorel_id_267, :biorel_id_268, :biorel_id_269, :biorel_id_270, :biorel_id_271, :biorel_id_272, :biorel_id_273, :biorel_id_274, :biorel_id_275, :biorel_id_276, :biorel_id_277, :biorel_id_278, :biorel_id_279, :biorel_id_280, :biorel_id_281, :biorel_id_282, :biorel_id_283, :biorel_id_284, :biorel_id_285, :biorel_id_286, :biorel_id_287, :biorel_id_288, :biorel_id_289, :biorel_id_290, :biorel_id_291, :biorel_id_292, :biorel_id_293, :biorel_id_294, :biorel_id_295, :biorel_id_296, :biorel_id_297, :biorel_id_298, :biorel_id_299, :biorel_id_300, :biorel_id_301, :biorel_id_302, :biorel_id_303, :biorel_id_304, :biorel_id_305, :biorel_id_306, :biorel_id_307, :biorel_id_308, :biorel_id_309, :biorel_id_310, :biorel_id_311, :biorel_id_312, :biorel_id_313, :biorel_id_314, :biorel_id_315, :biorel_id_316, :biorel_id_317, :biorel_id_318, :biorel_id_319, :biorel_id_320, :biorel_id_321, :biorel_id_322, :biorel_id_323, :biorel_id_324, :biorel_id_325, :biorel_id_326, :biorel_id_327, :biorel_id_328, :biorel_id_329, :biorel_id_330, :biorel_id_331, :biorel_id_332, :biorel_id_333, :biorel_id_334, :biorel_id_335, :biorel_id_336, :biorel_id_337, :biorel_id_338, :biorel_id_339, :biorel_id_340, :biorel_id_341, :biorel_id_342, :biorel_id_343, :biorel_id_344, :biorel_id_345, :biorel_id_346, :biorel_id_347, :biorel_id_348, :biorel_id_349, :biorel_id_350, :biorel_id_351, :biorel_id_352, :biorel_id_353, :biorel_id_354, :biorel_id_355, :biorel_id_356, :biorel_id_357, :biorel_id_358, :biorel_id_359, :biorel_id_360, :biorel_id_361, :biorel_id_362, :biorel_id_363, :biorel_id_364, :biorel_id_365, :biorel_id_366, :biorel_id_367, :biorel_id_368, :biorel_id_369, :biorel_id_370, :biorel_id_371, :biorel_id_372, :biorel_id_373, :biorel_id_374, :biorel_id_375, :biorel_id_376, :biorel_id_377, :biorel_id_378, :biorel_id_379, :biorel_id_380, :biorel_id_381, :biorel_id_382, :biorel_id_383, :biorel_id_384, :biorel_id_385, :biorel_id_386, :biorel_id_387, :biorel_id_388, :biorel_id_389, :biorel_id_390, :biorel_id_391, :biorel_id_392, :biorel_id_393, :biorel_id_394, :biorel_id_395, :biorel_id_396, :biorel_id_397, :biorel_id_398, :biorel_id_399, :biorel_id_400, :biorel_id_401, :biorel_id_402, :biorel_id_403, :biorel_id_404, :biorel_id_405, :biorel_id_406, :biorel_id_407, :biorel_id_408, :biorel_id_409, :biorel_id_410, :biorel_id_411, :biorel_id_412, :biorel_id_413, :biorel_id_414, :biorel_id_415, :biorel_id_416, :biorel_id_417, :biorel_id_418, :biorel_id_419, :biorel_id_420, :biorel_id_421, :biorel_id_422, :biorel_id_423, :biorel_id_424, :biorel_id_425, :biorel_id_426, :biorel_id_427, :biorel_id_428, :biorel_id_429, :biorel_id_430, :biorel_id_431, :biorel_id_432, :biorel_id_433, :biorel_id_434, :biorel_id_435, :biorel_id_436, :biorel_id_437, :biorel_id_438, :biorel_id_439, :biorel_id_440, :biorel_id_441, :biorel_id_442, :biorel_id_443, :biorel_id_444, :biorel_id_445, :biorel_id_446, :biorel_id_447, :biorel_id_448, :biorel_id_449, :biorel_id_450, :biorel_id_451, :biorel_id_452, :biorel_id_453, :biorel_id_454, :biorel_id_455, :biorel_id_456, :biorel_id_457, :biorel_id_458, :biorel_id_459, :biorel_id_460, :biorel_id_461, :biorel_id_462, :biorel_id_463, :biorel_id_464, :biorel_id_465, :biorel_id_466, :biorel_id_467, :biorel_id_468, :biorel_id_469, :biorel_id_470, :biorel_id_471, :biorel_id_472, :biorel_id_473, :biorel_id_474, :biorel_id_475, :biorel_id_476, :biorel_id_477, :biorel_id_478, :biorel_id_479, :biorel_id_480, :biorel_id_481, :biorel_id_482, :biorel_id_483, :biorel_id_484, :biorel_id_485, :biorel_id_486, :biorel_id_487, :biorel_id_488, :biorel_id_489, :biorel_id_490, :biorel_id_491, :biorel_id_492, :biorel_id_493, :biorel_id_494, :biorel_id_495, :biorel_id_496, :biorel_id_497, :biorel_id_498, :biorel_id_499, :biorel_id_500)
     '''
-    query = session.query(PhysicalInterevidence).options(joinedload('reference'), joinedload('experiment'), joinedload('notes'))
-    interevidences = None
+    query = session.query(PhysicalInterevidence)
     if bioent_id is not None:
-        biorel_ids = [biorel.id for biorel in get_biorels('PHYSICAL_INTERACTION', bioent_id)]
-        def f(chunk_biorel_ids):
-            new_query = query.filter(PhysicalInterevidence.biorel_id.in_(chunk_biorel_ids))
-            interevidences = set(new_query.all())
-            if print_query:
-                print new_query
-            return interevidences
-        interevidences = set(retrieve_in_chunks(biorel_ids, f))
-    if biorel_id is not None:
-        query = query.filter(PhysicalInterevidence.biorel_id==biorel_id)
-        new_interevidences = set(query.all())
-        if interevidences is None:
-            interevidences = new_interevidences
-        else:
-            interevidences = interevidences.intersection(new_interevidences)
+        query = query.filter(or_(PhysicalInterevidence.bioent1_id == bioent_id, PhysicalInterevidence.bioent2_id == bioent_id))
     if reference_id is not None:
         query = query.filter(PhysicalInterevidence.reference_id==reference_id)
-        new_interevidences = set(query.all())
-        if interevidences is None:
-            interevidences = new_interevidences
-        else:
-            interevidences = interevidences.intersection(new_interevidences)
+    
+    interevidences = query.all()
     if print_query:
         print_query
     return interevidences

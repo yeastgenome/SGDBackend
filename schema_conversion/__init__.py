@@ -42,12 +42,25 @@ def cache_by_key(cls, session, **kwargs):
     cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).filter_by(**kwargs).all()])
     return cache_entries
 
+def cache_link_by_key(cls, session, **kwargs):
+    cache_entries = dict([(x.unique_key(), (x.id, x.name_with_link)) for x in session.query(cls).filter_by(**kwargs).all()])
+    return cache_entries
+
 def cache_by_key_in_range(cls, col, session, min_id, max_id):
     cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).filter(col >= min_id).filter(col < max_id).all()])
     return cache_entries
 
 def cache_by_id(cls, session, **kwargs):
     cache_entries = dict([(x.id, x) for x in session.query(cls).filter_by(**kwargs).all()])
+    return cache_entries
+
+def cache_link_by_id(cls, session, **kwargs):
+    cache_entries = dict([(x.id, x.name_with_link) for x in session.query(cls.id, cls.name_with_link).filter_by(**kwargs).all()])
+    return cache_entries
+
+def cache_references(session):
+    from model_new_schema.reference import Reference as NewReference
+    cache_entries = dict([(x.id, (x.name_with_link, x.citation)) for x in session.query(NewReference.id, NewReference.name_with_link, NewReference.citation).all()])
     return cache_entries
 
 def cache_by_id_in_range(cls, col, session, min_id, max_id):

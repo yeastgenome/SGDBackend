@@ -5,9 +5,9 @@ Created on Mar 15, 2013
 '''
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_biofacts, get_go_evidence, get_related_biofacts, \
-    get_biocon_family, get_biocon_biocons, get_biocon_id, get_biocon, get_bioent, \
-    get_bioent_id, get_reference_id
+from query import get_go_evidence, get_related_biofacts, get_biocon_family, \
+    get_biocon_biocons, get_biocon_id, get_biocon, get_bioent, get_bioent_id, \
+    get_reference_id, get_biofacts
 from sgdbackend.graph_views import create_graph
 from sgdbackend.utils import create_grouped_evidence_table, create_simple_table, \
     make_reference_list

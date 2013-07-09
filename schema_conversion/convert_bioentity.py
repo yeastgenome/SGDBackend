@@ -388,7 +388,7 @@ def convert_locuses(new_session, old_bioentity=None):
     #Create new genes if they don't exist, or update the database if they do. 
     new_bioentities = [create_locus(x) for x in old_bioentity]
     
-    values_to_check = ['display_name', 'source', 'status', 'date_created', 'created_by',
+    values_to_check = ['display_name', 'source', 'status', 'date_created', 'created_by', 'name_with_link',
                        'qualifier', 'attribute', 'name_description', 'headline', 'description', 'genetic_position', 'locus_type']
     success = create_or_update_and_remove(new_bioentities, key_to_bioentity, values_to_check, new_session)
     return success
@@ -403,7 +403,7 @@ def convert_other_bioentities(new_session, old_bioentity=None):
     #Create new bioentities if they don't exist, or update the database if they do. 
     new_bioentities = [create_bioentity(x) for x in old_bioentity]
     
-    values_to_check = ['display_name', 'source', 'status', 'date_created', 'created_by']
+    values_to_check = ['display_name', 'source', 'status', 'date_created', 'created_by',  'name_with_link']
     success = create_or_update_and_remove(new_bioentities, key_to_bioentity, values_to_check, new_session)
     return success
 
@@ -417,7 +417,7 @@ def convert_dnas(new_session, old_bioentity=None):
     #Create new dnas if they don't exist, or update the database if they do. 
     new_bioentities = [create_dna(x) for x in old_bioentity]
     
-    values_to_check = ['display_name', 'date_created', 'created_by']
+    values_to_check = ['display_name', 'date_created', 'created_by', 'name_with_link']
     success = create_or_update_and_remove(new_bioentities, key_to_bioentity, values_to_check, new_session)
     return success
 
@@ -431,7 +431,7 @@ def convert_rnas(new_session, old_bioentity=None):
     #Create new rnas if they don't exist, or update the database if they do. 
     new_bioentities = [create_rna(x) for x in old_bioentity]
     
-    values_to_check = ['display_name', 'date_created', 'created_by']
+    values_to_check = ['display_name', 'date_created', 'created_by', 'name_with_link']
     success = create_or_update_and_remove(new_bioentities, key_to_bioentity, values_to_check, new_session)
     return success
 
@@ -445,7 +445,7 @@ def convert_proteins(new_session, old_bioentity=None):
     #Create new rnas if they don't exist, or update the database if they do. 
     new_bioentities = [create_protein(x) for x in old_bioentity]
     
-    values_to_check = ['display_name', 'date_created', 'created_by']
+    values_to_check = ['display_name', 'date_created', 'created_by', 'name_with_link']
     success = create_or_update_and_remove(new_bioentities, key_to_bioentity, values_to_check, new_session)
     return success
 

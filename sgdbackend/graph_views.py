@@ -3,7 +3,7 @@ Created on Jun 17, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.bioentity import Bioentevidence
+from model_new_schema.litguide import Bioentevidence
 from model_new_schema.evidence import Evidence, EvidenceChemical
 from model_new_schema.go import Goevidence
 from model_new_schema.phenotype import Phenoevidence

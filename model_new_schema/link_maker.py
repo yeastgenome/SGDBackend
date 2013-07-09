@@ -6,9 +6,9 @@ Created on Mar 6, 2013
 from string import lower
 def add_link(name, link, new_window=False):
     if new_window:
-        return '<a href="' + link + '" target="_blank">' + name + '</a>'
+        return '<a href="%s" target="_blank">%s</a>' % (link, name)
     else:
-        return '<a href="' + link + '">' + name + '</a>'
+        return '<a href="%s">%s</a>' % (link, name)
 
 link_symbol = '---'
 
@@ -109,7 +109,9 @@ def phenotype_link(biocon):
     
 #Bioentity links
 def bioent_link(bioent):
-    return '/' + bioent.bioent_type.lower() + '/' + bioent.format_name
+    return bioent_link_from_basics(bioent.bioent_type, bioent.format_name)
+def bioent_link_from_basics(bioent_type, bioent_format_name):
+    return '/%s/%s' % (bioent_type.lower(), bioent_format_name)
 def bioent_wiki_link(bioent):
     return 'http://wiki.yeastgenome.org/index.php/' + bioent.format_name
 
