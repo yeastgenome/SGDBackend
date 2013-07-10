@@ -7,9 +7,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
 import model_new_schema
 
-def main(global_config, **settings):
-    """ This function returns a Pyramid WSGI application.
-    """
+def prep_sqlalchemy(**settings):
     engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
 
     DBSession.configure(bind=engine)
@@ -17,7 +15,9 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_renderer('jsonp', JSONP(param_name='callback'))
-    
+    return config
+
+def prep_views(config):    
     #Search views
     config.add_route('search_results', '/search_results')
    
@@ -66,4 +66,10 @@ def main(global_config, **settings):
     config.add_route('sequence', '/sequence')
 
     config.scan()
+
+def main(global_config, **settings):
+    """ This function returns a Pyramid WSGI application.
+    """
+    config = prep_sqlalchemy(**settings)
+    prep_views(config)
     return config.make_wsgi_app()

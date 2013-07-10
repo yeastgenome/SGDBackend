@@ -202,12 +202,14 @@ def create_interaction_edge(interaction_id, bioent1_id, bioent2_id, evidence_cou
             'evidence':evidence_count}  
     
 def create_interaction_graph(bioent):
-    interaction_families = get_interaction_family(bioent.id)
+    bioent_id = bioent.id
+    interaction_families = get_interaction_family(bioent_id)
     
     id_to_node = {}
     edges = []
     min_evidence_count = None
     max_evidence_count = None
+    bioent_id_to_evidence_count = {}
     
     for interaction_family in interaction_families:
         evidence_count = interaction_family.evidence_count
@@ -216,21 +218,28 @@ def create_interaction_graph(bioent):
         if max_evidence_count is None or evidence_count > max_evidence_count:
             max_evidence_count = evidence_count
             
+        bioent1_id = interaction_family.bioent1_id
+        bioent2_id = interaction_family.bioent2_id
+        if bioent1_id==bioent_id or bioent2_id==bioent_id:
+            if bioent1_id not in bioent_id_to_evidence_count or bioent_id_to_evidence_count[bioent1_id] < evidence_count:
+                bioent_id_to_evidence_count[bioent1_id] = evidence_count
+            if bioent2_id not in bioent_id_to_evidence_count or bioent_id_to_evidence_count[bioent2_id] < evidence_count:
+                bioent_id_to_evidence_count[bioent2_id] = evidence_count    
+            
     for interaction_family in interaction_families:
         bioent1_id = interaction_family.bioent1_id
         bioent2_id = interaction_family.bioent2_id
         evidence_count = interaction_family.evidence_count
-        if bioent1_id != bioent.id and bioent1_id not in id_to_node:
+        if bioent1_id not in id_to_node:
             bioent_name = interaction_family.bioent1_display_name
             bioent_link = interaction_family.bioent1_link
-            id_to_node[bioent1_id] = create_interaction_node(bioent1_id, bioent_name, bioent_link, False, evidence_count)
-        if bioent2_id != bioent.id and bioent2_id not in id_to_node:
+            id_to_node[bioent1_id] = create_interaction_node(bioent1_id, bioent_name, bioent_link, bioent1_id==bioent_id, bioent_id_to_evidence_count[bioent1_id])
+        if bioent2_id not in id_to_node:
             bioent_name = interaction_family.bioent2_display_name
             bioent_link = interaction_family.bioent2_link
-            id_to_node[bioent2_id] = create_interaction_node(bioent2_id, bioent_name, bioent_link, False, evidence_count)
+            id_to_node[bioent2_id] = create_interaction_node(bioent2_id, bioent_name, bioent_link, bioent2_id==bioent_id, bioent_id_to_evidence_count[bioent2_id])
         edges.append(create_interaction_edge(interaction_family.id, bioent1_id, bioent2_id, evidence_count))
             
-    id_to_node[bioent.id] = create_interaction_node(bioent.id, bioent.display_name, bioent.link, True, max_evidence_count)
     
     return {'dataSchema':interaction_schema, 'data': {'nodes': id_to_node.values(), 'edges': edges}, 
             'min_evidence_cutoff':min_evidence_count, 'max_evidence_cutoff':max_evidence_count}

@@ -70,6 +70,14 @@ def get_resources(category, bioent_id=None, print_query=False):
     if print_query:
         print query
     return urls
+
+#Used for tests
+def get_bioent_format_names(print_query=False):
+    query = session.query(Bioentity.format_name)
+    bioent_format_names = [x.format_name for x in query.all()]
+    if print_query:
+        print query
+    return bioent_format_names
         
 #Used to break very large queries into a manageable size.
 chunk_size = 500
