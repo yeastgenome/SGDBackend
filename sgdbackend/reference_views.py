@@ -10,7 +10,6 @@ from query.query_reference import get_reference, get_author, get_author_id, \
     find_bioentities, get_assoc_reference
 from sgdbackend.graph_views import create_graph
 from sgdbackend.utils import make_reference_list
-import string
 
 @view_config(route_name='reference', renderer='json')
 def reference_view(request):

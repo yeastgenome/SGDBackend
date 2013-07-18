@@ -8,7 +8,6 @@ from model_new_schema.reference import Reference, Author, AuthorReference
 from query import session
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func
-import string
 
 #Used for Reference page.
 def get_reference(reference_name, print_query=False):

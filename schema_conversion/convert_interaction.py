@@ -7,7 +7,7 @@ from model_new_schema import config as new_config
 from model_old_schema import config as old_config
 from schema_conversion import create_or_update_and_remove, \
     prepare_schema_connection, create_format_name, cache_by_key_in_range, \
-    execute_conversion, cache_link_by_key, cache_references, cache_link_by_id, \
+    execute_conversion, cache_references, cache_link_by_id, \
     cache_name_by_key
 from schema_conversion.auxillary_tables import convert_interactions, \
     convert_interaction_families
