@@ -91,7 +91,8 @@ def find_bioentities(text, print_query=False):
     name_to_feature = {}
 
     if text is not None and text != '':
-        words = text.upper().translate(string.maketrans("",""), string.punctuation).split()
+        #words = text.upper().translate(string.maketrans("",""), string.punctuation).split()
+        words = text.upper().split()
     
         upper_words = [x.upper() for x in words]
         bioents_by_format_name = set(session.query(Bioentity).filter(func.upper(Bioentity.format_name).in_(upper_words)).all())

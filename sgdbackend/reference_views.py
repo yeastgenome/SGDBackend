@@ -94,7 +94,8 @@ def add_bioent_hyperlinks(text):
             word = words[i]
             words[i] = "<a href='" + word_to_link[upper] + "'>" + word + "</a>"
         else:
-            remove_punc = upper.translate(string.maketrans("",""), string.punctuation)
+            #remove_punc = upper.translate(string.maketrans("",""), string.punctuation)
+            remove_punc = upper
             if remove_punc in word_to_link:
                 link = word_to_link[remove_punc]
                 index = words[i].upper().find(remove_punc)

@@ -226,7 +226,7 @@ def make_evidence_row(phenoevidence):
         chemical_info = None
 
      
-    return [biocon.observable, bioent.name_with_link, 
+    return [None, biocon.observable, bioent.name_with_link, 
             biocon.qualifier, biocon.mutant_type, phenoevidence.experiment.name_with_link, allele_entry,
             phenoevidence.reporter, chemical_info, phenoevidence.experiment_details, phenoevidence.conditions, phenoevidence.details, 
             phenoevidence.strain.name_with_link, phenoevidence.source, reference]
