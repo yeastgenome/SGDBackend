@@ -44,3 +44,12 @@ def make_reference_list(evidences=None, references=None):
     citations = filter(None, list(citations))
     citations.sort(key=lambda x: x.split('>')[1])
     return citations  
+
+def make_reference_list_order_by_date(evidences=None, references=None):
+    if evidences is not None:
+        citations = set([evidence.reference_citation for evidence in evidences])
+    else:
+        citations = set([reference.citation for reference in references])
+    citations = filter(None, list(citations))
+    citations.sort(key=lambda x: (x.split('(')[1][:4], x.split('>')[1]))
+    return citations  

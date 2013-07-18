@@ -1,8 +1,8 @@
-from models import DBSession
+from model_new_schema.config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE
 from model_new_schema.link_maker import LinkMaker
+from models import DBSession
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
-from model_new_schema.config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
 import model_new_schema
@@ -15,6 +15,10 @@ def prep_sqlalchemy(**settings):
     config = Configurator(settings=settings)
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_renderer('jsonp', JSONP(param_name='callback'))
+
+    from go_enrichment import setup_go_enrichment_analysis    
+    #setup_go_enrichment_analysis()
+
     return config
 
 def prep_views(config):    
@@ -64,6 +68,11 @@ def prep_views(config):
     
     #Sequence views
     config.add_route('sequence', '/sequence')
+    
+    #List views
+    config.add_route('list', '/list')
+    config.add_route('go_enrichment', '/go_enrichment')
+
 
     config.scan()
 

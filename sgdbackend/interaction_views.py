@@ -167,19 +167,25 @@ def make_evidence_row(interevidence, bioent=None):
 
     reference_link = interevidence.reference_name_with_link 
     experiment_link = interevidence.experiment_name_with_link
-        
-    phenotype_link = ''
-    if interevidence.evidence_type == 'GENETIC_INTERACTION_EVIDENCE' and interevidence.phenotype_id is not None:
-        phenotype_link = interevidence.phenotype_name_with_link
-    modification = ''
-    if interevidence.evidence_type == 'PHYSICAL_INTERACTION_EVIDENCE' and interevidence.modification is not None:
-        modification = interevidence.modification
-        
     note=interevidence.note
-     
-    return [None, orig_bioent_link, opp_bioent_link, 
+        
+    if interevidence.evidence_type == 'GENETIC_INTERACTION_EVIDENCE':
+        phenotype_link = ''
+        if interevidence.phenotype_id is not None:
+            phenotype_link = interevidence.phenotype_name_with_link
+        return [None, orig_bioent_link, opp_bioent_link, 
             experiment_link, interevidence.annotation_type, direction, phenotype_link,
+            interevidence.source, reference_link, note]
+        
+    elif interevidence.evidence_type == 'PHYSICAL_INTERACTION_EVIDENCE':
+        modification = ''
+        if interevidence.modification is not None:
+            modification = interevidence.modification
+        return [None, orig_bioent_link, opp_bioent_link, 
+            experiment_link, interevidence.annotation_type, direction,
             modification, interevidence.source, reference_link, note]
+    else:
+        return None
 
 '''
 -------------------------------Graph---------------------------------------

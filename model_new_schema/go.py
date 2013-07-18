@@ -10,6 +10,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
+from model_new_schema import Base, EqualityByIDMixin
 
 class Go(Bioconcept):
     __tablename__ = 'goterm'
@@ -59,15 +60,34 @@ class Goevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "GO_EVIDENCE",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, evidence_id, reference_id, source,
+    def __init__(self, evidence_id, reference_id, reference_name_with_link, reference_citation, source,
                  go_evidence, annotation_type, qualifier, date_last_reviewed,
                 bioent_id, biocon_id, date_created, created_by):
-        Evidence.__init__(self, evidence_id, None, reference_id, 'GO_EVIDENCE', None, source, date_created, created_by)
+        Evidence.__init__(self, evidence_id, None, None,
+                          reference_id, reference_name_with_link, reference_citation,
+                          None, None,
+                          source, 'GO_EVIDENCE', date_created, created_by)
         self.go_evidence = go_evidence
         self.annotation_type = annotation_type
         self.qualifier = qualifier
         self.date_last_reviewed = date_last_reviewed
         self.bioent_id = bioent_id
         self.biocon_id = biocon_id
+        
+class Gofact(Base, EqualityByIDMixin):
+    __tablename__ = 'gofact'
+
+    id = Column('biofact_id', Integer, primary_key=True)
+    bioent_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
+    biocon_id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id))
+    type = "BIOFACT"
+
+    
+    def __init__(self, bioent_id, biocon_id):
+        self.bioent_id = bioent_id
+        self.biocon_id = biocon_id
+
+    def unique_key(self):
+        return (self.bioent_id, self.biocon_id)
         
         

@@ -43,3 +43,13 @@ def get_bioent_id(bioent_name, bioent_type, print_query=False):
     if print_query:
         print query
     return bioent_id
+
+#Used for list_view
+def get_bioents(locus_names=None, print_query=False):
+    bioents = []
+    if locus_names is not None:
+        query1 = session.query(with_polymorphic(Bioentity, Locus)).filter(Locus.format_name.in_(locus_names)).filter(Bioentity.bioent_type=='LOCUS')
+        bioents.extend(query1.all())
+    if print_query:
+        print query1
+    return bioents

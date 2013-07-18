@@ -7,7 +7,8 @@ from model_new_schema import config as new_config
 from model_old_schema import config as old_config
 from schema_conversion import create_or_update_and_remove, \
     prepare_schema_connection, create_format_name, cache_by_key_in_range, \
-    execute_conversion, cache_link_by_key, cache_references, cache_link_by_id
+    execute_conversion, cache_link_by_key, cache_references, cache_link_by_id, \
+    cache_name_by_key
 from schema_conversion.auxillary_tables import convert_interactions, \
     convert_interaction_families
 from schema_conversion.convert_phenotype import create_phenotype_key
@@ -170,8 +171,8 @@ def convert(old_session_maker, new_session_maker, ask=True):
     from model_new_schema.evelement import Experiment as NewExperiment
     from model_new_schema.phenotype import Phenotype as NewPhenotype
     new_session = new_session_maker()
-    experiment_key_to_link = cache_link_by_key(NewExperiment, new_session)
-    phenotype_key_to_link = cache_link_by_key(NewPhenotype, new_session)
+    experiment_key_to_link = cache_name_by_key(NewExperiment, new_session)
+    phenotype_key_to_link = cache_name_by_key(NewPhenotype, new_session)
     reference_id_to_link = cache_references(new_session)
     bioent_id_to_link = cache_link_by_id(NewBioentity, new_session)
         

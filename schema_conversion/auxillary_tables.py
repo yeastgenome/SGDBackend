@@ -139,6 +139,36 @@ def order_bioent_ids(bioent1_id, bioent2_id):
         return bioent1_id, bioent2_id
     else:
         return bioent2_id, bioent1_id
+    
+def convert_gofact(new_session, key_to_evidence, key_to_bioconrels, min_id, max_id):
+    from model_new_schema.go import Gofact as NewGofact
+    
+    key_to_biofacts = cache_by_key_in_range(NewGofact, NewGofact.biocon_id, new_session, min_id, max_id)
+    
+    child_to_parents = {}
+    for bioconrel in key_to_bioconrels.values():
+        child_id = bioconrel.child_id
+        parent_id = bioconrel.parent_id
+        
+        if child_id in child_to_parents:
+            child_to_parents[child_id].add(parent_id)
+        else:
+            child_to_parents[child_id] = set([parent_id])
+    
+    new_biofacts = set()
+    for evidence in key_to_evidence.values():
+        biocon_ids = [evidence.biocon_id]
+        next_gen_biocon_ids = set()
+        while len(biocon_ids) > 0:
+            for biocon_id in biocon_ids:
+                if biocon_id >= min_id and biocon_id < max_id:
+                    new_biofacts.add(NewGofact(evidence.bioent_id, biocon_id))
+                if biocon_id in child_to_parents:
+                    next_gen_biocon_ids.update(child_to_parents[biocon_id])
+            biocon_ids = set(next_gen_biocon_ids)
+            next_gen_biocon_ids = set()
+    success = create_or_update_and_remove(new_biofacts, key_to_biofacts, [], new_session)
+    return success
 
 def convert_biocon_ancestors(new_session, bioconrel_type, num_generations):
     from model_new_schema.bioconcept import BioconRelation as NewBioconRelation, BioconAncestor as NewBioconAncestor

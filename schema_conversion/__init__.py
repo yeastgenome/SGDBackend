@@ -46,6 +46,10 @@ def cache_link_by_key(cls, session, **kwargs):
     cache_entries = dict([(x.unique_key(), (x.id, x.name_with_link)) for x in session.query(cls).filter_by(**kwargs).all()])
     return cache_entries
 
+def cache_name_by_key(cls, session, **kwargs):
+    cache_entries = dict([(x.unique_key(), (x.id, x.display_name)) for x in session.query(cls).filter_by(**kwargs).all()])
+    return cache_entries
+
 def cache_by_key_in_range(cls, col, session, min_id, max_id, **kwargs):
     cache_entries = dict([(x.unique_key(), x) for x in session.query(cls).filter(col >= min_id).filter(col < max_id).filter_by(**kwargs).all()])
     return cache_entries
@@ -108,6 +112,11 @@ def create_or_update(new_objs, mapping, values_to_check, session):
         return True
     
 def create_or_update_and_remove(new_objs, mapping, values_to_check, session, full_mapping=None):
+    if len(new_objs) > 150000:
+        print 'Too many objects!'
+        print len(new_objs)
+        raise Exception();
+    
     if full_mapping is None:
         full_mapping = mapping
     

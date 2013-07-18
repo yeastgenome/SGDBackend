@@ -2,7 +2,7 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_chemical
 from query.query_biocon import get_biocon
-from query.query_bioent import get_bioent
+from query.query_bioent import get_bioent, get_bioents
 
 
 @view_config(route_name='bioent', renderer='json')
@@ -19,6 +19,30 @@ def bioent(request):
                     'name_with_link': bioent.name_with_link,
                     }
     return bioent_json
+
+@view_config(route_name='locus', renderer='json')
+def locus(request):
+    bioent_name = request.matchdict['bioent']
+    bioent = get_bioent(bioent_name, 'LOCUS')
+    if bioent is None:
+        return Response(status_int=500, body='Locus could not be found.')
+    
+    bioent_json = {
+                   'display_name': bioent.display_name, 
+                   'format_name': bioent.format_name,
+                   'full_name': bioent.full_name,
+                   'description': bioent.description,
+                   
+                   'source': bioent.source,
+                   'attribute': bioent.attribute,
+                   'name_description': bioent.name_description,
+                   'qualifier': bioent.qualifier,
+                   'bioent_type': bioent.bioent_type,
+                   'aliases': bioent.alias_str,
+                   'wiki_name_with_link': bioent.wiki_name_with_link,
+    
+                   }
+    return bioent_json 
 
 @view_config(route_name='biocon', renderer='json')
 def biocon(request):
@@ -49,6 +73,26 @@ def chemical(request):
                      'aliases': chemical.alias_str
                      }
     return chemical_json
+
+@view_config(route_name='list', renderer='json')
+def list_view(request):
+    locus_names = set(request.POST['locus'].split(','))
+    bioents = get_bioents(locus_names=locus_names)
+    if bioents is None:
+        return Response(status_int=500, body='Bioents could not be found.')
+    
+    bioents_json = []
+    for bioent in bioents:
+        bioents_json.append({
+                    'id': bioent.id,
+                    'format_name': bioent.format_name,
+                    'display_name': bioent.display_name, 
+                    'name_with_link': bioent.name_with_link,
+                    'description': bioent.description
+                    })
+    return bioents_json
+
+
 
 
 

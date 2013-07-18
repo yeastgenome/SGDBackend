@@ -5,17 +5,10 @@ Created on Jul 10, 2013
 '''
 
 from datetime import timedelta
-from sgdbackend import prep_sqlalchemy, prep_views
 from sgdbackend.interaction_views import interaction_overview_table, \
     interaction_evidence_table, interaction_graph, interaction_evidence_resources
 from test import PseudoRequest
 import datetime
-import pytest
-
-@pytest.fixture(scope="module")
-def model():
-    config = prep_sqlalchemy()
-    prep_views(config)
 
 def test_interaction_overview_table_for_bioent_structure(model):
     response = interaction_overview_table(PseudoRequest(bioent='YFL039C'))
@@ -66,10 +59,4 @@ def test_interaction__evidence_resources_for_bioent_speed(model):
     interaction_evidence_resources(PseudoRequest(bioent='YFL039C'))
     end_time = datetime.datetime.now()
     assert end_time - begin_time < timedelta(seconds=.2)
-    
-#def test_interaction_overview_table_for_ref_structure(model):
-#    response = interaction_overview_table(PseudoRequest(reference='2656402'))
-#    print response
-#    assert response is not None
-#    assert 'aaData' in response
 

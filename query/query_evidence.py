@@ -55,11 +55,11 @@ def get_physical_interaction_evidence(bioent_id=None, biorel_id=None, reference_
 
 #Used for bioent_evidence table.
 def get_bioent_evidence(bioent_id=None, reference_id=None, print_query=False):
-    query = session.query(Bioentevidence).options(joinedload('reference'), joinedload('bioentity'))
+    query = session.query(Bioentevidence).options(joinedload('bioentity'))
     if bioent_id is not None:
         query = query.filter(Bioentevidence.bioent_id==bioent_id)
     if reference_id is not None:
-        query = query.filter(Phenoevidence.reference_id==reference_id)
+        query = query.filter(Bioentevidence.reference_id==reference_id)
     
     evidences = query.all()
     

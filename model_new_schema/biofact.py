@@ -30,6 +30,8 @@ class Biofact(Base, EqualityByIDMixin):
         self.biocon_id = biocon_id
         self.biocon_type = biocon_type
 
+    def unique_key(self):
+        return (self.bioent_id, self.biocon_id, self.biocon_type)
 
 
 
