@@ -12,6 +12,7 @@ from query.query_evidence import get_genetic_interaction_evidence, \
 from query.query_interaction import get_interactions, get_interaction_family
 from query.query_reference import get_reference_id
 from sgdbackend.utils import create_simple_table, make_reference_list
+from sgdbackend.venn import calc_venn_measurements
 
 
 
@@ -25,7 +26,7 @@ def interaction_overview_table(request):
             return Response(status_int=500, body='Bioent could not be found.')
         genetic = get_interactions('GENETIC_INTERACTION', bioent.id)
         physical = get_interactions('PHYSICAL_INTERACTION', bioent.id)
-        return make_overview_tables(genetic, physical, bioent) 
+        return make_overview_table(genetic, physical, bioent) 
     
     elif 'reference' in request.GET:
         #Need an interaction overview table based on a reference
@@ -37,7 +38,7 @@ def interaction_overview_table(request):
         physical_interevidences = get_physical_interaction_evidence(reference_id=ref_id)
         genetic = set([interevidence.biorel for interevidence in genetic_interevidences])
         physical = set([interevidence.biorel for interevidence in physical_interevidences])
-        return make_overview_tables(genetic, physical) 
+        return make_overview_table(genetic, physical) 
 
     else:
         return Response(status_int=500, body='No Bioent or Reference specified.')
@@ -89,13 +90,7 @@ def interaction_evidence_resources(request):
 
 '''
 -------------------------------Overview Table---------------------------------------
-'''
-
-def make_overview_tables(genetic, physical, bioent=None):
-    tables = {}
-            
-    tables['aaData'] = make_overview_table(genetic, physical, bioent)
-    return tables    
+'''  
 
 def make_overview_table(genetic, physical, bioent):
     inters_to_genetic = dict([(x.endpoint_name_with_links, x.evidence_count) for x in genetic])
@@ -127,7 +122,24 @@ def make_overview_table(genetic, physical, bioent):
         
     all_inters = set(inters_to_genetic.keys())
     all_inters.update(inters_to_physical.keys())
-    return create_simple_table(all_inters, f, bioent=bioent) 
+    
+    A = 0
+    B = 0
+    C = 0
+    for inter in all_inters:
+        gen = inter in inters_to_genetic
+        phys = inter in inters_to_physical
+        if gen:
+            A = A+1
+        if phys:
+            B = B+1
+        if gen and phys:
+            C = C+1
+            
+    r, s, x = calc_venn_measurements(A, B, C)
+    
+    return {'aaData': create_simple_table(all_inters, f, bioent=bioent),
+            'venn':[r, s, x]}
 
     
 '''
@@ -219,14 +231,15 @@ def create_interaction_graph(bioent):
     
     for interaction_family in interaction_families:
         evidence_count = interaction_family.evidence_count
-        if min_evidence_count is None or evidence_count < min_evidence_count:
-            min_evidence_count = evidence_count
-        if max_evidence_count is None or evidence_count > max_evidence_count:
-            max_evidence_count = evidence_count
-            
+           
         bioent1_id = interaction_family.bioent1_id
         bioent2_id = interaction_family.bioent2_id
         if bioent1_id==bioent_id or bioent2_id==bioent_id:
+            if min_evidence_count is None or evidence_count < min_evidence_count:
+                min_evidence_count = evidence_count
+            if max_evidence_count is None or evidence_count > max_evidence_count:
+                max_evidence_count = evidence_count
+            
             if bioent1_id not in bioent_id_to_evidence_count or bioent_id_to_evidence_count[bioent1_id] < evidence_count:
                 bioent_id_to_evidence_count[bioent1_id] = evidence_count
             if bioent2_id not in bioent_id_to_evidence_count or bioent_id_to_evidence_count[bioent2_id] < evidence_count:

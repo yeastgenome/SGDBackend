@@ -199,3 +199,4 @@ def execute_conversion(convert_f, old_session_maker, new_session_maker, ask, **k
     finally:
         old_session.close()
         new_session.close()    
+        

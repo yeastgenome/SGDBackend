@@ -47,13 +47,11 @@ def search_results(request):
     except DBAPIError:
         return Response("Error.", content_type='text/plain', status_int=500)
     return {'results': search_result_jsons, 'num_pages':num_pages, 'num_results':num_results, 'counts':counts}
-    
-source_priorities = {'NAME':1, 'GENE_NAME':0, 'ALIAS':2, 'AUTHOR_YEAR':3, 'TITLE': 4, 'CITATION': 5, 'NAME_DESC':6, 'DESCRIPTION':7, 'ABSTRACT':8,
-                     'PUBMED_ID':10, 'DOI':11}
+
 bio_type_priorities = {'LOCUS':0, 'GO':.1, 'PHENOTYPE':.2, 'REFERENCE':.3, 'PROTEIN':.4, 'SEQUENCE':.5, 'TRANSCRIPT':.6}
 
 def sort_results(search_results):
-    return sorted(search_results, key=lambda x: source_priorities[x.source] + bio_type_priorities[x.bio_type])
+    return sorted(search_results, key=lambda x: bio_type_priorities[x.bio_type])
 
 def count_results(search_results):
     counts = {}

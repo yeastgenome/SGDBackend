@@ -20,7 +20,7 @@ def search(search_strs, bio_type, print_query=False):
     WHERE sprout.typeahead3.name = :name_1
     '''  
     for search_str in search_strs: 
-        query = session.query(Typeahead).filter(Typeahead.name == search_str.lower()) 
+        query = session.query(Typeahead).filter(Typeahead.name.like('%' + search_str.lower() + '%')) 
         if bio_type != None:
             query = query.filter(Typeahead.bio_type == bio_type)          
         search_results = query.all() 

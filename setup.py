@@ -8,9 +8,16 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
     'pyramid',
-    'pyramid_debugtoolbar',
     'waitress',
+    'sqlalchemy',
+    'simplejson'
     ]
+
+tests_require = [
+    'behave',
+    'behaving',
+    'pytest',
+]
 
 setup(name='SGDBackend',
       version='0.0',
@@ -22,8 +29,8 @@ setup(name='SGDBackend',
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         ],
-      author='',
-      author_email='',
+      author='Kelley Paskov',
+      author_email='kpaskov@stanford.edu',
       url='',
       keywords='web pyramid pylons',
       packages=find_packages(),
@@ -32,6 +39,9 @@ setup(name='SGDBackend',
       install_requires=requires,
       tests_require=requires,
       test_suite="sgdbackend",
+      extras_require={
+        'test': tests_require,
+      },
       entry_points="""\
       [paste.app_factory]
       main = sgdbackend:main
