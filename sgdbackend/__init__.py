@@ -27,6 +27,7 @@ def prep_views(config):
    
     #Bioent views
     config.add_route('bioent', '/bioent/{bioent_type}/{bioent}')
+    config.add_route('all_bioents', '/all_bioents')
     config.add_route('locus', '/locus/{bioent}')
     config.add_route('bioent_overview_table', '/bioent_overview_table')
     config.add_route('bioent_evidence_table', '/bioent_evidence_table')

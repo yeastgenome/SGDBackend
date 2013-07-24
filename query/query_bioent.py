@@ -26,6 +26,14 @@ def get_bioent(bioent_name, bioent_type, print_query=False):
         print query
     return bioent
 
+#Used to create performance database.
+def get_all_bioents(print_query=False):
+    query = session.query(Bioentity)
+    bioents = query.all()
+    if print_query:
+        print query
+    return bioents
+
 #Used to create go_overview, phenotype_overview, go_evidence, and phenotype_evidence tables
 def get_bioent_id(bioent_name, bioent_type, print_query=False):
     '''

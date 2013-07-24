@@ -2,7 +2,7 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_chemical
 from query.query_biocon import get_biocon
-from query.query_bioent import get_bioent, get_bioents
+from query.query_bioent import get_bioent, get_bioents, get_all_bioents
 
 
 @view_config(route_name='bioent', renderer='json')
@@ -18,6 +18,17 @@ def bioent(request):
                     'display_name': bioent.display_name, 
                     'name_with_link': bioent.name_with_link,
                     }
+    return bioent_json
+
+@view_config(route_name='all_bioents', renderer='json')
+def all_bioents(request):
+    bioents = get_all_bioents()
+    bioent_json = []
+    for bioent in bioents:
+        bioent_json.append({'format_name': bioent.format_name,
+                            'bioent_type': bioent.bioent_type,
+                            'bioent_id': bioent.id
+                            })
     return bioent_json
 
 @view_config(route_name='locus', renderer='json')
