@@ -22,7 +22,9 @@ def bioent(request):
 
 @view_config(route_name='all_bioents', renderer='json')
 def all_bioents(request):
-    bioents = get_all_bioents()
+    min_id = int(request.GET['min'])
+    max_id = int(request.GET['max'])
+    bioents = get_all_bioents(min_id, max_id)
     bioent_json = []
     for bioent in bioents:
         bioent_json.append({'format_name': bioent.format_name,
