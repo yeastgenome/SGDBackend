@@ -1,4 +1,4 @@
-from model_new_schema.config import SCHEMA
+from config import SCHEMA
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension

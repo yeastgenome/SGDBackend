@@ -9,7 +9,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'pyramid',
     'waitress',
-    'sqlalchemy',
+    'sprout_orm',
     'simplejson'
     ]
 

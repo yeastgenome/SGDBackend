@@ -1,4 +1,3 @@
-from model_new_schema import config as new_config
 from model_new_schema.bioconcept import Bioconcept, BioconAncestor, \
     BioconRelation
 from model_new_schema.bioentity import Bioentity, Locus, BioentUrl
@@ -15,7 +14,6 @@ from model_new_schema.phenotype import Phenoevidence, Phenotype
 from model_new_schema.reference import Reference, Author, AuthorReference
 from model_new_schema.search import Typeahead
 from model_new_schema.sequence import Sequence
-from schema_conversion import prepare_schema_connection
 from sgdbackend.models import DBSession
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
 from sqlalchemy.orm.util import with_polymorphic
@@ -25,7 +23,6 @@ import math
 import model_new_schema
 
 session = DBSession
-#session = prepare_schema_connection(model_new_schema, new_config)()
 
 #Used to create phenotype_overview table.
 def get_chemical_id(chemical_name, print_query=False):
