@@ -1,5 +1,4 @@
 from config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE
-from model_new_schema.link_maker import LinkMaker
 from models import DBSession
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
