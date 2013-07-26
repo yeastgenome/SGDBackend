@@ -202,22 +202,16 @@ def make_evidence_row(interevidence, bioent=None):
 '''
 -------------------------------Graph---------------------------------------
 '''  
-    
-interaction_schema = {'nodes': [ { 'name': "label", 'type': "string" },  
-                         { 'name': "link", 'type': "string" },
-                         {'name':'evidence', 'type':'integer'},
-                         {'name':'sub_type', 'type':'string'}],
-                'edges': [{'name':'evidence', 'type':'integer'}]}
 
 def create_interaction_node(bioent_id, bioent_name, bioent_link, is_focus, evidence_count):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'id':'Node' + str(bioent_id), 'label':bioent_name, 'link': bioent_link, 'evidence':evidence_count, 'sub_type':sub_type}
+    return {'data':{'id':'Node' + str(bioent_id), 'name':bioent_name, 'link': bioent_link, 'evidence':evidence_count, 'sub_type':sub_type}}
 
 def create_interaction_edge(interaction_id, bioent1_id, bioent2_id, evidence_count):
-    return { 'id': 'Edge' + str(interaction_id), 'target': 'Node' + str(bioent1_id), 'source': 'Node' + str(bioent2_id), 
-            'evidence':evidence_count}  
+    return {'data':{'target': 'Node' + str(bioent1_id), 'source': 'Node' + str(bioent2_id), 
+            'evidence':evidence_count}}
     
 def create_interaction_graph(bioent):
     bioent_id = bioent.id
@@ -260,7 +254,7 @@ def create_interaction_graph(bioent):
         edges.append(create_interaction_edge(interaction_family.id, bioent1_id, bioent2_id, evidence_count))
             
     
-    return {'dataSchema':interaction_schema, 'data': {'nodes': id_to_node.values(), 'edges': edges}, 
+    return {'nodes': id_to_node.values(), 'edges': edges, 
             'min_evidence_cutoff':min_evidence_count, 'max_evidence_cutoff':max_evidence_count}
 
 '''
