@@ -54,7 +54,7 @@ def interaction_evidence_table(request):
             return Response(status_int=500, body='Bioent could not be found.')
         genetic_interevidences = get_genetic_interaction_evidence(bioent_id=bioent.id)
         physical_interevidences = get_physical_interaction_evidence(bioent_id=bioent.id)
-        return make_evidence_tables(True, genetic_interevidences, physical_interevidences, bioent) 
+        return make_evidence_tables(False, genetic_interevidences, physical_interevidences, bioent) 
     
     else:
         return Response(status_int=500, body='No Bioent specified.')
@@ -157,7 +157,7 @@ def make_evidence_tables(divided, genetic_interevidences, physical_interevidence
         tables['physical'] = create_simple_table(physical_interevidences, make_evidence_row, bioent=bioent)
         
     else:
-        tables['aaData'] = create_simple_table(all_interevidences, make_evidence_row, bioent)
+        tables['aaData'] = create_simple_table(all_interevidences, make_evidence_row, bioent=bioent)
         
     tables['reference'] = make_reference_list(all_interevidences)
         
@@ -185,17 +185,17 @@ def make_evidence_row(interevidence, bioent=None):
         phenotype_link = ''
         if interevidence.phenotype_id is not None:
             phenotype_link = interevidence.phenotype_name_with_link
-        return [None, orig_bioent_link, opp_bioent_link, 
-            experiment_link, interevidence.annotation_type, direction, phenotype_link,
+        return [None, orig_bioent_link, opp_bioent_link, 'Genetic',
+            experiment_link, interevidence.annotation_type, direction, None, phenotype_link,
             interevidence.source, reference_link, note]
         
     elif interevidence.evidence_type == 'PHYSICAL_INTERACTION_EVIDENCE':
         modification = ''
         if interevidence.modification is not None:
             modification = interevidence.modification
-        return [None, orig_bioent_link, opp_bioent_link, 
+        return [None, orig_bioent_link, opp_bioent_link, 'Physical',
             experiment_link, interevidence.annotation_type, direction,
-            modification, interevidence.source, reference_link, note]
+            modification, None, interevidence.source, reference_link, note]
     else:
         return None
 

@@ -16,7 +16,7 @@ def bioent(request):
     bioent_json = {
                     'format_name': bioent.format_name,
                     'display_name': bioent.display_name, 
-                    'name_with_link': bioent.name_with_link,
+                    'link': bioent.link,
                     }
     return bioent_json
 
