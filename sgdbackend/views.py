@@ -2,21 +2,23 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from query import get_chemical
 from query.query_biocon import get_biocon
-from query.query_bioent import get_bioent, get_bioents, get_all_bioents
+from query.query_bioent import get_bioent, get_bioents, get_all_bioents, \
+    get_bioent_id, get_bioent_from_id
 
 
 @view_config(route_name='bioent', renderer='json')
 def bioent(request):
     bioent_name = request.matchdict['bioent']
-    bioent_type = request.matchdict['bioent_type'].upper()
-    bioent = get_bioent(bioent_name, bioent_type)
+    bioent = get_bioent(bioent_name, 'LOCUS')
     if bioent is None:
         return Response(status_int=500, body='Bioent could not be found.')
         
     bioent_json = {
                     'format_name': bioent.format_name,
+                    'bioent_type': bioent.bioent_type,
                     'display_name': bioent.display_name, 
                     'link': bioent.link,
+                    'bioent_id': bioent.id
                     }
     return bioent_json
 
@@ -29,6 +31,8 @@ def all_bioents(request):
     for bioent in bioents:
         bioent_json.append({'format_name': bioent.format_name,
                             'bioent_type': bioent.bioent_type,
+                            'display_name': bioent.display_name, 
+                            'link': bioent.link,
                             'bioent_id': bioent.id
                             })
     return bioent_json
@@ -105,6 +109,23 @@ def list_view(request):
                     })
     return bioents_json
 
+
+def get_bioent_id_from_repr(bioent_repr):
+    bioent_id = None
+    try:
+        bioent_id = int(bioent_repr)
+    except ValueError:
+        bioent_id = get_bioent_id(bioent_repr, 'LOCUS')
+    return bioent_id
+
+def get_bioent_from_repr(bioent_repr):
+    bioent = None
+    try:
+        bioent_id = int(bioent_repr)
+        bioent = get_bioent_from_id(bioent_id)
+    except ValueError:
+        bioent = get_bioent(bioent_repr, 'LOCUS')
+    return bioent
 
 
 

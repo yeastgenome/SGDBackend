@@ -13,6 +13,7 @@ from query.query_interaction import get_interactions, get_interaction_family
 from query.query_reference import get_reference_id
 from sgdbackend.utils import create_simple_table, make_reference_list
 from sgdbackend.venn import calc_venn_measurements
+from sgdbackend.views import get_bioent_from_repr, get_bioent_id_from_repr
 
 
 
@@ -20,8 +21,8 @@ from sgdbackend.venn import calc_venn_measurements
 def interaction_overview_table(request):
     if 'bioent' in request.GET:
         #Need an interaction overview table based on a bioent
-        bioent_name = request.GET['bioent']
-        bioent = get_bioent(bioent_name, 'LOCUS')
+        bioent_repr = request.GET['bioent']
+        bioent = get_bioent_from_repr(bioent_repr)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
         genetic = get_interactions('GENETIC_INTERACTION', bioent.id)
@@ -48,8 +49,8 @@ def interaction_overview_table(request):
 def interaction_evidence_table(request):
     if 'bioent' in request.GET:
         #Need an interaction evidence table based on a bioent
-        bioent_name = request.GET['bioent']
-        bioent = get_bioent(bioent_name, 'LOCUS')
+        bioent_repr = request.GET['bioent']
+        bioent = get_bioent_from_repr(bioent_repr)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
         genetic_interevidences = get_genetic_interaction_evidence(bioent_id=bioent.id)
@@ -63,8 +64,8 @@ def interaction_evidence_table(request):
 def interaction_graph(request):
     if 'bioent' in request.GET:
         #Need an interaction graph based on a bioent
-        bioent_name = request.GET['bioent']
-        bioent = get_bioent(bioent_name, 'LOCUS')
+        bioent_repr = request.GET['bioent']
+        bioent = get_bioent_from_repr(bioent_repr)
         if bioent is None:
             return Response(status_int=500, body='Bioent could not be found.')
         return create_interaction_graph(bioent=bioent)
@@ -72,12 +73,12 @@ def interaction_graph(request):
     else:
         return Response(status_int=500, body='No Bioent specified.')
     
-@view_config(route_name='interaction_evidence_resources', renderer='jsonp')
+@view_config(route_name='interaction_evidence_resources', renderer="jsonp")
 def interaction_evidence_resources(request):
     if 'bioent' in request.GET:
         #Need interaction evidence resources based on a bioent
-        bioent_name = request.GET['bioent']
-        bioent_id = get_bioent_id(bioent_name, 'LOCUS')
+        bioent_repr = request.GET['bioent']
+        bioent_id = get_bioent_id_from_repr(bioent_repr)
         if bioent_id is None:
             return Response(status_int=500, body='Bioent could not be found.')
         resources = get_resources('Interactions Resources', bioent_id=bioent_id)
@@ -96,30 +97,6 @@ def make_overview_table(genetic, physical, bioent):
     inters_to_genetic = dict([(x.endpoint_name_with_links, x.evidence_count) for x in genetic])
     inters_to_physical = dict([(x.endpoint_name_with_links, x.evidence_count) for x in physical])
                
-    def f(inters, bioent):
-        if len(inters) == 1:
-            orig_bioent_link = inters[0]
-            opp_bioent_link = inters[0]
-        else:
-            if bioent is not None:
-                orig_bioent_link = bioent.name_with_link
-            else:
-                orig_bioent_link = inters[0]
-            opp_bioent_links = list(inters)
-            opp_bioent_links.remove(orig_bioent_link)
-            opp_bioent_link = opp_bioent_links[0]
-            
-        if inters in inters_to_genetic:
-            genetic_count = inters_to_genetic[inters]
-        else:
-            genetic_count = 0
-        if inters in inters_to_physical:
-            physical_count = inters_to_physical[inters]
-        else:
-            physical_count = 0
-        total_count = genetic_count + physical_count
-        return [orig_bioent_link, opp_bioent_link, genetic_count, physical_count, total_count]
-        
     all_inters = set(inters_to_genetic.keys())
     all_inters.update(inters_to_physical.keys())
     
@@ -138,8 +115,7 @@ def make_overview_table(genetic, physical, bioent):
             
     r, s, x = calc_venn_measurements(A, B, C)
     
-    return {'aaData': create_simple_table(all_inters, f, bioent=bioent),
-            'venn':[r, s, x]}
+    return {'venn':[r, s, x, A, B, C]}
 
     
 '''
@@ -203,15 +179,17 @@ def make_evidence_row(interevidence, bioent=None):
 -------------------------------Graph---------------------------------------
 '''  
 
-def create_interaction_node(bioent_id, bioent_name, bioent_link, is_focus, evidence_count):
+def create_interaction_node(bioent_id, bioent_name, bioent_link, is_focus, gen_ev_count, phys_ev_count, total_ev_count):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'Node' + str(bioent_id), 'name':bioent_name, 'link': bioent_link, 'evidence':evidence_count, 'sub_type':sub_type}}
+    return {'data':{'id':'Node' + str(bioent_id), 'name':bioent_name, 'link': bioent_link, 
+                    'physical': phys_ev_count, 'genetic': gen_ev_count, 'evidence':total_ev_count, 
+                    'sub_type':sub_type}}
 
-def create_interaction_edge(interaction_id, bioent1_id, bioent2_id, evidence_count):
+def create_interaction_edge(interaction_id, bioent1_id, bioent2_id, gen_ev_count, phys_ev_count, total_ev_count):
     return {'data':{'target': 'Node' + str(bioent1_id), 'source': 'Node' + str(bioent2_id), 
-            'evidence':evidence_count}}
+            'physical': phys_ev_count, 'genetic': gen_ev_count, 'evidence':total_ev_count}}
     
 def create_interaction_graph(bioent):
     bioent_id = bioent.id
@@ -221,10 +199,15 @@ def create_interaction_graph(bioent):
     edges = []
     min_evidence_count = None
     max_evidence_count = None
+    max_phys_count = None
+    max_gen_count = None
+    max_both_count = None
     bioent_id_to_evidence_count = {}
     
     for interaction_family in interaction_families:
         evidence_count = interaction_family.evidence_count
+        gen_count = interaction_family.genetic_ev_count
+        phys_count = interaction_family.physical_ev_count
            
         bioent1_id = interaction_family.bioent1_id
         bioent2_id = interaction_family.bioent2_id
@@ -233,29 +216,59 @@ def create_interaction_graph(bioent):
                 min_evidence_count = evidence_count
             if max_evidence_count is None or evidence_count > max_evidence_count:
                 max_evidence_count = evidence_count
+                
+            if max_phys_count is None or phys_count > max_phys_count:
+                max_phys_count = phys_count
+            if max_gen_count is None or gen_count > max_gen_count:
+                max_gen_count = gen_count
+            if max_both_count is None or min(gen_count, phys_count) > max_both_count:
+                max_both_count = min(gen_count, phys_count)
             
-            if bioent1_id not in bioent_id_to_evidence_count or bioent_id_to_evidence_count[bioent1_id] < evidence_count:
-                bioent_id_to_evidence_count[bioent1_id] = evidence_count
-            if bioent2_id not in bioent_id_to_evidence_count or bioent_id_to_evidence_count[bioent2_id] < evidence_count:
-                bioent_id_to_evidence_count[bioent2_id] = evidence_count    
-            
+            if bioent1_id not in bioent_id_to_evidence_count:
+                bioent_id_to_evidence_count[bioent1_id] = (gen_count, phys_count, evidence_count)
+            else:
+                cur_gen_count, cur_phys_count, cur_ev_count = bioent_id_to_evidence_count[bioent1_id]
+                if cur_gen_count < gen_count:
+                    cur_gen_count = gen_count
+                if cur_phys_count < phys_count:
+                    cur_phys_count = phys_count
+                if cur_ev_count < evidence_count:
+                    cur_ev_count = evidence_count
+                bioent_id_to_evidence_count[bioent1_id] = (cur_gen_count, cur_phys_count, cur_ev_count)
+                
+            if bioent2_id not in bioent_id_to_evidence_count:
+                bioent_id_to_evidence_count[bioent2_id] = (gen_count, phys_count, evidence_count)
+            else:
+                cur_gen_count, cur_phys_count, cur_ev_count = bioent_id_to_evidence_count[bioent2_id]
+                if cur_gen_count < gen_count:
+                    cur_gen_count = gen_count
+                if cur_phys_count < phys_count:
+                    cur_phys_count = phys_count
+                if cur_ev_count < evidence_count:
+                    cur_ev_count = evidence_count
+                bioent_id_to_evidence_count[bioent2_id] = (cur_gen_count, cur_phys_count, cur_ev_count) 
+                            
     for interaction_family in interaction_families:
         bioent1_id = interaction_family.bioent1_id
         bioent2_id = interaction_family.bioent2_id
-        evidence_count = interaction_family.evidence_count
+    
         if bioent1_id not in id_to_node:
             bioent_name = interaction_family.bioent1_display_name
             bioent_link = interaction_family.bioent1_link
-            id_to_node[bioent1_id] = create_interaction_node(bioent1_id, bioent_name, bioent_link, bioent1_id==bioent_id, bioent_id_to_evidence_count[bioent1_id])
+            evidence_counts = bioent_id_to_evidence_count[bioent1_id]
+            id_to_node[bioent1_id] = create_interaction_node(bioent1_id, bioent_name, bioent_link, bioent1_id==bioent_id, evidence_counts[0], evidence_counts[1], evidence_counts[2])
         if bioent2_id not in id_to_node:
             bioent_name = interaction_family.bioent2_display_name
             bioent_link = interaction_family.bioent2_link
-            id_to_node[bioent2_id] = create_interaction_node(bioent2_id, bioent_name, bioent_link, bioent2_id==bioent_id, bioent_id_to_evidence_count[bioent2_id])
-        edges.append(create_interaction_edge(interaction_family.id, bioent1_id, bioent2_id, evidence_count))
+            evidence_counts = bioent_id_to_evidence_count[bioent2_id]
+            id_to_node[bioent2_id] = create_interaction_node(bioent2_id, bioent_name, bioent_link, bioent2_id==bioent_id, evidence_counts[0], evidence_counts[1], evidence_counts[2])
+        edges.append(create_interaction_edge(interaction_family.id, bioent1_id, bioent2_id, 
+                                             interaction_family.genetic_ev_count, interaction_family.physical_ev_count, interaction_family.evidence_count))
             
     
     return {'nodes': id_to_node.values(), 'edges': edges, 
-            'min_evidence_cutoff':min_evidence_count, 'max_evidence_cutoff':max_evidence_count}
+            'min_evidence_cutoff':min_evidence_count, 'max_evidence_cutoff':max_evidence_count,
+            'max_phys_cutoff': max_phys_count, 'max_gen_cutoff': max_gen_count, 'max_both_cutoff': max_both_count}
 
 '''
 -------------------------------Utils---------------------------------------

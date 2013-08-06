@@ -26,6 +26,13 @@ def get_bioent(bioent_name, bioent_type, print_query=False):
         print query
     return bioent
 
+def get_bioent_from_id(bioent_id, print_query=False):
+    query = session.query(Bioentity).filter(Bioentity.id==bioent_id)
+    bioent = query.first()
+    if print_query:
+        print query
+    return bioent
+
 #Used to create performance database.
 def get_all_bioents(min_id, max_id, print_query=False):
     query = session.query(Bioentity).filter(Bioentity.id >= min_id).filter(Bioentity.id < max_id)
