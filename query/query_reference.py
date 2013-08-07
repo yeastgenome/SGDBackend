@@ -26,6 +26,13 @@ def get_reference(reference_name, print_query=False):
         print query
     return reference
 
+def get_reference_from_id(reference_id, print_query=False):
+    query = session.query(Reference).filter(Reference.id==reference_id)
+    reference = query.first()
+    if print_query:
+        print query
+    return reference
+
 #Used to create go_overview and phenotype_overview tables
 def get_reference_id(reference_name, print_query=False):
     '''

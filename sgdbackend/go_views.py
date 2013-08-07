@@ -12,7 +12,7 @@ from query.query_evidence import get_go_evidence
 from query.query_reference import get_reference_id
 from sgdbackend.graph_views import create_graph
 from sgdbackend.utils import create_grouped_evidence_table, create_simple_table, \
-    make_reference_list
+    make_reference_list, make_reference_list_order_by_date
 import math
 
 
@@ -191,7 +191,7 @@ def make_evidence_tables(divided, goevidences, include_comp=True):
     else:
         tables['aaData'] = create_simple_table(goevidences, make_evidence_row)
         
-    tables['reference'] = make_reference_list(goevidences)
+    tables['reference'] = make_reference_list_order_by_date(goevidences)
         
     return tables    
 

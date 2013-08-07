@@ -51,5 +51,5 @@ def make_reference_list_order_by_date(evidences=None, references=None):
     else:
         citations = set([reference.citation for reference in references])
     citations = filter(None, list(citations))
-    citations.sort(key=lambda x: (x.split('(')[1][:4], x.split('>')[1]))
+    citations.sort(key=lambda x: (x.split('(')[1][:4], x.split('>')[1]), reverse=True)
     return citations  

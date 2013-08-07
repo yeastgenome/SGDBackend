@@ -30,6 +30,7 @@ def prep_views(config):
     config.add_route('locus', '/locus/{bioent}')
     config.add_route('bioent_overview_table', '/bioent_overview_table')
     config.add_route('bioent_evidence_table', '/bioent_evidence_table')
+    config.add_route('litguide_graph', '/litguide_graph')
     
     #Biocon views
     config.add_route('biocon', '/biocon/{biocon_type}/{biocon}')
