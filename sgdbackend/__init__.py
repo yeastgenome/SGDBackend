@@ -71,7 +71,8 @@ def prep_views(config):
     config.add_route('sequence', '/sequence')
     
     #List views
-    config.add_route('list', '/list')
+    config.add_route('bioent_list', '/bioent_list')
+    config.add_route('reference_list', '/reference_list')
     config.add_route('go_enrichment', '/go_enrichment')
 
 

@@ -4,6 +4,7 @@ from query import get_chemical
 from query.query_biocon import get_biocon
 from query.query_bioent import get_bioent, get_bioents, get_all_bioents, \
     get_bioent_id, get_bioent_from_id
+from query.query_reference import get_references
 
 
 @view_config(route_name='bioent', renderer='json')
@@ -91,10 +92,10 @@ def chemical(request):
                      }
     return chemical_json
 
-@view_config(route_name='list', renderer='json')
-def list_view(request):
-    locus_names = set(request.POST['locus'].split(','))
-    bioents = get_bioents(locus_names=locus_names)
+@view_config(route_name='bioent_list', renderer='json')
+def bioent_list_view(request):
+    bioent_ids = set(request.POST['bioent_ids'].split(','))
+    bioents = get_bioents(bioent_ids=bioent_ids)
     if bioents is None:
         return Response(status_int=500, body='Bioents could not be found.')
     
@@ -108,6 +109,71 @@ def list_view(request):
                     'description': bioent.description
                     })
     return bioents_json
+
+@view_config(route_name='reference_list', renderer='json')
+def reference_list_view(request):
+    reference_ids = set(request.POST['reference_ids'].split(','))
+    references = get_references(reference_ids=reference_ids)
+    if references is None:
+        return Response(status_int=500, body='References could not be found.')
+    
+    references_json = []
+    for reference in references:     
+        journal_name = None
+        journal_name_abbrev = None
+        issn = None
+        essn = None
+        publisher = None
+        
+        book_title = None
+        volume_title = None
+        isbn = None
+        total_pages = None
+        publisher_location = None
+        
+        if reference.journal is not None:
+            publisher = reference.journal.publisher
+            journal_name = reference.journal.full_name
+            journal_name_abbrev = reference.journal.abbreviation
+            issn = reference.journal.issn
+            essn = reference.journal.essn
+            
+        if reference.book is not None:
+            publisher = reference.book.publisher
+            book_title = reference.book.title
+            volume_title = reference.book.volume_title
+            isbn = reference.book.isbn
+            total_pages = reference.book.total_pages
+            publisher_location = reference.book.publisher_location
+
+        json_ref = {
+                    'source': reference.source,
+                    'status': reference.status,
+                    'pubmed_id': reference.pubmed_id, 
+                    'pdf_status': reference.pdf_status,
+                    'year': reference.year,
+                    'date_published': reference.date_published,
+                    'date_revised': reference.date_revised,
+                    'issue': reference.issue,
+                    'page': reference.page,
+                    'volume': reference.volume,
+                    'title': reference.title,
+                    'abstract': reference.abstract,
+                    'journal_name': journal_name,
+                    'journal_name_abbrev': journal_name_abbrev,
+                    'issn': issn,
+                    'essn': essn,
+                    'publisher': publisher,
+                    'book_title': book_title,
+                    'volume_title': volume_title,
+                    'isbn': isbn,
+                    'total_pages': total_pages,
+                    'publisher_location': publisher_location,
+                    'authors': list(reference.author_names),
+                    'reftypes': list(reference.reftype_names)
+                    }
+        references_json.append(json_ref)
+    return references_json
 
 
 def get_bioent_id_from_repr(bioent_repr):
