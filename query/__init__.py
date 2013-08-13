@@ -1,19 +1,16 @@
-from model_new_schema.bioconcept import Bioconcept, BioconAncestor, \
-    BioconRelation
+from model_new_schema.auxiliary import BioconAncestor, Biofact, BioentReference
+from model_new_schema.bioconcept import Bioconcept, BioconRelation
 from model_new_schema.bioentity import Bioentity, Locus, BioentUrl
-from model_new_schema.biofact import Biofact
 from model_new_schema.chemical import Chemical
 from model_new_schema.evelement import Experiment, Strain
 from model_new_schema.evidence import EvidenceChemical
 from model_new_schema.go import Goevidence, Go
 from model_new_schema.interaction import GeneticInterevidence, \
     PhysicalInterevidence
-from model_new_schema.litguide import Bioentevidence
+from model_new_schema.literature import LiteratureEvidence
 from model_new_schema.misc import Url
 from model_new_schema.phenotype import Phenoevidence, Phenotype
 from model_new_schema.reference import Reference, Author, AuthorReference
-from model_new_schema.search import Typeahead
-from model_new_schema.sequence import Sequence
 from sgdbackend.models import DBSession
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
 from sqlalchemy.orm.util import with_polymorphic

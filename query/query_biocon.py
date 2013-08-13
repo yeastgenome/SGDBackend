@@ -4,11 +4,10 @@ Created on Jul 9, 2013
 @author: kpaskov
 '''
 
-from model_new_schema.bioconcept import Bioconcept, BioconAncestor, \
-    BioconRelation
-from model_new_schema.biofact import Biofact
+from model_new_schema.bioconcept import Bioconcept, BioconRelation
 from model_new_schema.go import Go
 from model_new_schema.phenotype import Phenotype
+from model_new_schema.auxiliary import BioconAncestor, Biofact
 from query import session
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.util import with_polymorphic
@@ -49,6 +48,14 @@ def get_biocon_id(biocon_name, biocon_type, print_query=False):
     if print_query:
         print query
     return biocon_id
+
+#Used to create performance database.
+def get_all_biocons(print_query=False):
+    query = session.query(Bioconcept)
+    biocons = query.all()
+    if print_query:
+        print query
+    return biocons
 
 def get_biofacts(biocon_type, biocon=None, bioent=None, print_query=False):
     '''
@@ -142,8 +149,7 @@ def get_related_biofacts(biocon_type, biocon_ids=None, bioent_ids=None, print_qu
     FROM sprout.biocon LEFT OUTER JOIN sprout.goterm ON sprout.goterm.biocon_id = sprout.biocon.biocon_id) anon_1 ON anon_1.sprout_biocon_biocon_id = sprout.biofact.biocon_id 
     WHERE sprout.biofact.biocon_id IN (:biocon_id_1)
     '''
-    biocon_class = biocon_type_to_class[biocon_type]
-    query = session.query(Biofact).filter(Biofact.biocon_type==biocon_type).options(joinedload('bioentity'), joinedload(Biofact.bioconcept.of_type(biocon_class)))
+    query = session.query(Biofact).filter(Biofact.biocon_type==biocon_type)
     
     if biocon_ids is not None:
         query = query.filter(Biofact.biocon_id.in_(biocon_ids))

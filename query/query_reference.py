@@ -3,6 +3,7 @@ Created on Jul 9, 2013
 
 @author: kpaskov
 '''
+from model_new_schema.auxiliary import BioentReference
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.reference import Reference, Author, AuthorReference
 from query import session
@@ -52,15 +53,13 @@ def get_reference_id(reference_name, print_query=False):
         print query
     return ref_id
 
-#Used for reference_list_view
-def get_references(reference_ids=None, print_query=False):
-    references = []
-    if reference_ids is not None:
-        query1 = session.query(Reference).filter(Reference.id.in_(reference_ids)).options(joinedload('book'), joinedload('journal'), joinedload('author_references'), joinedload('reftypes'))
-        references.extend(query1.all())
+#Used to create performance database.
+def get_all_references(print_query=False):
+    query = session.query(Reference.id, Reference.format_name, Reference.display_name, Reference.link, Reference.citation, Reference.year, Reference.pubmed_id)
+    bioents = query.all()
     if print_query:
-        print query1
-    return references
+        print query
+    return bioents
 
 #Used for Author page.
 def get_author(author_name, print_query=False):
@@ -119,3 +118,15 @@ def find_bioentities(text, print_query=False):
         name_to_feature.update([(bioent.display_name, bioent) for bioent in bioents_by_display_name])
               
     return name_to_feature
+
+#Used for references
+def get_references(bioent_ref_type, bioent_id=None, reference_id=None, print_query=False):
+    query = session.query(BioentReference).filter(BioentReference.bioent_ref_type==bioent_ref_type)
+    if bioent_id is not None:
+        query = query.filter(BioentReference.bioent_id==bioent_id)
+    if reference_id is not None:
+        query = query.filter(BioentReference.reference_id==reference_id)
+    bioent_refs = query.all()
+    if print_query:
+        print query
+    return bioent_refs

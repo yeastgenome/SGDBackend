@@ -3,11 +3,11 @@ Created on Jul 9, 2013
 
 @author: kpaskov
 '''
+from model_new_schema.evelement import Strain, Experiment
 from model_new_schema.evidence import EvidenceChemical
 from model_new_schema.go import Goevidence
 from model_new_schema.interaction import GeneticInterevidence, \
     PhysicalInterevidence
-from model_new_schema.litguide import Bioentevidence
 from model_new_schema.phenotype import Phenoevidence
 from query import session, retrieve_in_chunks
 from sqlalchemy.orm import joinedload
@@ -52,20 +52,6 @@ def get_physical_interaction_evidence(bioent_id=None, biorel_id=None, reference_
     if print_query:
         print_query
     return interevidences
-
-#Used for bioent_evidence table.
-def get_bioent_evidence(bioent_id=None, reference_id=None, print_query=False):
-    query = session.query(Bioentevidence).options(joinedload('bioentity'))
-    if bioent_id is not None:
-        query = query.filter(Bioentevidence.bioent_id==bioent_id)
-    if reference_id is not None:
-        query = query.filter(Bioentevidence.reference_id==reference_id)
-    
-    evidences = query.all()
-    
-    if print_query:
-        print query
-    return evidences
 
 
 #Used for go_evidence table.
@@ -141,3 +127,19 @@ def get_phenotype_evidence(bioent_id=None, biocon_id=None, reference_id=None, ch
     if print_query:
         print query
     return phenoevidences
+
+#Used to create performance database.
+def get_all_strains(print_query=False):
+    query = session.query(Strain)
+    strains = query.all()
+    if print_query:
+        print query
+    return strains
+
+#Used to create performance database.
+def get_all_experiments(print_query=False):
+    query = session.query(Experiment)
+    experiments = query.all()
+    if print_query:
+        print query
+    return experiments
