@@ -7,62 +7,36 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from sgdbackend.cache import get_cached_bioent
 from sgdbackend.utils import make_reference_list
-#
-#
+
+
 #
 #'''
 #-------------------------------Views---------------------------------------
 #'''
 #@view_config(route_name='go', renderer='json')
 #def go(request):
-#    biocon_name = request.matchdict['biocon']
-#    biocon = get_biocon(biocon_name, 'GO')
+#    identifier = request.matchdict['identifier']
+#    biocon = get_cached_biocon(identifier, 'GO')
 #    if biocon is None:
-#        return Response(status_int=500, body='Biocon could not be found.')
-#        
-#    biocon_json = {
-#                    'display_name': biocon.display_name, 
-#                    'format_name': biocon.format_name,
-#                    'description': biocon.description,
-#                    
-#                    'go_go_id': biocon.go_go_id,
-#                    'go_aspect':biocon.go_aspect,
-#                    'aliases': biocon.alias_str
-#                   }
-#    return biocon_json
+#        return Response(status_int=500, body='Bioent could not be found.')
+#    return biocon
 #
-#@view_config(route_name='go_overview_table', renderer='jsonp')
-#def go_overview_table(request):
-#    if 'biocon' in request.GET:
-#        #Need a GO overview table based on a biocon
-#        biocon_name = request.GET['biocon']
-#        biocon_id = get_biocon_id(biocon_name, 'GO')
-#        if biocon_id is None:
-#            return Response(status_int=500, body='Biocon could not be found.')
-#        goevidences = get_go_evidence(biocon_id=biocon_id)
-#        return make_overview_tables(False, goevidences) 
+#@view_config(route_name='go_overview', renderer='jsonp')
+#def go_overview(request):
+#    if 'type' in request.matchdict:
+#        entity_type = request.matchdict['type']
+#        identifier = request.matchdict['identifier']
+#        bioent = get_cached_bioent(identifier, entity_type)
+#        if bioent is None:
+#            return Response(status_int=500, body= entity_type + ' ' + str(identifier) + ' could not be found.')
 #        
-#    elif 'bioent' in request.GET:
-#        #Need a GO overview table based on a bioent
-#        bioent_name = request.GET['bioent']
-#        bioent_id = get_bioent_id(bioent_name, 'LOCUS')
-#        if bioent_id is None:
-#            return Response(status_int=500, body='Bioent could not be found.')
-#        goevidences = get_go_evidence(bioent_id=bioent_id)
-#        return make_overview_tables(True, goevidences, False) 
-#    
-#    elif 'reference' in request.GET:
-#        #Need a GO overview table based on a reference
-#        ref_name = request.GET['reference']
-#        ref_id = get_reference_id(ref_name)
-#        if ref_id is None:
-#            return Response(status_int=500, body='Reference could not be found.')
-#        goevidences = get_go_evidence(reference_id=ref_id)
-#        return make_overview_tables(False, goevidences, True) 
-#
+#        genetic = get_interactions('GENETIC_INTERACTION', bioent['id'])
+#        physical = get_interactions('PHYSICAL_INTERACTION', bioent['id'])
+#        return make_overview(genetic, physical, bioent) 
 #    else:
-#        return Response(status_int=500, body='No Bioent or Biocon or Reference specified.')
-#
+#        
+#    
+
 #
 #@view_config(route_name='go_evidence_table', renderer='jsonp')
 #def go_evidence_table(request):

@@ -24,6 +24,13 @@ def bioent_to_json(bioent):
             'id': bioent.id
             }
     
+def go_to_json(biocon):
+    biocon_json = biocon_to_json(biocon)
+    biocon_json['go_go_id'] = biocon.go_go_id
+    biocon_json['go_aspect'] = biocon.go_aspect
+    biocon_json['aliases'] = biocon.aliases
+    return biocon_json
+    
 def biocon_to_json(biocon):
     return {
             'format_name': biocon.format_name,

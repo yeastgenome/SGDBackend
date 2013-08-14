@@ -129,8 +129,8 @@ def make_evidence_row(interevidence, bioent_id=None):
             bioent2_id = interevidence.bioent2_id
             direction = interevidence.bait_hit.split('-').pop(1)
         else:
-            bioent1_id = interevidence.bioent2_id
-            bioent2_id = bioent_id
+            bioent1_id = bioent_id
+            bioent2_id = interevidence.bioent1_id
             direction = interevidence.bait_hit.split('-').pop(0)
     else:
         bioent1_id = interevidence.bioent1_id
@@ -159,7 +159,7 @@ def make_evidence_row(interevidence, bioent_id=None):
     elif interevidence.evidence_type == 'PHYSICAL_INTERACTION_EVIDENCE':
         return {'bioent1': get_cached_bioent(bioent1_id),
                 'bioent2': get_cached_bioent(bioent2_id),
-                'interaction_type': 'Genetic',
+                'interaction_type': 'Physical',
                 'reference': get_cached_reference(reference_id),
                 'experiment': get_cached_experiment(experiment_id),
                 'strain': get_cached_strain(strain_id),
