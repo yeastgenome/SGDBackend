@@ -31,13 +31,16 @@ def all_bioents(request):
     return bioents.values()
 
 
-@view_config(route_name='bioent_list', renderer='json')
+@view_config(route_name='bioent_list', renderer='jsonp')
 def bioent_list_view(request):
-    bioent_ids = set(request.POST['bioent_ids'].split(','))
+    print request.json_body
+    bioent_ids = request.json_body['bioent_ids']
     bioents = []
     for bioent_id in bioent_ids:
-        bioents.append(get_cached_bioent(bioent_id))
-    filter(None, bioents)
+        bioent = get_cached_bioent(str(bioent_id), bioent_type='locus')
+        if bioent is not None:
+            bioents.append(bioent)
+    print bioents
     return bioents
 
 @view_config(route_name='reference_list', renderer='json')

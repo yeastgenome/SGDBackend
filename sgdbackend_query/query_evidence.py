@@ -9,7 +9,7 @@ from model_new_schema.go import Goevidence
 from model_new_schema.interaction import GeneticInterevidence, \
     PhysicalInterevidence
 from model_new_schema.phenotype import Phenoevidence
-from query import session, retrieve_in_chunks
+from sgdbackend_query import session, retrieve_in_chunks
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import or_
 

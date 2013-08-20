@@ -8,7 +8,7 @@ from model_new_schema.bioconcept import Bioconcept, BioconRelation
 from model_new_schema.go import Go
 from model_new_schema.phenotype import Phenotype
 from model_new_schema.auxiliary import BioconAncestor, Biofact
-from query import session
+from sgdbackend_query import session
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.util import with_polymorphic
 

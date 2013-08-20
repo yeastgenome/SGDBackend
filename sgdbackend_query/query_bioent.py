@@ -4,7 +4,7 @@ Created on Jul 9, 2013
 @author: kpaskov
 '''
 from model_new_schema.bioentity import Locus, Bioentity
-from query import session
+from sgdbackend_query import session
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.util import with_polymorphic
 

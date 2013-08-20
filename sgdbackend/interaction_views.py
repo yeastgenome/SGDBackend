@@ -5,10 +5,10 @@ Created on Mar 15, 2013
 '''
 from pyramid.response import Response
 from pyramid.view import view_config
-from query import get_resources
-from query.query_evidence import get_genetic_interaction_evidence, \
+from sgdbackend_query import get_resources
+from sgdbackend_query.query_evidence import get_genetic_interaction_evidence, \
     get_physical_interaction_evidence
-from query.query_interaction import get_interactions, get_interaction_family
+from sgdbackend_query.query_interaction import get_interactions, get_interaction_family
 from sgdbackend.cache import get_cached_bioent, get_cached_experiment, \
     get_cached_reference, get_cached_strain, get_cached_biocon
 from sgdbackend.obj_to_json import url_to_json

@@ -6,7 +6,7 @@ Created on Jul 9, 2013
 from model_new_schema.auxiliary import BioentReference
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.reference import Reference, Author, AuthorReference
-from query import session
+from sgdbackend_query import session
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func
 

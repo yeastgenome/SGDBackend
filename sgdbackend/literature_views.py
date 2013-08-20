@@ -5,7 +5,7 @@ Created on May 31, 2013
 '''
 from pyramid.response import Response
 from pyramid.view import view_config
-from query.query_reference import get_references
+from sgdbackend_query.query_reference import get_references
 from sgdbackend.cache import get_cached_bioent, get_cached_reference
 from sgdbackend.utils import make_reference_list
 

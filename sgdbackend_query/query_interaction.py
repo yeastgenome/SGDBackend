@@ -5,7 +5,7 @@ Created on Jul 9, 2013
 '''
 
 from model_new_schema.auxiliary import Interaction, InteractionFamily
-from query import session
+from sgdbackend_query import session
 from sqlalchemy.sql.expression import or_
 
 #Used for interaction_overview_table.

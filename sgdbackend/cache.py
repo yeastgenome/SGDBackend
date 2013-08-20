@@ -3,10 +3,11 @@ Created on Aug 9, 2013
 
 @author: kpaskov
 '''
-from query.query_biocon import get_all_biocons
-from query.query_bioent import get_all_bioents
-from query.query_evidence import get_all_experiments, get_all_strains
-from query.query_reference import get_all_references
+from sgdbackend_query.query_bioent import get_all_bioents
+from sgdbackend_query.query_biocon import get_all_biocons
+
+from sgdbackend_query.query_evidence import get_all_experiments, get_all_strains
+from sgdbackend_query.query_reference import get_all_references
 from sgdbackend.obj_to_json import bioent_to_json, experiment_to_json, \
     strain_to_json, biocon_to_json, reference_to_json, locus_to_json
 
@@ -56,6 +57,7 @@ def cache_core():
         id_to_reference[reference.format_name] = json_form
         
 def get_cached_bioent(bioent_repr, bioent_type=None):
+    print bioent_repr
     return get_cached_obj(id_to_bioent, bioent_repr, (bioent_repr, None if bioent_type is None else bioent_type.upper()))
 
 def get_cached_biocon(biocon_repr, biocon_type=None):
