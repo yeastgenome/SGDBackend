@@ -20,7 +20,7 @@ id_to_reference = {}
 id_to_reference_full = {}
 
 def cache_core():
-    print 'Cache bioents'
+    #print 'Cache bioents'
     #Cache bioents
     for bioent in get_all_bioents():
         if bioent.bioent_type == 'LOCUS':
@@ -30,28 +30,28 @@ def cache_core():
         id_to_bioent[bioent.id] = json_form
         id_to_bioent[bioent.unique_key()] = json_form
        
-    print 'Cache biocons' 
+    #print 'Cache biocons' 
     #Cache biocons
     for biocon in get_all_biocons():
         json_form = biocon_to_json(biocon)
         id_to_biocon[biocon.id] = json_form
         id_to_biocon[biocon.unique_key()] = json_form
         
-    print 'Cache experiments'
+    #print 'Cache experiments'
     #Cache experiments
     for experiment in get_all_experiments():
         json_form = experiment_to_json(experiment)
         id_to_experiment[experiment.id] = json_form
         id_to_experiment[experiment.unique_key()] = json_form
         
-    print 'Cache strains'
+    #print 'Cache strains'
     #Cache strains
     for strain in get_all_strains():
         json_form = strain_to_json(strain)
         id_to_strain[strain.id] = json_form
         id_to_strain[strain.unique_key()] = json_form
         
-    print 'Cache references'
+    #print 'Cache references'
     #Cache references
     for reference in get_all_references():
         json_form = reference_to_json(reference)
@@ -62,7 +62,6 @@ def cache_core():
         #id_to_reference_full[reference.format_name] = json_form_full
         
 def get_cached_bioent(bioent_repr, bioent_type=None):
-    print bioent_repr
     return get_cached_obj(id_to_bioent, bioent_repr, (bioent_repr, None if bioent_type is None else bioent_type.upper()))
 
 def get_cached_biocon(biocon_repr, biocon_type=None):
