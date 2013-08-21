@@ -33,23 +33,22 @@ def all_bioents(request):
 
 @view_config(route_name='bioent_list', renderer='jsonp')
 def bioent_list_view(request):
-    print request.json_body
     bioent_ids = request.json_body['bioent_ids']
     bioents = []
     for bioent_id in bioent_ids:
         bioent = get_cached_bioent(str(bioent_id), bioent_type='locus')
         if bioent is not None:
             bioents.append(bioent)
-    print bioents
     return bioents
 
-@view_config(route_name='reference_list', renderer='json')
+@view_config(route_name='reference_list', renderer='jsonp')
 def reference_list_view(request):
-    reference_ids = set(request.POST['reference_ids'].split(','))
+    reference_ids = request.json_body['reference_ids'].split(',')
     references = []
     for reference_id in reference_ids:
-        references.append(get_cached_reference(reference_id))
-    filter(None, references)
+        reference = get_cached_reference_full(reference_id)
+        if reference is not None:
+            references.append(reference)
     return references
     
 #    references_json = []

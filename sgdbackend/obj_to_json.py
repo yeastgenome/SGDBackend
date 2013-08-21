@@ -67,6 +67,44 @@ def reference_to_json(reference):
             'pubmed_id': reference.pubmed_id
             }
     
+def reference_to_json_full(reference):
+    reference_json = reference_to_json(reference)
+    
+    reference_json['status'] = reference.status
+    reference_json['date_published'] = reference.date_published
+    reference_json['title'] = reference.title
+    reference_json['abstract'] = reference.abstract
+    reference_json['authors'] = reference.authors
+    reference_json['reftypes'] = reference.reftypes
+    reference_json['source'] = reference.source
+    reference_json['date_revised'] = reference.date_revised
+    reference_json['issue'] = reference.issue
+    reference_json['page'] = reference.page
+    reference_json['volume'] = reference.volume
+    
+    
+    if reference.journal is not None:
+        reference_json['issn'] = reference.journal.issn
+        reference_json['journal_name'] = reference.journal.full_name
+        reference_json['journal_name_abbrev'] = reference.journal.abbreviation
+    else:
+        reference_json['issn'] = None
+        reference_json['journal_name'] = None
+        reference_json['journal_name_abbrev'] = None
+        
+    if reference.book is not None:
+        reference_json['publisher_location'] = reference.book.publisher_location
+        reference_json['book_title'] = reference.book.title
+        reference_json['volume_title'] = reference.book.volume_title
+        reference_json['isbn'] = reference.book.isbn
+    else:
+        reference_json['publisher_location'] = None
+        reference_json['book_title'] = None
+        reference_json['volume_title'] = None
+        reference_json['isbn'] = None
+        
+    return reference_json
+    
 def url_to_json(url):
     return {
             'url_type': url.url_type,

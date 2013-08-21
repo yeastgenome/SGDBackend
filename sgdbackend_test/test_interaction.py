@@ -4,59 +4,70 @@ Created on Jul 10, 2013
 @author: kpaskov
 '''
 
-from datetime import timedelta
-from sgdbackend.interaction_views import interaction_overview_table, \
-    interaction_evidence_table, interaction_graph, interaction_evidence_resources
-from test import PseudoRequest
-import datetime
+from sgdbackend.cache import id_to_bioent
+from sgdbackend.interaction_views import interaction_graph, interaction_overview, \
+    interaction_details, interaction_resources, interaction_references
+from sgdbackend_test import PseudoRequest, model
+import pytest
 
-def test_interaction_overview_table_for_bioent_structure(model):
-    response = interaction_overview_table(PseudoRequest(bioent='YFL039C'))
+slow = pytest.mark.slow
+
+def test_interaction_overview_structure(model, bioent_type='LOCUS', identifier='YFL039C'):
+    response = interaction_overview(PseudoRequest(type=bioent_type, identifier=identifier))
     assert response is not None
-    assert 'aaData' in response
+    assert 'gen_circle_size' in response
+    assert 'phys_circle_size' in response
+    assert 'circle_distance' in response
+    assert 'num_gen_interactors' in response
+    assert 'num_phys_interactors' in response
+    assert 'num_both_interactors' in response
     
-def test_interaction_overview_table_for_bioent_speed(model):
-    begin_time = datetime.datetime.now()
-    interaction_overview_table(PseudoRequest(bioent='YFL039C'))
-    end_time = datetime.datetime.now()
-    assert end_time - begin_time < timedelta(seconds=.2)
+@slow
+def test_interaction_overview_all(model):
+    for bioent in id_to_bioent.values():
+        test_interaction_overview_structure(model, bioent_type=bioent['bioent_type'], identifier=bioent['format_name'])
         
-def test_interaction_evidence_table_for_bioent_structure(model):
-    response = interaction_evidence_table(PseudoRequest(bioent='YFL039C'))
+def test_interaction_details_structure(model, bioent_type='LOCUS', identifier='YFL039C'):
+    response = interaction_details(PseudoRequest(type=bioent_type, identifier=identifier))
     assert response is not None
-    assert 'genetic' in response
-    assert 'physical' in response
-    assert 'reference' in response
-    
-def test_interaction_evidence_table_for_bioent_speed(model):
-    begin_time = datetime.datetime.now()
-    interaction_evidence_table(PseudoRequest(bioent='YFL039C'))
-    end_time = datetime.datetime.now()
-    assert end_time - begin_time < timedelta(seconds=.2)
-        
-def test_interaction_graph_for_bioent_structure(model):
-    response = interaction_graph(PseudoRequest(bioent='YFL039C'))
+     
+@slow   
+def test_interaction_details_all(model):
+    for bioent in id_to_bioent.values():
+        test_interaction_details_structure(model, bioent_type=bioent['bioent_type'], identifier=bioent['format_name'])
+ 
+def test_interaction_graph_structure(model, bioent_type='LOCUS', identifier='YFL039C'):
+    response = interaction_graph(PseudoRequest(type=bioent_type, identifier=identifier))
     assert response is not None
-    assert 'dataSchema' in response
-    assert 'data' in response
-    assert 'nodes' in response['data']
-    assert 'edges' in response['data']
+    assert 'nodes' in response
+    assert 'edges' in response
     assert 'min_evidence_cutoff' in response
     assert 'max_evidence_cutoff' in response
-    
-def test_interaction_graph_for_bioent_speed(model):
-    begin_time = datetime.datetime.now()
-    interaction_graph(PseudoRequest(bioent='YFL039C'))
-    end_time = datetime.datetime.now()
-    assert end_time - begin_time < timedelta(seconds=.2)
-        
-def test_interaction_evidence_resources_for_bioent_structure(model):
-    response = interaction_evidence_resources(PseudoRequest(bioent='YFL039C'))
+    assert 'max_phys_cutoff' in response
+    assert 'max_gen_cutoff' in response
+    assert 'max_both_cutoff' in response
+     
+@slow   
+def test_interaction_graph_all(model):
+    for bioent in id_to_bioent.values():
+        test_interaction_details_structure(model, bioent_type=bioent['bioent_type'], identifier=bioent['format_name'])
+
+def test_interaction_resources_structure(model, bioent_type='LOCUS', identifier='YFL039C'):
+    response = interaction_resources(PseudoRequest(type=bioent_type, identifier=identifier))
     assert response is not None
+    assert len(response) > 0
     
-def test_interaction__evidence_resources_for_bioent_speed(model):
-    begin_time = datetime.datetime.now()
-    interaction_evidence_resources(PseudoRequest(bioent='YFL039C'))
-    end_time = datetime.datetime.now()
-    assert end_time - begin_time < timedelta(seconds=.2)
+@slow    
+def test_interaction_resources_all(model):
+    for bioent in id_to_bioent.values():
+        test_interaction_details_structure(model, bioent_type=bioent['bioent_type'], identifier=bioent['format_name'])
+    
+def test_interaction_references_structure(model, bioent_type='LOCUS', identifier='YFL039C'):
+    response = interaction_references(PseudoRequest(type=bioent_type, identifier=identifier))
+    assert response is not None
+
+@slow
+def test_interaction_references_all(model):
+    for bioent in id_to_bioent.values():
+        test_interaction_details_structure(model, bioent_type=bioent['bioent_type'], identifier=bioent['format_name'])
 
