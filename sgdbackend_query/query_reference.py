@@ -5,7 +5,8 @@ Created on Jul 9, 2013
 '''
 from model_new_schema.auxiliary import BioentReference
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.reference import Reference, Author, AuthorReference
+from model_new_schema.reference import Reference, Author, AuthorReference, \
+    ReferenceBib
 from sgdbackend_query import session
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func
@@ -56,7 +57,6 @@ def get_reference_id(reference_name, print_query=False):
 #Used to create performance database.
 def get_all_references(print_query=False):
     query = session.query(Reference.id, Reference.format_name, Reference.display_name, Reference.link, Reference.citation, Reference.year, Reference.pubmed_id)
-    #query = session.query(Reference).options(joinedload('journal'), joinedload('book'), joinedload('author_references'), joinedload('reftypes'))
     bioents = query.all()
     if print_query:
         print query
@@ -131,3 +131,13 @@ def get_references(bioent_ref_type, bioent_id=None, reference_id=None, print_que
     if print_query:
         print query
     return bioent_refs
+
+#Used for reference_list_view
+def get_reference_bibs(reference_ids=None, print_query=False):
+    references = []
+    if reference_ids is not None:
+        query1 = session.query(ReferenceBib).filter(ReferenceBib.id.in_(reference_ids))
+        references.extend(query1.all())
+    if print_query:
+        print query1
+    return references

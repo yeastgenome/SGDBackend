@@ -4,8 +4,7 @@ Created on Aug 9, 2013
 @author: kpaskov
 '''
 from sgdbackend.obj_to_json import bioent_to_json, experiment_to_json, \
-    strain_to_json, biocon_to_json, reference_to_json, locus_to_json, \
-    reference_to_json_full
+    strain_to_json, biocon_to_json, reference_to_json, locus_to_json
 from sgdbackend_query.query_biocon import get_all_biocons
 from sgdbackend_query.query_bioent import get_all_bioents
 from sgdbackend_query.query_evidence import get_all_experiments, get_all_strains
@@ -17,7 +16,6 @@ id_to_biocon = {}
 id_to_experiment = {}
 id_to_strain = {}
 id_to_reference = {}
-id_to_reference_full = {}
 
 def cache_core():
     #print 'Cache bioents'
@@ -55,11 +53,8 @@ def cache_core():
     #Cache references
     for reference in get_all_references():
         json_form = reference_to_json(reference)
-        #json_form_full = reference_to_json_full(reference)
         id_to_reference[reference.id] = json_form
         id_to_reference[reference.format_name] = json_form
-        #id_to_reference_full[reference.id] = json_form_full
-        #id_to_reference_full[reference.format_name] = json_form_full
         
 def get_cached_bioent(bioent_repr, bioent_type=None):
     return get_cached_obj(id_to_bioent, bioent_repr, (bioent_repr, None if bioent_type is None else bioent_type.upper()))
@@ -75,9 +70,6 @@ def get_cached_strain(strain_repr):
 
 def get_cached_reference(reference_repr):
     return get_cached_obj(id_to_reference, reference_repr, reference_repr)
-
-def get_cached_reference_full(reference_repr):
-    return get_cached_obj(id_to_reference_full, reference_repr, reference_repr)
 
 
 def get_cached_obj(mapping, id_key, key):

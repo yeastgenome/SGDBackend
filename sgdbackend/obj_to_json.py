@@ -74,8 +74,8 @@ def reference_to_json_full(reference):
     reference_json['date_published'] = reference.date_published
     reference_json['title'] = reference.title
     reference_json['abstract'] = reference.abstract
-    reference_json['authors'] = reference.authors
-    reference_json['reftypes'] = reference.reftypes
+    reference_json['authors'] = reference.author_list
+    reference_json['reftypes'] = reference.reftype_list
     reference_json['source'] = reference.source
     reference_json['date_revised'] = reference.date_revised
     reference_json['issue'] = reference.issue
