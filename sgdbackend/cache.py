@@ -27,6 +27,7 @@ def cache_core():
             json_form = bioent_to_json(bioent)
         id_to_bioent[bioent.id] = json_form
         id_to_bioent[bioent.unique_key()] = json_form
+        id_to_bioent[(bioent.display_name, bioent.bioent_type)] = json_form
        
     #print 'Cache biocons' 
     #Cache biocons
@@ -57,6 +58,8 @@ def cache_core():
         id_to_reference[reference.format_name] = json_form
         
 def get_cached_bioent(bioent_repr, bioent_type=None):
+    print bioent_repr
+    print bioent_type
     return get_cached_obj(id_to_bioent, bioent_repr, (bioent_repr, None if bioent_type is None else bioent_type.upper()))
 
 def get_cached_biocon(biocon_repr, biocon_type=None):
