@@ -218,8 +218,8 @@ def create_interaction_graph(bioent_id):
                 max_phys_count = phys_count
             if max_gen_count is None or gen_count > max_gen_count:
                 max_gen_count = gen_count
-            if max_both_count is None or min(gen_count, phys_count) > max_both_count:
-                max_both_count = min(gen_count, phys_count)
+            if max_both_count is None or gen_count + phys_count > max_both_count:
+                max_both_count = gen_count + phys_count
             
             if bioent1_id not in bioent_id_to_evidence_count:
                 bioent_id_to_evidence_count[bioent1_id] = (gen_count, phys_count, evidence_count)
