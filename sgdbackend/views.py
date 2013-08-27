@@ -44,7 +44,6 @@ def bioent_list_view(request):
 @view_config(route_name='reference_list', renderer='jsonp')
 def reference_list_view(request):
     reference_ids = request.json_body['reference_ids']
-    print reference_ids
     ref_bibs = get_reference_bibs(reference_ids=reference_ids)
     if ref_bibs is None:
         return Response(status_int=500, body='References could not be found.')
