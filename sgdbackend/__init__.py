@@ -21,6 +21,13 @@ def prep_sqlalchemy(**settings):
     return config
 
 def prep_views(config):    
+    
+    #Reference views
+    config.add_route('all_references', '/all_references')
+    config.add_route('reference', '/reference/{identifier}/overview')
+    config.add_route('reference_bib', '/reference/{identifier}/bib')
+    config.add_route('reference_list', '/reference_list')
+    
     #Bioent views
     config.add_route('bioentity', '/{type}/{identifier}/overview')
     config.add_route('all_bioents', '/all_bioents')
@@ -31,6 +38,12 @@ def prep_views(config):
     config.add_route('interaction_graph', '/{type}/{identifier}/interaction_graph') 
     config.add_route('interaction_resources', '/{type}/{identifier}/interaction_resources')
     config.add_route('interaction_references', '/{type}/{identifier}/interaction_references')
+    
+    #Regulation views
+    config.add_route('regulation_overview', '/{type}/{identifier}/regulation_overview')
+    config.add_route('regulation_details', '/{type}/{identifier}/regulation_details')
+    config.add_route('regulation_graph', '/{type}/{identifier}/regulation_graph') 
+    config.add_route('regulation_references', '/{type}/{identifier}/regulation_references')
     
     #Literature views
     config.add_route('literature_overview', '/{type}/{identifier}/literature_overview')
@@ -66,7 +79,6 @@ def prep_views(config):
     
     #List views
     config.add_route('bioent_list', '/bioent_list')
-    config.add_route('reference_list', '/reference_list')
     #config.add_route('go_enrichment', '/go_enrichment')
 
 

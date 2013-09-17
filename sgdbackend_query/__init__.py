@@ -1,15 +1,15 @@
-from model_new_schema.auxiliary import BioconAncestor, Biofact, BioentReference
-from model_new_schema.bioconcept import Bioconcept, BioconRelation
-from model_new_schema.bioentity import Bioentity, Locus, BioentUrl
+from model_new_schema.auxiliary import BioconceptAncestor, Biofact, BioentityReference
+from model_new_schema.bioconcept import Bioconcept, BioconceptRelation
+from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl
 from model_new_schema.chemical import Chemical
 from model_new_schema.evelement import Experiment, Strain
 from model_new_schema.evidence import EvidenceChemical
 from model_new_schema.go import Goevidence, Go
-from model_new_schema.interaction import GeneticInterevidence, \
-    PhysicalInterevidence
-from model_new_schema.literature import LiteratureEvidence
+from model_new_schema.interaction import Geninteractionevidence, \
+    Physinteractionevidence
+from model_new_schema.literature import Literatureevidence
 from model_new_schema.misc import Url
-from model_new_schema.phenotype import Phenoevidence, Phenotype
+from model_new_schema.phenotype import Phenotypeevidence, Phenotype
 from model_new_schema.reference import Reference, Author, AuthorReference
 from sgdbackend.models import DBSession
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
@@ -59,7 +59,7 @@ def get_strain(strain_name, print_query=False):
 #Used for Interaction resources
 def get_resources(category, bioent_id=None, print_query=False):
     if bioent_id is not None:
-        query = session.query(BioentUrl).filter(BioentUrl.bioent_id==bioent_id).filter(BioentUrl.category==category)
+        query = session.query(Bioentityurl).filter(Bioentityurl.bioentity_id==bioent_id).filter(Bioentityurl.category==category)
     urls = query.all()
     if print_query:
         print query

@@ -26,8 +26,8 @@ def interaction_overview(request):
     if bioent is None:
         return Response(status_int=500, body= entity_type + ' ' + str(identifier) + ' could not be found.')
         
-    genetic = get_interactions('GENETIC_INTERACTION', bioent['id'])
-    physical = get_interactions('PHYSICAL_INTERACTION', bioent['id'])
+    genetic = get_interactions('GENINTERACTION', bioent['id'])
+    physical = get_interactions('PHYSINtERACTION', bioent['id'])
     return make_overview(genetic, physical, bioent) 
 
 @view_config(route_name='interaction_details', renderer='jsonp')
@@ -70,7 +70,7 @@ def interaction_references(request):
     bioent = get_cached_bioent(identifier, entity_type)
     if bioent is None:
         return Response(status_int=500, body='Bioent could not be found.')
-    return make_reference_list(['GENETIC_INTERACTION_EVIDENCE', 'PHYSICAL_INTERACTION_EVIDENCE'], bioent['id'])
+    return make_reference_list(['GENINTERACTION', 'PHYSINTERACTION'], bioent['id'])
 
 
 '''
@@ -78,8 +78,8 @@ def interaction_references(request):
 '''  
 
 def make_overview(genetic, physical, bioent):
-    inters_to_genetic = dict([((x.bioent1_id, x.bioent2_id), x.evidence_count) for x in genetic])
-    inters_to_physical = dict([((x.bioent1_id, x.bioent2_id), x.evidence_count) for x in physical])
+    inters_to_genetic = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in genetic])
+    inters_to_physical = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in physical])
                
     all_inters = set(inters_to_genetic.keys())
     all_inters.update(inters_to_physical.keys())
@@ -124,17 +124,17 @@ def make_evidence_tables(divided, genetic_interevidences, physical_interevidence
 
 def make_evidence_row(interevidence, bioent_id=None): 
     if bioent_id is not None:
-        if interevidence.bioent1_id == bioent_id:
+        if interevidence.bioentity1_id == bioent_id:
             bioent1_id = bioent_id
-            bioent2_id = interevidence.bioent2_id
+            bioent2_id = interevidence.bioentity2_id
             direction = interevidence.bait_hit.split('-').pop(1)
         else:
             bioent1_id = bioent_id
-            bioent2_id = interevidence.bioent1_id
+            bioent2_id = interevidence.bioentity1_id
             direction = interevidence.bait_hit.split('-').pop(0)
     else:
-        bioent1_id = interevidence.bioent1_id
-        bioent2_id = interevidence.bioent2_id
+        bioent1_id = interevidence.bioentity1_id
+        bioent2_id = interevidence.bioentity2_id
         direction = interevidence.bait_hit
 
     reference_id = interevidence.reference_id 
@@ -142,7 +142,7 @@ def make_evidence_row(interevidence, bioent_id=None):
     strain_id = interevidence.strain_id
     note=interevidence.note
         
-    if interevidence.evidence_type == 'GENETIC_INTERACTION_EVIDENCE':
+    if interevidence.class_type == 'GENINTERACTION':
         return {'bioent1': get_cached_bioent(bioent1_id),
                 'bioent2': get_cached_bioent(bioent2_id),
                 'interaction_type': 'Genetic',
@@ -156,7 +156,7 @@ def make_evidence_row(interevidence, bioent_id=None):
                 'note': note
                 }
         
-    elif interevidence.evidence_type == 'PHYSICAL_INTERACTION_EVIDENCE':
+    elif interevidence.class_type == 'PHYSINTERACTION':
         return {'bioent1': get_cached_bioent(bioent1_id),
                 'bioent2': get_cached_bioent(bioent2_id),
                 'interaction_type': 'Physical',
@@ -206,8 +206,8 @@ def create_interaction_graph(bioent_id):
         gen_count = interaction_family.genetic_ev_count
         phys_count = interaction_family.physical_ev_count
            
-        bioent1_id = interaction_family.bioent1_id
-        bioent2_id = interaction_family.bioent2_id
+        bioent1_id = interaction_family.bioentity1_id
+        bioent2_id = interaction_family.bioentity2_id
         if bioent1_id==bioent_id or bioent2_id==bioent_id:
             if min_evidence_count is None or evidence_count < min_evidence_count:
                 min_evidence_count = evidence_count
@@ -246,8 +246,8 @@ def create_interaction_graph(bioent_id):
                 bioent_id_to_evidence_count[bioent2_id] = (cur_gen_count, cur_phys_count, cur_ev_count) 
                             
     for interaction_family in interaction_families:
-        bioent1_id = interaction_family.bioent1_id
-        bioent2_id = interaction_family.bioent2_id
+        bioent1_id = interaction_family.bioentity1_id
+        bioent2_id = interaction_family.bioentity2_id
     
         if bioent1_id not in id_to_node:
             bioent1 = get_cached_bioent(bioent1_id)

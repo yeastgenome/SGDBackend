@@ -29,7 +29,7 @@ def get_bioent(bioent_name, bioent_type, print_query=False):
 
 #Used to create performance database.
 def get_all_bioents(print_query=False):
-    query = session.query(with_polymorphic(Bioentity, [Locus])).options(joinedload('bioentaliases'))
+    query = session.query(with_polymorphic(Bioentity, [Locus])).options(joinedload('bioentityaliases'))
     bioents = query.all()
     if print_query:
         print query
@@ -44,7 +44,7 @@ def get_bioent_id(bioent_name, bioent_type, print_query=False):
     FROM sprout.bioent 
     WHERE sprout.bioent.name = :name_1
     '''
-    query = session.query(Bioentity).filter(Bioentity.bioent_type==bioent_type).filter(Bioentity.format_name==bioent_name)
+    query = session.query(Bioentity).filter(Bioentity.class_type==bioent_type).filter(Bioentity.format_name==bioent_name)
     bioent = query.first()
     bioent_id = None
     if bioent is not None:
@@ -57,7 +57,7 @@ def get_bioent_id(bioent_name, bioent_type, print_query=False):
 def get_bioents(bioent_ids=None, print_query=False):
     bioents = []
     if bioent_ids is not None:
-        query1 = session.query(with_polymorphic(Bioentity, Locus)).filter(Locus.id.in_(bioent_ids)).filter(Bioentity.bioent_type=='LOCUS')
+        query1 = session.query(with_polymorphic(Bioentity, Locus)).filter(Locus.id.in_(bioent_ids)).filter(Bioentity.class_type=='LOCUS')
         bioents.extend(query1.all())
     if print_query:
         print query1

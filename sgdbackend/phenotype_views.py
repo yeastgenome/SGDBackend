@@ -143,7 +143,7 @@ def phenotype_references(request):
     bioent = get_cached_bioent(identifier, entity_type)
     if bioent is None:
         return Response(status_int=500, body='Bioent could not be found.')
-    return make_reference_list(['PHENO_EVIDENCE'], bioent['id'])
+    return make_reference_list(['PHENOTYPE'], bioent['id'], only_primary=True)
 #
 #'''
 #-------------------------------Overview Table---------------------------------------

@@ -10,7 +10,6 @@ def locus_to_json(bioent):
     bioent_json['source'] = bioent.source
     bioent_json['attribute'] = bioent.attribute
     bioent_json['name_description'] = bioent.name_description
-    bioent_json['qualifier'] = bioent.qualifier
     bioent_json['alias_str'] = bioent.alias_str
     bioent_json['description'] = bioent.description
     return bioent_json
@@ -18,7 +17,7 @@ def locus_to_json(bioent):
 def bioent_to_json(bioent):
     return {
             'format_name': bioent.format_name,
-            'bioent_type': bioent.bioent_type,
+            'bioent_type': bioent.class_type,
             'display_name': bioent.display_name, 
             'link': bioent.link,
             'id': bioent.id
@@ -34,7 +33,7 @@ def go_to_json(biocon):
 def biocon_to_json(biocon):
     return {
             'format_name': biocon.format_name,
-            'biocon_type': biocon.biocon_type,
+            'biocon_type': biocon.class_type,
             'display_name': biocon.display_name, 
             'link': biocon.link,
             'id': biocon.id
@@ -107,7 +106,7 @@ def reference_to_json_full(reference):
     
 def url_to_json(url):
     return {
-            'url_type': url.url_type,
+            'url_type': url.class_type,
             'display_name': url.display_name, 
             'link': url.url,
             'category': url.category,

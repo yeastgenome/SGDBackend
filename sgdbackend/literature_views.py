@@ -17,7 +17,7 @@ def literature_overview(request):
     bioent = get_cached_bioent(identifier, entity_type)
     if bioent is None:
         return Response(status_int=500, body='Bioent could not be found.')  
-    return make_reference_list(['PRIMARY_LIT_EVIDENCE'], bioent['id']) 
+    return make_reference_list(['PRIMARY_LITERATURE'], bioent['id']) 
 
 @view_config(route_name='literature_details', renderer='jsonp')
 def literature_details(request):
@@ -29,9 +29,9 @@ def literature_details(request):
         return Response(status_int=500, body='Bioent could not be found.')
         
     references = {}
-    references['primary'] = make_reference_list(['PRIMARY_LIT_EVIDENCE'], bioent['id']) 
-    references['additional'] = make_reference_list(['ADDITIONAL_LIT_EVIDENCE'], bioent['id']) 
-    references['reviews'] = make_reference_list(['REVIEW_LIT_EVIDENCE'], bioent['id'])  
+    references['primary'] = make_reference_list(['PRIMARY_LITERATURE'], bioent['id']) 
+    references['additional'] = make_reference_list(['ADDITIONAL_LITERATURE'], bioent['id']) 
+    references['reviews'] = make_reference_list(['REVIEW_LITERATURE'], bioent['id'])  
     return references 
     
 @view_config(route_name='literature_graph', renderer='jsonp')
@@ -68,11 +68,11 @@ def create_litguide_edge(bioent_id, reference_id):
 def make_litguide_graph(bioent_id):
     
     #Get primary genes for each paper in bioentevidences
-    reference_ids = [x.reference_id for x in get_references('PRIMARY_LIT_EVIDENCE', bioent_id=bioent_id)]
+    reference_ids = [x.reference_id for x in get_references('PRIMARY_LITERATURE', bioent_id=bioent_id)]
 
     reference_id_to_bioent_ids = {}
     for reference_id in reference_ids:
-        bioent_ids = set([x.bioent_id for x in get_references('PRIMARY_LIT_EVIDENCE', reference_id=reference_id)])
+        bioent_ids = set([x.bioentity_id for x in get_references('PRIMARY_LITERATURE', reference_id=reference_id)])
         reference_id_to_bioent_ids[reference_id] = bioent_ids
      
     #Calculate weight between every pair of papers
@@ -84,12 +84,12 @@ def make_litguide_graph(bioent_id):
                 bioent_ids2 = reference_id_to_bioent_ids[reference_id2]
                 overlap = bioent_ids1 & bioent_ids2
                 overlap_len = len(overlap)
-                if overlap_len > 1:
+                if overlap_len > 1 and len(bioent_ids2) <= 10 and len(bioent_ids2) <= 10:
                     weight = 1.0*overlap_len*overlap_len*overlap_len/(len(bioent_ids1)*len(bioent_ids2))
                     reference_pair_to_weight[reference_id1, reference_id2] = weight
                 
     #Find papers with top 20 weights.
-    max_num = 20
+    max_num = 15
     top_ref_pairs = []
 
     for ref_pair, weight in reference_pair_to_weight.iteritems():

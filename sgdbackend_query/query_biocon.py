@@ -4,10 +4,10 @@ Created on Jul 9, 2013
 @author: kpaskov
 '''
 
-from model_new_schema.bioconcept import Bioconcept, BioconRelation
+from model_new_schema.bioconcept import Bioconcept, BioconceptRelation
 from model_new_schema.go import Go
 from model_new_schema.phenotype import Phenotype
-from model_new_schema.auxiliary import BioconAncestor, Biofact
+from model_new_schema.auxiliary import BioconceptAncestor, Biofact
 from sgdbackend_query import session
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.util import with_polymorphic
@@ -25,7 +25,7 @@ def get_biocon(biocon_name, biocon_type, print_query=False):
     FROM sprout.biocon LEFT OUTER JOIN sprout.goterm ON sprout.goterm.biocon_id = sprout.biocon.biocon_id 
     WHERE sprout.biocon.biocon_type = :biocon_type_1 AND sprout.biocon.name = :name_1
     '''
-    query = session.query(with_polymorphic(Bioconcept, [biocon_type_to_class[biocon_type]])).filter(Bioconcept.biocon_type==biocon_type).filter(Bioconcept.format_name==biocon_name)
+    query = session.query(with_polymorphic(Bioconcept, [biocon_type_to_class[biocon_type]])).filter(Bioconcept.class_type==biocon_type).filter(Bioconcept.format_name==biocon_name)
     biocon = query.first()
     if print_query:
         print query
@@ -40,7 +40,7 @@ def get_biocon_id(biocon_name, biocon_type, print_query=False):
     FROM sprout.biocon 
     WHERE sprout.biocon.biocon_type = :biocon_type_1 AND sprout.biocon.name = :name_1
     '''
-    query = session.query(Bioconcept).filter(Bioconcept.biocon_type==biocon_type).filter(Bioconcept.format_name==biocon_name)
+    query = session.query(Bioconcept).filter(Bioconcept.class_type==biocon_type).filter(Bioconcept.format_name==biocon_name)
     biocon = query.first()
     biocon_id = None
     if biocon is not None:
@@ -68,11 +68,11 @@ def get_biofacts(biocon_type, biocon=None, bioent=None, print_query=False):
     if biocon is None and bioent is None:
         raise Exception()
     
-    query = session.query(Biofact).options(joinedload('bioentity'), joinedload('bioconcept')).filter(Biofact.biocon_type==biocon_type)
+    query = session.query(Biofact).options(joinedload('bioentity'), joinedload('bioconcept')).filter(Biofact.class_type==biocon_type)
     if bioent is not None:
-        query = query.filter(Biofact.bioent_id==bioent.id)
+        query = query.filter(Biofact.bioentity_id==bioent.id)
     if biocon is not None:
-        query = query.filter(Biofact.biocon_id==biocon.id)
+        query = query.filter(Biofact.bioconcept_id==biocon.id)
     if print_query:
         print query
     return query.all()
@@ -94,11 +94,11 @@ def get_biocon_family(biocon, print_query=False):
     '''
     biocon_class = biocon_type_to_class[biocon.biocon_type]
     family = set([biocon])
-    query1 = session.query(BioconAncestor).options(joinedload(BioconAncestor.ancestor_biocon.of_type(biocon_class))).filter(BioconAncestor.child_id==biocon.id)
+    query1 = session.query(BioconceptAncestor).options(joinedload(BioconceptAncestor.ancestor_bioconcept.of_type(biocon_class))).filter(BioconceptAncestor.child_bioconcept_id==biocon.id)
     biocon_ancs = query1.all()
     family.update([biocon_anc.ancestor_biocon for biocon_anc in biocon_ancs])
     
-    query2 = session.query(BioconRelation).options(joinedload(BioconRelation.child_biocon.of_type(biocon_class))).filter(BioconRelation.parent_id==biocon.id)
+    query2 = session.query(BioconceptRelation).options(joinedload(BioconceptRelation.child_bioconcept.of_type(biocon_class))).filter(BioconceptRelation.parent_bioconcept_id==biocon.id)
     biocon_children = query2.all()
     family.update([biocon_child.child_biocon for biocon_child in biocon_children])
     
@@ -126,11 +126,11 @@ def get_biocon_biocons(biocon_ids, print_query=False):
     biocon_ids = set(biocon_ids)
     related_biocon_biocons = set()
     
-    query1 = session.query(BioconRelation).filter(BioconRelation.parent_id.in_(biocon_ids))
+    query1 = session.query(BioconceptRelation).filter(BioconceptRelation.parent_bioconcept_id.in_(biocon_ids))
     ancestor_in_list = query1.all()
     related_biocon_biocons.update([biocon_biocon for biocon_biocon in ancestor_in_list if biocon_biocon.child_id in biocon_ids])
     
-    query2 = session.query(BioconRelation).filter(BioconRelation.child_id.in_(biocon_ids))
+    query2 = session.query(BioconceptRelation).filter(BioconceptRelation.child_bioconcept_id.in_(biocon_ids))
     child_in_list = query2.all()
     related_biocon_biocons.update([biocon_biocon for biocon_biocon in child_in_list if biocon_biocon.parent_id in biocon_ids])
     
@@ -149,12 +149,12 @@ def get_related_biofacts(biocon_type, biocon_ids=None, bioent_ids=None, print_qu
     FROM sprout.biocon LEFT OUTER JOIN sprout.goterm ON sprout.goterm.biocon_id = sprout.biocon.biocon_id) anon_1 ON anon_1.sprout_biocon_biocon_id = sprout.biofact.biocon_id 
     WHERE sprout.biofact.biocon_id IN (:biocon_id_1)
     '''
-    query = session.query(Biofact).filter(Biofact.biocon_type==biocon_type)
+    query = session.query(Biofact).filter(Biofact.class_type==biocon_type)
     
     if biocon_ids is not None:
-        query = query.filter(Biofact.biocon_id.in_(biocon_ids))
+        query = query.filter(Biofact.bioconcept_id.in_(biocon_ids))
     if bioent_ids is not None:
-        query = query.filter(Biofact.bioent_id.in_(bioent_ids))
+        query = query.filter(Biofact.bioentity_id.in_(bioent_ids))
     biofacts = query.all()
     if print_query:
         print query

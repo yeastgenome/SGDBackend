@@ -1,6 +1,7 @@
 from pyramid.response import Response
 from pyramid.view import view_config
-from sgdbackend.cache import get_cached_bioent, id_to_bioent
+from sgdbackend.cache import get_cached_bioent, id_to_bioent, id_to_reference, \
+    get_cached_reference
 from sgdbackend_query.query_reference import get_reference_bibs
 
 
@@ -41,6 +42,31 @@ def bioent_list_view(request):
             bioents.append(bioent)
     return bioents
 
+@view_config(route_name='reference', renderer='json')
+def reference(request):
+    identifier = request.matchdict['identifier']
+    reference = get_cached_reference(identifier)
+    if reference is None:
+        return Response(status_int=500, body='Reference could not be found.')
+    return reference
+
+@view_config(route_name='all_references', renderer='json')
+def all_references(request):
+    min_id = None
+    max_id = None
+    if 'min' in request.GET and 'max' in request.GET:
+        min_id = int(request.GET['min'])
+        max_id = int(request.GET['max'])
+    references = {}
+    for reference in id_to_reference.values():
+        reference_id = reference['id']
+        if min_id is not None:
+            if reference_id >= min_id and reference_id < max_id:
+                references[reference_id] = reference
+        else:
+            references[reference_id] = reference
+    return references.values()
+
 @view_config(route_name='reference_list', renderer='jsonp')
 def reference_list_view(request):
     reference_ids = request.json_body['reference_ids']
@@ -51,6 +77,15 @@ def reference_list_view(request):
     references_json = [ref_bib.bib_entry for ref_bib in ref_bibs]
     return references_json
 
+@view_config(route_name='reference_bib', renderer='jsonp')
+def reference_bib_view(request):
+    identifier = request.matchdict['identifier']
+    reference = get_cached_reference(identifier)
+    if reference is None:
+        return Response(status_int=500, body='Reference could not be found.')
+    
+    ref_bib = get_reference_bibs(reference_ids=[reference['id']])[0].bib_entry
+    return ref_bib
 
 
 

@@ -3,10 +3,10 @@ Created on Jul 9, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.auxiliary import BioentReference
+from model_new_schema.auxiliary import BioentityReference
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.reference import Reference, Author, AuthorReference, \
-    ReferenceBib
+    Bibentry
 from sgdbackend_query import session
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func
@@ -122,11 +122,11 @@ def find_bioentities(text, print_query=False):
 
 #Used for references
 def get_references(bioent_ref_type, bioent_id=None, reference_id=None, print_query=False):
-    query = session.query(BioentReference).filter(BioentReference.bioent_ref_type==bioent_ref_type)
+    query = session.query(BioentityReference).filter(BioentityReference.class_type==bioent_ref_type)
     if bioent_id is not None:
-        query = query.filter(BioentReference.bioent_id==bioent_id)
+        query = query.filter(BioentityReference.bioentity_id==bioent_id)
     if reference_id is not None:
-        query = query.filter(BioentReference.reference_id==reference_id)
+        query = query.filter(BioentityReference.reference_id==reference_id)
     bioent_refs = query.all()
     if print_query:
         print query
@@ -136,7 +136,7 @@ def get_references(bioent_ref_type, bioent_id=None, reference_id=None, print_que
 def get_reference_bibs(reference_ids=None, print_query=False):
     references = []
     if reference_ids is not None:
-        query1 = session.query(ReferenceBib).filter(ReferenceBib.id.in_(reference_ids))
+        query1 = session.query(Bibentry).filter(Bibentry.id.in_(reference_ids))
         references.extend(query1.all())
     if print_query:
         print query1

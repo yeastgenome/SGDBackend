@@ -21,13 +21,13 @@ def cache_core():
     #print 'Cache bioents'
     #Cache bioents
     for bioent in get_all_bioents():
-        if bioent.bioent_type == 'LOCUS':
+        if bioent.class_type == 'LOCUS':
             json_form = locus_to_json(bioent)
         else:
             json_form = bioent_to_json(bioent)
         id_to_bioent[bioent.id] = json_form
         id_to_bioent[bioent.unique_key()] = json_form
-        id_to_bioent[(bioent.display_name, bioent.bioent_type)] = json_form
+        id_to_bioent[(bioent.display_name, bioent.class_type)] = json_form
        
     #print 'Cache biocons' 
     #Cache biocons
