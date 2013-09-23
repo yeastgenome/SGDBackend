@@ -10,6 +10,7 @@ from model_new_schema.interaction import Geninteractionevidence, \
     Physinteractionevidence
 from model_new_schema.phenotype import Phenotypeevidence
 from model_new_schema.regulation import Regulationevidence
+from model_new_schema.sequence import Bindingevidence
 from sgdbackend_query import session, retrieve_in_chunks
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import or_
@@ -130,17 +131,26 @@ def get_phenotype_evidence(bioent_id=None, biocon_id=None, reference_id=None, ch
     return phenoevidences
 
 #Used for regulation_evidence table.
-def get_regulation_evidence(bioent_id=None, biorel_id=None, reference_id=None, print_query=False):
+def get_regulation_evidence(bioent_id=None, print_query=False):
     query = session.query(Regulationevidence)
     if bioent_id is not None:
         query = query.filter(or_(Regulationevidence.bioentity1_id == bioent_id, Regulationevidence.bioentity2_id == bioent_id))
-    if reference_id is not None:
-        query = query.filter(Physinteractionevidence.reference_id==reference_id)
     
     regevidences = query.all()
     if print_query:
-        print_query
+        print query
     return regevidences
+
+#Used for yetfasco logo display.
+def get_binding_site_evidence(bioent_id=None, print_query=False):
+    query = session.query(Bindingevidence)
+    if bioent_id is not None:
+        query = query.filter(Bindingevidence.bioentity_id == bioent_id)
+    
+    evidences = query.all()
+    if print_query:
+        print query
+    return evidences
 
 #Used to create performance database.
 def get_all_strains(print_query=False):

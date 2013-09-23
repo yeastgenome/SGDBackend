@@ -112,3 +112,29 @@ def url_to_json(url):
             'category': url.category,
             'source': url.source,
             }
+    
+def domain_to_json(domain):
+    return {
+            'source': domain.source,
+            'display_name': domain.display_name,
+            'format_name': domain.format_name,
+            'description': domain.description,
+            'interpro_id': domain.interpro_id,
+            'interpro_description': domain.interpro_description,
+            'link': domain.link
+           }
+    
+def paragraph_to_json(paragraph):
+    from sgdbackend.utils import link_gene_names
+    from sgdbackend.cache import get_cached_bioent
+
+    references = [reference_to_json(x) for x in paragraph.references]
+    references.sort(key=lambda x: (x['year'], x['pubmed_id']), reverse=True) 
+    bioent = get_cached_bioent(paragraph.bioentity_id)
+    to_ignore = {bioent['format_name'], bioent['display_name'], bioent['format_name'] + 'P', bioent['display_name'] + 'P'}
+    text = link_gene_names(paragraph.text, to_ignore=to_ignore)
+    return {
+            'text': text,
+            'references': references
+           }
+    

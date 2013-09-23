@@ -84,7 +84,7 @@ def reference_bib_view(request):
     if reference is None:
         return Response(status_int=500, body='Reference could not be found.')
     
-    ref_bib = get_reference_bibs(reference_ids=[reference['id']])[0].bib_entry
+    ref_bib = get_reference_bibs(reference_ids=[reference['id']])[0].text
     return ref_bib
 
 

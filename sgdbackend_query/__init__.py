@@ -1,6 +1,7 @@
-from model_new_schema.auxiliary import BioconceptAncestor, Biofact, BioentityReference
+from model_new_schema.auxiliary import BioconceptAncestor, Biofact, \
+    BioentityReference
 from model_new_schema.bioconcept import Bioconcept, BioconceptRelation
-from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl
+from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl, Paragraph
 from model_new_schema.chemical import Chemical
 from model_new_schema.evelement import Experiment, Strain
 from model_new_schema.evidence import EvidenceChemical
@@ -72,6 +73,14 @@ def get_bioent_format_names(print_query=False):
     if print_query:
         print query
     return bioent_format_names
+
+#Used for regulation_overview
+def get_paragraph(bioent_id, class_type, print_query=False):
+    query = session.query(Paragraph).filter(Paragraph.bioentity_id == bioent_id).filter(Paragraph.class_type == class_type)
+    paragraph = query.first()
+    if print_query:
+        print query
+    return paragraph
         
 #Used to break very large queries into a manageable size.
 chunk_size = 500

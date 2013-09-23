@@ -27,7 +27,7 @@ def interaction_overview(request):
         return Response(status_int=500, body= entity_type + ' ' + str(identifier) + ' could not be found.')
         
     genetic = get_interactions('GENINTERACTION', bioent['id'])
-    physical = get_interactions('PHYSINtERACTION', bioent['id'])
+    physical = get_interactions('PHYSINTERACTION', bioent['id'])
     return make_overview(genetic, physical, bioent) 
 
 @view_config(route_name='interaction_details', renderer='jsonp')

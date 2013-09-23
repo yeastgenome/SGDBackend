@@ -7,10 +7,10 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from sgdbackend.cache import get_cached_bioent, get_cached_experiment, \
     get_cached_reference
+from sgdbackend.obj_to_json import paragraph_to_json
 from sgdbackend.utils import create_simple_table, make_reference_list
+from sgdbackend_query import get_paragraph
 from sgdbackend_query.query_evidence import get_regulation_evidence
-
-
 
 @view_config(route_name='regulation_overview', renderer='jsonp')
 def regulation_overview(request):
@@ -19,8 +19,19 @@ def regulation_overview(request):
     bioent = get_cached_bioent(identifier, entity_type)
     if bioent is None:
         return Response(status_int=500, body= entity_type + ' ' + str(identifier) + ' could not be found.')
-        
-    return None
+    bioent_id = bioent['id']
+    overview = {}
+    
+    paragraph = get_paragraph(bioent_id, 'REGULATION')
+    if paragraph is not None:
+        overview['paragraph'] = paragraph_to_json(paragraph)
+    regevidences = get_regulation_evidence(bioent_id=bioent_id)
+    target_count = len(set([regevidence.bioentity2_id for regevidence in regevidences if regevidence.bioentity1_id==bioent_id]))
+    regulator_count = len(set([regevidence.bioentity1_id for regevidence in regevidences if regevidence.bioentity2_id==bioent_id]))
+    
+    overview['target_count'] = target_count
+    overview['regulator_count'] = regulator_count
+    return overview
 
 @view_config(route_name='regulation_details', renderer='jsonp')
 def regulation_details(request):

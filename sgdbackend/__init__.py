@@ -50,6 +50,10 @@ def prep_views(config):
     config.add_route('literature_details', '/{type}/{identifier}/literature_details')
     config.add_route('literature_graph', '/{type}/{identifier}/literature_graph')
     
+    #Protein views
+    config.add_route('protein_domain_details', '/{type}/{identifier}/protein_domain_details')
+
+    config.add_route('binding_site_details', '/{type}/{identifier}/binding_site_details')
 #    #Biocon views
 #    config.add_route('biocon', '/biocon/{biocon_type}/{biocon}')
 #

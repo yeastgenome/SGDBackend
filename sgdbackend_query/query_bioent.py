@@ -4,6 +4,7 @@ Created on Jul 9, 2013
 @author: kpaskov
 '''
 from model_new_schema.bioentity import Locus, Bioentity
+from model_new_schema.protein import Domainevidence
 from sgdbackend_query import session
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.util import with_polymorphic
@@ -62,3 +63,11 @@ def get_bioents(bioent_ids=None, print_query=False):
     if print_query:
         print query1
     return bioents
+
+#Used for protein_domains
+def get_domain_evidence(protein_id, print_query=False):
+    query = session.query(Domainevidence).filter(Domainevidence.protein_id == protein_id).options(joinedload('domain'))
+    if print_query:
+        print query
+    domainevidences = query.all()
+    return domainevidences
