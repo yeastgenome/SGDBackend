@@ -6,7 +6,7 @@ Created on Mar 15, 2013
 from pyramid.response import Response
 from pyramid.view import view_config
 from sgdbackend.cache import get_cached_bioent, get_cached_experiment, \
-    get_cached_reference
+    get_cached_reference, get_cached_strain
 from sgdbackend.obj_to_json import paragraph_to_json
 from sgdbackend.utils import create_simple_table, make_reference_list
 from sgdbackend_query import get_paragraph
@@ -60,7 +60,7 @@ def regulation_references(request):
     bioent = get_cached_bioent(identifier, entity_type)
     if bioent is None:
         return Response(status_int=500, body='Bioent could not be found.')
-    return make_reference_list(['REGULATION_EVIDENCE'], bioent['id'])
+    return make_reference_list(['REGULATION'], bioent['id'])
 
     
 '''
@@ -96,11 +96,13 @@ def make_evidence_row(regevidence, bioent_id=None):
 
     reference_id = regevidence.reference_id 
     experiment_id = regevidence.experiment_id
+    strain_id = regevidence.strain_id
         
     return {'bioent1': get_cached_bioent(bioent1_id),
                 'bioent2': get_cached_bioent(bioent2_id),
                 'reference': get_cached_reference(reference_id),
                 'experiment': get_cached_experiment(experiment_id),
+                'strain': get_cached_strain(strain_id),
                 'source': regevidence.source,
                 'conditions': regevidence.conditions
                 }

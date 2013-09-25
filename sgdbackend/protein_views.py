@@ -28,7 +28,7 @@ def protein_domain_details(request):
         if protein is None:
             return Response(status_int=500, body='Protein could not be found.')
     
-    domain_evidences = get_domain_evidence(protein['id'])
+    domain_evidences = [x for x in get_domain_evidence(protein['id']) if x.domain.display_name != 'seg' ]
     return make_evidence_table(domain_evidences)
     
 def make_evidence_table(domain_evidences):

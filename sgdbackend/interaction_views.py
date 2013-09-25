@@ -195,10 +195,10 @@ def create_interaction_graph(bioent_id):
     id_to_node = {}
     edges = []
     min_evidence_count = None
-    max_evidence_count = None
-    max_phys_count = None
-    max_gen_count = None
-    max_both_count = None
+    max_evidence_count = 0
+    max_phys_count = 0
+    max_gen_count = 0
+    max_both_count = 0
     bioent_id_to_evidence_count = {}
     
     for interaction_family in interaction_families:
@@ -218,7 +218,7 @@ def create_interaction_graph(bioent_id):
                 max_phys_count = phys_count
             if max_gen_count is None or gen_count > max_gen_count:
                 max_gen_count = gen_count
-            if max_both_count is None or gen_count + phys_count > max_both_count:
+            if gen_count > 0 and phys_count > 0 and (max_both_count is None or gen_count + phys_count > max_both_count):
                 max_both_count = gen_count + phys_count
             
             if bioent1_id not in bioent_id_to_evidence_count:
