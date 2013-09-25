@@ -44,15 +44,6 @@ def regulation_details(request):
     regevidences = get_regulation_evidence(bioent_id=bioent['id'])
     return make_evidence_tables(True, regevidences, bioent['id']) 
     
-@view_config(route_name='regulation_graph', renderer="jsonp")
-def regulation_graph(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.')  
-    return create_regulation_graph(bioent['id'])
-    
 @view_config(route_name='regulation_references', renderer="jsonp")
 def regulation_references(request):
     entity_type = request.matchdict['type']

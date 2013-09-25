@@ -20,7 +20,7 @@ def make_reference_list(bioent_ref_types, bioent_id, only_primary=False):
         reference_ids.update([x.reference_id for x in get_references(bioent_ref_type, bioent_id=bioent_id)])
         
     if only_primary:
-        primary_ids = set([x.reference_id for x in get_references('PRIMARY_LIT_EVIDENCE', bioent_id=bioent_id)])
+        primary_ids = set([x.reference_id for x in get_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
         reference_ids.intersection_update(primary_ids)
 
     references = [get_cached_reference(reference_id) for reference_id in reference_ids]

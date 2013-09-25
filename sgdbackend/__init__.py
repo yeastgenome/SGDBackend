@@ -25,7 +25,6 @@ def prep_views(config):
     #Reference views
     config.add_route('all_references', '/all_references')
     config.add_route('reference', '/reference/{identifier}/overview')
-    config.add_route('reference_bib', '/reference/{identifier}/bib')
     config.add_route('reference_list', '/reference_list')
     
     #Bioent views
@@ -42,7 +41,6 @@ def prep_views(config):
     #Regulation views
     config.add_route('regulation_overview', '/{type}/{identifier}/regulation_overview')
     config.add_route('regulation_details', '/{type}/{identifier}/regulation_details')
-    config.add_route('regulation_graph', '/{type}/{identifier}/regulation_graph') 
     config.add_route('regulation_references', '/{type}/{identifier}/regulation_references')
     
     #Literature views

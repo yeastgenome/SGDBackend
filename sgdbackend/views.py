@@ -74,18 +74,9 @@ def reference_list_view(request):
     if ref_bibs is None:
         return Response(status_int=500, body='References could not be found.')
     
-    references_json = [ref_bib.bib_entry for ref_bib in ref_bibs]
+    references_json = [ref_bib.text for ref_bib in ref_bibs]
     return references_json
 
-@view_config(route_name='reference_bib', renderer='jsonp')
-def reference_bib_view(request):
-    identifier = request.matchdict['identifier']
-    reference = get_cached_reference(identifier)
-    if reference is None:
-        return Response(status_int=500, body='Reference could not be found.')
-    
-    ref_bib = get_reference_bibs(reference_ids=[reference['id']])[0].text
-    return ref_bib
 
 
 
