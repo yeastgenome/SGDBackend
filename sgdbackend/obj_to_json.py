@@ -63,7 +63,9 @@ def reference_to_json(reference):
             'citation': reference.citation,
             'id': reference.id,
             'year': reference.year,
-            'pubmed_id': reference.pubmed_id
+            'pubmed_id': reference.pubmed_id,
+            'pubmed_central_id': reference.pubmed_central_id,
+            'urls': [url_to_json(x) for x in reference.urls]
             }
     
 def reference_to_json_full(reference):

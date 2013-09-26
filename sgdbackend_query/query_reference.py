@@ -56,7 +56,7 @@ def get_reference_id(reference_name, print_query=False):
 
 #Used to create performance database.
 def get_all_references(print_query=False):
-    query = session.query(Reference.id, Reference.format_name, Reference.display_name, Reference.link, Reference.citation, Reference.year, Reference.pubmed_id)
+    query = session.query(Reference).options(joinedload('urls'))
     bioents = query.all()
     if print_query:
         print query
