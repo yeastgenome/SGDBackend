@@ -41,6 +41,7 @@ def prep_views(config):
     #Regulation views
     config.add_route('regulation_overview', '/{type}/{identifier}/regulation_overview')
     config.add_route('regulation_details', '/{type}/{identifier}/regulation_details')
+    config.add_route('regulation_graph', '/{type}/{identifier}/regulation_graph')
     config.add_route('regulation_references', '/{type}/{identifier}/regulation_references')
     
     #Literature views
