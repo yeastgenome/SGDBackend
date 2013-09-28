@@ -36,6 +36,9 @@ def cache_core():
         id_to_biocon[biocon.id] = json_form
         id_to_biocon[biocon.unique_key()] = json_form
         
+        if biocon.class_type == 'GO':
+            id_to_biocon[(biocon.go_go_id, 'GO')] = json_form
+        
     #print 'Cache experiments'
     #Cache experiments
     for experiment in get_all_experiments():

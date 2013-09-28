@@ -4,7 +4,6 @@ Created on Jul 12, 2013
 @author: kpaskov
 '''
 from go_enrichment.hypergeom import FishersExactTest
-from query import session
 import datetime
 
 biocon_id_to_bioent_ids = {}

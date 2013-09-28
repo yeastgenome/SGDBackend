@@ -3,9 +3,10 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
+from go_enrichment.query_yeastmine import query_go_processes
 from pyramid.response import Response
 from pyramid.view import view_config
-from sgdbackend.cache import get_cached_bioent
+from sgdbackend.cache import get_cached_bioent, get_cached_biocon
 from sgdbackend.utils import make_reference_list
 
 
@@ -114,6 +115,20 @@ def go_references(request):
     if bioent is None:
         return Response(status_int=500, body='Bioent could not be found.')
     return make_reference_list(['GO'], bioent['id'], only_primary=True)
+
+@view_config(route_name='go_enrichment', renderer="jsonp")
+def go_enrichment(request):
+    bioent_format_names = request.GET['bioent_format_names'][1:-1].split(',')
+    bioent_format_names = [x[1:-1] for x in bioent_format_names]
+    enrichment_results = query_go_processes(bioent_format_names)
+    json_format = []
+    for enrichment_result in enrichment_results:
+        goterm = get_cached_biocon(int(enrichment_result[0][3:]), 'GO')
+        print int(enrichment_result[0][3])
+        json_format.append({'go': goterm,
+                            'match_count': enrichment_result[1],
+                            'pvalue': enrichment_result[2]})
+    return json_format
 
 #
 #'''

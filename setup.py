@@ -10,7 +10,8 @@ requires = [
     'pyramid',
     'waitress',
     'sprout_orm',
-    'simplejson'
+    'simplejson',
+    'intermine'
     ]
 
 tests_require = [
