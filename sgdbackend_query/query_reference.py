@@ -147,6 +147,9 @@ def get_reference_bibs(reference_ids=None, print_query=False):
     if reference_ids is not None:
         query1 = session.query(Bibentry).filter(Bibentry.id.in_(reference_ids))
         references.extend(query1.all())
+    else:
+        query1 = session.query(Bibentry)
+        references.extend(query1.all())
     if print_query:
         print query1
     return references

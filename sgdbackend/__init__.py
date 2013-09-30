@@ -24,6 +24,7 @@ def prep_views(config):
     
     #Reference views
     config.add_route('all_references', '/all_references')
+    config.add_route('all_bibentries', '/all_bibentries')
     config.add_route('reference', '/reference/{identifier}/overview')
     config.add_route('reference_list', '/reference_list')
     

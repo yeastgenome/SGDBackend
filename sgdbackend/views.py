@@ -67,6 +67,11 @@ def all_references(request):
             references[reference_id] = reference
     return references.values()
 
+@view_config(route_name='all_bibentries', renderer='json')
+def all_bibentries(request):
+    all_reference_bibs = get_reference_bibs()
+    return [{'id': x.id, 'text': x.text} for x in all_reference_bibs]
+
 @view_config(route_name='reference_list', renderer='jsonp')
 def reference_list_view(request):
     reference_ids = request.json_body['reference_ids']
