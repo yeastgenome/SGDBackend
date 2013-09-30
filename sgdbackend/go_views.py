@@ -123,8 +123,7 @@ def go_enrichment(request):
     enrichment_results = query_go_processes(bioent_format_names)
     json_format = []
     for enrichment_result in enrichment_results:
-        goterm = get_cached_biocon(int(enrichment_result[0][3:]), 'GO')
-        print int(enrichment_result[0][3])
+        goterm = get_cached_biocon(str(int(enrichment_result[0][3:])), 'GO')
         json_format.append({'go': goterm,
                             'match_count': enrichment_result[1],
                             'pvalue': enrichment_result[2]})

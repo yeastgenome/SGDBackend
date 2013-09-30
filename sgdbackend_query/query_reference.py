@@ -5,6 +5,7 @@ Created on Jul 9, 2013
 '''
 from model_new_schema.auxiliary import BioentityReference
 from model_new_schema.bioentity import Bioentity
+from model_new_schema.misc import Url
 from model_new_schema.reference import Reference, Author, AuthorReference, \
     Bibentry
 from sgdbackend_query import session
@@ -56,11 +57,19 @@ def get_reference_id(reference_name, print_query=False):
 
 #Used to create performance database.
 def get_all_references(print_query=False):
-    query = session.query(Reference).options(joinedload('urls'))
+    query = session.query(Reference)
     bioents = query.all()
     if print_query:
         print query
     return bioents
+
+#Used to create performance database.
+def get_all_urls(print_query=False):
+    query = session.query(Url).filter(Url.class_type == 'REFERENCE')
+    urls = query.all()
+    if print_query:
+        print query
+    return urls
 
 #Used for Author page.
 def get_author(author_name, print_query=False):

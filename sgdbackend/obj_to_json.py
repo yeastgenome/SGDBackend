@@ -7,11 +7,10 @@ Created on Aug 9, 2013
 def locus_to_json(bioent):
     bioent_json = bioent_to_json(bioent)
     bioent_json['description'] = bioent.description
-    bioent_json['source'] = bioent.source
-    bioent_json['attribute'] = bioent.attribute
-    bioent_json['name_description'] = bioent.name_description
-    bioent_json['alias_str'] = bioent.alias_str
-    bioent_json['description'] = bioent.description
+    #bioent_json['source'] = bioent.source
+    #bioent_json['attribute'] = bioent.attribute
+    #bioent_json['name_description'] = bioent.name_description
+    #bioent_json['alias_str'] = bioent.alias_str
     return bioent_json
 
 def bioent_to_json(bioent):
@@ -27,7 +26,7 @@ def go_to_json(biocon):
     biocon_json = biocon_to_json(biocon)
     biocon_json['go_go_id'] = biocon.go_go_id
     biocon_json['go_aspect'] = biocon.go_aspect
-    biocon_json['aliases'] = biocon.aliases
+    #biocon_json['aliases'] = biocon.aliases
     return biocon_json
     
 def biocon_to_json(biocon):
@@ -56,6 +55,14 @@ def strain_to_json(strain):
             }
     
 def reference_to_json(reference):
+    urls = []
+    urls.append({'display_name': 'PubMed', 'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id)})
+
+    if reference.doi is not None:
+        urls.append({'display_name': 'Full-Text', 'link': 'http://dx.doi.org/' + reference.doi})
+    if reference.pubmed_central_id is not None:
+        urls.append({'display_name': 'PMC', 'link': 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(reference.pubmed_central_id)})
+
     return {
             'format_name': reference.format_name,
             'display_name': reference.display_name, 
@@ -64,8 +71,7 @@ def reference_to_json(reference):
             'id': reference.id,
             'year': reference.year,
             'pubmed_id': reference.pubmed_id,
-            'pubmed_central_id': reference.pubmed_central_id,
-            'urls': [url_to_json(x) for x in reference.urls]
+            'urls': urls
             }
     
 def reference_to_json_full(reference):
@@ -108,11 +114,11 @@ def reference_to_json_full(reference):
     
 def url_to_json(url):
     return {
-            'url_type': url.class_type,
+            #'url_type': url.class_type,
             'display_name': url.display_name, 
             'link': url.url,
-            'category': url.category,
-            'source': url.source,
+            #'category': url.category,
+            #'source': url.source,
             }
     
 def domain_to_json(domain):
