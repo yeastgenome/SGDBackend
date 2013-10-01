@@ -30,10 +30,8 @@ def make_reference_list(bioent_ref_types, bioent_id, only_primary=False):
 def get_bioent_by_name(bioent_name, to_ignore):
     if bioent_name not in to_ignore:
         bioent = get_cached_bioent(bioent_name, 'LOCUS')
-        if bioent is None:
-            bioent = get_cached_bioent(bioent_name, 'BIOENTITY')
         if bioent is None and bioent_name.endswith('P'):
-            bioent = get_cached_bioent(bioent_name[:-1] + 'p', 'PROTEIN')    
+            bioent = get_cached_bioent(bioent_name[:-1], 'LOCUS')    
         return bioent
     return None
 
