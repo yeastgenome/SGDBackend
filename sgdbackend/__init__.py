@@ -31,6 +31,7 @@ def prep_views(config):
     #Bioent views
     config.add_route('bioentity', '/{type}/{identifier}/overview')
     config.add_route('all_bioents', '/all_bioents')
+    config.add_route('bioentitytabs', '/{type}/{identifier}/tabs')
     
     #Interaction views
     config.add_route('interaction_overview', '/{type}/{identifier}/interaction_overview')

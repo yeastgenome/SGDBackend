@@ -2,6 +2,8 @@ from pyramid.response import Response
 from pyramid.view import view_config
 from sgdbackend.cache import get_cached_bioent, id_to_bioent, id_to_reference, \
     get_cached_reference
+from sgdbackend.obj_to_json import bioentitytab_to_json
+from sgdbackend_query import query_bioentitytabs
 from sgdbackend_query.query_reference import get_reference_bibs
 
 
@@ -13,6 +15,19 @@ def bioentity(request):
     if bioent is None:
         return Response(status_int=500, body='Bioent could not be found.')
     return bioent
+
+@view_config(route_name='bioentitytabs', renderer='jsonp')
+def bioentitytabs(request):
+    entity_type = request.matchdict['type']
+    identifier = request.matchdict['identifier']
+    bioent = get_cached_bioent(identifier, entity_type)
+    if bioent is None:
+        return Response(status_int=500, body='Bioent could not be found.')
+    
+    bioentitytab = query_bioentitytabs(bioent['id'])
+    if bioentitytab is None:
+        return Response(status_int=500, body='No tab information for this bioentity.')
+    return bioentitytab_to_json(bioentitytab)
 
 @view_config(route_name='all_bioents', renderer='json')
 def all_bioents(request):

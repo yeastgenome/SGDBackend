@@ -59,7 +59,7 @@ def interaction_resources(request):
     if bioent is None:
         return Response(status_int=500, body='Bioent could not be found.')
         
-    resources = get_resources('Interactions Resources', bioent_id=bioent['id'])
+    resources = get_resources('Interaction Resources', bioent_id=bioent['id'])
     resources.sort(key=lambda x: x.display_name)
     return [url_to_json(url) for url in resources]
     

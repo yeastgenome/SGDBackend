@@ -4,11 +4,11 @@ Created on Aug 9, 2013
 @author: kpaskov
 '''
 from sgdbackend.obj_to_json import bioent_to_json, experiment_to_json, \
-    strain_to_json, biocon_to_json, reference_to_json, locus_to_json, url_to_json
+    strain_to_json, biocon_to_json, reference_to_json, locus_to_json
 from sgdbackend_query.query_biocon import get_all_biocons
 from sgdbackend_query.query_bioent import get_all_bioents
 from sgdbackend_query.query_evidence import get_all_experiments, get_all_strains
-from sgdbackend_query.query_reference import get_all_references, get_all_urls
+from sgdbackend_query.query_reference import get_all_references
 
 
 id_to_bioent = {}
@@ -33,7 +33,7 @@ def cache_core():
     #Cache biocons
     for biocon in get_all_biocons():
         json_form = biocon_to_json(biocon)
-        #id_to_biocon[biocon.id] = json_form
+        id_to_biocon[biocon.id] = json_form
         id_to_biocon[biocon.unique_key()] = json_form
         
     print 'Cache experiments'

@@ -94,6 +94,21 @@ def domain_to_json(domain):
             'link': domain.link
            }
     
+def bioentitytab_to_json(bioentitytab):
+    return {
+            'bioentity_id': bioentitytab.id,
+            'summary_tab': bioentitytab.summary == 1,
+            'history_tab': bioentitytab.history == 1,
+            'literature_tab': bioentitytab.literature == 1,
+            'go_tab': bioentitytab.go == 1,
+            'phenotype_tab': bioentitytab.phenotype == 1,
+            'interaction_tab': bioentitytab.interactions == 1,
+            'expression_tab': bioentitytab.expression == 1,
+            'regulation_tab': bioentitytab.regulation == 1,
+            'protein_tab': bioentitytab.protein == 1,
+            'wiki_tab': bioentitytab.wiki == 1
+           }
+    
 def paragraph_to_json(paragraph):
     from sgdbackend.utils import link_gene_names
     from sgdbackend.cache import get_cached_bioent

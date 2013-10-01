@@ -1,7 +1,8 @@
 from model_new_schema.auxiliary import BioconceptAncestor, Biofact, \
     BioentityReference
 from model_new_schema.bioconcept import Bioconcept, BioconceptRelation
-from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl, Paragraph
+from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl, Paragraph, \
+    Bioentitytabs
 from model_new_schema.chemical import Chemical
 from model_new_schema.evelement import Experiment, Strain
 from model_new_schema.evidence import EvidenceChemical
@@ -39,7 +40,12 @@ def get_chemical(chemical_name, print_query=False):
     chemical = query.first()
     return chemical
 
-
+#Used to determine tabs on all pages.
+def query_bioentitytabs(bioentity_id, print_query=False):
+    query = session.query(Bioentitytabs).filter(Bioentitytabs.id==bioentity_id)
+    if print_query:
+        print query
+    return query.first()
 
 #Used for Graph Views.
 def get_experiment(experiment_name, print_query=False):
