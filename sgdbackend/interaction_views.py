@@ -120,7 +120,38 @@ def make_evidence_tables(divided, genetic_interevidences, physical_interevidence
     else:
         tables = create_simple_table(all_interevidences, make_evidence_row, bioent_id=bioent_id)
         
-    return tables    
+    return tables  
+
+def minimize_bioent_json(bioent_json):
+    if bioent_json is not None:
+        return {'display_name': bioent_json['display_name'],
+            'format_name': bioent_json['format_name'],
+            'link': bioent_json['link']}
+    return None
+    
+def minimize_reference_json(ref_json):
+    if ref_json is not None:
+        return {'display_name': ref_json['display_name'],
+            'link': ref_json['link']}
+    return None
+    
+def minimize_strain_json(strain_json):
+    if strain_json is not None:
+        return {'display_name': strain_json['display_name'],
+            'link': strain_json['link']}
+    return None
+    
+def minimize_experiment_json(exp_json):
+    if exp_json is not None:
+        return {'display_name': exp_json['display_name'],
+            'link': exp_json['link']} 
+    return None
+    
+def minimize_biocon_json(biocon_json):
+    if biocon_json is not None:
+        return {'display_name': biocon_json['display_name'],
+            'link': biocon_json['link']}  
+    return None
 
 def make_evidence_row(interevidence, bioent_id=None): 
     if bioent_id is not None:
@@ -143,13 +174,13 @@ def make_evidence_row(interevidence, bioent_id=None):
     note=interevidence.note
         
     if interevidence.class_type == 'GENINTERACTION':
-        return {'bioent1': get_cached_bioent(bioent1_id),
-                'bioent2': get_cached_bioent(bioent2_id),
+        return {'bioent1': minimize_bioent_json(get_cached_bioent(bioent1_id)),
+                'bioent2': minimize_bioent_json(get_cached_bioent(bioent2_id)),
                 'interaction_type': 'Genetic',
-                'reference': get_cached_reference(reference_id),
-                'experiment': get_cached_experiment(experiment_id),
-                'strain': get_cached_strain(strain_id),
-                'phenotype': get_cached_biocon(interevidence.phenotype_id, 'PHENOTYPE'),
+                'reference': minimize_reference_json(get_cached_reference(reference_id)),
+                'experiment': minimize_experiment_json(get_cached_experiment(experiment_id)),
+                'strain': minimize_strain_json(get_cached_strain(strain_id)),
+                'phenotype': minimize_biocon_json(get_cached_biocon(interevidence.phenotype_id, 'PHENOTYPE')),
                 'annotation_type': interevidence.annotation_type,
                 'direction': direction,
                 'source': interevidence.source,

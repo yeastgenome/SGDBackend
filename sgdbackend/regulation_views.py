@@ -83,6 +83,31 @@ def make_evidence_tables(divided, regevidences, bioent_id):
         
     return tables    
 
+def minimize_bioent_json(bioent_json):
+    if bioent_json is not None:
+        return {'display_name': bioent_json['display_name'],
+            'format_name': bioent_json['format_name'],
+            'link': bioent_json['link']}
+    return None
+    
+def minimize_reference_json(ref_json):
+    if ref_json is not None:
+        return {'display_name': ref_json['display_name'],
+            'link': ref_json['link']}
+    return None
+    
+def minimize_strain_json(strain_json):
+    if strain_json is not None:
+        return {'display_name': strain_json['display_name'],
+            'link': strain_json['link']}
+    return None
+    
+def minimize_experiment_json(exp_json):
+    if exp_json is not None:
+        return {'display_name': exp_json['display_name'],
+            'link': exp_json['link']}
+    return None
+
 def make_evidence_row(regevidence, bioent_id=None): 
     if bioent_id is not None:
         if regevidence.bioentity1_id == bioent_id:
@@ -99,11 +124,11 @@ def make_evidence_row(regevidence, bioent_id=None):
     experiment_id = regevidence.experiment_id
     strain_id = regevidence.strain_id
         
-    return {'bioent1': get_cached_bioent(bioent1_id),
-                'bioent2': get_cached_bioent(bioent2_id),
-                'reference': get_cached_reference(reference_id),
-                'experiment': get_cached_experiment(experiment_id),
-                'strain': get_cached_strain(strain_id),
+    return {'bioent1': minimize_bioent_json(get_cached_bioent(bioent1_id)),
+                'bioent2': minimize_bioent_json(get_cached_bioent(bioent2_id)),
+                'reference': minimize_reference_json(get_cached_reference(reference_id)),
+                'experiment': minimize_experiment_json(get_cached_experiment(experiment_id)),
+                'strain': minimize_strain_json(get_cached_strain(strain_id)),
                 'source': regevidence.source,
                 'conditions': regevidence.conditions
                 }
