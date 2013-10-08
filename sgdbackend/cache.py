@@ -23,6 +23,7 @@ def cache_core():
     for bioent in get_all_bioents():
         if bioent.class_type == 'LOCUS':
             json_form = locus_to_json(bioent)
+            id_to_bioent[(bioent.dbxref, 'LOCUS')] = json_form
         else:
             json_form = bioent_to_json(bioent)
         id_to_bioent[bioent.id] = json_form

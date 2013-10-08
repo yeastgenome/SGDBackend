@@ -129,13 +129,21 @@ def find_bioentities(text, print_query=False):
               
     return name_to_feature
 
-#Used for references
+#Used for literature page
 def get_references(bioent_ref_type, bioent_id=None, reference_id=None, print_query=False):
     query = session.query(BioentityReference).filter(BioentityReference.class_type==bioent_ref_type)
     if bioent_id is not None:
         query = query.filter(BioentityReference.bioentity_id==bioent_id)
     if reference_id is not None:
         query = query.filter(BioentityReference.reference_id==reference_id)
+    bioent_refs = query.all()
+    if print_query:
+        print query
+    return bioent_refs
+
+#Used for literature overview
+def get_all_references_for_bioent(bioent_id, print_query=False):
+    query = session.query(BioentityReference).filter(BioentityReference.bioentity_id==bioent_id)
     bioent_refs = query.all()
     if print_query:
         print query
