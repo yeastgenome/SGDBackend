@@ -11,6 +11,7 @@ requires = [
     'waitress',
     'sprout_orm',
     'simplejson',
+    'requests',
     'intermine'
     ]
 

@@ -7,6 +7,7 @@ Created on Aug 9, 2013
 def locus_to_json(bioent):
     bioent_json = bioent_to_json(bioent)
     bioent_json['description'] = bioent.description
+    bioent_json['dbxref'] = bioent.dbxref
     #bioent_json['source'] = bioent.source
     #bioent_json['attribute'] = bioent.attribute
     #bioent_json['name_description'] = bioent.name_description
