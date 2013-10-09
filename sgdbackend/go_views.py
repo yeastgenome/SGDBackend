@@ -131,8 +131,7 @@ def go_enrichment_yeastmine(request):
 
 @view_config(route_name='go_enrichment_batter', renderer="jsonp")
 def go_enrichment_batter(request):
-    bioent_format_names = request.GET['bioent_format_names'][1:-1].split(',')
-    bioent_format_names = [x[1:-1] for x in bioent_format_names]
+    bioent_format_names = request.json_body['bioent_format_names']
     enrichment_results = query_batter.query_go_processes(bioent_format_names)
     json_format = []
     for enrichment_result in enrichment_results:
