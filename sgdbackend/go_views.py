@@ -142,6 +142,19 @@ def go_enrichment_batter(request):
                             'pvalue': enrichment_result[2]})
     return json_format
 
+@view_config(route_name='go_enrichment', renderer="jsonp")
+def go_enrichment(request):
+    bioent_format_names = request.GET['bioent_format_names'][1:-1].split(',')
+    bioent_format_names = [x[1:-1] for x in bioent_format_names]
+    enrichment_results = go_enrichment.query_go_processes(bioent_format_names)
+    json_format = []
+    for enrichment_result in enrichment_results:
+        goterm = get_cached_biocon(str(int(enrichment_result[0][3:])), 'GO')
+        json_format.append({'go': goterm,
+                            'match_count': enrichment_result[1],
+                            'pvalue': enrichment_result[2]})
+    return json_format
+
 #
 #'''
 #-------------------------------Overview Table---------------------------------------
