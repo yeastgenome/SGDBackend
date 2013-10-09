@@ -62,7 +62,6 @@ def prep_views(config):
     config.add_route('go_references', '/{type}/{identifier}/go_references')
     config.add_route('go_enrichment_yeastmine', '/go_enrichment_yeastmine')
     config.add_route('go_enrichment_batter', '/go_enrichment_batter')
-    config.add_route('go_enrichment', '/go_enrichment')
 #    config.add_route('go', '/go/{biocon}')
 #    config.add_route('go_evidence', '/go_evidence')
 #    config.add_route('go_overview_table', '/go_overview_table')
