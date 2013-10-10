@@ -9,10 +9,11 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'pyramid',
     'waitress',
-    'sprout_orm',
     'simplejson',
     'requests',
-    'intermine'
+    'intermine',
+    'cx_oracle',
+    'sqlalchemy'
     ]
 
 tests_require = [
