@@ -3,81 +3,23 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from pyramid.response import Response
-from pyramid.view import view_config
-from sgdbackend_query import get_resources
+from sgdbackend_utils.cache import get_cached_bioent, get_cached_experiment, \
+    get_cached_reference, get_cached_strain, get_cached_biocon
+from sgdbackend_utils import create_simple_table
+from sgdbackend_utils.venn import calc_venn_measurements
 from sgdbackend_query.query_evidence import get_genetic_interaction_evidence, \
     get_physical_interaction_evidence
-from sgdbackend_query.query_interaction import get_interactions, get_interaction_family
-from sgdbackend.cache import get_cached_bioent, get_cached_experiment, \
-    get_cached_reference, get_cached_strain, get_cached_biocon
-from sgdbackend.obj_to_json import url_to_json
-from sgdbackend.utils import create_simple_table
-from sgdbackend.venn import calc_venn_measurements
-from sgdbackend.utils import make_reference_list
-
-
-
-@view_config(route_name='interaction_overview', renderer='jsonp')
-def interaction_overview(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body= entity_type + ' ' + str(identifier) + ' could not be found.')
-        
-    genetic = get_interactions('GENINTERACTION', bioent['id'])
-    physical = get_interactions('PHYSINTERACTION', bioent['id'])
-    return make_overview(genetic, physical, bioent) 
-
-@view_config(route_name='interaction_details', renderer='jsonp')
-def interaction_details(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.')
-        
-    genetic_interevidences = get_genetic_interaction_evidence(bioent_id=bioent['id'])
-    physical_interevidences = get_physical_interaction_evidence(bioent_id=bioent['id'])
-    return make_evidence_tables(False, genetic_interevidences, physical_interevidences, bioent['id']) 
-    
-@view_config(route_name='interaction_graph', renderer="jsonp")
-def interaction_graph(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.')  
-    return create_interaction_graph(bioent['id'])
-    
-@view_config(route_name='interaction_resources', renderer="jsonp")
-def interaction_resources(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.')
-        
-    resources = get_resources('Interaction Resources', bioent_id=bioent['id'])
-    resources.sort(key=lambda x: x.display_name)
-    return [url_to_json(url) for url in resources]
-    
-@view_config(route_name='interaction_references', renderer="jsonp")
-def interaction_references(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.')
-    return make_reference_list(['GENINTERACTION', 'PHYSINTERACTION'], bioent['id'])
-
+from sgdbackend_query.query_interaction import get_interaction_family, \
+    get_interactions
 
 '''
--------------------------------Overview Table---------------------------------------
+-------------------------------Overview---------------------------------------
 '''  
 
-def make_overview(genetic, physical, bioent):
+def make_overview(bioent):
+    genetic = get_interactions('GENINTERACTION', bioent['id'])
+    physical = get_interactions('PHYSINTERACTION', bioent['id'])
+            
     inters_to_genetic = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in genetic])
     inters_to_physical = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in physical])
                
@@ -104,10 +46,13 @@ def make_overview(genetic, physical, bioent):
 
     
 '''
--------------------------------Evidence Table---------------------------------------
+-------------------------------Details---------------------------------------
 '''
     
-def make_evidence_tables(divided, genetic_interevidences, physical_interevidences, bioent_id=None):
+def make_details(divided, bioent_id):
+    genetic_interevidences = get_genetic_interaction_evidence(bioent_id)
+    physical_interevidences = get_physical_interaction_evidence(bioent_id)
+            
     tables = {}
 
     all_interevidences = [x for x in genetic_interevidences]
@@ -220,7 +165,7 @@ def create_interaction_edge(interaction_id, bioent1_id, bioent2_id, gen_ev_count
     return {'data':{'target': 'Node' + str(bioent1_id), 'source': 'Node' + str(bioent2_id), 
             'physical': phys_ev_count, 'genetic': gen_ev_count, 'evidence':total_ev_count}}
     
-def create_interaction_graph(bioent_id):
+def make_graph(bioent_id):
     interaction_families = get_interaction_family(bioent_id)
     
     id_to_node = {}

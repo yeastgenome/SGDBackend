@@ -111,7 +111,7 @@ def bioentitytab_to_json(bioentitytab):
            }
     
 def paragraph_to_json(paragraph):
-    from sgdbackend.utils import link_gene_names
+    from sgdbackend_utils import link_gene_names
     from sgdbackend.cache import get_cached_bioent
 
     references = [reference_to_json(x) for x in paragraph.references]

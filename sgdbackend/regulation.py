@@ -3,26 +3,19 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from pyramid.response import Response
-from pyramid.view import view_config
-from sgdbackend.cache import get_cached_bioent, get_cached_experiment, \
+from sgdbackend_utils.cache import get_cached_bioent, get_cached_experiment, \
     get_cached_reference, get_cached_strain
-from sgdbackend.obj_to_json import paragraph_to_json
-from sgdbackend.utils import create_simple_table, make_reference_list
+from sgdbackend_utils.obj_to_json import paragraph_to_json
+from sgdbackend_utils import create_simple_table
 from sgdbackend_query import get_paragraph
 from sgdbackend_query.query_evidence import get_regulation_evidence
 from sgdbackend_query.query_interaction import get_regulation_family
-
-@view_config(route_name='regulation_overview', renderer='jsonp')
-def regulation_overview(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body= entity_type + ' ' + str(identifier) + ' could not be found.')
-    bioent_id = bioent['id']
+ 
+'''
+-------------------------------Overview---------------------------------------
+'''
+def make_overview(bioent_id):
     overview = {}
-    
     paragraph = get_paragraph(bioent_id, 'REGULATION')
     if paragraph is not None:
         overview['paragraph'] = paragraph_to_json(paragraph)
@@ -33,42 +26,13 @@ def regulation_overview(request):
     overview['target_count'] = target_count
     overview['regulator_count'] = regulator_count
     return overview
-
-@view_config(route_name='regulation_details', renderer='jsonp')
-def regulation_details(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.')
-        
-    regevidences = get_regulation_evidence(bioent_id=bioent['id'])
-    return make_evidence_tables(True, regevidences, bioent['id']) 
-    
-@view_config(route_name='regulation_references', renderer="jsonp")
-def regulation_references(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.')
-    return make_reference_list(['REGULATION'], bioent['id'])
-
-@view_config(route_name='regulation_graph', renderer="jsonp")
-def regulation_graph(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.')
-    return create_regulation_graph(bioent['id'])
-
-    
+   
 '''
 -------------------------------Evidence Table---------------------------------------
 '''
     
-def make_evidence_tables(divided, regevidences, bioent_id):
+def make_details(divided, bioent_id):
+    regevidences = get_regulation_evidence(bioent_id)
     tables = {}
 
     if divided:
@@ -147,7 +111,7 @@ def create_regulation_node(bioent_id, bioent_name, bioent_link, is_focus, total_
 def create_regulation_edge(interaction_id, bioent1_id, bioent2_id, total_ev_count):
     return {'data':{'source': 'Node' + str(bioent1_id), 'target': 'Node' + str(bioent2_id), 'evidence': total_ev_count}}
     
-def create_regulation_graph(bioent_id):
+def make_graph(bioent_id):
     regulation_families = get_regulation_family(bioent_id)
     
     id_to_node = {}

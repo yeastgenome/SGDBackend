@@ -3,8 +3,6 @@ Created on Mar 12, 2013
 
 @author: kpaskov
 '''
-from sgdbackend.cache import get_cached_reference, get_cached_bioent
-from sgdbackend_query.query_reference import get_references
 from string import upper
 
 def create_simple_table(objs, f, **kwargs):
@@ -14,20 +12,8 @@ def create_simple_table(objs, f, **kwargs):
         table.append(entries)
     return table
 
-def make_reference_list(bioent_ref_types, bioent_id, only_primary=False):
-    reference_ids = set()
-    for bioent_ref_type in bioent_ref_types:
-        reference_ids.update([x.reference_id for x in get_references(bioent_ref_type, bioent_id=bioent_id)])
-        
-    if only_primary:
-        primary_ids = set([x.reference_id for x in get_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
-        reference_ids.intersection_update(primary_ids)
-
-    references = [get_cached_reference(reference_id) for reference_id in reference_ids]
-    references.sort(key=lambda x: (x['year'], x['pubmed_id']), reverse=True) 
-    return references
-
 def get_bioent_by_name(bioent_name, to_ignore):
+    from sgdbackend_utils.cache import get_cached_bioent
     if bioent_name not in to_ignore:
         bioent = get_cached_bioent(bioent_name, 'LOCUS')
         if bioent is None and bioent_name.endswith('P'):
@@ -59,7 +45,4 @@ def link_gene_names(text, to_ignore=set()):
         i = i + len(word) + 1
     new_chunks.append(text[chunk_start: i])
     return ' '.join(new_chunks)
-
-if __name__ == "__main__":
-    print link_gene_names('ACT1 is my favorite gene. Act1 is the best. I really like act1.')
     

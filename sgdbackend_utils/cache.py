@@ -3,7 +3,7 @@ Created on Aug 9, 2013
 
 @author: kpaskov
 '''
-from sgdbackend.obj_to_json import bioent_to_json, experiment_to_json, \
+from obj_to_json import bioent_to_json, experiment_to_json, \
     strain_to_json, biocon_to_json, reference_to_json, locus_to_json
 from sgdbackend_query.query_biocon import get_all_biocons
 from sgdbackend_query.query_bioent import get_all_bioents

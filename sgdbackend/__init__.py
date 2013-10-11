@@ -1,99 +1,188 @@
-from config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE
-from models import DBSession
+from backend.backend_interface import BackendInterface
+from config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE, SCHEMA
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
-from sgdbackend.cache import cache_core
+from pyramid.response import Response
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
 import model_new_schema
+import sys
 
-def prep_sqlalchemy(**settings):
-    engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+class Base(object):
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+        
+model_new_schema.SCHEMA = SCHEMA
+model_new_schema.Base = declarative_base(cls=Base)
 
-    DBSession.configure(bind=engine)
-    model_new_schema.Base.metadata.bind = engine
-    config = Configurator(settings=settings)
-    config.add_static_view('static', 'static', cache_max_age=3600)
-    config.add_renderer('jsonp', JSONP(param_name='callback'))
-
-    cache_core()
-
-    return config
-
-def prep_views(config):    
+def get_bioent_from_request(request):
+    from sgdbackend_utils.cache import get_cached_bioent
+    identifier = request.matchdict['identifier']
+    bioent = get_cached_bioent(identifier, 'LOCUS')
+    if bioent is None:
+        raise Exception('Bioent could not be found.')
+    return bioent
     
-    #Reference views
-    config.add_route('all_references', '/all_references')
-    config.add_route('all_bibentries', '/all_bibentries')
-    config.add_route('reference', '/reference/{identifier}/overview')
-    config.add_route('reference_list', '/reference_list')
-    
-    #Bioent views
-    config.add_route('bioentity', '/{type}/{identifier}/overview')
-    config.add_route('all_bioents', '/all_bioents')
-    config.add_route('bioentitytabs', '/{type}/{identifier}/tabs')
-    
-    #Interaction views
-    config.add_route('interaction_overview', '/{type}/{identifier}/interaction_overview')
-    config.add_route('interaction_details', '/{type}/{identifier}/interaction_details')
-    config.add_route('interaction_graph', '/{type}/{identifier}/interaction_graph') 
-    config.add_route('interaction_resources', '/{type}/{identifier}/interaction_resources')
-    config.add_route('interaction_references', '/{type}/{identifier}/interaction_references')
-    
-    #Regulation views
-    config.add_route('regulation_overview', '/{type}/{identifier}/regulation_overview')
-    config.add_route('regulation_details', '/{type}/{identifier}/regulation_details')
-    config.add_route('regulation_graph', '/{type}/{identifier}/regulation_graph')
-    config.add_route('regulation_references', '/{type}/{identifier}/regulation_references')
-    
-    #Literature views
-    config.add_route('literature_overview', '/{type}/{identifier}/literature_overview')
-    config.add_route('literature_details', '/{type}/{identifier}/literature_details')
-    config.add_route('literature_graph', '/{type}/{identifier}/literature_graph')
-    
-    #Protein views
-    config.add_route('protein_domain_details', '/{type}/{identifier}/protein_domain_details')
+def get_ref_from_request(request):
+    from sgdbackend_utils.cache import get_cached_reference
+    identifier = request.matchdict['identifier']
+    reference = get_cached_reference(identifier)
+    if reference is None:
+        raise Exception('Reference could not be found.')
+    return reference
 
-    config.add_route('binding_site_details', '/{type}/{identifier}/binding_site_details')
-#    #Biocon views
-#    config.add_route('biocon', '/biocon/{biocon_type}/{biocon}')
-#
-    #GO views
-    config.add_route('go_references', '/{type}/{identifier}/go_references')
-    config.add_route('go_enrichment_yeastmine', '/go_enrichment_yeastmine')
-    config.add_route('go_enrichment_batter', '/go_enrichment_batter')
-#    config.add_route('go', '/go/{biocon}')
-#    config.add_route('go_evidence', '/go_evidence')
-#    config.add_route('go_overview_table', '/go_overview_table')
-#    config.add_route('go_evidence_table', '/go_evidence_table')
-#    config.add_route('go_graph', '/go_graph')
-#    config.add_route('go_ontology_graph', '/go_ontology_graph')
-#    
-    #Phenotype views
-    config.add_route('phenotype_references', '/{type}/{identifier}/phenotype_references')
-#    config.add_route('phenotype', '/phenotype/{biocon}')
-#    config.add_route('phenotype_evidence', '/phenotype_evidence')
-#    config.add_route('phenotype_overview_table', '/phenotype_overview_table')
-#    config.add_route('phenotype_evidence_table', '/phenotype_evidence_table')
-#    config.add_route('phenotype_graph', '/phenotype_graph')
-#    config.add_route('phenotype_ontology_graph', '/phenotype_ontology_graph')
-#       
-#    #Reference views
-#    config.add_route('reference', '/reference/{reference}')
-#    config.add_route('reference_graph', '/reference_graph')
-#    config.add_route('author', '/author/{author}')
-#    config.add_route('assoc_references', '/assoc_references')
+class SGDBackend(BackendInterface):
+    def __init__(self, config):
+        self.renderer = 'jsonp'
+        
+        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+
+        DBSession.configure(bind=engine)
+        model_new_schema.Base.metadata.bind = engine
+        config.add_renderer('jsonp', JSONP(param_name='callback'))
+
+        from sgdbackend_utils.cache import cache_core
+        cache_core()
+        
+    #Go
+    def go_references(self, request):
+        from sgdbackend.misc import make_references
+        bioent = get_bioent_from_request(request)
+        return make_references(['GO'], bioent['id'], only_primary=True)
     
-    #List views
-    config.add_route('bioent_list', '/bioent_list')
-    #config.add_route('go_enrichment', '/go_enrichment')
+    def go_enrichment(self, request):
+        from sgdbackend import go
+        bioent_format_names = request.json_body['bioent_format_names']
+        return go.make_enrichment(bioent_format_names)
+       
+    #Interaction
+    def interaction_overview(self, request):
+        from sgdbackend import interaction
+        bioent = get_bioent_from_request(request)
+        return interaction.make_overview(bioent) 
+    
+    def interaction_details(self, request):
+        from sgdbackend import interaction
+        bioent = get_bioent_from_request(request) 
+        return interaction.make_details(False, bioent['id']) 
+        
+    def interaction_graph(self, request):
+        from sgdbackend import interaction
+        bioent = get_bioent_from_request(request) 
+        return interaction.make_graph(bioent['id'])
+        
+    def interaction_resources(self, request):
+        from sgdbackend.misc import make_resources
+        bioent = get_bioent_from_request(request)
+        return make_resources('Interaction Resources', bioent['id'])
+        
+    def interaction_references(self, request):
+        from sgdbackend.misc import make_references
+        bioent = get_bioent_from_request(request)
+        return make_references(['GENINTERACTION', 'PHYSINTERACTION'], bioent['id'])
+       
+    #Literature
+    def literature_overview(self, request):
+        from sgdbackend import literature
+        bioent = get_bioent_from_request(request)
+        return literature.make_overview(bioent['id'])
 
+    def literature_details(self, request):
+        from sgdbackend import literature
+        bioent = get_bioent_from_request(request)
+        return literature.make_details(bioent['id'])
+    
+    def literature_graph(self, request):
+        from sgdbackend import literature
+        bioent = get_bioent_from_request(request)
+        return literature.make_graph(bioent['id'])
+            
+    #Phenotype
+    def phenotype_references(self, request):
+        from sgdbackend.misc import make_references
+        bioent = get_bioent_from_request(request)
+        return make_references(['PHENOTYPE'], bioent['id'], only_primary=True)
+            
+    #Protein
+    def protein_domain_details(self, request):
+        from sgdbackend import protein
+        bioent = get_bioent_from_request(request)
+        return protein.make_details(bioent['id'])
+            
+    #Regulation
+    def regulation_overview(self, request):
+        from sgdbackend import regulation
+        bioent = get_bioent_from_request(request)
+        return regulation.make_overview(bioent['id'])
 
-    config.scan()
+    def regulation_details(self, request):
+        from sgdbackend import regulation
+        bioent = get_bioent_from_request(request)
+        return regulation.make_details(True, bioent['id']) 
+            
+    def regulation_graph(self, request):
+        from sgdbackend import regulation
+        bioent = get_bioent_from_request(request)
+        return regulation.make_graph(bioent['id'])
 
-def main(global_config, **settings):
-    """ This function returns a Pyramid WSGI application.
-    """
-    config = prep_sqlalchemy(**settings)
-    prep_views(config)
-    return config.make_wsgi_app()
+    def regulation_references(self, request):
+        from sgdbackend.misc import make_references
+        bioent = get_bioent_from_request(request)
+        return make_references(['REGULATION'], bioent['id'])
+      
+    #Reference
+
+    #Sequence
+    def binding_site_details(self, request):
+        from sgdbackend import sequence
+        bioent = get_bioent_from_request(request)
+        return sequence.make_details(bioent['id'])
+            
+    #Misc
+    def bioentity(self, request):
+        bioent = get_bioent_from_request(request)
+        return bioent
+
+    def bioentitytabs(self, request):
+        from sgdbackend import misc
+        bioent = get_bioent_from_request(request)
+        return misc.make_bioentitytabs(bioent['id'])
+
+    def all_bioents(self, request):
+        from sgdbackend import misc
+        min_id = None if 'min' not in request.GET else int(request.GET['min'])
+        max_id = None if 'max' not in request.GET else int(request.GET['max'])
+        return misc.make_all_bioents(min_id, max_id)
+
+    def bioentity_list(self, request):
+        from sgdbackend import misc
+        bioent_ids = request.json_body['bioent_ids']
+        return misc.make_bioent_list(bioent_ids)
+    
+    def reference(self, request):
+        reference = get_bioent_from_request(request)
+        return reference
+       
+    def all_references(self, request):
+        from sgdbackend import misc
+        min_id = None if 'min' not in request.GET else int(request.GET['min'])
+        max_id = None if 'max' not in request.GET else int(request.GET['max'])
+        return misc.make_all_references(min_id, max_id)
+
+    def all_bibentries(self, request):
+        from sgdbackend import misc
+        return misc.make_all_bibentries()
+
+    def reference_list(self, request):
+        from sgdbackend.misc import make_references
+        reference_ids = request.json_body['reference_ids']
+        make_references(reference_ids)
+
+    
+            
+            
+    
+    

@@ -3,54 +3,18 @@ Created on May 31, 2013
 
 @author: kpaskov
 '''
-from pyramid.response import Response
-from pyramid.view import view_config
-from sgdbackend.cache import get_cached_bioent, get_cached_reference
-from sgdbackend.utils import make_reference_list
+
+from sgdbackend_utils.cache import get_cached_bioent, get_cached_reference
+from sgdbackend.misc import make_references
 from sgdbackend_query.query_reference import get_references, \
     get_all_references_for_bioent
-
-@view_config(route_name='literature_overview', renderer='jsonp') 
-def literature_overview(request):
-    #Need a bioent overview table based on a bioent
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.')  
-    
-    bioent_refs = get_all_references_for_bioent(bioent['id'])
-    return make_overview(bioent_refs)
-
-@view_config(route_name='literature_details', renderer='jsonp')
-def literature_details(request):
-    #Need a bioentevidence table based on a bioent
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.')
-        
-    references = {}
-    references['primary'] = make_reference_list(['PRIMARY_LITERATURE'], bioent['id']) 
-    references['additional'] = make_reference_list(['ADDITIONAL_LITERATURE'], bioent['id']) 
-    references['reviews'] = make_reference_list(['REVIEW_LITERATURE'], bioent['id'])  
-    return references 
-    
-@view_config(route_name='literature_graph', renderer='jsonp')
-def literature_graph(request):
-    entity_type = request.matchdict['type']
-    identifier = request.matchdict['identifier']
-    bioent = get_cached_bioent(identifier, entity_type)
-    if bioent is None:
-        return Response(status_int=500, body='Bioent could not be found.') 
-    return make_litguide_graph(bioent['id'])
   
 '''
 -------------------------------Overview---------------------------------------
 '''   
 
-def make_overview(bioent_refs):
+def make_overview(bioent_id):
+    bioent_refs = get_all_references_for_bioent(bioent_id)
     littype_to_count = {}
     ref_set = set()
     for bioent_ref in bioent_refs:
@@ -62,6 +26,17 @@ def make_overview(bioent_refs):
             littype_to_count[littype] = 1
     littype_to_count['Total'] = len(ref_set)
     return littype_to_count
+
+'''
+-------------------------------Details---------------------------------------
+'''   
+
+def make_details(bioent_id):
+    references = {}
+    references['primary'] = make_references(['PRIMARY_LITERATURE'], bioent_id) 
+    references['additional'] = make_references(['ADDITIONAL_LITERATURE'], bioent_id) 
+    references['reviews'] = make_references(['REVIEW_LITERATURE'], bioent_id) 
+    return references
 
 '''
 -------------------------------Graph---------------------------------------
@@ -84,7 +59,7 @@ def create_litguide_ref_node(reference, is_focus):
 def create_litguide_edge(bioent_id, reference_id):
     return {'data':{'target': 'LocusNode' + str(bioent_id), 'source': 'RefNode' + str(reference_id)}}
 
-def make_litguide_graph(bioent_id):
+def make_graph(bioent_id):
     
     #Get primary genes for each paper in bioentevidences
     reference_ids = [x.reference_id for x in get_references('PRIMARY_LITERATURE', bioent_id=bioent_id)]

@@ -13,7 +13,7 @@ from model_new_schema.literature import Literatureevidence
 from model_new_schema.misc import Url
 from model_new_schema.phenotype import Phenotypeevidence, Phenotype
 from model_new_schema.reference import Reference, Author, AuthorReference
-from sgdbackend.models import DBSession
+from sgdbackend import DBSession
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
 from sqlalchemy.orm.util import with_polymorphic
 from sqlalchemy.sql.expression import func, or_
