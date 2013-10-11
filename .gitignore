@@ -28,3 +28,5 @@ go_enrichment/yeastmine_config.py
 convert_all/new_config.py
 convert_all/old_config.py
 convert_all/config.py
+perfbackend/config.py
+perfbackend/config.py

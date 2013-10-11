@@ -106,6 +106,6 @@ class PerfBackend():
         if ref_bibs is None:
             return Response(status_int=500, body='References could not be found.')
         
-        return ref_bibs
+        return ref_bibs 
             
             
