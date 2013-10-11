@@ -3,13 +3,11 @@ Created on Sep 20, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, \
-    break_up_file, create_format_name, prepare_schema_connection
-from mpmath import ceil
+from convert_utils import create_or_update, set_up_logging, break_up_file, \
+    create_format_name, prepare_connections
 from convert_utils.output_manager import OutputCreator
+from mpmath import ceil
 import logging
-import model_new_schema
-import model_old_schema
 import sys
 
 #Recorded times: 
@@ -394,9 +392,7 @@ def convert(old_session_maker, new_session_maker):
     log.info('complete')
     
 if __name__ == "__main__":
-    from convert_all import new_config, old_config
-    old_session_maker = prepare_schema_connection(model_old_schema, old_config)
-    new_session_maker = prepare_schema_connection(model_new_schema, new_config)
+    old_session_maker, new_session_maker = prepare_connections()
     convert(old_session_maker, new_session_maker)   
     
     

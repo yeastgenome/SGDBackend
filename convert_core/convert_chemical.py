@@ -3,13 +3,12 @@ Created on Sep 25, 2013
 
 @author: kpaskov
 '''
-from convert_utils import set_up_logging, create_or_update, prepare_schema_connection, create_format_name
+from convert_utils import set_up_logging, create_or_update, \
+    create_format_name, prepare_connections
+from convert_utils.link_maker import allele_link, chemical_link
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.sql.expression import or_
-from convert_utils.link_maker import allele_link, chemical_link
 import logging
-import model_new_schema
-import model_old_schema
 import sys
 
 """
@@ -180,7 +179,5 @@ def convert(old_session_maker, new_session_maker):
     convert_chemical(old_session_maker, new_session_maker)
     
 if __name__ == "__main__":
-    from convert_all import new_config, old_config
-    old_session_maker = prepare_schema_connection(model_old_schema, old_config)
-    new_session_maker = prepare_schema_connection(model_new_schema, new_config)
+    old_session_maker, new_session_maker = prepare_connections()
     convert(old_session_maker, new_session_maker)
