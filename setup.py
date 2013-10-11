@@ -11,6 +11,7 @@ requires = [
     'waitress',
     'simplejson',
     'requests',
+    'mpmath',
     'intermine',
     'cx_oracle',
     'sqlalchemy'
