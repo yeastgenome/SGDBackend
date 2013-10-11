@@ -7,6 +7,7 @@ from datetime import datetime
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative.api import declarative_base
 from sqlalchemy.orm.session import sessionmaker
+import getpass
 import logging
 import model_new_schema
 import model_old_schema
@@ -30,10 +31,10 @@ def prepare_connections(need_old=True):
     if need_old:
         OLD_DBHOST = sys.argv[1] + ':1521'
         OLD_DBUSER = sys.argv[2]
-        OLD_DBPASS = sys.argv[3]
-        NEW_DBHOST = sys.argv[4] + ':1521'
-        NEW_DBUSER = sys.argv[5]
-        NEW_DBPASS = sys.argv[6]
+        OLD_DBPASS = getpass.getpass('Old DB User Password:')
+        NEW_DBHOST = sys.argv[3] + ':1521'
+        NEW_DBUSER = sys.argv[4]
+        NEW_DBPASS = getpass.getpass('New DB User Password:')
     
         old_session_maker = prepare_schema_connection(model_old_schema, config.OLD_DBTYPE, OLD_DBHOST, config.OLD_DBNAME, config.OLD_SCHEMA, 
                                                   OLD_DBUSER, OLD_DBPASS)
@@ -46,7 +47,7 @@ def prepare_connections(need_old=True):
     else:
         NEW_DBHOST = sys.argv[1] + ':1521'
         NEW_DBUSER = sys.argv[2]
-        NEW_DBPASS = sys.argv[3]
+        NEW_DBPASS = getpass.getpass('New DB User Password:')
         
         new_session_maker = prepare_schema_connection(model_new_schema, config.NEW_DBTYPE, NEW_DBHOST, config.NEW_DBNAME, config.NEW_SCHEMA, 
                                                   NEW_DBUSER, NEW_DBPASS)
