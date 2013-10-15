@@ -4,10 +4,10 @@ Created on May 31, 2013
 @author: kpaskov
 '''
 
-from sgdbackend_utils.cache import get_cached_bioent, get_cached_reference
 from sgdbackend.misc import make_references
 from sgdbackend_query.query_reference import get_references, \
     get_all_references_for_bioent
+from sgdbackend_utils.cache import id_to_reference, id_to_bioent
   
 '''
 -------------------------------Overview---------------------------------------
@@ -103,13 +103,13 @@ def make_graph(bioent_id):
     nodes = {}
     nodes_ive_seen = set()
     for reference_id in top_references:
-        nodes['Ref' + str(reference_id)] = create_litguide_ref_node(get_cached_reference(reference_id), False)
+        nodes['Ref' + str(reference_id)] = create_litguide_ref_node(id_to_reference[reference_id], False)
         for neigh_id in reference_id_to_bioent_ids[reference_id]:
             if neigh_id in nodes_ive_seen:
-                nodes[neigh_id] = create_litguide_bioent_node(get_cached_bioent(neigh_id), False)
+                nodes[neigh_id] = create_litguide_bioent_node(id_to_bioent[neigh_id], False)
             else:
                 nodes_ive_seen.add(neigh_id)
-    nodes[bioent_id] = create_litguide_bioent_node(get_cached_bioent(bioent_id), True)
+    nodes[bioent_id] = create_litguide_bioent_node(id_to_bioent[bioent_id], True)
      
     edges = []           
     for reference_id in top_references:

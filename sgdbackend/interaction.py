@@ -3,14 +3,14 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from sgdbackend_utils.cache import get_cached_bioent, get_cached_experiment, \
-    get_cached_reference, get_cached_strain, get_cached_biocon
-from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.venn import calc_venn_measurements
 from sgdbackend_query.query_evidence import get_genetic_interaction_evidence, \
     get_physical_interaction_evidence
 from sgdbackend_query.query_interaction import get_interaction_family, \
     get_interactions
+from sgdbackend_utils import create_simple_table
+from sgdbackend_utils.cache import id_to_bioent, id_to_reference, \
+    id_to_experiment, id_to_strain, id_to_biocon
+from sgdbackend_utils.venn import calc_venn_measurements
 
 '''
 -------------------------------Overview---------------------------------------
@@ -119,13 +119,13 @@ def make_evidence_row(interevidence, bioent_id=None):
     note=interevidence.note
         
     if interevidence.class_type == 'GENINTERACTION':
-        return {'bioent1': minimize_bioent_json(get_cached_bioent(bioent1_id)),
-                'bioent2': minimize_bioent_json(get_cached_bioent(bioent2_id)),
+        return {'bioent1': minimize_bioent_json(id_to_bioent[bioent1_id]),
+                'bioent2': minimize_bioent_json(id_to_bioent[bioent2_id]),
                 'interaction_type': 'Genetic',
-                'reference': minimize_reference_json(get_cached_reference(reference_id)),
-                'experiment': minimize_experiment_json(get_cached_experiment(experiment_id)),
-                'strain': minimize_strain_json(get_cached_strain(strain_id)),
-                'phenotype': minimize_biocon_json(get_cached_biocon(interevidence.phenotype_id, 'PHENOTYPE')),
+                'reference': minimize_reference_json(id_to_reference[reference_id]),
+                'experiment': minimize_experiment_json(id_to_experiment[experiment_id]),
+                'strain': minimize_strain_json(id_to_strain[strain_id]),
+                'phenotype': minimize_biocon_json(id_to_biocon[interevidence.phenotype_id]),
                 'annotation_type': interevidence.annotation_type,
                 'direction': direction,
                 'source': interevidence.source,
@@ -133,12 +133,12 @@ def make_evidence_row(interevidence, bioent_id=None):
                 }
         
     elif interevidence.class_type == 'PHYSINTERACTION':
-        return {'bioent1': get_cached_bioent(bioent1_id),
-                'bioent2': get_cached_bioent(bioent2_id),
+        return {'bioent1': id_to_bioent[bioent1_id],
+                'bioent2': id_to_bioent[bioent2_id],
                 'interaction_type': 'Physical',
-                'reference': get_cached_reference(reference_id),
-                'experiment': get_cached_experiment(experiment_id),
-                'strain': get_cached_strain(strain_id),
+                'reference': id_to_reference[reference_id],
+                'experiment': id_to_experiment[experiment_id],
+                'strain': id_to_strain[strain_id],
                 'modification': interevidence.modification,
                 'annotation_type': interevidence.annotation_type,
                 'direction': direction,
@@ -226,11 +226,11 @@ def make_graph(bioent_id):
         bioent2_id = interaction_family.bioentity2_id
     
         if bioent1_id not in id_to_node:
-            bioent1 = get_cached_bioent(bioent1_id)
+            bioent1 = id_to_bioent[bioent1_id]
             evidence_counts = bioent_id_to_evidence_count[bioent1_id]
             id_to_node[bioent1_id] = create_interaction_node(bioent1_id, bioent1['display_name'], bioent1['link'], bioent1_id==bioent_id, evidence_counts[0], evidence_counts[1], evidence_counts[2])
         if bioent2_id not in id_to_node:
-            bioent2 = get_cached_bioent(bioent2_id)
+            bioent2 = id_to_bioent[bioent2_id]
             evidence_counts = bioent_id_to_evidence_count[bioent2_id]
             id_to_node[bioent2_id] = create_interaction_node(bioent2_id, bioent2['display_name'], bioent2['link'], bioent2_id==bioent_id, evidence_counts[0], evidence_counts[1], evidence_counts[2])
         edges.append(create_interaction_edge(interaction_family.id, bioent1_id, bioent2_id, 

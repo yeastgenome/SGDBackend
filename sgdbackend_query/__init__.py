@@ -1,8 +1,7 @@
 from model_new_schema.auxiliary import BioconceptAncestor, Biofact, \
-    BioentityReference
+    BioentityReference, Locustabs, Disambig
 from model_new_schema.bioconcept import Bioconcept, BioconceptRelation
-from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl, Paragraph, \
-    Bioentitytabs
+from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl, Paragraph
 from model_new_schema.chemical import Chemical
 from model_new_schema.evelement import Experiment, Strain
 from model_new_schema.evidence import EvidenceChemical
@@ -23,6 +22,27 @@ import model_new_schema
 
 session = DBSession
 
+#Useful methods
+def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=False):
+    query = session.query(Disambig).filter(Disambig.disambig_key==identifier.upper())
+    if class_type is not None:
+        query = query.filter(Disambig.class_type==class_type)
+    if subclass_type is not None:
+        query = query.filter(Disambig.subclass_type==subclass_type)
+    disambigs = query.all()
+    
+    if print_query:
+        print query
+        
+    if len(disambigs) > 0:
+        return [(disambig.identifier, disambig.class_type, disambig.subclass_type) for disambig in disambigs]
+    return None
+
+def get_obj_id(identifier, class_type=None, subclass_type=None):
+    objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
+    obj_id = None if objs_ids is None or len(objs_ids) != 1 else objs_ids[0][0]
+    return obj_id
+
 #Used to create phenotype_overview table.
 def get_chemical_id(chemical_name, print_query=False):
     query = session.query(Chemical).filter(Chemical.format_name==chemical_name)
@@ -41,8 +61,8 @@ def get_chemical(chemical_name, print_query=False):
     return chemical
 
 #Used to determine tabs on all pages.
-def query_bioentitytabs(bioentity_id, print_query=False):
-    query = session.query(Bioentitytabs).filter(Bioentitytabs.id==bioentity_id)
+def query_locustabs(bioentity_id, print_query=False):
+    query = session.query(Locustabs).filter(Locustabs.id==bioentity_id)
     if print_query:
         print query
     return query.first()
@@ -87,6 +107,17 @@ def get_paragraph(bioent_id, class_type, print_query=False):
     if print_query:
         print query
     return paragraph
+
+def get_disambigs(min_id, max_id, print_query=False):
+    query = session.query(Disambig)
+    if min_id is not None:
+        query = query.filter(Disambig.id >= min_id)
+    if max_id is not None:
+        query = query.filter(Disambig.id < max_id)
+    disambigs = query.all()
+    if print_query:
+        print_query
+    return disambigs
         
 #Used to break very large queries into a manageable size.
 chunk_size = 500

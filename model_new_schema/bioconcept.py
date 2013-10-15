@@ -18,6 +18,7 @@ class Bioconcept(Base, EqualityByIDMixin):
     class_type = Column('class', String)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
+    dbxref = Column('dbxref', String)
     link = Column('obj_link', String)
     description = Column('description', String)
     date_created = Column('date_created', Date)
@@ -29,11 +30,12 @@ class Bioconcept(Base, EqualityByIDMixin):
     #Relationships
     aliases = association_proxy('bioconceptaliases', 'name')
     
-    def __init__(self, bioconcept_id, class_type, display_name, format_name, link, description, date_created, created_by):
+    def __init__(self, bioconcept_id, class_type, display_name, format_name, dbxref, link, description, date_created, created_by):
         self.id = bioconcept_id
         self.class_type = class_type
         self.display_name = display_name
         self.format_name = format_name
+        self.dbxref = dbxref
         self.link = link
         self.description = description
         self.date_created = date_created

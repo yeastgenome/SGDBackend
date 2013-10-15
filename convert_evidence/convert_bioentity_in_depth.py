@@ -3,8 +3,8 @@ Created on May 31, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, \
-    prepare_connections
+from convert_aux.auxillary_tables import convert_disambigs
+from convert_utils import create_or_update, set_up_logging, prepare_connections
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
@@ -21,14 +21,14 @@ import sys
 """
 
 def create_bioentitytabs(locus):
-    from model_new_schema.bioentity import Bioentitytabs
+    from model_new_schema.auxiliary import Locustabs
     
     show_summary = 1
     show_history = 1
     show_wiki = 1
     
     if locus.status != 'Active':
-        return [Bioentitytabs(locus.id, show_summary, show_history, 0, 
+        return [Locustabs(locus.id, show_summary, show_history, 0, 
                           0, 0, 0, 0, 0, 0, show_wiki)]
     
     show_literature = 1
@@ -70,12 +70,13 @@ def create_bioentitytabs(locus):
     show_protein = 0 if locus.locus_type in no_protein else 1
     
     
-    return [Bioentitytabs(locus.id, show_summary, show_history, show_literature, 
+    return [Locustabs(locus.id, show_summary, show_history, show_literature, 
                           show_go, show_phenotype, show_interactions, show_expression, 
                           show_regulation, show_protein, show_wiki)]
 
 def convert_bioentitytabs(new_session_maker):
-    from model_new_schema.bioentity import Locus, Bioentitytabs
+    from model_new_schema.bioentity import Locus
+    from model_new_schema.auxiliary import Locustabs
     
     log = logging.getLogger('convert.bioentity_in_depth.bioentitytabs')
     log.info('begin')
@@ -84,7 +85,7 @@ def convert_bioentitytabs(new_session_maker):
     try:
         #Grab all current objects
         new_session = new_session_maker()
-        current_objs = new_session.query(Bioentitytabs).all()
+        current_objs = new_session.query(Locustabs).all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
@@ -459,6 +460,9 @@ def convert(old_session_maker, new_session_maker):
     convert_qualifier_evidence(old_session_maker, new_session_maker)
     
     convert_bioentitytabs(new_session_maker)
+    
+    from model_new_schema.bioentity import Locus
+    convert_disambigs(new_session_maker, Locus, ['id', 'format_name', 'display_name', 'dbxref'], 'BIOENTITY', 'LOCUS', 'convert.bioentity_in_depth.disambigs', 1000)
     
     log.info('complete')
     

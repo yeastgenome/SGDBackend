@@ -23,6 +23,7 @@ class Bioentity(Base, EqualityByIDMixin):
     id = Column('bioentity_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
+    dbxref = Column('dbxref', String)
     link = Column('obj_link', String)
     class_type = Column('class', String)
     source = Column('source', String)
@@ -36,12 +37,13 @@ class Bioentity(Base, EqualityByIDMixin):
     #Relationships
     aliases = association_proxy('bioentityaliases', 'display_name')
             
-    def __init__(self, bioentity_id, class_type, display_name, format_name, link, source, status,
+    def __init__(self, bioentity_id, class_type, display_name, format_name, dbxref, link, source, status,
                  date_created, created_by):
         self.id = bioentity_id
         self.class_type = class_type
         self.display_name = display_name
         self.format_name = format_name
+        self.dbxref = dbxref
         self.link = link
         self.source = source
         self.status = status
@@ -204,36 +206,4 @@ class ParagraphReference(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return (self.paragraph_id, self.reference_id)
-    
-class Bioentitytabs(Base, EqualityByIDMixin):
-    __tablename__ = 'aux_bioentitytabs'
-    
-    id = Column('bioentity_id', Integer, primary_key=True)
-    summary = Column('summary', Integer)
-    history = Column('history', Integer)
-    literature = Column('literature', Integer)
-    go = Column('go', Integer)
-    phenotype = Column('phenotype', Integer)
-    interactions = Column('interactions', Integer)
-    expression = Column('expression', Integer)
-    regulation = Column('regulation', Integer)
-    protein = Column('protein', Integer)
-    wiki = Column('wiki', Integer)
-            
-    def __init__(self, bioentity_id, show_summary, show_history, show_literature, show_go, show_phenotype, 
-                 show_interactions, show_expression, show_regulation, show_protein, show_wiki):
-        self.id = bioentity_id
-        self.summary = show_summary
-        self.history = show_history
-        self.literature = show_literature
-        self.go = show_go
-        self.phenotype = show_phenotype
-        self.interactions = show_interactions
-        self.expression = show_expression
-        self.regulation = show_regulation
-        self.protein = show_protein
-        self.wiki = show_wiki
-            
-    def unique_key(self):
-        return self.id
     

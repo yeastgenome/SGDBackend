@@ -3,7 +3,6 @@ Created on Aug 9, 2013
 
 @author: kpaskov
 '''
-
 def locus_to_json(bioent):
     bioent_json = bioent_to_json(bioent)
     bioent_json['description'] = bioent.description
@@ -95,7 +94,7 @@ def domain_to_json(domain):
             'link': domain.link
            }
     
-def bioentitytab_to_json(bioentitytab):
+def locustab_to_json(bioentitytab):
     return {
             'bioentity_id': bioentitytab.id,
             'summary_tab': bioentitytab.summary == 1,
@@ -110,13 +109,22 @@ def bioentitytab_to_json(bioentitytab):
             'wiki_tab': bioentitytab.wiki == 1
            }
     
+def disambig_to_json(disambig):
+    return {
+            'disambig_id': disambig.id,
+            'disambig_key': disambig.disambig_key,
+            'class_type': disambig.class_type,
+            'subclass_type': disambig.subclass_type,
+            'identifier': disambig.identifier,
+           }
+    
 def paragraph_to_json(paragraph):
     from sgdbackend_utils import link_gene_names
-    from sgdbackend.cache import get_cached_bioent
+    from sgdbackend_utils.cache import id_to_bioent
 
     references = [reference_to_json(x) for x in paragraph.references]
     references.sort(key=lambda x: (x['year'], x['pubmed_id']), reverse=True) 
-    bioent = get_cached_bioent(paragraph.bioentity_id)
+    bioent = id_to_bioent[paragraph.bioentity_id]
     to_ignore = {bioent['format_name'], bioent['display_name'], bioent['format_name'] + 'P', bioent['display_name'] + 'P'}
     text = link_gene_names(paragraph.text, to_ignore=to_ignore)
     return {

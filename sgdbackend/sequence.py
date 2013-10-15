@@ -4,10 +4,10 @@ Created on Sep 23, 2013
 @author: kpaskov
 '''
 
-from sgdbackend_utils.cache import get_cached_bioent, get_cached_reference, \
-    get_cached_experiment
+from sgdbackend_query.query_evidence import get_binding_site_evidence
 from sgdbackend_utils import create_simple_table
-from sgdbackend_query.query_evidence import get_binding_site_evidence   
+from sgdbackend_utils.cache import id_to_reference, id_to_bioent, \
+    id_to_experiment
 
 '''
 -------------------------------Details---------------------------------------
@@ -23,11 +23,11 @@ def make_evidence_row(binding_evidence):
     
     reference = None
     if reference_id is not None:
-        reference = get_cached_reference(reference_id)
+        reference = id_to_reference[reference_id]
     
-    return {'bioent': get_cached_bioent(bioentity_id),
+    return {'bioent': id_to_bioent[bioentity_id],
                 'reference': reference,
-                'experiment': get_cached_experiment(experiment_id),
+                'experiment': id_to_experiment[experiment_id],
                 'source': binding_evidence.source,
                 'total_score': binding_evidence.total_score,
                 'expert_confidence': binding_evidence.expert_confidence,

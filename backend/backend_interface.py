@@ -8,7 +8,60 @@ from abc import abstractmethod, ABCMeta
 class BackendInterface:
     __metaclass__ = ABCMeta
     
+    #Renderer
+    @abstractmethod
+    def get_renderer(self, method_name):
+        return None
+    
+    #Reference
+    @abstractmethod
+    def reference(self, request):
+        return None
+    
+    @abstractmethod
+    def all_references(self, request):
+        return None
+    
+    @abstractmethod
+    def all_bibentries(self, request):
+        return None
+    
+    @abstractmethod
+    def reference_list(self, request):
+        return None
+    
+    #Bioent
+    @abstractmethod
+    def all_bioentities(self, request):
+        return None
+    
+    @abstractmethod
+    def bioentity_list(self, request):
+        return None
+    
+    #Locus
+    @abstractmethod
+    def locus(self, request):
+        return None
+    
+    @abstractmethod
+    def locustabs(self, request):
+        return None
+    
+    #Biocon
+    @abstractmethod
+    def all_bioconcepts(self, request):
+        return None
+    
+    @abstractmethod
+    def bioconcept_list(self, request):
+        return None
+    
     #Go
+    @abstractmethod
+    def go(self, request):
+        return None
+    
     @abstractmethod
     def go_references(self, request):
         return None
@@ -53,6 +106,10 @@ class BackendInterface:
     
     #Phenotype
     @abstractmethod
+    def phenotype(self, request):
+        return None
+    
+    @abstractmethod
     def phenotype_references(self, request):
         return None
     
@@ -85,33 +142,8 @@ class BackendInterface:
     
     #Misc
     @abstractmethod
-    def bioentity(self, request):
+    def all_disambigs(self, method_name):
         return None
+
     
-    @abstractmethod
-    def bioentitytabs(self, request):
-        return None
     
-    @abstractmethod
-    def all_bioents(self, request):
-        return None
-    
-    @abstractmethod
-    def reference(self, request):
-        return None
-    
-    @abstractmethod
-    def all_references(self, request):
-        return None
-    
-    @abstractmethod
-    def all_bibentries(self, request):
-        return None
-    
-    @abstractmethod
-    def reference_list(self, request):
-        return None
-    
-    @abstractmethod
-    def bioentity_list(self, request):
-        return None

@@ -3,8 +3,9 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, \
-    create_format_name, prepare_connections
+from convert_aux.auxillary_tables import convert_disambigs
+from convert_utils import create_or_update, set_up_logging, create_format_name, \
+    prepare_connections
 from convert_utils.link_maker import author_link
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
@@ -813,6 +814,9 @@ def convert(old_session_maker, new_session_maker):
     convert_url(new_session_maker, 3000)
         
     convert_bibentry(new_session_maker, 3000)
+    
+    from model_new_schema.reference import Reference
+    convert_disambigs(new_session_maker, Reference, ['id', 'dbxref'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
     
     log.info('complete')
    

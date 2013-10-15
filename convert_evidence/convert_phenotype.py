@@ -3,9 +3,10 @@ Created on May 6, 2013
 
 @author: kpaskov
 '''
-from convert_aux.auxillary_tables import convert_bioentity_reference
-from convert_utils import set_up_logging, create_or_update, \
-    create_format_name, prepare_connections
+from convert_aux.auxillary_tables import convert_bioentity_reference, \
+    convert_disambigs
+from convert_utils import set_up_logging, create_or_update, create_format_name, \
+    prepare_connections
 from convert_utils.link_maker import biocon_link
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
@@ -429,6 +430,9 @@ def convert(old_session_maker, new_session_maker):
     get_bioent_ids_f = lambda x: [x.bioentity_id]
     convert_bioentity_reference(new_session_maker, Phenotypeevidence, 'PHENOTYPE', 'convert.phenotype.bioentity_reference', 10000, get_bioent_ids_f)
 
+    from model_new_schema.phenotype import Phenotype
+    convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
+    
     log.info('complete')
 
 if __name__ == "__main__":

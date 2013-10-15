@@ -3,13 +3,13 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from sgdbackend_utils.cache import get_cached_bioent, get_cached_experiment, \
-    get_cached_reference, get_cached_strain
-from sgdbackend_utils.obj_to_json import paragraph_to_json
-from sgdbackend_utils import create_simple_table
 from sgdbackend_query import get_paragraph
 from sgdbackend_query.query_evidence import get_regulation_evidence
 from sgdbackend_query.query_interaction import get_regulation_family
+from sgdbackend_utils import create_simple_table
+from sgdbackend_utils.cache import id_to_bioent, id_to_reference, \
+    id_to_experiment, id_to_strain
+from sgdbackend_utils.obj_to_json import paragraph_to_json
  
 '''
 -------------------------------Overview---------------------------------------
@@ -88,11 +88,11 @@ def make_evidence_row(regevidence, bioent_id=None):
     experiment_id = regevidence.experiment_id
     strain_id = regevidence.strain_id
         
-    return {'bioent1': minimize_bioent_json(get_cached_bioent(bioent1_id)),
-                'bioent2': minimize_bioent_json(get_cached_bioent(bioent2_id)),
-                'reference': minimize_reference_json(get_cached_reference(reference_id)),
-                'experiment': minimize_experiment_json(get_cached_experiment(experiment_id)),
-                'strain': minimize_strain_json(get_cached_strain(strain_id)),
+    return {'bioent1': minimize_bioent_json(id_to_bioent[bioent1_id]),
+                'bioent2': minimize_bioent_json(id_to_bioent[bioent2_id]),
+                'reference': minimize_reference_json(id_to_reference[reference_id]),
+                'experiment': minimize_experiment_json(id_to_experiment[experiment_id]),
+                'strain': minimize_strain_json(id_to_strain[strain_id]),
                 'source': regevidence.source,
                 'conditions': regevidence.conditions
                 }
@@ -157,13 +157,13 @@ def make_graph(bioent_id):
         bioent2_id = regulation_family.bioentity2_id
     
         if bioent1_id not in id_to_node:
-            bioent1 = get_cached_bioent(bioent1_id)
+            bioent1 = id_to_bioent[bioent1_id]
             evidence_count = bioent_id_to_evidence_count[bioent1_id]
             class_type = bioent_id_to_class[bioent1_id]
             id_to_node[bioent1_id] = create_regulation_node(bioent1_id, bioent1['display_name'], 
                                                             bioent1['link'], bioent1_id==bioent_id, evidence_count, class_type=class_type)
         if bioent2_id not in id_to_node:
-            bioent2 = get_cached_bioent(bioent2_id)
+            bioent2 = id_to_bioent[bioent2_id]
             evidence_count = bioent_id_to_evidence_count[bioent2_id]
             class_type = bioent_id_to_class[bioent2_id]
             id_to_node[bioent2_id] = create_regulation_node(bioent2_id, bioent2['display_name'], 
