@@ -30,3 +30,5 @@ convert_all/old_config.py
 convert_all/config.py
 perfbackend/config.py
 perfbackend/config.py
+perfconvert/config.py
+perfconvert/config.py
