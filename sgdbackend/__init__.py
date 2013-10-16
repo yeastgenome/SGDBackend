@@ -34,250 +34,183 @@ class SGDBackend(BackendInterface):
         return 'jsonp'
     
     #Bioentity
-    def all_bioentities(self, request):
+    def all_bioentities(self, min_id, max_id, callback=None):
         from sgdbackend import misc
-        min_id = None if 'min' not in request.GET else int(request.GET['min'])
-        max_id = None if 'max' not in request.GET else int(request.GET['max'])
         return misc.make_all_bioentities(min_id, max_id)
     
-    def bioentity_list(self, request):
+    def bioentity_list(self, bioent_ids, callback=None):
         from sgdbackend import misc
-        bioent_ids = request.json_body['bioent_ids']
         return misc.make_bioentity_list(bioent_ids)
     
     #Locus
-    def locus(self, request):
+    def locus(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_bioent
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        locus = None if locus_id is None else id_to_bioent[locus_id]
-        return locus
+        return None if locus_id is None else id_to_bioent[locus_id]
 
-    def locustabs(self, request):
+    def locustabs(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import misc
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return misc.make_locustabs(locus_id)
+        return None if locus_id is None else misc.make_locustabs(locus_id) 
 
     #Bioconcept
-    def all_bioconcepts(self, request):
+    def all_bioconcepts(self, min_id, max_id, callback=None):
         from sgdbackend import misc
-        min_id = None if 'min' not in request.GET else int(request.GET['min'])
-        max_id = None if 'max' not in request.GET else int(request.GET['max'])
         return misc.make_all_bioconcepts(min_id, max_id)
     
-    def bioconcept_list(self, request):
+    def bioconcept_list(self, biocon_ids, callback=None):
         from sgdbackend import misc
-        biocon_ids = request.json_body['biocon_ids']
         return misc.make_bioconcept_list(biocon_ids)
     
     #Reference
-    def reference(self, request):
+    def reference(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_reference
-        identifier = request.matchdict['identifier']
         reference_id = get_obj_id(identifier, class_type='REFERENCE')
-        reference = None if reference_id is None else id_to_reference[reference_id]
-        return reference
+        return None if reference_id is None else id_to_reference[reference_id]
        
-    def all_references(self, request):
+    def all_references(self, min_id, max_id, callback=None):
         from sgdbackend import misc
-        min_id = None if 'min' not in request.GET else int(request.GET['min'])
-        max_id = None if 'max' not in request.GET else int(request.GET['max'])
         return misc.make_all_references(min_id, max_id)
 
-    def all_bibentries(self, request):
+    def all_bibentries(self, min_id, max_id, callback=None):
         from sgdbackend import misc
-        return misc.make_all_bibentries()
+        return misc.make_all_bibentries(min_id, max_id)
 
-    def reference_list(self, request):
-        from sgdbackend.misc import make_references
-        reference_ids = request.json_body['reference_ids']
-        make_references(reference_ids)
+    def reference_list(self, reference_ids, callback=None):
+        from sgdbackend import misc
+        return misc.make_reference_list(reference_ids)
         
     #Go
-    def go(self, request):
+    def go(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_biocon
-        identifier = request.matchdict['identifier']
         go_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        goterm = None if go_id is None else id_to_biocon[go_id]
-        return goterm
+        return None if go_id is None else id_to_biocon[go_id]
     
-    def go_references(self, request):
+    def go_references(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend.misc import make_references
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return make_references(['GO'], locus_id, only_primary=True)
+        return None if locus_id is None else make_references(['GO'], locus_id, only_primary=True)
     
-    def go_enrichment(self, request):
+    def go_enrichment(self, bioent_format_names, callback=None):
         from sgdbackend import go
-        bioent_format_names = request.json_body['bioent_format_names']
         return go.make_enrichment(bioent_format_names)
        
     #Interaction
-    def interaction_overview(self, request):
+    def interaction_overview(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_bioent
         from sgdbackend import interaction
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         if locus_id is None:
             return None
         locus = id_to_bioent[locus_id]
         return interaction.make_overview(locus) 
     
-    def interaction_details(self, request):
+    def interaction_details(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import interaction
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return interaction.make_details(False, locus_id) 
+        return None if locus_id is None else interaction.make_details(False, locus_id) 
         
-    def interaction_graph(self, request):
+    def interaction_graph(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import interaction
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return interaction.make_graph(locus_id)
+        return None if locus_id is None else interaction.make_graph(locus_id)
         
-    def interaction_resources(self, request):
+    def interaction_resources(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend.misc import make_resources
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return make_resources('Interaction Resources', locus_id)
+        return None if locus_id is None else make_resources('Interaction Resources', locus_id)
         
-    def interaction_references(self, request):
+    def interaction_references(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend.misc import make_references
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return make_references(['GENINTERACTION', 'PHYSINTERACTION'], locus_id)
+        return None if locus_id is None else make_references(['GENINTERACTION', 'PHYSINTERACTION'], locus_id)
        
     #Literature
-    def literature_overview(self, request):
+    def literature_overview(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import literature
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return literature.make_overview(locus_id)
+        return None if locus_id is None else literature.make_overview(locus_id)
 
-    def literature_details(self, request):
+    def literature_details(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import literature
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return literature.make_details(locus_id)
+        return None if locus_id is None else literature.make_details(locus_id)
     
-    def literature_graph(self, request):
+    def literature_graph(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import literature
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return literature.make_graph(locus_id)
+        return None if locus_id is None else literature.make_graph(locus_id)
             
     #Phenotype
-    def phenotype(self, request):
+    def phenotype(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_biocon
-        identifier = request.matchdict['identifier']
         pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        phenotype = None if pheno_id is None else id_to_biocon[pheno_id]
-        return phenotype
+        return None if pheno_id is None else id_to_biocon[pheno_id]
     
-    def phenotype_references(self, request):
+    def phenotype_references(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend.misc import make_references
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return make_references(['PHENOTYPE'], locus_id, only_primary=True)
+        return None if locus_id is None else make_references(['PHENOTYPE'], locus_id, only_primary=True)
             
     #Protein
-    def protein_domain_details(self, request):
+    def protein_domain_details(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import protein
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return protein.make_details(locus_id)
+        return None if locus_id is None else protein.make_details(locus_id)
             
     #Regulation
-    def regulation_overview(self, request):
+    def regulation_overview(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import regulation
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return regulation.make_overview(locus_id)
+        return None if locus_id is None else regulation.make_overview(locus_id)
 
-    def regulation_details(self, request):
+    def regulation_details(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import regulation
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return regulation.make_details(True, locus_id) 
+        return None if locus_id is None else regulation.make_details(True, locus_id) 
             
-    def regulation_graph(self, request):
+    def regulation_graph(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import regulation
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         if locus_id is None:
             return None
         return regulation.make_graph(locus_id)
 
-    def regulation_references(self, request):
+    def regulation_references(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend.misc import make_references
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return make_references(['REGULATION'], locus_id)
+        return None if locus_id is None else make_references(['REGULATION'], locus_id)
       
     #Sequence
-    def binding_site_details(self, request):
+    def binding_site_details(self, identifier, callback=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import sequence
-        identifier = request.matchdict['identifier']
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return sequence.make_details(locus_id)
+        return None if locus_id is None else sequence.make_details(locus_id)
     
     #Misc
-    def all_disambigs(self, request):
+    def all_disambigs(self, min_id, max_id, callback=None):
         from sgdbackend import misc
-        min_id = None if 'min' not in request.GET else int(request.GET['min'])
-        max_id = None if 'max' not in request.GET else int(request.GET['max'])
         return misc.make_all_disambigs(min_id, max_id)
 
     

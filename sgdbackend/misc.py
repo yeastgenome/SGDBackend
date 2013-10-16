@@ -58,8 +58,8 @@ def make_all_references(min_id, max_id):
             references[reference_id] = reference
     return references.values()
 
-def make_all_bibentries():
-    all_reference_bibs = get_reference_bibs()
+def make_all_bibentries(min_id, max_id):
+    all_reference_bibs = get_reference_bibs(min_id=min_id, max_id=max_id)
     return [{'id': x.id, 'text': x.text} for x in all_reference_bibs]
 
 def make_reference_list(reference_ids):

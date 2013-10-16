@@ -15,7 +15,7 @@ class BackendInterface:
     
     #Reference
     @abstractmethod
-    def reference(self, request):
+    def reference(self, identifier):
         return None
     
     @abstractmethod

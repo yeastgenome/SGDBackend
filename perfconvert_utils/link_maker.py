@@ -16,6 +16,10 @@ def add_format_name_params(link, key_to_format_name):
     full_link = backend_start + link + '&'.join([key + '=' + value for key, value in params.iteritems()])
     return full_link
 
+#Disambig Links
+def all_disambig_link(min_id, max_id):
+    return backend_start + '/all_disambigs?min=' + str(min_id) + '&max=' + str(max_id)
+
 #Bioentity Links
 def all_bioentity_link(min_id, max_id):
     return backend_start + '/all_bioentities?min=' + str(min_id) + '&max=' + str(max_id)

@@ -119,13 +119,14 @@ def make_evidence_row(interevidence, bioent_id=None):
     note=interevidence.note
         
     if interevidence.class_type == 'GENINTERACTION':
+        phenotype_id = interevidence.phenotype_id
         return {'bioent1': minimize_bioent_json(id_to_bioent[bioent1_id]),
                 'bioent2': minimize_bioent_json(id_to_bioent[bioent2_id]),
                 'interaction_type': 'Genetic',
-                'reference': minimize_reference_json(id_to_reference[reference_id]),
-                'experiment': minimize_experiment_json(id_to_experiment[experiment_id]),
-                'strain': minimize_strain_json(id_to_strain[strain_id]),
-                'phenotype': minimize_biocon_json(id_to_biocon[interevidence.phenotype_id]),
+                'reference': None if reference_id is None else minimize_reference_json(id_to_reference[reference_id]),
+                'experiment': None if experiment_id is None else minimize_experiment_json(id_to_experiment[experiment_id]),
+                'strain': None if strain_id is None else minimize_strain_json(id_to_strain[strain_id]),
+                'phenotype': None if phenotype_id is None else minimize_biocon_json(id_to_biocon[phenotype_id]),
                 'annotation_type': interevidence.annotation_type,
                 'direction': direction,
                 'source': interevidence.source,
@@ -133,12 +134,12 @@ def make_evidence_row(interevidence, bioent_id=None):
                 }
         
     elif interevidence.class_type == 'PHYSINTERACTION':
-        return {'bioent1': id_to_bioent[bioent1_id],
-                'bioent2': id_to_bioent[bioent2_id],
+        return {'bioent1': minimize_bioent_json(id_to_bioent[bioent1_id]),
+                'bioent2': minimize_bioent_json(id_to_bioent[bioent2_id]),
                 'interaction_type': 'Physical',
-                'reference': id_to_reference[reference_id],
-                'experiment': id_to_experiment[experiment_id],
-                'strain': id_to_strain[strain_id],
+                'reference': None if reference_id is None else minimize_reference_json(id_to_reference[reference_id]),
+                'experiment': None if experiment_id is None else minimize_experiment_json(id_to_experiment[experiment_id]),
+                'strain': None if strain_id is None else minimize_strain_json(id_to_strain[strain_id]),
                 'modification': interevidence.modification,
                 'annotation_type': interevidence.annotation_type,
                 'direction': direction,

@@ -90,9 +90,9 @@ def make_evidence_row(regevidence, bioent_id=None):
         
     return {'bioent1': minimize_bioent_json(id_to_bioent[bioent1_id]),
                 'bioent2': minimize_bioent_json(id_to_bioent[bioent2_id]),
-                'reference': minimize_reference_json(id_to_reference[reference_id]),
-                'experiment': minimize_experiment_json(id_to_experiment[experiment_id]),
-                'strain': minimize_strain_json(id_to_strain[strain_id]),
+                'reference': None if reference_id is None else minimize_reference_json(id_to_reference[reference_id]),
+                'experiment': None if experiment_id is None else minimize_experiment_json(id_to_experiment[experiment_id]),
+                'strain': None if strain_id is None else minimize_strain_json(id_to_strain[strain_id]),
                 'source': regevidence.source,
                 'conditions': regevidence.conditions
                 }

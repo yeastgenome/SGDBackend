@@ -24,6 +24,9 @@ session = DBSession
 
 #Useful methods
 def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=False):
+    if identifier is None:
+        return None
+    
     query = session.query(Disambig).filter(Disambig.disambig_key==identifier.upper())
     if class_type is not None:
         query = query.filter(Disambig.class_type==class_type)
@@ -42,6 +45,33 @@ def get_obj_id(identifier, class_type=None, subclass_type=None):
     objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
     obj_id = None if objs_ids is None or len(objs_ids) != 1 else objs_ids[0][0]
     return obj_id
+
+def get_multi_obj_ids(identifiers, class_type=None, subclass_type=None, print_query=False):
+    if identifiers is None:
+        return None
+    
+    cleaned_up_ids = filter(None, [x.upper() for x in identifiers])
+    query = session.query(Disambig).filter(Disambig.disambig_key.in_(cleaned_up_ids))
+    if class_type is not None:
+        query = query.filter(Disambig.class_type==class_type)
+    if subclass_type is not None:
+        query = query.filter(Disambig.subclass_type==subclass_type)
+    disambigs = query.all()
+    
+    if print_query:
+        print query
+        
+    disambig_dict = {}
+    for disambig in disambigs:
+        obj_id = disambig.identifier
+        key = disambig.disambig_key
+        
+        if key in disambig_dict:
+            disambig_dict[key].append(obj_id)
+        else:
+            disambig_dict[key] = [obj_id]
+        
+    return disambig_dict
 
 #Used to create phenotype_overview table.
 def get_chemical_id(chemical_name, print_query=False):

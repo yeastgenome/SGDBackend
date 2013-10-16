@@ -6,7 +6,6 @@ Created on Aug 9, 2013
 def locus_to_json(bioent):
     bioent_json = bioent_to_json(bioent)
     bioent_json['description'] = bioent.description
-    bioent_json['dbxref'] = bioent.dbxref
     #bioent_json['source'] = bioent.source
     #bioent_json['attribute'] = bioent.attribute
     #bioent_json['name_description'] = bioent.name_description
@@ -18,6 +17,7 @@ def bioent_to_json(bioent):
             'format_name': bioent.format_name,
             'bioent_type': bioent.class_type,
             'display_name': bioent.display_name, 
+            'dbxref': bioent.dbxref,
             'link': bioent.link,
             'id': bioent.id
             }
@@ -111,7 +111,7 @@ def locustab_to_json(bioentitytab):
     
 def disambig_to_json(disambig):
     return {
-            'disambig_id': disambig.id,
+            'id': disambig.id,
             'disambig_key': disambig.disambig_key,
             'class_type': disambig.class_type,
             'subclass_type': disambig.subclass_type,
