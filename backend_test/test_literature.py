@@ -5,12 +5,13 @@ Created on Jul 10, 2013
 '''
 
 from backend_test import check_reference_extended
+import json
 import pytest
 
 slow = pytest.mark.slow
 
 def test_literature_overview_structure(model, identifier='YFL039C'):
-    response = model.literature_overview(identifier)
+    response = json.loads(model.literature_overview(identifier))
     assert response is not None
     assert 'GENINTERACTION' in response
     assert 'PHYSINTERACTION' in response
@@ -23,7 +24,7 @@ def test_literature_overview_structure(model, identifier='YFL039C'):
     assert 'Total' in response
     
 def test_literature_details_structure(model, identifier='YFL039C'):
-    response = model.literature_details(identifier)
+    response = json.loads(model.literature_details(identifier))
     assert response is not None
     assert 'primary' in response
     assert 'additional' in response
@@ -39,7 +40,7 @@ def test_literature_details_structure(model, identifier='YFL039C'):
         check_reference_extended(entry)
      
 def test_literature_graph_structure(model, identifier='YFL039C'):
-    response = model.literature_graph(identifier)
+    response = json.loads(model.literature_graph(identifier))
     assert response is not None
     assert 'nodes' in response
     assert 'edges' in response

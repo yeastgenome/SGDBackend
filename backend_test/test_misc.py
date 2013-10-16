@@ -6,12 +6,13 @@ Created on Jul 10, 2013
 
 from backend_test import check_strain, check_bioent_extended, \
     check_biocon_extended, check_reference_extended, check_experiment
+import json
 import pytest
 
 slow = pytest.mark.slow
 
 def test_protein_domain_details_structure(model, identifier='GAL4'):
-    response = model.protein_domain_details(identifier)
+    response = json.loads(model.protein_domain_details(identifier))
     assert response is not None
     for entry in response:
         assert 'status' in entry
@@ -37,20 +38,20 @@ def test_protein_domain_details_structure(model, identifier='GAL4'):
         check_bioent_extended(entry['protein'])
     
 def test_all_bioconcepts_structure(model, min_id=50000000, max_id=50000200):
-    response = model.all_bioconcepts(min_id, max_id)
+    response = json.loads(model.all_bioconcepts(min_id, max_id))
     assert response is not None
     for entry in response:
         check_biocon_extended(entry)
      
 def test_bioconcept_list_structure(model, biocon_ids=[50001220, 50001050, 50001069]):
-    response = model.bioconcept_list(biocon_ids)
+    response = json.loads(model.bioconcept_list(biocon_ids))
     assert response is not None
     assert len(response) == 3
     for entry in response:
         check_biocon_extended(entry)
         
 def test_binding_site_details_structure(model, identifier='GAL4'):
-    response = model.binding_site_details(identifier)
+    response = json.loads(model.binding_site_details(identifier))
     assert response is not None
     for entry in response:
         assert 'source' in entry
@@ -67,7 +68,7 @@ def test_binding_site_details_structure(model, identifier='GAL4'):
         check_experiment(entry['experiment'])
         
 def test_all_disambigs_structure(model, min_id=100, max_id=100):
-    response = model.all_disambigs(min_id, max_id)
+    response = json.loads(model.all_disambigs(min_id, max_id))
     assert response is not None
     for entry in response:
         assert 'disambig_key' in entry

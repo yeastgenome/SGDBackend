@@ -13,136 +13,141 @@ class BackendInterface:
     def get_renderer(self, method_name):
         return None
     
+    #Response
+    @abstractmethod
+    def response_wrapper(self, method_name):
+        return None
+    
+    #Disambigs
+    @abstractmethod
+    def all_disambigs(self, min_id, max_id):
+        return None
+    
     #Reference
     @abstractmethod
     def reference(self, identifier):
         return None
     
     @abstractmethod
-    def all_references(self, request):
+    def all_references(self, min_id, max_id):
         return None
     
     @abstractmethod
-    def all_bibentries(self, request):
+    def all_bibentries(self, min_id, max_id):
         return None
     
     @abstractmethod
-    def reference_list(self, request):
+    def reference_list(self, reference_ids):
         return None
     
     #Bioent
     @abstractmethod
-    def all_bioentities(self, request):
+    def all_bioentities(self, min_id, max_id):
         return None
     
     @abstractmethod
-    def bioentity_list(self, request):
+    def bioentity_list(self, bioent_ids):
         return None
     
     #Locus
     @abstractmethod
-    def locus(self, request):
+    def locus(self, identifier):
         return None
     
     @abstractmethod
-    def locustabs(self, request):
+    def locustabs(self, identifier):
         return None
     
     #Biocon
     @abstractmethod
-    def all_bioconcepts(self, request):
+    def all_bioconcepts(self, min_id, max_id):
         return None
     
     @abstractmethod
-    def bioconcept_list(self, request):
+    def bioconcept_list(self, biocon_ids):
         return None
     
     #Go
     @abstractmethod
-    def go(self, request):
+    def go(self, identifier):
         return None
     
     @abstractmethod
-    def go_references(self, request):
+    def go_references(self, identifier):
         return None
     
     @abstractmethod
-    def go_enrichment(self, request):
+    def go_enrichment(self, identifier):
         return None
     
     #Interaction
     @abstractmethod
-    def interaction_overview(self, request):
+    def interaction_overview(self, identifier):
         return None
     
     @abstractmethod
-    def interaction_details(self, request):
+    def interaction_details(self, identifier):
         return None
     
     @abstractmethod
-    def interaction_graph(self, request):
+    def interaction_graph(self, identifier):
         return None
     
     @abstractmethod
-    def interaction_resources(self, request):
+    def interaction_resources(self, identifier):
         return None
     
     @abstractmethod
-    def interaction_references(self, request):
+    def interaction_references(self, identifier):
         return None
     
     #Literature
     @abstractmethod
-    def literature_overview(self, request):
+    def literature_overview(self, identifier):
         return None
     
     @abstractmethod
-    def literature_details(self, request):
+    def literature_details(self, identifier):
         return None
     
     @abstractmethod
-    def literature_graph(self, request):
+    def literature_graph(self, identifier):
         return None
     
     #Phenotype
     @abstractmethod
-    def phenotype(self, request):
+    def phenotype(self, identifier):
         return None
     
     @abstractmethod
-    def phenotype_references(self, request):
+    def phenotype_references(self, identifier):
         return None
     
     #Protein
     @abstractmethod
-    def protein_domain_details(self, request):
+    def protein_domain_details(self, identifier):
         return None
     
     #Regulation
     @abstractmethod
-    def regulation_overview(self, request):
+    def regulation_overview(self, identifier):
         return None
     
     @abstractmethod
-    def regulation_details(self, request):
+    def regulation_details(self, identifier):
         return None
     
     @abstractmethod
-    def regulation_graph(self, request):
+    def regulation_graph(self, identifier):
         return None
     
     @abstractmethod
-    def regulation_references(self, request):
+    def regulation_references(self, identifier):
         return None
     
     #Sequence
     @abstractmethod
-    def binding_site_details(self, request):
-        return None
-    
-    #Misc
-    @abstractmethod
-    def all_disambigs(self, method_name):
+    def binding_site_details(self, identifier):
         return None
 
     

@@ -11,7 +11,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import MetaData
 from sqlalchemy.sql.expression import select
-from zope.sqlalchemy import ZopeTransactionExtension
 import json
 import sys
 
@@ -22,6 +21,19 @@ class PerfBackend():
         self.meta = MetaData()
         self.meta.reflect(bind=self.engine)
         
+    #Renderer
+    def get_renderer(self, method_name):
+        return 'string'
+    
+    def response_wrapper(self, method_name):
+        def f(data, request):
+            callback = None if 'callback' not in request.GET else request.GET['callback']
+            if callback is not None:
+                return Response(body="%s(%s)" % (callback, data), content_type='application/json')
+            else:
+                return Response(body=data, content_type='application/json')
+        return f
+            
     # Gets json for standard requests.
     def __getattr__(self, name):
         def f(identifier, callback=None):
@@ -30,13 +42,7 @@ class PerfBackend():
             result = self.engine.execute(select([table.c.json]).where(table.c.bioentity_id == locus_id)).fetchone()
             if result is not None:
                 result = result[0]
-            
-            if result is None:
-                return Response(status_int=500, body= 'Data could not be found.')
-            if callback is not None:
-                return Response(body="%s(%s)" % (callback, result), content_type='application/json')
-            else:
-                return Response(body=result, content_type='application/json')
+            return result
         return f
     
     #Useful methods
@@ -88,17 +94,13 @@ class PerfBackend():
 
         return objs
     
-    #Renderer
-    def get_renderer(self, method_name):
-        return 'string'
-    
     #Bioentity
     def all_bioentities(self, min_id, max_id, callback=None):
         bioents = self.get_all_objs(self.meta.tables['bioentity'], 'bioentity_id', min_id, max_id)
         return '[' + ', '.join(bioents) + ']'
     
     def bioentity_list(self, bioent_ids, callback=None):
-        bioents = self.get_obj_list(self, self.meta.tables['bioentity'], 'bioentity_id', bioent_ids)
+        bioents = self.get_obj_list(self.meta.tables['bioentity'], 'bioentity_id', bioent_ids)
         return '[' + ', '.join(bioents) + ']'
     
     #Locus
@@ -124,7 +126,7 @@ class PerfBackend():
     def bioconcept_list(self, biocon_ids, callback=None):
         biocon_ids = list(set(biocon_ids))
         
-        biocons = self.get_obj_list(self, self.meta.tables['bioconcept'], 'bioconcept_id', biocon_ids)
+        biocons = self.get_obj_list(self.meta.tables['bioconcept'], 'bioconcept_id', biocon_ids)
         return '[' + ', '.join(biocons) + ']'
      
     #Go
@@ -152,7 +154,7 @@ class PerfBackend():
         biocon = self.get_obj(self.meta.tables['bioconcept'], 'bioconcept_id', identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
     
         if biocon is None:
-            raise Exception('Go term could not be found.')
+            raise Exception('Phenotype could not be found.')
         return biocon
          
     #Reference

@@ -6,12 +6,13 @@ Created on Jul 10, 2013
 
 from backend_test import check_reference, check_strain, check_bioent, \
     check_experiment, check_biocon, check_url, check_reference_extended
+import json
 import pytest
 
 slow = pytest.mark.slow
 
 def test_interaction_overview_structure(model, identifier='YFL039C'):
-    response = model.interaction_overview(identifier=identifier)
+    response = json.loads(model.interaction_overview(identifier=identifier))
     assert response is not None
     assert 'gen_circle_size' in response
     assert 'phys_circle_size' in response
@@ -21,7 +22,7 @@ def test_interaction_overview_structure(model, identifier='YFL039C'):
     assert 'num_both_interactors' in response
     
 def test_interaction_details_structure(model, identifier='YFL039C'):
-    response = model.interaction_details(identifier=identifier)
+    response = json.loads(model.interaction_details(identifier=identifier))
     assert response is not None
     for entry in response:
         assert 'direction' in entry
@@ -48,7 +49,7 @@ def test_interaction_details_structure(model, identifier='YFL039C'):
             assert 'phenotype' not in entry
      
 def test_interaction_graph_structure(model, identifier='YFL039C'):
-    response = model.interaction_graph(identifier=identifier)
+    response = json.loads(model.interaction_graph(identifier=identifier))
     assert response is not None
     assert 'nodes' in response
     assert 'edges' in response
@@ -81,13 +82,13 @@ def test_interaction_graph_structure(model, identifier='YFL039C'):
         assert 'physical' in edge_data
      
 def test_interaction_resources_structure(model, identifier='YFL039C'):
-    response = model.interaction_resources(identifier=identifier)
+    response = json.loads(model.interaction_resources(identifier=identifier))
     assert response is not None
     for entry in response:
         check_url(entry)
     
 def test_interaction_references_structure(model, identifier='YFL039C'):
-    response = model.interaction_references(identifier=identifier)
+    response = json.loads(model.interaction_references(identifier=identifier))
     assert response is not None
     for entry in response:
         check_reference_extended(entry)

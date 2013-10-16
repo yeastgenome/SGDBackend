@@ -6,16 +6,7 @@ Created on Sep 25, 2013
 from backend import prepare_sgdbackend
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
-from perfconvert_utils import create_or_update, set_up_logging, \
-    prepare_connections, get_json, get_json_str
-from perfconvert_utils.link_maker import all_bioentity_link, all_reference_link, \
-    interaction_overview_link, interaction_details_link, interaction_graph_link, \
-    interaction_resources_link, interaction_references_link, \
-    literature_overview_link, literature_details_link, literature_graph_link, \
-    regulation_overview_link, regulation_details_link, regulation_references_link, \
-    phenotype_references_link, go_references_link, binding_site_details_link, \
-    protein_domain_details_link, all_bibentry_link, regulation_graph_link, \
-    all_bioconcept_link, locustabs_link, all_disambig_link
+from perfconvert_utils import set_up_logging, prepare_connections
 from sqlalchemy.sql.expression import select
 from threading import Thread
 import json
@@ -60,7 +51,7 @@ def convert_obj(engine, table, id_column_name, link, chunk_size, min_id, label):
             #Get ready for next round.
             current_objs = engine.execute(select([table]).where(getattr(table.c, id_column_name) >= min_id).where(getattr(table.c, id_column_name) < min_id + chunk_size)).fetchall()
             current_id_to_json = dict([(getattr(x, id_column_name), x.json) for x in current_objs])
-            new_objs = link(min_id, min_id+chunk_size)
+            new_objs = json.loads(link(min_id, min_id+chunk_size))
             new_id_to_json = dict([(x['id'], json.dumps(x)) for x in new_objs])
             min_id = min_id+chunk_size
             if len(new_objs) == 0:
@@ -85,7 +76,7 @@ def convert_obj_by_bioentity(engine, table, link, bioent_ids, chunk_size, label)
             current_ids = set(current_id_to_json.keys())
             
             #Inserts
-            inserts = [{'bioentity_id': x, 'json': json.dumps(link(str(x)))} for x in new_ids - current_ids]
+            inserts = [{'bioentity_id': x, 'json': link(str(x))} for x in new_ids - current_ids]
             if len(inserts) > 0:
                 engine.execute(table.insert(), inserts)
             output_creator.num_added = output_creator.num_added + len(inserts)
@@ -100,7 +91,7 @@ def convert_obj_by_bioentity(engine, table, link, bioent_ids, chunk_size, label)
             updates = current_ids & new_ids
             for obj_id in updates:
                 current_json = current_id_to_json[obj_id]
-                new_json = json.dumps(link(str(obj_id)))
+                new_json = link(str(obj_id))
                 
                 if current_json != new_json:
                     engine.execute(table.update().where(table.c.bioentity_id == obj_id).values(json=new_json))
@@ -162,7 +153,7 @@ def convert_disambigs(engine, table, link, chunk_size, label):
             #Get ready for next round.
             current_objs = engine.execute(select([table]).where(table.c.disambig_id >= min_id).where(table.c.disambig_id < min_id + chunk_size)).fetchall()
             current_id_to_data = dict([(x.disambig_id, (x.disambig_key, x.class_type, x.subclass_type, x.identifier)) for x in current_objs])
-            new_objs = link(min_id, min_id+chunk_size)
+            new_objs = json.loads(link(min_id, min_id+chunk_size))
             new_id_to_data = dict([(x['id'], (x['disambig_key'], x['class_type'], x['subclass_type'], x['identifier'])) for x in new_objs])
             min_id = min_id+chunk_size
             if len(new_objs) == 0:
@@ -191,8 +182,7 @@ def convert(engine, meta):
 #    convert_obj(engine, meta.tables['reference'], 'reference_id', backend.all_references, 10000, 0, 'convert.performance.reference')
 #    
 #    #Bioconcept
-#    convert_obj(engine, meta.tables['bioconcept'], 'bioconcept_id', backend.all_bioconcepts, 1000, 50000000, 'convert.performance.bioconcept')
-#    convert_obj(engine, meta.tables['bioconcept'], 'bioconcept_id', backend.all_bioconcepts, 1000, 60003000, 'convert.performance.bioconcept')
+    convert_obj(engine, meta.tables['bioconcept'], 'bioconcept_id', backend.all_bioconcepts, 50000000, 10000000, 'convert.performance.bioconcept')
 #
 #    #Disambigs
 #    convert_disambigs(engine, meta.tables['disambig'], backend.all_disambigs, 1000, 'convert.performance.disambigs')

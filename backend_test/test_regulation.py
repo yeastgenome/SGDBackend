@@ -5,12 +5,13 @@ Created on Jul 10, 2013
 '''
 from backend_test import check_reference_extended, check_reference, check_strain, \
     check_experiment, check_bioent
+import json
 import pytest
 
 slow = pytest.mark.slow
 
 def test_regulation_overview_structure(model, identifier='GAL4'):
-    response = model.regulation_overview(identifier)
+    response = json.loads(model.regulation_overview(identifier))
     assert response is not None
     assert 'regulator_count' in response
     assert 'target_count' in response
@@ -23,7 +24,7 @@ def test_regulation_overview_structure(model, identifier='GAL4'):
             check_reference_extended(reference)
                 
 def test_regulation_details_structure(model, identifier='GAL4'):
-    response = model.regulation_details(identifier)
+    response = json.loads(model.regulation_details(identifier))
     assert response is not None
     assert 'regulators' in response
     assert 'targets' in response
@@ -59,7 +60,7 @@ def test_regulation_details_structure(model, identifier='GAL4'):
         check_bioent(entry['bioent2'])
         
 def test_regulation_graph_structure(model, identifier='GAL4'):
-    response = model.regulation_graph(identifier)
+    response = json.loads(model.regulation_graph(identifier))
     assert response is not None
     assert 'edges' in response
     assert 'nodes' in response
@@ -85,7 +86,7 @@ def test_regulation_graph_structure(model, identifier='GAL4'):
         assert 'name' in node_data
         
 def test_regulation_references(model, identifier='GAL4'):
-    response = model.regulation_references(identifier)
+    response = json.loads(model.regulation_references(identifier))
     assert response is not None
     for entry in response:
         check_reference_extended(entry)
