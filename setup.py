@@ -12,6 +12,7 @@ requires = [
     'simplejson',
     'mpmath',
     'requests',
+    'mpmath',
     'intermine',
     'cx_oracle',
     'sqlalchemy'
@@ -48,6 +49,7 @@ setup(name='SGDBackend',
       },
       entry_points="""\
       [paste.app_factory]
-      main = sgdbackend:main
+      sgdbackend = backend:sgdbackend
+      perfbackend = backend:perfbackend
       """,
       )

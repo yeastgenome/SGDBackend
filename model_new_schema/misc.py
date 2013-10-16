@@ -69,8 +69,7 @@ class Alias(Base, EqualityByIDMixin):
         self.date_created = date_created
         self.created_by = created_by
        
-        
-        
+
         
     
     

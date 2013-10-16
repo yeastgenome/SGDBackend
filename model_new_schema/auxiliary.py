@@ -179,4 +179,53 @@ class OmicsBioentityReference(BioentityReference, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_identity': 'OMICS_LITERATURE',
                        'inherit_condition': id==BioentityReference.id} 
     
+class Disambig(Base, EqualityByIDMixin):
+    __tablename__ = 'aux_disambig'
+    
+    id = Column('disambig_id', Integer, primary_key=True)
+    disambig_key = Column('disambig_key', String)
+    class_type = Column('class_type', String)
+    subclass_type = Column('subclass_type', String)
+    identifier = Column('identifier', String)
+    
+    def __init__(self, disambig_key, class_type, subclass_type, identifier):
+        self.disambig_key = disambig_key
+        self.class_type = class_type
+        self.subclass_type = subclass_type
+        self.identifier = identifier
+        
+    def unique_key(self):
+        return (self.disambig_key, self.class_type, self.subclass_type)
+    
+class Locustabs(Base, EqualityByIDMixin):
+    __tablename__ = 'aux_locustabs'
+    
+    id = Column('bioentity_id', Integer, primary_key=True)
+    summary = Column('summary', Integer)
+    history = Column('history', Integer)
+    literature = Column('literature', Integer)
+    go = Column('go', Integer)
+    phenotype = Column('phenotype', Integer)
+    interactions = Column('interactions', Integer)
+    expression = Column('expression', Integer)
+    regulation = Column('regulation', Integer)
+    protein = Column('protein', Integer)
+    wiki = Column('wiki', Integer)
+            
+    def __init__(self, bioentity_id, show_summary, show_history, show_literature, show_go, show_phenotype, 
+                 show_interactions, show_expression, show_regulation, show_protein, show_wiki):
+        self.id = bioentity_id
+        self.summary = show_summary
+        self.history = show_history
+        self.literature = show_literature
+        self.go = show_go
+        self.phenotype = show_phenotype
+        self.interactions = show_interactions
+        self.expression = show_expression
+        self.regulation = show_regulation
+        self.protein = show_protein
+        self.wiki = show_wiki
+            
+    def unique_key(self):
+        return self.id
     

@@ -5,8 +5,7 @@ Created on Oct 7, 2013
 '''
 from convert_aux.interaction_tables import convert_interaction, \
     convert_interaction_family, convert_regulation_family
-from convert_utils import set_up_logging, prepare_schema_connection
-import model_new_schema
+from convert_utils import set_up_logging, prepare_connections
 
 """
 ---------------------Convert------------------------------
@@ -33,6 +32,5 @@ def convert(new_session_maker):
     log.info('complete')
     
 if __name__ == "__main__":
-    from convert_all import new_config
-    new_session_maker = prepare_schema_connection(model_new_schema, new_config)
+    new_session_maker = prepare_connections(need_old=False)
     convert(new_session_maker)   

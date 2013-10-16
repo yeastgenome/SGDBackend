@@ -4,14 +4,13 @@ Created on Jul 3, 2013
 @author: kpaskov
 '''
 from convert_aux.auxillary_tables import convert_bioentity_reference
-from convert_utils import create_or_update, set_up_logging, prepare_schema_connection
-from mpmath import ceil
+from convert_utils import create_or_update, set_up_logging, \
+    prepare_connections
 from convert_utils.output_manager import OutputCreator
+from mpmath import ceil
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func, or_
 import logging
-import model_new_schema
-import model_old_schema
 import sys
 
 """
@@ -139,7 +138,5 @@ def convert(old_session_maker, new_session_maker):
     log.info('complete')
 
 if __name__ == "__main__":
-    from convert_all import new_config, old_config
-    old_session_maker = prepare_schema_connection(model_old_schema, old_config)
-    new_session_maker = prepare_schema_connection(model_new_schema, new_config)
+    old_session_maker, new_session_maker = prepare_connections()
     convert(old_session_maker, new_session_maker, False)

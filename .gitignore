@@ -25,3 +25,10 @@ SGDBackend.egg-info/SOURCES.txt
 SGDBackend.egg-info/top_level.txt
 sgdbackend/config.py
 go_enrichment/yeastmine_config.py
+convert_all/new_config.py
+convert_all/old_config.py
+convert_all/config.py
+perfbackend/config.py
+perfbackend/config.py
+perfconvert/config.py
+perfconvert/config.py

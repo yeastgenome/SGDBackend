@@ -3,20 +3,66 @@ Created on Oct 10, 2013
 
 @author: kpaskov
 '''
+from datetime import datetime
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative.api import declarative_base
 from sqlalchemy.orm.session import sessionmaker
-from datetime import datetime
+import getpass
 import logging
+import model_new_schema
+import model_old_schema
+import sys
 
-def prepare_schema_connection(model_cls, config_cls):
-    model_cls.SCHEMA = config_cls.SCHEMA
+def check_session_maker(session_maker, DBHOST, is_old):
+    if is_old:
+        from model_old_schema.feature import Feature
+        query = session_maker().query(Feature)
+    else:
+        from model_new_schema.bioentity import Bioentity
+        query = session_maker().query(Bioentity)
+    
+    try:
+        query.first()
+    except:
+        raise Exception("Connection to " + DBHOST + " failed. Please check your parameters.") 
+
+def prepare_connections(need_old=True):
+    from convert_all import config
+    if need_old:
+        OLD_DBHOST = sys.argv[1] + ':1521'
+        OLD_DBUSER = sys.argv[2]
+        OLD_DBPASS = getpass.getpass('Old DB User Password:')
+        NEW_DBHOST = sys.argv[3] + ':1521'
+        NEW_DBUSER = sys.argv[4]
+        NEW_DBPASS = getpass.getpass('New DB User Password:')
+    
+        old_session_maker = prepare_schema_connection(model_old_schema, config.OLD_DBTYPE, OLD_DBHOST, config.OLD_DBNAME, config.OLD_SCHEMA, 
+                                                  OLD_DBUSER, OLD_DBPASS)
+        check_session_maker(old_session_maker, OLD_DBHOST, True)
+        
+        new_session_maker = prepare_schema_connection(model_new_schema, config.NEW_DBTYPE, NEW_DBHOST, config.NEW_DBNAME, config.NEW_SCHEMA, 
+                                                  NEW_DBUSER, NEW_DBPASS)
+        check_session_maker(new_session_maker, NEW_DBHOST, False)
+        return old_session_maker, new_session_maker
+    else:
+        NEW_DBHOST = sys.argv[1] + ':1521'
+        NEW_DBUSER = sys.argv[2]
+        NEW_DBPASS = getpass.getpass('New DB User Password:')
+        
+        new_session_maker = prepare_schema_connection(model_new_schema, config.NEW_DBTYPE, NEW_DBHOST, config.NEW_DBNAME, config.NEW_SCHEMA, 
+                                                  NEW_DBUSER, NEW_DBPASS)
+        check_session_maker(new_session_maker, NEW_DBHOST, False)
+        return new_session_maker
+    
+
+def prepare_schema_connection(model_cls, DBTYPE, DBHOST, DBNAME, SCHEMA, DBUSER, DBPASS):
+    model_cls.SCHEMA = SCHEMA
     class Base(object):
-        __table_args__ = {'schema': config_cls.SCHEMA, 'extend_existing':True}
+        __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
 
     model_cls.Base = declarative_base(cls=Base)
     model_cls.metadata = model_cls.Base.metadata
-    engine = create_engine("%s://%s:%s@%s/%s" % (config_cls.DBTYPE, config_cls.DBUSER, config_cls.DBPASS, config_cls.DBHOST, config_cls.DBNAME), convert_unicode=True, pool_recycle=3600)
+    engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
     model_cls.Base.metadata.bind = engine
     session_maker = sessionmaker(bind=engine)
         

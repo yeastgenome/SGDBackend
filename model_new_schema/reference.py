@@ -72,6 +72,7 @@ class Reference(Base, EqualityByIDMixin):
     id = Column('reference_id', Integer, primary_key = True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
+    dbxref = Column('dbxref', String)
     link = Column('obj_link', String)
     source = Column('source', String)
     
@@ -102,12 +103,13 @@ class Reference(Base, EqualityByIDMixin):
     reftype_names = association_proxy('reftypes', 'name')
     related_references = association_proxy('refrels', 'child_ref')
     
-    def __init__(self, reference_id, display_name, format_name, link, source, 
+    def __init__(self, reference_id, display_name, format_name, dbxref, link, source, 
                  status, pubmed_id, pubmed_central_id, pdf_status, citation, year, date_published, date_revised, issue, page, volume, 
                  title, journal_id, book_id, doi, date_created, created_by):
         self.id = reference_id
         self.display_name = display_name
         self.format_name = format_name
+        self.dbxref = dbxref
         self.link = link
         self.source=source
         self.status = status

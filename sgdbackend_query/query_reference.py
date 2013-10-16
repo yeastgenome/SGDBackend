@@ -150,14 +150,16 @@ def get_all_references_for_bioent(bioent_id, print_query=False):
     return bioent_refs
 
 #Used for reference_list_view
-def get_reference_bibs(reference_ids=None, print_query=False):
+def get_reference_bibs(reference_ids=None, min_id=None, max_id=None, print_query=False):
     references = []
+    query1 = session.query(Bibentry)
     if reference_ids is not None:
-        query1 = session.query(Bibentry).filter(Bibentry.id.in_(reference_ids))
-        references.extend(query1.all())
-    else:
-        query1 = session.query(Bibentry)
-        references.extend(query1.all())
+        query1 = query1.filter(Bibentry.id.in_(reference_ids))
+    if min_id is not None:
+        query1 = query1.filter(Bibentry.id >= min_id)
+    if max_id is not None:
+        query1 = query1.filter(Bibentry.id < max_id)
+    references.extend(query1.all())
     if print_query:
         print query1
     return references

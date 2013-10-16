@@ -3,16 +3,15 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
-from convert_aux.auxillary_tables import convert_bioentity_reference
-from convert_utils import set_up_logging, create_or_update, prepare_schema_connection
-from mpmath import ceil
+from convert_aux.auxillary_tables import convert_bioentity_reference, \
+    convert_disambigs
+from convert_utils import set_up_logging, create_or_update, prepare_connections
+from convert_utils.link_maker import biocon_link
 from convert_utils.output_manager import OutputCreator
+from mpmath import ceil
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func
-from convert_utils.link_maker import biocon_link
 import logging
-import model_new_schema
-import model_old_schema
 import sys
 
 """
@@ -224,7 +223,7 @@ def convert(old_session_maker, new_session_maker):
     
     log.info('begin')
         
-    #convert_go(old_session_maker, new_session_maker) 
+    convert_go(old_session_maker, new_session_maker) 
     
     convert_evidence(old_session_maker, new_session_maker, 10000)
     
@@ -232,12 +231,13 @@ def convert(old_session_maker, new_session_maker):
     get_bioent_ids_f = lambda x: [x.bioentity_id]
     convert_bioentity_reference(new_session_maker, Goevidence, 'GO', 'convert.go.bioentity_reference', 10000, get_bioent_ids_f)
 
+    from model_new_schema.go import Go
+    convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
+    
     log.info('complete')
             
 if __name__ == "__main__":
-    from convert_all import new_config, old_config
-    old_session_maker = prepare_schema_connection(model_old_schema, old_config)
-    new_session_maker = prepare_schema_connection(model_new_schema, new_config)
+    old_session_maker, new_session_maker = prepare_connections()
     convert(old_session_maker, new_session_maker)
     
 

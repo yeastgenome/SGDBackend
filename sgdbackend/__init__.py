@@ -1,99 +1,226 @@
-from config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE
-from models import DBSession
+from backend.backend_interface import BackendInterface
+from config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE, SCHEMA
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
-from sgdbackend.cache import cache_core
+from pyramid.response import Response
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker
+from zope.sqlalchemy import ZopeTransactionExtension
+import json
 import model_new_schema
+import sys
 
-def prep_sqlalchemy(**settings):
-    engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+class Base(object):
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+        
+model_new_schema.SCHEMA = SCHEMA
+model_new_schema.Base = declarative_base(cls=Base)
 
-    DBSession.configure(bind=engine)
-    model_new_schema.Base.metadata.bind = engine
-    config = Configurator(settings=settings)
-    config.add_static_view('static', 'static', cache_max_age=3600)
-    config.add_renderer('jsonp', JSONP(param_name='callback'))
+class SGDBackend(BackendInterface):
+    def __init__(self, config):
+        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
 
-    cache_core()
+        DBSession.configure(bind=engine)
+        model_new_schema.Base.metadata.bind = engine
 
-    return config
-
-def prep_views(config):    
+        from sgdbackend_utils.cache import cache_core
+        cache_core()
+        
+    def get_renderer(self, method_name):
+        return 'string'
     
-    #Reference views
-    config.add_route('all_references', '/all_references')
-    config.add_route('all_bibentries', '/all_bibentries')
-    config.add_route('reference', '/reference/{identifier}/overview')
-    config.add_route('reference_list', '/reference_list')
+    def response_wrapper(self, method_name):
+        def f(data, request):
+            callback = None if 'callback' not in request.GET else request.GET['callback']
+            if callback is not None:
+                return Response(body="%s(%s)" % (callback, data), content_type='application/json')
+            else:
+                return Response(body=data, content_type='application/json')
+        return f
     
-    #Bioent views
-    config.add_route('bioentity', '/{type}/{identifier}/overview')
-    config.add_route('all_bioents', '/all_bioents')
-    config.add_route('bioentitytabs', '/{type}/{identifier}/tabs')
+    #Bioentity
+    def all_bioentities(self, min_id, max_id):
+        from sgdbackend import misc
+        return json.dumps(misc.make_all_bioentities(min_id, max_id))
     
-    #Interaction views
-    config.add_route('interaction_overview', '/{type}/{identifier}/interaction_overview')
-    config.add_route('interaction_details', '/{type}/{identifier}/interaction_details')
-    config.add_route('interaction_graph', '/{type}/{identifier}/interaction_graph') 
-    config.add_route('interaction_resources', '/{type}/{identifier}/interaction_resources')
-    config.add_route('interaction_references', '/{type}/{identifier}/interaction_references')
+    def bioentity_list(self, bioent_ids):
+        from sgdbackend import misc
+        return json.dumps(misc.make_bioentity_list(bioent_ids))
     
-    #Regulation views
-    config.add_route('regulation_overview', '/{type}/{identifier}/regulation_overview')
-    config.add_route('regulation_details', '/{type}/{identifier}/regulation_details')
-    config.add_route('regulation_graph', '/{type}/{identifier}/regulation_graph')
-    config.add_route('regulation_references', '/{type}/{identifier}/regulation_references')
-    
-    #Literature views
-    config.add_route('literature_overview', '/{type}/{identifier}/literature_overview')
-    config.add_route('literature_details', '/{type}/{identifier}/literature_details')
-    config.add_route('literature_graph', '/{type}/{identifier}/literature_graph')
-    
-    #Protein views
-    config.add_route('protein_domain_details', '/{type}/{identifier}/protein_domain_details')
+    #Locus
+    def locus(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_bioent
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(id_to_bioent[locus_id])
 
-    config.add_route('binding_site_details', '/{type}/{identifier}/binding_site_details')
-#    #Biocon views
-#    config.add_route('biocon', '/biocon/{biocon_type}/{biocon}')
-#
-    #GO views
-    config.add_route('go_references', '/{type}/{identifier}/go_references')
-    config.add_route('go_enrichment_yeastmine', '/go_enrichment_yeastmine')
-    config.add_route('go_enrichment_batter', '/go_enrichment_batter')
-#    config.add_route('go', '/go/{biocon}')
-#    config.add_route('go_evidence', '/go_evidence')
-#    config.add_route('go_overview_table', '/go_overview_table')
-#    config.add_route('go_evidence_table', '/go_evidence_table')
-#    config.add_route('go_graph', '/go_graph')
-#    config.add_route('go_ontology_graph', '/go_ontology_graph')
-#    
-    #Phenotype views
-    config.add_route('phenotype_references', '/{type}/{identifier}/phenotype_references')
-#    config.add_route('phenotype', '/phenotype/{biocon}')
-#    config.add_route('phenotype_evidence', '/phenotype_evidence')
-#    config.add_route('phenotype_overview_table', '/phenotype_overview_table')
-#    config.add_route('phenotype_evidence_table', '/phenotype_evidence_table')
-#    config.add_route('phenotype_graph', '/phenotype_graph')
-#    config.add_route('phenotype_ontology_graph', '/phenotype_ontology_graph')
-#       
-#    #Reference views
-#    config.add_route('reference', '/reference/{reference}')
-#    config.add_route('reference_graph', '/reference_graph')
-#    config.add_route('author', '/author/{author}')
-#    config.add_route('assoc_references', '/assoc_references')
+    def locustabs(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import misc
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(misc.make_locustabs(locus_id))
+
+    #Bioconcept
+    def all_bioconcepts(self, min_id, max_id):
+        from sgdbackend import misc
+        return json.dumps(misc.make_all_bioconcepts(min_id, max_id))
     
-    #List views
-    config.add_route('bioent_list', '/bioent_list')
-    #config.add_route('go_enrichment', '/go_enrichment')
+    def bioconcept_list(self, biocon_ids):
+        from sgdbackend import misc
+        return json.dumps(misc.make_bioconcept_list(biocon_ids))
+    
+    #Reference
+    def reference(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_reference
+        reference_id = get_obj_id(identifier, class_type='REFERENCE')
+        return None if reference_id is None else json.dumps(id_to_reference[reference_id])
+       
+    def all_references(self, min_id, max_id):
+        from sgdbackend import misc
+        return json.dumps(misc.make_all_references(min_id, max_id))
 
+    def all_bibentries(self, min_id, max_id):
+        from sgdbackend import misc
+        return json.dumps(misc.make_all_bibentries(min_id, max_id))
 
-    config.scan()
+    def reference_list(self, reference_ids):
+        from sgdbackend import misc
+        return json.dumps(misc.make_reference_list(reference_ids))
+        
+    #Go
+    def go(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_biocon
+        go_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
+        return None if go_id is None else json.dumps(id_to_biocon[go_id])
+    
+    def go_references(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend.misc import make_references
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(make_references(['GO'], locus_id, only_primary=True))
+    
+    def go_enrichment(self, bioent_format_names):
+        from sgdbackend import go
+        return json.dumps(go.make_enrichment(bioent_format_names))
+       
+    #Interaction
+    def interaction_overview(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_bioent
+        from sgdbackend import interaction
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        if locus_id is None:
+            return None
+        locus = id_to_bioent[locus_id]
+        return json.dumps(interaction.make_overview(locus)) 
+    
+    def interaction_details(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import interaction
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(interaction.make_details(False, locus_id))
+        
+    def interaction_graph(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import interaction
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(interaction.make_graph(locus_id))
+        
+    def interaction_resources(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend.misc import make_resources
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(make_resources('Interaction Resources', locus_id))
+        
+    def interaction_references(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend.misc import make_references
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(make_references(['GENINTERACTION', 'PHYSINTERACTION'], locus_id))
+       
+    #Literature
+    def literature_overview(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import literature
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(literature.make_overview(locus_id))
 
-def main(global_config, **settings):
-    """ This function returns a Pyramid WSGI application.
-    """
-    config = prep_sqlalchemy(**settings)
-    prep_views(config)
-    return config.make_wsgi_app()
+    def literature_details(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import literature
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(literature.make_details(locus_id))
+    
+    def literature_graph(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import literature
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(literature.make_graph(locus_id))
+            
+    #Phenotype
+    def phenotype(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_biocon
+        pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
+        return None if pheno_id is None else json.dumps(id_to_biocon[pheno_id])
+    
+    def phenotype_references(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend.misc import make_references
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(make_references(['PHENOTYPE'], locus_id, only_primary=True))
+            
+    #Protein
+    def protein_domain_details(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import protein
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(protein.make_details(locus_id))
+            
+    #Regulation
+    def regulation_overview(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import regulation
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(regulation.make_overview(locus_id))
+
+    def regulation_details(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import regulation
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(regulation.make_details(True, locus_id))
+            
+    def regulation_graph(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import regulation
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(regulation.make_graph(locus_id))
+
+    def regulation_references(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend.misc import make_references
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(make_references(['REGULATION'], locus_id))
+      
+    #Sequence
+    def binding_site_details(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import sequence
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(sequence.make_details(locus_id))
+    
+    #Misc
+    def all_disambigs(self, min_id, max_id):
+        from sgdbackend import misc
+        return json.dumps(misc.make_all_disambigs(min_id, max_id))
+
+    
+            
+            
+    
+    

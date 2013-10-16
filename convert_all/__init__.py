@@ -6,20 +6,17 @@ Created on Jul 3, 2013
 
 from convert_core import convert_reference, convert_bioentity, \
     convert_evelements, convert_chemical
-from convert_evidence import convert_literature, \
-    convert_regulation, convert_phenotype, convert_go, convert_protein, \
-    convert_bioentity_in_depth, convert_reference_in_depth, convert_binding, \
-    convert_genetic_interaction, convert_physical_interaction
-from convert_all import new_config, old_config
-from convert_utils import set_up_logging, prepare_schema_connection
+from convert_evidence import convert_literature, convert_regulation, \
+    convert_phenotype, convert_go, convert_protein, convert_bioentity_in_depth, \
+    convert_reference_in_depth, convert_binding, convert_genetic_interaction, \
+    convert_physical_interaction
+from convert_utils import set_up_logging, prepare_schema_connection, \
+    prepare_connections
 from threading import Thread
-import model_new_schema
-import model_old_schema
 import sys
 
-if __name__ == "__main__":    
-    old_session_maker = prepare_schema_connection(model_old_schema, old_config)
-    new_session_maker = prepare_schema_connection(model_new_schema, new_config)
+if __name__ == "__main__":   
+    old_session_maker, new_session_maker = prepare_connections()
     
     log = set_up_logging('convert')
     log.info('begin')

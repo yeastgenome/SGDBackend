@@ -3,11 +3,12 @@ Created on Sep 23, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, prepare_schema_connection, create_format_name, break_up_file
-from mpmath import ceil
+from convert_utils import create_or_update, set_up_logging, \
+    create_format_name, break_up_file, \
+    prepare_connections
 from convert_utils.output_manager import OutputCreator
+from mpmath import ceil
 import logging
-import model_new_schema
 import sys
 
 """
@@ -146,6 +147,5 @@ def convert(new_session_maker):
     log.info('complete')
     
 if __name__ == "__main__":
-    from convert_all import new_config
-    new_session_maker = prepare_schema_connection(model_new_schema, new_config)
+    new_session_maker = prepare_connections(need_old=False)
     convert(new_session_maker, False)
