@@ -14,6 +14,7 @@ requires = [
     'requests',
     'mpmath',
     'intermine',
+    'cx_oracle',
     'sqlalchemy'
     ]
 
