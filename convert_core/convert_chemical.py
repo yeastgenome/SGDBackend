@@ -77,7 +77,6 @@ def convert_allele(old_session_maker, new_session_maker):
             output_creator.removed()
 
         #Commit
-        output_creator.finished()
         new_session.commit()
         
     except Exception:
@@ -86,7 +85,7 @@ def convert_allele(old_session_maker, new_session_maker):
         new_session.close()
         old_session.close()
         
-    log.info('complete')
+    output_creator.finished()
     
 """
 --------------------- Convert Chemical ---------------------
@@ -154,7 +153,6 @@ def convert_chemical(old_session_maker, new_session_maker):
             output_creator.removed()
 
         #Commit
-        output_creator.finished()
         new_session.commit()
         
     except Exception:
@@ -163,7 +161,7 @@ def convert_chemical(old_session_maker, new_session_maker):
         new_session.close()
         old_session.close()
         
-    log.info('complete')
+    output_creator.finished()
     
 """
 ---------------------Convert------------------------------

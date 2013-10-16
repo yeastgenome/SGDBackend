@@ -56,7 +56,6 @@ def convert_obj(engine, table, id_column_name, link, chunk_size, min_id, label):
                 if current_json != new_json:
                     engine.execute(table.update().where(getattr(table.c, id_column_name) == obj_id).values(json=new_json))
                     output_creator.changed(obj_id, 'json')
-            #output_creator.finished()
                         
             #Get ready for next round.
             current_objs = engine.execute(select([table]).where(getattr(table.c, id_column_name) >= min_id).where(getattr(table.c, id_column_name) < min_id + chunk_size)).fetchall()
@@ -67,11 +66,10 @@ def convert_obj(engine, table, id_column_name, link, chunk_size, min_id, label):
             if len(new_objs) == 0:
                 finished = True
             
-           
     except Exception:
         log.exception('Unexpected error:' + str(sys.exc_info()[0]))
         
-    log.info('complete')
+    output_creator.finished()
     
 def convert_obj_by_bioentity(engine, table, link, bioent_ids, chunk_size, label):
     log = logging.getLogger(label)
@@ -107,7 +105,6 @@ def convert_obj_by_bioentity(engine, table, link, bioent_ids, chunk_size, label)
                 if current_json != new_json:
                     engine.execute(table.update().where(table.c.bioentity_id == obj_id).values(json=new_json))
                     output_creator.changed(obj_id, 'json')
-            #output_creator.finished()
                         
             #Get ready for next round.
             current_objs = engine.execute(select([table]).where(table.c.bioentity_id >= min_id).where(table.c.bioentity_id < min_id + chunk_size)).fetchall()
@@ -116,12 +113,11 @@ def convert_obj_by_bioentity(engine, table, link, bioent_ids, chunk_size, label)
             min_id = min_id+chunk_size
             if len(new_ids) == 0:
                 finished = True
-            
-           
+                
     except Exception:
         log.exception('Unexpected error:' + str(sys.exc_info()[0]))
         
-    log.info('complete')
+    output_creator.finished()
     
 def convert_disambigs(engine, table, link, chunk_size, label):
     log = logging.getLogger(label)
@@ -171,12 +167,11 @@ def convert_disambigs(engine, table, link, chunk_size, label):
             min_id = min_id+chunk_size
             if len(new_objs) == 0:
                 finished = True
-            
-           
+    
     except Exception:
         log.exception('Unexpected error:' + str(sys.exc_info()[0]))
         
-    log.info('complete')
+    output_creator.finished()
   
 """
 ---------------------Convert------------------------------
@@ -184,14 +179,14 @@ def convert_disambigs(engine, table, link, chunk_size, label):
 
 def convert(engine, meta):
     log = set_up_logging('convert.performance')
-    log.info('begin')
     
+    log.info('load_sgdbackend')
     backend = prepare_sgdbackend()[0]
-        
+    log.info('begin')
     ################# Core Converts ###########################
-    #Bioentity
-    convert_obj(engine, meta.tables['bioentity'], 'bioentity_id', backend.all_bioentities, 1000, 0, 'convert.performance.bioentity')
-    
+#    #Bioentity
+#    convert_obj(engine, meta.tables['bioentity'], 'bioentity_id', backend.all_bioentities, 1000, 0, 'convert.performance.bioentity')
+#    
 #    #Reference
 #    convert_obj(engine, meta.tables['reference'], 'reference_id', backend.all_references, 10000, 0, 'convert.performance.reference')
 #    
@@ -203,8 +198,8 @@ def convert(engine, meta):
 #    convert_disambigs(engine, meta.tables['disambig'], backend.all_disambigs, 1000, 'convert.performance.disambigs')
 #    ################# Converts in parallel ###########################
 #    
-#    #Get bioents
-#    bioent_ids = [bioent.bioentity_id for bioent in engine.execute(select([meta.tables['bioentity']])).fetchall()]
+    #Get bioents
+    bioent_ids = [bioent.bioentity_id for bioent in engine.execute(select([meta.tables['bioentity']])).fetchall()]
 #    
 #    #Bibentry
 #    try:
@@ -227,14 +222,14 @@ def convert(engine, meta):
 #        convert_obj_by_bioentity(engine, meta.tables['interaction_references'], backend.interaction_references, bioent_ids, 1000, 'convert.performance.interaction_references')
 #    except Exception:
 #        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-#    
-#    #Literature section
-#    try:
-#        convert_obj_by_bioentity(engine, meta.tables['literature_overview'], backend.literature_overview, bioent_ids, 1000, 'convert.performance.literature_overview')
-#        convert_obj_by_bioentity(engine, meta.tables['literature_details'], backend.literature_details, bioent_ids, 1000, 'convert.performance.literature_details')
-#        convert_obj_by_bioentity(engine, meta.tables['literature_graph'], backend.literature_graph, bioent_ids, 1000, 'convert.performance.literature_graph')
-#    except Exception:
-#        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
+    
+    #Literature section
+    try:
+        convert_obj_by_bioentity(engine, meta.tables['literature_overview'], backend.literature_overview, bioent_ids, 1000, 'convert.performance.literature_overview')
+        convert_obj_by_bioentity(engine, meta.tables['literature_details'], backend.literature_details, bioent_ids, 1000, 'convert.performance.literature_details')
+        convert_obj_by_bioentity(engine, meta.tables['literature_graph'], backend.literature_graph, bioent_ids, 1000, 'convert.performance.literature_graph')
+    except Exception:
+        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
 #    
 #    #Regulation section
 #    try:

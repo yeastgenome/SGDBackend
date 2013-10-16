@@ -28,7 +28,7 @@ class Phenotype(Bioconcept):
     def __init__(self, bioconcept_id, display_name, format_name, link,
                  observable, qualifier, mutant_type, phenotype_type, 
                  date_created, created_by):
-        Bioconcept.__init__(self, bioconcept_id, 'PHENOTYPE', display_name, format_name, link, None, 
+        Bioconcept.__init__(self, bioconcept_id, 'PHENOTYPE', display_name, format_name, None, link, None, 
                             date_created, created_by)
         self.observable = observable
         self.qualifier = qualifier

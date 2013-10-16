@@ -18,7 +18,7 @@ id_to_strain = {}
 id_to_reference = {}
 
 def cache_core():
-    print 'Cache bioents'
+    #print 'Cache bioents'
     #Cache bioents
     for bioent in get_all_bioents():
         if bioent.class_type == 'LOCUS':
@@ -27,25 +27,25 @@ def cache_core():
             json_form = bioent_to_json(bioent)
         id_to_bioent[bioent.id] = json_form
        
-    print 'Cache biocons' 
+    #print 'Cache biocons' 
     #Cache biocons
     for biocon in get_all_biocons():
         json_form = biocon_to_json(biocon)
         id_to_biocon[biocon.id] = json_form
         
-    print 'Cache experiments'
+    #print 'Cache experiments'
     #Cache experiments
     for experiment in get_all_experiments():
         json_form = experiment_to_json(experiment)
         id_to_experiment[experiment.id] = json_form
         
-    print 'Cache strains'
+    #print 'Cache strains'
     #Cache strains
     for strain in get_all_strains():
         json_form = strain_to_json(strain)
         id_to_strain[strain.id] = json_form
         
-    print 'Cache references'
+    #print 'Cache references'
     #Cache references
     for reference in get_all_references():
         json_form = reference_to_json(reference)

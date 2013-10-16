@@ -52,8 +52,8 @@ def create_locus(old_bioentity):
         description = ann.description
         genetic_position = ann.genetic_position
     
-    bioentity = Locus(old_bioentity.id, display_name, format_name, link, old_bioentity.source, old_bioentity.status, 
-                         locus_type, old_bioentity.dbxref_id, attribute, short_description, headline, description, genetic_position, 
+    bioentity = Locus(old_bioentity.id, display_name, format_name,  old_bioentity.dbxref_id, link, old_bioentity.source, old_bioentity.status, 
+                         locus_type, attribute, short_description, headline, description, genetic_position, 
                          old_bioentity.date_created, old_bioentity.created_by)
     return [bioentity]
 
@@ -105,7 +105,6 @@ def convert_locus(old_session_maker, new_session_maker):
             output_creator.removed()
         
         #Commit
-        output_creator.finished()
         new_session.commit()
         
     except Exception:
@@ -114,7 +113,7 @@ def convert_locus(old_session_maker, new_session_maker):
         new_session.close()
         old_session.close()
         
-    log.info('complete')
+    output_creator.finished()
     
 """
 --------------------- Convert Protein ---------------------
@@ -134,8 +133,8 @@ def create_protein(old_protein, id_to_bioentity):
     display_name = locus.display_name + 'p'
     format_name = locus.format_name + 'P'
     link = locus.link.replace('/locus.f', '/protein/proteinPage.')
-    protein = Protein(create_protein_id(locus_id), display_name, format_name, locus_id, old_protein.length, 
-                      old_protein.n_term_seq, old_protein.c_term_seq, link, old_protein.date_created, old_protein.created_by)
+    protein = Protein(create_protein_id(locus_id), display_name, format_name, None,  link, locus_id, old_protein.length, 
+                      old_protein.n_term_seq, old_protein.c_term_seq, old_protein.date_created, old_protein.created_by)
     return [protein]
 
 def convert_protein(old_session_maker, new_session_maker):
@@ -189,7 +188,6 @@ def convert_protein(old_session_maker, new_session_maker):
             output_creator.removed()
         
         #Commit
-        output_creator.finished()
         new_session.commit()
         
     except Exception:
@@ -198,7 +196,7 @@ def convert_protein(old_session_maker, new_session_maker):
         new_session.close()
         old_session.close()
         
-    log.info('complete')
+    output_creator.finished()
     
 
 """
