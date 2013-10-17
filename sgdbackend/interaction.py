@@ -10,6 +10,9 @@ from sgdbackend_query.query_interaction import get_interaction_family, \
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_reference, \
     id_to_experiment, id_to_strain, id_to_biocon
+from sgdbackend_utils.obj_to_json import minimize_bioent_json, \
+    minimize_reference_json, minimize_experiment_json, minimize_strain_json, \
+    minimize_biocon_json
 from sgdbackend_utils.venn import calc_venn_measurements
 
 '''
@@ -66,37 +69,6 @@ def make_details(divided, bioent_id):
         tables = create_simple_table(all_interevidences, make_evidence_row, bioent_id=bioent_id)
         
     return tables  
-
-def minimize_bioent_json(bioent_json):
-    if bioent_json is not None:
-        return {'display_name': bioent_json['display_name'],
-            'format_name': bioent_json['format_name'],
-            'link': bioent_json['link']}
-    return None
-    
-def minimize_reference_json(ref_json):
-    if ref_json is not None:
-        return {'display_name': ref_json['display_name'],
-            'link': ref_json['link']}
-    return None
-    
-def minimize_strain_json(strain_json):
-    if strain_json is not None:
-        return {'display_name': strain_json['display_name'],
-            'link': strain_json['link']}
-    return None
-    
-def minimize_experiment_json(exp_json):
-    if exp_json is not None:
-        return {'display_name': exp_json['display_name'],
-            'link': exp_json['link']} 
-    return None
-    
-def minimize_biocon_json(biocon_json):
-    if biocon_json is not None:
-        return {'display_name': biocon_json['display_name'],
-            'link': biocon_json['link']}  
-    return None
 
 def make_evidence_row(interevidence, bioent_id=None): 
     if bioent_id is not None:

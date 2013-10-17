@@ -182,7 +182,7 @@ def convert(engine, meta):
 #    convert_obj(engine, meta.tables['reference'], 'reference_id', backend.all_references, 10000, 0, 'convert.performance.reference')
 #    
 #    #Bioconcept
-    convert_obj(engine, meta.tables['bioconcept'], 'bioconcept_id', backend.all_bioconcepts, 50000000, 10000000, 'convert.performance.bioconcept')
+#    convert_obj(engine, meta.tables['bioconcept'], 'bioconcept_id', backend.all_bioconcepts, 50000000, 10000000, 'convert.performance.bioconcept')
 #
 #    #Disambigs
 #    convert_disambigs(engine, meta.tables['disambig'], backend.all_disambigs, 1000, 'convert.performance.disambigs')
@@ -190,12 +190,12 @@ def convert(engine, meta):
 #    
     #Get bioents
     bioent_ids = [bioent.bioentity_id for bioent in engine.execute(select([meta.tables['bioentity']])).fetchall()]
-#    
-#    #Bibentry
-#    try:
-#        convert_obj(engine, meta.tables['reference_bibentry'], 'reference_id', backend.all_bibentries, 1000, 0, 'convert.performance.bibentry')
-#    except Exception:
-#        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
+    
+    #Bibentry
+    try:
+        convert_obj(engine, meta.tables['reference_bibentry'], 'reference_id', backend.all_bibentries, 1000, 0, 'convert.performance.bibentry')
+    except Exception:
+        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
 #    
 #    #Bioentitytabs
 #    try:

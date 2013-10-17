@@ -9,7 +9,8 @@ from sgdbackend_query.query_interaction import get_regulation_family
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_reference, \
     id_to_experiment, id_to_strain
-from sgdbackend_utils.obj_to_json import paragraph_to_json
+from sgdbackend_utils.obj_to_json import paragraph_to_json, minimize_bioent_json, \
+    minimize_reference_json, minimize_experiment_json, minimize_strain_json
  
 '''
 -------------------------------Overview---------------------------------------
@@ -46,31 +47,6 @@ def make_details(divided, bioent_id):
         tables = create_simple_table(regevidences, make_evidence_row, bioent_id=bioent_id)
         
     return tables    
-
-def minimize_bioent_json(bioent_json):
-    if bioent_json is not None:
-        return {'display_name': bioent_json['display_name'],
-            'format_name': bioent_json['format_name'],
-            'link': bioent_json['link']}
-    return None
-    
-def minimize_reference_json(ref_json):
-    if ref_json is not None:
-        return {'display_name': ref_json['display_name'],
-            'link': ref_json['link']}
-    return None
-    
-def minimize_strain_json(strain_json):
-    if strain_json is not None:
-        return {'display_name': strain_json['display_name'],
-            'link': strain_json['link']}
-    return None
-    
-def minimize_experiment_json(exp_json):
-    if exp_json is not None:
-        return {'display_name': exp_json['display_name'],
-            'link': exp_json['link']}
-    return None
 
 def make_evidence_row(regevidence, bioent_id=None): 
     if bioent_id is not None:
