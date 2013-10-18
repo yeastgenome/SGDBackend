@@ -33,7 +33,7 @@ def prep_views(chosen_backend, config):
                      '/reference_list', 
                      view=lambda request: chosen_backend.response_wrapper('reference_list')(
                                 getattr(chosen_backend, 'reference_list')(
-                                        None if 'reference_ids' not in request.GET else request.GET['reference_ids']), request), 
+                                        None if 'reference_ids' not in request.json_body else request.json_body['reference_ids']), request), 
                      renderer=chosen_backend.get_renderer('reference_list'))
     
     #Bioent views
@@ -49,7 +49,7 @@ def prep_views(chosen_backend, config):
                      '/bioentity_list', 
                      view=lambda request: chosen_backend.response_wrapper('bioentity_list')(
                                 getattr(chosen_backend, 'bioentity_list')(
-                                        None if 'bioent_ids' not in request.GET else request.GET['bioent_ids']), request),
+                                        None if 'bioent_ids' not in request.json_body else request.json_body['bioent_ids']), request),
                      renderer=chosen_backend.get_renderer('bioentity_list'))
 
     #Locus views
@@ -80,7 +80,7 @@ def prep_views(chosen_backend, config):
                      '/bioconcept_list', 
                      view=lambda request: chosen_backend.response_wrapper('bioentity_list')(
                                 getattr(chosen_backend, 'bioentity_list')(
-                                       None if 'biocon_ids' not in request.GET else request.GET['biocon_ids']), request), 
+                                       None if 'biocon_ids' not in request.json_body else request.json_body['biocon_ids']), request), 
                      renderer=chosen_backend.get_renderer('bioentity_list')) 
     
     #Go views
@@ -102,7 +102,7 @@ def prep_views(chosen_backend, config):
                      '/go_enrichment', 
                      view=lambda request: chosen_backend.response_wrapper('go_enrichment')(
                                 getattr(chosen_backend, 'go_enrichment')(
-                                       None if 'bioent_ids' not in request.GET else request.GET['bioent_ids']), request),
+                                       None if 'bioent_ids' not in request.json_body else request.json_body['bioent_ids']), request),
                      renderer=chosen_backend.get_renderer('go_enrichment'))
 
     #Phenotype views

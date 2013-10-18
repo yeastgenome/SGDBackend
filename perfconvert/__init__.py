@@ -175,9 +175,9 @@ def convert(engine, meta):
     backend = prepare_sgdbackend()[0]
     log.info('begin')
     ################# Core Converts ###########################
-#    #Bioentity
-#    convert_obj(engine, meta.tables['bioentity'], 'bioentity_id', backend.all_bioentities, 1000, 0, 'convert.performance.bioentity')
-#    
+    #Bioentity
+    convert_obj(engine, meta.tables['bioentity'], 'bioentity_id', backend.all_bioentities, 1000, 0, 'convert.performance.bioentity')
+    
 #    #Reference
 #    convert_obj(engine, meta.tables['reference'], 'reference_id', backend.all_references, 10000, 0, 'convert.performance.reference')
 #    
@@ -191,11 +191,11 @@ def convert(engine, meta):
     #Get bioents
     bioent_ids = [bioent.bioentity_id for bioent in engine.execute(select([meta.tables['bioentity']])).fetchall()]
     
-    #Bibentry
-    try:
-        convert_obj(engine, meta.tables['reference_bibentry'], 'reference_id', backend.all_bibentries, 1000, 0, 'convert.performance.bibentry')
-    except Exception:
-        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
+#    #Bibentry
+#    try:
+#        convert_obj(engine, meta.tables['reference_bibentry'], 'reference_id', backend.all_bibentries, 1000, 0, 'convert.performance.bibentry')
+#    except Exception:
+#        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
 #    
 #    #Bioentitytabs
 #    try:
@@ -203,32 +203,32 @@ def convert(engine, meta):
 #    except Exception:
 #        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
 #    
-#    #Interaction section
-#    try:
-#        convert_obj_by_bioentity(engine, meta.tables['interaction_overview'], backend.interaction_overview, bioent_ids, 1000, 'convert.performance.interaction_overview')
-#        convert_obj_by_bioentity(engine, meta.tables['interaction_details'], backend.interaction_details, bioent_ids, 1000, 'convert.performance.interaction_details')
-#        convert_obj_by_bioentity(engine, meta.tables['interaction_graph'], backend.interaction_graph, bioent_ids, 1000, 'convert.performance.interaction_graph')
-#        convert_obj_by_bioentity(engine, meta.tables['interaction_resources'], backend.interaction_resources, bioent_ids, 1000, 'convert.performance.interaction_resources')
-#        convert_obj_by_bioentity(engine, meta.tables['interaction_references'], backend.interaction_references, bioent_ids, 1000, 'convert.performance.interaction_references')
-#    except Exception:
-#        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-    
-    #Literature section
+    #Interaction section
     try:
-        convert_obj_by_bioentity(engine, meta.tables['literature_overview'], backend.literature_overview, bioent_ids, 1000, 'convert.performance.literature_overview')
-        convert_obj_by_bioentity(engine, meta.tables['literature_details'], backend.literature_details, bioent_ids, 1000, 'convert.performance.literature_details')
-        convert_obj_by_bioentity(engine, meta.tables['literature_graph'], backend.literature_graph, bioent_ids, 1000, 'convert.performance.literature_graph')
+        #convert_obj_by_bioentity(engine, meta.tables['interaction_overview'], backend.interaction_overview, bioent_ids, 1000, 'convert.performance.interaction_overview')
+        convert_obj_by_bioentity(engine, meta.tables['interaction_details'], backend.interaction_details, bioent_ids, 1000, 'convert.performance.interaction_details')
+        #convert_obj_by_bioentity(engine, meta.tables['interaction_graph'], backend.interaction_graph, bioent_ids, 1000, 'convert.performance.interaction_graph')
+        #convert_obj_by_bioentity(engine, meta.tables['interaction_resources'], backend.interaction_resources, bioent_ids, 1000, 'convert.performance.interaction_resources')
+        #convert_obj_by_bioentity(engine, meta.tables['interaction_references'], backend.interaction_references, bioent_ids, 1000, 'convert.performance.interaction_references')
     except Exception:
         log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
 #    
-#    #Regulation section
+#    #Literature section
 #    try:
-#        convert_obj_by_bioentity(engine, meta.tables['regulation_overview'], backend.regulation_overview, bioent_ids, 1000, 'convert.performance.regulation_overview')
-#        convert_obj_by_bioentity(engine, meta.tables['regulation_details'], backend.regulation_details, bioent_ids, 1000, 'convert.performance.regulation_details')
-#        convert_obj_by_bioentity(engine, meta.tables['regulation_graph'], backend.regulation_graph, bioent_ids, 1000, 'convert.performance.regulation_graph')
-#        convert_obj_by_bioentity(engine, meta.tables['regulation_references'], backend.regulation_references, bioent_ids, 1000, 'convert.performance.regulation_references')
+#        convert_obj_by_bioentity(engine, meta.tables['literature_overview'], backend.literature_overview, bioent_ids, 1000, 'convert.performance.literature_overview')
+#        convert_obj_by_bioentity(engine, meta.tables['literature_details'], backend.literature_details, bioent_ids, 1000, 'convert.performance.literature_details')
+#        convert_obj_by_bioentity(engine, meta.tables['literature_graph'], backend.literature_graph, bioent_ids, 1000, 'convert.performance.literature_graph')
 #    except Exception:
 #        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
+#    
+    #Regulation section
+    try:
+        #convert_obj_by_bioentity(engine, meta.tables['regulation_overview'], backend.regulation_overview, bioent_ids, 1000, 'convert.performance.regulation_overview')
+        convert_obj_by_bioentity(engine, meta.tables['regulation_details'], backend.regulation_details, bioent_ids, 1000, 'convert.performance.regulation_details')
+        #convert_obj_by_bioentity(engine, meta.tables['regulation_graph'], backend.regulation_graph, bioent_ids, 1000, 'convert.performance.regulation_graph')
+        #convert_obj_by_bioentity(engine, meta.tables['regulation_references'], backend.regulation_references, bioent_ids, 1000, 'convert.performance.regulation_references')
+    except Exception:
+        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
 #    
 #    #Phenotype section
 #    try:

@@ -8,8 +8,6 @@ from backend_test import check_reference_extended, check_biocon_extended
 import json
 import pytest
 
-slow = pytest.mark.slow
-
 def test_go_structure(model, identifier='1881'):
     response = json.loads(model.go(identifier))
     assert response is not None
@@ -21,7 +19,6 @@ def test_go_references(model, identifier='YFL039C'):
     for entry in response:
         check_reference_extended(entry)
     
-@slow
 def test_go_enrichment_structure(model, bioent_format_names=['YFL039C', 'YGR002C', 'YJL184W', 'YMR292W']):
     response = json.loads(model.go_enrichment(bioent_format_names))
     assert response is not None

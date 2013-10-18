@@ -104,9 +104,9 @@ class SGDBackend(BackendInterface):
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(make_references(['GO'], locus_id, only_primary=True))
     
-    def go_enrichment(self, bioent_format_names):
+    def go_enrichment(self, bioent_ids):
         from sgdbackend import go
-        return json.dumps(go.make_enrichment(bioent_format_names))
+        return json.dumps(go.make_enrichment(bioent_ids))
        
     #Interaction
     def interaction_overview(self, identifier):
