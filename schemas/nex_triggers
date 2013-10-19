@@ -1,0 +1,146 @@
+/* Misc */
+DROP TRIGGER ALIAS_TRIGGER;
+CREATE TRIGGER ALIAS_TRIGGER
+BEFORE INSERT ON alias
+FOR EACH ROW
+BEGIN
+SELECT alias_seq.nextval INTO :new.alias_id FROM DUAL;
+END;
+
+DROP TRIGGER URL_TRIGGER;
+CREATE TRIGGER URL_TRIGGER
+BEFORE INSERT ON url
+FOR EACH ROW
+BEGIN
+SELECT url_seq.nextval INTO :new.url_id FROM DUAL;
+END;
+
+DROP TRIGGER PARA_TRIGGER;
+CREATE TRIGGER PARA_TRIGGER
+BEFORE INSERT ON paragraph
+FOR EACH ROW
+BEGIN
+SELECT para_seq.nextval INTO :new.paragraph_id FROM DUAL;
+END;
+
+DROP TRIGGER PARAREF_TRIGGER;
+CREATE TRIGGER PARAREF_TRIGGER
+BEFORE INSERT ON paragraph_reference
+FOR EACH ROW
+BEGIN
+SELECT pararef_seq.nextval INTO :new.paragraph_reference_id FROM DUAL;
+END;
+
+DROP TRIGGER DISAMBIG_TRIGGER;
+CREATE TRIGGER DISAMBIG_TRIGGER
+BEFORE INSERT ON aux_disambig
+FOR EACH ROW
+BEGIN
+SELECT disambig_seq.nextval INTO :new.disambig_id FROM DUAL;
+END;
+
+
+/* Reference */
+
+/* Evidence Element */
+
+/* Bioentity */
+
+DROP TRIGGER PDOMAIN_TRIGGER;
+CREATE TRIGGER PDOMAIN_TRIGGER
+BEFORE INSERT ON pdomain
+FOR EACH ROW
+BEGIN
+SELECT pdomain_seq.nextval INTO :new.pdomain_id FROM DUAL;
+END;
+
+DROP TRIGGER BIOENTREF_TRIGGER;
+CREATE TRIGGER BIOENT_REF_TRIGGER
+BEFORE INSERT ON aux_bioentity_reference
+FOR EACH ROW
+BEGIN
+SELECT bioentref_seq.nextval INTO :new.bioentity_reference_id FROM DUAL;
+END;
+
+/* Interaction */
+
+DROP TRIGGER INTERFAM_TRIGGER;
+CREATE TRIGGER INTERFAM_TRIGGER
+BEFORE INSERT ON aux_interaction_family
+FOR EACH ROW
+BEGIN
+SELECT interfam_seq.nextval INTO :new.interaction_family_id FROM DUAL;
+END;
+
+/* Regulation */
+
+DROP TRIGGER REGFAM_TRIGGER;
+CREATE TRIGGER REGFAM_TRIGGER
+BEFORE INSERT ON aux_regulation_family
+FOR EACH ROW
+BEGIN
+SELECT regfam_seq.nextval INTO :new.regulation_family_id FROM DUAL;
+END;
+
+/* Bioconcept */
+
+DROP TRIGGER BIOCONREL_TRIGGER;
+CREATE TRIGGER BIOCONREL_TRIGGER
+BEFORE INSERT ON bioconcept_relation
+FOR EACH ROW
+BEGIN
+SELECT biocrel_seq.nextval INTO :new.bioconcept_relation_id FROM dual;
+end;
+
+DROP TRIGGER BIOCONANC_TRIGGER;
+CREATE TRIGGER BIOCONANC_TRIGGER
+BEFORE INSERT ON aux_bioconcept_ancestor
+FOR EACH ROW
+BEGIN
+SELECT bioconanc_seq.nextval INTO :new.bioconcept_ancestor_id FROM dual;
+end;
+
+
+DROP TRIGGER BIOFACT_TRIGGER;
+CREATE TRIGGER BIOFACT_TRIGGER
+BEFORE INSERT ON aux_biofact
+FOR EACH ROW
+BEGIN
+SELECT biofact_seq.nextval INTO :new.biofact_id FROM dual;
+END;
+
+/* GO */
+
+/* Chemical */
+
+DROP TRIGGER CHEM_TRIGGER;
+CREATE TRIGGER CHEM_TRIGGER
+BEFORE INSERT ON chemical
+FOR EACH ROW
+BEGIN
+SELECT chem_seq.nextval INTO :new.chemical_id FROM DUAL;
+END;
+
+
+DROP TRIGGER EVCHEM_TRIGGER;
+CREATE TRIGGER EVCHEM_TRIGGER
+BEFORE INSERT ON evidence_chemical
+FOR EACH ROW
+BEGIN
+SELECT evchem_seq.nextval INTO :new.evidence_chemical_id FROM DUAL;
+END;
+
+/* Phenotype */
+
+DROP TRIGGER ALLELE_TRIGGER;
+CREATE TRIGGER ALLELE_TRIGGER
+BEFORE INSERT ON allele
+FOR EACH ROW
+BEGIN
+SELECT allele_seq.nextval INTO :new.allele_id FROM DUAL;
+END;
+
+
+
+
+
