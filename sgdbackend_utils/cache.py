@@ -3,12 +3,12 @@ Created on Aug 9, 2013
 
 @author: kpaskov
 '''
-from obj_to_json import bioent_to_json, experiment_to_json, \
-    strain_to_json, biocon_to_json, reference_to_json, locus_to_json
+from obj_to_json import bioent_to_json, experiment_to_json, strain_to_json, \
+    biocon_to_json, reference_to_json, locus_to_json
 from sgdbackend_query.query_biocon import get_all_biocons
 from sgdbackend_query.query_bioent import get_all_bioents
 from sgdbackend_query.query_evidence import get_all_experiments, get_all_strains
-from sgdbackend_query.query_reference import get_all_references
+from sgdbackend_query.query_reference import get_all_references, get_all_sources
 
 
 id_to_bioent = {}
@@ -16,6 +16,7 @@ id_to_biocon = {}
 id_to_experiment = {}
 id_to_strain = {}
 id_to_reference = {}
+id_to_source = {}
 
 def cache_core():
     #print 'Cache bioents'
@@ -50,4 +51,10 @@ def cache_core():
     for reference in get_all_references():
         json_form = reference_to_json(reference)
         id_to_reference[reference.id] = json_form
+        
+    #print 'Cache sources'
+    #Cache sources
+    for source in get_all_sources():
+        json_form = source.display_name
+        id_to_source[source.id] = json_form
 

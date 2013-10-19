@@ -38,10 +38,11 @@ def create_phenotype_display_name(observable, qualifier, mutant_type):
         display_name = qualifier + ' ' + observable + ' in ' + mutant_type + ' mutant'
     return display_name
 
-def create_phenotype_key(observable, qualifier, mutant_type):
-    display_name = create_phenotype_display_name(observable, qualifier, mutant_type)
-    format_name = create_format_name(display_name)
-    return (format_name, 'PHENOTYPE')
+def create_phenotype_format_name(observable, qualifier, mutant_type):
+    observable = '.' if observable is None else observable
+    qualifier = '.' if qualifier is None else qualifier
+    mutant_type = '.' if mutant_type is None else mutant_type
+    return create_format_name(qualifier + '|' + observable + '|' + mutant_type)
 
 def create_phenotype_type(observable):
     if observable in {'chemical compound accumulation', 'resistance to chemicals', 'osmotic stress resistance', 'alkaline pH resistance',
@@ -61,9 +62,9 @@ def create_phenotype(old_phenotype):
     mutant_type = old_phenotype.mutant_type
     
     display_name = create_phenotype_display_name(observable, qualifier, mutant_type)
-    format_name = create_format_name(display_name)
+    format_name = create_phenotype_format_name(observable, qualifier, mutant_type)
     link = biocon_link("Phenotype", format_name)
-    new_phenotype = NewPhenotype(create_phenotype_id(old_phenotype.id), display_name, format_name, link,
+    new_phenotype = NewPhenotype(create_phenotype_id(old_phenotype.id), display_name, format_name, None, link,
                                  observable, qualifier, mutant_type, 
                                  create_phenotype_type(old_phenotype.observable),
                                  old_phenotype.date_created, old_phenotype.created_by)
@@ -87,7 +88,7 @@ def convert_phenotype(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs]) 
                   
         #Values to check
-        values_to_check = ['phenotype_type', 'display_name', 'description']
+        values_to_check = ['phenotype_type', 'display_name', 'description', 'source_id']
                 
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -140,7 +141,7 @@ def create_evidence_id(old_evidence_id):
     return old_evidence_id + 60000000
 
 def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype, 
-                         reference_ids, bioent_ids, key_to_strain, key_to_experiment, key_to_allele):
+                         reference_ids, bioent_ids, key_to_strain, key_to_experiment, key_to_allele, key_to_source):
     from model_new_schema.phenotype import Phenotypeevidence as NewPhenotypeevidence
     evidence_id = create_evidence_id(old_phenotype_feature.id)
     reference_id = key_to_reflink[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)].reference_id
@@ -153,7 +154,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
         print 'Bioentity does not exist. ' + str(bioent_id)
         return None
     
-    phenotype_key = create_phenotype_key(old_phenotype_feature.observable, old_phenotype_feature.qualifier, old_phenotype_feature.mutant_type)
+    phenotype_key = (create_phenotype_format_name(old_phenotype_feature.observable, old_phenotype_feature.qualifier, old_phenotype_feature.mutant_type), 'PHENOTYPE')
     if phenotype_key not in key_to_phenotype:
         print 'Phenotype does not exist. ' + str(phenotype_key)
         return None
@@ -215,9 +216,15 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
                     details.append(a + '- ' + b)
             detail_info = ', '.join(details)
             details = detail_info
+            
+    source_key = old_phenotype_feature.source
+    if source_key in key_to_source:
+        source_id = key_to_source[source_key].id
+    else:
+        print 'Source could not be found. ' + source_key
+        return None
         
-    new_phenoevidence = NewPhenotypeevidence(evidence_id, experiment_id, reference_id, strain_id,
-                                         old_phenotype_feature.source,
+    new_phenoevidence = NewPhenotypeevidence(evidence_id, experiment_id, reference_id, strain_id, source_id,
                                          bioent_id, biocon_id,
                                          mutant_allele_id, allele_info, 
                                          reporter, reporter_desc, strain_details, experiment_details, conditions, details,
@@ -227,7 +234,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
 def convert_evidence(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.phenotype import Phenotypeevidence as NewPhenotypeevidence
     from model_new_schema.reference import Reference as NewReference
-    from model_new_schema.evelement import Experiment as NewExperiment, Strain as NewStrain
+    from model_new_schema.evelement import Experiment as NewExperiment, Strain as NewStrain, Source as NewSource
     from model_new_schema.bioentity import Bioentity as NewBioentity
     from model_new_schema.misc import Allele as NewAllele
     from model_new_schema.phenotype import Phenotype as NewPhenotype
@@ -243,7 +250,7 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
         old_session = old_session_maker()      
                   
         #Values to check
-        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source',
+        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id',
                        'bioentity_id', 'bioconcept_id', 'date_created', 'created_by',
                        'reporter', 'reporter_desc', 'strain_details', 
                        'conditions', 'details', 'experiment_details', 'allele_info', 'allele_id']
@@ -255,6 +262,7 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
         key_to_allele = dict([(x.unique_key(), x) for x in new_session.query(NewAllele).all()])
         bioent_ids = set([x.id for x in new_session.query(NewBioentity).all()])
         reference_ids = set([x.id for x in new_session.query(NewReference).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
         old_reflinks = old_session.query(OldReflink).all()
         key_to_reflink = dict([((x.col_name, x.primary_key), x) for x in old_reflinks])
@@ -279,7 +287,7 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
             for old_obj in old_objs:
                 #Convert old objects into new ones
                 newly_created_objs = create_evidence(old_obj, key_to_reflink, key_to_phenotype, reference_ids, 
-                                                     bioent_ids, key_to_strain, key_to_experiment, key_to_allele)
+                                                     bioent_ids, key_to_strain, key_to_experiment, key_to_allele, key_to_source)
                     
                 if newly_created_objs is not None:
                     #Edit or add new objects

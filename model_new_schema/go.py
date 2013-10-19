@@ -23,7 +23,7 @@ class Go(Bioconcept):
      
     def __init__(self, bioconcept_id, display_name, format_name, dbxref, link, description, 
                  go_go_id, go_aspect, date_created, created_by):
-        Bioconcept.__init__(self, bioconcept_id, 'GO', display_name, format_name, dbxref, link,
+        Bioconcept.__init__(self, bioconcept_id, 'GO', display_name, format_name, dbxref, link, 2,
                             description, date_created, created_by)
         self.go_go_id = go_go_id
         self.go_aspect = go_aspect
@@ -46,11 +46,11 @@ class Goevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "GO",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, evidence_id, reference_id, source,
+    def __init__(self, evidence_id, reference_id, source_id,
                  go_evidence, annotation_type, qualifier, date_last_reviewed,
                 bioentity_id, bioconcept_id, date_created, created_by):
         Evidence.__init__(self, evidence_id, 'GO', None, reference_id, None,
-                          source, None, date_created, created_by)
+                          source_id, None, date_created, created_by)
         self.go_evidence = go_evidence
         self.annotation_type = annotation_type
         self.qualifier = qualifier

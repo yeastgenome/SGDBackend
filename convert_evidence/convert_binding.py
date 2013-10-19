@@ -3,9 +3,8 @@ Created on Sep 23, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, \
-    create_format_name, break_up_file, \
-    prepare_connections
+from convert_utils import create_or_update, set_up_logging, create_format_name, \
+    break_up_file, prepare_connections
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 import logging
@@ -17,7 +16,7 @@ import sys
 def create_evidence_id(old_regevidence_id):
     return old_regevidence_id + 90000000
 
-def create_evidence(row, row_id, key_to_experiment, key_to_bioent, pubmed_to_reference_id):
+def create_evidence(row, row_id, key_to_experiment, key_to_bioent, pubmed_to_reference_id, key_to_source):
     from model_new_schema.sequence import Bindingevidence
     
     bioent_format_name = row[2][1:-1]
@@ -26,7 +25,7 @@ def create_evidence(row, row_id, key_to_experiment, key_to_bioent, pubmed_to_ref
     expert_confidence = row[8][1:-1]
     experiment_format_name = create_format_name(row[9][1:-1])
     pubmed_id = int(row[10][1:-1])
-    source = 'YeTFaSCo'
+    source_id = key_to_source['YeTFaSCo'].id
     
     if expert_confidence != 'High':
         return None
@@ -52,13 +51,13 @@ def create_evidence(row, row_id, key_to_experiment, key_to_bioent, pubmed_to_ref
     
     img_url = "/static/img/yetfasco/" + bioent_format_name + "_" + motif_id + ".0.png"
     
-    new_evidence = Bindingevidence(create_evidence_id(row_id), experiment_id, reference_id, None, source, 
+    new_evidence = Bindingevidence(create_evidence_id(row_id), experiment_id, reference_id, None, source_id, 
                                    bioent_id, total_score, expert_confidence, img_url, motif_id, None, None)
     return [new_evidence]
 
 def convert_evidence(new_session_maker, chunk_size):
     from model_new_schema.sequence import Bindingevidence
-    from model_new_schema.evelement import Experiment
+    from model_new_schema.evelement import Experiment, Source
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.reference import Reference
     
@@ -70,13 +69,14 @@ def convert_evidence(new_session_maker, chunk_size):
         new_session = new_session_maker()
          
         #Values to check
-        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source', 'motif_id',
+        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id', 'motif_id',
                        'bioentity_id', 'total_score', 'expert_confidence', 'img_url', 'date_created', 'created_by']
         
         #Grab cached dictionaries
         key_to_experiment = dict([(x.unique_key(), x) for x in new_session.query(Experiment).all()])
         key_to_bioent = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])
         pubmed_to_reference_id = dict([(x.pubmed_id, x.id) for x in new_session.query(Reference).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         
         #Grab old objects
         data = break_up_file('/Users/kpaskov/final/yetfasco_data.txt', delimeter=';')
@@ -97,7 +97,7 @@ def convert_evidence(new_session_maker, chunk_size):
         
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_evidence(old_obj, j, key_to_experiment, key_to_bioent, pubmed_to_reference_id)
+                newly_created_objs = create_evidence(old_obj, j, key_to_experiment, key_to_bioent, pubmed_to_reference_id, key_to_source)
          
                 if newly_created_objs is not None:
                     #Edit or add new objects
@@ -148,4 +148,4 @@ def convert(new_session_maker):
     
 if __name__ == "__main__":
     new_session_maker = prepare_connections(need_old=False)
-    convert(new_session_maker, False)
+    convert(new_session_maker)

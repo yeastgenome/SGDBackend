@@ -4,7 +4,6 @@ Created on Nov 28, 2012
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin
-from model_new_schema.misc import Alias
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
@@ -20,6 +19,7 @@ class Bioconcept(Base, EqualityByIDMixin):
     format_name = Column('format_name', String)
     dbxref = Column('dbxref', String)
     link = Column('obj_link', String)
+    source_id = Column('source_id', Integer)
     description = Column('description', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
@@ -30,11 +30,12 @@ class Bioconcept(Base, EqualityByIDMixin):
     #Relationships
     aliases = association_proxy('bioconceptaliases', 'name')
     
-    def __init__(self, bioconcept_id, class_type, display_name, format_name, dbxref, link, description, date_created, created_by):
+    def __init__(self, bioconcept_id, class_type, display_name, format_name, dbxref, link, source_id, description, date_created, created_by):
         self.id = bioconcept_id
         self.class_type = class_type
         self.display_name = display_name
         self.format_name = format_name
+        self.source_id = source_id
         self.dbxref = dbxref
         self.link = link
         self.description = description
@@ -69,27 +70,6 @@ class BioconceptRelation(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return (self.parent_bioconcept_id, self.child_bioconcept_id, self.class_type, self.relationship_type)
-    
-class Bioconceptalias(Alias):
-    __tablename__ = 'bioconceptalias'
-    
-    id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
-    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
-    class_type = Column('class', String)
-    
-    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
-                       'inherit_condition': id == Alias.id}
-        
-    #Relationships
-    bioconcept = relationship(Bioconcept, uselist=False, backref=backref('bioconceptaliases', passive_deletes=True))
-        
-    def __init__(self, display_name, bioconcept_id, class_type, date_created, created_by):
-        Alias.__init__(self, 'BIOCONCEPT', display_name, None, None, date_created, created_by)
-        self.bioconcept_id = bioconcept_id
-        self.class_type = class_type
-        
-    def unique_key(self):
-        return (self.display_name, self.bioconcept_id)
     
     
     

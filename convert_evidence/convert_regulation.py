@@ -40,7 +40,7 @@ pubmed_to_strain = {11504737: 27,
                     22616008: 1,
                     20195295: 1}
 
-def create_evidence(row, row_id, key_to_experiment, key_to_bioent, pubmed_to_reference_id):
+def create_evidence(row, row_id, key_to_experiment, key_to_bioent, pubmed_to_reference_id, key_to_source):
     from model_new_schema.regulation import Regulationevidence
     
     #bioent1_gene_name = row[0]
@@ -94,15 +94,21 @@ def create_evidence(row, row_id, key_to_experiment, key_to_bioent, pubmed_to_ref
     strain_id = None
     if pubmed_id in pubmed_to_strain:
         strain_id = pubmed_to_strain[pubmed_id]
+        
+    if source in key_to_source:
+        source_id = key_to_source[source].id
+    else:
+        print 'Source could not be found. ' + source
+        return None
     
-    new_evidence = Regulationevidence(create_evidence_id(row_id), experiment_id, reference_id, strain_id, source, 
+    new_evidence = Regulationevidence(create_evidence_id(row_id), experiment_id, reference_id, strain_id, source_id, 
                                       bioent1_id, bioent2_id, conditions, 
                                       None, None)
     return [new_evidence]
 
 def convert_evidence(new_session_maker, chunk_size):
     from model_new_schema.regulation import Regulationevidence
-    from model_new_schema.evelement import Experiment
+    from model_new_schema.evelement import Experiment, Source
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.reference import Reference
     
@@ -114,13 +120,14 @@ def convert_evidence(new_session_maker, chunk_size):
         new_session = new_session_maker()
          
         #Values to check
-        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source', 'conditions', 
+        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id', 'conditions', 
                        'bioentity1_id', 'bioentity2_id', 'date_created', 'created_by']
         
         #Grab cached dictionaries
         key_to_experiment = dict([(x.unique_key(), x) for x in new_session.query(Experiment).all()])
         key_to_bioent = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])
         pubmed_to_reference_id = dict([(x.pubmed_id, x.id) for x in new_session.query(Reference).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         
         #Grab old objects
         data = break_up_file('/Users/kpaskov/final/yeastmine_regulation.tsv')
@@ -141,7 +148,7 @@ def convert_evidence(new_session_maker, chunk_size):
         
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_evidence(old_obj, j, key_to_experiment, key_to_bioent, pubmed_to_reference_id)
+                newly_created_objs = create_evidence(old_obj, j, key_to_experiment, key_to_bioent, pubmed_to_reference_id, key_to_source)
          
                 if newly_created_objs is not None:
                     #Edit or add new objects

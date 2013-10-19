@@ -55,7 +55,7 @@ def convert_litevidence(old_session_maker, new_session_maker, chunk_size):
                   
         #Values to check
         values_to_check = ['experiment_id', 'reference_id', 'class_type', 'strain_id',
-                       'source', 'topic', 'bioentity_id', 'date_created', 'created_by']
+                       'source_id', 'topic', 'bioentity_id', 'date_created', 'created_by']
         
         
         #Grab cached dictionaries
@@ -139,4 +139,4 @@ def convert(old_session_maker, new_session_maker):
 
 if __name__ == "__main__":
     old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker, False)
+    convert(old_session_maker, new_session_maker)

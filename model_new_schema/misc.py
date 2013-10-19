@@ -4,7 +4,7 @@ Created on Mar 4, 2013
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin
-from sqlalchemy.schema import Column
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 
 class Allele(Base):
@@ -31,21 +31,26 @@ class Url(Base):
     url = Column('url', String)
     display_name = Column('display_name', String)
     category = Column('category', String)
-    source = Column('source', String)
+    source_id = Column('source_id', Integer, ForeignKey('nex.source.source_id'))
+    obj_id = Column('obj_id', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"URL"}
     
-    def __init__(self, class_type, display_name, source, url, category, date_created, created_by):
+    def __init__(self, class_type, display_name, obj_id, source_id, url, category, date_created, created_by):
         self.class_type = class_type
         self.display_name = display_name
-        self.source = source
+        self.source_id = source_id
         self.url = url
         self.category = category
+        self.obj_id = obj_id
         self.date_created = date_created
         self.created_by = created_by
+        
+    def unique_key(self):
+        return (self.url, self.obj_id)
     
 class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'
@@ -53,21 +58,26 @@ class Alias(Base, EqualityByIDMixin):
     id = Column('alias_id', Integer, primary_key=True)
     class_type = Column('class', String)
     display_name = Column('display_name', String)
-    source = Column('source', String)
+    source_id = Column('source_id', Integer, ForeignKey('nex.source.source_id'))
     category = Column('category', String)
+    obj_id = Column('obj_id', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"ALIAS"}
         
-    def __init__(self, class_type, display_name, source, category, date_created, created_by):
+    def __init__(self, class_type, display_name, obj_id, source_id, category, date_created, created_by):
         self.class_type = class_type
         self.display_name = display_name
-        self.source = source
+        self.source_id = source_id
         self.category = category
+        self.obj_id = obj_id
         self.date_created = date_created
         self.created_by = created_by
+        
+    def unique_key(self):
+        return (self.display_name, self.obj_id)
        
 
         

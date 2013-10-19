@@ -26,11 +26,11 @@ class Geninteractionevidence(Evidence):
     #Relationships
     phenotype = relationship(Phenotype)
 
-    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source, 
+    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source_id, 
                  bioentity1_id, bioentity2_id, phenotype_id, annotation_type, bait_hit, note, 
                  date_created, created_by):
         Evidence.__init__(self, evidence_id, 'GENINTERACTION', 
-                          experiment_id, reference_id, strain_id, source, note,
+                          experiment_id, reference_id, strain_id, source_id, note,
                           date_created, created_by)
         self.bioentity1_id = bioentity1_id
         self.bioentity2_id = bioentity2_id
@@ -53,11 +53,11 @@ class Physinteractionevidence(Evidence):
                        'inherit_condition': id==Evidence.id}
     
         
-    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source,
+    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source_id,
                  bioentity1_id, bioentity2_id, annotation_type, modification, bait_hit, note, 
                  date_created, created_by):
         Evidence.__init__(self, evidence_id, 'PHYSINTERACTION', 
-                          experiment_id, reference_id, strain_id, source, note,
+                          experiment_id, reference_id, strain_id, source_id, note,
                           date_created, created_by)
         self.bioentity1_id = bioentity1_id
         self.bioentity2_id = bioentity2_id

@@ -25,10 +25,10 @@ class Phenotype(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Bioconcept.id}
 
-    def __init__(self, bioconcept_id, display_name, format_name, link,
+    def __init__(self, bioconcept_id, display_name, format_name, dbxref, link,
                  observable, qualifier, mutant_type, phenotype_type, 
                  date_created, created_by):
-        Bioconcept.__init__(self, bioconcept_id, 'PHENOTYPE', display_name, format_name, None, link, None, 
+        Bioconcept.__init__(self, bioconcept_id, 'PHENOTYPE', display_name, format_name, dbxref, link, 1, None, 
                             date_created, created_by)
         self.observable = observable
         self.qualifier = qualifier
@@ -62,11 +62,11 @@ class Phenotypeevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Evidence.id}
     
-    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source,
+    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source_id,
                  bioentity_id, bioconcept_id, allele_id, 
                  allele_info, reporter, reporter_desc, strain_details, experiment_details, conditions, details,
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, 'PHENOTYPE', experiment_id, reference_id, strain_id, source, None, 
+        Evidence.__init__(self, evidence_id, 'PHENOTYPE', experiment_id, reference_id, strain_id, source_id, None, 
                           date_created, created_by)
         self.bioentity_id = bioentity_id
         self.bioconcept_id = bioconcept_id

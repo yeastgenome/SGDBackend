@@ -19,11 +19,11 @@ class Regulationevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': 'REGULATION',
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source, 
+    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source_id, 
                  bioentity1_id, bioentity2_id, conditions,
                  date_created, created_by):
         Evidence.__init__(self, evidence_id, 'REGULATION', 
-                          experiment_id, reference_id, strain_id, source, None,
+                          experiment_id, reference_id, strain_id, source_id, None,
                           date_created, created_by)
         self.bioentity1_id = bioentity1_id
         self.bioentity2_id = bioentity2_id

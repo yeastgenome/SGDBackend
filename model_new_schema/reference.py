@@ -74,7 +74,7 @@ class Reference(Base, EqualityByIDMixin):
     format_name = Column('format_name', String)
     dbxref = Column('dbxref', String)
     link = Column('obj_link', String)
-    source = Column('source', String)
+    source_id = Column('source_id', String)
     
     status = Column('status', String)
     pubmed_id = Column('pubmed_id', Integer)
@@ -103,7 +103,7 @@ class Reference(Base, EqualityByIDMixin):
     reftype_names = association_proxy('reftypes', 'name')
     related_references = association_proxy('refrels', 'child_ref')
     
-    def __init__(self, reference_id, display_name, format_name, dbxref, link, source, 
+    def __init__(self, reference_id, display_name, format_name, dbxref, link, source_id, 
                  status, pubmed_id, pubmed_central_id, pdf_status, citation, year, date_published, date_revised, issue, page, volume, 
                  title, journal_id, book_id, doi, date_created, created_by):
         self.id = reference_id
@@ -111,7 +111,7 @@ class Reference(Base, EqualityByIDMixin):
         self.format_name = format_name
         self.dbxref = dbxref
         self.link = link
-        self.source=source
+        self.source_id=source_id
         self.status = status
         self.pdf_status = pdf_status
         self.citation = citation
@@ -225,17 +225,17 @@ class Reftype(Base, EqualityByIDMixin):
     __tablename__ = 'reftype'
 
     id = Column('reftype_id', Integer, primary_key = True)
-    source = Column('source', String)
+    source_id = Column('source_id', String)
     name = Column('reftype', String)
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     
     #Relationships
     reference = relationship(Reference, backref=backref('reftypes', passive_deletes=True), uselist=False)
     
-    def __init__(self, reftype_id, name, source, reference_id):
+    def __init__(self, reftype_id, name, source_id, reference_id):
         self.id = reftype_id
         self.name = name;
-        self.source = source
+        self.source_id = source_id
         self.reference_id = reference_id
         
     def unique_key(self):
@@ -265,43 +265,26 @@ class ReferenceRelation(Base, EqualityByIDMixin):
         return (self.parent_reference_id, self.child_reference_id)
     
 class Referenceurl(Url):
-    __tablename__ = 'referenceurl'
-    id = Column('url_id', Integer, ForeignKey(Url.id), primary_key=True)
-    url_type = Column('class', String)
-    reference_id = Column('reference_id', ForeignKey(Reference.id))
-    
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE',
                        'inherit_condition': id == Url.id}
     
-    #Relationships
-    reference = relationship(Reference, uselist=False, backref=backref('urls', passive_deletes=True))
-    
-    def __init__(self, display_name, source, url, reference_id, url_type, date_created, created_by):
-        Url.__init__(self, 'REFERENCE', display_name, source, url, None, date_created, created_by)
-        self.reference_id = reference_id
-        self.url_type = url_type
+    def __init__(self, display_name, obj_id, source, url, category, date_created, created_by):
+        Url.__init__(self, 'REFERENCE', display_name, obj_id, source, url, category, date_created, created_by)
         
-    def unique_key(self):
-        return (self.url, self.reference_id)
+    @hybrid_property   
+    def reference_id(self):
+        return self.obj_id
     
 class Referencealias(Alias):
-    __tablename__ = 'referencealias'
-    
-    id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
-    
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE',
                        'inherit_condition': id == Alias.id}
+    
+    def __init__(self, display_name, obj_id, source, category, date_created, created_by):
+        Alias.__init__(self, 'REFERENCE', display_name, obj_id, source, category, date_created, created_by)
         
-    #Relationships
-    reference = relationship(Reference, uselist=False, backref=backref('aliases', passive_deletes=True))
-        
-    def __init__(self, display_name, source, category, reference_id, date_created, created_by):
-        Alias.__init__(self, 'REFERENCE', display_name, source, category, date_created, created_by)
-        self.reference_id = reference_id
-        
-    def unique_key(self):
-        return (self.display_name, self.reference_id)
+    @hybrid_property   
+    def reference_id(self):
+        return self.obj_id
  
 
 

@@ -17,10 +17,11 @@ import sys
 --------------------- Convert Domain ---------------------
 """
 
-def create_domain(row):
+def create_domain(row, key_to_source):
     from model_new_schema.protein import Domain
     
     source = row[13].strip()
+
     format_name = create_format_name(row[3].strip())
     display_name = row[3].strip()
     description = row[4].strip()
@@ -42,8 +43,10 @@ def create_domain(row):
         source = 'SUPERFAMILY'
         link = "http://supfam.org/SUPERFAMILY/cgi-bin/scop.cgi?ipid=" + display_name
     elif source == 'Seg':
+        source = '-'
         link = None
     elif source == 'Coil':
+        source = '-'
         link = None
     elif source == 'HMMPanther':
         source = 'PANTHER'
@@ -70,15 +73,22 @@ def create_domain(row):
         print 'No link for source = ' + source + ' ' + str(display_name)
         return None
     
+    source_key = create_format_name(source)
+    if source_key in key_to_source:
+        source_id = key_to_source[source_key].id
+    else:
+        print 'Source could not be found.' + source_key
+        return None
+    
     if description == 'no description':
         description = None
     if interpro_description == 'NULL':
         interpro_description = None
     
-    domain = Domain(format_name, display_name, description, interpro_id, interpro_description, link, source)
+    domain = Domain(format_name, display_name, description, interpro_id, interpro_description, link, source_id)
     return [domain]
 
-def create_domain_from_tf_file(row):
+def create_domain_from_tf_file(row, key_to_source):
     from model_new_schema.protein import Domain
     
     source = 'JASPAR'
@@ -90,11 +100,19 @@ def create_domain_from_tf_file(row):
     
     link = 'http://jaspar.binf.ku.dk/cgi-bin/jaspar_db.pl?rm=present&collection=CORE&ID=' + display_name
     
-    domain = Domain(format_name, display_name, description, interpro_id, interpro_description, link, source)
+    source_key = create_format_name(source)
+    if source_key in key_to_source:
+        source_id = key_to_source[source_key].id
+    else:
+        print 'Source could not be found.' + source_key
+        return None
+    
+    domain = Domain(format_name, display_name, description, interpro_id, interpro_description, link, source_id)
     return [domain]
 
 def convert_domain(new_session_maker, chunk_size):
-    from model_new_schema.protein import Domain as Domain
+    from model_new_schema.protein import Domain
+    from model_new_schema.evelement import Source
     
     log = logging.getLogger('convert.protein.domain')
     log.info('begin')
@@ -108,12 +126,15 @@ def convert_domain(new_session_maker, chunk_size):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['display_name', 'description', 'interpro_id', 'interpro_description', 'link']
+        values_to_check = ['display_name', 'description', 'interpro_id', 'interpro_description', 'link', 'source_id']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
         #Grab old objects
         data = break_up_file('/Users/kpaskov/final/yeastmine_protein_domains.tsv')
+        
+        #Cache
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         
         used_unique_keys = set()   
         
@@ -124,7 +145,7 @@ def convert_domain(new_session_maker, chunk_size):
             old_objs = data[min_id:min_id+chunk_size]
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_domain(old_obj)
+                newly_created_objs = create_domain(old_obj, key_to_source)
                     
                 if newly_created_objs is not None:
                     #Edit or add new objects
@@ -149,7 +170,7 @@ def convert_domain(new_session_maker, chunk_size):
         old_objs = break_up_file('/Users/kpaskov/final/TF_family_class_accession04302013.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_domain_from_tf_file(old_obj)
+            newly_created_objs = create_domain_from_tf_file(old_obj, key_to_source)
                 
             if newly_created_objs is not None:
                 #Edit or add new objects
@@ -191,7 +212,7 @@ def convert_domain(new_session_maker, chunk_size):
 def create_domain_evidence_id(row_id):
     return row_id + 80000000
 
-def create_domain_evidence(row, row_id, key_to_bioentity, key_to_domain):
+def create_domain_evidence(row, row_id, key_to_bioentity, key_to_domain, key_to_source):
     from model_new_schema.protein import Domainevidence
     
     bioent_format_name = row[1].strip()
@@ -225,6 +246,8 @@ def create_domain_evidence(row, row_id, key_to_bioentity, key_to_domain):
         source = 'TIGRFAMs'
     if source == 'HMMPIR':
         source = 'PIR superfamily'
+    if source == 'Seg' or source == 'Coil':
+        source = '-'
     
     if domain_format_name not in key_to_domain:
         print 'Domain not found. ' + domain_format_name
@@ -234,11 +257,17 @@ def create_domain_evidence(row, row_id, key_to_bioentity, key_to_domain):
     #S288C
     strain_id = 1
     
-    domain_evidence = Domainevidence(create_domain_evidence_id(row_id), None, strain_id, source, 
+    if source in key_to_source:
+        source_id = key_to_source[source].id
+    else:
+        print 'Source not found. ' + source
+        return None
+    
+    domain_evidence = Domainevidence(create_domain_evidence_id(row_id), None, strain_id, source_id, 
                                      int(start), int(end), evalue, status, date_of_run, protein_id, domain_id, None, None)
     return [domain_evidence]
 
-def create_domain_evidence_from_tf_file(row, row_id, key_to_bioentity, key_to_domain, pubmed_id_to_reference_id):
+def create_domain_evidence_from_tf_file(row, row_id, key_to_bioentity, key_to_domain, pubmed_id_to_reference_id, key_to_source):
     from model_new_schema.protein import Domainevidence
     
     bioent_format_name = row[2]
@@ -270,7 +299,13 @@ def create_domain_evidence_from_tf_file(row, row_id, key_to_bioentity, key_to_do
     #S288C
     strain_id = 1
     
-    domain_evidence = Domainevidence(create_domain_evidence_id(row_id), reference_id, strain_id, source, 
+    if source in key_to_source:
+        source_id = key_to_source[source].id
+    else:
+        print 'Source not found. ' + source
+        return None
+    
+    domain_evidence = Domainevidence(create_domain_evidence_id(row_id), reference_id, strain_id, source_id, 
                                      start, end, evalue, status, date_of_run, protein_id, domain_id, None, None)
     return [domain_evidence]
 
@@ -278,6 +313,7 @@ def convert_domain_evidence(new_session_maker, chunk_size):
     from model_new_schema.protein import Domain, Domainevidence
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.reference import Reference
+    from model_new_schema.evelement import Source
     
     log = logging.getLogger('convert.protein.domain_evidence')
     log.info('begin')
@@ -289,9 +325,10 @@ def convert_domain_evidence(new_session_maker, chunk_size):
         current_objs = new_session.query(Domainevidence).all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
                 
         #Values to check
-        values_to_check = ['reference_id', 'strain_id', 'source', 'date_created', 'created_by',
+        values_to_check = ['reference_id', 'strain_id', 'source_id', 'date_created', 'created_by',
                            'start', 'end', 'evalue', 'status', 'date_of_run', 'protein_id', 'domain_id']
         
         #Grab cached dictionaries
@@ -314,7 +351,7 @@ def convert_domain_evidence(new_session_maker, chunk_size):
             old_objs = data[min_id:min_id+chunk_size]
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_domain_evidence(old_obj, j, key_to_bioentity, key_to_domain)
+                newly_created_objs = create_domain_evidence(old_obj, j, key_to_bioentity, key_to_domain, key_to_source)
                     
                 if newly_created_objs is not None:
                     #Edit or add new objects
@@ -341,7 +378,7 @@ def convert_domain_evidence(new_session_maker, chunk_size):
         old_objs = break_up_file('/Users/kpaskov/final/TF_family_class_accession04302013.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_domain_evidence_from_tf_file(old_obj, j, key_to_bioentity, key_to_domain, pubmed_id_to_reference_id)
+            newly_created_objs = create_domain_evidence_from_tf_file(old_obj, j, key_to_bioentity, key_to_domain, pubmed_id_to_reference_id, key_to_source)
                 
             if newly_created_objs is not None:
                 #Edit or add new objects

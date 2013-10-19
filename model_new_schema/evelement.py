@@ -6,6 +6,7 @@ Created on Jun 10, 2013
 
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.misc import Alias
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
@@ -60,23 +61,15 @@ class ExperimentRelation(Base, EqualityByIDMixin):
         return (self.parent_experiment_id, self.child_experiment_id)
         
 class Experimentalias(Alias):
-    __tablename__ = 'experimentalias'
-    
-    id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
-    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
-    
     __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT',
                        'inherit_condition': id == Alias.id}
+    
+    def __init__(self, display_name, obj_id, source, category, date_created, created_by):
+        Alias.__init__(self, 'EXPERIMENT', display_name, obj_id, source, category, date_created, created_by)
         
-    #Relationships
-    reference = relationship(Experiment, uselist=False, backref=backref('aliases', passive_deletes=True))
-        
-    def __init__(self, display_name, source, category, experiment_id, date_created, created_by):
-        Alias.__init__(self, 'EXPERIMENT', display_name, source, category, date_created, created_by)
-        self.experiment_id = experiment_id
-        
-    def unique_key(self):
-        return (self.display_name, self.experiment_id)
+    @hybrid_property   
+    def experiment_id(self):
+        return self.obj_id
 
 class Strain(Base, EqualityByIDMixin):
     __tablename__ = 'strain'
@@ -94,6 +87,26 @@ class Strain(Base, EqualityByIDMixin):
         self.display_name = display_name;
         self.format_name = format_name
         self.link = link
+        self.date_created = date_created
+        self.created_by = created_by
+        
+    def unique_key(self):
+        return self.format_name
+    
+class Source(Base, EqualityByIDMixin):
+    __tablename__ = 'source'
+
+    id = Column('source_id', Integer, primary_key = True)
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
+    description = Column('description', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String) 
+    
+    def __init__(self, display_name, format_name, description, date_created, created_by):
+        self.display_name = display_name;
+        self.format_name = format_name
+        self.description = description
         self.date_created = date_created
         self.created_by = created_by
         

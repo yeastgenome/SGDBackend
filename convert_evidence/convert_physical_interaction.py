@@ -29,7 +29,7 @@ def create_physical_evidence_id(old_evidence_id):
     return old_evidence_id - 397664 + 20000000
 
 def create_physical_interevidence(old_interaction, key_to_experiment,
-                         reference_ids, bioent_ids):
+                         reference_ids, bioent_ids, key_to_source):
     from model_new_schema.interaction import Physinteractionevidence as NewPhysinteractionevidence
     if old_interaction.interaction_type == 'physical interactions':    
         reference_ids = old_interaction.reference_ids
@@ -66,8 +66,15 @@ def create_physical_interevidence(old_interaction, key_to_experiment,
             
         feat_interacts = sorted(old_interaction.feature_interactions, key=lambda x: x.feature_id)
         bait_hit = '-'.join([x.action for x in feat_interacts])
+        
+        source_key = old_interaction.source
+        if source_key in key_to_source:
+            source_id = key_to_source[source_key].id
+        else:
+            print 'Source not found. ' + source_key
+            return None
             
-        new_physical_interevidence = NewPhysinteractionevidence(create_physical_evidence_id(old_interaction.id), experiment_id, reference_id, None, old_interaction.source,
+        new_physical_interevidence = NewPhysinteractionevidence(create_physical_evidence_id(old_interaction.id), experiment_id, reference_id, None, source_id,
                                                              bioent1_id, bioent2_id,
                                                              old_interaction.annotation_type,  old_interaction.modification, bait_hit, note,
                                                              old_interaction.date_created, old_interaction.created_by)
@@ -90,7 +97,7 @@ def convert_physical_interevidence(old_session_maker, new_session_maker, chunk_s
         old_session = old_session_maker()      
                   
         #Values to check
-        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source',
+        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id',
                        'bioentity1_id', 'bioentity2_id',
                        'modification', 'note', 'annotation_type', 'date_created', 'created_by']
         

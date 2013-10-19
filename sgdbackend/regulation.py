@@ -8,7 +8,7 @@ from sgdbackend_query.query_evidence import get_regulation_evidence
 from sgdbackend_query.query_interaction import get_regulation_family
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_reference, \
-    id_to_experiment, id_to_strain
+    id_to_experiment, id_to_strain, id_to_source
 from sgdbackend_utils.obj_to_json import paragraph_to_json
  
 '''
@@ -87,14 +87,16 @@ def make_evidence_row(regevidence, bioent_id=None):
     reference_id = regevidence.reference_id 
     experiment_id = regevidence.experiment_id
     strain_id = regevidence.strain_id
-        
+ 
+    source = id_to_source[regevidence.source_id]
+       
     return {'bioent1': minimize_bioent_json(id_to_bioent[bioent1_id]),
                 'bioent2': minimize_bioent_json(id_to_bioent[bioent2_id]),
                 'reference': None if reference_id is None else minimize_reference_json(id_to_reference[reference_id]),
                 'experiment': None if experiment_id is None else minimize_experiment_json(id_to_experiment[experiment_id]),
                 'strain': None if strain_id is None else minimize_strain_json(id_to_strain[strain_id]),
                 'source': regevidence.source,
-                'conditions': regevidence.conditions
+                'conditions': source
                 }
 
 '''

@@ -3,7 +3,8 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, prepare_connections
+from convert_utils import create_or_update, set_up_logging, prepare_connections, \
+    create_format_name
 from convert_utils.link_maker import reference_link
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
@@ -217,7 +218,7 @@ def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
         min_id = min_id + chunk_size
     return pubmed_id_to_central_id
 
-def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id):
+def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id, key_to_source):
     from model_new_schema.reference import Reference as NewReference
     
     citation = create_citation(old_reference.citation)
@@ -262,8 +263,15 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
     date_revised = None
     if old_reference.date_revised is not None:
         date_revised = int(old_reference.date_revised)
+        
+    source_key = create_format_name(old_reference.source)
+    if source_key in key_to_source:
+        source_id = key_to_source[source_key].id
+    else:
+        print 'Source not found.' + source_key
+        return None
     
-    new_ref = NewReference(old_reference.id, display_name, format_name, link, old_reference.source, 
+    new_ref = NewReference(old_reference.id, display_name, format_name, old_reference.dbxref_id, link, source_id, 
                            old_reference.status, pubmed_id, pubmed_central_id,
                            old_reference.pdf_status, citation, year, 
                            old_reference.date_published, date_revised, 
@@ -274,6 +282,7 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
 
 def convert_reference(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Reference as NewReference, Book as NewBook, Journal as NewJournal
+    from model_new_schema.evelement import Source as NewSource
     from model_old_schema.reference import Reference as OldReference
     
     log = logging.getLogger('convert.reference.reference')
@@ -285,7 +294,7 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
         new_session = new_session_maker()
                 
         #Values to check
-        values_to_check = ['display_name', 'format_name', 'link', 'source', 
+        values_to_check = ['display_name', 'format_name', 'link', 'source_id', 'dbxref',
                        'status', 'pubmed_id', 'pubmed_central_id', 'pdf_status', 'year', 'date_published', 
                        'date_revised', 'issue', 'page', 'volume', 'title',
                        'journal_id', 'book_id', 'doi',
@@ -294,6 +303,7 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
         #Grab cached dictionaries
         key_to_journal = dict([(x.unique_key(), x) for x in new_session.query(NewJournal).all()])
         key_to_book = dict([(x.unique_key(), x) for x in new_session.query(NewBook).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
         #Grab old objects
         old_session = old_session_maker()
@@ -324,7 +334,7 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
             
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_reference(old_obj, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id)
+                newly_created_objs = create_reference(old_obj, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id, key_to_source)
                 
                 if newly_created_objs is not None:
                     #Edit or add new objects

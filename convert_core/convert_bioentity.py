@@ -3,7 +3,8 @@ Created on May 31, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, prepare_connections
+from convert_utils import create_or_update, set_up_logging, prepare_connections, \
+    create_format_name
 from convert_utils.link_maker import bioent_link
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
@@ -24,7 +25,7 @@ def create_locus_type(old_feature_type):
     bioentity_type = bioentity_type.replace (" ", "_")
     return bioentity_type
 
-def create_locus(old_bioentity):
+def create_locus(old_bioentity, key_to_source):
     from model_new_schema.bioentity import Locus
     
     locus_type = create_locus_type(old_bioentity.type)
@@ -51,14 +52,22 @@ def create_locus(old_bioentity):
         headline = ann.headline
         description = ann.description
         genetic_position = ann.genetic_position
+        
+    source_key = create_format_name(old_bioentity.source)
+    if source_key in key_to_source:
+        source_id = key_to_source[source_key].id
+    else:
+        print 'Source could not be found. ' + source_key
+        return None
     
-    bioentity = Locus(old_bioentity.id, display_name, format_name,  old_bioentity.dbxref_id, link, old_bioentity.source, old_bioentity.status, 
+    bioentity = Locus(old_bioentity.id, display_name, format_name,  old_bioentity.dbxref_id, link, source_id, old_bioentity.status, 
                          locus_type, attribute, short_description, headline, description, genetic_position, 
                          old_bioentity.date_created, old_bioentity.created_by)
     return [bioentity]
 
 def convert_locus(old_session_maker, new_session_maker):
     from model_new_schema.bioentity import Locus as NewLocus
+    from model_new_schema.evelement import Source as NewSource
     from model_old_schema.feature import Feature as OldFeature
     
     log = logging.getLogger('convert.bioentity.locus')
@@ -71,9 +80,11 @@ def convert_locus(old_session_maker, new_session_maker):
         current_objs = new_session.query(NewLocus).all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+        
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
                 
         #Values to check
-        values_to_check = ['display_name', 'link', 'source', 'status', 'date_created', 'created_by',
+        values_to_check = ['display_name', 'link', 'source_id', 'status', 'date_created', 'created_by',
                        'attribute', 'name_description', 'headline', 'description',  'dbxref',
                        'genetic_position', 'locus_type']
         
@@ -85,7 +96,7 @@ def convert_locus(old_session_maker, new_session_maker):
         
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_locus(old_obj)
+            newly_created_objs = create_locus(old_obj, key_to_source)
                 
             if newly_created_objs is not None:
                 #Edit or add new objects
@@ -154,7 +165,7 @@ def convert_protein(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['display_name', 'link', 'source', 'status', 'date_created', 'created_by', 'link',
+        values_to_check = ['display_name', 'link', 'source_id', 'status', 'date_created', 'created_by', 'link',
                        'locus_id', 'length', 'n_term_seq', 'c_term_seq']
         
         untouched_obj_ids = set(id_to_current_obj.keys())

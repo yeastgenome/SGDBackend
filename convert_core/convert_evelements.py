@@ -180,7 +180,7 @@ def create_experiment_alias(old_cv_term, key_to_experiment):
         return None
     experiment_id = key_to_experiment[experiment_key].id
     
-    new_altids = [NewExperimentalias(dbxref.dbxref_id, 'SGD', 'APOID', experiment_id, 
+    new_altids = [NewExperimentalias(dbxref.dbxref_id, experiment_id, 1, 'APOID',
                                    dbxref.date_created, dbxref.created_by) 
                   for dbxref in old_cv_term.dbxrefs]
     return new_altids
@@ -201,7 +201,7 @@ def convert_experiment_alias(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['source', 'category', 'date_created', 'created_by']
+        values_to_check = ['source_id', 'category', 'date_created', 'created_by']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -418,6 +418,114 @@ def convert_strain(old_session_maker, new_session_maker):
         old_session.close()
         
     log.info('complete')
+    
+"""
+--------------------- Convert Source ---------------------
+"""
+sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAMs', 'Pfam', 'PRINTS', 
+               'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI', 'PubMedCentral', 'PubMed', '-']
+
+def create_extra_source():
+    from model_new_schema.evelement import Source as NewSource
+    new_sources = []
+    for display_name in sources:
+        format_name = create_format_name(display_name)
+        
+        new_sources.append(NewSource(display_name, format_name, None, None, None))
+    return new_sources
+
+ok_codes = set([('ALIAS', 'ALIAS_TYPE'), ('DBXREF', 'SOURCE'), ('EXPERIMENT', 'SOURCE'), ('FEATURE', 'SOURCE'),
+                ('GO_ANNOTATION', 'SOURCE'), ('HOMOLOG', 'SOURCE'), ('INTERACTION', 'SOURCE'), ('PHENOTYPE', 'SOURCE'),
+                ('REFTYPE', 'SOURCE'), ('REFERENCE', 'SOURCE'), ('URL', 'SOURCE')])
+
+def create_source_from_code(code):
+    from model_new_schema.evelement import Source as NewSource
+    
+    if (code.tab_name, code.col_name) in ok_codes:
+        display_name = code.code_value
+        format_name = create_format_name(display_name)
+        
+        new_source = NewSource(display_name, format_name, code.description, code.date_created, code.created_by)
+        return [new_source]
+    return None
+
+def convert_source(old_session_maker, new_session_maker):
+    from model_new_schema.evelement import Source as NewSource
+    from model_old_schema.cv import Code as OldCode
+    
+    log = logging.getLogger('convert.evelements.source')
+    log.info('begin')
+    output_creator = OutputCreator(log)
+    
+    try:
+        #Grab all current objects
+        new_session = new_session_maker()
+        current_objs = new_session.query(NewSource).all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+                
+        #Values to check
+        values_to_check = ['display_name', 'description', 'date_created', 'created_by']
+        
+        untouched_obj_ids = set(id_to_current_obj.keys())
+        already_seen = set();
+        
+        #Create basic sources
+        newly_created_objs = create_extra_source()
+            
+        #Edit or add new objects
+        for newly_created_obj in newly_created_objs:
+            if newly_created_obj.unique_key() not in already_seen:
+                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
+                already_seen.add(newly_created_obj.unique_key())
+            
+        #Create sources from code table  
+        
+        #Grab old objects
+        old_session = old_session_maker()
+        old_objs = old_session.query(OldCode).all()
+                 
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_source_from_code(old_obj)
+                
+            if newly_created_objs is not None:
+                #Edit or add new objects
+                for newly_created_obj in newly_created_objs:
+                    if newly_created_obj.unique_key() not in already_seen:
+                        current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                        current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                        
+                        if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                            untouched_obj_ids.remove(current_obj_by_id.id)
+                        if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                            untouched_obj_ids.remove(current_obj_by_key.id)
+                        already_seen.add(newly_created_obj.unique_key())
+                                                
+        #Delete untouched objs
+        for untouched_obj_id  in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+        
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+        
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
+        old_session.close()
+        
+    log.info('complete')
    
 """
 ---------------------Convert------------------------------
@@ -428,13 +536,15 @@ def convert(old_session_maker, new_session_maker):
     
     log.info('begin')
     
-    convert_experiment(old_session_maker, new_session_maker)
+    #convert_experiment(old_session_maker, new_session_maker)
     
-    convert_experiment_alias(old_session_maker, new_session_maker)
+    #convert_experiment_alias(old_session_maker, new_session_maker)
     
-    convert_experiment_relation(old_session_maker, new_session_maker)
+    #convert_experiment_relation(old_session_maker, new_session_maker)
     
-    convert_strain(old_session_maker, new_session_maker)
+    #convert_strain(old_session_maker, new_session_maker)
+    
+    convert_source(old_session_maker, new_session_maker)
 
     log.info('complete')
 

@@ -25,7 +25,7 @@ class Literatureevidence(Evidence):
 
     def __init__(self, evidence_id, reference_id, bioentity_id, topic,
                             date_created, created_by):
-        Evidence.__init__(self, evidence_id, 'LITERATURE', None, reference_id, None, 'SGD', None,
+        Evidence.__init__(self, evidence_id, 'LITERATURE', None, reference_id, None, 1, None,
                           date_created, created_by)
         self.bioentity_id = bioentity_id
         self.topic = topic

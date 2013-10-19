@@ -9,7 +9,7 @@ from sgdbackend_query.query_interaction import get_interaction_family, \
     get_interactions
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_reference, \
-    id_to_experiment, id_to_strain, id_to_biocon
+    id_to_experiment, id_to_strain, id_to_biocon, id_to_source
 from sgdbackend_utils.venn import calc_venn_measurements
 
 '''
@@ -117,6 +117,7 @@ def make_evidence_row(interevidence, bioent_id=None):
     experiment_id = interevidence.experiment_id
     strain_id = interevidence.strain_id
     note=interevidence.note
+    source = id_to_source[interevidence.source_id]
         
     if interevidence.class_type == 'GENINTERACTION':
         phenotype_id = interevidence.phenotype_id
@@ -129,7 +130,7 @@ def make_evidence_row(interevidence, bioent_id=None):
                 'phenotype': None if phenotype_id is None else minimize_biocon_json(id_to_biocon[phenotype_id]),
                 'annotation_type': interevidence.annotation_type,
                 'direction': direction,
-                'source': interevidence.source,
+                'source': source,
                 'note': note
                 }
         
@@ -143,7 +144,7 @@ def make_evidence_row(interevidence, bioent_id=None):
                 'modification': interevidence.modification,
                 'annotation_type': interevidence.annotation_type,
                 'direction': direction,
-                'source': interevidence.source,
+                'source': source,
                 'note': note
                 }
         

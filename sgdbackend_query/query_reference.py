@@ -5,6 +5,7 @@ Created on Jul 9, 2013
 '''
 from model_new_schema.auxiliary import BioentityReference
 from model_new_schema.bioentity import Bioentity
+from model_new_schema.evelement import Source
 from model_new_schema.misc import Url
 from model_new_schema.reference import Reference, Author, AuthorReference, \
     Bibentry
@@ -58,6 +59,13 @@ def get_reference_id(reference_name, print_query=False):
 #Used to create performance database.
 def get_all_references(print_query=False):
     query = session.query(Reference)
+    bioents = query.all()
+    if print_query:
+        print query
+    return bioents
+
+def get_all_sources(print_query=False):
+    query = session.query(Source)
     bioents = query.all()
     if print_query:
         print query

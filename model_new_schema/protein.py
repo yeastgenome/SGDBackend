@@ -14,7 +14,7 @@ class Domain(Base, EqualityByIDMixin):
     __tablename__ = "pdomain"
     
     id = Column('pdomain_id', Integer, primary_key=True)
-    source = Column('source', String)
+    source_id = Column('source_id', String)
     format_name = Column('format_name', String)
     display_name = Column('display_name', String)
     description = Column('description', String)
@@ -23,8 +23,8 @@ class Domain(Base, EqualityByIDMixin):
     link = Column('obj_link', String)
     
     def __init__(self, format_name, display_name, description, 
-                 interpro_id, interpro_description, link, source):
-        self.source = source
+                 interpro_id, interpro_description, link, source_id):
+        self.source_id = source_id
         self.format_name = format_name
         self.display_name = display_name
         self.description = description
@@ -53,11 +53,11 @@ class Domainevidence(Evidence):
     #Relationships
     domain = relationship(Domain, uselist=False)
 
-    def __init__(self, evidence_id, reference_id, strain_id, source, 
+    def __init__(self, evidence_id, reference_id, strain_id, source_id, 
                  start, end, evalue, status, date_of_run, protein_id, domain_id,
                  date_created, created_by):
         Evidence.__init__(self, evidence_id, 'DOMAIN', 
-                          None, reference_id, strain_id, source, None,
+                          None, reference_id, strain_id, source_id, None,
                           date_created, created_by)
         self.start = start
         self.end = end

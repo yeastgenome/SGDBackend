@@ -28,7 +28,7 @@ def create_go(old_go):
     display_name = old_go.go_term
     format_name = str(old_go.go_go_id)
     link = biocon_link('GO', format_name)
-    new_go = NewGo(create_go_id(old_go.id), display_name, format_name, link, old_go.go_definition,
+    new_go = NewGo(create_go_id(old_go.id), display_name, format_name, None, link, old_go.go_definition,
                    old_go.go_go_id, abbrev_to_go_aspect[old_go.go_aspect],  
                    old_go.date_created, old_go.created_by)
     return [new_go]
@@ -51,7 +51,7 @@ def convert_go(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs]) 
                   
         #Values to check
-        values_to_check = ['go_go_id', 'go_aspect', 'display_name', 'link', 'description', 'date_created', 'created_by']
+        values_to_check = ['go_go_id', 'go_aspect', 'display_name', 'link', 'dbxref', 'description', 'source_id', 'date_created', 'created_by']
                 
         untouched_obj_ids = set(id_to_current_obj.keys())
         

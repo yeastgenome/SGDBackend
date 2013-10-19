@@ -4,9 +4,9 @@ Created on May 6, 2013
 @author: kpaskov
 '''
 from convert_aux.auxillary_tables import convert_bioentity_reference
-from convert_evidence.convert_phenotype import create_phenotype_key
-from convert_utils import create_or_update, set_up_logging, \
-    create_format_name, prepare_connections
+from convert_evidence import convert_phenotype
+from convert_utils import create_or_update, set_up_logging, create_format_name, \
+    prepare_connections
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
@@ -31,7 +31,7 @@ def create_genetic_evidence_id(old_evidence_id):
     return old_evidence_id - 397921 + 10000000
 
 def create_genetic_interevidence(old_interaction, key_to_experiment, key_to_phenotype,
-                         reference_ids, bioent_ids):
+                         reference_ids, bioent_ids, key_to_source):
     from model_new_schema.interaction import Geninteractionevidence as NewGeninteractionevidence
     
     if old_interaction.interaction_type == 'genetic interactions':
@@ -64,7 +64,7 @@ def create_genetic_interevidence(old_interaction, key_to_experiment, key_to_phen
         phenotype_id = None
         if len(old_phenotypes) == 1:
             old_phenotype = old_phenotypes[0].phenotype
-            phenotype_key = create_phenotype_key(old_phenotype.observable, old_phenotype.qualifier, old_phenotype.mutant_type)
+            phenotype_key = (convert_phenotype.create_phenotype_format_name(old_phenotype.observable, old_phenotype.qualifier, old_phenotype.mutant_type), 'PHENOTYPE')
             
             if phenotype_key not in key_to_phenotype:
                 print 'Phenotype does not exist. ' + str(phenotype_key)
@@ -81,10 +81,17 @@ def create_genetic_interevidence(old_interaction, key_to_experiment, key_to_phen
             return None
         experiment_id = key_to_experiment[experiment_key].id
         
+        source_key = old_interaction.source
+        if source_key in key_to_source:
+            source_id = key_to_source[source_key].id
+        else:
+            print 'Source could not be found. ' + source_key
+            return None
+        
         feat_interacts = sorted(old_interaction.feature_interactions, key=lambda x: x.feature_id)
         bait_hit = '-'.join([x.action for x in feat_interacts])
         
-        new_genetic_interevidence = NewGeninteractionevidence(create_genetic_evidence_id(old_interaction.id), experiment_id, reference_id, None, old_interaction.source, 
+        new_genetic_interevidence = NewGeninteractionevidence(create_genetic_evidence_id(old_interaction.id), experiment_id, reference_id, None, source_id, 
                                                             bioent1_id, bioent2_id, phenotype_id, 
                                                             old_interaction.annotation_type, bait_hit, note,
                                                             old_interaction.date_created, old_interaction.created_by)
@@ -94,7 +101,7 @@ def create_genetic_interevidence(old_interaction, key_to_experiment, key_to_phen
 def convert_genetic_interevidence(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.interaction import Geninteractionevidence as NewGeninteractionevidence
     from model_new_schema.reference import Reference as NewReference
-    from model_new_schema.evelement import Experiment as NewExperiment
+    from model_new_schema.evelement import Experiment as NewExperiment, Source as NewSource
     from model_new_schema.bioentity import Bioentity as NewBioentity
     from model_new_schema.phenotype import Phenotype as NewPhenotype
     from model_old_schema.interaction import Interaction as OldInteraction
@@ -108,7 +115,7 @@ def convert_genetic_interevidence(old_session_maker, new_session_maker, chunk_si
         old_session = old_session_maker()      
                   
         #Values to check
-        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source',
+        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id',
                        'bioentity1_id', 'bioentity2_id', 'phenotype_id', 
                        'note', 'annotation_type', 'date_created', 'created_by']
         
@@ -117,6 +124,7 @@ def convert_genetic_interevidence(old_session_maker, new_session_maker, chunk_si
         key_to_phenotype = dict([(x.unique_key(), x) for x in new_session.query(NewPhenotype).all()])
         bioent_ids = dict([(x.unique_key(), x) for x in new_session.query(NewBioentity).all()])
         reference_ids = set([x.id for x in new_session.query(NewReference).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
         min_id = old_session.query(func.min(OldInteraction.id)).first()[0]
         count = old_session.query(func.max(OldInteraction.id)).first()[0] - min_id
@@ -139,7 +147,7 @@ def convert_genetic_interevidence(old_session_maker, new_session_maker, chunk_si
         
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_genetic_interevidence(old_obj, key_to_experiment, key_to_phenotype, reference_ids, bioent_ids)
+                newly_created_objs = create_genetic_interevidence(old_obj, key_to_experiment, key_to_phenotype, reference_ids, bioent_ids, key_to_source)
                     
                 if newly_created_objs is not None:
                     #Edit or add new objects

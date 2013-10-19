@@ -97,7 +97,7 @@ def create_chemical(expt_property):
     display_name = expt_property.value
     format_name = create_format_name(display_name)
     link = chemical_link(format_name)
-    new_chemical = NewChemical(display_name, format_name, link, 'SGD', expt_property.date_created, expt_property.created_by)
+    new_chemical = NewChemical(display_name, format_name, link, 1, expt_property.date_created, expt_property.created_by)
     return [new_chemical]
 
 def convert_chemical(old_session_maker, new_session_maker):
@@ -118,7 +118,7 @@ def convert_chemical(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs]) 
                   
         #Values to check
-        values_to_check = []
+        values_to_check = ['source_id']
                 
         untouched_obj_ids = set(id_to_current_obj.keys())
         

@@ -4,7 +4,8 @@ Created on May 31, 2013
 @author: kpaskov
 '''
 from convert_aux.auxillary_tables import convert_disambigs
-from convert_utils import create_or_update, set_up_logging, prepare_connections
+from convert_utils import create_or_update, set_up_logging, prepare_connections, \
+    create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
@@ -143,9 +144,11 @@ def create_alias(old_alias, id_to_bioentity):
     if bioentity_id is None or not bioentity_id in id_to_bioentity:
         #print 'Bioentity does not exist.'
         return None
+
+    display_name = old_alias.alias_name
     
-    new_alias = Bioentityalias(old_alias.alias_name, None, old_alias.alias_type, 
-                               bioentity_id, old_alias.date_created, old_alias.created_by)
+    new_alias = Bioentityalias(display_name, bioentity_id, 1, old_alias.alias_type, 
+                               old_alias.date_created, old_alias.created_by)
     return [new_alias] 
 
 def convert_alias(old_session_maker, new_session_maker):
@@ -164,13 +167,13 @@ def convert_alias(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         
         #Values to check
-        values_to_check = ['source', 'category', 'created_by', 'date_created']
+        values_to_check = ['source_id', 'category', 'created_by', 'date_created']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
         #Grab cached dictionaries
         id_to_bioentity = dict([(x.id, x) for x in new_session.query(NewBioentity).all()])
-        
+
         #Grab old objects
         old_session = old_session_maker()
         
@@ -214,30 +217,42 @@ def convert_alias(old_session_maker, new_session_maker):
 --------------------- Convert Url ---------------------
 """
 
-def create_url(old_feat_url, old_webdisplay, id_to_bioentity):
+def create_url(old_feat_url, old_webdisplay, id_to_bioentity, key_to_source):
     from model_new_schema.bioentity import Bioentityurl
-    
-    urls = []
-    
+        
     old_url = old_webdisplay.url
     url_type = old_url.url_type
     link = old_url.url
     
     feature = old_feat_url.feature
-    if feature.id in id_to_bioentity:
-        if url_type == 'query by SGDID':
-            link = link.replace('_SUBSTITUTE_THIS_', str(feature.dbxref_id))
-            urls.append(Bioentityurl(old_webdisplay.label_name, old_url.source, link, old_webdisplay.label_location, 
-                                     feature.id, old_url.date_created, old_url.created_by))
-        elif url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name' or url_type == 'query by ID assigned by database':
-            link = link.replace('_SUBSTITUTE_THIS_', str(feature.name))
-            urls.append(Bioentityurl(old_webdisplay.label_name, old_url.source, link, old_webdisplay.label_location, 
-                                     feature.id, old_url.date_created, old_url.created_by))
-        else:
-            print "Can't handle this url. " + str(old_url.url_type)
-    return urls
+    if feature.id not in id_to_bioentity:
+        return None
+    
+    bioentity_id = feature.id
+    display_name = old_webdisplay.label_name
+    source = old_url.source
+    category = old_webdisplay.label_location
+    
+    source_key = create_format_name(source)
+    if source_key in key_to_source:
+        source_id = key_to_source[source_key].id
+    else:
+        print 'Source could not be found: ' + source
+        return None
+    
+    if url_type == 'query by SGDID':
+        link = link.replace('_SUBSTITUTE_THIS_', str(feature.dbxref_id))
+    elif url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name' or url_type == 'query by ID assigned by database':
+        link = link.replace('_SUBSTITUTE_THIS_', str(feature.name))
+    else:
+        print "Can't handle this url. " + str(old_url.url_type)
+        return None
+        
+    url = Bioentityurl(display_name, bioentity_id, source_id, link, category, 
+                                 old_url.date_created, old_url.created_by)
+    return [url]
 
-def create_url_from_dbxref(old_dbxref_feat, url_to_display, id_to_bioentity):
+def create_url_from_dbxref(old_dbxref_feat, url_to_display, id_to_bioentity, key_to_source):
     from model_new_schema.bioentity import Bioentityurl
     
     urls = []
@@ -255,18 +270,26 @@ def create_url_from_dbxref(old_dbxref_feat, url_to_display, id_to_bioentity):
                 
                 if url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name':
                     link = link.replace('_SUBSTITUTE_THIS_', id_to_bioentity[feature_id].format_name)
-                    urls.append(Bioentityurl(old_webdisplay.label_name, old_url.source, link, old_webdisplay.label_location, 
-                                             feature_id, old_url.date_created, old_url.created_by))
                 elif url_type == 'query by ID assigned by database':
                     link = link.replace('_SUBSTITUTE_THIS_', str(dbxref_id))
-                    urls.append(Bioentityurl(old_webdisplay.label_name, old_url.source, link, old_webdisplay.label_location, 
-                                             feature_id, old_url.date_created, old_url.created_by))
                 else:
                     print "Can't handle this url. " + str(old_url.url_type)
+                    return None
+                
+                source_key = create_format_name(old_url.source)
+                if source_key in key_to_source:
+                    source_id = key_to_source[source_key].id
+                else:
+                    print 'Source could not be found: ' + source_key
+                    return None
+                    
+                urls.append(Bioentityurl(old_webdisplay.label_name, feature_id, source_id, link, old_webdisplay.label_location, 
+                                             old_url.date_created, old_url.created_by))
     return urls
 
 def convert_url(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.bioentity import Bioentity as NewBioentity, Bioentityurl as NewBioentityurl
+    from model_new_schema.evelement import Source as NewSource
     from model_old_schema.general import WebDisplay as OldWebDisplay, FeatUrl as OldFeatUrl, DbxrefFeat as OldDbxrefFeat
     
     log = logging.getLogger('convert.bioentity_in_depth.bioentity_url')
@@ -278,10 +301,11 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
         old_session = old_session_maker()
         
         #Values to check
-        values_to_check = ['display_name', 'source', 'created_by', 'date_created']
+        values_to_check = ['display_name', 'source_id', 'created_by', 'date_created']
         
         #Grab cached dictionaries
         id_to_bioentity = dict([(x.id, x) for x in new_session.query(NewBioentity).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
         #Urls of interest
         old_web_displays = old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Interaction Resources').all()
@@ -304,7 +328,7 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
             for old_obj in old_objs:
                 #Convert old objects into new ones
                 if old_obj.url_id in url_to_display:
-                    newly_created_objs = create_url(old_obj, url_to_display[old_obj.url_id], id_to_bioentity)
+                    newly_created_objs = create_url(old_obj, url_to_display[old_obj.url_id], id_to_bioentity, key_to_source)
                     
                     if newly_created_objs is not None:
                         #Edit or add new objects
@@ -326,7 +350,7 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
             
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_url_from_dbxref(old_obj, url_to_display, id_to_bioentity)
+                newly_created_objs = create_url_from_dbxref(old_obj, url_to_display, id_to_bioentity, key_to_source)
                 
                 if newly_created_objs is not None:
                     #Edit or add new objects
@@ -399,7 +423,7 @@ def convert_qualifier_evidence(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['reference_id', 'experiment_id', 'strain', 'source', 'date_created', 'created_by',
+        values_to_check = ['reference_id', 'experiment_id', 'strain_id', 'source_id', 'date_created', 'created_by',
                            'bioentity_id', 'qualifier']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
@@ -453,9 +477,9 @@ def convert(old_session_maker, new_session_maker):
     
     log.info('begin')
             
-    convert_alias(old_session_maker, new_session_maker)
+    #convert_alias(old_session_maker, new_session_maker)
     
-    convert_url(old_session_maker, new_session_maker, 1000)
+    #convert_url(old_session_maker, new_session_maker, 1000)
     
     convert_qualifier_evidence(old_session_maker, new_session_maker)
     
