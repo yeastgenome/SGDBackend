@@ -21,7 +21,7 @@ model_new_schema.Base = declarative_base(cls=Base)
 
 class SGDBackend(BackendInterface):
     def __init__(self, config):
-        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), pool_recycle=3600)
 
         DBSession.configure(bind=engine)
         model_new_schema.Base.metadata.bind = engine

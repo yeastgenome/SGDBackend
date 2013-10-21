@@ -20,7 +20,7 @@ import sys
 
 class PerfBackend():
     def __init__(self, config):
-        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), pool_recycle=3600)
         self.session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
         self.session.configure(bind=engine)
         self.meta = MetaData()
