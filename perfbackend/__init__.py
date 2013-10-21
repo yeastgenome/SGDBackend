@@ -175,7 +175,7 @@ class PerfBackend():
         return '[' + ', '.join(refs) + ']'
     
     def reference_list(self, reference_ids):
-        refs = self.get_obj_list(self.meta.tables['reference'], 'reference_id', reference_ids)
+        refs = self.get_obj_list(self.meta.tables['reference_bibentry'], 'reference_id', reference_ids)
         return '[' + ', '.join(refs) + ']'
 
     def all_bibentries(self, min_id, max_id):
