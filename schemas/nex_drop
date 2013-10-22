@@ -1,0 +1,94 @@
+/* Auxilliary */
+DROP TABLE aux_bioconcept_ancestor;
+DROP TABLE aux_bioentity_reference;
+DROP TABLE aux_biofact;
+DROP TABLE aux_interaction;
+DROP TABLE aux_interaction_family;
+DROP TABLE aux_regulation_family;
+DROP TABLE aux_disambig;
+DROP TABLE aux_locustabs;
+
+/* Evidence */
+DROP TABLE geninteractionevidence;
+DROP TABLE goevidence;
+DROP TABLE literatureevidence;
+DROP TABLE phenotypeevidence;
+DROP TABLE allele;
+DROP TABLE physinteractionevidence;
+DROP TABLE qualifierevidence;
+DROP TABLE regulationevidence;
+DROP TABLE bindingevidence;
+DROP TABLE pdomainevidence;
+
+DROP TABLE temperaturecondition;
+DROP TABLE backgroundcondition;
+DROP TABLE chemicalcondition;
+DROP TABLE condition;
+DROP TABLE evidence;
+
+/* Evelements */
+DROP TABLE experiment_relation;
+DROP TABLE experimentalias;
+DROP TABLE experiment;
+
+DROP TABLE strain;
+DROP TABLE source;
+
+/* Chemical */
+DROP TABLE chemical_relation;
+DROP TABLE chemicalalias;
+DROP TABLE chemical;
+
+/* Paragraph */
+DROP TABLE paragraph_reference;
+DROP TABLE paragraph;
+
+/* Reference */
+DROP TABLE reference_relation;
+DROP TABLE referencealias;
+DROP TABLE referenceurl;
+
+DROP TABLE reftype;
+DROP TABLE abstract;
+DROP TABLE bibentry;
+
+DROP TABLE author_reference;
+DROP TABLE author;
+
+DROP TABLE reference;
+
+DROP TABLE book;
+DROP TABLE journal;
+
+/* Bioconcept */
+DROP TABLE bioconcept_relation;
+DROP TABLE bioconceptalias;
+DROP TABLE bioconcepturl;
+
+DROP TABLE gobioconcept;
+DROP TABLE phenotypebioconcept;
+
+DROP TABLE bioconcept;
+
+/* Bioentity */
+DROP TABLE bioentityalias;
+DROP TABLE bioentityurl;
+
+DROP TABLE locusbioentity;
+DROP TABLE proteinbioentity;
+
+DROP TABLE bioentity;
+
+/* Misc */
+DROP TABLE alias;
+DROP TABLE url;
+DROP TABLE pdomain;
+
+
+
+
+
+
+
+
+
