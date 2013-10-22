@@ -6,7 +6,7 @@ Created on May 16, 2013
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.evidence import Evidence
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String
+from sqlalchemy.types import Integer
 
 class Regulationevidence(Evidence):
     __tablename__ = "regulationevidence"
@@ -14,17 +14,14 @@ class Regulationevidence(Evidence):
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     bioentity1_id = Column('bioentity1_id', Integer, ForeignKey(Bioentity.id))
     bioentity2_id = Column('bioentity2_id', Integer, ForeignKey(Bioentity.id))
-    conditions = Column('conditions', String)
        
     __mapper_args__ = {'polymorphic_identity': 'REGULATION',
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source_id, 
-                 bioentity1_id, bioentity2_id, conditions,
+    def __init__(self, evidence_id, source, reference, strain, experiment, note, 
+                 bioentity1, bioentity2, conditions,
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, 'REGULATION', 
-                          experiment_id, reference_id, strain_id, source_id, None,
-                          date_created, created_by)
-        self.bioentity1_id = bioentity1_id
-        self.bioentity2_id = bioentity2_id
-        self.conditions = conditions
+        Evidence.__init__(self, evidence_id, bioentity1.format_name + '|' + bioentity2.format_name + '|' + reference.format_name + '|' + ','.join([condition.id for condition in conditions]), 
+                          'REGULATION', source, reference, strain, experiment, note, date_created, created_by)
+        self.bioentity1_id = bioentity1.id
+        self.bioentity2_id = bioentity2.id

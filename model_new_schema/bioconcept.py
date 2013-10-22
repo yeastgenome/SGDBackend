@@ -4,8 +4,7 @@ Created on Nov 28, 2012
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin
-from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property
+from model_new_schema.misc import Url, Alias
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
@@ -14,12 +13,12 @@ class Bioconcept(Base, EqualityByIDMixin):
     __tablename__ = "bioconcept"
         
     id = Column('bioconcept_id', Integer, primary_key = True)
-    class_type = Column('class', String)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
-    dbxref = Column('dbxref', String)
-    link = Column('obj_link', String)
+    class_type = Column('class', String)
+    link = Column('obj_url', String)
     source_id = Column('source_id', Integer)
+    sgdid = Column('sgdid', String)
     description = Column('description', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
@@ -27,27 +26,20 @@ class Bioconcept(Base, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"BIOCONCEPT"}
     
-    #Relationships
-    aliases = association_proxy('bioconceptaliases', 'name')
-    
-    def __init__(self, bioconcept_id, class_type, display_name, format_name, dbxref, link, source_id, description, date_created, created_by):
+    def __init__(self, bioconcept_id, display_name, format_name, class_type, link, source, sgdid, description, date_created, created_by):
         self.id = bioconcept_id
-        self.class_type = class_type
         self.display_name = display_name
         self.format_name = format_name
-        self.source_id = source_id
-        self.dbxref = dbxref
+        self.class_type = class_type
         self.link = link
+        self.source_id = source.id
+        self.sgdid = sgdid
         self.description = description
         self.date_created = date_created
         self.created_by = created_by
         
     def unique_key(self):
         return (self.format_name, self.class_type)
-            
-    @hybrid_property
-    def alias_str(self):
-        return ', '.join(self.aliases)
       
 class BioconceptRelation(Base, EqualityByIDMixin):
     __tablename__ = 'bioconcept_relation'
@@ -71,6 +63,33 @@ class BioconceptRelation(Base, EqualityByIDMixin):
     def unique_key(self):
         return (self.parent_bioconcept_id, self.child_bioconcept_id, self.class_type, self.relationship_type)
     
+class Bioconcepturl(Url):
+    __tablename__ = 'bioconcepturl'
+    
+    url_id = Column('url_id', Integer, primary_key=True)
+    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
+        
+    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
+                       'inherit_condition': id == Url.id}
+    
+    def __init__(self, display_name, link, source, category, bioconcept, date_created, created_by):
+        Url.__init__(self, display_name, bioconcept.format_name, 'BIOCONCEPT', link, source, category, 
+                     bioconcept.id, date_created, created_by)
+        self.bioconcept_id = bioconcept.id
+    
+class Bioconceptalias(Alias):
+    __tablename__ = 'bioconcepturl'
+    
+    alias_id = Column('alias_id', Integer, primary_key=True)
+    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
+
+    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
+                       'inherit_condition': id == Alias.id}
+    
+    def __init__(self, display_name, source, category, bioconcept, date_created, created_by):
+        Alias.__init__(self, display_name, bioconcept.format_name, 'BIOCONCEPT', source, category, date_created, created_by)
+        self.bioconcept_id = bioconcept.id
+
     
     
     

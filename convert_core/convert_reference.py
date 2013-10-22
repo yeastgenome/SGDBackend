@@ -5,11 +5,11 @@ Created on Feb 27, 2013
 '''
 from convert_utils import create_or_update, set_up_logging, prepare_connections, \
     create_format_name
-from convert_utils.link_maker import reference_link
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func
+import datetime
 import logging
 import requests
 import sys
@@ -33,8 +33,8 @@ def create_journal(old_journal):
     if old_journal.issn == '0948-5023':
         abbreviation = 'J Mol Model (Online)'
     
-    new_journal = NewJournal(create_journal_id(old_journal.id), abbreviation, old_journal.full_name, old_journal.issn, 
-                             old_journal.essn, old_journal.publisher, old_journal.date_created, old_journal.created_by)
+    new_journal = NewJournal(create_journal_id(old_journal.id), old_journal.full_name, abbreviation, old_journal.issn, 
+                             old_journal.essn, old_journal.date_created, old_journal.created_by)
     return [new_journal]
 
 def convert_journal(old_session_maker, new_session_maker):
@@ -53,7 +53,7 @@ def convert_journal(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['issn', 'essn', 'publisher', 'created_by', 'date_created']
+        values_to_check = ['issn_print', 'issn_online']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -131,7 +131,7 @@ def convert_book(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['isbn', 'total_pages', 'publisher', 'publisher_location', 'created_by', 'date_created']
+        values_to_check = ['isbn', 'total_pages', 'publisher', 'publisher_location']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -198,7 +198,7 @@ def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
     count = len(pubmed_ids)
     num_chunks = ceil(1.0*count/chunk_size)
     min_id = 0
-    for i in range(0, num_chunks):
+    for _ in range(0, num_chunks):
         chunk_of_pubmed_ids = pubmed_ids[min_id:min_id+chunk_size]
         url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&db=pmc&id='
         url = url + '&id='.join([str(x) for x in chunk_of_pubmed_ids])
@@ -223,12 +223,7 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
     
     citation = create_citation(old_reference.citation)
     display_name = create_display_name(citation)
-    format_name = str(old_reference.pubmed_id)
-    if format_name is None:
-        format_name = old_reference.dbxref_id
-        
-    link = reference_link(format_name)
-    
+            
     journal_id = None
     journal = old_reference.journal
     if journal is not None:
@@ -262,7 +257,8 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
         
     date_revised = None
     if old_reference.date_revised is not None:
-        date_revised = int(old_reference.date_revised)
+        old_date = str(old_reference.date_revised)
+        date_revised = datetime.date(int(old_date[0:4]), int(old_date[4:6]), int(old_date[6:8]))
         
     source_key = create_format_name(old_reference.source)
     if source_key in key_to_source:
@@ -271,7 +267,7 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
         print 'Source not found.' + source_key
         return None
     
-    new_ref = NewReference(old_reference.id, display_name, format_name, old_reference.dbxref_id, link, source_id, 
+    new_ref = NewReference(old_reference.id, display_name, old_reference.dbxref_id, source_id, 
                            old_reference.status, pubmed_id, pubmed_central_id,
                            old_reference.pdf_status, citation, year, 
                            old_reference.date_published, date_revised, 
@@ -294,11 +290,10 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
         new_session = new_session_maker()
                 
         #Values to check
-        values_to_check = ['display_name', 'format_name', 'link', 'source_id', 'dbxref',
-                       'status', 'pubmed_id', 'pubmed_central_id', 'pdf_status', 'year', 'date_published', 
+        values_to_check = ['display_name', 'format_name', 'link', 'source_id', 'sgdid',
+                       'ref_status', 'pubmed_id', 'pubmed_central_id', 'fulltext_status', 'year', 'date_published', 
                        'date_revised', 'issue', 'page', 'volume', 'title',
-                       'journal_id', 'book_id', 'doi',
-                       'created_by', 'date_created']
+                       'journal_id', 'book_id', 'doi']
                 
         #Grab cached dictionaries
         key_to_journal = dict([(x.unique_key(), x) for x in new_session.query(NewJournal).all()])

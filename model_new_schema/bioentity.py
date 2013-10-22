@@ -8,14 +8,10 @@ will eventually be the Bioentity classes/tables in the new SGD website schema. T
 schema on fasolt.
 '''
 from model_new_schema import Base, EqualityByIDMixin
-from model_new_schema.evidence import Evidence
 from model_new_schema.misc import Alias, Url
-from model_new_schema.reference import Reference
-from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String, Date, CLOB
+from sqlalchemy.schema import Column, ForeignKey, FetchedValue
+from sqlalchemy.types import Integer, String, Date
 
 class Bioentity(Base, EqualityByIDMixin):
     __tablename__ = 'bioentity'
@@ -23,68 +19,68 @@ class Bioentity(Base, EqualityByIDMixin):
     id = Column('bioentity_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
-    dbxref = Column('dbxref', String)
-    link = Column('obj_link', String)
     class_type = Column('class', String)
+    link = Column('obj_url', String)
     source_id = Column('source_id', String)
-    status = Column('status', String)
-    
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
+    sgdid = Column('sgdid', String)
+    bioent_status = Column('bioent_status', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
     
     __mapper_args__ = {'polymorphic_on': class_type}
     
-    #Relationships
-    aliases = association_proxy('bioentityaliases', 'display_name')
-            
-    def __init__(self, bioentity_id, class_type, display_name, format_name, dbxref, link, source_id, status,
+    def __init__(self, bioentity_id, display_name, format_name, class_type, link, source, sgdid, bioent_status,
                  date_created, created_by):
         self.id = bioentity_id
-        self.class_type = class_type
         self.display_name = display_name
         self.format_name = format_name
-        self.dbxref = dbxref
+        self.class_type = class_type
         self.link = link
-        self.source_id = source_id
-        self.status = status
+        self.source_id = source.id
+        self.sgdid = sgdid
+        self.bioent_status = bioent_status
         self.date_created = date_created
         self.created_by = created_by
             
     def unique_key(self):
         return (self.format_name, self.class_type)
     
-    @hybrid_property
-    def alias_str(self):
-        return ', '.join(self.aliases)
-    
-    
 class Bioentityurl(Url):
+    __tablename__ = 'bioentityurl'
+    
+    url_id = Column('url_id', Integer, primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    
+    bioentity = relationship(Bioentity, uselist=False)
+
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
                        'inherit_condition': id == Url.id}
     
-    def __init__(self, display_name, obj_id, source_id, url, category, date_created, created_by):
-        Url.__init__(self, 'BIOENTITY', display_name, obj_id, source_id, url, category, date_created, created_by)
-  
-    @hybrid_property   
-    def bioentity_id(self):
-        return self.obj_id
+    def __init__(self, display_name, link, source, category, bioentity, date_created, created_by):
+        Url.__init__(self, display_name, bioentity.format_name, 'BIOENTITY', link, source, category, 
+                     bioentity.id, date_created, created_by)
+        self.bioentity_id = bioentity.id
     
 class Bioentityalias(Alias):
+    __tablename__ = 'bioentityalias'
+    
+    alias_id = Column('alias_id', Integer, primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    
+    bioentity = relationship(Bioentity, uselist=False)
+
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
                        'inherit_condition': id == Alias.id}
     
-    def __init__(self, display_name, obj_id, source_id, category, date_created, created_by):
-        Alias.__init__(self, 'BIOENTITY', display_name, obj_id, source_id, category, date_created, created_by)
-  
-    @hybrid_property   
-    def bioentity_id(self):
-        return self.obj_id
+    def __init__(self, display_name, source, category, bioentity, date_created, created_by):
+        Alias.__init__(self, display_name, bioentity.format_name, 'BIOENTITY', source, category, date_created, created_by)
+        self.bioentity_id = bioentity.id
+    
                        
 class Locus(Bioentity):
     __tablename__ = "locusbioentity"
     
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
-    attribute = Column('attribute', String)
     name_description = Column('name_description', String)
     headline = Column('headline', String)
     description = Column('description', String)
@@ -94,99 +90,38 @@ class Locus(Bioentity):
     __mapper_args__ = {'polymorphic_identity': 'LOCUS',
                        'inherit_condition': id == Bioentity.id}
     
-    def __init__(self, bioentity_id, display_name, format_name, dbxref, link, source_id, status, 
-                 locus_type, attribute, short_description, headline, description, genetic_position,
+    def __init__(self, bioentity_id, display_name, format_name, source, sgdid, bioent_status, 
+                 locus_type, short_description, headline, description, genetic_position,
                  date_created, created_by):
-        Bioentity.__init__(self, bioentity_id, 'LOCUS',  display_name, format_name, dbxref, link, source_id, status, date_created, created_by)
-        self.locus_type = locus_type
-        self.attribute = attribute
+        Bioentity.__init__(self, bioentity_id, display_name, format_name, 'LOCUS', 'http://www.yeastgenome.org/cgi-bin/locus.fpl?locus=' + format_name,
+                           source, sgdid, bioent_status, date_created, created_by)
         self.short_description = short_description
         self.headline = headline
         self.description = description
         self.genetic_position = genetic_position
-        
-class Generalbioentity(Bioentity, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
-                       'inherit_condition': id==Bioentity.id} 
+        self.locus_type = locus_type
     
 class Protein(Bioentity):
     __tablename__ = "proteinbioentity"
     
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
-    locus_id = Column('locus_id', Integer, ForeignKey(Bioentity.id))
+    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
     molecular_weight = Column('molecular_weight', Integer)
     length = Column('protein_length', Integer)
     n_term_seq = Column('n_term_seq', String)
     c_term_seq = Column('c_term_seq', String)
-        
+            
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Bioentity.id}
     
-    def __init__(self, bioentity_id, display_name, format_name, dbxref, link,
-                 locus_id, length, n_term_seq, c_term_seq,
+    def __init__(self, bioentity_id, source,
+                 locus, length, n_term_seq, c_term_seq,
                  date_created, created_by):
-        Bioentity.__init__(self, bioentity_id, 'PROTEIN',  display_name, format_name, dbxref, link, 1, None, date_created, created_by)
-        self.locus_id = locus_id
+        Bioentity.__init__(self, bioentity_id, locus.display_name + 'p', locus.format_name + 'P', 
+                           'PROTEIN', locus.link.replace('/locus.f', '/protein/proteinPage.'), source, None, locus.bioent_status, date_created, created_by)
+        self.locus_id = locus.id
         self.length = length
         self.n_term_seq = n_term_seq
         self.c_term_seq = c_term_seq
-        
-class Qualifierevidence(Evidence):
-    __tablename__ = "qualifierevidence"
-    
-    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-    qualifier = Column('qualifier', String)
-    
-    __mapper_args__ = {'polymorphic_identity': 'QUALIFIER',
-                       'inherit_condition': id == Evidence.id}
-    
-    def __init__(self, evidence_id, strain_id, bioentity_id, qualifier,
-                 date_created, created_by):
-        Evidence.__init__(self, evidence_id, 'QUALIFIER', None, None, strain_id, 1, None, date_created, created_by)
-        self.bioentity_id = bioentity_id
-        self.qualifier = qualifier
-    
-class Paragraph(Base, EqualityByIDMixin):
-    __tablename__ = 'paragraph'
-    
-    id = Column('paragraph_id', Integer, primary_key=True)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-    class_type = Column('class', String)
-    text = Column('text', CLOB)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
-    
-    #Relationships
-    references = association_proxy('paragraph_references', 'reference')
-        
-    def __init__(self, bioentity_id, class_type, text, date_created, created_by):
-        self.bioentity_id = bioentity_id
-        self.class_type = class_type
-        self.text = text
-        self.date_created = date_created
-        self.created_by = created_by
-        
-    def unique_key(self):
-        return (self.class_type, self.bioentity_id)
-    
-class ParagraphReference(Base, EqualityByIDMixin):
-    __tablename__ = 'paragraph_reference'
-    
-    id = Column('paragraph_reference_id', Integer, primary_key=True)
-    paragraph_id = Column('paragraph_id', Integer, ForeignKey(Paragraph.id))
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
-    class_type = Column('class', String)
-    
-    #Relationships
-    paragraph = relationship(Paragraph, uselist=False, backref='paragraph_references')
-    reference = relationship(Reference, uselist=False)
-        
-    def __init__(self, paragraph_id, reference_id, class_type):
-        self.paragraph_id = paragraph_id
-        self.reference_id = reference_id
-        self.class_type = class_type
-        
-    def unique_key(self):
-        return (self.paragraph_id, self.reference_id)
+
     

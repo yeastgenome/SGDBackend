@@ -212,11 +212,11 @@ def convert_domain(new_session_maker, chunk_size):
 def create_domain_evidence_id(row_id):
     return row_id + 80000000
 
-def create_domain_evidence(row, row_id, key_to_bioentity, key_to_domain, key_to_source):
+def create_domain_evidence(row, row_id, key_to_bioentity, key_to_domain, key_to_strain, key_to_source):
     from model_new_schema.protein import Domainevidence
     
     bioent_format_name = row[1].strip()
-    source = row[13].strip()
+    source_name = row[13].strip()
     domain_format_name = create_format_name(row[3].strip())
     start = row[10].strip()
     end = row[11].strip()
@@ -228,50 +228,42 @@ def create_domain_evidence(row, row_id, key_to_bioentity, key_to_domain, key_to_
     if bioent_key not in key_to_bioentity:
         print 'Protein not found. ' + bioent_format_name + 'P'
         return None
-    protein_id = key_to_bioentity[bioent_key].id
+    protein = key_to_bioentity[bioent_key]
     
-    if source == 'HMMSmart':
-        source = 'SMART'
-    if source == 'HMMPanther':
-        source = 'PANTHER'
-    if source == 'FPrintScan':
-        source = 'PRINTS'
-    if source == 'HMMPfam':
-        source = 'Pfam'
-    if source == 'PatternScan' or source == 'ProfileScan':
-        source = 'PROSITE'
-    if source == 'BlastProDom':
-        source = 'ProDom'
-    if source == 'HMMTigr':
-        source = 'TIGRFAMs'
-    if source == 'HMMPIR':
-        source = 'PIR superfamily'
-    if source == 'Seg' or source == 'Coil':
-        source = '-'
+    if source_name == 'HMMSmart':
+        source_name = 'SMART'
+    if source_name == 'HMMPanther':
+        source_name = 'PANTHER'
+    if source_name == 'FPrintScan':
+        source_name = 'PRINTS'
+    if source_name == 'HMMPfam':
+        source_name = 'Pfam'
+    if source_name == 'PatternScan' or source_name == 'ProfileScan':
+        source_name = 'PROSITE'
+    if source_name == 'BlastProDom':
+        source_name = 'ProDom'
+    if source_name == 'HMMTigr':
+        source_name = 'TIGRFAMs'
+    if source_name == 'HMMPIR':
+        source_name = 'PIR_superfamily'
+    if source_name == 'superfamily':
+        source_name = 'SUPERFAMILY'
+    if source_name == 'Seg' or source_name == 'Coil':
+        source_name = '-'
     
-    if domain_format_name not in key_to_domain:
-        print 'Domain not found. ' + domain_format_name
-        return None
-    domain_id = key_to_domain[domain_format_name].id
-    
-    #S288C
-    strain_id = 1
-    
-    if source in key_to_source:
-        source_id = key_to_source[source].id
-    else:
-        print 'Source not found. ' + source
-        return None
-    
-    domain_evidence = Domainevidence(create_domain_evidence_id(row_id), None, strain_id, source_id, 
-                                     int(start), int(end), evalue, status, date_of_run, protein_id, domain_id, None, None)
+    domain = None if domain_format_name is None else key_to_domain[domain_format_name]
+    strain = key_to_strain['S288C']
+    source = None if source_name not in key_to_source else key_to_source[source_name]
+        
+    domain_evidence = Domainevidence(create_domain_evidence_id(row_id), None, strain, source, 
+                                     int(start), int(end), evalue, status, date_of_run, protein, domain, None, None)
     return [domain_evidence]
 
-def create_domain_evidence_from_tf_file(row, row_id, key_to_bioentity, key_to_domain, pubmed_id_to_reference_id, key_to_source):
+def create_domain_evidence_from_tf_file(row, row_id, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source):
     from model_new_schema.protein import Domainevidence
     
     bioent_format_name = row[2]
-    source = 'JASPAR'
+    source_name = 'JASPAR'
     db_identifier = row[0]
     start = 1
     evalue = None
@@ -284,36 +276,22 @@ def create_domain_evidence_from_tf_file(row, row_id, key_to_bioentity, key_to_do
         print 'Protein not found. ' + bioent_format_name + 'P'
         return None
     protein = key_to_bioentity[bioent_key]
-    protein_id = protein.id
     end = protein.length
     
-    reference_id = None
-    if pubmed_id in pubmed_id_to_reference_id:
-        reference_id = pubmed_id_to_reference_id[pubmed_id]
+    domain = None if db_identifier is None else key_to_domain[db_identifier]
+    strain = key_to_strain['S288C']
+    source = None if source_name not in key_to_source else key_to_source[source_name]
+    reference = None if pubmed_id not in pubmed_id_to_reference else pubmed_id_to_reference[pubmed_id]
     
-    domain_key = db_identifier
-    if domain_key not in key_to_domain:
-        print 'Domain not found. ' + str(domain_key)
-    domain_id = key_to_domain[domain_key].id
-    
-    #S288C
-    strain_id = 1
-    
-    if source in key_to_source:
-        source_id = key_to_source[source].id
-    else:
-        print 'Source not found. ' + source
-        return None
-    
-    domain_evidence = Domainevidence(create_domain_evidence_id(row_id), reference_id, strain_id, source_id, 
-                                     start, end, evalue, status, date_of_run, protein_id, domain_id, None, None)
+    domain_evidence = Domainevidence(create_domain_evidence_id(row_id), reference, strain, source, 
+                                     start, end, evalue, status, date_of_run, protein, domain, None, None)
     return [domain_evidence]
 
 def convert_domain_evidence(new_session_maker, chunk_size):
     from model_new_schema.protein import Domain, Domainevidence
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.reference import Reference
-    from model_new_schema.evelement import Source
+    from model_new_schema.evelement import Source, Strain
     
     log = logging.getLogger('convert.protein.domain_evidence')
     log.info('begin')
@@ -325,7 +303,6 @@ def convert_domain_evidence(new_session_maker, chunk_size):
         current_objs = new_session.query(Domainevidence).all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
-        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
                 
         #Values to check
         values_to_check = ['reference_id', 'strain_id', 'source_id', 'date_created', 'created_by',
@@ -334,7 +311,9 @@ def convert_domain_evidence(new_session_maker, chunk_size):
         #Grab cached dictionaries
         key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])       
         key_to_domain = dict([(x.unique_key(), x) for x in new_session.query(Domain).all()]) 
-        pubmed_id_to_reference_id = dict([(x.pubmed_id, x.id) for x in new_session.query(Reference).all()]) 
+        pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).all()]) 
+        key_to_strain = dict([(x.unique_key(), x) for x in new_session.query(Strain).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -351,19 +330,17 @@ def convert_domain_evidence(new_session_maker, chunk_size):
             old_objs = data[min_id:min_id+chunk_size]
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_domain_evidence(old_obj, j, key_to_bioentity, key_to_domain, key_to_source)
+                newly_created_objs = create_domain_evidence(old_obj, j, key_to_bioentity, key_to_domain, key_to_strain, key_to_source)
                     
                 if newly_created_objs is not None:
                     #Edit or add new objects
                     for newly_created_obj in newly_created_objs:
-                        unique_key = (newly_created_obj.protein_id, newly_created_obj.domain_id, newly_created_obj.start,
-                                      newly_created_obj.end, newly_created_obj.evalue)
-                        if unique_key not in used_unique_keys:
-                            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                            current_obj_by_key = None if newly_created_obj.id not in key_to_current_obj else key_to_current_obj[newly_created_obj.id]
-                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                            used_unique_keys.add(unique_key)
-                            
+                        obj_key = newly_created_obj.unique_key()
+                        obj_id = newly_created_obj.id
+                        current_obj_by_id = None if obj_id not in id_to_current_obj else id_to_current_obj[obj_id]
+                        current_obj_by_key = None if obj_key not in key_to_current_obj else key_to_current_obj[obj_key]
+                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                        
                         if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
                             untouched_obj_ids.remove(current_obj_by_id.id)
                         if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
@@ -378,7 +355,7 @@ def convert_domain_evidence(new_session_maker, chunk_size):
         old_objs = break_up_file('/Users/kpaskov/final/TF_family_class_accession04302013.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_domain_evidence_from_tf_file(old_obj, j, key_to_bioentity, key_to_domain, pubmed_id_to_reference_id, key_to_source)
+            newly_created_objs = create_domain_evidence_from_tf_file(old_obj, j, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source)
                 
             if newly_created_objs is not None:
                 #Edit or add new objects
@@ -423,7 +400,7 @@ def convert(old_session_maker, new_session_maker):
     log = set_up_logging('convert.protein')
     log.info('begin')
         
-    convert_domain(new_session_maker, 5000)
+    #convert_domain(new_session_maker, 5000)
     
     convert_domain_evidence(new_session_maker, 5000)
     

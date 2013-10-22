@@ -45,26 +45,24 @@ class Journal(Base, EqualityByIDMixin):
     __tablename__ = 'journal'
 
     id = Column('journal_id', Integer, primary_key = True)
-    full_name = Column('full_name', String)
-    abbreviation = Column('abbreviation', String)
-    issn = Column('issn', String)
-    essn = Column('essn', String)
-    publisher = Column('publisher', String)
+    title = Column('title', String)
+    med_abbr = Column('med_abbr', String)
+    issn_print = Column('issn_print', String)
+    issn_online = Column('issn_online', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
         
-    def __init__(self, journal_id, abbreviation, full_name, issn, essn, publisher, date_created, created_by):
+    def __init__(self, journal_id, title, med_abbr, issn_print, issn_online, date_created, created_by):
         self.id = journal_id
-        self.abbreviation = abbreviation
-        self.full_name = full_name
-        self.issn =issn
-        self.essn = essn
-        self.publisher = publisher
+        self.title = title
+        self.med_abbr = med_abbr
+        self.issn_print =issn_print
+        self.issn_online = issn_online
         self.created_by = created_by
         self.date_created = date_created
         
     def unique_key(self):
-        return (self.full_name, self.abbreviation)
+        return (self.title, self.med_abbr)
 
 class Reference(Base, EqualityByIDMixin):
     __tablename__ = 'reference'
@@ -72,18 +70,18 @@ class Reference(Base, EqualityByIDMixin):
     id = Column('reference_id', Integer, primary_key = True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
-    dbxref = Column('dbxref', String)
-    link = Column('obj_link', String)
+    sgdid = Column('sgdid', String)
+    link = Column('obj_url', String)
     source_id = Column('source_id', String)
     
-    status = Column('status', String)
+    ref_status = Column('ref_status', String)
     pubmed_id = Column('pubmed_id', Integer)
     pubmed_central_id = Column('pubmed_central_id', Integer)
-    pdf_status = Column('pdf_status', String)
+    fulltext_status = Column('fulltext_status', String)
     citation = Column('citation', String)
     year = Column('year', Integer)
     date_published = Column('date_published', String)
-    date_revised = Column('date_revised', Integer)
+    date_revised = Column('date_revised', Date)
     issue = Column('issue', String)
     page = Column('page', String)
     volume = Column('volume', String)
@@ -103,17 +101,17 @@ class Reference(Base, EqualityByIDMixin):
     reftype_names = association_proxy('reftypes', 'name')
     related_references = association_proxy('refrels', 'child_ref')
     
-    def __init__(self, reference_id, display_name, format_name, dbxref, link, source_id, 
-                 status, pubmed_id, pubmed_central_id, pdf_status, citation, year, date_published, date_revised, issue, page, volume, 
+    def __init__(self, reference_id, display_name, sgdid, source_id, 
+                 ref_status, pubmed_id, pubmed_central_id, fulltext_status, citation, year, date_published, date_revised, issue, page, volume, 
                  title, journal_id, book_id, doi, date_created, created_by):
         self.id = reference_id
         self.display_name = display_name
-        self.format_name = format_name
-        self.dbxref = dbxref
-        self.link = link
+        self.format_name = sgdid if pubmed_id is None else str(pubmed_id)
+        self.sgdid = sgdid
+        self.link = 'http://www.yeastgenome.org/cgi-bin/reference/reference.pl?dbid=' + sgdid
         self.source_id=source_id
-        self.status = status
-        self.pdf_status = pdf_status
+        self.ref_status = ref_status
+        self.fulltext_status = fulltext_status
         self.citation = citation
         self.year = year
         self.date_published = date_published
@@ -265,26 +263,31 @@ class ReferenceRelation(Base, EqualityByIDMixin):
         return (self.parent_reference_id, self.child_reference_id)
     
 class Referenceurl(Url):
+    __tablename__ = 'referenceurl'
+    
+    url_id = Column('url_id', Integer, primary_key=True)
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+        
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE',
                        'inherit_condition': id == Url.id}
     
-    def __init__(self, display_name, obj_id, source, url, category, date_created, created_by):
-        Url.__init__(self, 'REFERENCE', display_name, obj_id, source, url, category, date_created, created_by)
-        
-    @hybrid_property   
-    def reference_id(self):
-        return self.obj_id
+    def __init__(self, display_name, link, source, category, reference, date_created, created_by):
+        Url.__init__(self, display_name, reference.format_name, 'REFERENCE', link, source, category, 
+                     date_created, created_by)
+        self.reference_id = reference.id
     
 class Referencealias(Alias):
+    __tablename__ = 'referenceurl'
+    
+    alias_id = Column('alias_id', Integer, primary_key=True)
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE',
                        'inherit_condition': id == Alias.id}
     
-    def __init__(self, display_name, obj_id, source, category, date_created, created_by):
-        Alias.__init__(self, 'REFERENCE', display_name, obj_id, source, category, date_created, created_by)
-        
-    @hybrid_property   
-    def reference_id(self):
-        return self.obj_id
+    def __init__(self, display_name, source, category, reference, date_created, created_by):
+        Alias.__init__(self, display_name, reference.format_name, 'REFERENCE', source, category, date_created, created_by)
+        self.reference_id = reference.id
  
 
 

@@ -12,72 +12,74 @@ class Allele(Base):
     id = Column('allele_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
-    link = Column('obj_link', String)
+    link = Column('obj_url', String)
+    source_id = Column('source_id', String)
     description = Column('description', String)
     
     def unique_key(self):
         return self.format_name
     
-    def __init__(self, display_name, format_name, link, description):
+    def __init__(self, display_name, source, description):
         self.display_name = display_name
-        self.format_name = format_name
-        self.link = link
+        self.format_name = display_name
+        self.link = None
+        self.source_id = source.id
         self.description = description
         
 class Url(Base):
     __tablename__ = 'url'
     id = Column('url_id', Integer, primary_key=True)
-    class_type = Column('class', String)
-    url = Column('url', String)
     display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
+    class_type = Column('class', String)
+    link = Column('url', String)
+    source_id = Column('source_id', Integer)
     category = Column('category', String)
-    source_id = Column('source_id', Integer, ForeignKey('nex.source.source_id'))
-    obj_id = Column('obj_id', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"URL"}
     
-    def __init__(self, class_type, display_name, obj_id, source_id, url, category, date_created, created_by):
-        self.class_type = class_type
+    def __init__(self, display_name, format_name, class_type, link, source, category, date_created, created_by):
         self.display_name = display_name
-        self.source_id = source_id
-        self.url = url
+        self.format_name = format_name
+        self.class_type = class_type
+        self.link = link
+        self.source_id = source.id
         self.category = category
-        self.obj_id = obj_id
         self.date_created = date_created
         self.created_by = created_by
         
     def unique_key(self):
-        return (self.url, self.obj_id)
+        return (self.url, self.format_name)
     
 class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'
     
     id = Column('alias_id', Integer, primary_key=True)
-    class_type = Column('class', String)
     display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
+    class_type = Column('class', String)
     source_id = Column('source_id', Integer, ForeignKey('nex.source.source_id'))
     category = Column('category', String)
-    obj_id = Column('obj_id', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"ALIAS"}
         
-    def __init__(self, class_type, display_name, obj_id, source_id, category, date_created, created_by):
-        self.class_type = class_type
+    def __init__(self, display_name, format_name, class_type, source, category, date_created, created_by):
         self.display_name = display_name
-        self.source_id = source_id
+        self.format_name = format_name
+        self.class_type = class_type
+        self.source_id = source.id
         self.category = category
-        self.obj_id = obj_id
         self.date_created = date_created
         self.created_by = created_by
         
     def unique_key(self):
-        return (self.display_name, self.obj_id)
+        return (self.display_name, self.format_name)
        
 
         

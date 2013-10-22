@@ -26,15 +26,15 @@ class Geninteractionevidence(Evidence):
     #Relationships
     phenotype = relationship(Phenotype)
 
-    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source_id, 
-                 bioentity1_id, bioentity2_id, phenotype_id, annotation_type, bait_hit, note, 
+    def __init__(self, evidence_id, source, reference, strain, experiment,
+                 bioentity1, bioentity2, phenotype, annotation_type, bait_hit, note, 
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, 'GENINTERACTION', 
-                          experiment_id, reference_id, strain_id, source_id, note,
-                          date_created, created_by)
-        self.bioentity1_id = bioentity1_id
-        self.bioentity2_id = bioentity2_id
-        self.phenotype_id = phenotype_id
+        Evidence.__init__(self, evidence_id, bioentity1.format_name + '|' + bioentity2.format_name + '|' + strain.format_name + '|' + reference.format_name, 
+                          'GENINTERACTION', source, reference, strain, experiment, 
+                          note, date_created, created_by)
+        self.bioentity1_id = bioentity1.id
+        self.bioentity2_id = bioentity2.id
+        self.phenotype_id = phenotype.id
         self.annotation_type = annotation_type
         self.bait_hit = bait_hit
         self.note = note
@@ -53,16 +53,16 @@ class Physinteractionevidence(Evidence):
                        'inherit_condition': id==Evidence.id}
     
         
-    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source_id,
-                 bioentity1_id, bioentity2_id, annotation_type, modification, bait_hit, note, 
+    def __init__(self, evidence_id, source, reference, strain, experiment,
+                 bioentity1, bioentity2, modification, annotation_type, bait_hit, note, 
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, 'PHYSINTERACTION', 
-                          experiment_id, reference_id, strain_id, source_id, note,
-                          date_created, created_by)
-        self.bioentity1_id = bioentity1_id
-        self.bioentity2_id = bioentity2_id
-        self.annotation_type = annotation_type
+        Evidence.__init__(self, evidence_id, bioentity1.format_name + '|' + bioentity2.format_name + '|' + strain.format_name + '|' + reference.format_name, 
+                          'PHYSINTERACTION', source, reference, strain, experiment,
+                          note, date_created, created_by)
+        self.bioentity1_id = bioentity1.id
+        self.bioentity2_id = bioentity2.id
         self.modification = modification
+        self.annotation_type = annotation_type
         self.bait_hit = bait_hit
         self.note = note
 

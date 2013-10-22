@@ -21,13 +21,12 @@ class Bindingevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': 'BINDING',
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, evidence_id, experiment_id, reference_id, strain_id, source_id, 
-                 bioentity_id, total_score, expert_confidence, img_url, motif_id,
+    def __init__(self, evidence_id, source, reference, strain, experiment, note, 
+                 bioentity, total_score, expert_confidence, img_url, motif_id,
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, 'BINDING', 
-                          experiment_id, reference_id, strain_id, source_id, None,
-                          date_created, created_by)
-        self.bioentity_id = bioentity_id
+        Evidence.__init__(self, evidence_id, bioentity.format_name + '|' + motif_id, 
+                          'BINDING', source, reference, strain, experiment, note, date_created, created_by)
+        self.bioentity_id = bioentity.id
         self.total_score = total_score
         self.expert_confidence = expert_confidence
         self.img_url = img_url

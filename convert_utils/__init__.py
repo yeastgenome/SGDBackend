@@ -20,7 +20,7 @@ def check_session_maker(session_maker, DBHOST, is_old):
     else:
         from model_new_schema.bioentity import Bioentity
         query = session_maker().query(Bioentity)
-    
+    query.first()
     try:
         query.first()
     except:

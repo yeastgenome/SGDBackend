@@ -103,7 +103,10 @@ def convert_go(old_session_maker, new_session_maker):
 def create_evidence_id(old_evidence_id):
     return old_evidence_id + 50000000
 
-def create_evidence(old_go_ref, key_to_go, reference_ids, bioent_ids):
+def create_evidence_format_name(bioent, biocon):
+    return bioent.format_name + '|' + biocon.format_name
+
+def create_evidence(old_go_ref, key_to_go, id_to_bioentity, reference_ids):
     from model_new_schema.go import Goevidence as NewGoevidence
     
     old_go_feature = old_go_ref.go_annotation
@@ -112,12 +115,15 @@ def create_evidence(old_go_ref, key_to_go, reference_ids, bioent_ids):
     if go_key not in key_to_go:
         print 'Go term does not exist. ' + str(go_key)
         return None
-    biocon_id = key_to_go[go_key].id
+    biocon = key_to_go[go_key]
     
     bioent_id = old_go_feature.feature_id
-    if bioent_id not in bioent_ids:
+    if bioent_id not in id_to_bioentity:
         print 'Bioentity does not exist. ' + str(bioent_id)
         return None
+    bioent = id_to_bioentity[bioent_id]
+    
+    format_name = create_evidence_format_name(bioent, biocon)
         
     evidence_id = create_evidence_id(old_go_ref.id)
         
@@ -129,9 +135,9 @@ def create_evidence(old_go_ref, key_to_go, reference_ids, bioent_ids):
     qualifier = None
     if old_go_ref.go_qualifier is not None and old_go_ref.qualifier is not None:
         qualifier = old_go_ref.qualifier
-    new_evidence = NewGoevidence(evidence_id, reference_id, old_go_feature.source,
+    new_evidence = NewGoevidence(evidence_id, format_name, reference_id, old_go_feature.source,
                             old_go_feature.go_evidence, old_go_feature.annotation_type, qualifier, old_go_feature.date_last_reviewed, 
-                            bioent_id, biocon_id, old_go_ref.date_created, old_go_ref.created_by)
+                            bioent_id, biocon.id, old_go_ref.date_created, old_go_ref.created_by)
     return [new_evidence]
 
 def convert_evidence(old_session_maker, new_session_maker, chunk_size):
@@ -155,7 +161,7 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
                        'bioentity_id', 'bioconcept_id', 'date_created', 'created_by']
         
         #Grab cached dictionaries
-        bioent_ids = set([x.id for x in new_session.query(NewBioentity).all()])
+        id_to_bioentity = dict([(x.id, x) for x in new_session.query(NewBioentity).all()])
         reference_ids = set([x.id for x in new_session.query(NewReference).all()])
         key_to_go = dict([(x.unique_key(), x) for x in new_session.query(NewGo).all()])
         
@@ -180,18 +186,17 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
         
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_evidence(old_obj, key_to_go, reference_ids, bioent_ids)
+                newly_created_objs = create_evidence(old_obj, key_to_go, id_to_bioentity, reference_ids)
                     
                 if newly_created_objs is not None:
                     #Edit or add new objects
                     for newly_created_obj in newly_created_objs:
-                        key = newly_created_obj.unique_key()
-                        if key not in already_used_keys:
-                            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                            current_obj_by_key = None if key not in key_to_current_obj else key_to_current_obj[key]
-                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                            already_used_keys.add(key)
-                            
+                        obj_key = newly_created_obj.unique_key()
+                        obj_id = newly_created_obj.id
+                        current_obj_by_id = None if obj_id not in id_to_current_obj else id_to_current_obj[obj_id]
+                        current_obj_by_key = None if obj_key not in key_to_current_obj else key_to_current_obj[obj_key]
+                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                        
                         if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
                             untouched_obj_ids.remove(current_obj_by_id.id)
                         if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
