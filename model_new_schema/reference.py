@@ -6,8 +6,8 @@ Created on Nov 7, 2012
 These classes are populated using SQLAlchemy to connect to the BUD schema on Fasolt. These are the classes representing tables in the
 Reference module of the database schema.
 '''
-from model_new_schema import Base, EqualityByIDMixin
-from model_new_schema.misc import Url, Alias
+from model_new_schema import Base, EqualityByIDMixin, create_format_name
+from model_new_schema.misc import Url, Alias, Relation
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
@@ -18,6 +18,10 @@ class Book(Base, EqualityByIDMixin):
     __tablename__ = 'book'
 
     id = Column('book_id', Integer, primary_key = True)
+    format_name = Column('format_name', String)
+    display_name = Column('display_name', String)
+    link = Column('obj_url', String)
+    source_id = Column('source_id', Integer)
     title = Column('title', String)
     volume_title = Column('volume_title', String)
     isbn = Column('isbn', String)
@@ -27,8 +31,12 @@ class Book(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
                 
-    def __init__(self, book_id, title, volume_title, isbn, total_pages, publisher, publisher_location, date_created, created_by):
+    def __init__(self, book_id, source, title, volume_title, isbn, total_pages, publisher, publisher_location, date_created, created_by):
         self.id = book_id
+        self.display_name = title
+        self.format_name = create_format_name(title + '' if volume_title is None else ('|' + volume_title))
+        self.obj_url = None
+        self.source_id = source.id
         self.title = title
         self.volume_title = volume_title
         self.isbn = isbn
@@ -45,6 +53,10 @@ class Journal(Base, EqualityByIDMixin):
     __tablename__ = 'journal'
 
     id = Column('journal_id', Integer, primary_key = True)
+    format_name = Column('format_name', String)
+    display_name = Column('display_name', String)
+    link = Column('obj_url', String)
+    source_id = Column('source_id', Integer)
     title = Column('title', String)
     med_abbr = Column('med_abbr', String)
     issn_print = Column('issn_print', String)
@@ -52,8 +64,12 @@ class Journal(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
         
-    def __init__(self, journal_id, title, med_abbr, issn_print, issn_online, date_created, created_by):
+    def __init__(self, journal_id, source, title, med_abbr, issn_print, issn_online, date_created, created_by):
         self.id = journal_id
+        self.display_name = title if title is not None else med_abbr
+        self.format_name = create_format_name(self.display_name[:99] if med_abbr is None else self.display_name[:50] + '|' + med_abbr[:49])
+        self.obj_url = None
+        self.source_id = source.id
         self.title = title
         self.med_abbr = med_abbr
         self.issn_print =issn_print
@@ -103,7 +119,7 @@ class Reference(Base, EqualityByIDMixin):
     
     def __init__(self, reference_id, display_name, sgdid, source_id, 
                  ref_status, pubmed_id, pubmed_central_id, fulltext_status, citation, year, date_published, date_revised, issue, page, volume, 
-                 title, journal_id, book_id, doi, date_created, created_by):
+                 title, journal, book, doi, date_created, created_by):
         self.id = reference_id
         self.display_name = display_name
         self.format_name = sgdid if pubmed_id is None else str(pubmed_id)
@@ -120,8 +136,8 @@ class Reference(Base, EqualityByIDMixin):
         self.page = page
         self.volume = volume
         self.title = title
-        self.journal_id = journal_id
-        self.book_id = book_id
+        self.journal_id = None if journal is None else journal.id
+        self.book_id = None if book is None else book.id
         self.pubmed_id = pubmed_id
         self.pubmed_central_id = pubmed_central_id
         self.doi = doi
@@ -176,10 +192,11 @@ class Author(Base, EqualityByIDMixin):
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     link = Column('obj_link', String)
+    source_id = Column('source_id', Integer)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
         
-    def __init__(self, author_id, display_name, format_name, link, date_created, created_by):
+    def __init__(self, author_id, display_name, format_name, link, source, date_created, created_by):
         self.id = author_id
         self.display_name = display_name
         self.format_name = format_name
@@ -239,28 +256,26 @@ class Reftype(Base, EqualityByIDMixin):
     def unique_key(self):
         return (self.name, self.reference_id)
     
-class ReferenceRelation(Base, EqualityByIDMixin):
-    __tablename__ = 'reference_relation'
+class Referencerelation(Relation):
+    __tablename__ = 'referencerelation'
 
-    id = Column('reference_relation_id', Integer, primary_key = True)
-    parent_reference_id = Column('parent_reference_id', Integer, ForeignKey(Reference.id))
-    child_reference_id = Column('child_reference_id', Integer, ForeignKey(Reference.id))
-    created_by = Column('created_by', String)
-    date_created = Column('date_created', Date)
+    id = Column('relation_id', Integer, primary_key=True)
+    parent_id = Column('parent_id', Integer, ForeignKey(Reference.id))
+    child_id = Column('child_id', Integer, ForeignKey(Reference.id))
     
+    __mapper_args__ = {'polymorphic_identity': 'REFERENCE',
+                       'inherit_condition': id == Relation.id}
+   
     #Relationships
-    parent_reference = relationship(Reference, uselist=False, backref=backref('reference_relations', passive_deletes=True), primaryjoin="ReferenceRelation.parent_reference_id==Reference.id")
-    child_reference = relationship(Reference, uselist=False, primaryjoin="ReferenceRelation.child_reference_id==Reference.id")
-    
-    def __init__(self, reference_relation_id, parent_reference_id, child_reference_id, date_created, created_by):
-        self.id = reference_relation_id
-        self.parent_reference_id = parent_reference_id;
-        self.child_reference_id = child_reference_id
-        self.date_created = date_created
-        self.created_by = created_by
-        
-    def unique_key(self):
-        return (self.parent_reference_id, self.child_reference_id)
+    parent = relationship(Reference, uselist=False, primaryjoin="Referencerelation.parent_id==Reference.id")
+    child = relationship(Reference, uselist=False, primaryjoin="Referencerelation.child_id==Reference.id")
+
+    def __init__(self, source, relation_type, parent, child, date_created, created_by):
+        Relation.__init__(self, parent.format_name + '|' + child.format_name, 
+                          child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
+                          'REFERENCE', source, relation_type, date_created, created_by)
+        self.parent_id = parent.id
+        self.child_id = child.id
     
 class Referenceurl(Url):
     __tablename__ = 'referenceurl'

@@ -5,8 +5,8 @@ Created on Jun 10, 2013
 '''
 
 from model_new_schema import Base, EqualityByIDMixin, create_format_name
-from model_new_schema.misc import Alias
-from sqlalchemy.orm import relationship, backref
+from model_new_schema.misc import Alias, Relation
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
@@ -17,16 +17,18 @@ class Experiment(Base, EqualityByIDMixin):
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     link = Column('obj_url', String)
+    source_id = Column('source_id', Integer)
     description = Column('description', String)
     eco_id = Column('eco_id', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
     
-    def __init__(self, experiment_id, display_name, description, eco_id, date_created, created_by):
+    def __init__(self, experiment_id, display_name, source, description, eco_id, date_created, created_by):
         self.id = experiment_id
         self.display_name = display_name
         self.format_name = create_format_name(display_name)
         self.link = None
+        self.source_id = source.id
         self.description = description
         self.eco_id = eco_id
         self.date_created = date_created
@@ -35,28 +37,26 @@ class Experiment(Base, EqualityByIDMixin):
     def unique_key(self):
         return self.format_name
     
-class ExperimentRelation(Base, EqualityByIDMixin):
-    __tablename__ = 'experiment_relation'
+class Experimentrelation(Relation):
+    __tablename__ = 'experimentrelation'
 
-    id = Column('experiment_relation_id', Integer, primary_key = True)
-    parent_experiment_id = Column('parent_experiment_id', Integer, ForeignKey(Experiment.id))
-    child_experiment_id = Column('child_experiment_id', Integer, ForeignKey(Experiment.id))
-    created_by = Column('created_by', String, server_default=FetchedValue())
-    date_created = Column('date_created', Date, server_default=FetchedValue())
+    id = Column('relation_id', Integer, primary_key=True)
+    parent_id = Column('parent_id', Integer, ForeignKey(Experiment.id))
+    child_id = Column('child_id', Integer, ForeignKey(Experiment.id))
     
+    __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT',
+                       'inherit_condition': id == Relation.id}
+   
     #Relationships
-    parent_experiment = relationship(Experiment, uselist=False, backref=backref('child_experiment_relations', passive_deletes=True), primaryjoin="ExperimentRelation.parent_experiment_id==Experiment.id")
-    child_experiment = relationship(Experiment, uselist=False, primaryjoin="ExperimentRelation.child_experiment_id==Experiment.id")
-    
-    def __init__(self, experimentrel_id, parent_experiment_id, child_experiment_id, date_created, created_by):
-        self.id = experimentrel_id
-        self.parent_experiment_id = parent_experiment_id;
-        self.child_experiment_id = child_experiment_id
-        self.date_created = date_created
-        self.created_by = created_by
-        
-    def unique_key(self):
-        return (self.parent_experiment_id, self.child_experiment_id)
+    parent = relationship(Experiment, uselist=False, primaryjoin="Experimentrelation.parent_id==Experiment.id")
+    child = relationship(Experiment, uselist=False, primaryjoin="Experimentrelation.child_id==Experiment.id")
+
+    def __init__(self, source, relation_type, parent, child, date_created, created_by):
+        Relation.__init__(self, parent.format_name + '|' + child.format_name, 
+                          child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
+                          'EXPERIMENT', source, relation_type, date_created, created_by)
+        self.parent_id = parent.id
+        self.child_id = child.id
     
 class Experimentalias(Alias):
     __tablename__ = 'experimentalias'
@@ -80,15 +80,17 @@ class Strain(Base, EqualityByIDMixin):
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     link = Column('obj_url', String)
+    source_id = Column('source_id', Integer)
     description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue()) 
     
-    def __init__(self, strain_id, display_name, description, date_created, created_by):
+    def __init__(self, strain_id, display_name, source, description, date_created, created_by):
         self.id = strain_id
         self.display_name = display_name;
         self.format_name = create_format_name(display_name)
         self.link = None
+        self.source_id = source.id
         self.date_created = date_created
         self.created_by = created_by
         

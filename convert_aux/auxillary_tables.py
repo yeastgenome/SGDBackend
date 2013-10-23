@@ -37,7 +37,7 @@ def create_bioentity_reference_from_paragraph(paragraph, class_type):
 def convert_bioentity_reference(new_session_maker, evidence_class, class_type, label, chunk_size, get_bioent_ids_f, 
                                 filter_f=None):
     from model_new_schema.auxiliary import BioentityReference
-    from model_new_schema.bioentity import Paragraph
+    from model_new_schema.paragraph import Paragraph
     
     log = logging.getLogger(label)
     log.info('begin')
@@ -69,33 +69,6 @@ def convert_bioentity_reference(new_session_maker, evidence_class, class_type, l
                     #Convert old objects into new ones
                     newly_created_objs = create_bioentity_reference(old_obj, get_bioent_ids_f, class_type)
              
-                    if newly_created_objs is not None:
-                        #Edit or add new objects
-                        for newly_created_obj in newly_created_objs:
-                            unique_key = newly_created_obj.unique_key()
-                            if unique_key not in used_unique_keys:
-                                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                                current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
-                                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                                used_unique_keys.add(unique_key)
-                                
-                            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                                untouched_obj_ids.remove(current_obj_by_id.id)
-                            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                                untouched_obj_ids.remove(current_obj_by_key.id)
-                            
-            output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
-            new_session.commit()
-            min_id = min_id+chunk_size
-            
-        #Add paragraph-related bioent_references.
-        old_objs = new_session.query(Paragraph).filter(Paragraph.class_type == class_type).options(joinedload('paragraph_references')).all()                               
-        for old_obj in old_objs:
-            if filter_f is None or filter_f(old_obj):
-                #Convert old objects into new ones
-                newly_created_objs = create_bioentity_reference_from_paragraph(old_obj, class_type)
-         
-                if newly_created_objs is not None:
                     #Edit or add new objects
                     for newly_created_obj in newly_created_objs:
                         unique_key = newly_created_obj.unique_key()
@@ -109,6 +82,31 @@ def convert_bioentity_reference(new_session_maker, evidence_class, class_type, l
                             untouched_obj_ids.remove(current_obj_by_id.id)
                         if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                             untouched_obj_ids.remove(current_obj_by_key.id)
+                            
+            output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
+            new_session.commit()
+            min_id = min_id+chunk_size
+            
+        #Add paragraph-related bioent_references.
+        old_objs = new_session.query(Paragraph).filter(Paragraph.class_type == class_type).options(joinedload('paragraph_references')).all()                               
+        for old_obj in old_objs:
+            if filter_f is None or filter_f(old_obj):
+                #Convert old objects into new ones
+                newly_created_objs = create_bioentity_reference_from_paragraph(old_obj, class_type)
+         
+                #Edit or add new objects
+                for newly_created_obj in newly_created_objs:
+                    unique_key = newly_created_obj.unique_key()
+                    if unique_key not in used_unique_keys:
+                        current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                        current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                        used_unique_keys.add(unique_key)
+                        
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
             
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:

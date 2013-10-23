@@ -7,7 +7,7 @@ from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.evelement import Experiment, Strain, Source
 from model_new_schema.reference import Reference
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
 class Evidence(Base, EqualityByIDMixin):
@@ -21,8 +21,8 @@ class Evidence(Base, EqualityByIDMixin):
     strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
     experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
     note = Column('note', String)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
     
     source = relationship(Source, backref=backref('evidences', passive_deletes=True), uselist=False)
     reference = relationship(Reference, backref=backref('evidences', passive_deletes=True), uselist=False)
@@ -40,7 +40,7 @@ class Evidence(Base, EqualityByIDMixin):
         self.class_type = class_type
         self.source_id = source.id
         self.reference_id = None if reference is None else reference.id
-        self.strain_id = strain.id
+        self.strain_id = None if strain is None else strain.id
         self.experiment_id = None if experiment is None else experiment.id
         self.note = note
         self.date_created = date_created

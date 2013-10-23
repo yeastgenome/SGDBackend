@@ -14,7 +14,7 @@ from sqlalchemy.types import Integer, String
 class Biofact(Base, EqualityByIDMixin):
     __tablename__ = 'aux_biofact'
 
-    id = Column('biofact_id', Integer, primary_key=True)
+    id = Column('aux_biofact_id', Integer, primary_key=True)
     bioentity_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
     bioconcept_id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id))
     class_type = Column('class', String)
@@ -30,7 +30,7 @@ class Biofact(Base, EqualityByIDMixin):
 class Interaction(Base, EqualityByIDMixin):
     __tablename__ = "aux_interaction"
     
-    id = Column('interaction_id', Integer, primary_key = True)
+    id = Column('aux_interaction_id', Integer, primary_key = True)
     class_type = Column('class', String)
     format_name = Column('format_name', String)
     display_name = Column('display_name', String)
@@ -67,7 +67,7 @@ class Reginteraction(Interaction, EqualityByIDMixin):
 class InteractionFamily(Base, EqualityByIDMixin):
     __tablename__ = "aux_interaction_family"
     
-    id = Column('interaction_family_id', Integer, primary_key = True)
+    id = Column('aux_interaction_family_id', Integer, primary_key = True)
     bioentity_id = Column('bioentity_id', Integer)
     bioentity1_id = Column('bioentity1_id', Integer)
     bioentity2_id = Column('bioentity2_id', Integer)
@@ -90,7 +90,7 @@ class InteractionFamily(Base, EqualityByIDMixin):
 class RegulationFamily(Base, EqualityByIDMixin):
     __tablename__ = "aux_regulation_family"
     
-    id = Column('regulation_family_id', Integer, primary_key = True)
+    id = Column('aux_regulation_family_id', Integer, primary_key = True)
     bioentity_id = Column('bioentity_id', Integer)
     bioentity1_id = Column('bioentity1_id', Integer)
     bioentity2_id = Column('bioentity2_id', Integer)
@@ -109,7 +109,7 @@ class RegulationFamily(Base, EqualityByIDMixin):
 class BioconceptAncestor(Base, EqualityByIDMixin):
     __tablename__ = 'aux_bioconcept_ancestor'
 
-    id = Column('bioconcept_ancestor_id', Integer, primary_key=True)
+    id = Column('aux_bioconcept_ancestor_id', Integer, primary_key=True)
     ancestor_bioconcept_id = Column('ancestor_bioconcept_id', Integer, ForeignKey(Bioconcept.id))
     child_bioconcept_id = Column('child_bioconcept_id', Integer, ForeignKey(Bioconcept.id))
     generation = Column('generation', Integer)
@@ -130,7 +130,7 @@ class BioconceptAncestor(Base, EqualityByIDMixin):
 class BioentityReference(Base):
     __tablename__ = 'aux_bioentity_reference'
     
-    id = Column('bioentity_reference_id', Integer, primary_key=True)
+    id = Column('aux_bioentity_reference_id', Integer, primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     class_type = Column('class', String)
@@ -182,11 +182,11 @@ class OmicsBioentityReference(BioentityReference, EqualityByIDMixin):
 class Disambig(Base, EqualityByIDMixin):
     __tablename__ = 'aux_disambig'
     
-    id = Column('disambig_id', Integer, primary_key=True)
+    id = Column('aux_disambig_id', Integer, primary_key=True)
     disambig_key = Column('disambig_key', String)
     class_type = Column('class_type', String)
     subclass_type = Column('subclass_type', String)
-    identifier = Column('identifier', String)
+    identifier = Column('obj_id', String)
     
     def __init__(self, disambig_key, class_type, subclass_type, identifier):
         self.disambig_key = disambig_key

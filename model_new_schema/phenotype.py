@@ -42,12 +42,12 @@ class Phenotype(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Bioconcept.id}
 
-    def __init__(self, bioconcept_id, link, source, dbxref, description,
+    def __init__(self, bioconcept_id, source, sgdid, description,
                  observable, qualifier, mutant_type, phenotype_type, 
                  date_created, created_by):
         Bioconcept.__init__(self, bioconcept_id, create_phenotype_display_name(observable, qualifier, mutant_type), 
                             create_phenotype_format_name(observable, qualifier, mutant_type), 
-                            'PHENOTYPE', link, source, dbxref, description, 
+                            'PHENOTYPE', None, source, sgdid, description, 
                             date_created, created_by)
         self.observable = observable
         self.qualifier = qualifier
@@ -82,14 +82,15 @@ class Phenotypeevidence(Evidence):
                        'inherit_condition': id==Evidence.id}
     
     def __init__(self, evidence_id, source, reference, strain, experiment, note,
-                 bioentity, bioconcept, allele, 
+                 bioentity, phenotype, allele, 
                  allele_info, reporter, reporter_desc, strain_details, experiment_details, conditions, details,
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, bioentity.format_name + '|' + bioconcept.format_name + '|' + reference.format_name, 'PHENOTYPE', source, reference, strain, experiment, note,
+        Evidence.__init__(self, evidence_id, bioentity.format_name + '|' + phenotype.format_name + '|' + reference.format_name, 
+                          'PHENOTYPE', source, reference, strain, experiment, note,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
-        self.bioconcept_id = bioconcept.id
-        self.allele_id = allele.id
+        self.bioconcept_id = phenotype.id
+        self.allele_id = None if allele is None else allele.id
         
         self.allele_info = allele_info
         self.reporter = reporter

@@ -26,13 +26,20 @@ DROP TABLE chemicalcondition;
 DROP TABLE condition;
 DROP TABLE evidence;
 
+/* Relation */
+DROP TABLE bioentityrelation;
+DROP TABLE bioconceptrelation;
+DROP TABLE chemicalrelation;
+DROP TABLE experimentrelation;
+DROP TABLE referencerelation;
+DROP TABLE relation;
+
 /* Evelements */
 DROP TABLE experiment_relation;
 DROP TABLE experimentalias;
 DROP TABLE experiment;
 
 DROP TABLE strain;
-DROP TABLE source;
 
 /* Chemical */
 DROP TABLE chemical_relation;
@@ -83,7 +90,8 @@ DROP TABLE bioentity;
 DROP TABLE alias;
 DROP TABLE url;
 DROP TABLE pdomain;
-
+DROP TABLE background;
+DROP TABLE source;
 
 
 

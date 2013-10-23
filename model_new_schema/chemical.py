@@ -4,8 +4,8 @@ Created on Jun 4, 2013
 @author: kpaskov
 '''
 from model_new_schema import Base, create_format_name
-from model_new_schema.misc import Alias
-from sqlalchemy.orm import relationship
+from model_new_schema.misc import Alias, Relation
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 
@@ -45,28 +45,26 @@ class Chemicalalias(Alias):
         Alias.__init__(self, display_name, chemical.format_name, 'CHEMICAL', source, category, date_created, created_by)
         self.chemical_id = chemical.id
         
-class ChemicalRelation(Base):
-    __tablename__ = "chemical_relation"
+class Chemicalrelation(Relation):
+    __tablename__ = 'chemicalrelation'
+
+    id = Column('relation_id', Integer, primary_key=True)
+    parent_id = Column('parent_id', Integer, ForeignKey(Chemical.id))
+    child_id = Column('child_id', Integer, ForeignKey(Chemical.id))
     
-    id = Column('chemical_relation_id', Integer, primary_key=True)
-    parent_chemical_id = Column('parent_chemical_id', Integer, ForeignKey(Chemical.id))
-    child_chemical_id = Column('child_chemical_id', Integer, ForeignKey(Chemical.id))
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
-    
+    __mapper_args__ = {'polymorphic_identity': 'CHEMICAL',
+                       'inherit_condition': id == Relation.id}
+   
     #Relationships
-    parent = relationship(Chemical, uselist=False, primaryjoin="ChemicalRelation.parent_chemical_id==Chemical.id")
-    child = relationship(Chemical, uselist=False, backref='parent_chemical_relations', primaryjoin="ChemicalRelation.child_chemical_id==Chemical.id")
-          
-    def __init__(self, chemical_relation_id, parent_chemical_id, child_chemical_id, date_created, created_by):
-        self.id = chemical_relation_id
-        self.parent_chemical_id = parent_chemical_id
-        self.child_chemical_id = child_chemical_id
-        self.date_created = date_created
-        self.created_by = created_by  
-        
-    def unique_key(self):
-        return (self.parent_chemical_id, self.child_chemical_id)  
+    parent = relationship(Chemical, uselist=False, primaryjoin="Chemicalrelation.parent_id==Chemical.id")
+    child = relationship(Chemical, uselist=False, primaryjoin="Chemicalrelation.child_id==Chemical.id")
+
+    def __init__(self, source, relation_type, parent, child, date_created, created_by):
+        Relation.__init__(self, parent.format_name + '|' + child.format_name, 
+                          child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
+                          'CHEMICAL', source, relation_type, date_created, created_by)
+        self.parent_id = parent.id
+        self.child_id = child.id
         
         
         

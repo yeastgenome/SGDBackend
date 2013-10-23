@@ -4,9 +4,9 @@ Created on Nov 28, 2012
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin
-from model_new_schema.misc import Url, Alias
+from model_new_schema.misc import Url, Alias, Relation
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
 class Bioconcept(Base, EqualityByIDMixin):
@@ -20,8 +20,8 @@ class Bioconcept(Base, EqualityByIDMixin):
     source_id = Column('source_id', Integer)
     sgdid = Column('sgdid', String)
     description = Column('description', String)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
     
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"BIOCONCEPT"}
@@ -41,27 +41,28 @@ class Bioconcept(Base, EqualityByIDMixin):
     def unique_key(self):
         return (self.format_name, self.class_type)
       
-class BioconceptRelation(Base, EqualityByIDMixin):
-    __tablename__ = 'bioconcept_relation'
+class Bioconceptrelation(Relation):
+    __tablename__ = 'bioconceptrelation'
 
-    id = Column('bioconcept_relation_id', Integer, primary_key=True)
-    parent_bioconcept_id = Column('parent_bioconcept_id', Integer, ForeignKey(Bioconcept.id))
-    child_bioconcept_id = Column('child_bioconcept_id', Integer, ForeignKey(Bioconcept.id))
-    relationship_type = Column('relationship_type', String)
-    class_type = Column('class', String)
+    id = Column('relation_id', Integer, primary_key=True)
+    bioconrel_class_type = Column('class', String)
+    parent_id = Column('parent_id', Integer, ForeignKey(Bioconcept.id))
+    child_id = Column('child_id', Integer, ForeignKey(Bioconcept.id))
+    
+    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
+                       'inherit_condition': id == Bioconcept.id}
    
     #Relationships
-    parent_bioconcept = relationship('Bioconcept', uselist=False, backref=backref('child_bioconcepts', cascade='all,delete'), primaryjoin="BioconceptRelation.parent_bioconcept_id==Bioconcept.id")
-    child_bioconcept = relationship('Bioconcept', uselist=False, backref=backref('parent_bioconcepts', cascade='all,delete'), primaryjoin="BioconceptRelation.child_bioconcept_id==Bioconcept.id")
+    parent = relationship('Bioconcept', uselist=False, backref=backref('child_bioconcepts', cascade='all,delete'), primaryjoin="Bioconceptrelation.parent_id==Bioconcept.id")
+    child = relationship('Bioconcept', uselist=False, backref=backref('parent_bioconcepts', cascade='all,delete'), primaryjoin="Bioconceptrelation.child_id==Bioconcept.id")
 
-    def __init__(self, parent_bioconcept_id, child_bioconcept_id, class_type, relationship_type):
-        self.parent_bioconcept_id = parent_bioconcept_id
-        self.child_bioconcept_id = child_bioconcept_id
-        self.class_type = class_type
-        self.relationship_type = relationship_type
-        
-    def unique_key(self):
-        return (self.parent_bioconcept_id, self.child_bioconcept_id, self.class_type, self.relationship_type)
+    def __init__(self, source, relation_type, parent, child, bioconrel_class_type, date_created, created_by):
+        Relation.__init__(self, parent.format_name + '|' + child.format_name + '|' + bioconrel_class_type, 
+                          child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
+                          'BIOCONCEPT', source, relation_type, date_created, created_by)
+        self.parent_id = parent.id
+        self.child_id = child.id
+        self.bioconrel_class_type = bioconrel_class_type
     
 class Bioconcepturl(Url):
     __tablename__ = 'bioconcepturl'

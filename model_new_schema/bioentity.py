@@ -8,8 +8,8 @@ will eventually be the Bioentity classes/tables in the new SGD website schema. T
 schema on fasolt.
 '''
 from model_new_schema import Base, EqualityByIDMixin
-from model_new_schema.misc import Alias, Url
-from sqlalchemy.orm import relationship
+from model_new_schema.misc import Alias, Url, Relation
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
@@ -75,7 +75,27 @@ class Bioentityalias(Alias):
     def __init__(self, display_name, source, category, bioentity, date_created, created_by):
         Alias.__init__(self, display_name, bioentity.format_name, 'BIOENTITY', source, category, date_created, created_by)
         self.bioentity_id = bioentity.id
+
+class Bioentityrelation(Relation):
+    __tablename__ = 'bioentityrelation'
+
+    id = Column('relation_id', Integer, primary_key=True)
+    parent_id = Column('parent_id', Integer, ForeignKey(Bioentity.id))
+    child_id = Column('child_id', Integer, ForeignKey(Bioentity.id))
     
+    __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
+                       'inherit_condition': id == Relation.id}
+   
+    #Relationships
+    parent = relationship(Bioentity, uselist=False, primaryjoin="Bioentityrelation.parent_id==Bioentity.id")
+    child = relationship(Bioentity, uselist=False, primaryjoin="Bioentityrelation.child_id==Bioentity.id")
+
+    def __init__(self, source, relation_type, parent, child, date_created, created_by):
+        Relation.__init__(self, parent.format_name + '|' + child.format_name, 
+                          child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
+                          'BIOENTITY', source, relation_type, date_created, created_by)
+        self.parent_id = parent.id
+        self.child_id = child.id
                        
 class Locus(Bioentity):
     __tablename__ = "locusbioentity"

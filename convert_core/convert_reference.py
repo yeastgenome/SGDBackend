@@ -26,19 +26,25 @@ import sys
 def create_journal_id(old_journal_id):
     return old_journal_id
 
-def create_journal(old_journal):
+def create_journal(old_journal, key_to_source):
     from model_new_schema.reference import Journal as NewJournal
     
     abbreviation = old_journal.abbreviation
     if old_journal.issn == '0948-5023':
         abbreviation = 'J Mol Model (Online)'
+        
+    source = key_to_source['PubMed']
     
-    new_journal = NewJournal(create_journal_id(old_journal.id), old_journal.full_name, abbreviation, old_journal.issn, 
+    title = old_journal.full_name
+    if title is not None or abbreviation is not None:
+        new_journal = NewJournal(create_journal_id(old_journal.id), source, title, abbreviation, old_journal.issn, 
                              old_journal.essn, old_journal.date_created, old_journal.created_by)
-    return [new_journal]
+        return [new_journal]
+    return []
 
 def convert_journal(old_session_maker, new_session_maker):
     from model_new_schema.reference import Journal as NewJournal
+    from model_new_schema.evelement import Source as NewSource
     from model_old_schema.reference import Journal as OldJournal
     
     log = logging.getLogger('convert.reference.journal')
@@ -61,10 +67,14 @@ def convert_journal(old_session_maker, new_session_maker):
         old_session = old_session_maker()
         old_objs = old_session.query(OldJournal).all()
         
+        #Cache
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource)])
+        
         used_unique_keys = set()
+
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_journal(old_obj)
+            newly_created_objs = create_journal(old_obj, key_to_source)
                 
             if newly_created_objs is not None:
                 #Edit or add new objects
@@ -82,6 +92,7 @@ def convert_journal(old_session_maker, new_session_maker):
                             untouched_obj_ids.remove(current_obj_by_id.id)
                         if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                             untouched_obj_ids.remove(current_obj_by_key.id)
+    
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -107,16 +118,18 @@ def convert_journal(old_session_maker, new_session_maker):
 def create_book_id(old_book_id):
     return old_book_id
 
-def create_book(old_book):
+def create_book(old_book, key_to_source):
     from model_new_schema.reference import Book as NewBook
     
-    new_book = NewBook(create_book_id(old_book.id), old_book.title, old_book.volume_title, old_book.isbn, old_book.total_pages, 
+    source = key_to_source['PubMed']
+    new_book = NewBook(create_book_id(old_book.id), source, old_book.title, old_book.volume_title, old_book.isbn, old_book.total_pages, 
                        old_book.publisher, old_book.publisher_location, 
                        old_book.date_created, old_book.created_by)
     return [new_book]
 
 def convert_book(old_session_maker, new_session_maker):
     from model_new_schema.reference import Book as NewBook
+    from model_new_schema.evelement import Source as NewSource
     from model_old_schema.reference import Book as OldBook
     
     log = logging.getLogger('convert.reference.book')
@@ -135,13 +148,16 @@ def convert_book(old_session_maker, new_session_maker):
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
+        #Cache
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource)])
+        
         #Grab old objects
         old_session = old_session_maker()
         old_objs = old_session.query(OldBook).all()
         
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_book(old_obj)
+            newly_created_objs = create_book(old_obj, key_to_source)
                 
             if newly_created_objs is not None:
                 #Edit or add new objects
@@ -224,26 +240,20 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
     citation = create_citation(old_reference.citation)
     display_name = create_display_name(citation)
             
-    journal_id = None
-    journal = old_reference.journal
-    if journal is not None:
-        abbreviation = journal.abbreviation
-        if journal.issn == '0948-5023':
+    new_journal = None
+    old_journal = old_reference.journal
+    if old_journal is not None:
+        abbreviation = old_journal.abbreviation
+        if old_journal.issn == '0948-5023':
             abbreviation = 'J Mol Model (Online)'
-        journal_key = (journal.full_name, abbreviation)
-        if journal_key not in key_to_journal:
-            print 'Journal does not exist. ' + str(journal_key)
-            return None
-        journal_id = key_to_journal[journal_key].id
-        
-    book_id = None
-    book = old_reference.book
-    if book is not None:
-        book_key = (book.title, book.volume_title)
-        if book_key not in key_to_book:
-            print 'Book does not exist. ' + str(book_key)
-            return None
-        book_id = key_to_book[book_key].id
+        journal_key = (old_journal.full_name, abbreviation)
+        new_journal = None if journal_key not in key_to_journal else key_to_journal[journal_key]
+    
+    new_book = None    
+    old_book = old_reference.book
+    if old_book is not None:
+        book_key = (old_book.title, old_book.volume_title)
+        new_book = None if book_key not in key_to_book else key_to_book[book_key]
         
     pubmed_id = None
     pubmed_central_id = None
@@ -272,7 +282,7 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
                            old_reference.pdf_status, citation, year, 
                            old_reference.date_published, date_revised, 
                            old_reference.issue, old_reference.page, old_reference.volume, old_reference.title,
-                           journal_id, book_id, old_reference.doi,
+                           new_journal, new_book, old_reference.doi,
                            old_reference.date_created, old_reference.created_by)
     return [new_ref]
 

@@ -29,12 +29,12 @@ class Geninteractionevidence(Evidence):
     def __init__(self, evidence_id, source, reference, strain, experiment,
                  bioentity1, bioentity2, phenotype, annotation_type, bait_hit, note, 
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, bioentity1.format_name + '|' + bioentity2.format_name + '|' + strain.format_name + '|' + reference.format_name, 
+        Evidence.__init__(self, evidence_id, bioentity1.format_name + '|' + bioentity2.format_name + '|' + '-' if strain is None else strain.format_name + '|' + reference.format_name, 
                           'GENINTERACTION', source, reference, strain, experiment, 
                           note, date_created, created_by)
         self.bioentity1_id = bioentity1.id
         self.bioentity2_id = bioentity2.id
-        self.phenotype_id = phenotype.id
+        self.phenotype_id = None if phenotype is None else phenotype.id
         self.annotation_type = annotation_type
         self.bait_hit = bait_hit
         self.note = note

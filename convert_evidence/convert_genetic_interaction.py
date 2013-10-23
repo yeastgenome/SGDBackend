@@ -4,7 +4,6 @@ Created on May 6, 2013
 @author: kpaskov
 '''
 from convert_aux.auxillary_tables import convert_bioentity_reference
-from convert_evidence import convert_phenotype
 from convert_utils import create_or_update, set_up_logging, create_format_name, \
     prepare_connections
 from convert_utils.output_manager import OutputCreator
@@ -31,8 +30,9 @@ def create_genetic_evidence_id(old_evidence_id):
     return old_evidence_id - 397921 + 10000000
 
 def create_genetic_interevidence(old_interaction, key_to_experiment, key_to_phenotype,
-                         reference_ids, bioent_ids, key_to_source):
+                         id_to_reference, id_to_bioents, key_to_source):
     from model_new_schema.interaction import Geninteractionevidence as NewGeninteractionevidence
+    from model_new_schema.phenotype import create_phenotype_format_name
     
     if old_interaction.interaction_type == 'genetic interactions':
         reference_ids = old_interaction.reference_ids
@@ -40,9 +40,8 @@ def create_genetic_interevidence(old_interaction, key_to_experiment, key_to_phen
             print 'Too many references'
             return None
         reference_id = reference_ids[0]
-        if reference_id not in reference_ids:
-            print 'Reference does not exist.'
-            return None
+        reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
+       
         note = old_interaction.interaction_references[0].note
         
         bioent_ids = list(old_interaction.feature_ids)
@@ -50,53 +49,39 @@ def create_genetic_interevidence(old_interaction, key_to_experiment, key_to_phen
         bioent1_id = bioent_ids[0]
         bioent2_id = bioent_ids[1]
         
-        if bioent1_id > bioent2_id:
-            print 'Out of order.'
-            return None
-        if bioent1_id not in bioent_ids:
-            print 'Bioentity does not exist.'
-            return None
-        if bioent2_id not in bioent_ids:
-            print 'Bioentity does not exist.'
-            return None
+        bioentity1 = None if bioent1_id not in id_to_bioents else id_to_bioents[bioent1_id]
+        bioentity2 = None if bioent2_id not in id_to_bioents else id_to_bioents[bioent2_id]
         
         old_phenotypes = old_interaction.interaction_phenotypes
-        phenotype_id = None
+        phenotype = None
         if len(old_phenotypes) == 1:
             old_phenotype = old_phenotypes[0].phenotype
-            phenotype_key = (convert_phenotype.create_phenotype_format_name(old_phenotype.observable, old_phenotype.qualifier, old_phenotype.mutant_type), 'PHENOTYPE')
+            phenotype_key = (create_phenotype_format_name(old_phenotype.observable, old_phenotype.qualifier, old_phenotype.mutant_type), 'PHENOTYPE')
             
             if phenotype_key not in key_to_phenotype:
                 print 'Phenotype does not exist. ' + str(phenotype_key)
                 return None
-            phenotype_id = key_to_phenotype[phenotype_key].id
+            phenotype = key_to_phenotype[phenotype_key]
         elif len(old_phenotypes) > 1:
             print 'Too many phenotypes.'
             return None
         
         
         experiment_key = create_format_name(old_interaction.experiment_type)
-        if experiment_key not in key_to_experiment:
-            print 'Experiment does not exist. ' + str(experiment_key)
-            return None
-        experiment_id = key_to_experiment[experiment_key].id
+        experiment = None if experiment_key not in key_to_experiment else key_to_experiment[experiment_key]
         
         source_key = old_interaction.source
-        if source_key in key_to_source:
-            source_id = key_to_source[source_key].id
-        else:
-            print 'Source could not be found. ' + source_key
-            return None
+        source = None if source_key not in key_to_source else key_to_source[source_key]
         
         feat_interacts = sorted(old_interaction.feature_interactions, key=lambda x: x.feature_id)
         bait_hit = '-'.join([x.action for x in feat_interacts])
         
-        new_genetic_interevidence = NewGeninteractionevidence(create_genetic_evidence_id(old_interaction.id), experiment_id, reference_id, None, source_id, 
-                                                            bioent1_id, bioent2_id, phenotype_id, 
+        new_genetic_interevidence = NewGeninteractionevidence(create_genetic_evidence_id(old_interaction.id), source, reference, None, experiment, 
+                                                            bioentity1, bioentity2, phenotype, 
                                                             old_interaction.annotation_type, bait_hit, note,
                                                             old_interaction.date_created, old_interaction.created_by)
         return [new_genetic_interevidence]    
-    return None
+    return []
 
 def convert_genetic_interevidence(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.interaction import Geninteractionevidence as NewGeninteractionevidence
@@ -117,13 +102,13 @@ def convert_genetic_interevidence(old_session_maker, new_session_maker, chunk_si
         #Values to check
         values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id',
                        'bioentity1_id', 'bioentity2_id', 'phenotype_id', 
-                       'note', 'annotation_type', 'date_created', 'created_by']
+                       'note', 'annotation_type']
         
         #Grab cached dictionaries
         key_to_experiment = dict([(x.unique_key(), x) for x in new_session.query(NewExperiment).all()])
         key_to_phenotype = dict([(x.unique_key(), x) for x in new_session.query(NewPhenotype).all()])
-        bioent_ids = dict([(x.unique_key(), x) for x in new_session.query(NewBioentity).all()])
-        reference_ids = set([x.id for x in new_session.query(NewReference).all()])
+        id_to_bioent = dict([(x.id, x) for x in new_session.query(NewBioentity).all()])
+        id_to_reference = dict([(x.id, x) for x in new_session.query(NewReference).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
         min_id = old_session.query(func.min(OldInteraction.id)).first()[0]
@@ -147,19 +132,18 @@ def convert_genetic_interevidence(old_session_maker, new_session_maker, chunk_si
         
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_genetic_interevidence(old_obj, key_to_experiment, key_to_phenotype, reference_ids, bioent_ids, key_to_source)
+                newly_created_objs = create_genetic_interevidence(old_obj, key_to_experiment, key_to_phenotype, id_to_reference, id_to_bioent, key_to_source)
                     
-                if newly_created_objs is not None:
-                    #Edit or add new objects
-                    for newly_created_obj in newly_created_objs:
-                        current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                        current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                        
-                        if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                            untouched_obj_ids.remove(current_obj_by_id.id)
-                        if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                            untouched_obj_ids.remove(current_obj_by_key.id)
+                #Edit or add new objects
+                for newly_created_obj in newly_created_objs:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
                             
             #Delete untouched objs
             for untouched_obj_id  in untouched_obj_ids:

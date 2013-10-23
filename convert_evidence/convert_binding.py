@@ -16,43 +16,28 @@ import sys
 def create_evidence_id(old_regevidence_id):
     return old_regevidence_id + 90000000
 
-def create_evidence(row, row_id, key_to_experiment, key_to_bioent, pubmed_to_reference_id, key_to_source):
+def create_evidence(row, row_id, key_to_experiment, key_to_bioent, pubmed_to_reference, key_to_source):
     from model_new_schema.sequence import Bindingevidence
     
     bioent_format_name = row[2][1:-1]
-    motif_id = row[3][1:-1]
+    motif_id = int(row[3][1:-1])
     total_score = row[6][1:-1]
     expert_confidence = row[8][1:-1]
     experiment_format_name = create_format_name(row[9][1:-1])
     pubmed_id = int(row[10][1:-1])
-    source_id = key_to_source['YeTFaSCo'].id
+    source = key_to_source['YeTFaSCo']
     
     if expert_confidence != 'High':
-        return None
+        return []
     
-    if (bioent_format_name, 'LOCUS') in key_to_bioent:
-        bioent1 = key_to_bioent[(bioent_format_name, 'LOCUS')]
-    elif (bioent_format_name, 'BIOENTITY') in key_to_bioent:
-        bioent1 = key_to_bioent[(bioent_format_name, 'BIOENTITY')]
-    else:
-        print 'Bioent does not exist ' + str(bioent_format_name)
-        return None
-    bioent_id = bioent1.id
+    bioent_key = (bioent_format_name, 'LOCUS')
+    bioentity = None if bioent_key not in key_to_bioent else key_to_bioent[bioent_key]
+    experiment = None if experiment_format_name not in key_to_experiment else key_to_experiment[experiment_format_name]
     
-    experiment_key = experiment_format_name
-    if experiment_key not in key_to_experiment:
-        print 'Experiment does not exist ' + str(experiment_key)
-        return None
-    experiment_id = key_to_experiment[experiment_key].id
+    reference = None if pubmed_id not in pubmed_to_reference else pubmed_to_reference[pubmed_id]
     
-    reference_id = None
-    if pubmed_id in pubmed_to_reference_id:
-        reference_id = pubmed_to_reference_id[pubmed_id]
-    
-    img_url = "/static/img/yetfasco/" + bioent_format_name + "_" + motif_id + ".0.png"
-    
-    new_evidence = Bindingevidence(create_evidence_id(row_id), experiment_id, reference_id, None, source_id, 
-                                   bioent_id, total_score, expert_confidence, img_url, motif_id, None, None)
+    new_evidence = Bindingevidence(create_evidence_id(row_id), source, reference, None, experiment, None,
+                                   bioentity, total_score, expert_confidence, motif_id, None, None)
     return [new_evidence]
 
 def convert_evidence(new_session_maker, chunk_size):
@@ -70,12 +55,12 @@ def convert_evidence(new_session_maker, chunk_size):
          
         #Values to check
         values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id', 'motif_id',
-                       'bioentity_id', 'total_score', 'expert_confidence', 'img_url', 'date_created', 'created_by']
+                       'bioentity_id', 'total_score', 'expert_confidence', 'link']
         
         #Grab cached dictionaries
         key_to_experiment = dict([(x.unique_key(), x) for x in new_session.query(Experiment).all()])
         key_to_bioent = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])
-        pubmed_to_reference_id = dict([(x.pubmed_id, x.id) for x in new_session.query(Reference).all()])
+        pubmed_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         
         #Grab old objects
@@ -97,7 +82,7 @@ def convert_evidence(new_session_maker, chunk_size):
         
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_evidence(old_obj, j, key_to_experiment, key_to_bioent, pubmed_to_reference_id, key_to_source)
+                newly_created_objs = create_evidence(old_obj, j, key_to_experiment, key_to_bioent, pubmed_to_reference, key_to_source)
          
                 if newly_created_objs is not None:
                     #Edit or add new objects
@@ -123,7 +108,6 @@ def convert_evidence(new_session_maker, chunk_size):
             min_id = min_id+chunk_size
         
         #Commit
-        output_creator.finished()
         new_session.commit()
         
     except Exception:
