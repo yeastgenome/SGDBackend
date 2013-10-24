@@ -3,7 +3,7 @@ Created on Sep 20, 2013
 
 @author: kpaskov
 '''
-from convert_aux.auxillary_tables import convert_disambigs
+from convert_aux.convert_aux_other import convert_disambigs
 from convert_utils import create_or_update, set_up_logging, break_up_file, \
     create_format_name, prepare_connections
 from convert_utils.output_manager import OutputCreator

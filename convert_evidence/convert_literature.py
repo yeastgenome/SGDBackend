@@ -3,7 +3,7 @@ Created on Jul 3, 2013
 
 @author: kpaskov
 '''
-from convert_aux.auxillary_tables import convert_bioentity_reference
+from convert_aux.convert_aux_other import convert_bioentity_reference
 from convert_utils import create_or_update, set_up_logging, \
     prepare_connections
 from convert_utils.output_manager import OutputCreator

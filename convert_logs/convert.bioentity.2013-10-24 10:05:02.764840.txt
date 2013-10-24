@@ -1,0 +1,6 @@
+10/24/2013 10:05:02 convert.bioentity: begin
+10/24/2013 10:05:02 convert.bioentity.locus: begin
+10/24/2013 10:05:23 convert.bioentity.locus: (0, 1, 0)
+10/24/2013 10:05:23 convert.bioentity.protein: begin
+10/24/2013 10:05:37 convert.bioentity.protein: (0, 0, 0)
+10/24/2013 10:05:38 convert.bioentity: complete

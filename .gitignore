@@ -32,3 +32,5 @@ perfbackend/config.py
 perfbackend/config.py
 perfconvert/config.py
 perfconvert/config.py
+convert_utils/config_passwords.py
+convert_utils/config_passwords.py

@@ -3,8 +3,8 @@ Created on May 6, 2013
 
 @author: kpaskov
 '''
-from convert_aux.auxillary_tables import convert_bioentity_reference
-from convert_aux.interaction_tables import convert_interaction
+from convert_aux.convert_aux_other import convert_bioentity_reference
+from convert_aux.convert_aux_interaction import convert_interaction
 from convert_utils import create_or_update, set_up_logging, create_format_name, \
     prepare_connections
 from convert_utils.output_manager import OutputCreator

@@ -3,10 +3,9 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
-from convert_aux.auxillary_tables import convert_disambigs
+from convert_aux.convert_aux_other import convert_disambigs
 from convert_utils import create_or_update, set_up_logging, create_format_name, \
     prepare_connections
-from convert_utils.link_maker import author_link
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload

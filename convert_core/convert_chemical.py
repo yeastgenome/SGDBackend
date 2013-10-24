@@ -25,7 +25,7 @@ def create_allele(old_phenotype_feature, key_to_source):
     return []
 
 def convert_allele(old_session_maker, new_session_maker):
-    from model_new_schema.phenotype import Allele as NewAllele
+    from model_new_schema.misc import Allele as NewAllele
     from model_new_schema.evelement import Source as NewSource
     from model_old_schema.phenotype import PhenotypeFeature as OldPhenotypeFeature
     
