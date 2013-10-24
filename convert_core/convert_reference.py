@@ -92,6 +92,8 @@ def convert_journal(old_session_maker, new_session_maker):
                             untouched_obj_ids.remove(current_obj_by_id.id)
                         if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                             untouched_obj_ids.remove(current_obj_by_key.id)
+                    else:
+                        print unique_key
     
                         
         #Delete untouched objs
@@ -159,17 +161,16 @@ def convert_book(old_session_maker, new_session_maker):
             #Convert old objects into new ones
             newly_created_objs = create_book(old_obj, key_to_source)
                 
-            if newly_created_objs is not None:
-                #Edit or add new objects
-                for newly_created_obj in newly_created_objs:
-                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
                     
-                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_id.id)
-                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_key.id)
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -314,6 +315,7 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
         old_session = old_session_maker()
         
         used_unique_keys = set()
+        used_citations = set()
         
         count = old_session.query(func.max(OldReference.id)).first()[0]
         num_chunks = ceil(1.0*count/chunk_size)
@@ -341,21 +343,25 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
                 #Convert old objects into new ones
                 newly_created_objs = create_reference(old_obj, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id, key_to_source)
                 
-                if newly_created_objs is not None:
-                    #Edit or add new objects
-                    for newly_created_obj in newly_created_objs:
-                        unique_key = newly_created_obj.unique_key()
-                        if unique_key not in used_unique_keys:
-                            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                            current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                #Edit or add new objects
+                for newly_created_obj in newly_created_objs:
+                    unique_key = newly_created_obj.unique_key()
+                    citation = newly_created_obj.citation
+                    if unique_key not in used_unique_keys and citation not in used_citations:
+                        current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                        current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
                             
-                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
                     
-                            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                                untouched_obj_ids.remove(current_obj_by_id.id)
-                            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                                untouched_obj_ids.remove(current_obj_by_key.id)
-                            used_unique_keys.add(unique_key)
+                        if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                            untouched_obj_ids.remove(current_obj_by_id.id)
+                        if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                            untouched_obj_ids.remove(current_obj_by_key.id)
+                    else:
+                        print unique_key
+                            
+                    used_unique_keys.add(unique_key)
+                    used_citations.add(citation)
                             
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()

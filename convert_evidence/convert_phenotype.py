@@ -278,7 +278,7 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
                                 untouched_obj_ids.remove(current_obj_by_key.id)
                             already_seen_keys.add(key)
                         else:
-                            print key
+                            print old_obj.id
                             
             #Delete untouched objs
             for untouched_obj_id  in untouched_obj_ids:
