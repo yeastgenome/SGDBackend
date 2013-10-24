@@ -32,7 +32,7 @@ class Url(Base):
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     class_type = Column('class', String)
-    link = Column('url', String)
+    link = Column('obj_url', String)
     source_id = Column('source_id', Integer)
     category = Column('category', String)
     date_created = Column('date_created', Date)

@@ -19,26 +19,6 @@ SELECT url_seq.nextval INTO :new.url_id FROM DUAL;
 END;
 /
 
-DROP TRIGGER SOURCE_TRIGGER;
---/
-CREATE TRIGGER SOURCE_TRIGGER
-BEFORE INSERT ON source
-FOR EACH ROW
-BEGIN
-SELECT source_seq.nextval INTO :new.source_id FROM DUAL;
-END;
-/
-
-DROP TRIGGER EVIDENCE_TRIGGER;
---/
-CREATE TRIGGER EVIDENCE_TRIGGER
-BEFORE INSERT ON evidence
-FOR EACH ROW
-BEGIN
-SELECT evidence_seq.nextval INTO :new.evidence_id FROM DUAL;
-END;
-/
-
 DROP TRIGGER RELATION_TRIGGER;
 --/
 CREATE TRIGGER RELATION_TRIGGER
@@ -46,16 +26,6 @@ BEFORE INSERT ON relation
 FOR EACH ROW
 BEGIN
 SELECT relation_seq.nextval INTO :new.relation_id FROM DUAL;
-END;
-/
-
-DROP TRIGGER SOURCE_TRIGGER;
---/
-CREATE TRIGGER SOURCE_TRIGGER
-BEFORE INSERT ON source
-FOR EACH ROW
-BEGIN
-SELECT source_seq.nextval INTO :new.source_id FROM DUAL;
 END;
 /
 
@@ -89,89 +59,45 @@ SELECT aux_disambig_seq.nextval INTO :new.aux_disambig_id FROM DUAL;
 END;
 /
 
-/* Reference */
+/* Evelements */
 
-/* Evidence Element */
-
-/* Bioentity */
-
-DROP TRIGGER PDOMAIN_TRIGGER;
+DROP TRIGGER SOURCE_TRIGGER;
 --/
-CREATE TRIGGER PDOMAIN_TRIGGER
-BEFORE INSERT ON pdomain
+CREATE TRIGGER SOURCE_TRIGGER
+BEFORE INSERT ON source
 FOR EACH ROW
 BEGIN
-SELECT pdomain_seq.nextval INTO :new.pdomain_id FROM DUAL;
+SELECT source_seq.nextval INTO :new.source_id FROM DUAL;
 END;
 /
 
-DROP TRIGGER BIOENT_REF_TRIGGER;
+DROP TRIGGER STRAIN_TRIGGER;
 --/
-CREATE TRIGGER AUX_BIOENT_REF_TRIGGER
-BEFORE INSERT ON aux_bioentity_reference
+CREATE TRIGGER STRAIN_TRIGGER
+BEFORE INSERT ON strain
 FOR EACH ROW
 BEGIN
-SELECT aux_bioentity_reference_seq.nextval INTO :new.aux_bioentity_reference_id FROM DUAL;
+SELECT strain_seq.nextval INTO :new.strain_id FROM DUAL;
 END;
 /
 
-/* Interaction */
-
-DROP TRIGGER INTERFAM_TRIGGER;
+DROP TRIGGER EXPERIMENT_TRIGGER;
 --/
-CREATE TRIGGER INTERFAM_TRIGGER
-BEFORE INSERT ON aux_interaction_family
+CREATE TRIGGER EXPERIMENT_TRIGGER
+BEFORE INSERT ON experiment
 FOR EACH ROW
 BEGIN
-SELECT interfam_seq.nextval INTO :new.interaction_family_id FROM DUAL;
+SELECT experiment_seq.nextval INTO :new.experiment_id FROM DUAL;
 END;
 /
 
-/* Regulation */
-
-DROP TRIGGER REGFAM_TRIGGER;
+DROP TRIGGER EVIDENCE_TRIGGER;
 --/
-CREATE TRIGGER REGFAM_TRIGGER
-BEFORE INSERT ON aux_regulation_family
+CREATE TRIGGER EVIDENCE_TRIGGER
+BEFORE INSERT ON evidence
 FOR EACH ROW
 BEGIN
-SELECT regfam_seq.nextval INTO :new.regulation_family_id FROM DUAL;
-END;
-/
-
-/* Bioconcept */
-
-DROP TRIGGER BIOCONANC_TRIGGER;
---/
-CREATE TRIGGER BIOCONANC_TRIGGER
-BEFORE INSERT ON aux_bioconcept_ancestor
-FOR EACH ROW
-BEGIN
-SELECT bioconanc_seq.nextval INTO :new.bioconcept_ancestor_id FROM dual;
-end;
-/
-
-DROP TRIGGER BIOFACT_TRIGGER;
---/
-CREATE TRIGGER BIOFACT_TRIGGER
-BEFORE INSERT ON aux_biofact
-FOR EACH ROW
-BEGIN
-SELECT biofact_seq.nextval INTO :new.biofact_id FROM dual;
-END;
-/
-
-/* GO */
-
-/* Chemical */
-
-DROP TRIGGER CHEM_TRIGGER;
---/
-CREATE TRIGGER CHEM_TRIGGER
-BEFORE INSERT ON chemical
-FOR EACH ROW
-BEGIN
-SELECT chem_seq.nextval INTO :new.chemical_id FROM DUAL;
+SELECT evidence_seq.nextval INTO :new.evidence_id FROM DUAL;
 END;
 /
 
@@ -185,7 +111,17 @@ SELECT cond_seq.nextval INTO :new.condition_id FROM DUAL;
 END;
 /
 
-/* Phenotype */
+/* Bioentity */
+
+DROP TRIGGER PDOMAIN_TRIGGER;
+--/
+CREATE TRIGGER PDOMAIN_TRIGGER
+BEFORE INSERT ON pdomain
+FOR EACH ROW
+BEGIN
+SELECT pdomain_seq.nextval INTO :new.pdomain_id FROM DUAL;
+END;
+/
 
 DROP TRIGGER ALLELE_TRIGGER;
 --/
@@ -196,6 +132,54 @@ BEGIN
 SELECT allele_seq.nextval INTO :new.allele_id FROM DUAL;
 END;
 /
+
+/* Bioconcept */
+
+DROP TRIGGER BIOCONCEPT_TRIGGER;
+--/
+CREATE TRIGGER BIOCONCEPT_TRIGGER
+BEFORE INSERT ON bioconcept
+FOR EACH ROW
+BEGIN
+SELECT bioconcept_seq.nextval INTO :new.bioconcept_id FROM DUAL;
+END;
+/
+
+/* Auxilliary */
+DROP TRIGGER BIOENT_REF_TRIGGER;
+--/
+CREATE TRIGGER AUX_BIOENT_REF_TRIGGER
+BEFORE INSERT ON aux_bioentity_reference
+FOR EACH ROW
+BEGIN
+SELECT aux_bioentity_reference_seq.nextval INTO :new.aux_bioentity_reference_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOFACT_TRIGGER;
+--/
+CREATE TRIGGER BIOFACT_TRIGGER
+BEFORE INSERT ON aux_biofact
+FOR EACH ROW
+BEGIN
+SELECT biofact_seq.nextval INTO :new.biofact_id FROM dual;
+END;
+/
+
+/* Chemical */
+
+DROP TRIGGER CHEM_TRIGGER;
+--/
+CREATE TRIGGER CHEM_TRIGGER
+BEFORE INSERT ON chemical
+FOR EACH ROW
+BEGIN
+SELECT chem_seq.nextval INTO :new.chemical_id FROM DUAL;
+END;
+/
+
+
+
 
 
 

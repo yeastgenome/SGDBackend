@@ -136,23 +136,22 @@ def convert_bioentitytabs(new_session_maker):
 --------------------- Convert Alias ---------------------
 """
 
-def create_alias(old_alias, id_to_bioentity):
+def create_alias(old_alias, id_to_bioentity, key_to_source):
     from model_new_schema.bioentity import Bioentityalias
 
     bioentity_id = old_alias.feature_id
-    
-    if bioentity_id is None or not bioentity_id in id_to_bioentity:
-        #print 'Bioentity does not exist.'
-        return None
+    bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
 
     display_name = old_alias.alias_name
+    source = key_to_source['SGD']
     
-    new_alias = Bioentityalias(display_name, bioentity_id, 1, old_alias.alias_type, 
+    new_alias = Bioentityalias(display_name, source, old_alias.alias_type, bioentity,
                                old_alias.date_created, old_alias.created_by)
     return [new_alias] 
 
 def convert_alias(old_session_maker, new_session_maker):
     from model_new_schema.bioentity import Bioentity as NewBioentity, Bioentityalias as NewBioentityalias
+    from model_new_schema.evelement import Source as NewSource
     from model_old_schema.feature import AliasFeature as OldAliasFeature
     
     log = logging.getLogger('convert.bioentity_in_depth.bioentity_alias')
@@ -173,6 +172,7 @@ def convert_alias(old_session_maker, new_session_maker):
         
         #Grab cached dictionaries
         id_to_bioentity = dict([(x.id, x) for x in new_session.query(NewBioentity).all()])
+        key_to_source = dict([(x.id, x) for x in new_session.query(NewSource).all()])
 
         #Grab old objects
         old_session = old_session_maker()
@@ -182,7 +182,7 @@ def convert_alias(old_session_maker, new_session_maker):
         
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_alias(old_obj, id_to_bioentity)
+            newly_created_objs = create_alias(old_obj, id_to_bioentity, key_to_source)
                 
             if newly_created_objs is not None:
                 #Edit or add new objects
@@ -229,16 +229,13 @@ def create_url(old_feat_url, old_webdisplay, id_to_bioentity, key_to_source):
         return None
     
     bioentity_id = feature.id
+    bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
     display_name = old_webdisplay.label_name
-    source = old_url.source
+    source_key = old_url.source
     category = old_webdisplay.label_location
     
-    source_key = create_format_name(source)
-    if source_key in key_to_source:
-        source_id = key_to_source[source_key].id
-    else:
-        print 'Source could not be found: ' + source
-        return None
+    source_key = create_format_name(source_key)
+    source = None if source_key not in key_to_source else key_to_source[source_key]
     
     if url_type == 'query by SGDID':
         link = link.replace('_SUBSTITUTE_THIS_', str(feature.dbxref_id))
@@ -248,7 +245,7 @@ def create_url(old_feat_url, old_webdisplay, id_to_bioentity, key_to_source):
         print "Can't handle this url. " + str(old_url.url_type)
         return None
         
-    url = Bioentityurl(display_name, bioentity_id, source_id, link, category, 
+    url = Bioentityurl(display_name, link, source, category, bioentity, 
                                  old_url.date_created, old_url.created_by)
     return [url]
 
@@ -262,6 +259,7 @@ def create_url_from_dbxref(old_dbxref_feat, url_to_display, id_to_bioentity, key
     dbxref_id = old_dbxref_feat.dbxref.dbxref_id
     
     if feature_id in id_to_bioentity:
+        bioentity = id_to_bioentity[feature_id]
         for old_url in old_urls:
             if old_url.id in url_to_display:
                 old_webdisplay = url_to_display[old_url.id]
@@ -277,13 +275,9 @@ def create_url_from_dbxref(old_dbxref_feat, url_to_display, id_to_bioentity, key
                     return None
                 
                 source_key = create_format_name(old_url.source)
-                if source_key in key_to_source:
-                    source_id = key_to_source[source_key].id
-                else:
-                    print 'Source could not be found: ' + source_key
-                    return None
+                source = None if source_key not in key_to_source else key_to_source[source_key]
                     
-                urls.append(Bioentityurl(old_webdisplay.label_name, feature_id, source_id, link, old_webdisplay.label_location, 
+                urls.append(Bioentityurl(old_webdisplay.label_name, link, source, old_webdisplay.label_location, bioentity, 
                                              old_url.date_created, old_url.created_by))
     return urls
 
@@ -301,7 +295,7 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
         old_session = old_session_maker()
         
         #Values to check
-        values_to_check = ['display_name', 'source_id', 'created_by', 'date_created']
+        values_to_check = ['display_name', 'source_id']
         
         #Grab cached dictionaries
         id_to_bioentity = dict([(x.id, x) for x in new_session.query(NewBioentity).all()])
@@ -385,11 +379,8 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
 --------------------- Convert Qualifier Evidence ---------------------
 """
     
-def create_qualifier_evidence_id(old_feature_id):
-    return old_feature_id + 70000000
-
 def create_qualifier_evidence(old_bioentity, id_to_bioentity, key_to_strain, key_to_source):
-    from model_new_schema.bioentity import Qualifierevidence
+    from model_new_schema.qualifier import Qualifierevidence
     
     ann = old_bioentity.annotation
     if ann is None:
@@ -400,12 +391,13 @@ def create_qualifier_evidence(old_bioentity, id_to_bioentity, key_to_strain, key
     strain = key_to_strain['S288C']
     source = key_to_source['SGD']
         
-    qualifierevidence = Qualifierevidence(create_qualifier_evidence_id(old_bioentity.id), strain, source, bioentity, qualifier,
+    qualifierevidence = Qualifierevidence(source, strain, bioentity, qualifier,
                                           old_bioentity.date_created, old_bioentity.created_by)
     return [qualifierevidence]
 
 def convert_qualifier_evidence(old_session_maker, new_session_maker):
-    from model_new_schema.bioentity import Qualifierevidence as NewQualifierevidence, Bioentity as NewBioentity
+    from model_new_schema.bioentity import Bioentity as NewBioentity
+    from model_new_schema.qualifier import Qualifierevidence as NewQualifierevidence
     from model_new_schema.evelement import Strain as NewStrain, Source as NewSource
     from model_old_schema.feature import Feature as OldFeature
     
@@ -421,7 +413,7 @@ def convert_qualifier_evidence(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['reference_id', 'experiment_id', 'strain_id', 'source_id', 'date_created', 'created_by',
+        values_to_check = ['reference_id', 'experiment_id', 'strain_id', 'source_id',
                            'bioentity_id', 'qualifier']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
@@ -479,9 +471,9 @@ def convert(old_session_maker, new_session_maker):
     
     log.info('begin')
             
-    #convert_alias(old_session_maker, new_session_maker)
+    convert_alias(old_session_maker, new_session_maker)
     
-    #convert_url(old_session_maker, new_session_maker, 1000)
+    convert_url(old_session_maker, new_session_maker, 1000)
     
     convert_qualifier_evidence(old_session_maker, new_session_maker)
     

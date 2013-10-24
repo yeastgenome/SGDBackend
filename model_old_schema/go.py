@@ -73,7 +73,7 @@ class GoRef(Base, EqualityByIDMixin):
     
     #Relationships
     reference = relationship(Reference, uselist=False)
-    go_annotation = relationship(GoFeature, uselist=False, backref=backref('go_refs', lazy='joined'))
+    go_annotation = relationship(GoFeature, uselist=False, backref='go_refs')
     
     qualifier = association_proxy('go_qualifier', 'qualifier')
     
@@ -87,7 +87,7 @@ class GoQualifier(Base, EqualityByIDMixin):
     qualifier = Column('qualifier', String)
     
     #Relationships
-    go_ref = relationship(GoRef, uselist=False, backref=backref('go_qualifier', uselist=False, lazy='joined'))
+    go_ref = relationship(GoRef, uselist=False, backref=backref('go_qualifier', uselist=False))
     
 class GoPath(Base, EqualityByIDMixin):
     __tablename__ = 'go_path'

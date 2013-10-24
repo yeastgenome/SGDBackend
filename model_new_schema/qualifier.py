@@ -21,9 +21,11 @@ class Qualifierevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': 'QUALIFIER',
                        'inherit_condition': id == Evidence.id}
     
-    def __init__(self, evidence_id, strain, source, bioentity, qualifier,
+    def __init__(self, source, strain, bioentity, qualifier,
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, bioentity.format_name + '|' + strain.format_name, 
+        Evidence.__init__(self, 
+                          bioentity.display_name + ' ' + qualifier + ' in ' + strain.display_name,
+                          bioentity.format_name + '|' + strain.format_name, 
                           'QUALIFIER', source, None, strain, None, None, date_created, created_by)
         self.bioentity_id = bioentity.id
         self.qualifier = qualifier

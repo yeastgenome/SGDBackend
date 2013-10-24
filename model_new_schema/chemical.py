@@ -5,7 +5,7 @@ Created on Jun 4, 2013
 '''
 from model_new_schema import Base, create_format_name
 from model_new_schema.misc import Alias, Relation
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 

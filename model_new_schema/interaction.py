@@ -26,10 +26,11 @@ class Geninteractionevidence(Evidence):
     #Relationships
     phenotype = relationship(Phenotype)
 
-    def __init__(self, evidence_id, source, reference, strain, experiment,
+    def __init__(self, source, reference, strain, experiment,
                  bioentity1, bioentity2, phenotype, annotation_type, bait_hit, note, 
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, bioentity1.format_name + '|' + bioentity2.format_name + '|' + '-' if strain is None else strain.format_name + '|' + reference.format_name, 
+        Evidence.__init__(self, bioentity1.display_name + '__' + bioentity2.display_name,
+                          bioentity1.format_name + '|' + bioentity2.format_name + '|' + ('-' if strain is None else str(strain.id)) + '|' + bait_hit + '|' + str(experiment.id) + '|' + str(reference.id), 
                           'GENINTERACTION', source, reference, strain, experiment, 
                           note, date_created, created_by)
         self.bioentity1_id = bioentity1.id
@@ -53,10 +54,11 @@ class Physinteractionevidence(Evidence):
                        'inherit_condition': id==Evidence.id}
     
         
-    def __init__(self, evidence_id, source, reference, strain, experiment,
+    def __init__(self, source, reference, strain, experiment,
                  bioentity1, bioentity2, modification, annotation_type, bait_hit, note, 
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, bioentity1.format_name + '|' + bioentity2.format_name + '|' + strain.format_name + '|' + reference.format_name, 
+        Evidence.__init__(self, bioentity1.display_name + '__' + bioentity2.display_name,
+                          bioentity1.format_name + '|' + bioentity2.format_name + '|' + ('-' if strain is None else str(strain.id)) + '|' + bait_hit + '|' + str(experiment.id) + '|' + str(reference.id), 
                           'PHYSINTERACTION', source, reference, strain, experiment,
                           note, date_created, created_by)
         self.bioentity1_id = bioentity1.id

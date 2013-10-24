@@ -23,10 +23,12 @@ class Literatureevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "LITERATURE",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, evidence_id, source, reference, strain, experiment, note,
+    def __init__(self, source, reference, note,
                             bioentity, topic, date_created, created_by):
-        Evidence.__init__(self, evidence_id, bioentity.format_name + '|' + topic + '|' + reference.format_name, 
-                          'LITERATURE', source, reference, strain, experiment, note,
+        Evidence.__init__(self, 
+                          reference.display_name + ' is a ' + topic + ' for ' +  bioentity.display_name,
+                          bioentity.format_name + '|' + topic + '|' + reference.format_name, 
+                          'LITERATURE', source, reference, None, None, note,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
         self.topic = topic

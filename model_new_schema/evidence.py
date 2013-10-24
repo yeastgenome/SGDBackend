@@ -15,6 +15,7 @@ class Evidence(Base, EqualityByIDMixin):
     
     id = Column('evidence_id', Integer, primary_key=True)
     format_name = Column('format_name', String)
+    display_name = Column('display_name', String)
     class_type = Column('class', String)
     source_id = Column('source_id', String, ForeignKey(Source.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
@@ -33,9 +34,9 @@ class Evidence(Base, EqualityByIDMixin):
                        'polymorphic_identity':"EVIDENCE"}
     
     
-    def __init__(self, evidence_id, format_name, class_type, source,
+    def __init__(self, display_name, format_name, class_type, source,
                  reference, strain, experiment, note, date_created, created_by):
-        self.id = evidence_id
+        self.display_name = display_name
         self.format_name = format_name
         self.class_type = class_type
         self.source_id = source.id

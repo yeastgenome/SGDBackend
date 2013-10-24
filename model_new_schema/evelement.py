@@ -23,8 +23,7 @@ class Experiment(Base, EqualityByIDMixin):
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
     
-    def __init__(self, experiment_id, display_name, source, description, eco_id, date_created, created_by):
-        self.id = experiment_id
+    def __init__(self, display_name, source, description, eco_id, date_created, created_by):
         self.display_name = display_name
         self.format_name = create_format_name(display_name)
         self.link = None
@@ -85,8 +84,7 @@ class Strain(Base, EqualityByIDMixin):
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue()) 
     
-    def __init__(self, strain_id, display_name, source, description, date_created, created_by):
-        self.id = strain_id
+    def __init__(self, display_name, source, description, date_created, created_by):
         self.display_name = display_name;
         self.format_name = create_format_name(display_name)
         self.link = None

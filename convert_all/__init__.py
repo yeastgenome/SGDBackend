@@ -6,10 +6,9 @@ Created on Jul 3, 2013
 
 from convert_core import convert_reference, convert_bioentity, \
     convert_evelements, convert_chemical
-from convert_evidence import convert_literature, convert_regulation, \
-    convert_phenotype, convert_go, convert_binding, convert_genetic_interaction, \
-    convert_physical_interaction
-from convert_other import convert_protein, convert_bioentity_in_depth, \
+from convert_evidence import convert_protein, convert_literature, convert_regulation, \
+    convert_phenotype, convert_go, convert_binding, convert_interaction
+from convert_other import convert_bioentity_in_depth, \
     convert_reference_in_depth
 from convert_utils import set_up_logging, prepare_schema_connection, \
     prepare_connections
@@ -86,24 +85,14 @@ if __name__ == "__main__":
     ConvertRegulationThread().start()
         
     #Phenotype and Genetic Interaction
-    class ConvertPhenotypeGeninteractionThread(Thread):
+    class ConvertPhenotypeInteractionThread(Thread):
         def run(self):
             try:
                 convert_phenotype.convert(old_session_maker, new_session_maker)  
-                convert_genetic_interaction.convert(old_session_maker, new_session_maker)
+                convert_interaction.convert(old_session_maker, new_session_maker)
             except Exception:
                 log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-    ConvertPhenotypeGeninteractionThread().start()
-
-    
-    #Physical Interaction
-    class ConvertPhysicalInteractionThread(Thread):
-        def run(self):
-            try:
-                convert_physical_interaction.convert(old_session_maker, new_session_maker)
-            except Exception:
-                log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-    ConvertPhysicalInteractionThread().start()
+    ConvertPhenotypeInteractionThread().start()
         
     #Literature
     class ConvertLiteratureThread(Thread):

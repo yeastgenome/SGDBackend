@@ -6,7 +6,6 @@ Created on May 15, 2013
 from model_new_schema.bioconcept import Bioconcept
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.evidence import Evidence
-from model_new_schema.misc import Allele
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
@@ -37,15 +36,14 @@ class Phenotype(Bioconcept):
     qualifier = Column('qualifier', String)
     mutant_type = Column('mutant_type', String)
     phenotype_type = Column('phenotype_type', String)
-    direct_gene_count = Column('direct_gene_count', Integer)
        
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Bioconcept.id}
 
-    def __init__(self, bioconcept_id, source, sgdid, description,
+    def __init__(self, source, sgdid, description,
                  observable, qualifier, mutant_type, phenotype_type, 
                  date_created, created_by):
-        Bioconcept.__init__(self, bioconcept_id, create_phenotype_display_name(observable, qualifier, mutant_type), 
+        Bioconcept.__init__(self, create_phenotype_display_name(observable, qualifier, mutant_type), 
                             create_phenotype_format_name(observable, qualifier, mutant_type), 
                             'PHENOTYPE', None, source, sgdid, description, 
                             date_created, created_by)
@@ -58,15 +56,6 @@ class Phenotypeevidence(Evidence):
     __tablename__ = "phenotypeevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    allele_id = Column('allele_id', Integer, ForeignKey(Allele.id))
-    
-    reporter = Column('reporter', String)
-    reporter_desc = Column('reporter_desc', String)
-    allele_info = Column('allele_info', String)
-    strain_details = Column('strain_details', String)
-    details = Column('details', String)
-    experiment_details = Column('experiment_details', String)
-    conditions = Column('conditions', String)
 
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Phenotype.id))
@@ -76,29 +65,21 @@ class Phenotypeevidence(Evidence):
     #Relationship
     bioentity = relationship(Bioentity, uselist=False)
     bioconcept = relationship(Phenotype, uselist=False)
-    allele = relationship(Allele, lazy='subquery', uselist=False, backref='phenotypeevidences')
 
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Evidence.id}
     
-    def __init__(self, evidence_id, source, reference, strain, experiment, note,
-                 bioentity, phenotype, allele, 
-                 allele_info, reporter, reporter_desc, strain_details, experiment_details, conditions, details,
+    def __init__(self, source, reference, strain, experiment, note,
+                 bioentity, phenotype, conditions,
                  date_created, created_by):
-        Evidence.__init__(self, evidence_id, bioentity.format_name + '|' + phenotype.format_name + '|' + reference.format_name, 
+        Evidence.__init__(self, 
+                          bioentity.display_name + ' ' + phenotype.display_name + ' in ' + reference.display_name,
+                          bioentity.format_name + '|' + str(phenotype.id) + ('' if strain is None else ('|' + str(strain.id))) + '|' + str(experiment.id) + '|' + str(reference.id) + '|' + '|'.join(x.format_name for x in conditions), 
                           'PHENOTYPE', source, reference, strain, experiment, note,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
         self.bioconcept_id = phenotype.id
-        self.allele_id = None if allele is None else allele.id
-        
-        self.allele_info = allele_info
-        self.reporter = reporter
-        self.reporter_desc = reporter_desc
-        self.strain_details = strain_details
-        self.experiment_details = experiment_details
         self.conditions = conditions
-        self.details = details
 
     
         

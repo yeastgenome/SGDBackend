@@ -17,18 +17,6 @@ import sys
 """
 --------------------- Convert Experiment ---------------------
 """
-    
-def create_experiment_id(old_cv_term_id):
-    return old_cv_term_id
-
-def create_experiment_id_from_reg_row(old_experiment_id, display_name):
-    if display_name == 'chromatin immunoprecipitation-chip evidence':
-        return 700000
-    else:
-        return old_experiment_id + 700001
-    
-def create_experiment_id_from_binding_row(old_experiment_id):
-    return old_experiment_id + 900000
 
 def create_experiment(old_cv_term, key_to_source):
     from model_new_schema.evelement import Experiment as NewExperiment
@@ -37,25 +25,25 @@ def create_experiment(old_cv_term, key_to_source):
     description = old_cv_term.definition
     
     source = key_to_source['SGD']
-    new_experiment = NewExperiment(create_experiment_id(old_cv_term.id), display_name, source, description, None,
+    new_experiment = NewExperiment(display_name, source, description, None,
                                old_cv_term.date_created, old_cv_term.created_by)
     return [new_experiment]
 
-def create_experiment_from_reg_row(display_name, eco_id, source_key, row_id, key_to_source):
+def create_experiment_from_reg_row(display_name, eco_id, source_key, key_to_source):
     from model_new_schema.evelement import Experiment
     
     if display_name is None:
         display_name = eco_id
 
     source = None if source_key.strip() not in key_to_source else key_to_source[source_key.strip()]
-    new_experiment = Experiment(create_experiment_id_from_reg_row(row_id, display_name), display_name, source, None, eco_id, None, None)
+    new_experiment = Experiment(display_name, source, None, eco_id, None, None)
     return [new_experiment]
 
-def create_experiment_from_binding_row(display_name, row_id, key_to_source):
+def create_experiment_from_binding_row(display_name, key_to_source):
     from model_new_schema.evelement import Experiment
 
     source = key_to_source['YeTFaSCo']
-    new_experiment = Experiment(create_experiment_id_from_binding_row(row_id), display_name,source, None, None, None, None)
+    new_experiment = Experiment(display_name,source, None, None, None, None)
     return [new_experiment]
 
 def convert_experiment(old_session_maker, new_session_maker):
@@ -110,9 +98,8 @@ def convert_experiment(old_session_maker, new_session_maker):
         rows = break_up_file('/Users/kpaskov/final/yeastmine_regulation.tsv')
         experiment_names.update([(row[4], row[5], row[11]) for row in rows])
                 
-        i=0
         for experiment_name, eco_id, source_key in experiment_names:
-            newly_created_objs = create_experiment_from_reg_row(experiment_name, eco_id, source_key, i, key_to_source)
+            newly_created_objs = create_experiment_from_reg_row(experiment_name, eco_id, source_key, key_to_source)
             for newly_created_obj in newly_created_objs:
                 if newly_created_obj.unique_key() not in already_seen_objs:
                     current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
@@ -124,7 +111,6 @@ def convert_experiment(old_session_maker, new_session_maker):
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                         untouched_obj_ids.remove(current_obj_by_key.id)    
                     already_seen_objs.add(newly_created_obj.unique_key())                    
-                i = i+1
           
         experiment_names = set()      
         #Add experiments from binding files
@@ -134,9 +120,8 @@ def convert_experiment(old_session_maker, new_session_maker):
                 print row
         experiment_names.update([row[9][1:-1] for row in rows])
         
-        i=0
         for experiment_name in experiment_names:
-            newly_created_objs = create_experiment_from_binding_row(experiment_name, i, key_to_source)
+            newly_created_objs = create_experiment_from_binding_row(experiment_name, key_to_source)
             for newly_created_obj in newly_created_objs:
                 if newly_created_obj.unique_key() not in already_seen_objs:
                     current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
@@ -148,7 +133,6 @@ def convert_experiment(old_session_maker, new_session_maker):
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                         untouched_obj_ids.remove(current_obj_by_key.id)   
                     already_seen_objs.add(newly_created_obj.unique_key())                      
-                i = i+1
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -341,15 +325,6 @@ def convert_experiment_relation(old_session_maker, new_session_maker):
 """
 --------------------- Convert Strain ---------------------
 """
-strain_id_map = {67178:1, 67179:21, 
-                 67180:22, 67181:8, 
-                 67182:2, 67183:23, 
-                 67184:24, 67185:25, 
-                 67186:26, 175301:27, 
-                 214704:28, 214705:29, 
-                 214706:30}
-def create_strain_id(old_cv_term_id):
-    return strain_id_map[old_cv_term_id]
 
 def create_strain(old_cv_term, key_to_source):
     from model_new_schema.evelement import Strain as NewStrain
@@ -359,7 +334,7 @@ def create_strain(old_cv_term, key_to_source):
     
     source = key_to_source['SGD']
     
-    new_strain = NewStrain(create_strain_id(old_cv_term.id), display_name, source, description,
+    new_strain = NewStrain(display_name, source, description,
                                old_cv_term.date_created, old_cv_term.created_by)
     return [new_strain]
 

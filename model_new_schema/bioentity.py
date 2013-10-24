@@ -9,7 +9,7 @@ schema on fasolt.
 '''
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.misc import Alias, Url, Relation
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
@@ -48,7 +48,7 @@ class Bioentity(Base, EqualityByIDMixin):
 class Bioentityurl(Url):
     __tablename__ = 'bioentityurl'
     
-    url_id = Column('url_id', Integer, primary_key=True)
+    id = Column('url_id', Integer, ForeignKey(Url.id), primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     
     bioentity = relationship(Bioentity, uselist=False)
@@ -64,7 +64,7 @@ class Bioentityurl(Url):
 class Bioentityalias(Alias):
     __tablename__ = 'bioentityalias'
     
-    alias_id = Column('alias_id', Integer, primary_key=True)
+    id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     
     bioentity = relationship(Bioentity, uselist=False)
@@ -79,7 +79,7 @@ class Bioentityalias(Alias):
 class Bioentityrelation(Relation):
     __tablename__ = 'bioentityrelation'
 
-    id = Column('relation_id', Integer, primary_key=True)
+    id = Column('relation_id', Integer, ForeignKey(Relation.id), primary_key=True)
     parent_id = Column('parent_id', Integer, ForeignKey(Bioentity.id))
     child_id = Column('child_id', Integer, ForeignKey(Bioentity.id))
     

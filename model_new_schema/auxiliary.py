@@ -7,7 +7,6 @@ from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.bioconcept import Bioconcept
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.reference import Reference
-from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 
@@ -63,69 +62,6 @@ class Physinteraction(Interaction, EqualityByIDMixin):
 class Reginteraction(Interaction, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_identity': 'REGULATION',
                        'inherit_condition': id==Interaction.id}
-    
-class InteractionFamily(Base, EqualityByIDMixin):
-    __tablename__ = "aux_interaction_family"
-    
-    id = Column('aux_interaction_family_id', Integer, primary_key = True)
-    bioentity_id = Column('bioentity_id', Integer)
-    bioentity1_id = Column('bioentity1_id', Integer)
-    bioentity2_id = Column('bioentity2_id', Integer)
-    evidence_count = Column('evidence_count', Integer)
-    genetic_ev_count = Column('gen_ev_count', Integer)
-    physical_ev_count = Column('phys_ev_count', Integer)
-    
-    def __init__(self, bioentity_id, bioentity1_id, bioentity2_id, 
-                 genetic_ev_count, physical_ev_count, evidence_count):
-        self.bioentity_id = bioentity_id
-        self.bioentity1_id = bioentity1_id
-        self.bioentity2_id = bioentity2_id
-        self.genetic_ev_count = genetic_ev_count
-        self.physical_ev_count = physical_ev_count
-        self.evidence_count = evidence_count
-        
-    def unique_key(self):
-        return (self.bioentity_id, self.bioentity1_id, self.bioentity2_id)
-    
-class RegulationFamily(Base, EqualityByIDMixin):
-    __tablename__ = "aux_regulation_family"
-    
-    id = Column('aux_regulation_family_id', Integer, primary_key = True)
-    bioentity_id = Column('bioentity_id', Integer)
-    bioentity1_id = Column('bioentity1_id', Integer)
-    bioentity2_id = Column('bioentity2_id', Integer)
-    evidence_count = Column('evidence_count', Integer)
-    
-    def __init__(self, bioentity_id, bioentity1_id, bioentity2_id, 
-                 evidence_count):
-        self.bioentity_id = bioentity_id
-        self.bioentity1_id = bioentity1_id
-        self.bioentity2_id = bioentity2_id
-        self.evidence_count = evidence_count
-        
-    def unique_key(self):
-        return (self.bioentity_id, self.bioentity1_id, self.bioentity2_id)
-
-class BioconceptAncestor(Base, EqualityByIDMixin):
-    __tablename__ = 'aux_bioconcept_ancestor'
-
-    id = Column('aux_bioconcept_ancestor_id', Integer, primary_key=True)
-    ancestor_bioconcept_id = Column('ancestor_bioconcept_id', Integer, ForeignKey(Bioconcept.id))
-    child_bioconcept_id = Column('child_bioconcept_id', Integer, ForeignKey(Bioconcept.id))
-    generation = Column('generation', Integer)
-    class_type = Column('class', String)
-    
-    ancestor_bioconcept = relationship('Bioconcept', uselist=False, backref=backref('child_family', cascade='all,delete'), primaryjoin="BioconceptAncestor.ancestor_bioconcept_id==Bioconcept.id")
-    child_bioconcept = relationship('Bioconcept', uselist=False, backref=backref('parent_family', cascade='all,delete'), primaryjoin="BioconceptAncestor.child_bioconcept_id==Bioconcept.id")
-   
-    def __init__(self, ancestor_bioconcept_id, child_bioconcept_id, class_type, generation):
-        self.ancestor_bioconcept_id = ancestor_bioconcept_id
-        self.child_bioconcept_id = child_bioconcept_id
-        self.class_type = class_type
-        self.generation = generation
-
-    def unique_key(self):
-        return (self.ancestor_bioconcept_id, self.child_bioconcept_id, self.class_type)
 
 class BioentityReference(Base):
     __tablename__ = 'aux_bioentity_reference'

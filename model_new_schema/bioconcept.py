@@ -26,8 +26,7 @@ class Bioconcept(Base, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"BIOCONCEPT"}
     
-    def __init__(self, bioconcept_id, display_name, format_name, class_type, link, source, sgdid, description, date_created, created_by):
-        self.id = bioconcept_id
+    def __init__(self, display_name, format_name, class_type, link, source, sgdid, description, date_created, created_by):
         self.display_name = display_name
         self.format_name = format_name
         self.class_type = class_type
