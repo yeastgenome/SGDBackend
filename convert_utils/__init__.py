@@ -155,7 +155,7 @@ def set_up_logging(label):
     
     log = logging.getLogger(label)
     
-    hdlr = logging.FileHandler('/Users/kpaskov/Documents/Schema Conversion Logs/' + label + '.' + str(datetime.now()) + '.txt')
+    hdlr = logging.FileHandler('convert_logs/' + label + '.' + str(datetime.now()) + '.txt')
     formatter = logging.Formatter('%(asctime)s %(name)s: %(message)s', '%m/%d/%Y %H:%M:%S')
     hdlr.setFormatter(formatter)
     log.addHandler(hdlr) 

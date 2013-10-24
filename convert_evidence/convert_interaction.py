@@ -161,7 +161,7 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
             
             phys_id_to_current_obj = dict([(x.id, x) for x in phys_current_objs])
             phys_key_to_current_obj = dict([(x.unique_key(), x) for x in phys_current_objs])
-            phys_untouched_obj_ids = set(phys_id_to_current_obj.keys())
+            phys_untouched_obj_ids.update(phys_id_to_current_obj)
             
             #Grab old objects
             old_objs = old_session.query(OldInteractionFeature).filter(
