@@ -11,6 +11,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 import json
 import model_new_schema
 import sys
+import uuid
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 class Base(object):
@@ -33,7 +34,10 @@ class SGDBackend(BackendInterface):
         return 'string'
     
     def response_wrapper(self, method_name):
+        request_id = uuid.uuid4()
+        #log request start
         def f(data, request):
+            #log request end
             callback = None if 'callback' not in request.GET else request.GET['callback']
             if callback is not None:
                 return Response(body="%s(%s)" % (callback, data), content_type='application/json')

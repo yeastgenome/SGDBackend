@@ -258,7 +258,9 @@ def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pu
     
     bioent_key = (bioent_format_name + 'P', 'PROTEIN')
     protein = None if bioent_key not in key_to_bioentity else key_to_bioentity[bioent_key]
-    print bioent_key, protein
+    if protein is None:
+        print bioent_key
+        return []
     end = protein.length
     
     domain = None if db_identifier is None else key_to_domain[db_identifier]
@@ -320,7 +322,11 @@ def convert_domain_evidence(new_session_maker, chunk_size):
             min_id = min_protein_id + i*chunk_size
             max_id = max_protein_id + (i+1)*chunk_size
             
-            current_objs = new_session.query(Domainevidence).filter(Domainevidence.protein_id >= min_id).filter(Domainevidence.protein_id < max_id).all()
+            if i < num_chunks-1:
+                current_objs = new_session.query(Domainevidence).filter(Domainevidence.protein_id >= min_id).filter(Domainevidence.protein_id < max_id).all()
+            else:
+                current_objs = new_session.query(Domainevidence).filter(Domainevidence.protein_id >= min_id).all()
+                
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         
@@ -344,7 +350,7 @@ def convert_domain_evidence(new_session_maker, chunk_size):
                             del untouched_obj_ids[current_obj_by_id.id]
                         if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                             del untouched_obj_ids[current_obj_by_key.id]
-                        already_seen_obj.add(obj_key)
+                    already_seen_obj.add(obj_key)
                             
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
@@ -371,7 +377,9 @@ def convert_domain_evidence(new_session_maker, chunk_size):
                         del untouched_obj_ids[current_obj_by_id.id]
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                         del untouched_obj_ids[current_obj_by_key.id]
-                    already_seen_obj.add(unique_key)
+                else:
+                    print unique_key
+                already_seen_obj.add(unique_key)
                         
         output_creator.finished("1/1")
         new_session.commit()
@@ -400,12 +408,12 @@ def convert(old_session_maker, new_session_maker):
     log = set_up_logging('convert.protein')
     log.info('begin')
         
-    #convert_domain(new_session_maker, 5000)
+    convert_domain(new_session_maker, 5000)
     
     convert_domain_evidence(new_session_maker, 1000)
     
     from model_new_schema.bioentity import Protein
-    #convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.protein.disambigs', 10000)
+    convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.protein.disambigs', 10000)
     
     log.info('complete')
     

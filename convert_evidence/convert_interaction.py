@@ -27,13 +27,11 @@ import sys
 --------------------- Convert Genetic Interaction Evidence ---------------------
 """
 
-def create_interevidence(old_interaction_feature, key_to_experiment, key_to_phenotype,
-                         id_to_reference, id_to_bioents, key_to_source):
+def create_interevidence(old_interaction, key_to_experiment, key_to_phenotype,
+                         id_to_reference, id_to_bioents, key_to_source, inter_id_to_feature_ids):
     from model_new_schema.interaction import Geninteractionevidence as NewGeninteractionevidence, Physinteractionevidence as NewPhysinteractionevidence
     from model_new_schema.phenotype import create_phenotype_format_name
-    
-    old_interaction = old_interaction_feature.interaction
-    
+        
     reference_ids = old_interaction.reference_ids
     if len(reference_ids) != 1:
         print 'Too many references'
@@ -43,10 +41,15 @@ def create_interevidence(old_interaction_feature, key_to_experiment, key_to_phen
    
     note = old_interaction.interaction_references[0].note
     
-    bioent_ids = list(old_interaction.feature_ids)
-    bioent_ids.sort()
-    bioent1_id = bioent_ids[0]
-    bioent2_id = bioent_ids[1]
+    bioent_ids = inter_id_to_feature_ids[old_interaction.id]
+    if bioent_ids[0][0] < bioent_ids[1][0]:
+        bioent1_id = bioent_ids[0][0]
+        bioent2_id = bioent_ids[1][0]
+        bait_hit = bioent_ids[0][1] + '-' + bioent_ids[1][1]
+    else:
+        bioent1_id = bioent_ids[1][0]
+        bioent2_id = bioent_ids[0][0]
+        bait_hit = bioent_ids[1][1] + '-' + bioent_ids[0][1]
     
     bioentity1 = None if bioent1_id not in id_to_bioents else id_to_bioents[bioent1_id]
     bioentity2 = None if bioent2_id not in id_to_bioents else id_to_bioents[bioent2_id]    
@@ -56,9 +59,6 @@ def create_interevidence(old_interaction_feature, key_to_experiment, key_to_phen
     
     source_key = old_interaction.source
     source = None if source_key not in key_to_source else key_to_source[source_key]
-    
-    feat_interacts = sorted(old_interaction.interaction_features, key=lambda x: x.feature_id)
-    bait_hit = '-'.join([x.action for x in feat_interacts])
     
     if old_interaction.interaction_type == 'genetic interactions':
         old_phenotypes = old_interaction.interaction_phenotypes
@@ -94,7 +94,7 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.evelement import Experiment as NewExperiment, Source as NewSource
     from model_new_schema.bioentity import Bioentity as NewBioentity
     from model_new_schema.phenotype import Phenotype as NewPhenotype
-    from model_old_schema.interaction import Interaction_Feature as OldInteractionFeature
+    from model_old_schema.interaction import Interaction_Feature as OldInteractionFeature, Interaction as OldInteraction
     
     log = logging.getLogger('convert.interaction.evidence')
     log.info('begin')
@@ -126,15 +126,26 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
         gen_untouched_obj_ids = dict()
         phys_untouched_obj_ids = dict()
         
+        inter_id_to_feature_ids = {}
+        for interaction_feature in old_session.query(OldInteractionFeature).all():
+            inter_id = interaction_feature.interaction_id
+            feature_id = interaction_feature.feature_id
+            if inter_id in inter_id_to_feature_ids:
+                inter_id_to_feature_ids[inter_id] = (inter_id_to_feature_ids[inter_id], (feature_id, interaction_feature.action))
+            else:
+                inter_id_to_feature_ids[inter_id] = (feature_id, interaction_feature.action)
+        
         min_bioent_id = 0
         max_bioent_id = 10000
         num_chunks = ceil(1.0*(max_bioent_id-min_bioent_id)/chunk_size)
-        for i in range(0, num_chunks+1):
+        for i in range(0, num_chunks):
             min_id = min_bioent_id + i*chunk_size
             max_id = min_bioent_id + (i+1)*chunk_size
+                
+            inter_ids = set()
             
             #Grab all current objects
-            if i < num_chunks:
+            if i < num_chunks-1:
                 gen_current_objs = new_session.query(NewGeninteractionevidence).filter(
                                     or_(NewGeninteractionevidence.bioentity1_id >= min_id, 
                                         NewGeninteractionevidence.bioentity2_id >= min_id)).filter(
@@ -146,6 +157,14 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
                                         NewPhysinteractionevidence.bioentity2_id >= min_id)).filter(
                                     or_(NewPhysinteractionevidence.bioentity1_id < max_id,
                                         NewPhysinteractionevidence.bioentity2_id < max_id)).all()
+                                        
+                for inter_id, feature_ids in inter_id_to_feature_ids.iteritems():
+                    feat1, feat2 = feature_ids
+                    feat1_id, _ = feat1
+                    feat2_id, _ = feat2
+                    if (feat1_id >= min_id and feat1_id < max_id) or (feat2_id >= min_id and feat2_id < max_id):
+                        inter_ids.add(inter_id)
+                    
             else:
                 gen_current_objs = new_session.query(NewGeninteractionevidence).filter(
                                     or_(NewGeninteractionevidence.bioentity1_id >= min_id, 
@@ -154,6 +173,22 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
                 phys_current_objs = new_session.query(NewPhysinteractionevidence).filter(
                                     or_(NewPhysinteractionevidence.bioentity1_id >= min_id, 
                                         NewPhysinteractionevidence.bioentity2_id >= min_id)).all() 
+                                        
+                for inter_id, feature_ids in inter_id_to_feature_ids.iteritems():
+                    feat1, feat2 = feature_ids
+                    feat1_id, _ = feat1
+                    feat2_id, _ = feat2
+                    if feat1_id >= min_id or feat2_id >= min_id:
+                        inter_ids.add(inter_id)
+            
+            old_objs = set()
+            num_id_chunks = ceil(1.0*len(inter_ids)/500)
+            inter_id_list = list(inter_ids)
+            for i in range(num_id_chunks):
+                old_objs.update(old_session.query(OldInteraction).filter(
+                                                OldInteraction.id.in_(inter_id_list[500*i: 500*(i+1)])).options(
+                                                        joinedload('interaction_references'),
+                                                        joinedload('interaction_phenotypes')))
             
             gen_id_to_current_obj = dict([(x.id, x) for x in gen_current_objs])
             gen_key_to_current_obj = dict([(x.unique_key(), x) for x in gen_current_objs])
@@ -162,19 +197,12 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
             phys_id_to_current_obj = dict([(x.id, x) for x in phys_current_objs])
             phys_key_to_current_obj = dict([(x.unique_key(), x) for x in phys_current_objs])
             phys_untouched_obj_ids.update(phys_id_to_current_obj)
-            
-            #Grab old objects
-            old_objs = old_session.query(OldInteractionFeature).filter(
-                                                OldInteractionFeature.feature_id >= min_id).filter(
-                                                OldInteractionFeature.feature_id < max_id).options(
-                                                        joinedload('interaction'),
-                                                        joinedload('interaction.interaction_references'),
-                                                        joinedload('interaction.interaction_phenotypes'),
-                                                        joinedload('interaction.interaction_features'))
-        
+
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_interevidence(old_obj, key_to_experiment, key_to_phenotype, id_to_reference, id_to_bioent, key_to_source)
+                newly_created_objs = create_interevidence(old_obj, key_to_experiment, key_to_phenotype, 
+                                                          id_to_reference, id_to_bioent, key_to_source,
+                                                          inter_id_to_feature_ids)
                     
                 #Edit or add new objects
                 for newly_created_obj in newly_created_objs:
@@ -218,6 +246,8 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
             
+        print len(gen_untouched_obj_ids)
+        print len(phys_untouched_obj_ids)
         #Delete untouched objs
         for untouched_obj  in gen_untouched_obj_ids.values():
             new_session.delete(untouched_obj)
@@ -244,7 +274,7 @@ def convert(old_session_maker, new_session_maker):
     
     log.info('begin')
         
-    convert_interevidence(old_session_maker, new_session_maker, 200)
+    convert_interevidence(old_session_maker, new_session_maker, 100)
     
     from model_new_schema.interaction import Physinteractionevidence
     get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]

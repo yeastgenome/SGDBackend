@@ -46,18 +46,25 @@ class ParagraphReference(Base, EqualityByIDMixin):
     __tablename__ = 'paragraph_reference'
     
     id = Column('paragraph_reference_id', Integer, primary_key=True)
+    source_id = Column('source_id', Integer)
     paragraph_id = Column('paragraph_id', Integer, ForeignKey(Paragraph.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     class_type = Column('class', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
     
     #Relationships
     paragraph = relationship(Paragraph, uselist=False, backref='paragraph_references')
     reference = relationship(Reference, uselist=False)
         
-    def __init__(self, paragraph_id, reference_id, class_type):
-        self.paragraph_id = paragraph_id
-        self.reference_id = reference_id
+    def __init__(self, source, paragraph, reference, class_type, date_created, created_by):
+        self.source_id = source.id
+        self.paragraph_id = paragraph.id
+        self.reference_id = reference.id
         self.class_type = class_type
+        self.date_created = date_created
+        self.created_by = created_by
         
     def unique_key(self):
         return (self.paragraph_id, self.reference_id)
+    

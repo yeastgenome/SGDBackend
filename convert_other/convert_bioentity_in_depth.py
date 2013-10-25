@@ -28,7 +28,7 @@ def create_bioentitytabs(locus):
     show_history = 1
     show_wiki = 1
     
-    if locus.status != 'Active':
+    if locus.bioent_status != 'Active':
         return [Locustabs(locus.id, show_summary, show_history, 0, 
                           0, 0, 0, 0, 0, 0, show_wiki)]
     
@@ -169,10 +169,11 @@ def convert_alias(old_session_maker, new_session_maker):
         values_to_check = ['source_id', 'category', 'created_by', 'date_created']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
+        already_seen_obj = set()
         
         #Grab cached dictionaries
         id_to_bioentity = dict([(x.id, x) for x in new_session.query(NewBioentity).all()])
-        key_to_source = dict([(x.id, x) for x in new_session.query(NewSource).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
 
         #Grab old objects
         old_session = old_session_maker()
@@ -184,9 +185,9 @@ def convert_alias(old_session_maker, new_session_maker):
             #Convert old objects into new ones
             newly_created_objs = create_alias(old_obj, id_to_bioentity, key_to_source)
                 
-            if newly_created_objs is not None:
-                #Edit or add new objects
-                for newly_created_obj in newly_created_objs:
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                if newly_created_obj.unique_key() not in already_seen_obj:
                     current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
                     current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
                     create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
@@ -195,6 +196,7 @@ def convert_alias(old_session_maker, new_session_maker):
                         untouched_obj_ids.remove(current_obj_by_id.id)
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                         untouched_obj_ids.remove(current_obj_by_key.id)
+                already_seen_obj.add(newly_created_obj.unique_key())
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -305,28 +307,38 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
         old_web_displays = old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Interaction Resources').all()
         url_to_display = dict([(x.url_id, x) for x in old_web_displays])
                 
-        count = max(id_to_bioentity.keys())
-        num_chunks = ceil(1.0*count/chunk_size)
-        min_id = 0
+        min_bioent_id = 0
+        max_bioent_id = 10000
+        num_chunks = ceil(1.0*(max_bioent_id-min_bioent_id)/chunk_size)
+        
         for i in range(0, num_chunks):
-            #Grab all current objects
-            current_objs = new_session.query(NewBioentityurl).filter(NewBioentityurl.bioentity_id >= min_id).filter(NewBioentityurl.bioentity_id < min_id+chunk_size).all()
+            min_id = min_bioent_id + i*chunk_size
+            max_id = min_bioent_id + (i+1)*chunk_size
+            
+            #Grab all current/old objects
+            if i < num_chunks-1:
+                current_objs = new_session.query(NewBioentityurl).filter(NewBioentityurl.bioentity_id >= min_id).filter(NewBioentityurl.bioentity_id < max_id).all()
+                old_objs = old_session.query(OldFeatUrl).filter(OldFeatUrl.feature_id >= min_id).filter(OldFeatUrl.feature_id < max_id).options(joinedload('url')).all()
+            else:
+                current_objs = new_session.query(NewBioentityurl).filter(NewBioentityurl.bioentity_id >= min_id).all()
+                old_objs = old_session.query(OldFeatUrl).filter(OldFeatUrl.feature_id >= min_id).options(joinedload('url')).all()
+                
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         
             untouched_obj_ids = set(id_to_current_obj.keys())
+            already_seen = set()
         
             #Grab old objects
-            old_objs = old_session.query(OldFeatUrl).filter(OldFeatUrl.feature_id >= min_id).filter(OldFeatUrl.feature_id < min_id+chunk_size).options(joinedload('url')).all()
             
             for old_obj in old_objs:
                 #Convert old objects into new ones
                 if old_obj.url_id in url_to_display:
                     newly_created_objs = create_url(old_obj, url_to_display[old_obj.url_id], id_to_bioentity, key_to_source)
                     
-                    if newly_created_objs is not None:
-                        #Edit or add new objects
-                        for newly_created_obj in newly_created_objs:
+                    #Edit or add new objects
+                    for newly_created_obj in newly_created_objs:
+                        if newly_created_obj.unique_key() not in already_seen:
                             current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
                             current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
                             create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
@@ -335,6 +347,8 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
                                 untouched_obj_ids.remove(current_obj_by_id.id)
                             if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                                 untouched_obj_ids.remove(current_obj_by_key.id)
+                        else:
+                            print newly_created_obj.unique_key()
                                 
             #Grab old objects (dbxref)
             old_objs = old_session.query(OldDbxrefFeat).filter(
@@ -365,7 +379,6 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
                         
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
-            min_id = min_id + chunk_size
         
     except Exception:
         log.exception('Unexpected error:' + str(sys.exc_info()[0]))
@@ -386,8 +399,10 @@ def create_qualifier_evidence(old_bioentity, id_to_bioentity, key_to_strain, key
     if ann is None:
         return None
     qualifier = ann.qualifier
-    
+    if qualifier is None:
+        return []    
     bioentity = None if old_bioentity.id not in id_to_bioentity else id_to_bioentity[old_bioentity.id]
+
     strain = key_to_strain['S288C']
     source = key_to_source['SGD']
         
@@ -480,7 +495,7 @@ def convert(old_session_maker, new_session_maker):
     convert_bioentitytabs(new_session_maker)
     
     from model_new_schema.bioentity import Locus
-    convert_disambigs(new_session_maker, Locus, ['id', 'format_name', 'display_name', 'dbxref'], 'BIOENTITY', 'LOCUS', 'convert.bioentity_in_depth.disambigs', 1000)
+    convert_disambigs(new_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS', 'convert.bioentity_in_depth.disambigs', 1000)
     
     log.info('complete')
     

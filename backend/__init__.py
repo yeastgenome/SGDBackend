@@ -237,6 +237,7 @@ def prepare_sgdbackend(**settings):
     chosen_backend = SGDBackend(config)
     
     prep_views(chosen_backend, config)
+    config.scan()
     return chosen_backend, config
 
 def prepare_perfbackend(**settings):
@@ -247,16 +248,17 @@ def prepare_perfbackend(**settings):
     chosen_backend = PerfBackend(config)
     
     prep_views(chosen_backend, config)
+    config.scan()
     return chosen_backend, config
 
 def sgdbackend(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    chosen_backend, config = prepare_sgdbackend(**settings)
+    _, config = prepare_sgdbackend(**settings)
     return config.make_wsgi_app()
 
 def perfbackend(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    chosen_backend, config = prepare_perfbackend(**settings)
+    _, config = prepare_perfbackend(**settings)
     return config.make_wsgi_app()

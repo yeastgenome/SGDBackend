@@ -114,7 +114,6 @@ class Reference(Base, EqualityByIDMixin):
     abstract = association_proxy('abstract_obj', 'text')
     
     author_names = association_proxy('author_references', 'author_name')
-    reftype_names = association_proxy('reftypes', 'name')
     related_references = association_proxy('refrels', 'child_ref')
     
     def __init__(self, reference_id, display_name, sgdid, source_id, 
@@ -145,7 +144,7 @@ class Reference(Base, EqualityByIDMixin):
         self.created_by = created_by
         
     def unique_key(self):
-        return self.id
+        return self.format_name
             
     @hybrid_property
     def authors(self):
@@ -191,16 +190,17 @@ class Author(Base, EqualityByIDMixin):
     id = Column('author_id', Integer, primary_key = True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
-    link = Column('obj_link', String)
+    link = Column('obj_url', String)
     source_id = Column('source_id', Integer)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
         
-    def __init__(self, author_id, display_name, format_name, link, source, date_created, created_by):
+    def __init__(self, author_id, display_name, source, date_created, created_by):
         self.id = author_id
         self.display_name = display_name
-        self.format_name = format_name
-        self.link = link
+        self.format_name = create_format_name(display_name)
+        self.link = None
+        self.source_id = source.id
         self.created_by = created_by
         self.date_created = date_created
         
@@ -217,44 +217,78 @@ class AuthorReference(Base, EqualityByIDMixin):
     __tablename__ = 'author_reference'
     
     id = Column('author_reference_id', Integer, primary_key = True)
+    source_id = Column('source_id', Integer)
     author_id = Column('author_id', Integer, ForeignKey(Author.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     order = Column('author_order', Integer)
     author_type = Column('author_type', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
     
     author = relationship(Author, backref=backref('author_references', passive_deletes=True), uselist=False) 
     reference = relationship(Reference, backref=backref('author_references', passive_deletes=True), uselist=False)
     author_name = association_proxy('author', 'display_name')
         
-    def __init__(self, author_reference_id, author_id, reference_id, order, author_type):
+    def __init__(self, author_reference_id, source, author, reference, order, author_type, date_created, created_by):
         self.id = author_reference_id
-        self.author_id = author_id
-        self.reference_id = reference_id
+        self.source_id = source.id
+        self.author_id = author.id
+        self.reference_id = reference.id
         self.order = order
         self.author_type = author_type
+        self.date_created = date_created
+        self.created_by = created_by
         
     def unique_key(self):
-        return (self.author_id, self.reference_id)
+        return (self.author_id, self.reference_id, self.order)
     
 class Reftype(Base, EqualityByIDMixin):
     __tablename__ = 'reftype'
 
     id = Column('reftype_id', Integer, primary_key = True)
     source_id = Column('source_id', String)
-    name = Column('reftype', String)
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
+    link = Column('obj_url', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
     
-    #Relationships
-    reference = relationship(Reference, backref=backref('reftypes', passive_deletes=True), uselist=False)
-    
-    def __init__(self, reftype_id, name, source_id, reference_id):
+    def __init__(self, reftype_id, display_name, source, date_created, created_by):
         self.id = reftype_id
-        self.name = name;
-        self.source_id = source_id
-        self.reference_id = reference_id
+        self.display_name = display_name;
+        self.format_name = create_format_name(display_name)
+        self.link = None
+        self.source_id = source.id
+        self.date_created = date_created
+        self.created_by = created_by
         
     def unique_key(self):
-        return (self.name, self.reference_id)
+        return self.format_name
+    
+class ReferenceReftype(Base, EqualityByIDMixin):
+    __tablename__ = 'reference_reftype'
+
+    id = Column('reference_reftype_id', Integer, primary_key = True)
+    source_id = Column('source_id', String)
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    reftype_id = Column('reftype_id', Integer, ForeignKey(Reftype.id))
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+    
+    #Relationships
+    reference = relationship(Reference, backref=backref('ref_reftypes', passive_deletes=True), uselist=False)
+    reftype = relationship(Reftype, backref=backref('ref_reftypes', passive_deletes=True), uselist=False)
+    
+    def __init__(self, reference_reftype_id, source, reference, reftype, date_created, created_by):
+        self.id = reference_reftype_id
+        self.source_id = source.id;
+        self.reference_id = reference.id
+        self.reftype_id = reftype.id
+        self.date_created = date_created
+        self.created_by = created_by
+        
+    def unique_key(self):
+        return (self.reference_id, self.reftype_id)
     
 class Referencerelation(Relation):
     __tablename__ = 'referencerelation'

@@ -98,39 +98,42 @@ def convert_evidence(new_session_maker, chunk_size):
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in new_session.query(Strain).all()])
         
-        #Grab old objects
-        data = break_up_file('data/yeastmine_regulation.tsv')
-        
         untouched_obj_ids = dict()
                 
         min_bioent_id = 0
         max_bioent_id = 10000
         num_chunks = ceil(1.0*(max_bioent_id-min_bioent_id)/chunk_size)
         
-        #Break up data
-        data_chunks = [[] for x in range(0, num_chunks)]
-        for row in data:
-            bioent1_format_name = row[1].upper().strip()
-            bioent1_key = (bioent1_format_name, 'LOCUS') 
-            bioent1 = None if bioent1_key not in key_to_bioent else key_to_bioent[bioent1_key]
-            if bioent1 is not None:
-                index = int(max(num_chunks-1, int(floor(1.0*(bioent1.id-min_bioent_id)/chunk_size))))
-                data_chunks[index].append(row)
-        
-        for i in range(0, num_chunks+1):
+        for i in range(0, num_chunks):
             min_id = min_bioent_id + i*chunk_size
             max_id = min_bioent_id + (i+1)*chunk_size
             
+            old_objs = []
+                    
+            f = open('data/yeastmine_regulation.tsv', 'r')
+            for line in f:
+                row = line.split('\t')
+                bioent1_format_name = row[1].upper().strip()
+                bioent1_key = (bioent1_format_name, 'LOCUS') 
+                bioent1 = None if bioent1_key not in key_to_bioent else key_to_bioent[bioent1_key]
+                if bioent1 is not None:
+                    index = int(max(num_chunks-1, int(floor(1.0*(bioent1.id-min_bioent_id)/chunk_size))))
+                    if i == index:
+                        old_objs.append(row)
+            f.close()
+            
             #Grab all current objects
-            current_objs = new_session.query(Regulationevidence).filter(Regulationevidence.bioentity1_id >= min_id).filter(
+            if i < num_chunks-1:
+                current_objs = new_session.query(Regulationevidence).filter(Regulationevidence.bioentity1_id >= min_id).filter(
                                                                         Regulationevidence.bioentity1_id < max_id).all()
+            else:
+                current_objs = new_session.query(Regulationevidence).filter(Regulationevidence.bioentity1_id >= min_id).all()
                                         
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
             
             untouched_obj_ids.update(id_to_current_obj)
         
-            old_objs = data_chunks[i]
             for old_obj in old_objs:
                 #Convert old objects into new ones
                 newly_created_objs = create_evidence(old_obj, key_to_experiment, key_to_bioent, pubmed_to_reference, key_to_source, key_to_strain)
@@ -150,8 +153,7 @@ def convert_evidence(new_session_maker, chunk_size):
             
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
-            min_id = min_id+chunk_size
-        
+                    
         #Delete untouched objs
         for untouched_obj  in untouched_obj_ids.values():
             new_session.delete(untouched_obj)

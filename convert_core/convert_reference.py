@@ -8,7 +8,6 @@ from convert_utils import create_or_update, set_up_logging, prepare_connections,
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
-from sqlalchemy.sql.expression import func
 import datetime
 import logging
 import requests
@@ -194,16 +193,16 @@ def convert_book(old_session_maker, new_session_maker):
 """
 
 def create_citation(citation):
-    end_of_name = citation.find(")")+1
-    name = citation[:end_of_name]
-    words_in_name = name.split()
-    for i in range(0, len(words_in_name)):
-        word = words_in_name[i]
-        if len(word) > 3:
-            words_in_name[i] = word.title()
-    name = ' '.join(words_in_name)
-    new_citation = name + citation[end_of_name:]
-    new_citation = new_citation.replace('()', '')
+    #end_of_name = citation.find(")")+1
+    #name = citation[:end_of_name]
+    #words_in_name = name.split()
+    #for i in range(0, len(words_in_name)):
+    #    word = words_in_name[i]
+    #    if len(word) > 3:
+    #        words_in_name[i] = word.title()
+    #name = ' '.join(words_in_name)
+    #new_citation = name + citation[end_of_name:]
+    new_citation = citation.replace('()', '')
     return new_citation
 
 def create_display_name(citation):
@@ -303,7 +302,7 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
         #Values to check
         values_to_check = ['display_name', 'format_name', 'link', 'source_id', 'sgdid',
                        'ref_status', 'pubmed_id', 'pubmed_central_id', 'fulltext_status', 'year', 'date_published', 
-                       'date_revised', 'issue', 'page', 'volume', 'title',
+                       'date_revised', 'issue', 'page', 'volume', 'title', 'citation',
                        'journal_id', 'book_id', 'doi']
                 
         #Grab cached dictionaries
@@ -316,10 +315,10 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
         
         used_unique_keys = set()
         used_citations = set()
-        
-        count = old_session.query(func.max(OldReference.id)).first()[0]
+
+        min_id = 0      
+        count = 100000
         num_chunks = ceil(1.0*count/chunk_size)
-        min_id = 0
         for i in range(0, num_chunks):
             #Grab all current objects
             current_objs = new_session.query(NewReference).filter(NewReference.id >= min_id).filter(NewReference.id <=  min_id+chunk_size).all()
@@ -338,6 +337,9 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
                                             
             old_pubmed_ids = [x.pubmed_id for x in old_objs if x.pubmed_id is not None]
             pubmed_id_to_pubmed_central_id = get_pubmed_central_ids(old_pubmed_ids)
+            
+            print 'Satomura A, et al. (2013) Acquisition of thermotolerant yeast Saccharomyces cerevisiae by breeding via stepwise adaptation. Biotechnol Prog ' in used_citations
+            print 90533 in id_to_current_obj
             
             for old_obj in old_objs:
                 #Convert old objects into new ones

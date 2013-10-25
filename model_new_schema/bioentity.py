@@ -58,7 +58,7 @@ class Bioentityurl(Url):
     
     def __init__(self, display_name, link, source, category, bioentity, date_created, created_by):
         Url.__init__(self, display_name, bioentity.format_name, 'BIOENTITY', link, source, category, 
-                     bioentity.id, date_created, created_by)
+                     date_created, created_by)
         self.bioentity_id = bioentity.id
     
 class Bioentityalias(Alias):

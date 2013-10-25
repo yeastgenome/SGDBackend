@@ -52,7 +52,7 @@ class Url(Base):
         self.created_by = created_by
         
     def unique_key(self):
-        return (self.url, self.format_name)
+        return (self.link, self.format_name)
     
 class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'

@@ -26,7 +26,7 @@ def create_abstract(old_reference, reference_ids):
     from model_new_schema.reference import Abstract as NewAbstract
     if old_reference.abst is not None:
         if old_reference.id in reference_ids:
-            return [NewAbstract(old_reference.id, str(old_reference.abstract))]
+            return [NewAbstract(old_reference.id, old_reference.abstract)]
     return None
 
 def convert_abstract(old_session_maker, new_session_maker, chunk_size):
@@ -247,20 +247,17 @@ def convert_bibentry(new_session_maker, chunk_size):
 --------------------- Convert Author ---------------------
 """
 
-def create_author_id(old_author_id):
-    return old_author_id
-
-def create_author(old_author):
+def create_author(old_author, key_to_source):
     from model_new_schema.reference import Author as NewAuthor
     
     display_name = old_author.name
-    format_name = create_format_name(display_name)
-    link = author_link(format_name)
-    new_author = NewAuthor(create_author_id(old_author.id), display_name, format_name, link, old_author.date_created, old_author.created_by)
+    source = key_to_source['PubMed']
+    new_author = NewAuthor(old_author.id, display_name, source, old_author.date_created, old_author.created_by)
     return [new_author]
 
 def convert_author(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Author as NewAuthor
+    from model_new_schema.evelement import Source as NewSource
     from model_old_schema.reference import Author as OldAuthor
     
     log = logging.getLogger('convert.reference_in_depth.author')
@@ -283,6 +280,9 @@ def convert_author(old_session_maker, new_session_maker, chunk_size):
         
         old_session = old_session_maker()
         
+        #Cache
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource)])
+        
         count = old_session.query(func.max(OldAuthor.id)).first()[0]
         num_chunks = ceil(1.0*count/chunk_size)
         min_id = 0
@@ -301,7 +301,7 @@ def convert_author(old_session_maker, new_session_maker, chunk_size):
         
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_author(old_obj)
+                newly_created_objs = create_author(old_obj, key_to_source)
                     
                 if newly_created_objs is not None:
                     #Edit or add new objects
@@ -340,28 +340,20 @@ def convert_author(old_session_maker, new_session_maker, chunk_size):
 --------------------- Convert Author Reference ---------------------
 """
 
-def create_author_reference_id(old_author_reference_id):
-    return old_author_reference_id
-
-def create_author_reference(old_author_reference, old_id_to_new_id_author, reference_ids):
+def create_author_reference(old_author_reference, old_id_to_author, id_to_reference, key_to_source):
     from model_new_schema.reference import AuthorReference as NewAuthorReference
     author_id = old_author_reference.author_id
-    if author_id not in old_id_to_new_id_author:
-        print 'Author does not exist. ' + str(author_id)
-        return None
-    author_id = old_id_to_new_id_author[author_id]
-    
+    author = None if author_id not in old_id_to_author else old_id_to_author[author_id]
     reference_id = old_author_reference.reference_id
-    if reference_id not in reference_ids:
-        print 'Reference does not exist. ' + str(reference_id)
-        return None
-    
-    new_author_reference = NewAuthorReference(create_author_reference_id(old_author_reference.id), author_id, reference_id, 
-                                              old_author_reference.order, old_author_reference.type)
+    reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
+    source = key_to_source['PubMed']
+    new_author_reference = NewAuthorReference(old_author_reference.id, source, author, reference, 
+                                              old_author_reference.order, old_author_reference.type, reference.date_created, reference.created_by)
     return [new_author_reference]
 
 def convert_author_reference(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Author as NewAuthor, Reference as NewReference, AuthorReference as NewAuthorReference
+    from model_new_schema.evelement import Source as NewSource
     from model_old_schema.reference import AuthorReference as OldAuthorReference, Author as OldAuthor
     
     log = logging.getLogger('convert.reference_in_depth.author_reference')
@@ -376,12 +368,13 @@ def convert_author_reference(old_session_maker, new_session_maker, chunk_size):
         values_to_check = ['author_type']
         
         #Grab cached dictionaries
-        reference_ids = set([x.id for x in new_session.query(NewReference).all()])
+        id_to_reference = dict([(x.id, x) for x in new_session.query(NewReference).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource)])
         
         #Simplify author conversion
         old_id_to_key = dict([(x.id, create_format_name(x.name)) for x in old_session.query(OldAuthor).all()])
-        new_key_to_id = dict([(x.unique_key(), x.id) for x in new_session.query(NewAuthor).all()])
-        old_id_to_new_id_author = dict([(x, new_key_to_id[y]) for x, y in old_id_to_key.iteritems()])
+        new_key_to_author = dict([(x.unique_key(), x) for x in new_session.query(NewAuthor).all()])
+        old_id_to_author = dict([(x, new_key_to_author[y]) for x, y in old_id_to_key.iteritems()])
         
         used_unique_keys = set()
         
@@ -403,22 +396,23 @@ def convert_author_reference(old_session_maker, new_session_maker, chunk_size):
             
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_author_reference(old_obj, old_id_to_new_id_author, reference_ids)
+                newly_created_objs = create_author_reference(old_obj, old_id_to_author, id_to_reference, key_to_source)
                 
-                if newly_created_objs is not None:
-                    #Edit or add new objects
-                    for newly_created_obj in newly_created_objs:
-                        unique_key = newly_created_obj.unique_key()
-                        if unique_key not in used_unique_keys:
-                            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                            current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
-                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                        
-                            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                                untouched_obj_ids.remove(current_obj_by_id.id)
-                            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                                untouched_obj_ids.remove(current_obj_by_key.id)
-                            used_unique_keys.add(unique_key)
+                #Edit or add new objects
+                for newly_created_obj in newly_created_objs:
+                    unique_key = newly_created_obj.unique_key()
+                    if unique_key not in used_unique_keys:
+                        current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                        current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    
+                        if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                            untouched_obj_ids.remove(current_obj_by_id.id)
+                        if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                            untouched_obj_ids.remove(current_obj_by_key.id)
+                        used_unique_keys.add(unique_key)
+                    else:
+                        print unique_key
                                 
             #Delete untouched objs
             for untouched_obj_id  in untouched_obj_ids:
@@ -441,31 +435,20 @@ def convert_author_reference(old_session_maker, new_session_maker, chunk_size):
 --------------------- Convert Reftype ---------------------
 """
 
-def create_reftype_id(old_reftype_id):
-    return old_reftype_id
-
-def create_reftype(old_ref_reftype, reference_ids, key_to_source):
+def create_reftype(old_reftype, key_to_source):
     from model_new_schema.reference import Reftype as NewReftype
     
-    reference_id = old_ref_reftype.reference_id
-    if reference_id not in reference_ids:
-        return None
+    source_key = create_format_name(old_reftype.source)
+    source = None if source_key not in key_to_source else key_to_source[source_key]
     
-    source_key = create_format_name(old_ref_reftype.reftype_source)
-    if source_key in key_to_source:
-        source_id = key_to_source[source_key].id
-    else:
-        print 'Source could not be found.' + source_key
-        return None
-    
-    new_reftype = NewReftype(create_reftype_id(old_ref_reftype.id), old_ref_reftype.reftype_name, 
-                             source_id, reference_id)
+    new_reftype = NewReftype(old_reftype.id, old_reftype.name, 
+                             source, old_reftype.date_created, old_reftype.created_by)
     return [new_reftype]
 
 def convert_reftype(old_session_maker, new_session_maker):
-    from model_new_schema.reference import Reference as NewReference, Reftype as NewReftype
+    from model_new_schema.reference import Reftype as NewReftype
     from model_new_schema.evelement import Source as NewSource
-    from model_old_schema.reference import RefReftype as OldRefReftype
+    from model_old_schema.reference import RefType as OldReftype
     
     log = logging.getLogger('convert.reference_in_depth.reftype')
     log.info('begin')
@@ -480,34 +463,107 @@ def convert_reftype(old_session_maker, new_session_maker):
         
         #Grab old objects
         old_session = old_session_maker()
-        old_objs = old_session.query(OldRefReftype).options(joinedload('reftype')).all()
+        old_objs = old_session.query(OldReftype).all()
 
         #Cache
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
         #Values to check
-        values_to_check =  ['source_id']
+        values_to_check =  ['source_id', 'display_name', 'link']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
-                
-        #Grab cached dictionaries
-        reference_ids = set([x.id for x in new_session.query(NewReference).all()])
             
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_reftype(old_obj, reference_ids, key_to_source)
+            newly_created_objs = create_reftype(old_obj, key_to_source)
             
-            if newly_created_objs is not None:
-                #Edit or add new objects
-                for newly_created_obj in newly_created_objs:
-                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                
-                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_id.id)
-                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_key.id)
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+            
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
+                        
+        #Delete untouched objs
+        for untouched_obj_id  in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+        
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+        
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
+        old_session.close()
+        
+    log.info('complete')
+    
+"""
+--------------------- Convert ReferenceReftype ---------------------
+"""
+
+def create_reference_reftype(old_refreftype, id_to_source, id_to_reference, id_to_reftype):
+    from model_new_schema.reference import ReferenceReftype as NewReferenceReftype
+    
+    reftype = None if old_refreftype.reftype_id not in id_to_reftype else id_to_reftype[old_refreftype.reftype_id]
+    reference = None if old_refreftype.reference_id not in id_to_reference else id_to_reference[old_refreftype.reference_id]
+    source = None if reftype.source_id not in id_to_source else id_to_source[reftype.source_id]
+    
+    new_refreftype = NewReferenceReftype(old_refreftype.id, source, reference, reftype,
+                             reftype.date_created, reftype.created_by)
+    return [new_refreftype]
+
+def convert_reference_reftype(old_session_maker, new_session_maker):
+    from model_new_schema.reference import ReferenceReftype as NewReferenceReftype, Reference as NewReference, Reftype as NewReftype
+    from model_new_schema.evelement import Source as NewSource
+    from model_old_schema.reference import RefReftype as OldRefReftype
+    
+    log = logging.getLogger('convert.reference_in_depth.reference_reftype')
+    log.info('begin')
+    output_creator = OutputCreator(log)
+    
+    try:
+        #Grab all current objects
+        new_session = new_session_maker()
+        current_objs = new_session.query(NewReferenceReftype).all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+        
+        #Grab old objects
+        old_session = old_session_maker()
+        old_objs = old_session.query(OldRefReftype).all()
+
+        #Cache
+        id_to_source = dict([(x.id, x) for x in new_session.query(NewSource).all()])
+        id_to_reference = dict([(x.id, x) for x in new_session.query(NewReference).all()])
+        id_to_reftype = dict([(x.id, x) for x in new_session.query(NewReftype).all()])
+        
+        #Values to check
+        values_to_check =  ['source_id']
+        
+        untouched_obj_ids = set(id_to_current_obj.keys())
+            
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_reference_reftype(old_obj, id_to_source, id_to_reference, id_to_reftype)
+            
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+            
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -530,28 +586,22 @@ def convert_reftype(old_session_maker, new_session_maker):
 --------------------- Convert Reference Relation ---------------------
 """
 
-def create_reference_relation_id(old_reference_relation_id):
-    return old_reference_relation_id
-
-def create_reference_relation(old_ref_relation, reference_ids):
-    from model_new_schema.reference import ReferenceRelation as NewReferenceRelation
+def create_reference_relation(old_ref_relation, id_to_reference, key_to_source):
+    from model_new_schema.reference import Referencerelation as NewReferencerelation
     
     parent_id = old_ref_relation.parent_id
-    if parent_id not in reference_ids:
-        print 'Reference does not exist. ' + str(parent_id)
-        return None
-    
+    parent = None if parent_id not in id_to_reference else id_to_reference[parent_id]
     child_id = old_ref_relation.child_id
-    if child_id not in reference_ids:
-        print 'Reference does not exist. ' + str(child_id)
-        return None
+    child = None if child_id not in id_to_reference else id_to_reference[child_id]
     
-    new_ref_relation = NewReferenceRelation(old_ref_relation.id, parent_id, child_id, 
+    source = key_to_source['SGD']
+    new_ref_relation = NewReferencerelation(old_ref_relation.id, source, None, parent, child, 
                              old_ref_relation.date_created, old_ref_relation.created_by)
     return [new_ref_relation]
 
 def convert_reference_relation(old_session_maker, new_session_maker):
-    from model_new_schema.reference import ReferenceRelation as NewReferenceRelation, Reference as NewReference
+    from model_new_schema.reference import Referencerelation as NewReferencerelation, Reference as NewReference
+    from model_new_schema.evelement import Source as NewSource
     from model_old_schema.reference import RefRelation as OldRefRelation
     
     log = logging.getLogger('convert.reference_in_depth.reference_relation')
@@ -561,15 +611,16 @@ def convert_reference_relation(old_session_maker, new_session_maker):
     try:
         #Grab all current objects
         new_session = new_session_maker()
-        current_objs = new_session.query(NewReferenceRelation).all()
+        current_objs = new_session.query(NewReferencerelation).all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['created_by', 'date_created']
+        values_to_check = []
         
         #Grab cached dictionaries
-        reference_ids = set([x.id for x in new_session.query(NewReference).all()])
+        id_to_reference = set([x.id for x in new_session.query(NewReference).all()])
+        key_to_source = set([x.unique_key() for x in new_session.query(NewSource).all()])
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -579,22 +630,21 @@ def convert_reference_relation(old_session_maker, new_session_maker):
                 
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_reference_relation(old_obj, reference_ids)
+            newly_created_objs = create_reference_relation(old_obj, id_to_reference, key_to_source)
                 
-            if newly_created_objs is not None:
-                #Edit or add new objects
-                for newly_created_obj in newly_created_objs:
-                    unique_key = newly_created_obj.unique_key()
-                    
-                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                    current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
-                    
-                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                    
-                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_id.id)
-                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_key.id)
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                unique_key = newly_created_obj.unique_key()
+                
+                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                
+                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -617,25 +667,25 @@ def convert_reference_relation(old_session_maker, new_session_maker):
 --------------------- Convert Reference Alias ---------------------
 """
 
-def create_alias(old_reference, reference_ids):
+def create_alias(old_reference, id_to_reference, key_to_source):
     from model_new_schema.reference import Referencealias as NewReferencealias
     
     reference_id = old_reference.id
-    if reference_id not in reference_ids:
-        return []
-    
+    reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
+    source = key_to_source['SGD']
     new_aliases = []
     
     for dbxref in old_reference.dbxrefs:
         altid_name = dbxref.dbxref_type
         if altid_name == 'DBID Secondary':
             identifier = dbxref.dbxref_id
-            new_aliases.append(NewReferencealias(identifier, reference_id, 1, altid_name, 
+            new_aliases.append(NewReferencealias(identifier, source, altid_name, reference,
                                             old_reference.date_created, old_reference.created_by))
     return new_aliases
 
 def convert_alias(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Reference as NewReference, Referencealias as NewReferencealias
+    from model_new_schema.evelement import Source as NewSource
     from model_old_schema.reference import Reference as OldReference
     
     log = logging.getLogger('convert.reference_in_depth.reference_alias')
@@ -647,10 +697,11 @@ def convert_alias(old_session_maker, new_session_maker, chunk_size):
         new_session = new_session_maker()
                 
         #Values to check
-        values_to_check = ['source_id', 'category', 'date_created', 'created_by']
+        values_to_check = ['source_id', 'category', 'display_name']
                 
         #Grab cached dictionaries
-        reference_ids = set([x.id for x in new_session.query(NewReference).all()])
+        id_to_reference = dict([(x.id, x) for x in new_session.query(NewReference).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
         #Grab old objects
         old_session = old_session_maker()
@@ -674,7 +725,7 @@ def convert_alias(old_session_maker, new_session_maker, chunk_size):
             
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_alias(old_obj, reference_ids)
+                newly_created_objs = create_alias(old_obj, id_to_reference, key_to_source)
                 
                 if newly_created_objs is not None:
                     #Edit or add new objects
@@ -718,14 +769,14 @@ def create_url(reference, key_to_source):
     from model_new_schema.reference import Referenceurl as NewReferenceurl
     
     new_urls = []
-    new_urls.append(NewReferenceurl('PubMed', reference.id, key_to_source['PubMed'].id, 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id), 
-                                  'PUBMED', None, None))
+    new_urls.append(NewReferenceurl('PubMed', 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id), key_to_source['PubMed'], 'PUBMED', reference, 
+                                  None, None))
     if reference.doi is not None:
-        new_urls.append(NewReferenceurl('Full-Text', reference.id, key_to_source['DOI'].id, 'http://dx.doi.org/' + reference.doi, 
-                                  'FULLTEXT', None, None))
+        new_urls.append(NewReferenceurl('Full-Text', 'http://dx.doi.org/' + reference.doi, key_to_source['DOI'], 'FULLTEXT', reference,
+                                  None, None))
     if reference.pubmed_central_id is not None:
-        new_urls.append(NewReferenceurl('PMC', reference.id, key_to_source['PubMedCentral'].id, 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(reference.pubmed_central_id), 
-                                  'PUBMEDCENTRAL', None, None))
+        new_urls.append(NewReferenceurl('PMC', 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(reference.pubmed_central_id), key_to_source['PubMedCentral'], 'PUBMEDCENTRAL', reference, 
+                                  None, None))
     return new_urls
 
 def convert_url(new_session_maker, chunk_size):
@@ -741,7 +792,7 @@ def convert_url(new_session_maker, chunk_size):
         new_session = new_session_maker()
                 
         #Values to check
-        values_to_check = ['display_name', 'category', 'source_id', 'date_created', 'created_by', 'reference_id']
+        values_to_check = ['display_name', 'category', 'source_id', 'reference_id']
         
         #Cache
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
@@ -816,18 +867,20 @@ def convert(old_session_maker, new_session_maker):
     
     #convert_author_reference(old_session_maker, new_session_maker, 10000)
     
-    convert_reftype(old_session_maker, new_session_maker)
+    #convert_reftype(old_session_maker, new_session_maker)
     
-    #convert_reference_relation(old_session_maker, new_session_maker)
+    convert_reference_reftype(old_session_maker, new_session_maker)
     
-    #convert_alias(old_session_maker, new_session_maker, 3000)
+    convert_reference_relation(old_session_maker, new_session_maker)
+    
+    convert_alias(old_session_maker, new_session_maker, 3000)
     
     convert_url(new_session_maker, 3000)
         
-    #convert_bibentry(new_session_maker, 3000)
+    convert_bibentry(new_session_maker, 3000)
     
     from model_new_schema.reference import Reference
-    #convert_disambigs(new_session_maker, Reference, ['id', 'dbxref'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
+    convert_disambigs(new_session_maker, Reference, ['id', 'sgdid'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
     
     log.info('complete')
    
