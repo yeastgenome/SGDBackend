@@ -57,7 +57,7 @@ class Interaction_Phenotype(Base, EqualityByIDMixin):
     phenotype_id = Column('phenotype_no', Integer, ForeignKey('bud.phenotype.phenotype_no'))
     
     #Relationships
-    phenotype = relationship(Phenotype, uselist=False, lazy='subquery')
+    phenotype = relationship(Phenotype, uselist=False)
     qualifier = association_proxy('phenotype', 'qualifier')
     observable = association_proxy('phenotype', 'observable')
     

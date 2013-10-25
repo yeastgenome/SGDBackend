@@ -28,7 +28,6 @@ def check_session_maker(session_maker, DBHOST, is_old):
         raise Exception("Connection to " + DBHOST + " failed. Please check your parameters.") 
 
 def prepare_connections(need_old=True):
-    from convert_all import config
     if need_old:
         if len(sys.argv) == 5:
             OLD_DBHOST = sys.argv[1] + ':1521'
@@ -45,11 +44,11 @@ def prepare_connections(need_old=True):
             NEW_DBUSER = config_passwords.NEW_DBUSER
             NEW_DBPASS = config_passwords.NEW_DBPASS
     
-        old_session_maker = prepare_schema_connection(model_old_schema, config.OLD_DBTYPE, OLD_DBHOST, config.OLD_DBNAME, config.OLD_SCHEMA, 
+        old_session_maker = prepare_schema_connection(model_old_schema, config_passwords.OLD_DBTYPE, OLD_DBHOST, config_passwords.OLD_DBNAME, config_passwords.OLD_SCHEMA, 
                                                   OLD_DBUSER, OLD_DBPASS)
         check_session_maker(old_session_maker, OLD_DBHOST, True)
         
-        new_session_maker = prepare_schema_connection(model_new_schema, config.NEW_DBTYPE, NEW_DBHOST, config.NEW_DBNAME, config.NEW_SCHEMA, 
+        new_session_maker = prepare_schema_connection(model_new_schema, config_passwords.NEW_DBTYPE, NEW_DBHOST, config_passwords.NEW_DBNAME, config_passwords.NEW_SCHEMA, 
                                                   NEW_DBUSER, NEW_DBPASS)
         check_session_maker(new_session_maker, NEW_DBHOST, False)
         return old_session_maker, new_session_maker
@@ -63,7 +62,7 @@ def prepare_connections(need_old=True):
             NEW_DBUSER = config_passwords.NEW_DBUSER
             NEW_DBPASS = config_passwords.NEW_DBPASS
             
-        new_session_maker = prepare_schema_connection(model_new_schema, config.NEW_DBTYPE, NEW_DBHOST, config.NEW_DBNAME, config.NEW_SCHEMA, 
+        new_session_maker = prepare_schema_connection(model_new_schema, config_passwords.NEW_DBTYPE, NEW_DBHOST, config_passwords.NEW_DBNAME, config_passwords.NEW_SCHEMA, 
                                                   NEW_DBUSER, NEW_DBPASS)
         check_session_maker(new_session_maker, NEW_DBHOST, False)
         return new_session_maker

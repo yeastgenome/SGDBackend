@@ -316,12 +316,14 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
         used_unique_keys = set()
         used_citations = set()
 
-        min_id = 0      
+        ref_min_id = 0      
         count = 100000
         num_chunks = ceil(1.0*count/chunk_size)
         for i in range(0, num_chunks):
+            min_id = ref_min_id + i*chunk_size
+            max_id = ref_min_id + (i+1)*chunk_size
             #Grab all current objects
-            current_objs = new_session.query(NewReference).filter(NewReference.id >= min_id).filter(NewReference.id <=  min_id+chunk_size).all()
+            current_objs = new_session.query(NewReference).filter(NewReference.id >= min_id).filter(NewReference.id <  max_id).all()
             
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
@@ -331,7 +333,7 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
             #Grab old objects
             old_objs = old_session.query(OldReference).filter(
                                             OldReference.id >= min_id).filter(
-                                            OldReference.id <=  min_id+chunk_size).options(
+                                            OldReference.id <  max_id).options(
                                             joinedload('book'), 
                                             joinedload('journal')).all()
                                             
@@ -367,9 +369,7 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
                             
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
-                        
-            min_id = min_id + chunk_size + 1
-                        
+                                                
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
             new_session.delete(id_to_current_obj[untouched_obj_id])
