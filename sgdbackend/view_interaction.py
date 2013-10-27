@@ -3,10 +3,8 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from sgdbackend_query.query_evidence import get_genetic_interaction_evidence, \
-    get_physical_interaction_evidence
-from sgdbackend_query.query_interaction import get_interaction_family, \
-    get_interactions
+from sgdbackend_query import get_evidence
+from sgdbackend_query.query_auxiliary import get_interactions
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_reference, \
     id_to_experiment, id_to_strain, id_to_biocon, id_to_source
@@ -50,8 +48,9 @@ def make_overview(bioent):
 '''
     
 def make_details(divided, bioent_id):
-    genetic_interevidences = get_genetic_interaction_evidence(bioent_id)
-    physical_interevidences = get_physical_interaction_evidence(bioent_id)
+    from model_new_schema.evidence import Geninteractionevidence, Physinteractionevidence
+    genetic_interevidences = get_evidence(Geninteractionevidence, bioent_id=bioent_id)
+    physical_interevidences = get_evidence(Physinteractionevidence, bioent_id=bioent_id)
             
     tables = {}
 

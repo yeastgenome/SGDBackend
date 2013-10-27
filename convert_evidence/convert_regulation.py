@@ -3,7 +3,8 @@ Created on Sep 10, 2013
 
 @author: kpaskov
 '''
-from convert_aux.convert_aux_other import convert_bioentity_reference
+from convert_other.convert_auxiliary import convert_bioentity_reference, \
+    convert_interaction
 from convert_utils import create_or_update, set_up_logging, create_format_name, \
     break_up_file, prepare_connections
 from convert_utils.output_manager import OutputCreator
@@ -37,7 +38,7 @@ pubmed_to_strain = {#11504737: 'Other',
                     20195295: 'S288C'}
 
 def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, key_to_source, key_to_strain):
-    from model_new_schema.regulation import Regulationevidence
+    from model_new_schema.evidence import Regulationevidence
     
     #bioent1_gene_name = row[0]
     bioent1_format_name = row[1].upper().strip()
@@ -67,7 +68,8 @@ def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, 
     conditions = []
     if condition_value != '""':
         from model_new_schema.condition import Generalcondition
-        conditions.append(Generalcondition(condition_value.replace('??', "\00b5")))
+        condition_value = condition_value.replace('??', "\00b5")
+        conditions.append(Generalcondition(condition_value))
 
     
     new_evidence = Regulationevidence(source, reference, strain, experiment, None, 
@@ -75,8 +77,8 @@ def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, 
     return [new_evidence]
 
 def convert_evidence(new_session_maker, chunk_size):
-    from model_new_schema.regulation import Regulationevidence
-    from model_new_schema.evelement import Experiment, Source, Strain
+    from model_new_schema.evidence import Regulationevidence
+    from model_new_schema.evelements import Experiment, Source, Strain
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.reference import Reference
     
@@ -88,8 +90,8 @@ def convert_evidence(new_session_maker, chunk_size):
         new_session = new_session_maker()
          
         #Values to check
-        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id', 'conditions', 
-                       'bioentity1_id', 'bioentity2_id', 'date_created', 'created_by']
+        values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id', 
+                       'bioentity1_id', 'bioentity2_id']
         
         #Grab cached dictionaries
         key_to_experiment = dict([(x.unique_key(), x) for x in new_session.query(Experiment).all()])
@@ -97,30 +99,28 @@ def convert_evidence(new_session_maker, chunk_size):
         pubmed_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in new_session.query(Strain).all()])
-        
-        untouched_obj_ids = dict()
                 
         min_bioent_id = 0
         max_bioent_id = 10000
         num_chunks = ceil(1.0*(max_bioent_id-min_bioent_id)/chunk_size)
         
+        old_obj_chunks = [[] for _ in range(num_chunks)]
+        f = open('data/yeastmine_regulation.tsv', 'r')
+        for line in f:
+            row = line.split('\t')
+            bioent1_format_name = row[1].upper().strip()
+            bioent1_key = (bioent1_format_name, 'LOCUS') 
+            bioent1 = None if bioent1_key not in key_to_bioent else key_to_bioent[bioent1_key]
+            if bioent1 is not None:
+                index = int(min(num_chunks-1, int(floor(1.0*(bioent1.id-min_bioent_id)/chunk_size))))
+                old_obj_chunks[index].append(row)
+        f.close()
+        
         for i in range(0, num_chunks):
             min_id = min_bioent_id + i*chunk_size
             max_id = min_bioent_id + (i+1)*chunk_size
             
-            old_objs = []
-                    
-            f = open('data/yeastmine_regulation.tsv', 'r')
-            for line in f:
-                row = line.split('\t')
-                bioent1_format_name = row[1].upper().strip()
-                bioent1_key = (bioent1_format_name, 'LOCUS') 
-                bioent1 = None if bioent1_key not in key_to_bioent else key_to_bioent[bioent1_key]
-                if bioent1 is not None:
-                    index = int(max(num_chunks-1, int(floor(1.0*(bioent1.id-min_bioent_id)/chunk_size))))
-                    if i == index:
-                        old_objs.append(row)
-            f.close()
+            old_objs = old_obj_chunks[i]
             
             #Grab all current objects
             if i < num_chunks-1:
@@ -132,7 +132,8 @@ def convert_evidence(new_session_maker, chunk_size):
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
             
-            untouched_obj_ids.update(id_to_current_obj)
+            untouched_obj_ids = id_to_current_obj.keys()
+            already_seen = set()
         
             for old_obj in old_objs:
                 #Convert old objects into new ones
@@ -141,27 +142,26 @@ def convert_evidence(new_session_maker, chunk_size):
                 #Edit or add new objects
                 for newly_created_obj in newly_created_objs:
                     unique_key = newly_created_obj.unique_key()
-                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                    current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
-                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                    
-                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_id.id)
-                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_key.id)
+                    if unique_key not in already_seen:
+                        current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                        current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                        
+                        if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                            untouched_obj_ids.remove(current_obj_by_id.id)
+                        if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                            untouched_obj_ids.remove(current_obj_by_key.id)
+                        already_seen.add(unique_key)
+                    else:
+                        print unique_key
+                        
+            #Delete untouched objs
+            for untouched_obj  in untouched_obj_ids:
+                new_session.delete(id_to_current_obj[untouched_obj])
+                output_creator.removed()
                 
-            
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
-                    
-        #Delete untouched objs
-        for untouched_obj  in untouched_obj_ids.values():
-            new_session.delete(untouched_obj)
-            output_creator.removed()
-                
-        #Commit
-        output_creator.finished()
-        new_session.commit()
         
     except Exception:
         log.exception('Unexpected error:' + str(sys.exc_info()[0]))
@@ -190,7 +190,7 @@ def create_paragraph(row, key_to_bioentity, key_to_source):
 def convert_paragraph(new_session_maker):
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.paragraph import Paragraph
-    from model_new_schema.evelement import Source
+    from model_new_schema.evelements import Source
     
     log = logging.getLogger('convert.regulation.paragraph')
     log.info('begin')
@@ -200,7 +200,7 @@ def convert_paragraph(new_session_maker):
         new_session = new_session_maker()
          
         #Values to check
-        values_to_check = ['text', 'date_created', 'created_by'] 
+        values_to_check = ['text'] 
         
         #Grab cached dictionaries
         key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])       
@@ -251,7 +251,7 @@ def convert_paragraph(new_session_maker):
 --------------------- Convert ParagraphReference ---------------------
 """
 
-def create_paragraph_reference(row, key_to_bioentity, paragraph_key_to_id, pubmed_id_to_reference_id):
+def create_paragraph_reference(row, key_to_bioentity, key_to_paragraph, pubmed_id_to_reference, key_to_source):
     from model_new_schema.paragraph import ParagraphReference
     
     bioent_format_name = row[0]
@@ -261,13 +261,13 @@ def create_paragraph_reference(row, key_to_bioentity, paragraph_key_to_id, pubme
         if bioent_key not in key_to_bioentity:
             print 'Bioentity does not exist. ' + str(bioent_format_name)
             return None
-    bioent_id = key_to_bioentity[bioent_key].id
+    bioent = key_to_bioentity[bioent_key]
     
-    paragraph_key = ('REGULATION', bioent_id)
-    if paragraph_key not in paragraph_key_to_id:
+    paragraph_key = (bioent.format_name, 'REGULATION')
+    if paragraph_key not in key_to_paragraph:
         print 'Paragraph does nto exist. ' + str(paragraph_key)
         return None
-    paragraph_id = paragraph_key_to_id[paragraph_key]
+    paragraph = key_to_paragraph[paragraph_key]
     
     paragraph_references = []
     
@@ -276,11 +276,12 @@ def create_paragraph_reference(row, key_to_bioentity, paragraph_key_to_id, pubme
         num_pubmed_id = ''
         if pubmed_id != '':
             num_pubmed_id = int(pubmed_id.strip())
-        if num_pubmed_id not in pubmed_id_to_reference_id:
+        if num_pubmed_id not in pubmed_id_to_reference:
             print 'Reference does not exist. ' + str(num_pubmed_id)
             return None
-        reference_id = pubmed_id_to_reference_id[num_pubmed_id]
-        paragraph_references.append(ParagraphReference(paragraph_id, reference_id, 'REGULATION'))
+        reference = pubmed_id_to_reference[num_pubmed_id]
+        source = key_to_source['SGD']
+        paragraph_references.append(ParagraphReference(source, paragraph, reference, 'REGULATION', None, None))
         
    
     return paragraph_references
@@ -288,6 +289,7 @@ def create_paragraph_reference(row, key_to_bioentity, paragraph_key_to_id, pubme
 def convert_paragraph_reference(new_session_maker):
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.paragraph import Paragraph, ParagraphReference
+    from model_new_schema.evelements import Source
     from model_new_schema.reference import Reference
     
     log = logging.getLogger('convert.regulation.paragraph_reference')
@@ -302,8 +304,9 @@ def convert_paragraph_reference(new_session_maker):
         
         #Grab cached dictionaries
         key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])   
-        paragraph_key_to_id = dict([(x.unique_key(), x.id) for x in new_session.query(Paragraph).filter(Paragraph.class_type == 'REGULATION').all()])    
-        pubmed_id_to_reference_id = dict([(x.pubmed_id, x.id) for x in new_session.query(Reference).all()])
+        key_to_paragraph = dict([(x.unique_key(), x) for x in new_session.query(Paragraph).filter(Paragraph.class_type == 'REGULATION').all()])    
+        pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])   
         
         #Grab all current objects
         current_objs = new_session.query(ParagraphReference).filter(ParagraphReference.class_type == 'REGULATION').all()
@@ -317,7 +320,7 @@ def convert_paragraph_reference(new_session_maker):
         old_objs = break_up_file('/Users/kpaskov/final/Reg_Summary_Paragraphs04282013.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_paragraph_reference(old_obj, key_to_bioentity, paragraph_key_to_id, pubmed_id_to_reference_id)
+            newly_created_objs = create_paragraph_reference(old_obj, key_to_bioentity, key_to_paragraph, pubmed_id_to_reference, key_to_source)
      
             if newly_created_objs is not None:
                 #Edit or add new objects
@@ -359,16 +362,18 @@ def convert(new_session_maker):
     
     log.info('begin')
     
-    convert_evidence(new_session_maker, 10000)    
+    #convert_evidence(new_session_maker, 300)    
         
-    from model_new_schema.regulation import Regulationevidence
+    from model_new_schema.evidence import Regulationevidence
     get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
     
-    convert_paragraph(new_session_maker)
+    #convert_paragraph(new_session_maker)
     
     convert_paragraph_reference(new_session_maker)
     
-    convert_bioentity_reference(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.bioentity_reference', 10000, get_bioent_ids_f)
+    convert_interaction(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.interaction', 10000, True)
+    
+    #convert_bioentity_reference(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.bioentity_reference', 10000, get_bioent_ids_f)
             
     log.info('complete')
     

@@ -13,7 +13,7 @@ import sys
 --------------------- Convert Evidence ---------------------
 """
 def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, key_to_source):
-    from model_new_schema.sequence import Bindingevidence
+    from model_new_schema.evidence import Bindingevidence
     
     bioent_format_name = row[2][1:-1]
     bioent_key = (bioent_format_name.upper(), 'LOCUS')
@@ -36,8 +36,8 @@ def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, 
     return [new_evidence]
 
 def convert_evidence(new_session_maker, chunk_size):
-    from model_new_schema.sequence import Bindingevidence
-    from model_new_schema.evelement import Experiment, Source
+    from model_new_schema.evidence import Bindingevidence
+    from model_new_schema.evelements import Experiment, Source
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.reference import Reference
     

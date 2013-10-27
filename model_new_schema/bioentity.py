@@ -19,7 +19,7 @@ class Bioentity(Base, EqualityByIDMixin):
     id = Column('bioentity_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
-    class_type = Column('class', String)
+    class_type = Column('subclass', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', String)
     sgdid = Column('sgdid', String)
@@ -50,6 +50,7 @@ class Bioentityurl(Url):
     
     id = Column('url_id', Integer, ForeignKey(Url.id), primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    subclass_type = Column('subclass', String)
     
     bioentity = relationship(Bioentity, uselist=False)
 
@@ -60,12 +61,14 @@ class Bioentityurl(Url):
         Url.__init__(self, display_name, bioentity.format_name, 'BIOENTITY', link, source, category, 
                      date_created, created_by)
         self.bioentity_id = bioentity.id
+        self.subclass_type = bioentity.class_type
     
 class Bioentityalias(Alias):
     __tablename__ = 'bioentityalias'
     
     id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    subclass_type = Column('subclass', String)
     
     bioentity = relationship(Bioentity, uselist=False)
 
@@ -75,6 +78,7 @@ class Bioentityalias(Alias):
     def __init__(self, display_name, source, category, bioentity, date_created, created_by):
         Alias.__init__(self, display_name, bioentity.format_name, 'BIOENTITY', source, category, date_created, created_by)
         self.bioentity_id = bioentity.id
+        self.subclass_type = bioentity.class_type
 
 class Bioentityrelation(Relation):
     __tablename__ = 'bioentityrelation'
@@ -82,6 +86,7 @@ class Bioentityrelation(Relation):
     id = Column('relation_id', Integer, ForeignKey(Relation.id), primary_key=True)
     parent_id = Column('parent_id', Integer, ForeignKey(Bioentity.id))
     child_id = Column('child_id', Integer, ForeignKey(Bioentity.id))
+    subclass_type = Column('subclass', String)
     
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
                        'inherit_condition': id == Relation.id}
@@ -96,6 +101,7 @@ class Bioentityrelation(Relation):
                           'BIOENTITY', source, relation_type, date_created, created_by)
         self.parent_id = parent.id
         self.child_id = child.id
+        self.subclass_type = parent.class_type
                        
 class Locus(Bioentity):
     __tablename__ = "locusbioentity"

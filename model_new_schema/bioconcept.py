@@ -12,10 +12,10 @@ from sqlalchemy.types import Integer, String, Date
 class Bioconcept(Base, EqualityByIDMixin):
     __tablename__ = "bioconcept"
         
-    id = Column('bioconcept_id', Integer, primary_key = True)
+    id = Column('bioconcept_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
-    class_type = Column('class', String)
+    class_type = Column('subclass', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer)
     sgdid = Column('sgdid', String)
@@ -44,12 +44,12 @@ class Bioconceptrelation(Relation):
     __tablename__ = 'bioconceptrelation'
 
     id = Column('relation_id', Integer, primary_key=True)
-    bioconrel_class_type = Column('class', String)
+    bioconrel_class_type = Column('subclass', String)
     parent_id = Column('parent_id', Integer, ForeignKey(Bioconcept.id))
     child_id = Column('child_id', Integer, ForeignKey(Bioconcept.id))
     
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
-                       'inherit_condition': id == Bioconcept.id}
+                       'inherit_condition': id == Relation.id}
    
     #Relationships
     parent = relationship('Bioconcept', uselist=False, backref=backref('child_bioconcepts', cascade='all,delete'), primaryjoin="Bioconceptrelation.parent_id==Bioconcept.id")
@@ -90,13 +90,72 @@ class Bioconceptalias(Alias):
         Alias.__init__(self, display_name, bioconcept.format_name, 'BIOCONCEPT', source, category, date_created, created_by)
         self.bioconcept_id = bioconcept.id
 
-    
-    
-    
-    
-    
+class ECNumber(Bioconcept):
+    __mapper_args__ = {'polymorphic_identity': "EC_NUMBER",
+                       'inherit_condition': id==Bioconcept.id}   
+     
+    def __init__(self, display_name, source, description, date_created, created_by):
+        Bioconcept.__init__(self, display_name, display_name, 'EC_NUMBER', 'http://enzyme.expasy.org/EC/' + display_name, source, None, description, date_created, created_by)
 
+class Go(Bioconcept):
+    __tablename__ = 'gobioconcept'
+    
+    id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
+    go_id = Column('go_id', Integer)
+    go_aspect = Column('go_aspect', String)
+    
+    __mapper_args__ = {'polymorphic_identity': "GO",
+                       'inherit_condition': id==Bioconcept.id}   
+     
+    def __init__(self, display_name, source, sgdid, description, 
+                 go_id, go_aspect, date_created, created_by):
+        Bioconcept.__init__(self, display_name, 'GO:' + str(go_id), 'GO', 
+                            'http://www.yeastgenome.org/cgi-bin/GO/goTerm.pl?goid=' + str(go_id), 
+                            source, sgdid,
+                            description, date_created, created_by)
+        self.go_id = go_id
+        self.go_aspect = go_aspect
+        
+def create_phenotype_display_name(observable, qualifier, mutant_type):
+    if mutant_type is None:
+        mutant_type = 'None'
+    if qualifier is None:
+        display_name = observable + ' in ' + mutant_type + ' mutant'
+    else:
+        display_name = qualifier + ' ' + observable + ' in ' + mutant_type + ' mutant'
+    return display_name
 
+def create_phenotype_format_name(observable, qualifier, mutant_type):
+    observable = '.' if observable is None else observable
+    qualifier = '.' if qualifier is None else qualifier
+    mutant_type = '.' if mutant_type is None else mutant_type
+    format_name = qualifier + '|' + observable + '|' + mutant_type
+    format_name = format_name.replace(' ', '_')
+    format_name = format_name.replace('/', '-')
+    return format_name
+        
+class Phenotype(Bioconcept):
+    __tablename__ = "phenotypebioconcept"
+    
+    id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
+    observable = Column('observable', String)
+    qualifier = Column('qualifier', String)
+    mutant_type = Column('mutant_type', String)
+    phenotype_type = Column('phenotype_type', String)
+       
+    __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
+                       'inherit_condition': id==Bioconcept.id}
 
+    def __init__(self, source, sgdid, description,
+                 observable, qualifier, mutant_type, phenotype_type, 
+                 date_created, created_by):
+        Bioconcept.__init__(self, create_phenotype_display_name(observable, qualifier, mutant_type), 
+                            create_phenotype_format_name(observable, qualifier, mutant_type), 
+                            'PHENOTYPE', None, source, sgdid, description, 
+                            date_created, created_by)
+        self.observable = observable
+        self.qualifier = qualifier
+        self.mutant_type = mutant_type
+        self.phenotype_type = phenotype_type
 
     

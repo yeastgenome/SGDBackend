@@ -4,9 +4,8 @@ Created on May 31, 2013
 @author: kpaskov
 '''
 
-from sgdbackend.misc import make_references
-from sgdbackend_query.query_reference import get_references, \
-    get_all_references_for_bioent
+from sgdbackend_query.query_auxiliary import get_bioentity_references
+from sgdbackend_utils import make_references
 from sgdbackend_utils.cache import id_to_reference, id_to_bioent
   
 '''
@@ -14,18 +13,8 @@ from sgdbackend_utils.cache import id_to_reference, id_to_bioent
 '''   
 
 def make_overview(bioent_id):
-    bioent_refs = get_all_references_for_bioent(bioent_id)
-    littype_to_count = {}
-    ref_set = set()
-    for bioent_ref in bioent_refs:
-        littype = bioent_ref.class_type
-        ref_set.add(bioent_ref.reference_id)
-        if littype in littype_to_count:
-            littype_to_count[littype] = littype_to_count[littype] + 1
-        else:
-            littype_to_count[littype] = 1
-    littype_to_count['Total'] = len(ref_set)
-    return littype_to_count
+    references = make_references(['PRIMARY_LITERATURE'], bioent_id) 
+    return references
 
 '''
 -------------------------------Details---------------------------------------
@@ -62,12 +51,16 @@ def create_litguide_edge(bioent_id, reference_id):
 def make_graph(bioent_id):
     
     #Get primary genes for each paper in bioentevidences
-    reference_ids = [x.reference_id for x in get_references('PRIMARY_LITERATURE', bioent_id=bioent_id)]
+    reference_ids = [x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)]
 
     reference_id_to_bioent_ids = {}
-    for reference_id in reference_ids:
-        bioent_ids = set([x.bioentity_id for x in get_references('PRIMARY_LITERATURE', reference_id=reference_id)])
-        reference_id_to_bioent_ids[reference_id] = bioent_ids
+    for bioent_ref in get_bioentity_references('PRIMARY_LITERATURE', reference_ids=reference_ids):
+        bioentity_id = bioent_ref.bioentity_id
+        reference_id = bioent_ref.reference_id
+        if reference_id in reference_id_to_bioent_ids:
+            reference_id_to_bioent_ids[reference_id].add(bioentity_id)
+        else:
+            reference_id_to_bioent_ids[reference_id] = set([bioentity_id])
      
     #Calculate weight between every pair of papers
     reference_pair_to_weight = {}

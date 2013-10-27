@@ -3,8 +3,7 @@ Created on May 6, 2013
 
 @author: kpaskov
 '''
-from convert_aux.convert_aux_interaction import convert_interaction
-from convert_aux.convert_aux_other import convert_bioentity_reference
+from convert_other.convert_auxiliary import convert_interaction, convert_bioentity_reference
 from convert_utils import create_or_update, set_up_logging, create_format_name, \
     prepare_connections
 from convert_utils.output_manager import OutputCreator
@@ -30,7 +29,7 @@ import sys
 def create_interevidence(old_interaction, key_to_experiment, key_to_phenotype,
                          id_to_reference, id_to_bioents, key_to_source, 
                          inter_id_to_feature_ids, inter_id_to_phenotype_key):
-    from model_new_schema.interaction import Geninteractionevidence as NewGeninteractionevidence, Physinteractionevidence as NewPhysinteractionevidence
+    from model_new_schema.evidence import Geninteractionevidence as NewGeninteractionevidence, Physinteractionevidence as NewPhysinteractionevidence
         
     reference_ids = old_interaction.reference_ids
     if len(reference_ids) != 1:
@@ -78,11 +77,11 @@ def create_interevidence(old_interaction, key_to_experiment, key_to_phenotype,
     return None
 
 def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
-    from model_new_schema.interaction import Geninteractionevidence as NewGeninteractionevidence, Physinteractionevidence as NewPhysinteractionevidence
+    from model_new_schema.evidence import Geninteractionevidence as NewGeninteractionevidence, Physinteractionevidence as NewPhysinteractionevidence
     from model_new_schema.reference import Reference as NewReference
-    from model_new_schema.evelement import Experiment as NewExperiment, Source as NewSource
+    from model_new_schema.evelements import Experiment as NewExperiment, Source as NewSource
     from model_new_schema.bioentity import Bioentity as NewBioentity
-    from model_new_schema.phenotype import Phenotype as NewPhenotype, create_phenotype_format_name
+    from model_new_schema.bioconcept import Phenotype as NewPhenotype, create_phenotype_format_name
     from model_old_schema.interaction import Interaction_Feature as OldInteractionFeature, Interaction_Phenotype as OldInteractionPhenotype, Interaction as OldInteraction
     
     log = logging.getLogger('convert.interaction.evidence')
@@ -112,11 +111,13 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
         gen_untouched_obj_ids = dict()
         phys_untouched_obj_ids = dict()
         
+        used_keys = set()
+        
         #Get interaction_features
         inter_id_to_feature_ids = {}
         min_inter_feat_id = old_session.query(func.min(OldInteractionFeature.id)).first()[0]
-        inter_count = old_session.query(OldInteractionFeature).count()
-        num_inter_feat_chunks = ceil(1.0*inter_count/10000)
+        max_inter_feat_id = old_session.query(func.max(OldInteractionFeature.id)).first()[0]
+        num_inter_feat_chunks = ceil(1.0*(max_inter_feat_id-min_inter_feat_id)/10000)
         for i in range(num_inter_feat_chunks):
             inter_min_id = min_inter_feat_id + i*10000
             inter_max_id = min_inter_feat_id + (i+1)*10000
@@ -204,30 +205,36 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
                     class_type = newly_created_obj.class_type
                     
                     if class_type == 'GENINTERACTION':
-                        current_obj_by_id = None if newly_created_obj.id not in gen_id_to_current_obj else gen_id_to_current_obj[newly_created_obj.id]
-                        current_obj_by_key = None if newly_created_obj.unique_key() not in gen_key_to_current_obj else gen_key_to_current_obj[newly_created_obj.unique_key()]
-                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, gen_values_to_check, new_session, output_creator)
-                        
-                        if current_obj_by_id is not None and current_obj_by_id.id in gen_untouched_obj_ids:
-                            del gen_untouched_obj_ids[current_obj_by_id.id]
-                        if current_obj_by_key is not None and current_obj_by_key.id in gen_untouched_obj_ids:
-                            del gen_untouched_obj_ids[current_obj_by_key.id]
+                        if newly_created_obj.unique_key() not in used_keys:
+                            current_obj_by_id = None if newly_created_obj.id not in gen_id_to_current_obj else gen_id_to_current_obj[newly_created_obj.id]
+                            current_obj_by_key = None if newly_created_obj.unique_key() not in gen_key_to_current_obj else gen_key_to_current_obj[newly_created_obj.unique_key()]
+                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, gen_values_to_check, new_session, output_creator)
+                            
+                            if current_obj_by_id is not None and current_obj_by_id.id in gen_untouched_obj_ids:
+                                del gen_untouched_obj_ids[current_obj_by_id.id]
+                            if current_obj_by_key is not None and current_obj_by_key.id in gen_untouched_obj_ids:
+                                del gen_untouched_obj_ids[current_obj_by_key.id]
+                            used_keys.add(newly_created_obj.unique_key())
+                        else:
+                            print newly_created_obj.unique_key()
                     elif class_type == 'PHYSINTERACTION':
-                        current_obj_by_id = None if newly_created_obj.id not in phys_id_to_current_obj else phys_id_to_current_obj[newly_created_obj.id]
-                        current_obj_by_key = None if newly_created_obj.unique_key() not in phys_key_to_current_obj else phys_key_to_current_obj[newly_created_obj.unique_key()]
-                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, phys_values_to_check, new_session, output_creator)
-                        
-                        if current_obj_by_id is not None and current_obj_by_id.id in phys_untouched_obj_ids:
-                            del phys_untouched_obj_ids[current_obj_by_id.id]
-                        if current_obj_by_key is not None and current_obj_by_key.id in phys_untouched_obj_ids:
-                            del phys_untouched_obj_ids[current_obj_by_key.id]
+                        if newly_created_obj.unique_key() not in used_keys:
+                            current_obj_by_id = None if newly_created_obj.id not in phys_id_to_current_obj else phys_id_to_current_obj[newly_created_obj.id]
+                            current_obj_by_key = None if newly_created_obj.unique_key() not in phys_key_to_current_obj else phys_key_to_current_obj[newly_created_obj.unique_key()]
+                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, phys_values_to_check, new_session, output_creator)
+                            
+                            if current_obj_by_id is not None and current_obj_by_id.id in phys_untouched_obj_ids:
+                                del phys_untouched_obj_ids[current_obj_by_id.id]
+                            if current_obj_by_key is not None and current_obj_by_key.id in phys_untouched_obj_ids:
+                                del phys_untouched_obj_ids[current_obj_by_key.id]
+                            used_keys.add(newly_created_obj.unique_key())
+                        else:
+                            print newly_created_obj.unique_key()
 
             #Commit
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
-            
-        print len(gen_untouched_obj_ids)
-        print len(phys_untouched_obj_ids)
+        
         #Delete untouched objs
         for untouched_obj  in gen_untouched_obj_ids.values():
             new_session.delete(untouched_obj)
@@ -256,11 +263,11 @@ def convert(old_session_maker, new_session_maker):
         
     convert_interevidence(old_session_maker, new_session_maker, 200)
     
-    from model_new_schema.interaction import Physinteractionevidence
+    from model_new_schema.evidence import Physinteractionevidence
     get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
     convert_bioentity_reference(new_session_maker, Physinteractionevidence, 'PHYSINTERACTION', 'convert.interaction.physical_bioentity_reference', 10000, get_bioent_ids_f)
     
-    from model_new_schema.interaction import Geninteractionevidence
+    from model_new_schema.evidence import Geninteractionevidence
     get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
     convert_bioentity_reference(new_session_maker, Geninteractionevidence, 'GENINTERACTION', 'convert.interaction.genetic_bioentity_reference', 10000, get_bioent_ids_f)
           

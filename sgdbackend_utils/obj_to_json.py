@@ -17,14 +17,31 @@ def bioent_to_json(bioent):
             'format_name': bioent.format_name,
             'bioent_type': bioent.class_type,
             'display_name': bioent.display_name, 
-            'dbxref': bioent.dbxref,
+            'sgdid': bioent.sgdid,
             'link': bioent.link,
             'id': bioent.id
             }
     
+def bioitem_to_json(bioitem):
+    return {
+            'display_name': bioitem.display_name, 
+            'link': bioitem.link,
+            'id': bioitem.id
+            }
+    
+def chemical_to_json(chem):
+    return {
+            'display_name': chem.display_name, 
+            'link': chem.link,
+            'id': chem.id
+            }
+    
+def source_to_json(source):
+    return source.display_name
+    
 def go_to_json(biocon):
     biocon_json = biocon_to_json(biocon)
-    biocon_json['go_go_id'] = biocon.go_go_id
+    biocon_json['go_id'] = biocon.go_id
     biocon_json['go_aspect'] = biocon.go_aspect
     #biocon_json['aliases'] = biocon.aliases
     return biocon_json
@@ -54,6 +71,39 @@ def strain_to_json(strain):
             'id': strain.id
             }
     
+def condition_to_json(condition):
+    from sgdbackend_utils.cache import id_to_chem, id_to_bioent, id_to_biocon, id_to_bioitem
+    if condition.class_type == 'CONDITION':
+        return condition.note
+    elif condition.class_type == 'CHEMICAL':
+        return {'chemical': id_to_chem[condition.chemical_id],
+                'amount': condition.amount,
+                'note': condition.note
+                }
+    elif condition.class_type == 'TEMPERATURE':
+        return {'temperature': condition.temperature,
+                'note': condition.note
+                }
+    elif condition.class_type == 'BIOENTITY':
+        return {
+                'role': condition.role,
+                'obj': id_to_bioent[condition.bioentity_id],
+                'note': condition.note
+                }
+    elif condition.class_type == 'BIOCONCEPT':
+        return {
+                'role': condition.role,
+                'obj': id_to_biocon[condition.bioconcept_id],
+                'note': condition.note
+                }
+    elif condition.class_type == 'BIOITEM':
+        return {
+                'role': condition.role,
+                'obj': id_to_bioitem[condition.bioitem_id],
+                'note': condition.note
+                }
+    return None
+    
 def reference_to_json(reference):
     urls = []
     urls.append({'display_name': 'PubMed', 'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id)})
@@ -78,21 +128,10 @@ def url_to_json(url):
     return {
             #'url_type': url.class_type,
             'display_name': url.display_name, 
-            'link': url.url,
+            'link': url.link,
             #'category': url.category,
             #'source': url.source,
             }
-    
-def domain_to_json(domain):
-    return {
-            'source': domain.source,
-            'display_name': domain.display_name,
-            'format_name': domain.format_name,
-            'description': domain.description,
-            'interpro_id': domain.interpro_id,
-            'interpro_description': domain.interpro_description,
-            'link': domain.link
-           }
     
 def locustab_to_json(bioentitytab):
     return {

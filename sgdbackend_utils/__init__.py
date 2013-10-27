@@ -3,9 +3,24 @@ Created on Mar 12, 2013
 
 @author: kpaskov
 '''
+from mpmath import ceil
 from sgdbackend_query import get_obj_id, get_multi_obj_ids
-from sgdbackend_utils.cache import id_to_bioent
+from sgdbackend_utils.cache import id_to_bioent, id_to_reference
 from string import upper
+
+def make_references(bioent_ref_types, bioent_id, only_primary=False):
+    from sgdbackend_query.query_auxiliary import get_bioentity_references
+    reference_ids = set()
+    for bioent_ref_type in bioent_ref_types:
+        reference_ids.update([x.reference_id for x in get_bioentity_references(bioent_ref_type, bioent_id=bioent_id)])
+        
+    if only_primary:
+        primary_ids = set([x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
+        reference_ids.intersection_update(primary_ids)
+
+    references = [id_to_reference[reference_id] for reference_id in reference_ids]
+    references.sort(key=lambda x: (x['year'], x['pubmed_id']), reverse=True) 
+    return references
 
 def create_simple_table(objs, f, **kwargs):
     table = []
@@ -50,3 +65,18 @@ def link_gene_names(text, to_ignore=set()):
     new_chunks.append(text[chunk_start: i])
     return ' '.join(new_chunks)
     
+    
+#Used to break very large queries into a manageable size.
+chunk_size = 500
+def retrieve_in_chunks(ids, f):
+    num_chunks = int(ceil(float(len(ids))/chunk_size))
+    result = set()
+    for i in range(0, num_chunks):
+        min_index = i*chunk_size
+        max_index = (i+1)*chunk_size
+        if max_index > len(ids):
+            chunk_ids = ids[min_index:]
+        else:
+            chunk_ids = ids[min_index:max_index]
+        result.update(f(chunk_ids))
+    return result

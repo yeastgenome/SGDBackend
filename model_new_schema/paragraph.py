@@ -15,7 +15,7 @@ class Paragraph(Base, EqualityByIDMixin):
     __tablename__ = 'paragraph'
     
     id = Column('paragraph_id', Integer, primary_key=True)
-    class_type = Column('class', String)
+    class_type = Column('subclass', String)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     format_name = Column('format_name', String)
     display_name = Column('display_name', String)
@@ -49,7 +49,7 @@ class ParagraphReference(Base, EqualityByIDMixin):
     source_id = Column('source_id', Integer)
     paragraph_id = Column('paragraph_id', Integer, ForeignKey(Paragraph.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
-    class_type = Column('class', String)
+    class_type = Column('subclass', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
     

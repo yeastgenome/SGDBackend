@@ -4,11 +4,12 @@ Created on Oct 21, 2013
 
 @author: kpaskov
 '''
-from model_new_schema import Base, EqualityByIDMixin, create_format_name
+from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema.bioconcept import Bioconcept
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.chemical import Chemical
 from model_new_schema.evidence import Evidence
-from model_new_schema.misc import Allele
+from model_new_schema.bioitem import Bioitem
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Float
@@ -20,7 +21,7 @@ class Condition(Base, EqualityByIDMixin):
     id = Column('condition_id', Integer, primary_key=True)
     format_name = Column('format_name', String)
     display_name = Column('display_name', String)
-    class_type = Column('class', String)
+    class_type = Column('subclass', String)
     evidence_id = Column('evidence_id', Integer, ForeignKey(Evidence.id))
     note = Column('note', String)
     
@@ -66,37 +67,6 @@ class Chemicalcondition(Condition):
         self.chemical_id = chemical.id
         self.amount = amount
         
-class Background(Base, EqualityByIDMixin):
-    __tablename__ = 'background'
-    
-    id = Column('background_id', Integer, primary_key=True)
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
-    link = Column('obj_url', String)
-    source_id = Column('source_id', Integer)
-    description = Column('description', String)
-    
-    def __init__(self, display_name, source, description):
-        self.display_name = display_name
-        self.format_name = create_format_name(display_name)
-        self.link = None
-        self.source = source.id
-        self.description = description 
-        
-class Backgroundcondition(Condition):
-    __tablename__ = 'backgroundcondition'
-    
-    id = Column('condition_id', Integer, primary_key=True)
-    background_id = Column('backgroun_id', Integer, ForeignKey(Background.id))
-    
-    __mapper_args__ = {'polymorphic_identity': 'BACKGROUND',
-                       'inherit_condition': id == Condition.id}
-    
-    def __init__(self, note, background):
-        Condition.__init__(self, background.display_name, 'b' + str(background.id),
-                           'BACKGROUND', note)
-        self.background_id = background.id
-        
 class Temperaturecondition(Condition):
     __tablename__ = 'temperaturecondition'
     
@@ -111,32 +81,54 @@ class Temperaturecondition(Condition):
                            'TEMPERATURE', note)
         self.temperature = temperature
         
-class Allelecondition(Condition):
-    __tablename__ = 'allelecondition'
+class Bioentitycondition(Condition):
+    __tablename__ = 'bioentitycondition'
     
     id = Column('condition_id', Integer, primary_key=True)
-    allele_id = Column('allele_id', Integer, ForeignKey(Allele.id))
+    role = Column('role', String)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     
-    __mapper_args__ = {'polymorphic_identity': 'ALLELE',
+    __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
                        'inherit_condition': id == Condition.id}
     
-    def __init__(self, note, allele):
-        Condition.__init__(self, allele.display_name, 'a' + str(allele.id),
-                           'ALLELE', note)
-        self.allele_id = allele.id
+    def __init__(self, note, role, bioentity):
+        Condition.__init__(self, role + ' ' + bioentity.display_name,
+                           role + str(bioentity.id),
+                           'BIOENTITY', note)
+        self.role = role
+        self.bioentity_id = bioentity.id
         
-class Reportercondition(Condition):
-    __tablename__ = 'reportercondition'
+class Bioconceptcondition(Condition):
+    __tablename__ = 'bioconceptcondition'
     
     id = Column('condition_id', Integer, primary_key=True)
-    reporter_id = Column('reporter_id', Integer, ForeignKey(Bioentity.id))
-    reporter_name = Column('reporter_name', String)
+    role = Column('role', String)
+    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
     
-    __mapper_args__ = {'polymorphic_identity': 'REPORTER',
+    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
                        'inherit_condition': id == Condition.id}
     
-    def __init__(self, note, reporter, reporter_name):
-        Condition.__init__(self, reporter_name if reporter is None else reporter.display_name,
-                           'r' + (reporter_name if reporter is None else str(reporter.id)),
-                           'REPORTER', note)
-        self.reporter_id = None if reporter is None else reporter.id
+    def __init__(self, note, role, bioconcept):
+        Condition.__init__(self, role + ' ' + bioconcept.display_name,
+                           role + str(bioconcept.id),
+                           'BIOCONCEPT', note)
+        self.role = role
+        self.bioconcept_id = bioconcept.id
+        
+class Bioitemcondition(Condition):
+    __tablename__ = 'bioitemcondition'
+    
+    id = Column('condition_id', Integer, primary_key=True)
+    role = Column('role', String)
+    bioitem_id = Column('bioitem_id', Integer, ForeignKey(Bioitem.id))
+    
+    __mapper_args__ = {'polymorphic_identity': 'BIOITEM',
+                       'inherit_condition': id == Condition.id}
+    
+    def __init__(self, note, role, bioitem):
+        Condition.__init__(self, role + ' ' + bioitem.display_name,
+                           role + str(bioitem.id),
+                           'BIOITEM', note)
+        self.role = role
+        self.bioitem_id = bioitem.id
+

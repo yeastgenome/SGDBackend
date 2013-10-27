@@ -19,7 +19,7 @@ import sys
 """
 
 def create_experiment(old_cv_term, key_to_source):
-    from model_new_schema.evelement import Experiment as NewExperiment
+    from model_new_schema.evelements import Experiment as NewExperiment
     
     display_name = old_cv_term.name
     description = old_cv_term.definition
@@ -30,7 +30,7 @@ def create_experiment(old_cv_term, key_to_source):
     return [new_experiment]
 
 def create_experiment_from_reg_row(display_name, eco_id, source_key, key_to_source):
-    from model_new_schema.evelement import Experiment
+    from model_new_schema.evelements import Experiment
     
     if display_name is None:
         display_name = eco_id
@@ -40,14 +40,14 @@ def create_experiment_from_reg_row(display_name, eco_id, source_key, key_to_sour
     return [new_experiment]
 
 def create_experiment_from_binding_row(display_name, key_to_source):
-    from model_new_schema.evelement import Experiment
+    from model_new_schema.evelements import Experiment
 
     source = key_to_source['YeTFaSCo']
     new_experiment = Experiment(display_name,source, None, None, None, None)
     return [new_experiment]
 
 def convert_experiment(old_session_maker, new_session_maker):
-    from model_new_schema.evelement import Experiment as NewExperiment, Source as NewSource
+    from model_new_schema.evelements import Experiment as NewExperiment, Source as NewSource
     from model_old_schema.cv import CVTerm as OldCVTerm
     
     log = logging.getLogger('convert.evelements.experiment')
@@ -157,7 +157,7 @@ def convert_experiment(old_session_maker, new_session_maker):
 """
     
 def create_experiment_alias(old_cv_term, key_to_experiment, key_to_source):
-    from model_new_schema.evelement import Experimentalias as NewExperimentalias
+    from model_new_schema.evelements import Experimentalias as NewExperimentalias
     
     experiment_key = create_format_name(old_cv_term.name)
     if experiment_key not in key_to_experiment:
@@ -172,7 +172,7 @@ def create_experiment_alias(old_cv_term, key_to_experiment, key_to_source):
     return new_altids
 
 def convert_experiment_alias(old_session_maker, new_session_maker):
-    from model_new_schema.evelement import Experiment as NewExperiment, Source as NewSource, Experimentalias as NewExperimentalias
+    from model_new_schema.evelements import Experiment as NewExperiment, Source as NewSource, Experimentalias as NewExperimentalias
     from model_old_schema.cv import CVTerm as OldCVTerm
     
     log = logging.getLogger('convert.evelements.experiment_alias')
@@ -238,7 +238,7 @@ def convert_experiment_alias(old_session_maker, new_session_maker):
 """
 
 def create_experiment_relation(old_cv_term, key_to_experiment, key_to_source):
-    from model_new_schema.evelement import Experimentrelation as NewExperimentrelation
+    from model_new_schema.evelements import Experimentrelation as NewExperimentrelation
     
     source = key_to_source['SGD']
     
@@ -261,7 +261,7 @@ def create_experiment_relation(old_cv_term, key_to_experiment, key_to_source):
     return new_rels
 
 def convert_experiment_relation(old_session_maker, new_session_maker):
-    from model_new_schema.evelement import Experiment as NewExperiment, Experimentrelation as NewExperimentrelation, Source as NewSource
+    from model_new_schema.evelements import Experiment as NewExperiment, Experimentrelation as NewExperimentrelation, Source as NewSource
     from model_old_schema.cv import CVTerm as OldCVTerm
     
     log = logging.getLogger('convert.evelements.experiment_relation')
@@ -327,7 +327,7 @@ def convert_experiment_relation(old_session_maker, new_session_maker):
 """
 
 def create_strain(old_cv_term, key_to_source):
-    from model_new_schema.evelement import Strain as NewStrain
+    from model_new_schema.evelements import Strain as NewStrain
     
     display_name = old_cv_term.name
     description = old_cv_term.definition
@@ -339,7 +339,7 @@ def create_strain(old_cv_term, key_to_source):
     return [new_strain]
 
 def convert_strain(old_session_maker, new_session_maker):
-    from model_new_schema.evelement import Strain as NewStrain, Source as NewSource
+    from model_new_schema.evelements import Strain as NewStrain, Source as NewSource
     from model_old_schema.cv import CVTerm as OldCVTerm
     
     log = logging.getLogger('convert.evelements.strain')
@@ -404,7 +404,7 @@ sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAMs', 'Pfam', 
                'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI', 'PubMedCentral', 'PubMed', '-']
 
 def create_extra_source():
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     new_sources = []
     for display_name in sources:        
         new_sources.append(NewSource(display_name, None, None, None))
@@ -415,7 +415,7 @@ ok_codes = set([('ALIAS', 'ALIAS_TYPE'), ('DBXREF', 'SOURCE'), ('EXPERIMENT', 'S
                 ('REFTYPE', 'SOURCE'), ('REFERENCE', 'SOURCE'), ('URL', 'SOURCE')])
 
 def create_source_from_code(code):
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     
     if (code.tab_name, code.col_name) in ok_codes:
         display_name = code.code_value        
@@ -424,7 +424,7 @@ def create_source_from_code(code):
     return []
 
 def convert_source(old_session_maker, new_session_maker):
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.cv import Code as OldCode
     
     log = logging.getLogger('convert.evelements.source')

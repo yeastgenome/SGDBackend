@@ -6,10 +6,7 @@ Created on Oct 24, 2013
 
 from convert_core import convert_reference, convert_bioentity, \
     convert_evelements, convert_chemical, convert_bioconcept, convert_bioitem
-from convert_evidence import convert_literature, convert_phenotype, convert_go, \
-    convert_qualifier
-from convert_other import convert_bioentity_in_depth, convert_reference_in_depth, \
-    convert_bioconcept_in_depth
+from convert_evidence import convert_interaction
 from convert_utils import set_up_logging, prepare_connections
 import sys
 
@@ -58,48 +55,10 @@ if __name__ == "__main__":
     
     ######################### Evidence ##############################
      
-    #Phenotype   
+    #Interaction
     try:
-        convert_phenotype.convert(old_session_maker, new_session_maker)  
+        convert_interaction.convert(old_session_maker, new_session_maker)  
     except Exception:
         log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
         
-    #Literature
-    try:
-        convert_literature.convert(old_session_maker, new_session_maker)
-    except Exception:
-        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-        
-    #GO
-    try:
-        convert_go.convert(old_session_maker, new_session_maker)  
-    except Exception:
-        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-        
-    #Qualifier
-    try:
-        convert_qualifier.convert(old_session_maker, new_session_maker)  
-    except Exception:
-        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-     
-    ######################### Other ##############################
-       
-    #Bioentity in depth
-    try:
-        convert_bioentity_in_depth.convert(old_session_maker, new_session_maker)  
-    except Exception:
-        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-
-    #Reference in depth
-    try:
-        convert_reference_in_depth.convert(old_session_maker, new_session_maker)  
-    except Exception:
-        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-        
-    #Bioconcept in depth
-    try:
-        convert_bioconcept_in_depth.convert(old_session_maker, new_session_maker)  
-    except Exception:
-        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-    
     

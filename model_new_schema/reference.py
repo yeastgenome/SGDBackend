@@ -314,7 +314,7 @@ class Referencerelation(Relation):
 class Referenceurl(Url):
     __tablename__ = 'referenceurl'
     
-    url_id = Column('url_id', Integer, primary_key=True)
+    id = Column('url_id', Integer, primary_key=True)
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
         
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE',
@@ -326,9 +326,9 @@ class Referenceurl(Url):
         self.reference_id = reference.id
     
 class Referencealias(Alias):
-    __tablename__ = 'referenceurl'
+    __tablename__ = 'referencealias'
     
-    alias_id = Column('alias_id', Integer, primary_key=True)
+    id = Column('alias_id', Integer, primary_key=True)
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
 
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE',

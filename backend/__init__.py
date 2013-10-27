@@ -91,6 +91,27 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
                      renderer=chosen_backend.get_renderer('go'))
     
+    config.add_route('go_overview', 
+                     '/locus/{identifier}/go_overview', 
+                     view=lambda request: chosen_backend.response_wrapper('go_overview')(
+                                getattr(chosen_backend, 'go_overview')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('go_overview'))
+    
+    config.add_route('go_bioent_details', 
+                     '/locus/{identifier}/go_details', 
+                     view=lambda request: chosen_backend.response_wrapper('go_details')(
+                                getattr(chosen_backend, 'go_details')(
+                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('go_details'))
+    
+    config.add_route('go_biocon_details', 
+                     '/go/{identifier}/go_details', 
+                     view=lambda request: chosen_backend.response_wrapper('go_details')(
+                                getattr(chosen_backend, 'go_details')(
+                                        go_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('go_details'))
+    
     config.add_route('go_references', 
                      '/locus/{identifier}/go_references', 
                      view=lambda request: chosen_backend.response_wrapper('go_references')(
@@ -111,7 +132,28 @@ def prep_views(chosen_backend, config):
                      view=lambda request: chosen_backend.response_wrapper('phenotype')(
                                 getattr(chosen_backend, 'phenotype')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
-                     renderer=chosen_backend.get_renderer('phenotype'))    
+                     renderer=chosen_backend.get_renderer('phenotype'))   
+    
+    config.add_route('phenotype_overview', 
+                     '/locus/{identifier}/phenotype_overview', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_overview')(
+                                getattr(chosen_backend, 'phenotype_overview')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('phenotype_overview'))
+    
+    config.add_route('phenotype_bioent_details', 
+                     '/locus/{identifier}/phenotype_details', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_details')(
+                                getattr(chosen_backend, 'phenotype_details')(
+                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('phenotype_details'))
+    
+    config.add_route('phenotype_biocon_details', 
+                     '/phenotype/{identifier}/go_details', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_details')(
+                                getattr(chosen_backend, 'phenotype_details')(
+                                        phenotype_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('phenotype_details')) 
     
     config.add_route('phenotype_references', 
                      '/locus/{identifier}/phenotype_references', 

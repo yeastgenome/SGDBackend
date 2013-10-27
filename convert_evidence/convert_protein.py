@@ -3,7 +3,7 @@ Created on Sep 20, 2013
 
 @author: kpaskov
 '''
-from convert_aux.convert_aux_other import convert_disambigs
+from convert_other.convert_auxiliary import convert_disambigs
 from convert_utils import create_or_update, set_up_logging, break_up_file, \
     create_format_name, prepare_connections
 from convert_utils.output_manager import OutputCreator
@@ -18,7 +18,7 @@ import sys
 """
 
 def create_domain(row, key_to_source):
-    from model_new_schema.protein import Domain
+    from model_new_schema.bioitem import Domain
     
     source_key = row[13].strip()
 
@@ -82,7 +82,7 @@ def create_domain(row, key_to_source):
     return [domain]
 
 def create_domain_from_tf_file(row, key_to_source):
-    from model_new_schema.protein import Domain
+    from model_new_schema.bioitem import Domain
     
     display_name = row[0]
     description = 'Class: ' + row[4] + ', Family: ' + row[3]
@@ -97,8 +97,8 @@ def create_domain_from_tf_file(row, key_to_source):
     return [domain]
 
 def convert_domain(new_session_maker, chunk_size):
-    from model_new_schema.protein import Domain
-    from model_new_schema.evelement import Source
+    from model_new_schema.bioitem import Domain
+    from model_new_schema.evelements import Source
     
     log = logging.getLogger('convert.protein.domain')
     log.info('begin')
@@ -198,7 +198,7 @@ def convert_domain(new_session_maker, chunk_size):
 """
 
 def create_domain_evidence(row, key_to_bioentity, key_to_domain, key_to_strain, key_to_source):
-    from model_new_schema.protein import Domainevidence
+    from model_new_schema.evidence import Domainevidence
     
     bioent_format_name = row[1].strip()
     source_name = row[13].strip()
@@ -236,7 +236,8 @@ def create_domain_evidence(row, key_to_bioentity, key_to_domain, key_to_strain, 
     if source_name == 'Seg' or source_name == 'Coil':
         source_name = '-'
     
-    domain = None if domain_format_name is None else key_to_domain[domain_format_name]
+    domain_key = (domain_format_name, 'DOMAIN')
+    domain = None if domain_key not in key_to_domain else key_to_domain[domain_key]
     strain = key_to_strain['S288C']
     source = None if source_name not in key_to_source else key_to_source[source_name]
         
@@ -245,7 +246,7 @@ def create_domain_evidence(row, key_to_bioentity, key_to_domain, key_to_strain, 
     return [domain_evidence]
 
 def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source):
-    from model_new_schema.protein import Domainevidence
+    from model_new_schema.evidence import Domainevidence
     
     bioent_format_name = row[2].strip()
     source_name = 'JASPAR'
@@ -263,7 +264,8 @@ def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pu
         return []
     end = protein.length
     
-    domain = None if db_identifier is None else key_to_domain[db_identifier]
+    domain_key = (db_identifier, 'DOMAIN')
+    domain = None if domain_key not in key_to_domain else key_to_domain[domain_key]
     strain = key_to_strain['S288C']
     source = None if source_name not in key_to_source else key_to_source[source_name]
     reference = None if pubmed_id not in pubmed_id_to_reference else pubmed_id_to_reference[pubmed_id]
@@ -273,10 +275,10 @@ def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pu
     return [domain_evidence]
 
 def convert_domain_evidence(new_session_maker, chunk_size):
-    from model_new_schema.protein import Domain, Domainevidence
+    from model_new_schema.evidence import Domain, Domainevidence
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.reference import Reference
-    from model_new_schema.evelement import Source, Strain
+    from model_new_schema.evelements import Source, Strain
     
     log = logging.getLogger('convert.protein.domain_evidence')
     log.info('begin')
@@ -404,7 +406,7 @@ def convert_domain_evidence(new_session_maker, chunk_size):
 ---------------------Convert------------------------------
 """   
 
-def convert(old_session_maker, new_session_maker):  
+def convert(new_session_maker):  
     log = set_up_logging('convert.protein')
     log.info('begin')
         
@@ -418,7 +420,7 @@ def convert(old_session_maker, new_session_maker):
     log.info('complete')
     
 if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)   
+    new_session_maker = prepare_connections(need_old=False)
+    convert(new_session_maker)   
     
     

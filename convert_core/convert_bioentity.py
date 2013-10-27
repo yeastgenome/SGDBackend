@@ -57,7 +57,7 @@ def create_locus(old_bioentity, key_to_source):
 
 def convert_locus(old_session_maker, new_session_maker):
     from model_new_schema.bioentity import Locus as NewLocus
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.feature import Feature as OldFeature
     
     log = logging.getLogger('convert.bioentity.locus')
@@ -123,7 +123,7 @@ def create_protein_id(old_feature_id):
     return old_feature_id + 200000
 
 def create_protein(old_protein, id_to_bioentity, key_to_source):
-    from model_new_schema.protein import Protein
+    from model_new_schema.bioentity import Protein
     
     locus_id = old_protein.feature_id
     if locus_id not in id_to_bioentity:
@@ -136,7 +136,7 @@ def create_protein(old_protein, id_to_bioentity, key_to_source):
 
 def convert_protein(old_session_maker, new_session_maker):
     from model_new_schema.bioentity import Bioentity as NewBioentity, Protein as NewProtein
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.sequence import ProteinInfo as OldProteinInfo
     
     log = logging.getLogger('convert.bioentity.protein')

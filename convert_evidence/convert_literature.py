@@ -3,7 +3,7 @@ Created on Jul 3, 2013
 
 @author: kpaskov
 '''
-from convert_aux.convert_aux_other import convert_bioentity_reference
+from convert_other.convert_auxiliary import convert_bioentity_reference
 from convert_utils import create_or_update, set_up_logging, \
     prepare_connections
 from convert_utils.output_manager import OutputCreator
@@ -18,7 +18,7 @@ import sys
 """
 
 def create_litevidence(old_litevidence, id_to_reference, id_to_bioentity, key_to_source):
-    from model_new_schema.literature import Literatureevidence as NewLiteratureevidence
+    from model_new_schema.evidence import Literatureevidence as NewLiteratureevidence
     
     reference_id = old_litevidence.litguide.reference_id
     reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
@@ -42,9 +42,9 @@ def create_litevidence(old_litevidence, id_to_reference, id_to_bioentity, key_to
     return [new_litevidence]
 
 def convert_litevidence(old_session_maker, new_session_maker, chunk_size):
-    from model_new_schema.literature import Literatureevidence as NewLiteratureevidence
+    from model_new_schema.evidence import Literatureevidence as NewLiteratureevidence
     from model_new_schema.reference import Reference as NewReference
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_new_schema.bioentity import Bioentity as NewBioentity
     from model_old_schema.reference import LitguideFeat as OldLitguideFeat
     
@@ -130,7 +130,7 @@ def convert(old_session_maker, new_session_maker):
     
     convert_litevidence(old_session_maker, new_session_maker, 200)
     
-    from model_new_schema.literature import Literatureevidence
+    from model_new_schema.evidence import Literatureevidence
     get_bioent_ids_f = lambda x: [x.bioentity_id]
     convert_bioentity_reference(new_session_maker, Literatureevidence, 'PRIMARY_LITERATURE', 'convert.literature.primary_bioentity_reference', 
                                 100000, get_bioent_ids_f, filter_f = lambda x: x.topic=='Primary Literature')

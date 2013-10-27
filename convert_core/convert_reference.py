@@ -43,7 +43,7 @@ def create_journal(old_journal, key_to_source):
 
 def convert_journal(old_session_maker, new_session_maker):
     from model_new_schema.reference import Journal as NewJournal
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import Journal as OldJournal
     
     log = logging.getLogger('convert.reference.journal')
@@ -130,7 +130,7 @@ def create_book(old_book, key_to_source):
 
 def convert_book(old_session_maker, new_session_maker):
     from model_new_schema.reference import Book as NewBook
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import Book as OldBook
     
     log = logging.getLogger('convert.reference.book')
@@ -288,7 +288,7 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
 
 def convert_reference(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Reference as NewReference, Book as NewBook, Journal as NewJournal
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import Reference as OldReference
     
     log = logging.getLogger('convert.reference.reference')
@@ -327,6 +327,7 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
             
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+            citation_to_current_obj = dict([(x.citation, x) for x in current_objs])
             
             untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -340,9 +341,6 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
             old_pubmed_ids = [x.pubmed_id for x in old_objs if x.pubmed_id is not None]
             pubmed_id_to_pubmed_central_id = get_pubmed_central_ids(old_pubmed_ids)
             
-            print 'Satomura A, et al. (2013) Acquisition of thermotolerant yeast Saccharomyces cerevisiae by breeding via stepwise adaptation. Biotechnol Prog ' in used_citations
-            print 90533 in id_to_current_obj
-            
             for old_obj in old_objs:
                 #Convert old objects into new ones
                 newly_created_objs = create_reference(old_obj, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id, key_to_source)
@@ -354,8 +352,9 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
                     if unique_key not in used_unique_keys and citation not in used_citations:
                         current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
                         current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                        current_obj_by_citation = None if newly_created_obj.citation not in citation_to_current_obj else citation_to_current_obj[newly_created_obj.citation]
                             
-                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key if current_obj_by_key is not None else current_obj_by_citation, values_to_check, new_session, output_creator)
                     
                         if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
                             untouched_obj_ids.remove(current_obj_by_id.id)

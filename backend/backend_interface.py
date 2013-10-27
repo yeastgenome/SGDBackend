@@ -73,6 +73,14 @@ class BackendInterface:
         return None
     
     @abstractmethod
+    def go_overview(self, identifier):
+        return None
+    
+    @abstractmethod
+    def go_details(self, locus_identifier=None, go_identifier=None):
+        return None
+    
+    @abstractmethod
     def go_references(self, identifier):
         return None
     
@@ -117,6 +125,14 @@ class BackendInterface:
     #Phenotype
     @abstractmethod
     def phenotype(self, identifier):
+        return None
+    
+    @abstractmethod
+    def phenotype_overview(self, identifier):
+        return None
+    
+    @abstractmethod
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None):
         return None
     
     @abstractmethod

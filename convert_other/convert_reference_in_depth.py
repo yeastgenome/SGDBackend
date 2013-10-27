@@ -3,7 +3,7 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
-from convert_aux.convert_aux_other import convert_disambigs
+from convert_other.convert_auxiliary import convert_disambigs
 from convert_utils import create_or_update, set_up_logging, create_format_name, \
     prepare_connections
 from convert_utils.output_manager import OutputCreator
@@ -107,14 +107,14 @@ def convert_abstract(old_session_maker, new_session_maker, chunk_size):
 --------------------- Convert Bibentry ---------------------
 """
 
-def create_bibentry(reference, id_to_journal, id_to_book, id_to_abstract, id_to_reftypes, id_to_authors):
+def create_bibentry(reference, id_to_journal, id_to_book, id_to_abstract, id_to_reftypes, id_to_authors, id_to_source):
     from model_new_schema.reference import Bibentry
     entries = []
     entries.append('PMID- ' + str(reference.pubmed_id)) 
-    entries.append('STAT- ' + str(reference.status))
+    entries.append('STAT- ' + str(reference.ref_status))
     entries.append('DP  - ' + str(reference.date_published)) 
-    entries.append('TI  - ' + str(reference.title))
-    entries.append('SO  - ' + str(reference.source)) 
+    entries.append('TI  - ' + unicode(reference.title))
+    entries.append('SO  - ' + str(id_to_source[reference.source_id])) 
     entries.append('LR  - ' + str(reference.date_revised)) 
     entries.append('IP  - ' + str(reference.issue)) 
     entries.append('PG  - ' + str(reference.page)) 
@@ -122,20 +122,20 @@ def create_bibentry(reference, id_to_journal, id_to_book, id_to_abstract, id_to_
         
     if reference.id in id_to_authors:
         for author in id_to_authors[reference.id]:
-            entries.append('AU  - ' + author)
-            
-    if reference.id in id_to_reftypes:
+            entries.append('AU  - ' + str(author))
+       
+    if reference.id in id_to_reftypes:     
         for reftype in id_to_reftypes[reference.id]:
-            entries.append('PT  - ' + reftype)
+            entries.append('PT  - ' + str(reftype))
         
     if reference.id in id_to_abstract:
-        entries.append('AB  - ' + id_to_abstract[reference.id])
+        entries.append('AB  - ' + str(id_to_abstract[reference.id]))
         
     if reference.journal_id is not None:
         journal = id_to_journal[reference.journal_id]
-        entries.append('TA  - ' + str(journal.abbreviation)) 
-        entries.append('JT  - ' + str(journal.full_name)) 
-        entries.append('IS  - ' + str(journal.issn)) 
+        entries.append('TA  - ' + str(journal.med_abbr)) 
+        entries.append('JT  - ' + str(journal.title)) 
+        entries.append('IS  - ' + str(journal.issn_print)) 
 
         
     if reference.book_id is not None:
@@ -144,13 +144,15 @@ def create_bibentry(reference, id_to_journal, id_to_book, id_to_abstract, id_to_
         entries.append('BTI - ' + str(book.title))
         entries.append('VTI - ' + str(book.volume_title)) 
         entries.append('ISBN- ' + str(book.isbn))     
-    ref_bib = Bibentry(reference.id, '\n'.join(entries))
+    ref_bib = Bibentry(reference.id, '\n'.join([str(x) for x in entries]))
     return [ref_bib]
 
 def convert_bibentry(new_session_maker, chunk_size):
     from model_new_schema.reference import Reference as NewReference, Bibentry as NewBibentry, \
     Journal as NewJournal, Book as NewBook, Abstract as NewAbstract, \
-    Reftype as NewReftype, Author as NewAuthor, AuthorReference as NewAuthorReference
+    Reftype as NewReftype, Author as NewAuthor, AuthorReference as NewAuthorReference, \
+    ReferenceReftype as NewReferenceReftype
+    from model_new_schema.evelements import Source as NewSource
     
     log = logging.getLogger('convert.reference_in_depth.bibentry')
     log.info('begin')
@@ -166,6 +168,7 @@ def convert_bibentry(new_session_maker, chunk_size):
         id_to_journal = dict([(x.id, x) for x in new_session.query(NewJournal).all()])
         id_to_book = dict([(x.id, x) for x in new_session.query(NewBook).all()])
         id_to_abstract = dict([(x.id, x.text) for x in new_session.query(NewAbstract).all()])
+        id_to_source = dict([(x.id, x) for x in new_session.query(NewSource).all()])
         
         id_to_authors = {}
         id_to_author = dict([(x.id, x) for x in new_session.query(NewAuthor).all()])
@@ -177,17 +180,17 @@ def convert_bibentry(new_session_maker, chunk_size):
                 id_to_authors[reference_id].add(author_name)
             else:
                 id_to_authors[reference_id] = set([author_name])
-        
+                
         id_to_reftypes = {}
-        reftypes = new_session.query(NewReftype).all()
-        for reftype in reftypes:
-            reference_id = reftype.reference_id
-            reftype_name = reftype.name
+        id_to_reftype = dict([(x.id, x) for x in new_session.query(NewReftype).all()])
+        for refreftype in new_session.query(NewReferenceReftype).all():
+            reference_id = refreftype.reference_id
+            reftype_name = id_to_reftype[refreftype.reftype_id].display_name
             
             if reference_id in id_to_reftypes:
                 id_to_reftypes[reference_id].add(reftype_name)
             else:
-                id_to_reftypes[reference_id] = set([author_name])
+                id_to_reftypes[reference_id] = set([reftype_name])
         
         count = new_session.query(func.max(NewReference.id)).first()[0]
         num_chunks = ceil(1.0*count/chunk_size)
@@ -204,11 +207,11 @@ def convert_bibentry(new_session_maker, chunk_size):
             #Grab old objects
             old_objs = new_session.query(NewReference).filter(
                                             NewReference.id >= min_id).filter(
-                                            NewReference.id <=  min_id+chunk_size).options(joinedload('author_references')).all()
+                                            NewReference.id <=  min_id+chunk_size).all()
             
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_bibentry(old_obj, id_to_journal, id_to_book, id_to_abstract, id_to_reftypes, id_to_authors)
+                newly_created_objs = create_bibentry(old_obj, id_to_journal, id_to_book, id_to_abstract, id_to_reftypes, id_to_authors, id_to_source)
                 
                 if newly_created_objs is not None:
                     #Edit or add new objects
@@ -257,7 +260,7 @@ def create_author(old_author, key_to_source):
 
 def convert_author(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Author as NewAuthor
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import Author as OldAuthor
     
     log = logging.getLogger('convert.reference_in_depth.author')
@@ -353,7 +356,7 @@ def create_author_reference(old_author_reference, old_id_to_author, id_to_refere
 
 def convert_author_reference(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Author as NewAuthor, Reference as NewReference, AuthorReference as NewAuthorReference
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import AuthorReference as OldAuthorReference, Author as OldAuthor
     
     log = logging.getLogger('convert.reference_in_depth.author_reference')
@@ -447,7 +450,7 @@ def create_reftype(old_reftype, key_to_source):
 
 def convert_reftype(old_session_maker, new_session_maker):
     from model_new_schema.reference import Reftype as NewReftype
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import RefType as OldReftype
     
     log = logging.getLogger('convert.reference_in_depth.reftype')
@@ -522,7 +525,7 @@ def create_reference_reftype(old_refreftype, id_to_source, id_to_reference, id_t
 
 def convert_reference_reftype(old_session_maker, new_session_maker):
     from model_new_schema.reference import ReferenceReftype as NewReferenceReftype, Reference as NewReference, Reftype as NewReftype
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import RefReftype as OldRefReftype
     
     log = logging.getLogger('convert.reference_in_depth.reference_reftype')
@@ -595,13 +598,13 @@ def create_reference_relation(old_ref_relation, id_to_reference, key_to_source):
     child = None if child_id not in id_to_reference else id_to_reference[child_id]
     
     source = key_to_source['SGD']
-    new_ref_relation = NewReferencerelation(old_ref_relation.id, source, None, parent, child, 
+    new_ref_relation = NewReferencerelation(source, None, parent, child, 
                              old_ref_relation.date_created, old_ref_relation.created_by)
     return [new_ref_relation]
 
 def convert_reference_relation(old_session_maker, new_session_maker):
     from model_new_schema.reference import Referencerelation as NewReferencerelation, Reference as NewReference
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import RefRelation as OldRefRelation
     
     log = logging.getLogger('convert.reference_in_depth.reference_relation')
@@ -619,8 +622,8 @@ def convert_reference_relation(old_session_maker, new_session_maker):
         values_to_check = []
         
         #Grab cached dictionaries
-        id_to_reference = set([x.id for x in new_session.query(NewReference).all()])
-        key_to_source = set([x.unique_key() for x in new_session.query(NewSource).all()])
+        id_to_reference = dict([(x.id, x) for x in new_session.query(NewReference).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -685,7 +688,7 @@ def create_alias(old_reference, id_to_reference, key_to_source):
 
 def convert_alias(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Reference as NewReference, Referencealias as NewReferencealias
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import Reference as OldReference
     
     log = logging.getLogger('convert.reference_in_depth.reference_alias')
@@ -706,12 +709,15 @@ def convert_alias(old_session_maker, new_session_maker, chunk_size):
         #Grab old objects
         old_session = old_session_maker()
         
-        count = old_session.query(func.max(OldReference.id)).first()[0]
+        ref_min_id = 0      
+        count = 100000
         num_chunks = ceil(1.0*count/chunk_size)
-        min_id = 0
         for i in range(0, num_chunks):
+            min_id = ref_min_id + i*chunk_size
+            max_id = ref_min_id + (i+1)*chunk_size
+            
             #Grab all current objects
-            current_objs = new_session.query(NewReferencealias).filter(NewReferencealias.reference_id >= min_id).filter(NewReferencealias.reference_id <=  min_id+chunk_size).all()
+            current_objs = new_session.query(NewReferencealias).filter(NewReferencealias.reference_id >= min_id).filter(NewReferencealias.reference_id <  max_id).all()
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
             
@@ -720,7 +726,7 @@ def convert_alias(old_session_maker, new_session_maker, chunk_size):
             #Grab old objects
             old_objs = old_session.query(OldReference).filter(
                                             OldReference.id >= min_id).filter(
-                                            OldReference.id <=  min_id+chunk_size).options(
+                                            OldReference.id <  max_id).options(
                                             joinedload('dbxrefrefs')).all()
             
             for old_obj in old_objs:
@@ -746,9 +752,7 @@ def convert_alias(old_session_maker, new_session_maker, chunk_size):
                 
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
-                        
-            min_id = min_id + chunk_size + 1
-        
+                                
         #Commit
         output_creator.finished()
         new_session.commit()
@@ -781,7 +785,7 @@ def create_url(reference, key_to_source):
 
 def convert_url(new_session_maker, chunk_size):
     from model_new_schema.reference import Reference, Referenceurl as NewReferenceurl
-    from model_new_schema.evelement import Source as NewSource
+    from model_new_schema.evelements import Source as NewSource
     
     log = logging.getLogger('convert.reference_in_depth.reference_url')
     log.info('begin')
@@ -797,12 +801,15 @@ def convert_url(new_session_maker, chunk_size):
         #Cache
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
-        count = new_session.query(func.max(Reference.id)).first()[0]
+        ref_min_id = 0      
+        count = 100000
         num_chunks = ceil(1.0*count/chunk_size)
-        min_id = 0
         for i in range(0, num_chunks):
+            min_id = ref_min_id + i*chunk_size
+            max_id = ref_min_id + (i+1)*chunk_size
+            
             #Grab all current objects
-            current_objs = new_session.query(NewReferenceurl).filter(NewReferenceurl.reference_id >= min_id).filter(NewReferenceurl.reference_id <=  min_id+chunk_size).all()
+            current_objs = new_session.query(NewReferenceurl).filter(NewReferenceurl.reference_id >= min_id).filter(NewReferenceurl.reference_id <  max_id).all()
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
             
@@ -811,7 +818,7 @@ def convert_url(new_session_maker, chunk_size):
             #Grab old objects
             old_objs = new_session.query(Reference).filter(
                                             Reference.id >= min_id).filter(
-                                            Reference.id <=  min_id+chunk_size).all()
+                                            Reference.id < max_id).all()
             
             for old_obj in old_objs:
                 #Convert old objects into new ones
@@ -831,9 +838,7 @@ def convert_url(new_session_maker, chunk_size):
                             
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
-                        
-            min_id = min_id + chunk_size + 1
-                        
+                                                
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
             new_session.delete(id_to_current_obj[untouched_obj_id])
@@ -869,18 +874,18 @@ def convert(old_session_maker, new_session_maker):
     
     #convert_reftype(old_session_maker, new_session_maker)
     
-    convert_reference_reftype(old_session_maker, new_session_maker)
+    #convert_reference_reftype(old_session_maker, new_session_maker)
     
-    convert_reference_relation(old_session_maker, new_session_maker)
+    #convert_reference_relation(old_session_maker, new_session_maker)
     
-    convert_alias(old_session_maker, new_session_maker, 3000)
+    #convert_alias(old_session_maker, new_session_maker, 3000)
     
-    convert_url(new_session_maker, 3000)
+    #convert_url(new_session_maker, 3000)
         
     convert_bibentry(new_session_maker, 3000)
     
     from model_new_schema.reference import Reference
-    convert_disambigs(new_session_maker, Reference, ['id', 'sgdid'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
+    #convert_disambigs(new_session_maker, Reference, ['id', 'sgdid'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
     
     log.info('complete')
    

@@ -14,23 +14,25 @@ class Biofact(Base, EqualityByIDMixin):
     __tablename__ = 'aux_biofact'
 
     id = Column('aux_biofact_id', Integer, primary_key=True)
-    bioentity_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
-    bioconcept_id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id))
-    class_type = Column('class', String)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
+    bioentity_class_type = Column('bioentity_subclass', String)
+    bioconcept_class_type = Column('bioconcept_subclass', String)
     
-    def __init__(self, bioentity_id, bioconcept_id, class_type):
-        self.bioentity_id = bioentity_id
-        self.bioconcept_id = bioconcept_id
-        self.class_type = class_type
+    def __init__(self, bioentity, bioconcept):
+        self.bioentity_id = bioentity.id
+        self.bioconcept_id = bioconcept.id
+        self.bioentity_class_type = bioentity.class_type
+        self.bioconcept_class_type = bioconcept.class_type
 
     def unique_key(self):
-        return (self.bioentity_id, self.bioconcept_id, self.class_type)
+        return (self.bioentity_id, self.bioconcept_id, self.bioentity_class_type, self.bioconcept_class_type)
     
 class Interaction(Base, EqualityByIDMixin):
     __tablename__ = "aux_interaction"
     
     id = Column('aux_interaction_id', Integer, primary_key = True)
-    class_type = Column('class', String)
+    class_type = Column('bioentity_subclass', String)
     format_name = Column('format_name', String)
     display_name = Column('display_name', String)
     bioentity1_id = Column('bioentity1_id', Integer)
@@ -69,7 +71,7 @@ class BioentityReference(Base):
     id = Column('aux_bioentity_reference_id', Integer, primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
-    class_type = Column('class', String)
+    class_type = Column('bioentity_subclass', String)
     
     def __init__(self, class_type, bioentity_id, reference_id):
         self.class_type = class_type
@@ -120,8 +122,8 @@ class Disambig(Base, EqualityByIDMixin):
     
     id = Column('aux_disambig_id', Integer, primary_key=True)
     disambig_key = Column('disambig_key', String)
-    class_type = Column('class_type', String)
-    subclass_type = Column('subclass_type', String)
+    class_type = Column('class', String)
+    subclass_type = Column('subclass', String)
     identifier = Column('obj_id', String)
     
     def __init__(self, disambig_key, class_type, subclass_type, identifier):

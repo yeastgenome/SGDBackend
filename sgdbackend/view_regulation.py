@@ -3,13 +3,14 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from sgdbackend_query import get_paragraph
-from sgdbackend_query.query_evidence import get_regulation_evidence
-from sgdbackend_query.query_interaction import get_regulation_family
+from model_new_schema.evidence import Regulationevidence
+from sgdbackend_query import get_evidence, get_conditions
+from sgdbackend_query.query_auxiliary import get_interactions
+from sgdbackend_query.query_paragraph import get_paragraph
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_reference, \
     id_to_experiment, id_to_strain, id_to_source
-from sgdbackend_utils.obj_to_json import paragraph_to_json
+from sgdbackend_utils.obj_to_json import paragraph_to_json, condition_to_json
  
 '''
 -------------------------------Overview---------------------------------------
@@ -19,9 +20,9 @@ def make_overview(bioent_id):
     paragraph = get_paragraph(bioent_id, 'REGULATION')
     if paragraph is not None:
         overview['paragraph'] = paragraph_to_json(paragraph)
-    regevidences = get_regulation_evidence(bioent_id=bioent_id)
-    target_count = len(set([regevidence.bioentity2_id for regevidence in regevidences if regevidence.bioentity1_id==bioent_id]))
-    regulator_count = len(set([regevidence.bioentity1_id for regevidence in regevidences if regevidence.bioentity2_id==bioent_id]))
+    interactions = get_interactions('REGULATION', bioent_id)
+    target_count = len([interaction.bioentity2_id for interaction in interactions if interaction.bioentity1_id==bioent_id])
+    regulator_count = len([interaction.bioentity1_id for interaction in interactions if interaction.bioentity2_id==bioent_id])
     
     overview['target_count'] = target_count
     overview['regulator_count'] = regulator_count
@@ -32,18 +33,26 @@ def make_overview(bioent_id):
 '''
     
 def make_details(divided, bioent_id):
-    regevidences = get_regulation_evidence(bioent_id)
+    regevidences = get_evidence(Regulationevidence, bioent_id=bioent_id)
+    id_to_conditions = {}
+    for condition in get_conditions([x.id for x in regevidences]):
+        evidence_id = condition.evidence_id
+        if evidence_id in id_to_conditions:
+            id_to_conditions[evidence_id].append(condition)
+        else:
+            id_to_conditions[evidence_id] = [condition]
+            
     tables = {}
 
     if divided:
         target_regevidences = [regevidence for regevidence in regevidences if regevidence.bioentity1_id==bioent_id]
         regulator_regevidences = [regevidence for regevidence in regevidences if regevidence.bioentity2_id==bioent_id]
         
-        tables['targets'] = create_simple_table(target_regevidences, make_evidence_row, bioent_id=bioent_id)
-        tables['regulators'] = create_simple_table(regulator_regevidences, make_evidence_row, bioent_id=bioent_id)
+        tables['targets'] = create_simple_table(target_regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
+        tables['regulators'] = create_simple_table(regulator_regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
         
     else:
-        tables = create_simple_table(regevidences, make_evidence_row, bioent_id=bioent_id)
+        tables = create_simple_table(regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
         
     return tables    
 
@@ -72,31 +81,20 @@ def minimize_experiment_json(exp_json):
             'link': exp_json['link']}
     return None
 
-def make_evidence_row(regevidence, bioent_id=None): 
-    if bioent_id is not None:
-        if regevidence.bioentity1_id == bioent_id:
-            bioent1_id = bioent_id
-            bioent2_id = regevidence.bioentity2_id
-        else:
-            bioent1_id = bioent_id
-            bioent2_id = regevidence.bioentity1_id
-    else:
-        bioent1_id = regevidence.bioentity1_id
-        bioent2_id = regevidence.bioentity2_id
-
+def make_evidence_row(regevidence, id_to_conditions): 
     reference_id = regevidence.reference_id 
     experiment_id = regevidence.experiment_id
     strain_id = regevidence.strain_id
- 
-    source = id_to_source[regevidence.source_id]
-       
-    return {'bioent1': minimize_bioent_json(id_to_bioent[bioent1_id]),
-                'bioent2': minimize_bioent_json(id_to_bioent[bioent2_id]),
+    
+    conditions = None if regevidence.id not in id_to_conditions else ';'.join(condition_to_json(x) for x in id_to_conditions[regevidence.id])
+        
+    return {'bioent1': minimize_bioent_json(id_to_bioent[regevidence.bioentity1_id]),
+                'bioent2': minimize_bioent_json(id_to_bioent[regevidence.bioentity2_id]),
                 'reference': None if reference_id is None else minimize_reference_json(id_to_reference[reference_id]),
                 'experiment': None if experiment_id is None else minimize_experiment_json(id_to_experiment[experiment_id]),
                 'strain': None if strain_id is None else minimize_strain_json(id_to_strain[strain_id]),
-                'source': regevidence.source,
-                'conditions': source
+                'source': id_to_source[regevidence.source_id],
+                'conditions': conditions
                 }
 
 '''

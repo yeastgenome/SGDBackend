@@ -4,28 +4,9 @@ Created on Mar 4, 2013
 @author: kpaskov
 '''
 from model_new_schema import Base, EqualityByIDMixin
-from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
-
-class Allele(Base):
-    __tablename__ = 'allele'
-    id = Column('allele_id', Integer, primary_key=True)
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
-    link = Column('obj_url', String)
-    source_id = Column('source_id', String)
-    description = Column('description', String)
-    
-    def unique_key(self):
-        return self.format_name
-    
-    def __init__(self, display_name, source, description):
-        self.display_name = display_name
-        self.format_name = display_name
-        self.link = None
-        self.source_id = source.id
-        self.description = description
-        
+ 
 class Url(Base):
     __tablename__ = 'url'
     id = Column('url_id', Integer, primary_key=True)
@@ -35,8 +16,8 @@ class Url(Base):
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer)
     category = Column('category', String)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
     
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"URL"}
@@ -90,8 +71,8 @@ class Relation(Base, EqualityByIDMixin):
     class_type = Column('class', String)
     source_id = Column('source_id', Integer, ForeignKey('nex.source.source_id'))
     relation_type = Column('relation_type', String)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
     
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"RELATION"}
@@ -109,7 +90,5 @@ class Relation(Base, EqualityByIDMixin):
         return (self.format_name, self.class_type, self.relation_type)
        
 
-        
-    
     
     

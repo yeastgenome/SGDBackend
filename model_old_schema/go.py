@@ -5,6 +5,7 @@ Created on Mar 5, 2013
 '''
 from model_old_schema import Base, EqualityByIDMixin, SCHEMA
 from model_old_schema.feature import Feature
+from model_old_schema.general import Dbxref
 from model_old_schema.reference import Reference
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
@@ -38,7 +39,7 @@ class Go(Base, EqualityByIDMixin):
     synonyms = relationship(GoSynonym, secondary= Table('go_gosyn', Base.metadata, 
                                                         Column('go_no', Integer, ForeignKey('bud.go.go_no')),
                                                         Column('go_synonym_no', Integer, ForeignKey('bud.go_synonym.go_synonym_no')),
-                                                        schema=SCHEMA), lazy='joined')
+                                                        schema=SCHEMA))
     
 class GoFeature(Base, EqualityByIDMixin):
     __tablename__ = 'go_annotation'
@@ -55,7 +56,7 @@ class GoFeature(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     
     #Relationships
-    go = relationship(Go, uselist=False, lazy='joined')
+    go = relationship(Go, uselist=False)
     feature = relationship(Feature, uselist=False)
     
 class GoRef(Base, EqualityByIDMixin):
@@ -104,8 +105,17 @@ class GoPath(Base, EqualityByIDMixin):
     child = relationship(Go, uselist=False, primaryjoin="GoPath.child_id==Go.id")
     ancestor = relationship(Go, uselist=False, primaryjoin="GoPath.ancestor_id==Go.id")
    
-
+class GorefDbxref(Base, EqualityByIDMixin):
+    __tablename__ = 'goref_dbxref'
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
     
+    id = Column('goref_dbxref_no', Integer, primary_key=True)
+    goref_id = Column('go_ref_no', Integer, ForeignKey(GoRef.id))
+    dbxref_id = Column('dbxref_no', Integer, ForeignKey(Dbxref.id))
+    support_type = Column('support_type', String)
+    
+    dbxref = relationship(Dbxref, uselist=False)
+    goref = relationship(GoRef, backref='goref_dbxrefs', uselist=False)
     
     
     
