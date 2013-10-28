@@ -112,13 +112,6 @@ def prep_views(chosen_backend, config):
                                         go_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
                      renderer=chosen_backend.get_renderer('go_details'))
     
-    config.add_route('go_references', 
-                     '/locus/{identifier}/go_references', 
-                     view=lambda request: chosen_backend.response_wrapper('go_references')(
-                                getattr(chosen_backend, 'go_references')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
-                     renderer=chosen_backend.get_renderer('go_references'))
-    
     config.add_route('go_enrichment', 
                      '/go_enrichment', 
                      view=lambda request: chosen_backend.response_wrapper('go_enrichment')(
@@ -155,13 +148,6 @@ def prep_views(chosen_backend, config):
                                         phenotype_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
                      renderer=chosen_backend.get_renderer('phenotype_details')) 
     
-    config.add_route('phenotype_references', 
-                     '/locus/{identifier}/phenotype_references', 
-                     view=lambda request: chosen_backend.response_wrapper('phenotype_references')(
-                                getattr(chosen_backend, 'phenotype_references')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
-                     renderer=chosen_backend.get_renderer('phenotype_references'))
-    
     #Interaction views
     config.add_route('interaction_overview', 
                      '/locus/{identifier}/interaction_overview', 
@@ -191,13 +177,6 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
                      renderer=chosen_backend.get_renderer('interaction_resources'))
     
-    config.add_route('interaction_references', 
-                     '/locus/{identifier}/interaction_references', 
-                     view=lambda request: chosen_backend.response_wrapper('interaction_references')(
-                                getattr(chosen_backend, 'interaction_references')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
-                     renderer=chosen_backend.get_renderer('interaction_references'))
-    
     #Regulation views
     config.add_route('regulation_overview', 
                      '/locus/{identifier}/regulation_overview', 
@@ -217,13 +196,6 @@ def prep_views(chosen_backend, config):
                      '/locus/{identifier}/regulation_graph', 
                      view=lambda request: chosen_backend.response_wrapper('all_bibentries')(
                                 getattr(chosen_backend, 'regulation_graph')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
-                     renderer=chosen_backend.get_renderer('regulation_graph'))
-    
-    config.add_route('regulation_references', 
-                     '/locus/{identifier}/regulation_references', 
-                     view=lambda request: chosen_backend.response_wrapper('all_bibentries')(
-                                getattr(chosen_backend, 'regulation_references')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
                      renderer=chosen_backend.get_renderer('regulation_graph'))
     

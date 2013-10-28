@@ -7,7 +7,7 @@ from sgdbackend_query import get_evidence
 from sgdbackend_query.query_auxiliary import get_interactions
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_reference, \
-    id_to_experiment, id_to_strain, id_to_biocon
+    id_to_experiment, id_to_strain, id_to_biocon, id_to_source
 from sgdbackend_utils.obj_to_json import minimize_bioent_json, \
     minimize_reference_json, minimize_experiment_json, minimize_strain_json, \
     minimize_biocon_json

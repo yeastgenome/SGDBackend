@@ -1,8 +1,8 @@
 from backend.backend_interface import BackendInterface
 from config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE, SCHEMA
 from go_enrichment import query_batter
+from model_perf_schema.data import create_data_classes, data_classes
 from mpmath import ceil
-from perfbackend import model_perf_schema
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from pyramid.response import Response
@@ -12,10 +12,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import MetaData
 from sqlalchemy.sql.expression import select
+from zope.sqlalchemy import ZopeTransactionExtension
 import json
+import model_perf_schema
 import sys
 
-# This class must implement BackendInterface, but it generates most of the methods with __getattr__.
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 class Base(object):
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
@@ -30,8 +31,7 @@ class PerfBackend(BackendInterface):
         DBSession.configure(bind=engine)
         model_perf_schema.Base.metadata.bind = engine
 
-        from sgdbackend_utils.cache import cache_core
-        cache_core()
+        create_data_classes()
         
     #Renderer
     def get_renderer(self, method_name):
@@ -45,157 +45,226 @@ class PerfBackend(BackendInterface):
             else:
                 return Response(body=data, content_type='application/json')
         return f
-            
-    # Gets json for standard requests.
-    def __getattr__(self, name):
-        def f(identifier, callback=None):
-            locus_id = self.get_obj_id(identifier, subclass_type='LOCUS')
-            table = self.meta.tables[name]
-            result = self.engine.execute(select([table.c.json]).where(table.c.bioentity_id == locus_id)).fetchone()
-            if result is not None:
-                result = result[0]
-            return result
-        return f
-    
-    #Useful methods
-    def get_obj_ids(self, identifier, class_type=None, subclass_type=None):
-        disambig_table = self.meta.tables['disambig']
-        query = select([disambig_table]).where(disambig_table.c.disambig_key == identifier.upper())
-        if class_type is not None:
-            query = query.where(disambig_table.c.class_type == class_type)
-        if subclass_type is not None:
-            query = query.where(disambig_table.c.subclass_type == subclass_type)
-        disambigs = self.engine.execute(query).fetchall()
-        
-        if len(disambigs) > 0:
-            return [(disambig.identifier, disambig.class_type, disambig.subclass_type) for disambig in disambigs]
-        return None
-    
-    def get_obj_id(self, identifier, class_type=None, subclass_type=None):
-        objs_ids = self.get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
-        obj_id = None if objs_ids is None or len(objs_ids) != 1 else objs_ids[0][0]
-        return obj_id
-    
-    def get_obj(self, obj_table, id_column_name, identifier, class_type=None, subclass_type=None):
-        obj_id = self.get_obj_id(identifier, class_type=class_type, subclass_type=subclass_type)
-        
-        if obj_id is not None:
-            obj = self.engine.execute(select([obj_table]).where(getattr(obj_table.c, id_column_name) == obj_id)).fetchone()
-            if obj is not None:
-                return obj.json
-        return None
-    
-    def get_all_objs(self, obj_table, id_column_name, min_id, max_id):
-        query = select([obj_table])
-        if min_id is not None:
-            query = query.where(getattr(obj_table.c, id_column_name) >= min_id)
-        if max_id is not None:
-            query = query.where(getattr(obj_table.c, id_column_name) < max_id)
-        objs = self.engine.execute(query).fetchall()
-        return [obj.json for obj in objs]
-    
-    def get_obj_list(self, obj_table, id_column_name, obj_ids):
-        objs = []
-        
-        batch_size = 500
-        num_batches = int(ceil(1.0*len(obj_ids)/batch_size))
-        for i in range(num_batches):
-            new_obj_ids = obj_ids[i*batch_size:(i+1)*batch_size]
-            new_objs = self.engine.execute(select([obj_table]).where(getattr(obj_table.c, id_column_name).in_(new_obj_ids))).fetchall()
-            objs.extend([new_obj.json for new_obj in new_objs])
-
-        return objs
     
     #Bioentity
-    def all_bioentities(self, min_id, max_id, callback=None):
-        bioents = self.get_all_objs(self.meta.tables['bioentity'], 'bioentity_id', min_id, max_id)
-        return '[' + ', '.join(bioents) + ']'
+    def all_bioentities(self, min_id, max_id):
+        from model_perf_schema.core import Bioentity
+        return get_all(Bioentity, 'json', min_id, max_id)
     
-    def bioentity_list(self, bioent_ids, callback=None):
-        bioents = self.get_obj_list(self.meta.tables['bioentity'], 'bioentity_id', bioent_ids)
-        return '[' + ', '.join(bioents) + ']'
+    def bioentity_list(self, bioent_ids):
+        from model_perf_schema.core import Bioentity
+        return get_list(self, Bioentity, 'json', bioent_ids)
     
     #Locus
-    def locus(self, identifier, callback=None):
-        bioent = self.get_obj(self.meta.tables['bioentity'], 'bioentity_id', identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-    
-        if bioent is None:
-            raise Exception('Locus could not be found.')
-        return bioent
+    def locus(self, identifier):
+        from model_perf_schema.core import Bioentity
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_obj(Bioentity, 'json', bioent_id)
     
     def locustabs(self, identifier):
-        locustab = self.get_obj(self.meta.tables['locustabs'], 'bioentity_id', identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-    
-        if locustab is None:
-            raise Exception('Locustab could not be found.')
-        return locustab
+        from model_perf_schema.core import Bioentity
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_obj(Bioentity, 'locustabs_json', bioent_id)
     
     #Bioconcept
     def all_bioconcepts(self, min_id, max_id, callback=None):
-        biocons = self.get_all_objs(self.meta.tables['bioconcept'], 'bioconcept_id', min_id, max_id)
-        return '[' + ', '.join(biocons) + ']'
+        from model_perf_schema.core import Bioconcept
+        return get_all(Bioconcept, 'json', min_id, max_id)
     
     def bioconcept_list(self, biocon_ids, callback=None):
-        biocon_ids = list(set(biocon_ids))
-        
-        biocons = self.get_obj_list(self.meta.tables['bioconcept'], 'bioconcept_id', biocon_ids)
-        return '[' + ', '.join(biocons) + ']'
+        from model_perf_schema.core import Bioconcept
+        return get_list(self, Bioconcept, 'json', biocon_ids)
+    
+    #Reference
+    def reference(self, identifier):
+        from model_perf_schema.core import Reference
+        ref_id = get_obj_id(identifier, class_type='REFERENCE')
+        return get_obj(Reference, 'json', ref_id)
+       
+    def all_references(self, min_id, max_id):
+        from model_perf_schema.core import Reference
+        return get_all(Reference, 'json', min_id, max_id)
+
+    def all_bibentries(self, min_id, max_id):
+        from model_perf_schema.core import Reference
+        return get_all(Reference, 'bibentry_json', min_id, max_id)
+    
+    def reference_list(self, reference_ids):
+        from model_perf_schema.core import Reference
+        return get_list(self, Reference, 'bibentry_json', reference_ids)
      
     #Go
-    def go(self, identifier, callback=None):
-        biocon = self.get_obj(self.meta.tables['bioconcept'], 'bioconcept_id', identifier, class_type='BIOCONCEPT', subclass_type='GO')
+    def go(self, identifier):
+        from model_perf_schema.core import Bioconcept
+        biocon_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
+        return get_obj(Bioconcept, 'json', biocon_id)
     
-        if biocon is None:
-            raise Exception('Go term could not be found.')
-        return biocon
+    def go_overview(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('go_overview', bioent_id)
     
-    def go_enrichment(self, bioent_format_names, callback=None):
+    def go_details(self, locus_identifier=None, go_identifier=None):
+        if locus_identifier is not None:
+            obj_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        else:  
+            obj_id = get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
+        return get_data('go_details', obj_id)
+    
+    #Interaction
+    def interaction_overview(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('interaction_overview', bioent_id)
+    
+    def interaction_details(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('interaction_details', bioent_id)
+    
+    def interaction_graph(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('interaction_graph', bioent_id)
+    
+    def interaction_resources(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('interaction_resources', bioent_id)
+    
+    #Literature
+    def literature_overview(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('literature_overview', bioent_id)
+    
+    def literature_details(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('interaction_details', bioent_id)
+    
+    def literature_graph(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('interaction_graph', bioent_id)
+    
+    #Phenotype
+    def phenotype(self, identifier, callback=None):
+        from model_perf_schema.core import Bioconcept
+        biocon_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
+        return get_obj(Bioconcept, 'json', biocon_id)
+    
+    def phenotype_overview(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('phenotype_overview', bioent_id)
+    
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None):
+        if locus_identifier is not None:
+            obj_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        else:  
+            obj_id = get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='GO')
+        return get_data('phenotype_details', obj_id)
+    
+    def go_enrichment(self, bioent_ids, callback=None):
+        from model_perf_schema.core import Bioentity, Bioconcept
+        bioent_format_names = []
+        num_chunks = ceil(1.0*len(bioent_ids)/500)
+        for i in range(num_chunks):
+            bioent_format_names.extend([json.loads(x)['format_name'] for x in DBSession.query(Bioentity).filter(Bioentity.id.in_(bioent_ids[i*500:(i+1)*500])).all()])
         enrichment_results = query_batter.query_go_processes(bioent_format_names)
         json_format = []
         
         for enrichment_result in enrichment_results:
             identifier = str(int(enrichment_result[0][3:]))
-            goterm = self.get_obj(self.meta.tables['bioconcept'], 'bioconcept_id', identifier, subclass_type='GO')
+            goterm_id = get_obj_id(identifier, 'BIOCONCEPT', 'GO')
+            goterm = get_obj(Bioconcept, 'json', goterm_id)
             json_format.append({'go': goterm,
                             'match_count': enrichment_result[1],
                             'pvalue': enrichment_result[2]})
-        return json_format
+        return json_format  
     
-    #Phenotype
-    def phenotype(self, identifier, callback=None):
-        biocon = self.get_obj(self.meta.tables['bioconcept'], 'bioconcept_id', identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
+    #Protein
+    def protein_domain_details(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('protein_domain_details', bioent_id)
     
-        if biocon is None:
-            raise Exception('Phenotype could not be found.')
-        return biocon
-         
-    #Reference
-    def reference(self, identifier, callback=None):
-        ref = self.get_obj(self.meta.tables['reference'], 'reference_id', identifier, class_type='REFERENCE')
+    def regulation_overview(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('regulation_overview', bioent_id)
     
-        if ref is None:
-            raise Exception('Reference could not be found.')
-        return ref
-       
-    def all_references(self, min_id, max_id, callback=None):
-        refs = self.get_all_objs(self.meta.tables['reference'], 'reference_id', min_id, max_id)
-        return '[' + ', '.join(refs) + ']'
+    def regulation_details(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('regulation_details', bioent_id)
     
-    def reference_list(self, reference_ids, callback=None):
-        refs = self.get_obj_list(self.meta.tables['reference'], 'reference_id', reference_ids)
-        return '[' + ', '.join(refs) + ']'
+    def regulation_graph(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('regulation_graph', bioent_id)
+    
+    #Binding
+    def binding_site_details(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('binding_site_details', bioent_id)
 
-    def all_bibentries(self, min_id, max_id, callback=None):
-        bibentries = self.get_all_objs(self.meta.tables['reference_bibentry'], 'reference_id', min_id, max_id)
-        return '[' + ', '.join(bibentries) + ']'
-    
     #Misc
-    def all_disambigs(self, min_id, max_id, callback=None):
-        disambigs = self.get_all_objs(self.meta.tables['disambig'], 'disambig_id', min_id, max_id)
-        return '[' + ', '.join(disambigs) + ']'
-    
-    
+    def all_disambigs(self, min_id, max_id):
+        from model_perf_schema.core import Disambig
+        query = DBSession.query(Disambig)
+        if min_id is not None:
+            query = query.filter(Disambig.id >= min_id)
+        if max_id is not None:
+            query = query.filter(Disambig.id < max_id)
+        disambigs = query.all()
+        return json.dumps([{'id': disambig.id,
+                            'disambig_key': disambig.disambig_key,
+                            'class_type': disambig.class_type,
+                            'subclass_type': disambig.subclass_type,
+                            'identifier': disambig.identifier} 
+                        for disambig in disambigs])    
 
+#Useful methods
+def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=False):
+    from model_perf_schema.core import Disambig
     
+    if identifier is None:
+        return None
+    query = DBSession.query(Disambig).filter(Disambig.disambig_key==identifier.upper())
+    if class_type is not None:
+        query = query.filter(Disambig.class_type==class_type)
+    if subclass_type is not None:
+        query = query.filter(Disambig.subclass_type==subclass_type)
+    disambigs = query.all()
+    
+    if print_query:
+        print query
+        
+    if len(disambigs) > 0:
+        return [(disambig.identifier, disambig.class_type, disambig.subclass_type) for disambig in disambigs]
+    return None
+
+def get_obj_id(identifier, class_type=None, subclass_type=None):
+    objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
+    obj_id = None if objs_ids is None or len(objs_ids) != 1 else objs_ids[0][0]
+    return obj_id
+
+def get_all(cls, col_name, min_id, max_id):
+    query = DBSession.query(cls)
+    if min_id is not None:
+        query = query.filter(cls.id >= min_id)
+    if max_id is not None:
+        query = query.filter(cls.id < max_id)
+    objs = query.all()
+        
+    return '[' + ', '.join([getattr(obj, col_name) for obj in objs]) + ']'
+
+def get_list(cls, col_name, obj_ids):
+    num_chunks = ceil(1.0*len(obj_ids)/500)
+    objs = []
+    for i in range(num_chunks):
+        objs.extend(DBSession.query(cls).filter(cls.id.in_(obj_ids[i*500:(i+1)*500])).all())
+    return '[' + ', '.join([getattr(obj, col_name) for obj in objs]) + ']'
             
+def get_obj(cls, col_name, obj_id):
+    if obj_id is not None:
+        biocon = DBSession.query(cls).filter(cls.id == obj_id).first()
+        return None if biocon is None else biocon.json
+    return None
+
+def get_data(table_name, obj_id):
+    if obj_id is not None:
+        data_cls = data_classes[obj_id]
+        data = DBSession.query(data_cls).filter(data_cls.obj_id == obj_id).first()
+        return None if data is None else data.json
+    return None
             

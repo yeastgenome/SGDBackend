@@ -25,6 +25,10 @@ def make_details(bioent_id):
     references['primary'] = make_references(['PRIMARY_LITERATURE'], bioent_id) 
     references['additional'] = make_references(['ADDITIONAL_LITERATURE'], bioent_id) 
     references['reviews'] = make_references(['REVIEW_LITERATURE'], bioent_id) 
+    references['go'] = make_references(['GO'], bioent_id, only_primary=True) 
+    references['phenotype'] = make_references(['PHENOTYPE'], bioent_id, only_primary=True) 
+    references['interaction'] = make_references(['GENINTERACTION', 'PHYSINTERACTION'], bioent_id) 
+    references['regulation'] = make_references(['REGULATION'], bioent_id) 
     return references
 
 '''

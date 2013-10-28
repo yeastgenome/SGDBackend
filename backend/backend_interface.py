@@ -81,10 +81,6 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def go_references(self, identifier):
-        return None
-    
-    @abstractmethod
     def go_enrichment(self, identifier):
         return None
     
@@ -103,10 +99,6 @@ class BackendInterface:
     
     @abstractmethod
     def interaction_resources(self, identifier):
-        return None
-    
-    @abstractmethod
-    def interaction_references(self, identifier):
         return None
     
     #Literature
@@ -135,10 +127,6 @@ class BackendInterface:
     def phenotype_details(self, locus_identifier=None, phenotype_identifier=None):
         return None
     
-    @abstractmethod
-    def phenotype_references(self, identifier):
-        return None
-    
     #Protein
     @abstractmethod
     def protein_domain_details(self, identifier):
@@ -155,10 +143,6 @@ class BackendInterface:
     
     @abstractmethod
     def regulation_graph(self, identifier):
-        return None
-    
-    @abstractmethod
-    def regulation_references(self, identifier):
         return None
     
     #Sequence
