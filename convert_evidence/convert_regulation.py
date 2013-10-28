@@ -362,18 +362,18 @@ def convert(new_session_maker):
     
     log.info('begin')
     
-    #convert_evidence(new_session_maker, 300)    
+    convert_evidence(new_session_maker, 300)    
         
     from model_new_schema.evidence import Regulationevidence
     get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
     
-    #convert_paragraph(new_session_maker)
+    convert_paragraph(new_session_maker)
     
     convert_paragraph_reference(new_session_maker)
     
     convert_interaction(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.interaction', 10000, True)
     
-    #convert_bioentity_reference(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.bioentity_reference', 10000, get_bioent_ids_f)
+    convert_bioentity_reference(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.bioentity_reference', 10000, get_bioent_ids_f)
             
     log.info('complete')
     

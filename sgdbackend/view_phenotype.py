@@ -54,5 +54,5 @@ def make_evidence_row(phenoevidence, id_to_conditions):
             'reference': id_to_reference[reference_id],
             'source': id_to_source[source_id],
             'experiment': id_to_experiment[experiment_id],
-            'source': id_to_strain[strain_id]
+            'strain': None if strain_id is None else id_to_strain[strain_id]
             }

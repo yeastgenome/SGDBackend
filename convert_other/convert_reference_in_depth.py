@@ -113,7 +113,8 @@ def create_bibentry(reference, id_to_journal, id_to_book, id_to_abstract, id_to_
     entries.append('PMID- ' + str(reference.pubmed_id)) 
     entries.append('STAT- ' + str(reference.ref_status))
     entries.append('DP  - ' + str(reference.date_published)) 
-    entries.append('TI  - ' + unicode(reference.title))
+    if reference.title is not None:
+        entries.append('TI  - ' + reference.title.encode('ascii', 'ignore'))
     entries.append('SO  - ' + str(id_to_source[reference.source_id])) 
     entries.append('LR  - ' + str(reference.date_revised)) 
     entries.append('IP  - ' + str(reference.issue)) 
@@ -866,26 +867,26 @@ def convert(old_session_maker, new_session_maker):
             
     log.info('begin')
     
-    #convert_abstract(old_session_maker, new_session_maker, 3000)
+    convert_abstract(old_session_maker, new_session_maker, 3000)
     
-    #convert_author(old_session_maker, new_session_maker, 10000)
+    convert_author(old_session_maker, new_session_maker, 10000)
     
-    #convert_author_reference(old_session_maker, new_session_maker, 10000)
+    convert_author_reference(old_session_maker, new_session_maker, 10000)
     
-    #convert_reftype(old_session_maker, new_session_maker)
+    convert_reftype(old_session_maker, new_session_maker)
     
-    #convert_reference_reftype(old_session_maker, new_session_maker)
+    convert_reference_reftype(old_session_maker, new_session_maker)
     
-    #convert_reference_relation(old_session_maker, new_session_maker)
+    convert_reference_relation(old_session_maker, new_session_maker)
     
-    #convert_alias(old_session_maker, new_session_maker, 3000)
+    convert_alias(old_session_maker, new_session_maker, 3000)
     
-    #convert_url(new_session_maker, 3000)
+    convert_url(new_session_maker, 3000)
         
     convert_bibentry(new_session_maker, 3000)
     
     from model_new_schema.reference import Reference
-    #convert_disambigs(new_session_maker, Reference, ['id', 'sgdid'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
+    convert_disambigs(new_session_maker, Reference, ['id', 'sgdid'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
     
     log.info('complete')
    

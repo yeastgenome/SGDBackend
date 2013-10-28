@@ -117,7 +117,10 @@ def get_conditions(evidence_ids, print_query=False):
     num_chunks = ceil(1.0*len(evidence_ids)/500)
     for i in range(num_chunks):  
         this_chunk = evidence_ids[i*500:(i+1)*500]
-        conditions.extend(session.query(with_polymorphic(Condition, [Temperaturecondition, Bioentitycondition, Bioconceptcondition, Bioitemcondition])).filter(Condition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Temperaturecondition).filter(Condition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Bioentitycondition).filter(Condition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Bioconceptcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Bioitemcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
     
     return conditions
     

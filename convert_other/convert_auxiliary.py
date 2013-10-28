@@ -330,7 +330,7 @@ def create_interaction(evidence, evidence_count, id_to_bioent, directed):
     bioent2_id = evidence.bioentity2_id
     if directed:
         bioent1_id, bioent2_id = create_directed_key(evidence)
-        format_name = id_to_bioent[bioent1_id] + '__' + id_to_bioent[bioent2_id]
+        format_name = id_to_bioent[bioent1_id].format_name + '__' + id_to_bioent[bioent2_id].format_name
     else:
         format_name = create_undirected_interaction_format_name(evidence, id_to_bioent)
     interaction = Interaction(create_interaction_id(evidence.id), evidence.class_type, format_name, format_name, bioent1_id, bioent2_id)
