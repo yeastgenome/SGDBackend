@@ -6,9 +6,6 @@ Created on Jul 10, 2013
 
 from backend_test import check_bioent_extended
 import json
-import pytest
-
-slow = pytest.mark.slow
 
 def test_all_bioentities_structure(model, min_id=0, max_id=100):
     response = json.loads(model.all_bioentities(min_id, max_id))

@@ -23,8 +23,8 @@ def make_evidence_row(binding_evidence):
     experiment_id = binding_evidence.experiment_id
     
     return {'bioent': id_to_bioent[bioentity_id],
-                'reference': None if reference_id not in id_to_reference else id_to_reference[reference_id],
-                'experiment': id_to_experiment[experiment_id],
+                'reference': None if reference_id is None else id_to_reference[reference_id],
+                'experiment': None if experiment_id is None else id_to_experiment[experiment_id],
                 'source': id_to_source[binding_evidence.source_id],
                 'total_score': binding_evidence.total_score,
                 'expert_confidence': binding_evidence.expert_confidence,

@@ -5,11 +5,8 @@ Created on Jul 10, 2013
 '''
 
 from backend_test import check_reference, check_strain, check_bioent, \
-    check_experiment, check_biocon, check_url, check_reference_extended
+    check_experiment, check_biocon, check_url
 import json
-import pytest
-
-slow = pytest.mark.slow
 
 def test_interaction_overview_structure(model, identifier='YFL039C'):
     response = json.loads(model.interaction_overview(identifier=identifier))
@@ -86,9 +83,3 @@ def test_interaction_resources_structure(model, identifier='YFL039C'):
     assert response is not None
     for entry in response:
         check_url(entry)
-    
-def test_interaction_references_structure(model, identifier='YFL039C'):
-    response = json.loads(model.interaction_references(identifier=identifier))
-    assert response is not None
-    for entry in response:
-        check_reference_extended(entry)

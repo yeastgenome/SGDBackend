@@ -6,9 +6,6 @@ Created on Jul 10, 2013
 from backend_test import check_reference_extended, check_reference, check_strain, \
     check_experiment, check_bioent
 import json
-import pytest
-
-slow = pytest.mark.slow
 
 def test_regulation_overview_structure(model, identifier='GAL4'):
     response = json.loads(model.regulation_overview(identifier))
@@ -84,10 +81,4 @@ def test_regulation_graph_structure(model, identifier='GAL4'):
         assert 'id' in node_data
         assert 'sub_type' in node_data
         assert 'name' in node_data
-        
-def test_regulation_references(model, identifier='GAL4'):
-    response = json.loads(model.regulation_references(identifier))
-    assert response is not None
-    for entry in response:
-        check_reference_extended(entry)
         

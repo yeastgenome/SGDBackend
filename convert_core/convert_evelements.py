@@ -95,7 +95,7 @@ def convert_experiment(old_session_maker, new_session_maker):
         #Get experiments from regulation files
         experiment_names = set()
         
-        rows = break_up_file('/Users/kpaskov/final/yeastmine_regulation.tsv')
+        rows = break_up_file('data/yeastmine_regulation.tsv')
         experiment_names.update([(row[4], row[5], row[11]) for row in rows])
                 
         for experiment_name, eco_id, source_key in experiment_names:
@@ -114,7 +114,7 @@ def convert_experiment(old_session_maker, new_session_maker):
           
         experiment_names = set()      
         #Add experiments from binding files
-        rows = break_up_file('/Users/kpaskov/final/yetfasco_data.txt', delimeter=';')
+        rows = break_up_file('data/yetfasco_data.txt', delimeter=';')
         for row in rows:
             if len(row) < 10:
                 print row

@@ -37,7 +37,7 @@ def check_bioent_extended(bioent):
         assert 'link' in bioent
         assert 'display_name' in bioent
         assert 'format_name' in bioent
-        assert 'dbxref' in bioent
+        assert 'sgdid' in bioent
         assert 'id' in bioent
         assert 'bioent_type' in bioent
         

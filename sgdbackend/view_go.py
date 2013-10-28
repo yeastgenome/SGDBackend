@@ -48,8 +48,9 @@ def make_overview(bioent_id):
 '''
     
 def make_details(locus_id=None, go_id=None):
+    print locus_id, go_id
     goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id)
-    
+    print len(goevidences)
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in goevidences]):
         evidence_id = condition.evidence_id
@@ -57,7 +58,8 @@ def make_details(locus_id=None, go_id=None):
             id_to_conditions[evidence_id].append(condition)
         else:
             id_to_conditions[evidence_id] = [condition]
-            
+          
+    print len(id_to_conditions)  
     tables = create_simple_table(goevidences, make_evidence_row, id_to_conditions=id_to_conditions)
         
     return tables  

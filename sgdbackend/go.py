@@ -15,7 +15,7 @@ def make_enrichment(bioent_ids):
     enrichment_results = query_batter.query_go_processes(bioent_format_names)
     json_format = []
     for enrichment_result in enrichment_results:
-        identifier = str(int(enrichment_result[0][3:]))
+        identifier = enrichment_result[0]
         goterm_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
         goterm = id_to_biocon[goterm_id]
         json_format.append({'go': goterm,

@@ -106,7 +106,7 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('go_details'))
     
     config.add_route('go_biocon_details', 
-                     '/go/{identifier}/go_details', 
+                     '/go/{identifier}/locus_details', 
                      view=lambda request: chosen_backend.response_wrapper('go_details')(
                                 getattr(chosen_backend, 'go_details')(
                                         go_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
@@ -142,7 +142,7 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('phenotype_details'))
     
     config.add_route('phenotype_biocon_details', 
-                     '/phenotype/{identifier}/go_details', 
+                     '/phenotype/{identifier}/locus_details', 
                      view=lambda request: chosen_backend.response_wrapper('phenotype_details')(
                                 getattr(chosen_backend, 'phenotype_details')(
                                         phenotype_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
