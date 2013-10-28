@@ -2,6 +2,7 @@ from backend.backend_interface import BackendInterface
 from config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE, SCHEMA
 from go_enrichment import query_batter
 from mpmath import ceil
+from perfbackend import model_perf_schema
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from pyramid.response import Response
@@ -15,11 +16,22 @@ import json
 import sys
 
 # This class must implement BackendInterface, but it generates most of the methods with __getattr__.
-class PerfBackend():
+DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+class Base(object):
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+        
+model_perf_schema.SCHEMA = SCHEMA
+model_perf_schema.Base = declarative_base(cls=Base)
+
+class PerfBackend(BackendInterface):
     def __init__(self, config):
-        self.engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
-        self.meta = MetaData()
-        self.meta.reflect(bind=self.engine)
+        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+
+        DBSession.configure(bind=engine)
+        model_perf_schema.Base.metadata.bind = engine
+
+        from sgdbackend_utils.cache import cache_core
+        cache_core()
         
     #Renderer
     def get_renderer(self, method_name):

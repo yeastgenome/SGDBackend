@@ -171,3 +171,38 @@ def paragraph_to_json(paragraph):
             'references': references
            }
     
+def minimize_bioent_json(bioent_json):
+    if bioent_json is not None:
+        return {'display_name': bioent_json['display_name'],
+            'format_name': bioent_json['format_name'],
+            'link': bioent_json['link'],
+            'id': bioent_json['id']}
+    return None
+    
+def minimize_biocon_json(biocon_json):
+    if biocon_json is not None:
+        return {'display_name': biocon_json['display_name'],
+            'link': biocon_json['link'],
+            'id': biocon_json['id']}  
+    return None
+    
+def minimize_reference_json(ref_json):
+    if ref_json is not None:
+        return {'display_name': ref_json['display_name'],
+            'link': ref_json['link'],
+            'id': ref_json['id']}
+    return None
+    
+def minimize_strain_json(strain_json):
+    if strain_json is not None:
+        return {'display_name': strain_json['display_name'],
+            'link': strain_json['link'],
+            'id': strain_json['id']}
+    return None
+    
+def minimize_experiment_json(exp_json):
+    if exp_json is not None:
+        return {'display_name': exp_json['display_name'],
+            'link': exp_json['link'],
+            'id': exp_json['id']}
+    return None

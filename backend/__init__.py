@@ -123,7 +123,7 @@ def prep_views(chosen_backend, config):
                      '/go_enrichment', 
                      view=lambda request: chosen_backend.response_wrapper('go_enrichment')(
                                 getattr(chosen_backend, 'go_enrichment')(
-                                       None if 'bioent_format_names' not in request.json_body else request.json_body['bioent_format_names']), request),
+                                       None if 'bioent_ids' not in request.json_body else request.json_body['bioent_ids']), request),
                      renderer=chosen_backend.get_renderer('go_enrichment'))
 
     #Phenotype views

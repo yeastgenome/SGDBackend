@@ -176,5 +176,3 @@ def make_graph(bioent_id):
             'min_evidence_cutoff':min_evidence_count, 'max_evidence_cutoff':max_evidence_count,
             'max_target_cutoff': max_target_count, 'max_regulator_cutoff': max_regulator_count}
 
-
-

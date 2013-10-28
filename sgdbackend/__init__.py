@@ -22,7 +22,7 @@ model_new_schema.Base = declarative_base(cls=Base)
 
 class SGDBackend(BackendInterface):
     def __init__(self, config):
-        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), pool_recycle=3600)
 
         DBSession.configure(bind=engine)
         model_new_schema.Base.metadata.bind = engine
@@ -131,9 +131,9 @@ class SGDBackend(BackendInterface):
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(make_references(['GO'], locus_id, only_primary=True))
     
-    def go_enrichment(self, bioent_format_names):
-        from sgdbackend import view_go
-        return json.dumps(view_go.make_enrichment(bioent_format_names))
+    def go_enrichment(self, bioent_ids):
+        from sgdbackend import go
+        return json.dumps(go.make_enrichment(bioent_ids))
        
     #Interaction
     def interaction_overview(self, identifier):
