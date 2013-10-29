@@ -8,18 +8,20 @@ from model_new_schema.evidence import Goevidence
 from sgdbackend_query import get_obj_id, get_evidence, get_conditions
 from sgdbackend_query.query_auxiliary import get_biofacts
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_biocon, id_to_bioent, id_to_reference, \
-    id_to_source
-from sgdbackend_utils.obj_to_json import condition_to_json
+from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
+from sgdbackend_utils.obj_to_json import condition_to_json, minimize_json, \
+    evidence_to_json
 
 '''
 -------------------------------Enrichment---------------------------------------
 ''' 
-def make_enrichment(bioent_format_names):
+def make_enrichment(bioent_ids):
+    bioent_format_names = [id_to_bioent[bioent_id]['format_name'] for bioent_id in bioent_ids]
     enrichment_results = query_batter.query_go_processes(bioent_format_names)
     json_format = []
     for enrichment_result in enrichment_results:
-        identifier = str(int(enrichment_result[0][3:]))
+        identifier = 'GO:' + str(int(enrichment_result[0][3:]))
+        print identifier
         goterm_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
         if goterm_id is not None:
             goterm = id_to_biocon[goterm_id]
@@ -67,19 +69,15 @@ def make_details(locus_id=None, go_id=None):
 def make_evidence_row(goevidence, id_to_conditions): 
     bioentity_id = goevidence.bioentity_id
     bioconcept_id = goevidence.bioconcept_id
-    reference_id = goevidence.reference_id 
-    source_id = goevidence.source_id
-    with_conditions = None if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'With']
-    from_conditions = None if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'From']
+    with_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'With']
+    from_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'From']
         
-    return {'bioentity': id_to_bioent[bioentity_id],
-            'bioconcept': id_to_biocon[bioconcept_id],
-            'go_aspect': id_to_biocon[bioconcept_id]['go_aspect'],
-            'annotation_type': goevidence.annotation_type,
-            'date_last_reviewed': goevidence.date_last_reviews,
-            'with': with_conditions,
-            'from': from_conditions,
-            'reference': id_to_reference[reference_id],
-            'source': id_to_source[source_id]
-            }
+    obj_json = evidence_to_json(goevidence)
+    obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
+    obj_json['bioconcept'] = minimize_json(id_to_biocon[bioconcept_id])
+    obj_json['with'] = with_conditions
+    obj_json['from']= from_conditions
+    obj_json['go_aspect'] = id_to_biocon[bioconcept_id]['go_aspect']
+    obj_json['date_last_reviewed'] = str(goevidence.date_last_reviewed)
+    return obj_json
         

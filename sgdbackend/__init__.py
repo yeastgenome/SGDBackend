@@ -103,6 +103,12 @@ class SGDBackend(BackendInterface):
         go_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
         return None if go_id is None else json.dumps(id_to_biocon[go_id])
     
+    def go_ontology(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_biocon
+        go_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
+        return None
+    
     def go_overview(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_go
@@ -110,15 +116,16 @@ class SGDBackend(BackendInterface):
         return None if locus_id is None else json.dumps(view_go.make_overview(locus_id))
     
     def go_details(self, locus_identifier=None, go_identifier=None):
+        print locus_identifier, go_identifier
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_go
-        locus_id = None if locus_identifier is not None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        go_id = None if go_identifier is not None else get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
+        locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        go_id = None if go_identifier is None else get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
         return json.dumps(view_go.make_details(locus_id=locus_id, go_id=go_id))
     
     def go_enrichment(self, bioent_ids):
-        from sgdbackend import go
-        return json.dumps(go.make_enrichment(bioent_ids))
+        from sgdbackend import view_go
+        return json.dumps(view_go.make_enrichment(bioent_ids))
        
     #Interaction
     def interaction_overview(self, identifier):
@@ -178,7 +185,13 @@ class SGDBackend(BackendInterface):
         from sgdbackend_utils.cache import id_to_biocon
         pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
         return None if pheno_id is None else json.dumps(id_to_biocon[pheno_id])
-    
+
+    def phenotype_ontology(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_biocon
+        pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
+        return None
+        
     def phenotype_overview(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_phenotype
@@ -188,8 +201,8 @@ class SGDBackend(BackendInterface):
     def phenotype_details(self, locus_identifier=None, phenotype_identifier=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_phenotype
-        locus_id = None if locus_identifier is not None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        phenotype_id = None if phenotype_identifier is not None else get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
+        locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        phenotype_id = None if phenotype_identifier is None else get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
         return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id))
             
     #Protein

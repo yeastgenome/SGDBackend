@@ -13,7 +13,9 @@ from sgdbackend_utils.cache import id_to_reference, id_to_bioent
 '''   
 
 def make_overview(bioent_id):
-    references = make_references(['PRIMARY_LITERATURE'], bioent_id) 
+    references = {}
+    references['primary'] = make_references(['PRIMARY_LITERATURE'], bioent_id) 
+    references['total_count'] = len(set([x.reference_id for x in get_bioentity_references(bioent_id=bioent_id)]))
     return references
 
 '''

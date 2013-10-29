@@ -91,6 +91,13 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
                      renderer=chosen_backend.get_renderer('go'))
     
+    config.add_route('go_ontology', 
+                     '/go/{identifier}/ontology', 
+                     view=lambda request: chosen_backend.response_wrapper('go_ontology')(
+                                getattr(chosen_backend, 'go_ontology')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('go_ontology'))
+    
     config.add_route('go_overview', 
                      '/locus/{identifier}/go_overview', 
                      view=lambda request: chosen_backend.response_wrapper('go_overview')(
@@ -126,7 +133,14 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'phenotype')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
                      renderer=chosen_backend.get_renderer('phenotype'))   
-    
+
+    config.add_route('phenotype_ontology', 
+                     '/phenotype/{identifier}/ontology', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_ontology')(
+                                getattr(chosen_backend, 'phenotype_ontology')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('phenotype_ontology'))
+        
     config.add_route('phenotype_overview', 
                      '/locus/{identifier}/phenotype_overview', 
                      view=lambda request: chosen_backend.response_wrapper('phenotype_overview')(

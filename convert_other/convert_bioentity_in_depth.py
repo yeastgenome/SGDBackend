@@ -404,8 +404,11 @@ def convert(old_session_maker, new_session_maker):
     convert_bioentitytabs(new_session_maker)
     
     from model_new_schema.bioentity import Locus
-    convert_disambigs(new_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS', 'convert.bioentity_in_depth.disambigs', 1000)
-    
+    convert_disambigs(new_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS', 'convert.bioentity_in_depth.locus_disambigs', 1000)
+ 
+    from model_new_schema.bioentity import Protein
+    convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.bioentity_in_depth.protein_disambigs', 10000)
+       
     log.info('complete')
     
 if __name__ == "__main__":

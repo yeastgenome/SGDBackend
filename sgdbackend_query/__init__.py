@@ -3,7 +3,7 @@ from model_new_schema.bioconcept import Bioconcept
 from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl
 from model_new_schema.chemical import Chemical
 from model_new_schema.condition import Condition, Temperaturecondition, \
-    Bioentitycondition, Bioconceptcondition, Bioitemcondition
+    Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition
 from model_new_schema.evidence import Geninteractionevidence, \
     Physinteractionevidence, Regulationevidence
 from model_new_schema.misc import Url
@@ -121,6 +121,7 @@ def get_conditions(evidence_ids, print_query=False):
         conditions.extend(session.query(Bioentitycondition).filter(Condition.evidence_id.in_(this_chunk)).all())
         conditions.extend(session.query(Bioconceptcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
         conditions.extend(session.query(Bioitemcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Generalcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
     
     return conditions
     

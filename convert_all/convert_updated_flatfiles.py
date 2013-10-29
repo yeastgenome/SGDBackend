@@ -7,7 +7,7 @@ Created on Oct 24, 2013
 from convert_core import convert_reference, convert_bioentity, \
     convert_evelements, convert_chemical, convert_bioconcept, convert_bioitem
 from convert_evidence import convert_binding, \
-    convert_protein, convert_regulation
+    convert_protein_domain, convert_regulation
 from convert_utils import set_up_logging, prepare_connections
 import sys
 
@@ -62,9 +62,9 @@ if __name__ == "__main__":
     except Exception:
         log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
         
-    #Protein
+    #Domain
     try:
-        convert_protein.convert(new_session_maker)  
+        convert_protein_domain.convert(new_session_maker)  
     except Exception:
         log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
         

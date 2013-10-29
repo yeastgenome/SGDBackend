@@ -7,8 +7,8 @@ Created on Oct 24, 2013
 from convert_core import convert_reference, convert_bioentity, \
     convert_evelements, convert_chemical, convert_bioconcept, convert_bioitem
 from convert_evidence import convert_literature, convert_phenotype, convert_go, \
-    convert_qualifier, convert_interaction, convert_binding, convert_protein, \
-    convert_regulation
+    convert_qualifier, convert_interaction, convert_binding, \
+    convert_regulation, convert_protein_domain
 from convert_other import convert_bioentity_in_depth, convert_reference_in_depth, \
     convert_bioconcept_in_depth
 from convert_utils import set_up_logging, prepare_connections
@@ -95,9 +95,9 @@ if __name__ == "__main__":
     except Exception:
         log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
         
-    #Protein
+    #Domain
     try:
-        convert_protein.convert(new_session_maker)  
+        convert_protein_domain.convert(new_session_maker)  
     except Exception:
         log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
         

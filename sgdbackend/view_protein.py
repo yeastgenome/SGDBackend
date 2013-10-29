@@ -6,8 +6,8 @@ Created on Sep 20, 2013
 from model_new_schema.evidence import Domainevidence
 from sgdbackend_query import get_evidence
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_bioent, id_to_strain, id_to_bioitem, \
-    id_to_source
+from sgdbackend_utils.cache import id_to_bioent, id_to_bioitem
+from sgdbackend_utils.obj_to_json import minimize_json, evidence_to_json
 
 '''
 -------------------------------Details---------------------------------------
@@ -18,13 +18,13 @@ def make_details(bioent_id):
     return create_simple_table(domain_evidences, make_evidence_row) 
 
 def make_evidence_row(domain_evidence): 
-    return {    'start': domain_evidence.start,
-                'end': domain_evidence.end,
-                'evalue': domain_evidence.evalue,
-                'status': domain_evidence.status,
-                'date_of_run': domain_evidence.date_of_run,
-                'protein': id_to_bioent[domain_evidence.bioentity_id],
-                'domain': id_to_bioitem[domain_evidence.domain_id],
-                'source': id_to_source[domain_evidence.source_id],
-                'strain': id_to_strain[domain_evidence.strain_id]
-                }
+    obj_json = evidence_to_json(domain_evidence)
+    obj_json['protein'] = minimize_json(id_to_bioent[domain_evidence.bioentity_id])
+    obj_json['domain'] = minimize_json(id_to_bioitem[domain_evidence.domain_id])
+    obj_json['domain_description'] = id_to_bioitem[domain_evidence.domain_id]['description']
+    obj_json['start'] = domain_evidence.start
+    obj_json['end'] = domain_evidence.end
+    obj_json['evalue'] = domain_evidence.evalue
+    obj_json['status'] = domain_evidence.status
+    obj_json['date_of_run'] = domain_evidence.date_of_run
+    return obj_json

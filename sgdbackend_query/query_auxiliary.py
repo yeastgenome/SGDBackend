@@ -32,8 +32,10 @@ def get_interactions_among(interaction_type, bioent_ids, min_evidence_count, pri
     return interactions
 
 #Used for literature overview
-def get_bioentity_references(class_type, bioent_id=None, reference_id=None, bioent_ids=None, reference_ids=None, print_query=False):
-    query = session.query(BioentityReference).filter(BioentityReference.class_type == class_type)
+def get_bioentity_references(class_type=None, bioent_id=None, reference_id=None, bioent_ids=None, reference_ids=None, print_query=False):
+    query = session.query(BioentityReference)
+    if class_type is not None:
+        query = query.filter(BioentityReference.class_type == class_type)
     if bioent_id is not None:
         query = query.filter(BioentityReference.bioentity_id == bioent_id)
     if reference_id is not None:

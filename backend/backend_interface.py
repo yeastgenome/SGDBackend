@@ -73,6 +73,10 @@ class BackendInterface:
         return None
     
     @abstractmethod
+    def go_ontology(self, identifier):
+        return None
+    
+    @abstractmethod
     def go_overview(self, identifier):
         return None
     
@@ -117,6 +121,10 @@ class BackendInterface:
     #Phenotype
     @abstractmethod
     def phenotype(self, identifier):
+        return None
+    
+    @abstractmethod
+    def phenotype_ontology(self, identifier):
         return None
     
     @abstractmethod

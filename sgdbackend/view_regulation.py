@@ -9,9 +9,9 @@ from sgdbackend_query.query_auxiliary import get_interactions, \
     get_interactions_among
 from sgdbackend_query.query_paragraph import get_paragraph
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_bioent, id_to_reference, \
-    id_to_experiment, id_to_strain, id_to_source
-from sgdbackend_utils.obj_to_json import paragraph_to_json, condition_to_json
+from sgdbackend_utils.cache import id_to_bioent
+from sgdbackend_utils.obj_to_json import paragraph_to_json, condition_to_json, \
+    minimize_json, evidence_to_json
  
 '''
 -------------------------------Overview---------------------------------------
@@ -57,60 +57,28 @@ def make_details(divided, bioent_id):
         
     return tables    
 
-def minimize_bioent_json(bioent_json):
-    if bioent_json is not None:
-        return {'display_name': bioent_json['display_name'],
-            'format_name': bioent_json['format_name'],
-            'link': bioent_json['link']}
-    return None
-    
-def minimize_reference_json(ref_json):
-    if ref_json is not None:
-        return {'display_name': ref_json['display_name'],
-            'link': ref_json['link']}
-    return None
-    
-def minimize_strain_json(strain_json):
-    if strain_json is not None:
-        return {'display_name': strain_json['display_name'],
-            'link': strain_json['link']}
-    return None
-    
-def minimize_experiment_json(exp_json):
-    if exp_json is not None:
-        return {'display_name': exp_json['display_name'],
-            'link': exp_json['link']}
-    return None
-
 def make_evidence_row(regevidence, id_to_conditions): 
-    reference_id = regevidence.reference_id 
-    experiment_id = regevidence.experiment_id
-    strain_id = regevidence.strain_id
-    
-    conditions = None if regevidence.id not in id_to_conditions else ';'.join(condition_to_json(x) for x in id_to_conditions[regevidence.id])
+    conditions = [] if regevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[regevidence.id]]
         
-    return {'bioent1': minimize_bioent_json(id_to_bioent[regevidence.bioentity1_id]),
-                'bioent2': minimize_bioent_json(id_to_bioent[regevidence.bioentity2_id]),
-                'reference': None if reference_id is None else minimize_reference_json(id_to_reference[reference_id]),
-                'experiment': None if experiment_id is None else minimize_experiment_json(id_to_experiment[experiment_id]),
-                'strain': None if strain_id is None else minimize_strain_json(id_to_strain[strain_id]),
-                'source': id_to_source[regevidence.source_id],
-                'conditions': conditions
-                }
+    obj_json = evidence_to_json(regevidence)
+    obj_json['bioentity1'] = minimize_json(id_to_bioent[regevidence.bioentity1_id], include_format_name=True)
+    obj_json['bioentity2'] = minimize_json(id_to_bioent[regevidence.bioentity2_id], include_format_name=True)
+    obj_json['conditions'] = conditions
+    return obj_json
 
 '''
 -------------------------------Graph---------------------------------------
 '''  
 
-def create_node(bioent, is_focus, total_ev_count, class_type):
+def create_node(bioent, is_focus, targ_ev_count, reg_ev_count, class_type):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'Node' + str(bioent['id']), 'name':bioent['display_name'], 'link': bioent['link'], 
-                    'sub_type':sub_type, 'evidence': total_ev_count, 'class_type': class_type}}
+    return {'data':{'id':'Node' + str(bioent['id']), 'name':bioent['display_name'], 'link': bioent['link'], 'class_type': class_type,
+                    'sub_type':sub_type, 'targ_evidence': targ_ev_count, 'reg_evidence': reg_ev_count, 'evidence': max(targ_ev_count, reg_ev_count)}}
 
-def create_edge(interaction_id, bioent1_id, bioent2_id, total_ev_count):
-    return {'data':{'source': 'Node' + str(bioent1_id), 'target': 'Node' + str(bioent2_id), 'evidence': total_ev_count}}
+def create_edge(interaction_id, bioent1_id, bioent2_id, total_ev_count, class_type):
+    return {'data':{'source': 'Node' + str(bioent1_id), 'target': 'Node' + str(bioent2_id), 'evidence': total_ev_count, 'class_type': class_type}}
     
 def make_graph(bioent_id):
     neighbor_interactions = get_interactions('REGULATION', bioent_id=bioent_id)
@@ -126,21 +94,25 @@ def make_graph(bioent_id):
     max_regulator_count = 0
     
     evidence_count_to_neighbors = [set() for _ in range(11)]
+    evidence_count_to_targets = [set() for _ in range(11)]
+    evidence_count_to_regulators = [set() for _ in range(11)]
     
     for neighbor_id in all_neighbor_ids:        
         regevidence_count = min(10, 0 if neighbor_id not in regulator_id_to_evidence_count else regulator_id_to_evidence_count[neighbor_id])
         targevidence_count = min(10, 0 if neighbor_id not in target_id_to_evidence_count else target_id_to_evidence_count[neighbor_id])
-        reg_and_targ = min(10, regevidence_count + regevidence_count)
+        reg_and_targ = min(10, max(regevidence_count, targevidence_count))
         
         max_target_count = max_target_count if targevidence_count <= max_target_count else targevidence_count
         max_regulator_count = max_regulator_count if regevidence_count <= max_regulator_count else regevidence_count
         max_union_count = max_union_count if reg_and_targ <= max_union_count else reg_and_targ
         
+        evidence_count_to_targets[targevidence_count].add(neighbor_id)
+        evidence_count_to_regulators[regevidence_count].add(neighbor_id)
         evidence_count_to_neighbors[reg_and_targ].add(neighbor_id)
         
     #Apply 100 node cutoff
     min_evidence_count = 10
-    usable_neighbor_ids = {}
+    usable_neighbor_ids = set()
     while len(usable_neighbor_ids) + len(evidence_count_to_neighbors[min_evidence_count]) < 100 and min_evidence_count > 1:
         usable_neighbor_ids.update(evidence_count_to_neighbors[min_evidence_count])
         min_evidence_count = min_evidence_count - 1
@@ -152,37 +124,53 @@ def make_graph(bioent_id):
     for tangent, evidence_count in tangent_to_evidence_count.iteritems():
         bioent1_id, bioent2_id = tangent
         if bioent1_id != bioent_id and bioent2_id != bioent_id:        
-            bioent1_count = 0 if bioent1_id not in regulator_id_to_evidence_count else regulator_id_to_evidence_count[bioent1_id] + \
-                            0 if bioent1_id not in target_id_to_evidence_count else target_id_to_evidence_count[bioent1_id]
-            bioent2_count = 0 if bioent2_id not in regulator_id_to_evidence_count else regulator_id_to_evidence_count[bioent2_id] + \
-                            0 if bioent2_id not in target_id_to_evidence_count else target_id_to_evidence_count[bioent2_id]
+            bioent1_count = max(0 if bioent1_id not in regulator_id_to_evidence_count else regulator_id_to_evidence_count[bioent1_id],
+                            0 if bioent1_id not in target_id_to_evidence_count else target_id_to_evidence_count[bioent1_id])
+            bioent2_count = max(0 if bioent2_id not in regulator_id_to_evidence_count else regulator_id_to_evidence_count[bioent2_id],
+                            0 if bioent2_id not in target_id_to_evidence_count else target_id_to_evidence_count[bioent2_id])
             
-            index = min(bioent1_count, bioent2_count, evidence_count)
+            index = min(10, bioent1_count, bioent2_count, evidence_count)
             evidence_count_to_tangents[index].add(tangent)
     
     #Apply 250 edge cutoff
     old_min_evidence_count = min_evidence_count
     min_evidence_count = 10
     edges = []
-    nodes = [create_node(id_to_bioent[bioent_id], True, max_union_count, 'FOCUS')]
-    while len(edges) + len(evidence_count_to_neighbors[min_evidence_count]) + (evidence_count_to_tangents[min_evidence_count]) < 250 and min_evidence_count > old_min_evidence_count:
-        for neighbor_id in evidence_count_to_neighbors[min_evidence_count]:
-            regevidence_count = 0 if neighbor_id not in regulator_id_to_evidence_count else regulator_id_to_evidence_count[neighbor_id]
-            targevidence_count = 0 if neighbor_id not in target_id_to_evidence_count else target_id_to_evidence_count[neighbor_id]
-            nodes.append(create_node(id_to_bioent[neighbor_id], False, max(regevidence_count + targevidence_count), 'REGULATOR' if regevidence_count > targevidence_count else 'TARGET'))
-            if regevidence_count > 0:
-                edges.append(create_edge(len(edges), neighbor_id, bioent1_id, regevidence_count))
-            if targevidence_count > 0:
-                edges.append(create_edge(len(edges), bioent1_id, neighbor_id, targevidence_count))
+    nodes = [create_node(id_to_bioent[bioent_id], True, max_target_count, max_regulator_count, 'FOCUS')]
+    accepted_neighbor_ids = set()
+    while len(edges) + len(evidence_count_to_targets[min_evidence_count]) + len(evidence_count_to_regulators[min_evidence_count]) + len(evidence_count_to_tangents[min_evidence_count]) < 250 and min_evidence_count > old_min_evidence_count:
+        accepted_neighbor_ids.update(evidence_count_to_neighbors[min_evidence_count])
+        
+        for regulator_id in evidence_count_to_regulators[min_evidence_count]:
+            regevidence_count = regulator_id_to_evidence_count[regulator_id]
+            if regulator_id != bioent_id:
+                edges.append(create_edge(len(edges), regulator_id, bioent_id, regevidence_count, 'REGULATOR'))
+            else:
+                edges.append(create_edge(len(edges), regulator_id, bioent_id, regevidence_count, 'BOTH'))
             
-        for tangent in evidence_count_to_tangents:
+        for target_id in evidence_count_to_targets[min_evidence_count]:
+            targevidence_count = target_id_to_evidence_count[target_id]
+            if target_id != bioent_id:
+                edges.append(create_edge(len(edges), bioent_id, target_id, targevidence_count, 'TARGET'))
+            
+        for tangent in evidence_count_to_tangents[min_evidence_count]:
             bioent1_id, bioent2_id = tangent
             evidence_count = tangent_to_evidence_count[tangent]
-            edges.append(create_edge(len(edges), bioent1_id, bioent2_id, evidence_count))
+            edges.append(create_edge(len(edges), bioent1_id, bioent2_id, evidence_count, 'BOTH'))
             
         min_evidence_count = min_evidence_count - 1
+        
+    for neighbor_id in accepted_neighbor_ids:
+        regevidence_count = 0 if neighbor_id not in regulator_id_to_evidence_count else regulator_id_to_evidence_count[neighbor_id]
+        targevidence_count = 0 if neighbor_id not in target_id_to_evidence_count else target_id_to_evidence_count[neighbor_id]
+        node_type = 'BOTH'
+        if regevidence_count <= min_evidence_count:
+            node_type = 'TARGET'
+        if targevidence_count <= min_evidence_count:
+            node_type = 'REGULATOR'
+        nodes.append(create_node(id_to_bioent[neighbor_id], False, targevidence_count, regevidence_count, node_type))
     
     return {'nodes': nodes, 'edges': edges, 
-            'min_evidence_cutoff':min_evidence_count, 'max_evidence_cutoff':max_union_count,
+            'min_evidence_cutoff':min_evidence_count+1, 'max_evidence_cutoff':max_union_count,
             'max_target_cutoff': max_target_count, 'max_regulator_cutoff': max_regulator_count}
 
