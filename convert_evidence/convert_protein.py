@@ -117,7 +117,7 @@ def convert_domain(new_session_maker, chunk_size):
         untouched_obj_ids = set(id_to_current_obj.keys())
         
         #Grab old objects
-        data = break_up_file('/Users/kpaskov/final/yeastmine_protein_domains.tsv')
+        data = break_up_file('data/yeastmine_protein_domains.tsv')
         
         #Cache
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
@@ -153,7 +153,7 @@ def convert_domain(new_session_maker, chunk_size):
             min_id = min_id+chunk_size
             
         #Grab JASPAR domains from file
-        old_objs = break_up_file('/Users/kpaskov/final/TF_family_class_accession04302013.txt')
+        old_objs = break_up_file('data/TF_family_class_accession04302013.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_domain_from_tf_file(old_obj, key_to_source)
@@ -325,9 +325,9 @@ def convert_domain_evidence(new_session_maker, chunk_size):
             max_id = max_protein_id + (i+1)*chunk_size
             
             if i < num_chunks-1:
-                current_objs = new_session.query(Domainevidence).filter(Domainevidence.protein_id >= min_id).filter(Domainevidence.protein_id < max_id).all()
+                current_objs = new_session.query(Domainevidence).filter(Domainevidence.bioentity_id >= min_id).filter(Domainevidence.bioentity_id < max_id).all()
             else:
-                current_objs = new_session.query(Domainevidence).filter(Domainevidence.protein_id >= min_id).all()
+                current_objs = new_session.query(Domainevidence).filter(Domainevidence.bioentity_id >= min_id).all()
                 
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])

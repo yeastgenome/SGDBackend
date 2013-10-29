@@ -20,6 +20,17 @@ def get_interactions(interaction_type, bioent_id, print_query=False):
         print query
     return interactions
 
+def get_interactions_among(interaction_type, bioent_ids, min_evidence_count, print_query=False):
+    query = session.query(Interaction).filter(
+                                              Interaction.class_type==interaction_type).filter(
+                                              Interaction.bioentity1_id.in_(bioent_ids)).filter(
+                                              Interaction.bioentity2_id.in_(bioent_ids)).filter(
+                                              Interaction.evidence_count >= min_evidence_count)
+    interactions = query.all()
+    if print_query:
+        print query
+    return interactions
+
 #Used for literature overview
 def get_bioentity_references(class_type, bioent_id=None, reference_id=None, bioent_ids=None, reference_ids=None, print_query=False):
     query = session.query(BioentityReference).filter(BioentityReference.class_type == class_type)

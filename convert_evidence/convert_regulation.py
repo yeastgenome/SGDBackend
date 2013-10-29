@@ -317,7 +317,7 @@ def convert_paragraph_reference(new_session_maker):
         
         used_unique_keys = set()  
 
-        old_objs = break_up_file('/Users/kpaskov/final/Reg_Summary_Paragraphs04282013.txt')
+        old_objs = break_up_file('data/Reg_Summary_Paragraphs04282013.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_paragraph_reference(old_obj, key_to_bioentity, key_to_paragraph, pubmed_id_to_reference, key_to_source)
