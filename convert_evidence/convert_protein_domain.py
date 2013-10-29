@@ -3,7 +3,6 @@ Created on Sep 20, 2013
 
 @author: kpaskov
 '''
-from convert_other.convert_auxiliary import convert_disambigs
 from convert_utils import create_or_update, set_up_logging, break_up_file, \
     create_format_name, prepare_connections
 from convert_utils.output_manager import OutputCreator
@@ -77,8 +76,9 @@ def create_domain(row, key_to_source):
     
     description = None if description == 'no description' else description
     interpro_description = None if interpro_description == 'NULL' else interpro_description
+    interpro_id = None if interpro_id == 'NULL' else interpro_id
     
-    domain = Domain(display_name, link, source, description, interpro_id, interpro_description)
+    domain = Domain(display_name, link, source, description if description is not None else interpro_description, interpro_id, interpro_description)
     return [domain]
 
 def create_domain_from_tf_file(row, key_to_source):
@@ -93,14 +93,14 @@ def create_domain_from_tf_file(row, key_to_source):
     
     source = key_to_source['JASPAR']
     
-    domain = Domain(display_name, link, source, description, interpro_id, interpro_description)
+    domain = Domain(display_name, link, source, description if description is not None else interpro_description, interpro_id, interpro_description)
     return [domain]
 
 def convert_domain(new_session_maker, chunk_size):
     from model_new_schema.bioitem import Domain
     from model_new_schema.evelements import Source
     
-    log = logging.getLogger('convert.protein.domain')
+    log = logging.getLogger('convert.protein_domain.domain')
     log.info('begin')
     output_creator = OutputCreator(log)
     
@@ -280,7 +280,7 @@ def convert_domain_evidence(new_session_maker, chunk_size):
     from model_new_schema.reference import Reference
     from model_new_schema.evelements import Source, Strain
     
-    log = logging.getLogger('convert.protein.domain_evidence')
+    log = logging.getLogger('convert.protein_domain.evidence')
     log.info('begin')
     output_creator = OutputCreator(log)
     
@@ -407,15 +407,12 @@ def convert_domain_evidence(new_session_maker, chunk_size):
 """   
 
 def convert(new_session_maker):  
-    log = set_up_logging('convert.protein')
+    log = set_up_logging('convert.protein_domain')
     log.info('begin')
         
     convert_domain(new_session_maker, 5000)
     
     convert_domain_evidence(new_session_maker, 1000)
-    
-    from model_new_schema.bioentity import Protein
-    convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.protein.disambigs', 10000)
     
     log.info('complete')
     
