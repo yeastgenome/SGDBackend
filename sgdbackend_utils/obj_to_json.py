@@ -45,7 +45,6 @@ def go_to_json(biocon):
 def biocon_to_json(biocon):
     return {
             'format_name': biocon.format_name,
-            'biocon_type': biocon.class_type,
             'display_name': biocon.display_name, 
             'class_type': biocon.class_type,
             'link': biocon.link,
@@ -132,7 +131,7 @@ def url_to_json(url):
     
 def locustab_to_json(bioentitytab):
     return {
-            'bioentity_id': bioentitytab.id,
+            'id': bioentitytab.id,
             'summary_tab': bioentitytab.summary == 1,
             'history_tab': bioentitytab.history == 1,
             'literature_tab': bioentitytab.literature == 1,

@@ -3,7 +3,8 @@ Created on Jul 10, 2013
 
 @author: kpaskov
 '''
-from backend_test import check_evidence, check_obj, check_reference
+from backend_test import check_evidence, check_obj, check_reference, \
+    check_biocon
 import json
 
 def test_regulation_overview_structure(model, identifier='GAL4'):
@@ -67,4 +68,16 @@ def test_regulation_graph_structure(model, identifier='GAL4'):
         assert 'id' in node_data
         assert 'sub_type' in node_data
         assert 'name' in node_data
+        
+def test_regulation_target_enrichment_structure(model, identifier='ADF1'):
+    response = json.loads(model.regulation_target_enrichment(identifier))
+    assert response is not None
+    
+    for entry in response:
+        assert 'go' in entry
+        assert 'match_count' in entry
+        assert 'pvalue' in entry
+        check_biocon(entry['go'])
+        
+   
         

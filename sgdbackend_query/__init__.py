@@ -25,7 +25,7 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
     if identifier is None:
         return None
     
-    query = session.query(Disambig).filter(Disambig.disambig_key==identifier.upper())
+    query = session.query(Disambig).filter(Disambig.disambig_key==str(identifier).upper())
     if class_type is not None:
         query = query.filter(Disambig.class_type==class_type)
     if subclass_type is not None:

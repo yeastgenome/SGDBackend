@@ -23,13 +23,7 @@ def test_protein_domain_details_structure(model, identifier='GAL4'):
     
         check_obj(entry['domain'])
         check_obj(entry['protein'])
-    
-def test_all_bioconcepts_structure(model, min_id=400, max_id=500):
-    response = json.loads(model.all_bioconcepts(min_id, max_id))
-    assert response is not None
-    for entry in response:
-        check_biocon(entry)
-     
+        
 def test_bioconcept_list_structure(model, biocon_ids=[428, 429, 430]):
     response = json.loads(model.bioconcept_list(biocon_ids))
     assert response is not None
@@ -50,12 +44,3 @@ def test_binding_site_details_structure(model, identifier='GAL4'):
         
         check_obj(entry['bioentity'])
         
-def test_all_disambigs_structure(model, min_id=100, max_id=100):
-    response = json.loads(model.all_disambigs(min_id, max_id))
-    assert response is not None
-    for entry in response:
-        assert 'disambig_key' in entry
-        assert 'subclass_type' in entry
-        assert 'disambig_id' in entry
-        assert 'class_type' in entry
-        assert 'identifier' in entry

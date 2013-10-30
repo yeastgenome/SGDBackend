@@ -178,14 +178,14 @@ def convert(engine, meta):
     #Bioentity
     convert_obj(engine, meta.tables['bioentity'], 'bioentity_id', backend.all_bioentities, 1000, 0, 'convert.performance.bioentity')
     
-#    #Reference
-#    convert_obj(engine, meta.tables['reference'], 'reference_id', backend.all_references, 10000, 0, 'convert.performance.reference')
-#    
-#    #Bioconcept
-#    convert_obj(engine, meta.tables['bioconcept'], 'bioconcept_id', backend.all_bioconcepts, 50000000, 10000000, 'convert.performance.bioconcept')
-#
-#    #Disambigs
-#    convert_disambigs(engine, meta.tables['disambig'], backend.all_disambigs, 1000, 'convert.performance.disambigs')
+    #Reference
+    convert_obj(engine, meta.tables['reference'], 'reference_id', backend.all_references, 10000, 0, 'convert.performance.reference')
+    
+    #Bioconcept
+    convert_obj(engine, meta.tables['bioconcept'], 'bioconcept_id', backend.all_bioconcepts, 50000000, 10000000, 'convert.performance.bioconcept')
+
+    #Disambigs
+    convert_disambigs(engine, meta.tables['disambig'], backend.all_disambigs, 1000, 'convert.performance.disambigs')
 #    ################# Converts in parallel ###########################
 #    
     #Get bioents

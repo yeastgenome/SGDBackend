@@ -350,10 +350,13 @@ def create_author_reference(old_author_reference, old_id_to_author, id_to_refere
     author = None if author_id not in old_id_to_author else old_id_to_author[author_id]
     reference_id = old_author_reference.reference_id
     reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
-    source = key_to_source['PubMed']
-    new_author_reference = NewAuthorReference(old_author_reference.id, source, author, reference, 
+    if reference is not None:
+        source = key_to_source['PubMed']
+        new_author_reference = NewAuthorReference(old_author_reference.id, source, author, reference, 
                                               old_author_reference.order, old_author_reference.type, reference.date_created, reference.created_by)
-    return [new_author_reference]
+        return [new_author_reference]
+    else:
+        return []
 
 def convert_author_reference(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Author as NewAuthor, Reference as NewReference, AuthorReference as NewAuthorReference
@@ -520,9 +523,12 @@ def create_reference_reftype(old_refreftype, id_to_source, id_to_reference, id_t
     reference = None if old_refreftype.reference_id not in id_to_reference else id_to_reference[old_refreftype.reference_id]
     source = None if reftype.source_id not in id_to_source else id_to_source[reftype.source_id]
     
-    new_refreftype = NewReferenceReftype(old_refreftype.id, source, reference, reftype,
+    if reference is not None:
+        new_refreftype = NewReferenceReftype(old_refreftype.id, source, reference, reftype,
                              reftype.date_created, reftype.created_by)
-    return [new_refreftype]
+        return [new_refreftype]
+    else:
+        return []
 
 def convert_reference_reftype(old_session_maker, new_session_maker):
     from model_new_schema.reference import ReferenceReftype as NewReferenceReftype, Reference as NewReference, Reftype as NewReftype
@@ -599,9 +605,12 @@ def create_reference_relation(old_ref_relation, id_to_reference, key_to_source):
     child = None if child_id not in id_to_reference else id_to_reference[child_id]
     
     source = key_to_source['SGD']
-    new_ref_relation = NewReferencerelation(source, None, parent, child, 
+    if parent is not None and child is not None:
+        new_ref_relation = NewReferencerelation(source, None, parent, child, 
                              old_ref_relation.date_created, old_ref_relation.created_by)
-    return [new_ref_relation]
+        return [new_ref_relation]
+    else:
+        return []
 
 def convert_reference_relation(old_session_maker, new_session_maker):
     from model_new_schema.reference import Referencerelation as NewReferencerelation, Reference as NewReference

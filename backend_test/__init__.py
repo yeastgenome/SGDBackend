@@ -33,7 +33,7 @@ def check_bioent(bioent):
 def check_biocon(biocon):
     if biocon is not None:
         check_obj(biocon)
-        assert 'biocon_type' in biocon
+        assert 'class_type' in biocon
         assert 'format_name' in biocon
         
 def check_url(url):

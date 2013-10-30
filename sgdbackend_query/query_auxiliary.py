@@ -21,12 +21,14 @@ def get_interactions(interaction_type, bioent_id, print_query=False):
     return interactions
 
 def get_interactions_among(interaction_type, bioent_ids, min_evidence_count, print_query=False):
-    query = session.query(Interaction).filter(
+    interactions = []
+    if len(bioent_ids) > 0:
+        query = session.query(Interaction).filter(
                                               Interaction.class_type==interaction_type).filter(
                                               Interaction.bioentity1_id.in_(bioent_ids)).filter(
                                               Interaction.bioentity2_id.in_(bioent_ids)).filter(
                                               Interaction.evidence_count >= min_evidence_count)
-    interactions = query.all()
+        interactions = query.all()
     if print_query:
         print query
     return interactions
@@ -67,13 +69,6 @@ def get_biofacts(biocon_type, biocon_id=None, bioent_id=None, print_query=False)
         print query
     return query.all()
 
-#Used to determine tabs on all pages.
-def query_locustabs(bioentity_id, print_query=False):
-    query = session.query(Locustabs).filter(Locustabs.id==bioentity_id)
-    if print_query:
-        print query
-    return query.first()
-
 def get_disambigs(min_id, max_id, print_query=False):
     query = session.query(Disambig)
     if min_id is not None:
@@ -84,3 +79,16 @@ def get_disambigs(min_id, max_id, print_query=False):
     if print_query:
         print_query
     return disambigs
+
+def get_locustabs(locus_id=None, min_id=None, max_id=None, print_query=False):
+    query = session.query(Locustabs)
+    if locus_id is not None:
+        query = query.filter(Locustabs.id == locus_id)
+    if min_id is not None:
+        query = query.filter(Locustabs.id >= min_id)
+    if max_id is not None:
+        query = query.filter(Locustabs.id < max_id)
+    tabs = query.all()
+    if print_query:
+        print_query
+    return tabs

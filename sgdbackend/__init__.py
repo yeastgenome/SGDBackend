@@ -63,10 +63,15 @@ class SGDBackend(BackendInterface):
 
     def locustabs(self, identifier):
         from sgdbackend_query import get_obj_id
-        from sgdbackend_query.query_auxiliary import query_locustabs
+        from sgdbackend_query.query_auxiliary import get_locustabs
         from sgdbackend_utils.obj_to_json import locustab_to_json
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(locustab_to_json(query_locustabs(locus_id)))
+        return None if locus_id is None else json.dumps(locustab_to_json(get_locustabs(locus_id)[0]))
+    
+    def all_locustabs(self, min_id, max_id):
+        from sgdbackend_query.query_auxiliary import get_locustabs
+        from sgdbackend_utils.obj_to_json import locustab_to_json
+        return json.dumps([locustab_to_json(x) for x in get_locustabs(min_id=min_id, max_id=max_id)])
 
     #Bioconcept
     def all_bioconcepts(self, min_id, max_id):
@@ -103,7 +108,7 @@ class SGDBackend(BackendInterface):
         go_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
         return None if go_id is None else json.dumps(id_to_biocon[go_id])
     
-    def go_ontology(self, identifier):
+    def go_ontology_graph(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_biocon
         go_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
@@ -116,7 +121,6 @@ class SGDBackend(BackendInterface):
         return None if locus_id is None else json.dumps(view_go.make_overview(locus_id))
     
     def go_details(self, locus_identifier=None, go_identifier=None):
-        print locus_identifier, go_identifier
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_go
         locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
@@ -155,10 +159,11 @@ class SGDBackend(BackendInterface):
         from sgdbackend_query.query_misc import get_urls
         from sgdbackend_utils.obj_to_json import url_to_json
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        print locus_id
-        resources = get_urls('Interaction Resources', bioent_id=locus_id)
-        resources.sort(key=lambda x: x.display_name)
-        return json.dumps([url_to_json(url) for url in resources])
+        if locus_id is not None:
+            resources = get_urls('Interaction Resources', bioent_id=locus_id)
+            resources.sort(key=lambda x: x.display_name)
+            return json.dumps([url_to_json(url) for url in resources])
+        return None
        
     #Literature
     def literature_overview(self, identifier):
@@ -186,7 +191,7 @@ class SGDBackend(BackendInterface):
         pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
         return None if pheno_id is None else json.dumps(id_to_biocon[pheno_id])
 
-    def phenotype_ontology(self, identifier):
+    def phenotype_ontology_graph(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_biocon
         pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
@@ -208,9 +213,16 @@ class SGDBackend(BackendInterface):
     #Protein
     def protein_domain_details(self, identifier):
         from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_bioent
         from sgdbackend import view_protein
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_protein.make_details(locus_id))
+        if locus_id is not None:
+            protein_id = locus_id + 200000
+            protein = None if protein_id not in id_to_bioent else id_to_bioent[protein_id]
+            if protein is not None:
+                protein_id = protein['id']
+                return json.dumps(view_protein.make_details(locus_id))
+        return None
             
     #Regulation
     def regulation_overview(self, identifier):
@@ -230,6 +242,17 @@ class SGDBackend(BackendInterface):
         from sgdbackend import view_regulation
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_regulation.make_graph(locus_id))
+    
+    def regulation_target_enrichment(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_regulation
+        from sgdbackend import view_go
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        target_ids = [x['bioentity2']['id'] for x in view_regulation.make_details(True, locus_id)['targets']]
+        if len(target_ids) > 0:
+            return json.dumps(view_go.make_enrichment(target_ids))
+        else:
+            return '[]'
       
     #Binding
     def binding_site_details(self, identifier):
@@ -242,7 +265,7 @@ class SGDBackend(BackendInterface):
     def all_disambigs(self, min_id, max_id):
         from sgdbackend_query.query_auxiliary import get_disambigs
         from sgdbackend_utils.obj_to_json import disambig_to_json
-        return json.dumps([disambig_to_json[x] for x in get_disambigs(min_id, max_id)])
+        return json.dumps([disambig_to_json(x) for x in get_disambigs(min_id, max_id)])
 
     
             

@@ -170,7 +170,7 @@ def make_graph(bioent_id):
             bioent2_count = max(0 if bioent2_id not in neighbor_id_to_genevidence_count else neighbor_id_to_genevidence_count[bioent2_id],
                             0 if bioent2_id not in neighbor_id_to_physevidence_count else neighbor_id_to_physevidence_count[bioent2_id])
             
-            index = min(bioent1_count, bioent2_count, evidence_count)
+            index = min(10, bioent1_count, bioent2_count, evidence_count)
             evidence_count_to_gen_tangents[index].add(tangent)
             
     for tangent, evidence_count in tangent_to_physevidence_count.iteritems():
@@ -181,7 +181,7 @@ def make_graph(bioent_id):
             bioent2_count = max(0 if bioent2_id not in neighbor_id_to_genevidence_count else neighbor_id_to_genevidence_count[bioent2_id],
                             0 if bioent2_id not in neighbor_id_to_physevidence_count else neighbor_id_to_physevidence_count[bioent2_id])
             
-            index = min(bioent1_count, bioent2_count, evidence_count)
+            index = min(10, bioent1_count, bioent2_count, evidence_count)
             evidence_count_to_phys_tangents[index].add(tangent)
         
     #Apply 250 edge cutoff

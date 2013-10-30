@@ -53,7 +53,7 @@ class PerfBackend(BackendInterface):
     
     def bioentity_list(self, bioent_ids):
         from model_perf_schema.core import Bioentity
-        return get_list(self, Bioentity, 'json', bioent_ids)
+        return get_list(Bioentity, 'json', bioent_ids)
     
     #Locus
     def locus(self, identifier):
@@ -66,6 +66,10 @@ class PerfBackend(BackendInterface):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return get_obj(Bioentity, 'locustabs_json', bioent_id)
     
+    def all_locustabs(self, min_id, max_id):
+        from model_perf_schema.core import Bioentity
+        return get_all(Bioentity, 'locustabs_json', min_id, max_id)
+    
     #Bioconcept
     def all_bioconcepts(self, min_id, max_id, callback=None):
         from model_perf_schema.core import Bioconcept
@@ -73,7 +77,7 @@ class PerfBackend(BackendInterface):
     
     def bioconcept_list(self, biocon_ids, callback=None):
         from model_perf_schema.core import Bioconcept
-        return get_list(self, Bioconcept, 'json', biocon_ids)
+        return get_list(Bioconcept, 'json', biocon_ids)
     
     #Reference
     def reference(self, identifier):
@@ -91,13 +95,17 @@ class PerfBackend(BackendInterface):
     
     def reference_list(self, reference_ids):
         from model_perf_schema.core import Reference
-        return get_list(self, Reference, 'bibentry_json', reference_ids)
+        return get_list(Reference, 'bibentry_json', reference_ids)
      
     #Go
     def go(self, identifier):
         from model_perf_schema.core import Bioconcept
         biocon_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
         return get_obj(Bioconcept, 'json', biocon_id)
+    
+    def go_ontology_graph(self, identifier):
+        obj_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
+        return get_data('go_ontology_graph', obj_id)
     
     def go_overview(self, identifier):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
@@ -134,17 +142,21 @@ class PerfBackend(BackendInterface):
     
     def literature_details(self, identifier):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return get_data('interaction_details', bioent_id)
+        return get_data('literature_details', bioent_id)
     
     def literature_graph(self, identifier):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return get_data('interaction_graph', bioent_id)
+        return get_data('literature_graph', bioent_id)
     
     #Phenotype
     def phenotype(self, identifier, callback=None):
         from model_perf_schema.core import Bioconcept
         biocon_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
         return get_obj(Bioconcept, 'json', biocon_id)
+    
+    def phenotype_ontology_graph(self, identifier):
+        obj_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
+        return get_data('phenotype_ontology_graph', obj_id)
     
     def phenotype_overview(self, identifier):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
@@ -162,18 +174,18 @@ class PerfBackend(BackendInterface):
         bioent_format_names = []
         num_chunks = ceil(1.0*len(bioent_ids)/500)
         for i in range(num_chunks):
-            bioent_format_names.extend([json.loads(x)['format_name'] for x in DBSession.query(Bioentity).filter(Bioentity.id.in_(bioent_ids[i*500:(i+1)*500])).all()])
+            bioent_format_names.extend([json.loads(x.json)['format_name'] for x in DBSession.query(Bioentity).filter(Bioentity.id.in_(bioent_ids[i*500:(i+1)*500])).all()])
         enrichment_results = query_batter.query_go_processes(bioent_format_names)
         json_format = []
         
         for enrichment_result in enrichment_results:
-            identifier = str(int(enrichment_result[0][3:]))
+            identifier = 'GO:' + str(int(enrichment_result[0][3:]))
             goterm_id = get_obj_id(identifier, 'BIOCONCEPT', 'GO')
-            goterm = get_obj(Bioconcept, 'json', goterm_id)
+            goterm = json.loads(get_obj(Bioconcept, 'json', goterm_id))
             json_format.append({'go': goterm,
                             'match_count': enrichment_result[1],
                             'pvalue': enrichment_result[2]})
-        return json_format  
+        return json.dumps(json_format)
     
     #Protein
     def protein_domain_details(self, identifier):
@@ -191,6 +203,10 @@ class PerfBackend(BackendInterface):
     def regulation_graph(self, identifier):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return get_data('regulation_graph', bioent_id)
+    
+    def regulation_target_enrichment(self, identifier):
+        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_data('regulation_target_enrich', bioent_id)
     
     #Binding
     def binding_site_details(self, identifier):
@@ -230,7 +246,7 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
         print query
         
     if len(disambigs) > 0:
-        return [(disambig.identifier, disambig.class_type, disambig.subclass_type) for disambig in disambigs]
+        return [(disambig.obj_id, disambig.class_type, disambig.subclass_type) for disambig in disambigs]
     return None
 
 def get_obj_id(identifier, class_type=None, subclass_type=None):
@@ -258,13 +274,13 @@ def get_list(cls, col_name, obj_ids):
 def get_obj(cls, col_name, obj_id):
     if obj_id is not None:
         biocon = DBSession.query(cls).filter(cls.id == obj_id).first()
-        return None if biocon is None else biocon.json
+        return None if biocon is None else getattr(biocon, col_name)
     return None
 
 def get_data(table_name, obj_id):
     if obj_id is not None:
-        data_cls = data_classes[obj_id]
-        data = DBSession.query(data_cls).filter(data_cls.obj_id == obj_id).first()
+        data_cls = data_classes[table_name]
+        data = DBSession.query(data_cls).filter(data_cls.id == obj_id).first()
         return None if data is None else data.json
     return None
             

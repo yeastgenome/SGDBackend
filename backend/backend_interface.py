@@ -58,6 +58,10 @@ class BackendInterface:
     def locustabs(self, identifier):
         return None
     
+    @abstractmethod
+    def all_locustabs(self, min_id, max_id):
+        return None
+    
     #Biocon
     @abstractmethod
     def all_bioconcepts(self, min_id, max_id):
@@ -73,7 +77,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def go_ontology(self, identifier):
+    def go_ontology_graph(self, identifier):
         return None
     
     @abstractmethod
@@ -124,7 +128,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def phenotype_ontology(self, identifier):
+    def phenotype_ontology_graph(self, identifier):
         return None
     
     @abstractmethod
@@ -151,6 +155,10 @@ class BackendInterface:
     
     @abstractmethod
     def regulation_graph(self, identifier):
+        return None
+    
+    @abstractmethod
+    def regulation_target_enrichment(self, identifier):
         return None
     
     #Sequence

@@ -35,3 +35,4 @@ perfconvert/config.py
 convert_utils/config_passwords.py
 convert_utils/config_passwords.py
 convert_logs/*
+perfconvert_utils/config_passwords.py

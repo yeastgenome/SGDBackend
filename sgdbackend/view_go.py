@@ -21,7 +21,6 @@ def make_enrichment(bioent_ids):
     json_format = []
     for enrichment_result in enrichment_results:
         identifier = 'GO:' + str(int(enrichment_result[0][3:]))
-        print identifier
         goterm_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
         if goterm_id is not None:
             goterm = id_to_biocon[goterm_id]
@@ -50,9 +49,7 @@ def make_overview(bioent_id):
 '''
     
 def make_details(locus_id=None, go_id=None):
-    print locus_id, go_id
     goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id)
-    print len(goevidences)
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in goevidences]):
         evidence_id = condition.evidence_id
@@ -61,7 +58,6 @@ def make_details(locus_id=None, go_id=None):
         else:
             id_to_conditions[evidence_id] = [condition]
           
-    print len(id_to_conditions)  
     tables = create_simple_table(goevidences, make_evidence_row, id_to_conditions=id_to_conditions)
         
     return tables  
