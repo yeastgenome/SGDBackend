@@ -3,7 +3,8 @@ from model_new_schema.bioconcept import Bioconcept
 from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl
 from model_new_schema.chemical import Chemical
 from model_new_schema.condition import Condition, Temperaturecondition, \
-    Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition
+    Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition, \
+    Chemicalcondition
 from model_new_schema.evidence import Geninteractionevidence, \
     Physinteractionevidence, Regulationevidence
 from model_new_schema.misc import Url
@@ -118,6 +119,7 @@ def get_conditions(evidence_ids, print_query=False):
     for i in range(num_chunks):  
         this_chunk = evidence_ids[i*500:(i+1)*500]
         conditions.extend(session.query(Temperaturecondition).filter(Condition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Chemicalcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
         conditions.extend(session.query(Bioentitycondition).filter(Condition.evidence_id.in_(this_chunk)).all())
         conditions.extend(session.query(Bioconceptcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
         conditions.extend(session.query(Bioitemcondition).filter(Condition.evidence_id.in_(this_chunk)).all())

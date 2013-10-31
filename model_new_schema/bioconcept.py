@@ -3,7 +3,7 @@ Created on Nov 28, 2012
 
 @author: kpaskov
 '''
-from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema import Base, EqualityByIDMixin, create_format_name
 from model_new_schema.misc import Url, Alias, Relation
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
@@ -117,21 +117,28 @@ class Go(Bioconcept):
         self.go_aspect = go_aspect
         
 def create_phenotype_display_name(observable, qualifier, mutant_type):
-    if mutant_type is None:
-        mutant_type = 'None'
-    if qualifier is None:
-        display_name = observable + ' in ' + mutant_type + ' mutant'
+    if qualifier is None and mutant_type is None:
+        display_name = observable
     else:
-        display_name = qualifier + ' ' + observable + ' in ' + mutant_type + ' mutant'
+        if mutant_type is None:
+            mutant_type = 'None'
+        if qualifier is None:
+            display_name = observable + ' in ' + mutant_type + ' mutant'
+        else:
+            display_name = qualifier + ' ' + observable + ' in ' + mutant_type + ' mutant'
     return display_name
 
 def create_phenotype_format_name(observable, qualifier, mutant_type):
-    observable = '.' if observable is None else observable
-    qualifier = '.' if qualifier is None else qualifier
-    mutant_type = '.' if mutant_type is None else mutant_type
-    format_name = qualifier + '|' + observable + '|' + mutant_type
-    format_name = format_name.replace(' ', '_')
-    format_name = format_name.replace('/', '-')
+    if qualifier is None and mutant_type is None:
+        format_name = create_format_name(observable)
+    else:
+        observable = '.' if observable is None else observable
+        qualifier = '.' if qualifier is None else qualifier
+        mutant_type = '.' if mutant_type is None else mutant_type
+        format_name = qualifier + '|' + observable + '|' + mutant_type
+        format_name = format_name.replace(' ', '_')
+        format_name = format_name.replace('/', '-')
+    
     return format_name
         
 class Phenotype(Bioconcept):

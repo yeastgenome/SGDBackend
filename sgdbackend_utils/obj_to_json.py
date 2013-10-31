@@ -41,6 +41,13 @@ def go_to_json(biocon):
     biocon_json['go_id'] = biocon.go_id
     biocon_json['go_aspect'] = biocon.go_aspect
     return biocon_json
+
+def phenotype_to_json(biocon):
+    biocon_json = biocon_to_json(biocon)
+    biocon_json['observable'] = biocon.observable
+    biocon_json['qualifier'] = biocon.qualifier
+    biocon_json['mutant_type'] = biocon.mutant_type
+    return biocon_json
     
 def biocon_to_json(biocon):
     return {
