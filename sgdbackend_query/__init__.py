@@ -1,17 +1,15 @@
-from model_new_schema.auxiliary import BioconceptAncestor, Biofact, \
-    BioentityReference, Locustabs, Disambig
-from model_new_schema.bioconcept import Bioconcept, BioconceptRelation
-from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl, Paragraph
+from model_new_schema.auxiliary import Locustabs, Disambig
+from model_new_schema.bioconcept import Bioconcept
+from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl
 from model_new_schema.chemical import Chemical
-from model_new_schema.evelement import Experiment, Strain
-from model_new_schema.evidence import EvidenceChemical
-from model_new_schema.go import Goevidence, Go
-from model_new_schema.interaction import Geninteractionevidence, \
-    Physinteractionevidence
-from model_new_schema.literature import Literatureevidence
+from model_new_schema.condition import Condition, Temperaturecondition, \
+    Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition
+from model_new_schema.evidence import Geninteractionevidence, \
+    Physinteractionevidence, Regulationevidence
 from model_new_schema.misc import Url
-from model_new_schema.phenotype import Phenotypeevidence, Phenotype
+from model_new_schema.paragraph import Paragraph
 from model_new_schema.reference import Reference, Author, AuthorReference
+from mpmath import ceil
 from sgdbackend import DBSession
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
 from sqlalchemy.orm.util import with_polymorphic
@@ -27,7 +25,7 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
     if identifier is None:
         return None
     
-    query = session.query(Disambig).filter(Disambig.disambig_key==identifier.upper())
+    query = session.query(Disambig).filter(Disambig.disambig_key==str(identifier).upper())
     if class_type is not None:
         query = query.filter(Disambig.class_type==class_type)
     if subclass_type is not None:
@@ -73,93 +71,57 @@ def get_multi_obj_ids(identifiers, class_type=None, subclass_type=None, print_qu
         
     return disambig_dict
 
-#Used to create phenotype_overview table.
-def get_chemical_id(chemical_name, print_query=False):
-    query = session.query(Chemical).filter(Chemical.format_name==chemical_name)
-    chemical = query.first()
-    chemical_id = None
-    if chemical is not None:
-        chemical_id = chemical.id
+def get_all(cls, print_query=False):
+    query = session.query(cls)
+    objs = query.all()
     if print_query:
         print query
-    return chemical_id
+    return objs
 
-#Used to create chemical page.
-def get_chemical(chemical_name, print_query=False):
-    query = session.query(Chemical).filter(Chemical.format_name==chemical_name)
-    chemical = query.first()
-    return chemical
-
-#Used to determine tabs on all pages.
-def query_locustabs(bioentity_id, print_query=False):
-    query = session.query(Locustabs).filter(Locustabs.id==bioentity_id)
+def get_relations(obj_ids, relation_cls, print_query=False):
+    obj_id_set = set(obj_ids)
+    related_objs = set()
+    
+    query1 = session.query(relation_cls).filter(relation_cls.parent_id.in_(obj_id_set))
+    children = query1.all()
+    obj_ids.update([x for x in children if x.child_id in obj_id_set])
+    
+    query2 = session.query(relation_cls).filter(relation_cls.child_id.in_(obj_id_set))
+    parents = query2.all()
+    related_objs.update([x for x in parents if x.parent_id in obj_id_set])
+    
     if print_query:
-        print query
-    return query.first()
+        print query1
+        print query2
+    return related_objs
 
-#Used for Graph Views.
-def get_experiment(experiment_name, print_query=False):
-    query = session.query(Experiment).filter(Experiment.format_name==experiment_name)
-    experiment = query.first()
-    if print_query:
-        print query
-    return experiment
-
-#Used for Graph Views.
-def get_strain(strain_name, print_query=False):
-    query = session.query(Strain).filter(Strain.format_name==strain_name)
-    strain = query.first()
-    if print_query:
-        print query
-    return strain
-
-#Used for Interaction resources
-def get_resources(category, bioent_id=None, print_query=False):
+two_bioent_evidence_cls = set([Geninteractionevidence, Physinteractionevidence, Regulationevidence])
+def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, print_query=False):
+    query = session.query(evidence_cls)
     if bioent_id is not None:
-        query = session.query(Bioentityurl).filter(Bioentityurl.bioentity_id==bioent_id).filter(Bioentityurl.category==category)
-    urls = query.all()
-    if print_query:
-        print query
-    return urls
-
-#Used for tests
-def get_bioent_format_names(print_query=False):
-    query = session.query(Bioentity.format_name)
-    bioent_format_names = [x.format_name for x in query.all()]
-    if print_query:
-        print query
-    return bioent_format_names
-
-#Used for regulation_overview
-def get_paragraph(bioent_id, class_type, print_query=False):
-    query = session.query(Paragraph).filter(Paragraph.bioentity_id == bioent_id).filter(Paragraph.class_type == class_type)
-    paragraph = query.first()
-    if print_query:
-        print query
-    return paragraph
-
-def get_disambigs(min_id, max_id, print_query=False):
-    query = session.query(Disambig)
-    if min_id is not None:
-        query = query.filter(Disambig.id >= min_id)
-    if max_id is not None:
-        query = query.filter(Disambig.id < max_id)
-    disambigs = query.all()
-    if print_query:
-        print_query
-    return disambigs
-        
-#Used to break very large queries into a manageable size.
-chunk_size = 500
-def retrieve_in_chunks(ids, f):
-    num_chunks = int(math.ceil(float(len(ids))/chunk_size))
-    result = set()
-    for i in range(0, num_chunks):
-        min_index = i*chunk_size
-        max_index = (i+1)*chunk_size
-        if max_index > len(ids):
-            chunk_ids = ids[min_index:]
+        if evidence_cls in two_bioent_evidence_cls:
+            query = query.filter(or_(evidence_cls.bioentity1_id == bioent_id, evidence_cls.bioentity2_id == bioent_id))
         else:
-            chunk_ids = ids[min_index:max_index]
-        result.update(f(chunk_ids))
-    return result
+            query = query.filter(evidence_cls.bioentity_id == bioent_id)
+    if biocon_id is not None:
+        query = query.filter(evidence_cls.bioconcept_id == biocon_id)
+        
+    evidence = query.all()
+    
+    if print_query:
+        print query
+    return evidence
+
+def get_conditions(evidence_ids, print_query=False):
+    conditions = []
+    num_chunks = ceil(1.0*len(evidence_ids)/500)
+    for i in range(num_chunks):  
+        this_chunk = evidence_ids[i*500:(i+1)*500]
+        conditions.extend(session.query(Temperaturecondition).filter(Condition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Bioentitycondition).filter(Condition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Bioconceptcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Bioitemcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Generalcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
+    
+    return conditions
+    

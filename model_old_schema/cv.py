@@ -62,4 +62,17 @@ class CVTermDbxref(Base, EqualityByIDMixin):
     
     cvterm = relationship(CVTerm, uselist=False, backref='cv_dbxrefs')
     dbxref = relationship(Dbxref, uselist=False)
+    
+class Code(Base, EqualityByIDMixin):
+    __tablename__ = 'code'
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+
+    id = Column('code_no', Integer, primary_key = True)
+    tab_name = Column('tab_name', String)
+    col_name = Column('col_name', String)
+    code_value = Column('code_value', String)
+    description = Column('description', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+
                         

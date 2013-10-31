@@ -6,34 +6,47 @@ Created on Aug 9, 2013
 def locus_to_json(bioent):
     bioent_json = bioent_to_json(bioent)
     bioent_json['description'] = bioent.description
-    #bioent_json['source'] = bioent.source
-    #bioent_json['attribute'] = bioent.attribute
-    #bioent_json['name_description'] = bioent.name_description
-    #bioent_json['alias_str'] = bioent.alias_str
     return bioent_json
 
 def bioent_to_json(bioent):
     return {
+            'id': bioent.id,
             'format_name': bioent.format_name,
-            'bioent_type': bioent.class_type,
             'display_name': bioent.display_name, 
-            'dbxref': bioent.dbxref,
             'link': bioent.link,
-            'id': bioent.id
+            'class_type': bioent.class_type,
+            'sgdid': bioent.sgdid,
             }
+    
+def bioitem_to_json(bioitem):
+    return {
+            'display_name': bioitem.display_name, 
+            'link': bioitem.link,
+            'id': bioitem.id,
+            'description': bioitem.description,
+            }
+    
+def chemical_to_json(chem):
+    return {
+            'display_name': chem.display_name, 
+            'link': chem.link,
+            'id': chem.id
+            }
+    
+def source_to_json(source):
+    return source.display_name
     
 def go_to_json(biocon):
     biocon_json = biocon_to_json(biocon)
-    biocon_json['go_go_id'] = biocon.go_go_id
+    biocon_json['go_id'] = biocon.go_id
     biocon_json['go_aspect'] = biocon.go_aspect
-    #biocon_json['aliases'] = biocon.aliases
     return biocon_json
     
 def biocon_to_json(biocon):
     return {
             'format_name': biocon.format_name,
-            'biocon_type': biocon.class_type,
             'display_name': biocon.display_name, 
+            'class_type': biocon.class_type,
             'link': biocon.link,
             'id': biocon.id
             }
@@ -53,6 +66,39 @@ def strain_to_json(strain):
             'link': strain.link,
             'id': strain.id
             }
+    
+def condition_to_json(condition):
+    from sgdbackend_utils.cache import id_to_chem, id_to_bioent, id_to_biocon, id_to_bioitem
+    if condition.class_type == 'CONDITION':
+        return condition.note
+    elif condition.class_type == 'CHEMICAL':
+        return {'chemical': id_to_chem[condition.chemical_id],
+                'amount': condition.amount,
+                'note': condition.note
+                }
+    elif condition.class_type == 'TEMPERATURE':
+        return {'temperature': condition.temperature,
+                'note': condition.note
+                }
+    elif condition.class_type == 'BIOENTITY':
+        return {
+                'role': condition.role,
+                'obj': id_to_bioent[condition.bioentity_id],
+                'note': condition.note
+                }
+    elif condition.class_type == 'BIOCONCEPT':
+        return {
+                'role': condition.role,
+                'obj': id_to_biocon[condition.bioconcept_id],
+                'note': condition.note
+                }
+    elif condition.class_type == 'BIOITEM':
+        return {
+                'role': condition.role,
+                'obj': id_to_bioitem[condition.bioitem_id],
+                'note': condition.note
+                }
+    return None
     
 def reference_to_json(reference):
     urls = []
@@ -78,25 +124,14 @@ def url_to_json(url):
     return {
             #'url_type': url.class_type,
             'display_name': url.display_name, 
-            'link': url.url,
+            'link': url.link,
             #'category': url.category,
             #'source': url.source,
             }
     
-def domain_to_json(domain):
-    return {
-            'source': domain.source,
-            'display_name': domain.display_name,
-            'format_name': domain.format_name,
-            'description': domain.description,
-            'interpro_id': domain.interpro_id,
-            'interpro_description': domain.interpro_description,
-            'link': domain.link
-           }
-    
 def locustab_to_json(bioentitytab):
     return {
-            'bioentity_id': bioentitytab.id,
+            'id': bioentitytab.id,
             'summary_tab': bioentitytab.summary == 1,
             'history_tab': bioentitytab.history == 1,
             'literature_tab': bioentitytab.literature == 1,
@@ -132,38 +167,25 @@ def paragraph_to_json(paragraph):
             'references': references
            }
     
-def minimize_bioent_json(bioent_json):
-    if bioent_json is not None:
-        return {'display_name': bioent_json['display_name'],
-            'format_name': bioent_json['format_name'],
-            'link': bioent_json['link'],
-            'id': bioent_json['id']}
-    return None
+def evidence_to_json(evidence):
+    from sgdbackend_utils.cache import id_to_strain, id_to_source, id_to_reference, id_to_experiment
+    return {
+            'id':evidence.id,
+            'class_type': evidence.class_type,
+            'strain': None if evidence.strain_id is None else minimize_json(id_to_strain[evidence.strain_id]),
+            'source': None if evidence.source_id is None else id_to_source[evidence.source_id],
+            'reference': None if evidence.reference_id is None else minimize_json(id_to_reference[evidence.reference_id]),
+            'experiment': None if evidence.experiment_id is None else minimize_json(id_to_experiment[evidence.experiment_id]),
+            'note': evidence.note}
     
-def minimize_biocon_json(biocon_json):
-    if biocon_json is not None:
-        return {'display_name': biocon_json['display_name'],
-            'link': biocon_json['link'],
-            'id': biocon_json['id']}  
-    return None
-    
-def minimize_reference_json(ref_json):
-    if ref_json is not None:
-        return {'display_name': ref_json['display_name'],
-            'link': ref_json['link'],
-            'id': ref_json['id']}
-    return None
-    
-def minimize_strain_json(strain_json):
-    if strain_json is not None:
-        return {'display_name': strain_json['display_name'],
-            'link': strain_json['link'],
-            'id': strain_json['id']}
-    return None
-    
-def minimize_experiment_json(exp_json):
-    if exp_json is not None:
-        return {'display_name': exp_json['display_name'],
-            'link': exp_json['link'],
-            'id': exp_json['id']}
+def minimize_json(obj_json, include_format_name=False):
+    if obj_json is not None:
+        min_json = {'display_name': obj_json['display_name'],
+            'link': obj_json['link'],
+            'id': obj_json['id']} 
+        if 'class_type' in obj_json:
+            min_json['class_type'] = obj_json['class_type']
+        if include_format_name:
+            min_json['format_name'] = obj_json['format_name']
+        return min_json 
     return None

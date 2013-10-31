@@ -58,6 +58,10 @@ class BackendInterface:
     def locustabs(self, identifier):
         return None
     
+    @abstractmethod
+    def all_locustabs(self, min_id, max_id):
+        return None
+    
     #Biocon
     @abstractmethod
     def all_bioconcepts(self, min_id, max_id):
@@ -73,7 +77,15 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def go_references(self, identifier):
+    def go_ontology_graph(self, identifier):
+        return None
+    
+    @abstractmethod
+    def go_overview(self, identifier):
+        return None
+    
+    @abstractmethod
+    def go_details(self, locus_identifier=None, go_identifier=None):
         return None
     
     @abstractmethod
@@ -97,10 +109,6 @@ class BackendInterface:
     def interaction_resources(self, identifier):
         return None
     
-    @abstractmethod
-    def interaction_references(self, identifier):
-        return None
-    
     #Literature
     @abstractmethod
     def literature_overview(self, identifier):
@@ -120,7 +128,15 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def phenotype_references(self, identifier):
+    def phenotype_ontology_graph(self, identifier):
+        return None
+    
+    @abstractmethod
+    def phenotype_overview(self, identifier):
+        return None
+    
+    @abstractmethod
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None):
         return None
     
     #Protein
@@ -142,7 +158,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def regulation_references(self, identifier):
+    def regulation_target_enrichment(self, identifier):
         return None
     
     #Sequence

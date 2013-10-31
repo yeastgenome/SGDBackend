@@ -1,0 +1,39 @@
+10/24/2013 10:13:06 convert.phenotype: begin
+10/24/2013 10:13:06 convert.phenotype.phenotype: begin
+10/24/2013 10:13:07 convert.phenotype.phenotype: (0, 0, 0)
+10/24/2013 10:13:07 convert.phenotype.phenotype: complete
+10/24/2013 10:13:07 convert.phenotype.evidence: begin
+10/24/2013 10:14:30 convert.phenotype.evidence: 1/10 (0, 0, 0)
+10/24/2013 10:15:23 convert.phenotype.evidence: 2/10 (0, 0, 0)
+10/24/2013 10:16:14 convert.phenotype.evidence: 3/10 (0, 0, 0)
+10/24/2013 10:17:05 convert.phenotype.evidence: 4/10 (0, 0, 0)
+10/24/2013 10:17:56 convert.phenotype.evidence: 5/10 (0, 0, 0)
+10/24/2013 10:18:46 convert.phenotype.evidence: 6/10 (0, 0, 0)
+10/24/2013 10:19:34 convert.phenotype.evidence: 7/10 (0, 0, 0)
+10/24/2013 10:19:53 convert.phenotype.evidence: 8/10 (0, 0, 0)
+10/24/2013 10:19:58 convert.phenotype.evidence: 9/10 (0, 0, 0)
+10/24/2013 10:20:03 convert.phenotype.evidence: 10/10 (0, 0, 0)
+10/24/2013 10:20:08 convert.phenotype.evidence: 11/10 (0, 0, 0)
+10/24/2013 10:20:12 convert.phenotype.evidence: complete
+10/24/2013 10:20:17 convert.phenotype.bioentity_reference: begin
+10/24/2013 10:20:29 convert.phenotype.bioentity_reference: 1/14 (0, 0, 0)
+10/24/2013 10:20:56 convert.phenotype.bioentity_reference: 2/14 (0, 0, 0)
+10/24/2013 10:21:24 convert.phenotype.bioentity_reference: 3/14 (0, 0, 0)
+10/24/2013 10:21:49 convert.phenotype.bioentity_reference: 4/14 (0, 0, 0)
+10/24/2013 10:22:15 convert.phenotype.bioentity_reference: 5/14 (0, 0, 0)
+10/24/2013 10:22:40 convert.phenotype.bioentity_reference: 6/14 (0, 0, 0)
+10/24/2013 10:23:10 convert.phenotype.bioentity_reference: 7/14 (0, 0, 0)
+10/24/2013 10:23:34 convert.phenotype.bioentity_reference: 8/14 (0, 0, 0)
+10/24/2013 10:23:59 convert.phenotype.bioentity_reference: 9/14 (0, 0, 0)
+10/24/2013 10:24:30 convert.phenotype.bioentity_reference: 10/14 (0, 0, 0)
+10/24/2013 10:25:03 convert.phenotype.bioentity_reference: 11/14 (0, 0, 0)
+10/24/2013 10:25:35 convert.phenotype.bioentity_reference: 12/14 (0, 0, 0)
+10/24/2013 10:26:09 convert.phenotype.bioentity_reference: 13/14 (0, 0, 0)
+10/24/2013 10:26:15 convert.phenotype.bioentity_reference: 14/14 (0, 0, 0)
+10/24/2013 10:26:16 convert.phenotype.bioentity_reference: (0, 0, 0)
+10/24/2013 10:26:17 convert.phenotype.bioentity_reference: complete
+10/24/2013 10:26:17 convert.phenotype.disambigs: begin
+10/24/2013 10:26:18 convert.phenotype.disambigs: 1/1 (0, 0, 0)
+10/24/2013 10:26:18 convert.phenotype.disambigs: (0, 0, 0)
+10/24/2013 10:26:19 convert.phenotype.disambigs: complete
+10/24/2013 10:26:19 convert.phenotype: complete

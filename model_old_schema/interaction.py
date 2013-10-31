@@ -10,7 +10,6 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
-import datetime
 
 class Interaction(Base, EqualityByIDMixin):
     __tablename__ = 'interaction'
@@ -30,8 +29,7 @@ class Interaction(Base, EqualityByIDMixin):
     
     interaction_phenotypes = relationship('Interaction_Phenotype', lazy='subquery')
     
-    feature_interactions = relationship('Interaction_Feature')
-    feature_ids = association_proxy('feature_interactions', 'feature_id')
+    feature_ids = association_proxy('interaction_features', 'feature_id')
 
     def __repr__(self):
         data = self.experiment_type
@@ -59,7 +57,7 @@ class Interaction_Phenotype(Base, EqualityByIDMixin):
     phenotype_id = Column('phenotype_no', Integer, ForeignKey('bud.phenotype.phenotype_no'))
     
     #Relationships
-    phenotype = relationship(Phenotype, uselist=False, lazy='subquery')
+    phenotype = relationship(Phenotype, uselist=False)
     qualifier = association_proxy('phenotype', 'qualifier')
     observable = association_proxy('phenotype', 'observable')
     
@@ -71,4 +69,5 @@ class Interaction_Feature(Base, EqualityByIDMixin):
     interaction_id = Column('interaction_no', Integer, ForeignKey('bud.interaction.interaction_no'))
     action = Column('action', String)
         
-    feature = relationship('Feature', lazy='subquery') 
+    feature = relationship('Feature', uselist=False) 
+    interaction = relationship(Interaction, backref='interaction_features', uselist=False)

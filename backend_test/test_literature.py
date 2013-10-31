@@ -4,24 +4,15 @@ Created on Jul 10, 2013
 @author: kpaskov
 '''
 
-from backend_test import check_reference_extended
+from backend_test import check_reference
 import json
-import pytest
-
-slow = pytest.mark.slow
 
 def test_literature_overview_structure(model, identifier='YFL039C'):
     response = json.loads(model.literature_overview(identifier))
-    assert response is not None
-    assert 'GENINTERACTION' in response
-    assert 'PHYSINTERACTION' in response
-    assert 'REGULATION' in response
-    assert 'REVIEW_LITERATURE' in response
-    assert 'PHENOTYPE' in response
-    assert 'ADDITIONAL_LITERATURE' in response
-    assert 'GO' in response
-    assert 'PRIMARY_LITERATURE' in response
-    assert 'Total' in response
+    assert 'total_count' in response
+    assert 'primary' in response
+    for entry in response['primary']:
+        check_reference(entry)
     
 def test_literature_details_structure(model, identifier='YFL039C'):
     response = json.loads(model.literature_details(identifier))
@@ -29,15 +20,13 @@ def test_literature_details_structure(model, identifier='YFL039C'):
     assert 'primary' in response
     assert 'additional' in response
     assert 'reviews' in response
+    assert 'phenotype' in response
+    assert 'go' in response
+    assert 'interaction' in response
+    assert 'regulation' in response
     
     for entry in response['primary']:
-        check_reference_extended(entry)
-    
-    for entry in response['additional']:
-        check_reference_extended(entry)
-        
-    for entry in response['reviews']:
-        check_reference_extended(entry)
+        check_reference(entry)
      
 def test_literature_graph_structure(model, identifier='YFL039C'):
     response = json.loads(model.literature_graph(identifier))

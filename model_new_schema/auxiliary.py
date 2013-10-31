@@ -7,31 +7,32 @@ from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.bioconcept import Bioconcept
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.reference import Reference
-from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 
 class Biofact(Base, EqualityByIDMixin):
     __tablename__ = 'aux_biofact'
 
-    id = Column('biofact_id', Integer, primary_key=True)
-    bioentity_id = Column('bioent_id', Integer, ForeignKey(Bioentity.id))
-    bioconcept_id = Column('biocon_id', Integer, ForeignKey(Bioconcept.id))
-    class_type = Column('class', String)
+    id = Column('aux_biofact_id', Integer, primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
+    bioentity_class_type = Column('bioentity_subclass', String)
+    bioconcept_class_type = Column('bioconcept_subclass', String)
     
-    def __init__(self, bioentity_id, bioconcept_id, class_type):
-        self.bioentity_id = bioentity_id
-        self.bioconcept_id = bioconcept_id
-        self.class_type = class_type
+    def __init__(self, bioentity, bioconcept):
+        self.bioentity_id = bioentity.id
+        self.bioconcept_id = bioconcept.id
+        self.bioentity_class_type = bioentity.class_type
+        self.bioconcept_class_type = bioconcept.class_type
 
     def unique_key(self):
-        return (self.bioentity_id, self.bioconcept_id, self.class_type)
+        return (self.bioentity_id, self.bioconcept_id, self.bioentity_class_type, self.bioconcept_class_type)
     
 class Interaction(Base, EqualityByIDMixin):
     __tablename__ = "aux_interaction"
     
-    id = Column('interaction_id', Integer, primary_key = True)
-    class_type = Column('class', String)
+    id = Column('aux_interaction_id', Integer, primary_key = True)
+    class_type = Column('bioentity_subclass', String)
     format_name = Column('format_name', String)
     display_name = Column('display_name', String)
     bioentity1_id = Column('bioentity1_id', Integer)
@@ -63,77 +64,14 @@ class Physinteraction(Interaction, EqualityByIDMixin):
 class Reginteraction(Interaction, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_identity': 'REGULATION',
                        'inherit_condition': id==Interaction.id}
-    
-class InteractionFamily(Base, EqualityByIDMixin):
-    __tablename__ = "aux_interaction_family"
-    
-    id = Column('interaction_family_id', Integer, primary_key = True)
-    bioentity_id = Column('bioentity_id', Integer)
-    bioentity1_id = Column('bioentity1_id', Integer)
-    bioentity2_id = Column('bioentity2_id', Integer)
-    evidence_count = Column('evidence_count', Integer)
-    genetic_ev_count = Column('gen_ev_count', Integer)
-    physical_ev_count = Column('phys_ev_count', Integer)
-    
-    def __init__(self, bioentity_id, bioentity1_id, bioentity2_id, 
-                 genetic_ev_count, physical_ev_count, evidence_count):
-        self.bioentity_id = bioentity_id
-        self.bioentity1_id = bioentity1_id
-        self.bioentity2_id = bioentity2_id
-        self.genetic_ev_count = genetic_ev_count
-        self.physical_ev_count = physical_ev_count
-        self.evidence_count = evidence_count
-        
-    def unique_key(self):
-        return (self.bioentity_id, self.bioentity1_id, self.bioentity2_id)
-    
-class RegulationFamily(Base, EqualityByIDMixin):
-    __tablename__ = "aux_regulation_family"
-    
-    id = Column('regulation_family_id', Integer, primary_key = True)
-    bioentity_id = Column('bioentity_id', Integer)
-    bioentity1_id = Column('bioentity1_id', Integer)
-    bioentity2_id = Column('bioentity2_id', Integer)
-    evidence_count = Column('evidence_count', Integer)
-    
-    def __init__(self, bioentity_id, bioentity1_id, bioentity2_id, 
-                 evidence_count):
-        self.bioentity_id = bioentity_id
-        self.bioentity1_id = bioentity1_id
-        self.bioentity2_id = bioentity2_id
-        self.evidence_count = evidence_count
-        
-    def unique_key(self):
-        return (self.bioentity_id, self.bioentity1_id, self.bioentity2_id)
-
-class BioconceptAncestor(Base, EqualityByIDMixin):
-    __tablename__ = 'aux_bioconcept_ancestor'
-
-    id = Column('bioconcept_ancestor_id', Integer, primary_key=True)
-    ancestor_bioconcept_id = Column('ancestor_bioconcept_id', Integer, ForeignKey(Bioconcept.id))
-    child_bioconcept_id = Column('child_bioconcept_id', Integer, ForeignKey(Bioconcept.id))
-    generation = Column('generation', Integer)
-    class_type = Column('class', String)
-    
-    ancestor_bioconcept = relationship('Bioconcept', uselist=False, backref=backref('child_family', cascade='all,delete'), primaryjoin="BioconceptAncestor.ancestor_bioconcept_id==Bioconcept.id")
-    child_bioconcept = relationship('Bioconcept', uselist=False, backref=backref('parent_family', cascade='all,delete'), primaryjoin="BioconceptAncestor.child_bioconcept_id==Bioconcept.id")
-   
-    def __init__(self, ancestor_bioconcept_id, child_bioconcept_id, class_type, generation):
-        self.ancestor_bioconcept_id = ancestor_bioconcept_id
-        self.child_bioconcept_id = child_bioconcept_id
-        self.class_type = class_type
-        self.generation = generation
-
-    def unique_key(self):
-        return (self.ancestor_bioconcept_id, self.child_bioconcept_id, self.class_type)
 
 class BioentityReference(Base):
     __tablename__ = 'aux_bioentity_reference'
     
-    id = Column('bioentity_reference_id', Integer, primary_key=True)
+    id = Column('aux_bioentity_reference_id', Integer, primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
-    class_type = Column('class', String)
+    class_type = Column('bioentity_subclass', String)
     
     def __init__(self, class_type, bioentity_id, reference_id):
         self.class_type = class_type
@@ -182,11 +120,11 @@ class OmicsBioentityReference(BioentityReference, EqualityByIDMixin):
 class Disambig(Base, EqualityByIDMixin):
     __tablename__ = 'aux_disambig'
     
-    id = Column('disambig_id', Integer, primary_key=True)
+    id = Column('aux_disambig_id', Integer, primary_key=True)
     disambig_key = Column('disambig_key', String)
-    class_type = Column('class_type', String)
-    subclass_type = Column('subclass_type', String)
-    identifier = Column('identifier', String)
+    class_type = Column('class', String)
+    subclass_type = Column('subclass', String)
+    identifier = Column('obj_id', String)
     
     def __init__(self, disambig_key, class_type, subclass_type, identifier):
         self.disambig_key = disambig_key

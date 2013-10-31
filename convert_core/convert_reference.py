@@ -3,12 +3,12 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, prepare_connections
-from convert_utils.link_maker import reference_link
+from convert_utils import create_or_update, set_up_logging, prepare_connections, \
+    create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
-from sqlalchemy.sql.expression import func
+import datetime
 import logging
 import requests
 import sys
@@ -25,19 +25,25 @@ import sys
 def create_journal_id(old_journal_id):
     return old_journal_id
 
-def create_journal(old_journal):
+def create_journal(old_journal, key_to_source):
     from model_new_schema.reference import Journal as NewJournal
     
     abbreviation = old_journal.abbreviation
     if old_journal.issn == '0948-5023':
         abbreviation = 'J Mol Model (Online)'
+        
+    source = key_to_source['PubMed']
     
-    new_journal = NewJournal(create_journal_id(old_journal.id), abbreviation, old_journal.full_name, old_journal.issn, 
-                             old_journal.essn, old_journal.publisher, old_journal.date_created, old_journal.created_by)
-    return [new_journal]
+    title = old_journal.full_name
+    if title is not None or abbreviation is not None:
+        new_journal = NewJournal(create_journal_id(old_journal.id), source, title, abbreviation, old_journal.issn, 
+                             old_journal.essn, old_journal.date_created, old_journal.created_by)
+        return [new_journal]
+    return []
 
 def convert_journal(old_session_maker, new_session_maker):
     from model_new_schema.reference import Journal as NewJournal
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import Journal as OldJournal
     
     log = logging.getLogger('convert.reference.journal')
@@ -52,7 +58,7 @@ def convert_journal(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['issn', 'essn', 'publisher', 'created_by', 'date_created']
+        values_to_check = ['issn_print', 'issn_online']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -60,10 +66,14 @@ def convert_journal(old_session_maker, new_session_maker):
         old_session = old_session_maker()
         old_objs = old_session.query(OldJournal).all()
         
+        #Cache
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource)])
+        
         used_unique_keys = set()
+
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_journal(old_obj)
+            newly_created_objs = create_journal(old_obj, key_to_source)
                 
             if newly_created_objs is not None:
                 #Edit or add new objects
@@ -81,6 +91,9 @@ def convert_journal(old_session_maker, new_session_maker):
                             untouched_obj_ids.remove(current_obj_by_id.id)
                         if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                             untouched_obj_ids.remove(current_obj_by_key.id)
+                    else:
+                        print unique_key
+    
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -106,16 +119,18 @@ def convert_journal(old_session_maker, new_session_maker):
 def create_book_id(old_book_id):
     return old_book_id
 
-def create_book(old_book):
+def create_book(old_book, key_to_source):
     from model_new_schema.reference import Book as NewBook
     
-    new_book = NewBook(create_book_id(old_book.id), old_book.title, old_book.volume_title, old_book.isbn, old_book.total_pages, 
+    source = key_to_source['PubMed']
+    new_book = NewBook(create_book_id(old_book.id), source, old_book.title, old_book.volume_title, old_book.isbn, old_book.total_pages, 
                        old_book.publisher, old_book.publisher_location, 
                        old_book.date_created, old_book.created_by)
     return [new_book]
 
 def convert_book(old_session_maker, new_session_maker):
     from model_new_schema.reference import Book as NewBook
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import Book as OldBook
     
     log = logging.getLogger('convert.reference.book')
@@ -130,9 +145,12 @@ def convert_book(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['isbn', 'total_pages', 'publisher', 'publisher_location', 'created_by', 'date_created']
+        values_to_check = ['isbn', 'total_pages', 'publisher', 'publisher_location']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
+        
+        #Cache
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource)])
         
         #Grab old objects
         old_session = old_session_maker()
@@ -140,19 +158,18 @@ def convert_book(old_session_maker, new_session_maker):
         
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_book(old_obj)
+            newly_created_objs = create_book(old_obj, key_to_source)
                 
-            if newly_created_objs is not None:
-                #Edit or add new objects
-                for newly_created_obj in newly_created_objs:
-                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
                     
-                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_id.id)
-                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_key.id)
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -176,16 +193,16 @@ def convert_book(old_session_maker, new_session_maker):
 """
 
 def create_citation(citation):
-    end_of_name = citation.find(")")+1
-    name = citation[:end_of_name]
-    words_in_name = name.split()
-    for i in range(0, len(words_in_name)):
-        word = words_in_name[i]
-        if len(word) > 3:
-            words_in_name[i] = word.title()
-    name = ' '.join(words_in_name)
-    new_citation = name + citation[end_of_name:]
-    new_citation = new_citation.replace('()', '')
+    #end_of_name = citation.find(")")+1
+    #name = citation[:end_of_name]
+    #words_in_name = name.split()
+    #for i in range(0, len(words_in_name)):
+    #    word = words_in_name[i]
+    #    if len(word) > 3:
+    #        words_in_name[i] = word.title()
+    #name = ' '.join(words_in_name)
+    #new_citation = name + citation[end_of_name:]
+    new_citation = citation.replace('()', '')
     return new_citation
 
 def create_display_name(citation):
@@ -197,7 +214,7 @@ def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
     count = len(pubmed_ids)
     num_chunks = ceil(1.0*count/chunk_size)
     min_id = 0
-    for i in range(0, num_chunks):
+    for _ in range(0, num_chunks):
         chunk_of_pubmed_ids = pubmed_ids[min_id:min_id+chunk_size]
         url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&db=pmc&id='
         url = url + '&id='.join([str(x) for x in chunk_of_pubmed_ids])
@@ -217,37 +234,26 @@ def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
         min_id = min_id + chunk_size
     return pubmed_id_to_central_id
 
-def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id):
+def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id, key_to_source):
     from model_new_schema.reference import Reference as NewReference
     
     citation = create_citation(old_reference.citation)
     display_name = create_display_name(citation)
-    format_name = str(old_reference.pubmed_id)
-    if format_name is None:
-        format_name = old_reference.dbxref_id
-        
-    link = reference_link(format_name)
-    
-    journal_id = None
-    journal = old_reference.journal
-    if journal is not None:
-        abbreviation = journal.abbreviation
-        if journal.issn == '0948-5023':
+            
+    new_journal = None
+    old_journal = old_reference.journal
+    if old_journal is not None:
+        abbreviation = old_journal.abbreviation
+        if old_journal.issn == '0948-5023':
             abbreviation = 'J Mol Model (Online)'
-        journal_key = (journal.full_name, abbreviation)
-        if journal_key not in key_to_journal:
-            print 'Journal does not exist. ' + str(journal_key)
-            return None
-        journal_id = key_to_journal[journal_key].id
-        
-    book_id = None
-    book = old_reference.book
-    if book is not None:
-        book_key = (book.title, book.volume_title)
-        if book_key not in key_to_book:
-            print 'Book does not exist. ' + str(book_key)
-            return None
-        book_id = key_to_book[book_key].id
+        journal_key = (old_journal.full_name, abbreviation)
+        new_journal = None if journal_key not in key_to_journal else key_to_journal[journal_key]
+    
+    new_book = None    
+    old_book = old_reference.book
+    if old_book is not None:
+        book_key = (old_book.title, old_book.volume_title)
+        new_book = None if book_key not in key_to_book else key_to_book[book_key]
         
     pubmed_id = None
     pubmed_central_id = None
@@ -261,19 +267,28 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
         
     date_revised = None
     if old_reference.date_revised is not None:
-        date_revised = int(old_reference.date_revised)
+        old_date = str(old_reference.date_revised)
+        date_revised = datetime.date(int(old_date[0:4]), int(old_date[4:6]), int(old_date[6:8]))
+        
+    source_key = create_format_name(old_reference.source)
+    if source_key in key_to_source:
+        source_id = key_to_source[source_key].id
+    else:
+        print 'Source not found.' + source_key
+        return None
     
-    new_ref = NewReference(old_reference.id, display_name, format_name, link, old_reference.source, 
+    new_ref = NewReference(old_reference.id, display_name, old_reference.dbxref_id, source_id, 
                            old_reference.status, pubmed_id, pubmed_central_id,
                            old_reference.pdf_status, citation, year, 
                            old_reference.date_published, date_revised, 
                            old_reference.issue, old_reference.page, old_reference.volume, old_reference.title,
-                           journal_id, book_id, old_reference.doi,
+                           new_journal, new_book, old_reference.doi,
                            old_reference.date_created, old_reference.created_by)
     return [new_ref]
 
 def convert_reference(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Reference as NewReference, Book as NewBook, Journal as NewJournal
+    from model_new_schema.evelements import Source as NewSource
     from model_old_schema.reference import Reference as OldReference
     
     log = logging.getLogger('convert.reference.reference')
@@ -285,37 +300,41 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
         new_session = new_session_maker()
                 
         #Values to check
-        values_to_check = ['display_name', 'format_name', 'link', 'source', 
-                       'status', 'pubmed_id', 'pubmed_central_id', 'pdf_status', 'year', 'date_published', 
-                       'date_revised', 'issue', 'page', 'volume', 'title',
-                       'journal_id', 'book_id', 'doi',
-                       'created_by', 'date_created']
+        values_to_check = ['display_name', 'format_name', 'link', 'source_id', 'sgdid',
+                       'ref_status', 'pubmed_id', 'pubmed_central_id', 'fulltext_status', 'year', 'date_published', 
+                       'date_revised', 'issue', 'page', 'volume', 'title', 'citation',
+                       'journal_id', 'book_id', 'doi']
                 
         #Grab cached dictionaries
         key_to_journal = dict([(x.unique_key(), x) for x in new_session.query(NewJournal).all()])
         key_to_book = dict([(x.unique_key(), x) for x in new_session.query(NewBook).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
         #Grab old objects
         old_session = old_session_maker()
         
         used_unique_keys = set()
-        
-        count = old_session.query(func.max(OldReference.id)).first()[0]
+        used_citations = set()
+
+        ref_min_id = 0      
+        count = 100000
         num_chunks = ceil(1.0*count/chunk_size)
-        min_id = 0
         for i in range(0, num_chunks):
+            min_id = ref_min_id + i*chunk_size
+            max_id = ref_min_id + (i+1)*chunk_size
             #Grab all current objects
-            current_objs = new_session.query(NewReference).filter(NewReference.id >= min_id).filter(NewReference.id <=  min_id+chunk_size).all()
+            current_objs = new_session.query(NewReference).filter(NewReference.id >= min_id).filter(NewReference.id <  max_id).all()
             
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+            citation_to_current_obj = dict([(x.citation, x) for x in current_objs])
             
             untouched_obj_ids = set(id_to_current_obj.keys())
         
             #Grab old objects
             old_objs = old_session.query(OldReference).filter(
                                             OldReference.id >= min_id).filter(
-                                            OldReference.id <=  min_id+chunk_size).options(
+                                            OldReference.id <  max_id).options(
                                             joinedload('book'), 
                                             joinedload('journal')).all()
                                             
@@ -324,29 +343,32 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
             
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_reference(old_obj, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id)
+                newly_created_objs = create_reference(old_obj, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id, key_to_source)
                 
-                if newly_created_objs is not None:
-                    #Edit or add new objects
-                    for newly_created_obj in newly_created_objs:
-                        unique_key = newly_created_obj.unique_key()
-                        if unique_key not in used_unique_keys:
-                            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                            current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                #Edit or add new objects
+                for newly_created_obj in newly_created_objs:
+                    unique_key = newly_created_obj.unique_key()
+                    citation = newly_created_obj.citation
+                    if unique_key not in used_unique_keys and citation not in used_citations:
+                        current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                        current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                        current_obj_by_citation = None if newly_created_obj.citation not in citation_to_current_obj else citation_to_current_obj[newly_created_obj.citation]
                             
-                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key if current_obj_by_key is not None else current_obj_by_citation, values_to_check, new_session, output_creator)
                     
-                            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                                untouched_obj_ids.remove(current_obj_by_id.id)
-                            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                                untouched_obj_ids.remove(current_obj_by_key.id)
-                            used_unique_keys.add(unique_key)
+                        if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                            untouched_obj_ids.remove(current_obj_by_id.id)
+                        if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                            untouched_obj_ids.remove(current_obj_by_key.id)
+                    else:
+                        print unique_key
+                            
+                    used_unique_keys.add(unique_key)
+                    used_citations.add(citation)
                             
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
-                        
-            min_id = min_id + chunk_size + 1
-                        
+                                                
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
             new_session.delete(id_to_current_obj[untouched_obj_id])

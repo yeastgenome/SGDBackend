@@ -6,22 +6,6 @@ import sys
 def prep_views(chosen_backend, config):  
     
     #Reference views
-    config.add_route('all_references', 
-                     '/all_references', 
-                     view=lambda request: chosen_backend.response_wrapper('all_references')(
-                                getattr(chosen_backend, 'all_references')(
-                                        None if 'min' not in request.GET else int(request.GET['min']), 
-                                        None if 'max' not in request.GET else int(request.GET['max'])), request), 
-                     renderer=chosen_backend.get_renderer('all_references'))
-    
-    config.add_route('all_bibentries', 
-                     '/all_bibentries', 
-                     view=lambda request: chosen_backend.response_wrapper('all_bibentries')(
-                                getattr(chosen_backend, 'all_bibentries')(
-                                        None if 'min' not in request.GET else int(request.GET['min']), 
-                                        None if 'max' not in request.GET else int(request.GET['max'])), request), 
-                     renderer=chosen_backend.get_renderer('all_bibentries'))
-    
     config.add_route('reference', 
                      '/reference/{identifier}/overview', 
                      view=lambda request: chosen_backend.response_wrapper('reference')(
@@ -37,14 +21,6 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('reference_list'))
     
     #Bioent views
-    config.add_route('all_bioentities', 
-                     '/all_bioentities', 
-                     view=lambda request: chosen_backend.response_wrapper('all_bioentities')(
-                                getattr(chosen_backend, 'all_bioentities')(
-                                        None if 'min' not in request.GET else int(request.GET['min']), 
-                                        None if 'max' not in request.GET else int(request.GET['max'])), request), 
-                     renderer=chosen_backend.get_renderer('all_bioentities'))
-    
     config.add_route('bioentity_list', 
                      '/bioentity_list', 
                      view=lambda request: chosen_backend.response_wrapper('bioentity_list')(
@@ -68,14 +44,6 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('locustabs'))
     
     #Biocon views
-    config.add_route('all_bioconcepts', 
-                     '/all_bioconcepts', 
-                     view=lambda request: chosen_backend.response_wrapper('all_bioconcepts')(
-                                getattr(chosen_backend, 'all_bioconcepts')(
-                                        None if 'min' not in request.GET else int(request.GET['min']), 
-                                        None if 'max' not in request.GET else int(request.GET['max'])), request), 
-                     renderer=chosen_backend.get_renderer('all_bioconcepts'))
-    
     config.add_route('bioconcept_list', 
                      '/bioconcept_list', 
                      view=lambda request: chosen_backend.response_wrapper('bioentity_list')(
@@ -91,12 +59,33 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
                      renderer=chosen_backend.get_renderer('go'))
     
-    config.add_route('go_references', 
-                     '/locus/{identifier}/go_references', 
-                     view=lambda request: chosen_backend.response_wrapper('go_references')(
-                                getattr(chosen_backend, 'go_references')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
-                     renderer=chosen_backend.get_renderer('go_references'))
+    config.add_route('go_ontology', 
+                     '/go/{identifier}/ontology', 
+                     view=lambda request: chosen_backend.response_wrapper('go_ontology')(
+                                getattr(chosen_backend, 'go_ontology')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('go_ontology'))
+    
+    config.add_route('go_overview', 
+                     '/locus/{identifier}/go_overview', 
+                     view=lambda request: chosen_backend.response_wrapper('go_overview')(
+                                getattr(chosen_backend, 'go_overview')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('go_overview'))
+    
+    config.add_route('go_bioent_details', 
+                     '/locus/{identifier}/go_details', 
+                     view=lambda request: chosen_backend.response_wrapper('go_details')(
+                                getattr(chosen_backend, 'go_details')(
+                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('go_details'))
+    
+    config.add_route('go_biocon_details', 
+                     '/go/{identifier}/locus_details', 
+                     view=lambda request: chosen_backend.response_wrapper('go_details')(
+                                getattr(chosen_backend, 'go_details')(
+                                        go_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('go_details'))
     
     config.add_route('go_enrichment', 
                      '/go_enrichment', 
@@ -111,14 +100,35 @@ def prep_views(chosen_backend, config):
                      view=lambda request: chosen_backend.response_wrapper('phenotype')(
                                 getattr(chosen_backend, 'phenotype')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
-                     renderer=chosen_backend.get_renderer('phenotype'))    
-    
-    config.add_route('phenotype_references', 
-                     '/locus/{identifier}/phenotype_references', 
-                     view=lambda request: chosen_backend.response_wrapper('phenotype_references')(
-                                getattr(chosen_backend, 'phenotype_references')(
+                     renderer=chosen_backend.get_renderer('phenotype'))   
+
+    config.add_route('phenotype_ontology', 
+                     '/phenotype/{identifier}/ontology', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_ontology')(
+                                getattr(chosen_backend, 'phenotype_ontology')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
-                     renderer=chosen_backend.get_renderer('phenotype_references'))
+                     renderer=chosen_backend.get_renderer('phenotype_ontology'))
+        
+    config.add_route('phenotype_overview', 
+                     '/locus/{identifier}/phenotype_overview', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_overview')(
+                                getattr(chosen_backend, 'phenotype_overview')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('phenotype_overview'))
+    
+    config.add_route('phenotype_bioent_details', 
+                     '/locus/{identifier}/phenotype_details', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_details')(
+                                getattr(chosen_backend, 'phenotype_details')(
+                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('phenotype_details'))
+    
+    config.add_route('phenotype_biocon_details', 
+                     '/phenotype/{identifier}/locus_details', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_details')(
+                                getattr(chosen_backend, 'phenotype_details')(
+                                        phenotype_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                     renderer=chosen_backend.get_renderer('phenotype_details')) 
     
     #Interaction views
     config.add_route('interaction_overview', 
@@ -149,13 +159,6 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
                      renderer=chosen_backend.get_renderer('interaction_resources'))
     
-    config.add_route('interaction_references', 
-                     '/locus/{identifier}/interaction_references', 
-                     view=lambda request: chosen_backend.response_wrapper('interaction_references')(
-                                getattr(chosen_backend, 'interaction_references')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
-                     renderer=chosen_backend.get_renderer('interaction_references'))
-    
     #Regulation views
     config.add_route('regulation_overview', 
                      '/locus/{identifier}/regulation_overview', 
@@ -171,17 +174,17 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
                      renderer=chosen_backend.get_renderer('regulation_details'))
     
+    config.add_route('regulation_target_enrichment', 
+                     '/locus/{identifier}/regulation_target_enrichment', 
+                     view=lambda request: chosen_backend.response_wrapper('regulation_target_enrichment')(
+                                getattr(chosen_backend, 'regulation_target_enrichment')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
+                     renderer=chosen_backend.get_renderer('regulation_target_enrichment'))
+    
     config.add_route('regulation_graph', 
                      '/locus/{identifier}/regulation_graph', 
                      view=lambda request: chosen_backend.response_wrapper('all_bibentries')(
                                 getattr(chosen_backend, 'regulation_graph')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
-                     renderer=chosen_backend.get_renderer('regulation_graph'))
-    
-    config.add_route('regulation_references', 
-                     '/locus/{identifier}/regulation_references', 
-                     view=lambda request: chosen_backend.response_wrapper('all_bibentries')(
-                                getattr(chosen_backend, 'regulation_references')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
                      renderer=chosen_backend.get_renderer('regulation_graph'))
     
@@ -221,14 +224,6 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
                      renderer=chosen_backend.get_renderer('binding_site_details'))
 
-    #Misc
-    config.add_route('all_disambigs', '/all_disambigs', 
-                     view=lambda request: chosen_backend.response_wrapper('all_disambigs')(
-                                getattr(chosen_backend, 'all_disambigs')(
-                                       None if 'min' not in request.GET else int(request.GET['min']), 
-                                       None if 'max' not in request.GET else int(request.GET['max'])), request), 
-                     renderer=chosen_backend.get_renderer('all_disambigs'))    
-
 def prepare_sgdbackend(**settings):
     config = Configurator(settings=settings)
     config.add_static_view('static', 'static', cache_max_age=3600)
@@ -237,6 +232,7 @@ def prepare_sgdbackend(**settings):
     chosen_backend = SGDBackend(config)
     
     prep_views(chosen_backend, config)
+    config.scan()
     return chosen_backend, config
 
 def prepare_perfbackend(**settings):
@@ -247,16 +243,17 @@ def prepare_perfbackend(**settings):
     chosen_backend = PerfBackend(config)
     
     prep_views(chosen_backend, config)
+    config.scan()
     return chosen_backend, config
 
 def sgdbackend(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    chosen_backend, config = prepare_sgdbackend(**settings)
+    _, config = prepare_sgdbackend(**settings)
     return config.make_wsgi_app()
 
 def perfbackend(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    chosen_backend, config = prepare_perfbackend(**settings)
+    _, config = prepare_perfbackend(**settings)
     return config.make_wsgi_app()

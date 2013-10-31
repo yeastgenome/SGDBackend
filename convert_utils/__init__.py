@@ -3,6 +3,7 @@ Created on Oct 10, 2013
 
 @author: kpaskov
 '''
+from convert_utils import config_passwords
 from datetime import datetime
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative.api import declarative_base
@@ -20,36 +21,48 @@ def check_session_maker(session_maker, DBHOST, is_old):
     else:
         from model_new_schema.bioentity import Bioentity
         query = session_maker().query(Bioentity)
-    
+    query.first()
     try:
         query.first()
     except:
         raise Exception("Connection to " + DBHOST + " failed. Please check your parameters.") 
 
 def prepare_connections(need_old=True):
-    from convert_all import config
     if need_old:
-        OLD_DBHOST = sys.argv[1] + ':1521'
-        OLD_DBUSER = sys.argv[2]
-        OLD_DBPASS = getpass.getpass('Old DB User Password:')
-        NEW_DBHOST = sys.argv[3] + ':1521'
-        NEW_DBUSER = sys.argv[4]
-        NEW_DBPASS = getpass.getpass('New DB User Password:')
+        if len(sys.argv) == 5:
+            OLD_DBHOST = sys.argv[1] + ':1521'
+            OLD_DBUSER = sys.argv[2]
+            OLD_DBPASS = getpass.getpass('Old DB User Password:')
+            NEW_DBHOST = sys.argv[3] + ':1521'
+            NEW_DBUSER = sys.argv[4]
+            NEW_DBPASS = getpass.getpass('New DB User Password:')
+        else:
+            OLD_DBHOST = config_passwords.OLD_DBHOST
+            OLD_DBUSER = config_passwords.OLD_DBUSER
+            OLD_DBPASS = config_passwords.OLD_DBPASS
+            NEW_DBHOST = config_passwords.NEW_DBHOST
+            NEW_DBUSER = config_passwords.NEW_DBUSER
+            NEW_DBPASS = config_passwords.NEW_DBPASS
     
-        old_session_maker = prepare_schema_connection(model_old_schema, config.OLD_DBTYPE, OLD_DBHOST, config.OLD_DBNAME, config.OLD_SCHEMA, 
+        old_session_maker = prepare_schema_connection(model_old_schema, config_passwords.OLD_DBTYPE, OLD_DBHOST, config_passwords.OLD_DBNAME, config_passwords.OLD_SCHEMA, 
                                                   OLD_DBUSER, OLD_DBPASS)
         check_session_maker(old_session_maker, OLD_DBHOST, True)
         
-        new_session_maker = prepare_schema_connection(model_new_schema, config.NEW_DBTYPE, NEW_DBHOST, config.NEW_DBNAME, config.NEW_SCHEMA, 
+        new_session_maker = prepare_schema_connection(model_new_schema, config_passwords.NEW_DBTYPE, NEW_DBHOST, config_passwords.NEW_DBNAME, config_passwords.NEW_SCHEMA, 
                                                   NEW_DBUSER, NEW_DBPASS)
         check_session_maker(new_session_maker, NEW_DBHOST, False)
         return old_session_maker, new_session_maker
     else:
-        NEW_DBHOST = sys.argv[1] + ':1521'
-        NEW_DBUSER = sys.argv[2]
-        NEW_DBPASS = getpass.getpass('New DB User Password:')
-        
-        new_session_maker = prepare_schema_connection(model_new_schema, config.NEW_DBTYPE, NEW_DBHOST, config.NEW_DBNAME, config.NEW_SCHEMA, 
+        if len(sys.argv) == 3:
+            NEW_DBHOST = sys.argv[1] + ':1521'
+            NEW_DBUSER = sys.argv[2]
+            NEW_DBPASS = getpass.getpass('New DB User Password:')
+        else:
+            NEW_DBHOST = config_passwords.NEW_DBHOST
+            NEW_DBUSER = config_passwords.NEW_DBUSER
+            NEW_DBPASS = config_passwords.NEW_DBPASS
+            
+        new_session_maker = prepare_schema_connection(model_new_schema, config_passwords.NEW_DBTYPE, NEW_DBHOST, config_passwords.NEW_DBNAME, config_passwords.NEW_SCHEMA, 
                                                   NEW_DBUSER, NEW_DBPASS)
         check_session_maker(new_session_maker, NEW_DBHOST, False)
         return new_session_maker
@@ -155,7 +168,7 @@ def set_up_logging(label):
     
     log = logging.getLogger(label)
     
-    hdlr = logging.FileHandler('/Users/kpaskov/Documents/Schema Conversion Logs/' + label + '.' + str(datetime.now()) + '.txt')
+    hdlr = logging.FileHandler('convert_logs/' + label + '.' + str(datetime.now()) + '.txt')
     formatter = logging.Formatter('%(asctime)s %(name)s: %(message)s', '%m/%d/%Y %H:%M:%S')
     hdlr.setFormatter(formatter)
     log.addHandler(hdlr) 
