@@ -218,10 +218,8 @@ class SGDBackend(BackendInterface):
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         if locus_id is not None:
             protein_id = locus_id + 200000
-            protein = None if protein_id not in id_to_bioent else id_to_bioent[protein_id]
-            if protein is not None:
-                protein_id = protein['id']
-                return json.dumps(view_protein.make_details(locus_id))
+            if protein_id in id_to_bioent:
+                return json.dumps(view_protein.make_details(protein_id))
         return None
             
     #Regulation

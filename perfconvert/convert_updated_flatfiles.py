@@ -23,9 +23,8 @@ if __name__ == "__main__":
     ######################### Data ##############################
     
     session = session_maker()
-    from model_perf_schema.core import Bioentity, Bioconcept
+    from model_perf_schema.core import Bioentity
     bioentity_ids = [x.id for x in session.query(Bioentity).all()]
-    bioconcept_ids = [x.id for x in session.query(Bioconcept).all()]
     
     try:
         convert_data(session_maker, data_classes['regulation_overview'], backend.regulation_overview, 'perfconvert.regulation_overview', bioentity_ids, 1000)

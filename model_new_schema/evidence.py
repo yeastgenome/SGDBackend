@@ -175,9 +175,7 @@ class Phenotypeevidence(Evidence):
 
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Phenotype.id))
-    
-    type = 'BIOCON_EVIDENCE'
-    
+        
     #Relationship
     bioentity = relationship(Bioentity, uselist=False)
     bioconcept = relationship(Phenotype, uselist=False)

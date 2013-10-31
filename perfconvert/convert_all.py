@@ -101,11 +101,10 @@ if __name__ == "__main__":
 
 #    #Regulation    
 #    try:
-#        #Problem here V
 #        convert_data(session_maker, data_classes['regulation_overview'], backend.regulation_overview, 'perfconvert.regulation_overview', bioentity_ids, 1000)
-#        convert_data(session_maker, data_classes['regulation_details'], backend.regulation_details, 'perfconvert.regulation_details', bioentity_ids, 1000)
-#        convert_data(session_maker, data_classes['regulation_graph'], backend.regulation_graph, 'perfconvert.regulation_graph', bioentity_ids, 1000)
-#        convert_data(session_maker, data_classes['regulation_target_enrich'], backend.regulation_target_enrichment, 'perfconvert.regulation_target_enrichment', bioentity_ids, 100)
+#        #convert_data(session_maker, data_classes['regulation_details'], backend.regulation_details, 'perfconvert.regulation_details', bioentity_ids, 1000)
+#        #convert_data(session_maker, data_classes['regulation_graph'], backend.regulation_graph, 'perfconvert.regulation_graph', bioentity_ids, 1000)
+#        #convert_data(session_maker, data_classes['regulation_target_enrich'], backend.regulation_target_enrichment, 'perfconvert.regulation_target_enrichment', bioentity_ids, 100)
 #
 #    except Exception:
 #        log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )

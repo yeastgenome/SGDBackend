@@ -63,7 +63,12 @@ def link_gene_names(text, to_ignore=set()):
             new_chunks.append(new_chunk)
         i = i + len(word) + 1
     new_chunks.append(text[chunk_start: i])
-    return ' '.join(new_chunks)
+    try:
+        return ' '.join(new_chunks)
+    except:
+        print text
+        return text
+
     
     
 #Used to break very large queries into a manageable size.
