@@ -39,18 +39,9 @@ def check_session_maker(session_maker, DBHOST):
     except:
         raise Exception("Connection to " + DBHOST + " failed. Please check your parameters.") 
 
-def prepare_connections(need_old=True):
-    if len(sys.argv) == 3:
-        NEW_DBHOST = sys.argv[3] + ':1521'
-        NEW_DBUSER = sys.argv[4]
-        NEW_DBPASS = getpass.getpass('New DB User Password:')
-    else:
-        NEW_DBHOST = config_passwords.NEW_DBHOST
-        NEW_DBUSER = config_passwords.NEW_DBUSER
-        NEW_DBPASS = config_passwords.NEW_DBPASS
-        
+def prepare_connections(NEW_DBHOST):     
     new_session_maker = prepare_schema_connection(model_perf_schema, config_passwords.NEW_DBTYPE, NEW_DBHOST, config_passwords.NEW_DBNAME, config_passwords.NEW_SCHEMA, 
-                                              NEW_DBUSER, NEW_DBPASS)
+                                              config_passwords.NEW_DBUSER, config_passwords.NEW_DBPASS)
     check_session_maker(new_session_maker, NEW_DBHOST)
     return new_session_maker
     

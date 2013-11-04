@@ -224,36 +224,36 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request),
                      renderer=chosen_backend.get_renderer('binding_site_details'))
 
-def prepare_sgdbackend(**settings):
-    config = Configurator(settings=settings)
+def prepare_sgdbackend(**configs):
+    config = Configurator()
     config.add_static_view('static', 'static', cache_max_age=3600)
         
     from sgdbackend import SGDBackend
-    chosen_backend = SGDBackend(config)
+    chosen_backend = SGDBackend(**configs)
     
     prep_views(chosen_backend, config)
     config.scan()
     return chosen_backend, config
 
-def prepare_perfbackend(**settings):
-    config = Configurator(settings=settings)
+def prepare_perfbackend(**configs):
+    config = Configurator()
     config.add_static_view('static', 'static', cache_max_age=3600)
         
     from perfbackend import PerfBackend
-    chosen_backend = PerfBackend(config)
+    chosen_backend = PerfBackend(**configs)
     
     prep_views(chosen_backend, config)
     config.scan()
     return chosen_backend, config
 
-def sgdbackend(global_config, **settings):
+def sgdbackend(global_config, **configs):
     """ This function returns a Pyramid WSGI application.
     """
-    _, config = prepare_sgdbackend(**settings)
+    _, config = prepare_sgdbackend(**configs)
     return config.make_wsgi_app()
 
-def perfbackend(global_config, **settings):
+def perfbackend(global_config, **configs):
     """ This function returns a Pyramid WSGI application.
     """
-    _, config = prepare_perfbackend(**settings)
+    _, config = prepare_perfbackend(**configs)
     return config.make_wsgi_app()

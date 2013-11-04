@@ -61,4 +61,11 @@ if __name__ == "__main__":
     except Exception:
         log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
         
+    from perfconvert.convert_monthly import convert_monthly
+    #Converts nex->perf on sgd-db2
+    convert_monthly('sgd-db2.stanford.edu:1521', 'sgdbackend', 'sgd-db2.stanford.edu:1521')
+    
+    #Converts perf on sgd-db2 -> perf on sgd-db1
+    #convert_monthly('sgd-db1.stanford.edu:1521', 'perfbackend', 'sgd-db2.stanford.edu:1521')
+        
     

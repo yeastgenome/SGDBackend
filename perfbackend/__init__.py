@@ -1,5 +1,5 @@
 from backend.backend_interface import BackendInterface
-from config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE, SCHEMA
+import config
 from go_enrichment import query_batter
 from model_perf_schema.data import create_data_classes, data_classes
 from mpmath import ceil
@@ -18,14 +18,15 @@ import model_perf_schema
 import sys
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-class Base(object):
-    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
-        
-model_perf_schema.SCHEMA = SCHEMA
-model_perf_schema.Base = declarative_base(cls=Base)
 
 class PerfBackend(BackendInterface):
-    def __init__(self, config):
+    def __init__(self, DBTYPE=config.DBTYPE, DBUSER=config.DBUSER, DBPASS=config.DBPASS, DBHOST=config.DBHOST, DBNAME=config.DBNAME, SCHEMA=config.SCHEMA):
+        class Base(object):
+            __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+                
+        model_perf_schema.SCHEMA = SCHEMA
+        model_perf_schema.Base = declarative_base(cls=Base)
+
         engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
 
         DBSession.configure(bind=engine)
