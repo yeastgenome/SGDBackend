@@ -1,5 +1,5 @@
 from backend.backend_interface import BackendInterface
-from config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE, SCHEMA
+import config
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from pyramid.response import Response
@@ -14,14 +14,14 @@ import sys
 import uuid
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-class Base(object):
-    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
-        
-model_new_schema.SCHEMA = SCHEMA
-model_new_schema.Base = declarative_base(cls=Base)
 
 class SGDBackend(BackendInterface):
-    def __init__(self, config):
+    def __init__(self, DBTYPE=config.DBTYPE, DBUSER=config.DBUSER, DBPASS=config.DBPASS, DBHOST=config.DBHOST, DBNAME=config.DBNAME, SCHEMA=config.SCHEMA):
+        class Base(object):
+            __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+                
+        model_new_schema.SCHEMA = SCHEMA
+        model_new_schema.Base = declarative_base(cls=Base)
         engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), pool_recycle=3600)
 
         DBSession.configure(bind=engine)

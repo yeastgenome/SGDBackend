@@ -101,5 +101,12 @@ if __name__ == "__main__":
         convert_bioconcept_in_depth.convert(old_session_maker, new_session_maker)  
     except Exception:
         log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
+        
+    from perfconvert.convert_daily import convert_daily
+    #Converts nex->perf on sgd-db2
+    convert_daily('sgd-db2.stanford.edu:1521', 'sgdbackend', 'sgd-db2.stanford.edu:1521')
+    
+    #Converts perf on sgd-db2 -> perf on sgd-db1
+    #convert_daily('sgd-db1.stanford.edu:1521', 'perfbackend', 'sgd-db2.stanford.edu:1521')
     
     
