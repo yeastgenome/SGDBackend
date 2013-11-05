@@ -3,6 +3,7 @@ from datetime import datetime
 from go_enrichment import query_batter
 from model_perf_schema.data import create_data_classes, data_classes
 from mpmath import ceil
+from perfbackend_utils import set_up_logging
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from pyramid.response import Response
@@ -43,12 +44,12 @@ class PerfBackend(BackendInterface):
     def get_renderer(self, method_name):
         return 'string'
     
-    def response_wrapper(self, method_name):
+    def response_wrapper(self, method_name, request):
         request_id = str(uuid.uuid4())
-        self.log.info(request_id + ' ' + method_name)
-        def f(data, request):
+        callback = None if 'callback' not in request.GET else request.GET['callback']
+        self.log.info(request_id + ' ' + method_name + ('' if 'identifier' not in request.matchdict else ' ' + request.matchdict['identifier']))
+        def f(data):
             self.log.info(request_id + ' end')
-            callback = None if 'callback' not in request.GET else request.GET['callback']
             if callback is not None:
                 return Response(body="%s(%s)" % (callback, data), content_type='application/json')
             else:
@@ -236,8 +237,8 @@ class PerfBackend(BackendInterface):
                             'class_type': disambig.class_type,
                             'subclass_type': disambig.subclass_type,
                             'identifier': disambig.identifier} 
-                        for disambig in disambigs])    
-
+                        for disambig in disambigs]) 
+        
 #Useful methods
 def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=False):
     from model_perf_schema.core import Disambig
@@ -292,15 +293,21 @@ def get_data(table_name, obj_id):
         data = DBSession.query(data_cls).filter(data_cls.id == obj_id).first()
         return None if data is None else data.json
     return None
-
-def set_up_logging(label):
-    logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.INFO)
-    log = logging.getLogger(label)
-    
-    hdlr = logging.FileHandler('perfbackend_logs/' + label + '.' + str(datetime.now().date()) + '.txt')
-    formatter = logging.Formatter('%(asctime)s %(name)s: %(message)s')
-    hdlr.setFormatter(formatter)
-    log.addHandler(hdlr) 
-    log.setLevel(logging.INFO)
-    return log
+        
+def prepare_perfbackend(**configs):  
+    config_args = {}
+    if 'DBTYPE' in configs:
+        config_args['DBTYPE'] = configs['DBTYPE']
+    if 'DBUSER' in configs:
+        config_args['DBUSER'] = configs['DBUSER']
+    if 'DBPASS' in configs:
+        config_args['DBPASS'] = configs['DBPASS']
+    if 'DBHOST' in configs:
+        config_args['DBHOST'] = configs['DBHOST']
+    if 'DBNAME' in configs:
+        config_args['DBNAME'] = configs['DBNAME']
+    if 'SCHEMA' in configs:
+        config_args['SCHEMA'] = configs['SCHEMA']
+    chosen_backend = PerfBackend(**config_args)
+    return chosen_backend
             

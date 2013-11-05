@@ -4,11 +4,12 @@ Created on Oct 24, 2013
 @author: kpaskov
 '''
 
-from backend import prepare_sgdbackend, prepare_perfbackend
 from model_perf_schema.data import create_data_classes, data_classes
+from perfbackend import prepare_perfbackend
 from perfconvert import convert_core
 from perfconvert.convert_data import convert_data
 from perfconvert_utils import prepare_connections, set_up_logging
+from sgdbackend import prepare_sgdbackend
 import sys
 
 def convert_daily(perf_dbhost, backend_type, backend_dbhost):
@@ -19,9 +20,9 @@ def convert_daily(perf_dbhost, backend_type, backend_dbhost):
     
     log.info('load_backend')
     if backend_type == 'sgdbackend':
-        backend = prepare_sgdbackend(DBHOST=backend_dbhost)[0]
+        backend = prepare_sgdbackend(DBHOST=backend_dbhost)
     else:
-        backend = prepare_perfbackend(DBHOST=backend_dbhost)[0]
+        backend = prepare_perfbackend(DBHOST=backend_dbhost)
     log.info('begin')
     
     ######################### Core ##############################
