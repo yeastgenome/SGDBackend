@@ -229,7 +229,20 @@ def prepare_sgdbackend(**configs):
     config.add_static_view('static', 'static', cache_max_age=3600)
         
     from sgdbackend import SGDBackend
-    chosen_backend = SGDBackend(**configs)
+    config_args = {}
+    if 'DBTYPE' in configs:
+        config_args['DBTYPE'] = configs['DBTYPE']
+    if 'DBUSER' in configs:
+        config_args['DBUSER'] = configs['DBUSER']
+    if 'DBPASS' in configs:
+        config_args['DBPASS'] = configs['DBPASS']
+    if 'DBHOST' in configs:
+        config_args['DBHOST'] = configs['DBHOST']
+    if 'DBNAME' in configs:
+        config_args['DBNAME'] = configs['DBNAME']
+    if 'SCHEMA' in configs:
+        config_args['SCHEMA'] = configs['SCHEMA']
+    chosen_backend = SGDBackend(**config_args)
     
     prep_views(chosen_backend, config)
     config.scan()
@@ -240,7 +253,20 @@ def prepare_perfbackend(**configs):
     config.add_static_view('static', 'static', cache_max_age=3600)
         
     from perfbackend import PerfBackend
-    chosen_backend = PerfBackend(**configs)
+    config_args = {}
+    if 'DBTYPE' in configs:
+        config_args['DBTYPE'] = configs['DBTYPE']
+    if 'DBUSER' in configs:
+        config_args['DBUSER'] = configs['DBUSER']
+    if 'DBPASS' in configs:
+        config_args['DBPASS'] = configs['DBPASS']
+    if 'DBHOST' in configs:
+        config_args['DBHOST'] = configs['DBHOST']
+    if 'DBNAME' in configs:
+        config_args['DBNAME'] = configs['DBNAME']
+    if 'SCHEMA' in configs:
+        config_args['SCHEMA'] = configs['SCHEMA']
+    chosen_backend = PerfBackend(**config_args)
     
     prep_views(chosen_backend, config)
     config.scan()

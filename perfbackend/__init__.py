@@ -1,5 +1,5 @@
 from backend.backend_interface import BackendInterface
-import config
+from datetime import datetime
 from go_enrichment import query_batter
 from model_perf_schema.data import create_data_classes, data_classes
 from mpmath import ceil
@@ -13,9 +13,12 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import MetaData
 from sqlalchemy.sql.expression import select
 from zope.sqlalchemy import ZopeTransactionExtension
+import config
 import json
+import logging
 import model_perf_schema
 import sys
+import uuid
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
@@ -34,12 +37,17 @@ class PerfBackend(BackendInterface):
 
         create_data_classes()
         
+        self.log = set_up_logging('perfbackend')
+        
     #Renderer
     def get_renderer(self, method_name):
         return 'string'
     
     def response_wrapper(self, method_name):
+        request_id = str(uuid.uuid4())
+        self.log.info(request_id + ' ' + method_name)
         def f(data, request):
+            self.log.info(request_id + ' end')
             callback = None if 'callback' not in request.GET else request.GET['callback']
             if callback is not None:
                 return Response(body="%s(%s)" % (callback, data), content_type='application/json')
@@ -284,4 +292,15 @@ def get_data(table_name, obj_id):
         data = DBSession.query(data_cls).filter(data_cls.id == obj_id).first()
         return None if data is None else data.json
     return None
+
+def set_up_logging(label):
+    logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.INFO)
+    log = logging.getLogger(label)
+    
+    hdlr = logging.FileHandler('perfbackend_logs/' + label + '.' + str(datetime.now().date()) + '.txt')
+    formatter = logging.Formatter('%(asctime)s %(name)s: %(message)s')
+    hdlr.setFormatter(formatter)
+    log.addHandler(hdlr) 
+    log.setLevel(logging.INFO)
+    return log
             

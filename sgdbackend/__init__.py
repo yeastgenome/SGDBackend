@@ -1,5 +1,4 @@
 from backend.backend_interface import BackendInterface
-import config
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from pyramid.response import Response
@@ -8,6 +7,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
+import config
 import json
 import model_new_schema
 import sys
@@ -30,14 +30,17 @@ class SGDBackend(BackendInterface):
         from sgdbackend_utils.cache import cache_core
         cache_core()
         
+        from sgdbackend_utils import set_up_logging
+        self.log = set_up_logging('sgdbackend')
+        
     def get_renderer(self, method_name):
         return 'string'
     
     def response_wrapper(self, method_name):
-        request_id = uuid.uuid4()
-        #log request start
+        request_id = str(uuid.uuid4())
+        self.log.info(request_id + ' ' + method_name)
         def f(data, request):
-            #log request end
+            self.log.info(request_id + ' end')
             callback = None if 'callback' not in request.GET else request.GET['callback']
             if callback is not None:
                 return Response(body="%s(%s)" % (callback, data), content_type='application/json')
