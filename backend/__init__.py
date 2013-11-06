@@ -234,6 +234,9 @@ def prepare_backend(backend_type, **configs):
     elif backend_type == 'perfbackend':
         from perfbackend import prepare_perfbackend
         chosen_backend = prepare_perfbackend(**configs)
+    elif backend_type == 'testbackend':
+        from testbackend import prepare_testbackend
+        chosen_backend = prepare_testbackend(**configs)
         
     prep_views(chosen_backend, config)
     return config
@@ -249,3 +252,9 @@ def perfbackend(global_config, **configs):
     """
     config = prepare_backend('perfbackend', **configs)
     return config.make_wsgi_app()   
+
+def testbackend(global_config, **configs):
+    """ This function returns a Pyramid WSGI application.
+    """
+    config = prepare_backend('testbackend', **configs)
+    return config.make_wsgi_app()  
