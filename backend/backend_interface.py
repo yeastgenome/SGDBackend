@@ -15,7 +15,7 @@ class BackendInterface:
     
     #Response
     @abstractmethod
-    def response_wrapper(self, method_name):
+    def response_wrapper(self, method_name, request):
         return None
     
     #Disambigs
