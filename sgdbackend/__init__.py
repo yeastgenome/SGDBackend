@@ -189,13 +189,15 @@ class SGDBackend(BackendInterface):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_biocon
         pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
+        print identifier, pheno_id
         return None if pheno_id is None else json.dumps(id_to_biocon[pheno_id])
 
     def phenotype_ontology_graph(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_biocon
+        from sgdbackend import view_phenotype
         pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return None
+        return None if pheno_id is None else json.dumps(view_phenotype.make_ontology_graph(pheno_id))
         
     def phenotype_overview(self, identifier):
         from sgdbackend_query import get_obj_id

@@ -73,13 +73,19 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
         if old_experiment.reporter is not None:
             reporter_key = (create_format_name(old_experiment.reporter[0]), 'PROTEIN')
             reporter = None if reporter_key not in key_to_bioitem else key_to_bioitem[reporter_key]
-            conditions.append(Bioitemcondition(old_experiment.reporter[1], 'Reporter', reporter))
+            if reporter is not None:
+                conditions.append(Bioitemcondition(old_experiment.reporter[1], 'Reporter', reporter))
+            else:
+                print reporter_key  
         
         #Get allele
         if old_experiment.allele is not None:
             allele_key = (create_format_name(old_experiment.allele[0]), 'ALLELE')
             allele = None if allele_key not in key_to_bioitem else key_to_bioitem[allele_key]
-            conditions.append(Bioitemcondition(old_experiment.allele[1], 'Allele', allele))    
+            if allele is not None:
+                conditions.append(Bioitemcondition(old_experiment.allele[1], 'Allele', allele)) 
+            else:
+                print allele_key   
             
         #Get chemicals
         from model_new_schema.condition import Chemicalcondition

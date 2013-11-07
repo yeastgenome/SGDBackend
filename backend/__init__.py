@@ -102,12 +102,12 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
                      renderer=chosen_backend.get_renderer('phenotype'))   
 
-    config.add_route('phenotype_ontology', 
-                     '/phenotype/{identifier}/ontology', 
-                     view=lambda request: chosen_backend.response_wrapper('phenotype_ontology')(
-                                getattr(chosen_backend, 'phenotype_ontology')(
+    config.add_route('phenotype_ontology_graph', 
+                     '/phenotype/{identifier}/ontology_graph', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_ontology_graph')(
+                                getattr(chosen_backend, 'phenotype_ontology_graph')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
-                     renderer=chosen_backend.get_renderer('phenotype_ontology'))
+                     renderer=chosen_backend.get_renderer('phenotype_ontology_graph'))
         
     config.add_route('phenotype_overview', 
                      '/locus/{identifier}/phenotype_overview', 

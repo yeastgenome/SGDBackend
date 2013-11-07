@@ -1,5 +1,5 @@
 from model_new_schema.auxiliary import Locustabs, Disambig
-from model_new_schema.bioconcept import Bioconcept
+from model_new_schema.bioconcept import Bioconcept, Bioconceptrelation
 from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl
 from model_new_schema.chemical import Chemical
 from model_new_schema.condition import Condition, Temperaturecondition, \
@@ -26,7 +26,7 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
     if identifier is None:
         return None
     
-    query = session.query(Disambig).filter(Disambig.disambig_key==str(identifier).upper())
+    query = session.query(Disambig).filter(func.lower(Disambig.disambig_key)==func.lower(str(identifier)))
     if class_type is not None:
         query = query.filter(Disambig.class_type==class_type)
     if subclass_type is not None:
@@ -79,23 +79,6 @@ def get_all(cls, print_query=False):
         print query
     return objs
 
-def get_relations(obj_ids, relation_cls, print_query=False):
-    obj_id_set = set(obj_ids)
-    related_objs = set()
-    
-    query1 = session.query(relation_cls).filter(relation_cls.parent_id.in_(obj_id_set))
-    children = query1.all()
-    obj_ids.update([x for x in children if x.child_id in obj_id_set])
-    
-    query2 = session.query(relation_cls).filter(relation_cls.child_id.in_(obj_id_set))
-    parents = query2.all()
-    related_objs.update([x for x in parents if x.parent_id in obj_id_set])
-    
-    if print_query:
-        print query1
-        print query2
-    return related_objs
-
 two_bioent_evidence_cls = set([Geninteractionevidence, Physinteractionevidence, Regulationevidence])
 def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, print_query=False):
     query = session.query(evidence_cls)
@@ -105,13 +88,26 @@ def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, print_query=False
         else:
             query = query.filter(evidence_cls.bioentity_id == bioent_id)
     if biocon_id is not None:
-        query = query.filter(evidence_cls.bioconcept_id == biocon_id)
-        
-    evidence = query.all()
-    
+        evidences = []
+        child_ids = [x for x in get_all_bioconcept_children(biocon_id)]
+        num_chunks = ceil(1.0*len(child_ids)/500)
+        for i in range(num_chunks):
+            evidences.extend(query.filter(evidence_cls.bioconcept_id.in_(child_ids[i*500:(i+1)*500])).all())
+        return evidences    
     if print_query:
         print query
-    return evidence
+    return query.all()
+
+def get_all_bioconcept_children(parent_id):
+    all_child_ids = set()
+    new_parent_ids = [parent_id]
+    while len(new_parent_ids) > 0:
+        all_child_ids.update(new_parent_ids)
+        if len(new_parent_ids) == 0:
+            new_parent_ids = [x.child_id for x in session.query(Bioconceptrelation).filter(Bioconceptrelation.parent_id == new_parent_ids[0]).all()]
+        else:
+            new_parent_ids = [x.child_id for x in session.query(Bioconceptrelation).filter(Bioconceptrelation.parent_id.in_(new_parent_ids)).all()]
+    return all_child_ids         
 
 def get_conditions(evidence_ids, print_query=False):
     conditions = []

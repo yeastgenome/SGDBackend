@@ -56,8 +56,9 @@ class Bioconceptrelation(Relation):
     child = relationship('Bioconcept', uselist=False, backref=backref('parent_bioconcepts', cascade='all,delete'), primaryjoin="Bioconceptrelation.child_id==Bioconcept.id")
 
     def __init__(self, source, relation_type, parent, child, bioconrel_class_type, date_created, created_by):
-        Relation.__init__(self, parent.format_name + '|' + child.format_name + '|' + bioconrel_class_type, 
+        Relation.__init__(self, 
                           child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
+                          str(parent.id) + '-' + str(child.id) + '|' + bioconrel_class_type, 
                           'BIOCONCEPT', source, relation_type, date_created, created_by)
         self.parent_id = parent.id
         self.child_id = child.id
@@ -66,8 +67,9 @@ class Bioconceptrelation(Relation):
 class Bioconcepturl(Url):
     __tablename__ = 'bioconcepturl'
     
-    url_id = Column('url_id', Integer, primary_key=True)
+    id = Column('url_id', Integer, primary_key=True)
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
+    subclass_type = Column('subclass', String)
         
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
                        'inherit_condition': id == Url.id}
@@ -76,12 +78,14 @@ class Bioconcepturl(Url):
         Url.__init__(self, display_name, bioconcept.format_name, 'BIOCONCEPT', link, source, category, 
                      bioconcept.id, date_created, created_by)
         self.bioconcept_id = bioconcept.id
+        self.subclass_type = bioconcept.class_type
     
 class Bioconceptalias(Alias):
-    __tablename__ = 'bioconcepturl'
+    __tablename__ = 'bioconceptalias'
     
-    alias_id = Column('alias_id', Integer, primary_key=True)
+    id = Column('alias_id', Integer, primary_key=True)
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
+    subclass_type = Column('subclass', String)
 
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
                        'inherit_condition': id == Alias.id}
@@ -89,6 +93,7 @@ class Bioconceptalias(Alias):
     def __init__(self, display_name, source, category, bioconcept, date_created, created_by):
         Alias.__init__(self, display_name, bioconcept.format_name, 'BIOCONCEPT', source, category, date_created, created_by)
         self.bioconcept_id = bioconcept.id
+        self.subclass_type = bioconcept.class_type
 
 class ECNumber(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "EC_NUMBER",
@@ -135,9 +140,10 @@ def create_phenotype_format_name(observable, qualifier, mutant_type):
         observable = '.' if observable is None else observable
         qualifier = '.' if qualifier is None else qualifier
         mutant_type = '.' if mutant_type is None else mutant_type
-        format_name = qualifier + '|' + observable + '|' + mutant_type
-        format_name = format_name.replace(' ', '_')
-        format_name = format_name.replace('/', '-')
+        if qualifier is None and mutant_type is None:
+            format_name = create_format_name(observable)
+        else:  
+            format_name = qualifier + '_' + observable + '_' + mutant_type
     
     return format_name
         
@@ -156,9 +162,11 @@ class Phenotype(Bioconcept):
     def __init__(self, source, sgdid, description,
                  observable, qualifier, mutant_type, phenotype_type, 
                  date_created, created_by):
-        Bioconcept.__init__(self, create_phenotype_display_name(observable, qualifier, mutant_type), 
-                            create_phenotype_format_name(observable, qualifier, mutant_type), 
-                            'PHENOTYPE', None, source, sgdid, description, 
+        format_name = 'apo_ontology' if observable == 'observable' else create_phenotype_format_name(observable, qualifier, mutant_type)
+        display_name = 'APO Ontology' if observable == 'observable' else create_phenotype_display_name(observable, qualifier, mutant_type)
+        Bioconcept.__init__(self, display_name, 
+                            format_name, 
+                            'PHENOTYPE', '/phenotype/' + format_name + '/overview', source, sgdid, description, 
                             date_created, created_by)
         self.observable = observable
         self.qualifier = qualifier

@@ -7,6 +7,7 @@ from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.bioconcept import Bioconcept
 from model_new_schema.bioentity import Bioentity
 from model_new_schema.reference import Reference
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 
@@ -27,6 +28,23 @@ class Biofact(Base, EqualityByIDMixin):
 
     def unique_key(self):
         return (self.bioentity_id, self.bioconcept_id, self.bioentity_class_type, self.bioconcept_class_type)
+    
+class BioconceptCount(Base, EqualityByIDMixin):
+    __tablename__ = 'aux_bioconcept_count'
+
+    id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key=True)
+    genecount = Column('genecount', Integer)
+    class_type = Column('subclass', String)
+    
+    bioconcept = relationship(Bioconcept, backref=backref("count", uselist=False, lazy="joined"))
+    
+    def __init__(self, bioconcept, genecount):
+        self.id = bioconcept.id
+        self.genecount = genecount
+        self.class_type = bioconcept.class_type
+
+    def unique_key(self):
+        return self.id
     
 class Interaction(Base, EqualityByIDMixin):
     __tablename__ = "aux_interaction"

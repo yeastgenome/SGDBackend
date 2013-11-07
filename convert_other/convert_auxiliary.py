@@ -298,6 +298,113 @@ def convert_biofact(new_session_maker, evidence_class, bioconcept_class, bioconc
     log.info('complete')
     
 """
+--------------------- Convert BioconCount ---------------------
+"""
+
+def create_biocon_count(bioconcept, biocon_id_to_biofacts, biocon_id_to_children):
+    from model_new_schema.auxiliary import BioconceptCount as NewBioconceptCount
+    
+    bioent_ids = set()
+    if bioconcept.id in biocon_id_to_children:
+        child_ids = biocon_id_to_children[bioconcept.id]
+        for child_id in child_ids:
+            if child_id in biocon_id_to_biofacts:
+                bioent_ids.update([x.bioentity_id for x in biocon_id_to_biofacts[child_id]])
+    
+    return [NewBioconceptCount(bioconcept, len(bioent_ids))]
+
+def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
+    from model_new_schema.auxiliary import BioconceptCount, Biofact
+    from model_new_schema.bioconcept import Bioconceptrelation, Bioconcept
+    
+    log = logging.getLogger(label)
+    log.info('begin')
+    output_creator = OutputCreator(log)
+    
+    try:   
+        new_session = new_session_maker()
+         
+        #Values to check
+        values_to_check = ['genecount']     
+        
+        #Grab all current objects
+        current_objs = new_session.query(BioconceptCount).filter(BioconceptCount.class_type == bioconcept_class_type).all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+        
+        #Cache
+        biocon_id_to_biofacts = {}
+        for biofact in new_session.query(Biofact).filter(Biofact.bioconcept_class_type == bioconcept_class_type).all():
+            biocon_id = biofact.bioconcept_id
+            if biocon_id in biocon_id_to_biofacts:
+                biocon_id_to_biofacts[biocon_id].append(biofact)
+            else:
+                biocon_id_to_biofacts[biocon_id] = [biofact]
+                
+        biocon_id_to_parent_ids = {}
+        for bioconrelation in new_session.query(Bioconceptrelation).filter(Bioconceptrelation.bioconrel_class_type == bioconcept_class_type).all():
+            parent_id = bioconrelation.parent_id
+            child_id = bioconrelation.child_id
+            if child_id in biocon_id_to_parent_ids:
+                biocon_id_to_parent_ids[child_id].append(parent_id)
+            else:
+                biocon_id_to_parent_ids[child_id] = [parent_id]
+                
+        biocon_id_to_all_child_ids = {}
+        for child_id in biocon_id_to_parent_ids.keys():
+            parents = [child_id]
+            while len(parents) > 0:
+                new_parents = set()
+                for parent_id in parents:
+                    if parent_id in biocon_id_to_all_child_ids:
+                        biocon_id_to_all_child_ids[parent_id].add(child_id)
+                    else:
+                        biocon_id_to_all_child_ids[parent_id] = set([child_id])
+                    if parent_id in biocon_id_to_parent_ids:
+                        new_parents.update(biocon_id_to_parent_ids[parent_id])
+                parents = new_parents
+            
+        untouched_obj_ids = set(id_to_current_obj.keys())
+        
+        used_unique_keys = set()   
+        
+        old_objs = new_session.query(Bioconcept).filter(Bioconcept.class_type == bioconcept_class_type).all()
+        
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_biocon_count(old_obj, biocon_id_to_biofacts, biocon_id_to_all_child_ids)
+     
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                unique_key = newly_created_obj.unique_key()
+                if unique_key not in used_unique_keys:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    used_unique_keys.add(unique_key)
+                    
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
+            
+        #Delete untouched objs
+        for untouched_obj_id  in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+        
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+        
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
+        
+    log.info('complete')
+    
+"""
 --------------------- Convert Interaction ---------------------
 """
 
