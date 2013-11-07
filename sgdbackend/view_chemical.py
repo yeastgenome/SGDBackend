@@ -5,7 +5,7 @@ Created on Mar 15, 2013
 '''
 from model_new_schema.chemical import Chemicalrelation
 from sgdbackend_query.query_misc import get_relations
-from sgdbackend_utils.cache import id_to_biocon
+from sgdbackend_utils.cache import id_to_chem
 
 '''
 -------------------------------Ontology Graph---------------------------------------
@@ -29,7 +29,7 @@ def make_ontology_graph(phenotype_id):
         greatgrandparents = get_relations(Chemicalrelation, None, child_ids=[parent.parent_id for parent in grandparents])
         greatgreatgrandparents = get_relations(Chemicalrelation, None, child_ids=[parent.parent_id for parent in greatgrandparents])
         nodes = []
-        nodes.append(create_node(id_to_biocon[phenotype_id], True, True, True))
+        nodes.append(create_node(id_to_chem[phenotype_id], True, True, True))
         
         child_ids = set([x.child_id for x in children])
         parent_ids = set([x.parent_id for x in parents])
@@ -37,8 +37,8 @@ def make_ontology_graph(phenotype_id):
         parent_ids.update([x.parent_id for x in greatgrandparents])
         parent_ids.update([x.parent_id for x in greatgreatgrandparents])
         
-        nodes.extend([create_node(id_to_biocon[x], False, True, False) for x in child_ids])
-        nodes.extend([create_node(id_to_biocon[x], False, False, True) for x in parent_ids])
+        nodes.extend([create_node(id_to_chem[x], False, True, False) for x in child_ids])
+        nodes.extend([create_node(id_to_chem[x], False, False, True) for x in parent_ids])
         
         edges = []
         edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in children])
@@ -53,8 +53,8 @@ def make_ontology_graph(phenotype_id):
         child_ids.update([x.child_id for x in grandchildren])  
         
         nodes = []
-        nodes.append(create_node(id_to_biocon[phenotype_id], True, True, True))
-        nodes.extend([create_node(id_to_biocon[x], False, True, False) for x in child_ids])
+        nodes.append(create_node(id_to_chem[phenotype_id], True, True, True))
+        nodes.extend([create_node(id_to_chem[x], False, True, False) for x in child_ids])
         
         edges = []
         edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in children])
