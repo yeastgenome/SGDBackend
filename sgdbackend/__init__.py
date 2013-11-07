@@ -82,6 +82,19 @@ class SGDBackend(BackendInterface):
         from sgdbackend_utils.cache import id_to_biocon
         return json.dumps([id_to_biocon[x] for x in biocon_ids])
     
+    #Chemical
+    def chemical(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_chem
+        chemical_id = get_obj_id(identifier, class_type='CHEMICAL')
+        return None if chemical_id is None else json.dumps(id_to_chem[chemical_id])
+    
+    def chemical_ontology_graph(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_chemical
+        chemical_id = get_obj_id(identifier, class_type='CHEMICAL')
+        return None if chemical_id is None else json.dumps(view_chemical.make_ontology_graph(chemical_id))
+    
     #Reference
     def reference(self, identifier):
         from sgdbackend_query import get_obj_id
@@ -205,12 +218,14 @@ class SGDBackend(BackendInterface):
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_phenotype.make_overview(locus_id))
     
-    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None):
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_phenotype
         locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         phenotype_id = None if phenotype_identifier is None else get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id))
+        chemical_id = None if chemical_identifier is None else get_obj_id(chemical_identifier, class_type='CHEMICAL')
+        
+        return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id, chemical_id=chemical_id))
             
     #Protein
     def protein_domain_details(self, identifier):

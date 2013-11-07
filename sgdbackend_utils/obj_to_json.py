@@ -28,6 +28,7 @@ def bioitem_to_json(bioitem):
     
 def chemical_to_json(chem):
     return {
+            'format_name': chem.format_name,
             'display_name': chem.display_name, 
             'link': chem.link,
             'id': chem.id

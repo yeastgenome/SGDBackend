@@ -18,7 +18,9 @@ def get_urls(category, bioent_id=None, print_query=False):
 
 #Used for ontology graphs
 def get_relations(cls, subclass_type, parent_ids=None, child_ids=None, print_query=False):
-    query = session.query(cls).filter(cls.bioconrel_class_type==subclass_type)
+    query = session.query(cls)
+    if subclass_type is not None:
+        query = query.filter(cls.bioconrel_class_type==subclass_type)
     if (parent_ids is not None and len(parent_ids) == 0) or (child_ids is not None and len(child_ids) == 0):
         return []
     if parent_ids is not None:

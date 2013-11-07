@@ -71,6 +71,15 @@ class BackendInterface:
     def bioconcept_list(self, biocon_ids):
         return None
     
+    #Chemical
+    @abstractmethod
+    def chemical(self, identifier):
+        return None
+    
+    @abstractmethod
+    def chemical_ontology_graph(self, identifier):
+        return None
+    
     #Go
     @abstractmethod
     def go(self, identifier):
@@ -136,7 +145,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None):
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None):
         return None
     
     #Protein

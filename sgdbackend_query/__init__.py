@@ -80,13 +80,16 @@ def get_all(cls, print_query=False):
     return objs
 
 two_bioent_evidence_cls = set([Geninteractionevidence, Physinteractionevidence, Regulationevidence])
-def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, print_query=False):
+def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None, print_query=False):
+    ok_evidence_ids = None
     query = session.query(evidence_cls)
     if bioent_id is not None:
         if evidence_cls in two_bioent_evidence_cls:
             query = query.filter(or_(evidence_cls.bioentity1_id == bioent_id, evidence_cls.bioentity2_id == bioent_id))
         else:
             query = query.filter(evidence_cls.bioentity_id == bioent_id)
+    if chemical_id is not None:
+        ok_evidence_ids = set([x.evidence_id for x in session.query(Chemicalcondition).filter(Chemicalcondition.chemical_id == chemical_id).all()])
     if biocon_id is not None:
         evidences = []
         child_ids = [x for x in get_all_bioconcept_children(biocon_id)]
@@ -96,7 +99,7 @@ def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, print_query=False
         return evidences    
     if print_query:
         print query
-    return query.all()
+    return query.all() if ok_evidence_ids is None else [x for x in query.all() if x.id in ok_evidence_ids]
 
 def get_all_bioconcept_children(parent_id):
     all_child_ids = set()
