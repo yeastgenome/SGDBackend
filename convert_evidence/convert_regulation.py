@@ -5,8 +5,7 @@ Created on Sep 10, 2013
 '''
 from convert_other.convert_auxiliary import convert_bioentity_reference, \
     convert_interaction
-from convert_utils import create_or_update, set_up_logging, create_format_name, \
-    break_up_file, prepare_connections
+from convert_utils import create_or_update, create_format_name, break_up_file
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil, floor
 import logging
@@ -358,10 +357,6 @@ def convert_paragraph_reference(new_session_maker):
 """  
 
 def convert(new_session_maker):
-    log = set_up_logging('convert.regulation')
-    
-    log.info('begin')
-    
     convert_evidence(new_session_maker, 300)    
         
     from model_new_schema.evidence import Regulationevidence
@@ -374,10 +369,6 @@ def convert(new_session_maker):
     convert_interaction(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.interaction', 10000, True)
     
     convert_bioentity_reference(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.bioentity_reference', 10000, get_bioent_ids_f)
-            
-    log.info('complete')
-    
-if __name__ == "__main__":
-    new_session_maker = prepare_connections(need_old=False)
-    convert(new_session_maker)
+                
+
     

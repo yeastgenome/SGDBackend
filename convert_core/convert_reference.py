@@ -3,8 +3,7 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, prepare_connections, \
-    create_format_name
+from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
@@ -393,22 +392,12 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
 """   
 
 def convert(old_session_maker, new_session_maker):
-    log = set_up_logging('convert.reference')
-    requests_log = logging.getLogger("requests")
-    requests_log.setLevel(logging.WARNING)
-            
-    log.info('begin')
-        
     convert_journal(old_session_maker, new_session_maker)
     
     convert_book(old_session_maker, new_session_maker)
     
     convert_reference(old_session_maker, new_session_maker, 3000)
-    
-    log.info('complete')
-   
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)   
+
+
    
 

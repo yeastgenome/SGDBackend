@@ -3,8 +3,7 @@ Created on Sep 25, 2013
 
 @author: kpaskov
 '''
-from convert_utils import set_up_logging, create_or_update, \
-    prepare_connections
+from convert_utils import create_or_update
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.sql.expression import or_
 import logging
@@ -93,12 +92,5 @@ def convert_chemical(old_session_maker, new_session_maker):
 """  
 
 def convert(old_session_maker, new_session_maker):
-    log = set_up_logging('convert.chemical')
-    
-    log.info('begin')
-            
     convert_chemical(old_session_maker, new_session_maker)
     
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)

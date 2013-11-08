@@ -267,23 +267,6 @@ class SGDBackend(BackendInterface):
         from sgdbackend_query.query_auxiliary import get_disambigs
         from sgdbackend_utils.obj_to_json import disambig_to_json
         return json.dumps([disambig_to_json(x) for x in get_disambigs(min_id, max_id)])
-
-def prepare_sgdbackend(**configs):    
-    config_args = {}
-    if 'DBTYPE' in configs:
-        config_args['DBTYPE'] = configs['DBTYPE']
-    if 'DBUSER' in configs:
-        config_args['DBUSER'] = configs['DBUSER']
-    if 'DBPASS' in configs:
-        config_args['DBPASS'] = configs['DBPASS']
-    if 'DBHOST' in configs:
-        config_args['DBHOST'] = configs['DBHOST']
-    if 'DBNAME' in configs:
-        config_args['DBNAME'] = configs['DBNAME']
-    if 'SCHEMA' in configs:
-        config_args['SCHEMA'] = configs['SCHEMA']
-    chosen_backend = SGDBackend(**config_args)
-    return chosen_backend
       
             
     

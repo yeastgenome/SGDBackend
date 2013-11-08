@@ -3,8 +3,7 @@ Created on Sep 20, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, break_up_file, \
-    create_format_name, prepare_connections
+from convert_utils import create_or_update, break_up_file, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil, floor
 import logging
@@ -407,17 +406,10 @@ def convert_domain_evidence(new_session_maker, chunk_size):
 """   
 
 def convert(new_session_maker):  
-    log = set_up_logging('convert.protein_domain')
-    log.info('begin')
-        
     convert_domain(new_session_maker, 5000)
     
     convert_domain_evidence(new_session_maker, 1000)
-    
-    log.info('complete')
-    
-if __name__ == "__main__":
-    new_session_maker = prepare_connections(need_old=False)
-    convert(new_session_maker)   
+        
+
     
     

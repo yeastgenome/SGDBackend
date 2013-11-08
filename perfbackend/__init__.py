@@ -294,20 +294,4 @@ def get_data(table_name, obj_id):
         return None if data is None else data.json
     return None
         
-def prepare_perfbackend(**configs):  
-    config_args = {}
-    if 'DBTYPE' in configs:
-        config_args['DBTYPE'] = configs['DBTYPE']
-    if 'DBUSER' in configs:
-        config_args['DBUSER'] = configs['DBUSER']
-    if 'DBPASS' in configs:
-        config_args['DBPASS'] = configs['DBPASS']
-    if 'DBHOST' in configs:
-        config_args['DBHOST'] = configs['DBHOST']
-    if 'DBNAME' in configs:
-        config_args['DBNAME'] = configs['DBNAME']
-    if 'SCHEMA' in configs:
-        config_args['SCHEMA'] = configs['SCHEMA']
-    chosen_backend = PerfBackend(**config_args)
-    return chosen_backend
             

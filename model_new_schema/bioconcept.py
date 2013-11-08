@@ -5,7 +5,6 @@ Created on Nov 28, 2012
 '''
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.misc import Url, Alias, Relation
-from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
@@ -51,10 +50,6 @@ class Bioconceptrelation(Relation):
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
                        'inherit_condition': id == Relation.id}
    
-    #Relationships
-    parent = relationship('Bioconcept', uselist=False, backref=backref('child_bioconcepts', cascade='all,delete'), primaryjoin="Bioconceptrelation.parent_id==Bioconcept.id")
-    child = relationship('Bioconcept', uselist=False, backref=backref('parent_bioconcepts', cascade='all,delete'), primaryjoin="Bioconceptrelation.child_id==Bioconcept.id")
-
     def __init__(self, source, relation_type, parent, child, bioconrel_class_type, date_created, created_by):
         Relation.__init__(self, parent.format_name + '|' + child.format_name + '|' + bioconrel_class_type, 
                           child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
@@ -66,7 +61,7 @@ class Bioconceptrelation(Relation):
 class Bioconcepturl(Url):
     __tablename__ = 'bioconcepturl'
     
-    url_id = Column('url_id', Integer, primary_key=True)
+    id = Column('url_id', Integer, primary_key=True)
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
         
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
@@ -80,7 +75,7 @@ class Bioconcepturl(Url):
 class Bioconceptalias(Alias):
     __tablename__ = 'bioconcepturl'
     
-    alias_id = Column('alias_id', Integer, primary_key=True)
+    id = Column('alias_id', Integer, primary_key=True)
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
 
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',

@@ -4,7 +4,7 @@ Created on Oct 25, 2013
 @author: kpaskov
 '''
 from convert_other.convert_auxiliary import convert_disambigs
-from convert_utils import set_up_logging, prepare_connections, create_or_update
+from convert_utils import create_or_update
 from convert_utils.output_manager import OutputCreator
 import logging
 import sys
@@ -95,10 +95,6 @@ def convert_ecnumber_relation(new_session_maker):
 """   
 
 def convert(old_session_maker, new_session_maker):  
-    log = set_up_logging('convert.bioconcept_in_depth')
-    
-    log.info('begin')
-    
     convert_ecnumber_relation(new_session_maker)
             
     from model_new_schema.bioconcept import Phenotype
@@ -106,9 +102,4 @@ def convert(old_session_maker, new_session_maker):
  
     from model_new_schema.bioconcept import Go
     convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
-    
-    log.info('complete')
-    
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)   
+        

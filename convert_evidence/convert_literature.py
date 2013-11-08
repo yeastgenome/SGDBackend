@@ -4,8 +4,7 @@ Created on Jul 3, 2013
 @author: kpaskov
 '''
 from convert_other.convert_auxiliary import convert_bioentity_reference
-from convert_utils import create_or_update, set_up_logging, \
-    prepare_connections
+from convert_utils import create_or_update
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
@@ -124,10 +123,6 @@ def convert_litevidence(old_session_maker, new_session_maker, chunk_size):
     log.info('complete')
 
 def convert(old_session_maker, new_session_maker):
-    log = set_up_logging('convert.literature')
-    
-    log.info('begin')
-    
     convert_litevidence(old_session_maker, new_session_maker, 200)
     
     from model_new_schema.evidence import Literatureevidence
@@ -141,8 +136,3 @@ def convert(old_session_maker, new_session_maker):
     convert_bioentity_reference(new_session_maker, Literatureevidence, 'REVIEW_LITERATURE', 'convert.literature.review_bioentity_reference', 
                                 100000, get_bioent_ids_f, filter_f = lambda x: x.topic=='Reviews')
     
-    log.info('complete')
-
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)

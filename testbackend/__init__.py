@@ -348,8 +348,4 @@ class TestBackend(BackendInterface):
     #Misc
     def all_disambigs(self, min_id, max_id):
         return None
-        
-def prepare_testbackend(**configs):  
-    chosen_backend = TestBackend()
-    return chosen_backend
             

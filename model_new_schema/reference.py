@@ -300,10 +300,6 @@ class Referencerelation(Relation):
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE',
                        'inherit_condition': id == Relation.id}
    
-    #Relationships
-    parent = relationship(Reference, uselist=False, primaryjoin="Referencerelation.parent_id==Reference.id")
-    child = relationship(Reference, uselist=False, primaryjoin="Referencerelation.child_id==Reference.id")
-
     def __init__(self, source, relation_type, parent, child, date_created, created_by):
         Relation.__init__(self, parent.format_name + '|' + child.format_name, 
                           child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
