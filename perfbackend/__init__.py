@@ -14,7 +14,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import MetaData
 from sqlalchemy.sql.expression import select
 from zope.sqlalchemy import ZopeTransactionExtension
-import config
 import json
 import logging
 import model_perf_schema
@@ -24,14 +23,14 @@ import uuid
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
 class PerfBackend(BackendInterface):
-    def __init__(self, DBTYPE=config.DBTYPE, DBUSER=config.DBUSER, DBPASS=config.DBPASS, DBHOST=config.DBHOST, DBNAME=config.DBNAME, SCHEMA=config.SCHEMA):
+    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass):
         class Base(object):
-            __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+            __table_args__ = {'schema': schema, 'extend_existing':True}
                 
-        model_perf_schema.SCHEMA = SCHEMA
+        model_perf_schema.SCHEMA = schema
         model_perf_schema.Base = declarative_base(cls=Base)
 
-        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+        engine = create_engine("%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname), convert_unicode=True, pool_recycle=3600)
 
         DBSession.configure(bind=engine)
         model_perf_schema.Base.metadata.bind = engine

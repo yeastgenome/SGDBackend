@@ -19,7 +19,7 @@ class NexPerfConverter(ConverterInterface):
         self.session_maker = prepare_schema_connection(model_perf_schema, perf_dbtype, perf_dbhost, perf_dbname, perf_schema, perf_dbuser, perf_dbpass)
         check_session_maker(self.session_maker, perf_dbhost, perf_schema)
         
-        self.backend = SGDBackend(DBTYPE=nex_dbtype, DBHOST=nex_dbhost, DBNAME=nex_dbname, SCHEMA=nex_schema, DBUSER=nex_dbuser, DBPASS=nex_dbpass)
+        self.backend = SGDBackend(nex_dbtype, nex_dbhost, nex_dbname, nex_schema, nex_dbuser, nex_dbpass)
         
         from model_perf_schema.core import Bioentity
         self.bioentity_ids = [x.id for x in self.session_maker().query(Bioentity).all()]

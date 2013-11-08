@@ -16,13 +16,13 @@ import uuid
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
 class SGDBackend(BackendInterface):
-    def __init__(self, DBTYPE=config.DBTYPE, DBUSER=config.DBUSER, DBPASS=config.DBPASS, DBHOST=config.DBHOST, DBNAME=config.DBNAME, SCHEMA=config.SCHEMA):
+    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass):
         class Base(object):
-            __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+            __table_args__ = {'schema': schema, 'extend_existing':True}
                 
-        model_new_schema.SCHEMA = SCHEMA
+        model_new_schema.SCHEMA = schema
         model_new_schema.Base = declarative_base(cls=Base)
-        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), pool_recycle=3600)
+        engine = create_engine("%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname), pool_recycle=3600)
 
         DBSession.configure(bind=engine)
         model_new_schema.Base.metadata.bind = engine

@@ -224,16 +224,16 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('binding_site_details'))
     
-def prepare_backend(backend_type, **configs):
+def prepare_backend(backend_type):
     config = Configurator()
     config.add_static_view('static', 'static', cache_max_age=3600)
     
     if backend_type == 'sgdbackend':
-        from sgdbackend import SGDBackend
-        chosen_backend = SGDBackend()
+        from sgdbackend import SGDBackend, config as sgdbackend_config
+        chosen_backend = SGDBackend(sgdbackend_config.DBTYPE, sgdbackend_config.DBHOST, sgdbackend_config.DBNAME, sgdbackend_config.SCHEMA, sgdbackend_config.DBUSER, sgdbackend_config.DBPASS)
     elif backend_type == 'perfbackend':
-        from perfbackend import PerfBackend
-        chosen_backend = PerfBackend()
+        from perfbackend import PerfBackend, config as perfbackend_config
+        chosen_backend = PerfBackend(perfbackend_config.DBTYPE, perfbackend_config.DBHOST, perfbackend_config.DBNAME, perfbackend_config.SCHEMA, perfbackend_config.DBUSER, perfbackend_config.DBPASS)
     elif backend_type == 'testbackend':
         from testbackend import TestBackend
         chosen_backend = TestBackend()
@@ -244,17 +244,17 @@ def prepare_backend(backend_type, **configs):
 def sgdbackend(global_config, **configs):
     """ This function returns a Pyramid WSGI application.
     """
-    config = prepare_backend('sgdbackend', **configs)
+    config = prepare_backend('sgdbackend')
     return config.make_wsgi_app()   
     
 def perfbackend(global_config, **configs):
     """ This function returns a Pyramid WSGI application.
     """
-    config = prepare_backend('perfbackend', **configs)
+    config = prepare_backend('perfbackend')
     return config.make_wsgi_app()   
 
 def testbackend(global_config, **configs):
     """ This function returns a Pyramid WSGI application.
     """
-    config = prepare_backend('testbackend', **configs)
+    config = prepare_backend('testbackend')
     return config.make_wsgi_app()  
