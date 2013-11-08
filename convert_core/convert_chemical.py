@@ -41,7 +41,7 @@ def convert_chemical(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs]) 
                   
         #Values to check
-        values_to_check = ['source_id']
+        values_to_check = ['source_id', 'link', 'display_name']
                 
         untouched_obj_ids = set(id_to_current_obj.keys())
         
