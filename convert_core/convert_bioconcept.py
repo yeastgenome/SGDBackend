@@ -3,7 +3,7 @@ Created on Oct 25, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, prepare_connections
+from convert_utils import create_or_update
 from convert_utils.output_manager import OutputCreator
 import logging
 import sys
@@ -288,18 +288,9 @@ def convert_ecnumber(old_session_maker, new_session_maker):
 """  
 
 def convert(old_session_maker, new_session_maker):
-    log = set_up_logging('convert.bioconcept')
-    
-    log.info('begin')
-            
     convert_phenotype(old_session_maker, new_session_maker)
     
     convert_go(old_session_maker, new_session_maker)
     
     convert_ecnumber(old_session_maker, new_session_maker)
     
-    log.info('complete')
-
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)

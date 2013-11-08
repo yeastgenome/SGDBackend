@@ -45,11 +45,7 @@ class Experimentrelation(Relation):
     
     __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT',
                        'inherit_condition': id == Relation.id}
-   
-    #Relationships
-    parent = relationship(Experiment, uselist=False, primaryjoin="Experimentrelation.parent_id==Experiment.id")
-    child = relationship(Experiment, uselist=False, primaryjoin="Experimentrelation.child_id==Experiment.id")
-
+    
     def __init__(self, source, relation_type, parent, child, date_created, created_by):
         Relation.__init__(self, parent.format_name + '|' + child.format_name, 
                           child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 

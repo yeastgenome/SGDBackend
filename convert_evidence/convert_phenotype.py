@@ -5,8 +5,7 @@ Created on May 6, 2013
 '''
 from convert_other.convert_auxiliary import convert_bioentity_reference, \
     convert_biofact
-from convert_utils import set_up_logging, create_or_update, create_format_name, \
-    prepare_connections
+from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
@@ -219,10 +218,6 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
 """  
 
 def convert(old_session_maker, new_session_maker):
-    log = set_up_logging('convert.phenotype')
-    
-    log.info('begin')
-            
     convert_evidence(old_session_maker, new_session_maker, 1000)
             
     from model_new_schema.evidence import Phenotypeevidence
@@ -231,10 +226,7 @@ def convert(old_session_maker, new_session_maker):
     convert_bioentity_reference(new_session_maker, Phenotypeevidence, 'PHENOTYPE', 'convert.phenotype.bioentity_reference', 10000, get_bioent_ids_f)
 
     convert_biofact(new_session_maker, Phenotypeevidence, Phenotype, 'PHENOTYPE', 'convert.phenotype.biofact', 10000)
-    log.info('complete')
 
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)
+
     
     

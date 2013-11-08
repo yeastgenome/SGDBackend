@@ -3,8 +3,7 @@ Created on Jun 4, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, create_format_name, \
-    break_up_file, prepare_connections
+from convert_utils import create_or_update, create_format_name, break_up_file
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 import logging
@@ -505,10 +504,6 @@ def convert_source(old_session_maker, new_session_maker):
 """  
 
 def convert(old_session_maker, new_session_maker):
-    log = set_up_logging('convert.evelements')
-    
-    log.info('begin')
-    
     convert_source(old_session_maker, new_session_maker)
     
     convert_experiment(old_session_maker, new_session_maker)
@@ -518,11 +513,7 @@ def convert(old_session_maker, new_session_maker):
     convert_experiment_relation(old_session_maker, new_session_maker)
     
     convert_strain(old_session_maker, new_session_maker)
-    
-    log.info('complete')
 
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)
+
     
 

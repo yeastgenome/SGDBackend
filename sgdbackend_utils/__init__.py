@@ -3,10 +3,13 @@ Created on Mar 12, 2013
 
 @author: kpaskov
 '''
+from datetime import datetime
 from mpmath import ceil
+from sgdbackend.config import log_directory
 from sgdbackend_query import get_obj_id, get_multi_obj_ids
 from sgdbackend_utils.cache import id_to_bioent, id_to_reference
 from string import upper
+import logging
 
 def make_references(bioent_ref_types, bioent_id, only_primary=False):
     from sgdbackend_query.query_auxiliary import get_bioentity_references
@@ -85,3 +88,17 @@ def retrieve_in_chunks(ids, f):
             chunk_ids = ids[min_index:max_index]
         result.update(f(chunk_ids))
     return result
+
+def set_up_logging(label):
+    logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.INFO)
+    log = logging.getLogger(label)
+    
+    if log_directory is not None:
+        hdlr = logging.FileHandler(log_directory + '/' + label + '.' + str(datetime.now().date()) + '.txt')
+        formatter = logging.Formatter('%(asctime)s %(name)s: %(message)s')
+        hdlr.setFormatter(formatter)
+    else:
+        hdlr = logging.NullHandler()
+    log.addHandler(hdlr) 
+    log.setLevel(logging.INFO)
+    return log

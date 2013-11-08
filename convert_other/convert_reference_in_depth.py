@@ -4,8 +4,7 @@ Created on Feb 27, 2013
 @author: kpaskov
 '''
 from convert_other.convert_auxiliary import convert_disambigs
-from convert_utils import create_or_update, set_up_logging, create_format_name, \
-    prepare_connections
+from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
@@ -870,12 +869,6 @@ def convert_url(new_session_maker, chunk_size):
 """   
 
 def convert(old_session_maker, new_session_maker):
-    log = set_up_logging('convert.reference_in_depth')
-    requests_log = logging.getLogger("requests")
-    requests_log.setLevel(logging.WARNING)
-            
-    log.info('begin')
-    
     convert_abstract(old_session_maker, new_session_maker, 3000)
     
     convert_author(old_session_maker, new_session_maker, 10000)
@@ -896,11 +889,7 @@ def convert(old_session_maker, new_session_maker):
     
     from model_new_schema.reference import Reference
     convert_disambigs(new_session_maker, Reference, ['id', 'sgdid'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
-    
-    log.info('complete')
    
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)   
+
    
 

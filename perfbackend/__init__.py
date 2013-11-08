@@ -1,8 +1,9 @@
 from backend.backend_interface import BackendInterface
-from config import DBUSER, DBPASS, DBHOST, DBNAME, DBTYPE, SCHEMA
+from datetime import datetime
 from go_enrichment import query_batter
 from model_perf_schema.data import create_data_classes, data_classes
 from mpmath import ceil
+from perfbackend_utils import set_up_logging
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from pyramid.response import Response
@@ -14,32 +15,40 @@ from sqlalchemy.schema import MetaData
 from sqlalchemy.sql.expression import select
 from zope.sqlalchemy import ZopeTransactionExtension
 import json
+import logging
 import model_perf_schema
 import sys
+import uuid
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-class Base(object):
-    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
-        
-model_perf_schema.SCHEMA = SCHEMA
-model_perf_schema.Base = declarative_base(cls=Base)
 
 class PerfBackend(BackendInterface):
-    def __init__(self, config):
-        engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass):
+        class Base(object):
+            __table_args__ = {'schema': schema, 'extend_existing':True}
+                
+        model_perf_schema.SCHEMA = schema
+        model_perf_schema.Base = declarative_base(cls=Base)
+
+        engine = create_engine("%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname), convert_unicode=True, pool_recycle=3600)
 
         DBSession.configure(bind=engine)
         model_perf_schema.Base.metadata.bind = engine
 
         create_data_classes()
         
+        self.log = set_up_logging('perfbackend')
+        
     #Renderer
     def get_renderer(self, method_name):
         return 'string'
     
-    def response_wrapper(self, method_name):
-        def f(data, request):
-            callback = None if 'callback' not in request.GET else request.GET['callback']
+    def response_wrapper(self, method_name, request):
+        request_id = str(uuid.uuid4())
+        callback = None if 'callback' not in request.GET else request.GET['callback']
+        self.log.info(request_id + ' ' + method_name + ('' if 'identifier' not in request.matchdict else ' ' + request.matchdict['identifier']))
+        def f(data):
+            self.log.info(request_id + ' end')
             if callback is not None:
                 return Response(body="%s(%s)" % (callback, data), content_type='application/json')
             else:
@@ -227,8 +236,8 @@ class PerfBackend(BackendInterface):
                             'class_type': disambig.class_type,
                             'subclass_type': disambig.subclass_type,
                             'identifier': disambig.identifier} 
-                        for disambig in disambigs])    
-
+                        for disambig in disambigs]) 
+        
 #Useful methods
 def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=False):
     from model_perf_schema.core import Disambig
@@ -283,4 +292,5 @@ def get_data(table_name, obj_id):
         data = DBSession.query(data_cls).filter(data_cls.id == obj_id).first()
         return None if data is None else data.json
     return None
+        
             

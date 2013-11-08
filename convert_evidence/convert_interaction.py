@@ -4,8 +4,7 @@ Created on May 6, 2013
 @author: kpaskov
 '''
 from convert_other.convert_auxiliary import convert_interaction, convert_bioentity_reference
-from convert_utils import create_or_update, set_up_logging, create_format_name, \
-    prepare_connections
+from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
@@ -257,10 +256,6 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
 """  
 
 def convert(old_session_maker, new_session_maker):
-    log = set_up_logging('convert.interaction')
-    
-    log.info('begin')
-        
     convert_interevidence(old_session_maker, new_session_maker, 200)
     
     from model_new_schema.evidence import Physinteractionevidence
@@ -273,11 +268,7 @@ def convert(old_session_maker, new_session_maker):
           
     convert_interaction(new_session_maker, Physinteractionevidence, 'PHYSINTERACTION', 'convert.physical_interaction.interaction', 10000, False)
     convert_interaction(new_session_maker, Geninteractionevidence, 'GENINTERACTION', 'convert.genetic_interaction.interaction', 10000, False)
- 
-    log.info('complete')
     
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)   
+
    
     

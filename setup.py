@@ -51,5 +51,6 @@ setup(name='SGDBackend',
       [paste.app_factory]
       sgdbackend = backend:sgdbackend
       perfbackend = backend:perfbackend
+      testbackend = backend:testbackend
       """,
       )

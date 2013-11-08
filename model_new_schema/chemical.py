@@ -5,7 +5,6 @@ Created on Jun 4, 2013
 '''
 from model_new_schema import Base, create_format_name
 from model_new_schema.misc import Alias, Relation
-from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 
@@ -54,10 +53,6 @@ class Chemicalrelation(Relation):
     
     __mapper_args__ = {'polymorphic_identity': 'CHEMICAL',
                        'inherit_condition': id == Relation.id}
-   
-    #Relationships
-    parent = relationship(Chemical, uselist=False, primaryjoin="Chemicalrelation.parent_id==Chemical.id")
-    child = relationship(Chemical, uselist=False, primaryjoin="Chemicalrelation.child_id==Chemical.id")
 
     def __init__(self, source, relation_type, parent, child, date_created, created_by):
         Relation.__init__(self, parent.format_name + '|' + child.format_name, 

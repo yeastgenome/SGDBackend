@@ -4,8 +4,7 @@ Created on May 31, 2013
 @author: kpaskov
 '''
 from convert_other.convert_auxiliary import convert_disambigs
-from convert_utils import create_or_update, set_up_logging, prepare_connections, \
-    create_format_name
+from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
@@ -393,10 +392,6 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
 """   
 
 def convert(old_session_maker, new_session_maker):  
-    log = set_up_logging('convert.bioentity_in_depth')
-    
-    log.info('begin')
-            
     convert_alias(old_session_maker, new_session_maker)
     
     convert_url(old_session_maker, new_session_maker, 1000)
@@ -408,11 +403,7 @@ def convert(old_session_maker, new_session_maker):
  
     from model_new_schema.bioentity import Protein
     convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.bioentity_in_depth.protein_disambigs', 10000)
-       
-    log.info('complete')
     
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)   
+
    
 
