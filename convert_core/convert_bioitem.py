@@ -3,8 +3,7 @@ Created on Oct 25, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, prepare_connections, \
-    create_format_name
+from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.sql.expression import distinct
@@ -199,15 +198,6 @@ def convert_go_bioitems(old_session_maker, new_session_maker):
 """  
 
 def convert(old_session_maker, new_session_maker):
-    log = set_up_logging('convert.bioitems')
-    
-    log.info('begin')
-            
     convert_phenotype_bioitems(old_session_maker, new_session_maker)
     
     convert_go_bioitems(old_session_maker, new_session_maker)
-    
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)
-    

@@ -229,14 +229,14 @@ def prepare_backend(backend_type, **configs):
     config.add_static_view('static', 'static', cache_max_age=3600)
     
     if backend_type == 'sgdbackend':
-        from sgdbackend import prepare_sgdbackend
-        chosen_backend = prepare_sgdbackend(**configs)
+        from sgdbackend import SGDBackend
+        chosen_backend = SGDBackend()
     elif backend_type == 'perfbackend':
-        from perfbackend import prepare_perfbackend
-        chosen_backend = prepare_perfbackend(**configs)
+        from perfbackend import PerfBackend
+        chosen_backend = PerfBackend()
     elif backend_type == 'testbackend':
-        from testbackend import prepare_testbackend
-        chosen_backend = prepare_testbackend(**configs)
+        from testbackend import TestBackend
+        chosen_backend = TestBackend()
         
     prep_views(chosen_backend, config)
     return config

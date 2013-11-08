@@ -3,7 +3,7 @@ Created on May 31, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, set_up_logging, prepare_connections
+from convert_utils import create_or_update
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 import logging
@@ -201,18 +201,8 @@ def convert_protein(old_session_maker, new_session_maker):
 """   
 
 def convert(old_session_maker, new_session_maker):  
-    log = set_up_logging('convert.bioentity')
-    
-    log.info('begin')
-        
     convert_locus(old_session_maker, new_session_maker)
 
     convert_protein(old_session_maker, new_session_maker)
-        
-    log.info('complete')
-    
-if __name__ == "__main__":
-    old_session_maker, new_session_maker = prepare_connections()
-    convert(old_session_maker, new_session_maker)   
    
 

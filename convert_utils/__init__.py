@@ -3,7 +3,8 @@ Created on Oct 10, 2013
 
 @author: kpaskov
 '''
-from convert_utils import config_passwords
+
+from convert.config import log_directory
 from datetime import datetime
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative.api import declarative_base
@@ -14,68 +15,32 @@ import model_new_schema
 import model_old_schema
 import sys
 
-def check_session_maker(session_maker, DBHOST, is_old):
-    if is_old:
-        from model_old_schema.feature import Feature
-        query = session_maker().query(Feature)
-    else:
-        from model_new_schema.bioentity import Bioentity
-        query = session_maker().query(Bioentity)
+def check_session_maker(session_maker, DBHOST, SCHEMA):
+    if SCHEMA == 'bud':
+        from model_old_schema import feature
+        query = session_maker().query(feature.Feature)
+    elif SCHEMA == 'nex':
+        from model_new_schema import bioentity
+        query = session_maker().query(bioentity.Bioentity)
+    elif SCHEMA == 'perf':
+        from model_perf_schema import core
+        query = session_maker().query(core.Bioentity)
     query.first()
     try:
         query.first()
     except:
         raise Exception("Connection to " + DBHOST + " failed. Please check your parameters.") 
 
-def prepare_connections(need_old=True):
-    if need_old:
-        if len(sys.argv) == 5:
-            OLD_DBHOST = sys.argv[1] + ':1521'
-            OLD_DBUSER = sys.argv[2]
-            OLD_DBPASS = getpass.getpass('Old DB User Password:')
-            NEW_DBHOST = sys.argv[3] + ':1521'
-            NEW_DBUSER = sys.argv[4]
-            NEW_DBPASS = getpass.getpass('New DB User Password:')
-        else:
-            OLD_DBHOST = config_passwords.OLD_DBHOST
-            OLD_DBUSER = config_passwords.OLD_DBUSER
-            OLD_DBPASS = config_passwords.OLD_DBPASS
-            NEW_DBHOST = config_passwords.NEW_DBHOST
-            NEW_DBUSER = config_passwords.NEW_DBUSER
-            NEW_DBPASS = config_passwords.NEW_DBPASS
-    
-        old_session_maker = prepare_schema_connection(model_old_schema, config_passwords.OLD_DBTYPE, OLD_DBHOST, config_passwords.OLD_DBNAME, config_passwords.OLD_SCHEMA, 
-                                                  OLD_DBUSER, OLD_DBPASS)
-        check_session_maker(old_session_maker, OLD_DBHOST, True)
-        
-        new_session_maker = prepare_schema_connection(model_new_schema, config_passwords.NEW_DBTYPE, NEW_DBHOST, config_passwords.NEW_DBNAME, config_passwords.NEW_SCHEMA, 
-                                                  NEW_DBUSER, NEW_DBPASS)
-        check_session_maker(new_session_maker, NEW_DBHOST, False)
-        return old_session_maker, new_session_maker
-    else:
-        if len(sys.argv) == 3:
-            NEW_DBHOST = sys.argv[1] + ':1521'
-            NEW_DBUSER = sys.argv[2]
-            NEW_DBPASS = getpass.getpass('New DB User Password:')
-        else:
-            NEW_DBHOST = config_passwords.NEW_DBHOST
-            NEW_DBUSER = config_passwords.NEW_DBUSER
-            NEW_DBPASS = config_passwords.NEW_DBPASS
-            
-        new_session_maker = prepare_schema_connection(model_new_schema, config_passwords.NEW_DBTYPE, NEW_DBHOST, config_passwords.NEW_DBNAME, config_passwords.NEW_SCHEMA, 
-                                                  NEW_DBUSER, NEW_DBPASS)
-        check_session_maker(new_session_maker, NEW_DBHOST, False)
-        return new_session_maker
-    
-
-def prepare_schema_connection(model_cls, DBTYPE, DBHOST, DBNAME, SCHEMA, DBUSER, DBPASS):
-    model_cls.SCHEMA = SCHEMA
+def prepare_schema_connection(model_cls, dbtype, dbhost, dbname, schema, dbuser, dbpass):
+    model_cls.SCHEMA = schema
     class Base(object):
-        __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+        __table_args__ = {'schema': schema, 'extend_existing':True}
 
     model_cls.Base = declarative_base(cls=Base)
     model_cls.metadata = model_cls.Base.metadata
-    engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, DBUSER, DBPASS, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
+    engine_key = "%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname)
+    print engine_key
+    engine = create_engine(engine_key, convert_unicode=True, pool_recycle=3600)
     model_cls.Base.metadata.bind = engine
     session_maker = sessionmaker(bind=engine)
         
@@ -166,11 +131,17 @@ def create_or_update(new_obj, current_obj_by_id, current_obj_by_key, values_to_c
 def set_up_logging(label):
     logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.DEBUG, datefmt='%m/%d/%Y %H:%M:%S')
     
+    requests_log = logging.getLogger("requests")
+    requests_log.setLevel(logging.WARNING)
+    
     log = logging.getLogger(label)
     
-    hdlr = logging.FileHandler('convert_logs/' + label + '.' + str(datetime.now()) + '.txt')
-    formatter = logging.Formatter('%(asctime)s %(name)s: %(message)s', '%m/%d/%Y %H:%M:%S')
-    hdlr.setFormatter(formatter)
+    if log_directory is not None:
+        hdlr = logging.FileHandler('convert_logs/' + label + '.' + str(datetime.now()) + '.txt')
+        formatter = logging.Formatter('%(asctime)s %(name)s: %(message)s', '%m/%d/%Y %H:%M:%S')
+        hdlr.setFormatter(formatter)
+    else:
+        hdlr = logging.NullHandler()
     log.addHandler(hdlr) 
     log.setLevel(logging.DEBUG)
     return log

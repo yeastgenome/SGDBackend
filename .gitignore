@@ -38,3 +38,4 @@ convert_logs/*
 perfbackend_logs/*
 sgdbackend_logs/*
 perfconvert_utils/config_passwords.py
+convert/config.py
