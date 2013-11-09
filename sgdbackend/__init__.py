@@ -15,7 +15,7 @@ import uuid
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
 class SGDBackend(BackendInterface):
-    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass):
+    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
         class Base(object):
             __table_args__ = {'schema': schema, 'extend_existing':True}
                 
@@ -30,7 +30,7 @@ class SGDBackend(BackendInterface):
         cache_core()
         
         from sgdbackend_utils import set_up_logging
-        self.log = set_up_logging('sgdbackend')
+        self.log = set_up_logging(log_directory, 'sgdbackend')
         
     def get_renderer(self, method_name):
         return 'string'

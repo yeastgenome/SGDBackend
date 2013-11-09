@@ -19,7 +19,7 @@ class PerfPerfConverter(ConverterInterface):
         self.session_maker = prepare_schema_connection(model_perf_schema, perf2_dbtype, perf2_dbhost, perf2_dbname, perf2_schema, perf2_dbuser, perf2_dbpass)
         check_session_maker(self.session_maker, perf2_dbhost, perf2_schema)
         
-        self.backend = PerfBackend(perf1_dbtype, perf1_dbhost, perf1_dbname, perf1_schema, perf1_dbuser, perf1_dbpass)
+        self.backend = PerfBackend(perf1_dbtype, perf1_dbhost, perf1_dbname, perf1_schema, perf1_dbuser, perf1_dbpass, None)
                         
         self.log = set_up_logging('nex_perf_converter')
             

@@ -1,11 +1,9 @@
 
 from datetime import datetime
-from model_perf_schema.data import data_classes
 from mpmath import ceil
-from perfbackend.config import log_directory
 import logging
 
-def set_up_logging(label):
+def set_up_logging(log_directory, label):
     logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.INFO)
     log = logging.getLogger(label)
     

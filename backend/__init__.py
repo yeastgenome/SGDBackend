@@ -1,3 +1,4 @@
+from backend import config
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
@@ -225,21 +226,21 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('binding_site_details'))
     
 def prepare_backend(backend_type):
-    config = Configurator()
-    config.add_static_view('static', 'static', cache_max_age=3600)
+    configurator = Configurator()
+    configurator.add_static_view('static', 'static', cache_max_age=3600)
     
     if backend_type == 'sgdbackend':
-        from sgdbackend import SGDBackend, config as sgdbackend_config
-        chosen_backend = SGDBackend(sgdbackend_config.DBTYPE, sgdbackend_config.DBHOST, sgdbackend_config.DBNAME, sgdbackend_config.SCHEMA, sgdbackend_config.DBUSER, sgdbackend_config.DBPASS)
+        from sgdbackend import SGDBackend
+        chosen_backend = SGDBackend(config.DBTYPE, config.DBHOST, config.DBNAME, config.SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.sgdbackend_log_directory)
     elif backend_type == 'perfbackend':
-        from perfbackend import PerfBackend, config as perfbackend_config
-        chosen_backend = PerfBackend(perfbackend_config.DBTYPE, perfbackend_config.DBHOST, perfbackend_config.DBNAME, perfbackend_config.SCHEMA, perfbackend_config.DBUSER, perfbackend_config.DBPASS)
+        from perfbackend import PerfBackend
+        chosen_backend = PerfBackend(config.DBTYPE, config.DBHOST, config.DBNAME, config.SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, config.perfbackend_log_directory)
     elif backend_type == 'testbackend':
         from testbackend import TestBackend
         chosen_backend = TestBackend()
         
-    prep_views(chosen_backend, config)
-    return config
+    prep_views(chosen_backend, configurator)
+    return configurator
 
 def sgdbackend(global_config, **configs):
     """ This function returns a Pyramid WSGI application.

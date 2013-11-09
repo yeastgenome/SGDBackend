@@ -23,7 +23,7 @@ import uuid
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
 class PerfBackend(BackendInterface):
-    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass):
+    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
         class Base(object):
             __table_args__ = {'schema': schema, 'extend_existing':True}
                 
@@ -37,7 +37,7 @@ class PerfBackend(BackendInterface):
 
         create_data_classes()
         
-        self.log = set_up_logging('perfbackend')
+        self.log = set_up_logging(log_directory, 'perfbackend')
         
     #Renderer
     def get_renderer(self, method_name):

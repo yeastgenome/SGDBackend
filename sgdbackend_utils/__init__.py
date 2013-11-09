@@ -5,7 +5,6 @@ Created on Mar 12, 2013
 '''
 from datetime import datetime
 from mpmath import ceil
-from sgdbackend.config import log_directory
 from sgdbackend_query import get_obj_id, get_multi_obj_ids
 from sgdbackend_utils.cache import id_to_bioent, id_to_reference
 from string import upper
@@ -89,7 +88,7 @@ def retrieve_in_chunks(ids, f):
         result.update(f(chunk_ids))
     return result
 
-def set_up_logging(label):
+def set_up_logging(log_directory, label):
     logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.INFO)
     log = logging.getLogger(label)
     
