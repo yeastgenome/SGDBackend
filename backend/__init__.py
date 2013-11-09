@@ -1,4 +1,3 @@
-from backend import config
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
@@ -228,7 +227,8 @@ def prep_views(chosen_backend, config):
 def prepare_backend(backend_type):
     configurator = Configurator()
     configurator.add_static_view('static', 'static', cache_max_age=3600)
-    
+    from backend import config
+
     if backend_type == 'sgdbackend':
         from sgdbackend import SGDBackend
         chosen_backend = SGDBackend(config.DBTYPE, config.DBHOST, config.DBNAME, config.SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.sgdbackend_log_directory)
