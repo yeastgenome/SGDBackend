@@ -231,10 +231,10 @@ def prepare_backend(backend_type):
 
     if backend_type == 'sgdbackend':
         from sgdbackend import SGDBackend
-        chosen_backend = SGDBackend(config.DBTYPE, config.DBHOST, config.DBNAME, config.SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.sgdbackend_log_directory)
+        chosen_backend = SGDBackend(config.DBTYPE, config.NEX_DBHOST, config.DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.sgdbackend_log_directory)
     elif backend_type == 'perfbackend':
         from perfbackend import PerfBackend
-        chosen_backend = PerfBackend(config.DBTYPE, config.DBHOST, config.DBNAME, config.SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, config.perfbackend_log_directory)
+        chosen_backend = PerfBackend(config.DBTYPE, config.PERF_DBHOST, config.DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, config.perfbackend_log_directory)
     elif backend_type == 'testbackend':
         from testbackend import TestBackend
         chosen_backend = TestBackend()
