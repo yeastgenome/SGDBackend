@@ -71,27 +71,6 @@ class BackendInterface:
     def bioconcept_list(self, biocon_ids):
         return None
     
-    #Go
-    @abstractmethod
-    def go(self, identifier):
-        return None
-    
-    @abstractmethod
-    def go_ontology_graph(self, identifier):
-        return None
-    
-    @abstractmethod
-    def go_overview(self, identifier):
-        return None
-    
-    @abstractmethod
-    def go_details(self, locus_identifier=None, go_identifier=None):
-        return None
-    
-    @abstractmethod
-    def go_enrichment(self, identifier):
-        return None
-    
     #Interaction
     @abstractmethod
     def interaction_overview(self, identifier):
@@ -120,23 +99,6 @@ class BackendInterface:
     
     @abstractmethod
     def literature_graph(self, identifier):
-        return None
-    
-    #Phenotype
-    @abstractmethod
-    def phenotype(self, identifier):
-        return None
-    
-    @abstractmethod
-    def phenotype_ontology_graph(self, identifier):
-        return None
-    
-    @abstractmethod
-    def phenotype_overview(self, identifier):
-        return None
-    
-    @abstractmethod
-    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None):
         return None
     
     #Protein

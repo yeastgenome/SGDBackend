@@ -8,7 +8,7 @@ from convert_perf import convert_core
 from convert_perf.convert_data import convert_data
 from convert_utils import prepare_schema_connection, check_session_maker, \
     set_up_logging
-from model_perf_schema.data import data_classes
+from model_perf_schema.data import data_classes, create_data_classes
 from perfbackend import PerfBackend
 import model_perf_schema
 import sys
@@ -17,10 +17,14 @@ class PerfPerfConverter(ConverterInterface):
     def __init__(self, perf1_dbtype, perf1_dbhost, perf1_dbname, perf1_schema, perf1_dbuser, perf1_dbpass,
                  perf2_dbtype, perf2_dbhost, perf2_dbname, perf2_schema, perf2_dbuser, perf2_dbpass):
         self.session_maker = prepare_schema_connection(model_perf_schema, perf2_dbtype, perf2_dbhost, perf2_dbname, perf2_schema, perf2_dbuser, perf2_dbpass)
+        create_data_classes()
         check_session_maker(self.session_maker, perf2_dbhost, perf2_schema)
         
         self.backend = PerfBackend(perf1_dbtype, perf1_dbhost, perf1_dbname, perf1_schema, perf1_dbuser, perf1_dbpass, None)
                         
+        from model_perf_schema.core import Bioentity
+        self.bioentity_ids = [x.id for x in self.session_maker().query(Bioentity).all()]
+        
         self.log = set_up_logging('nex_perf_converter')
             
     def core_wrapper(self, f, chunk_size):
@@ -31,7 +35,7 @@ class PerfPerfConverter(ConverterInterface):
             
     def data_wrapper(self, method_name, obj_ids, chunk_size):
         try:
-            convert_data(self.session_maker, data_classes[method_name], getattr(self.backend, method_name), method_name, 'perfconvert.' + method_name, chunk_size)
+            convert_data(self.session_maker, data_classes[method_name], getattr(self.backend, method_name), 'perfperfconvert.' + method_name, obj_ids, chunk_size)
         except Exception:
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
     

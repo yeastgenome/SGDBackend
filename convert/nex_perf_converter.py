@@ -8,7 +8,7 @@ from convert_perf import convert_core
 from convert_perf.convert_data import convert_data
 from convert_utils import prepare_schema_connection, check_session_maker, \
     set_up_logging
-from model_perf_schema.data import data_classes
+from model_perf_schema.data import data_classes, create_data_classes
 from sgdbackend import SGDBackend
 import model_perf_schema
 import sys
@@ -17,6 +17,7 @@ class NexPerfConverter(ConverterInterface):
     def __init__(self, nex_dbtype, nex_dbhost, nex_dbname, nex_schema, nex_dbuser, nex_dbpass,
                  perf_dbtype, perf_dbhost, perf_dbname, perf_schema, perf_dbuser, perf_dbpass):
         self.session_maker = prepare_schema_connection(model_perf_schema, perf_dbtype, perf_dbhost, perf_dbname, perf_schema, perf_dbuser, perf_dbpass)
+        create_data_classes()
         check_session_maker(self.session_maker, perf_dbhost, perf_schema)
         
         self.backend = SGDBackend(nex_dbtype, nex_dbhost, nex_dbname, nex_schema, nex_dbuser, nex_dbpass, None)
@@ -34,7 +35,7 @@ class NexPerfConverter(ConverterInterface):
             
     def data_wrapper(self, method_name, obj_ids, chunk_size):
         try:
-            convert_data(self.session_maker, data_classes[method_name], getattr(self.backend, method_name), method_name, 'perfconvert.' + method_name, chunk_size)
+            convert_data(self.session_maker, data_classes[method_name], getattr(self.backend, method_name), 'nexperfconvert.' + method_name, obj_ids, chunk_size)
         except Exception:
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
     

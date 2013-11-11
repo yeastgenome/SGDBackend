@@ -321,9 +321,9 @@ def convert_reference(session_maker, backend, chunk_size):
             #Updates
             update_ids = new_ids & old_ids
             for update_id in update_ids:
-                json_obj = None if insert_id not in new_id_to_json_obj else new_id_to_json_obj[insert_id]
-                bibentry = None if insert_id not in new_id_bibentry_obj else new_id_bibentry_obj[insert_id]
-                if update_bioentity(json_obj, bibentry, old_id_to_obj[update_id]):
+                json_obj = None if update_id not in new_id_to_json_obj else new_id_to_json_obj[update_id]
+                bibentry = None if update_id not in new_id_bibentry_obj else new_id_bibentry_obj[update_id]
+                if update_reference(json_obj, bibentry, old_id_to_obj[update_id]):
                     output_creator.changed(update_id, 'json')
                 
             #Deletes
