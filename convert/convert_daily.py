@@ -10,7 +10,7 @@ from convert.nex_perf_converter import NexPerfConverter
 from convert.perf_perf_converter import PerfPerfConverter
 
 if __name__ == "__main__":   
-    Pastry -> Master
+    #Pastry -> Master
     pastry_master_converter = BudNexConverter(config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS, 
                                     config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
     pastry_master_converter.convert_daily()
