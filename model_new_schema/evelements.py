@@ -47,7 +47,7 @@ class Experimentrelation(Relation):
                        'inherit_condition': id == Relation.id}
     
     def __init__(self, source, relation_type, parent, child, date_created, created_by):
-        Relation.__init__(self, parent.format_name + '|' + child.format_name, 
+        Relation.__init__(self, parent.format_name + '_' + child.format_name, 
                           child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
                           'EXPERIMENT', source, relation_type, date_created, created_by)
         self.parent_id = parent.id

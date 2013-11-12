@@ -67,10 +67,10 @@ class PerfPerfConverter(ConverterInterface):
         
     def convert_daily(self):
         #Core
-        self.convert_bioentity()
-        self.convert_bioconcept()
-        self.convert_reference()
-        self.convert_disambig()
+        #self.convert_bioentity()
+        #self.convert_bioconcept()
+        #self.convert_reference()
+        #self.convert_disambig()
         
         #Data
         self.convert_literature_overview()

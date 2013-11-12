@@ -62,17 +62,17 @@ class BudNexConverter(ConverterInterface):
         self.convert_bioconcept_in_depth()
         
     def convert_daily(self):
-        #Core
-        self.convert_core()
-    
-        #Evidence
-        self.convert_phenotype()
-        self.convert_literature()
-        self.convert_go()
-        self.convert_qualifier()
-        
-        #Other
-        self.convert_bioentity_in_depth()
+#        #Core
+#        self.convert_core()
+#    
+#        #Evidence
+#        self.convert_phenotype()
+#        self.convert_literature()
+#        self.convert_go()
+#        self.convert_qualifier()
+#        
+#        #Other
+#        self.convert_bioentity_in_depth()
         self.convert_reference_in_depth()
         self.convert_bioconcept_in_depth()
         

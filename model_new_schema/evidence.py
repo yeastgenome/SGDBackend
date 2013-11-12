@@ -76,7 +76,7 @@ class Goevidence(Evidence):
                  go_evidence, annotation_type, qualifier, date_last_reviewed, conditions,
                  date_created, created_by):
         Evidence.__init__(self, bioentity.display_name + ' assoc. with ' + bioconcept.display_name + ' with ' + go_evidence + ' by ' + reference.display_name,
-                          bioentity.format_name + '|' + str(bioconcept.id) + '|' + go_evidence + '|' + annotation_type + '|' + str(reference.id), 
+                          bioentity.format_name + '_' + str(bioconcept.id) + '_' + go_evidence + '_' + annotation_type + '_' + str(reference.id), 
                           'GO', source, reference, None, None, 
                           note, date_created, created_by)
         self.go_evidence = go_evidence
@@ -107,7 +107,7 @@ class Geninteractionevidence(Evidence):
                  bioentity1, bioentity2, phenotype, annotation_type, bait_hit, note, 
                  date_created, created_by):
         Evidence.__init__(self, bioentity1.display_name + '__' + bioentity2.display_name,
-                          bioentity1.format_name + '|' + bioentity2.format_name + '|' + ('-' if strain is None else str(strain.id)) + '|' + bait_hit + '|' + str(experiment.id) + '|' + str(reference.id), 
+                          bioentity1.format_name + '_' + bioentity2.format_name + '_' + ('-' if strain is None else str(strain.id)) + '_' + bait_hit + '_' + str(experiment.id) + '_' + str(reference.id), 
                           'GENINTERACTION', source, reference, strain, experiment, 
                           note, date_created, created_by)
         self.bioentity1_id = bioentity1.id
@@ -135,7 +135,7 @@ class Physinteractionevidence(Evidence):
                  bioentity1, bioentity2, modification, annotation_type, bait_hit, note, 
                  date_created, created_by):
         Evidence.__init__(self, bioentity1.display_name + '__' + bioentity2.display_name,
-                          bioentity1.format_name + '|' + bioentity2.format_name + '|' + ('-' if strain is None else str(strain.id)) + '|' + bait_hit + '|' + str(experiment.id) + '|' + str(reference.id), 
+                          bioentity1.format_name + '_' + bioentity2.format_name + '_' + ('-' if strain is None else str(strain.id)) + '_' + bait_hit + '_' + str(experiment.id) + '_' + str(reference.id), 
                           'PHYSINTERACTION', source, reference, strain, experiment,
                           note, date_created, created_by)
         self.bioentity1_id = bioentity1.id
@@ -162,7 +162,7 @@ class Literatureevidence(Evidence):
                             bioentity, topic, date_created, created_by):
         Evidence.__init__(self, 
                           reference.display_name + ' is a ' + topic + ' for ' +  bioentity.display_name,
-                          bioentity.format_name + '|' + topic + '|' + reference.format_name, 
+                          bioentity.format_name + '_' + topic + '_' + reference.format_name, 
                           'LITERATURE', source, reference, None, None, note,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
@@ -188,7 +188,7 @@ class Phenotypeevidence(Evidence):
                  date_created, created_by):
         Evidence.__init__(self, 
                           bioentity.display_name + ' ' + phenotype.display_name + ' in ' + reference.display_name,
-                          bioentity.format_name + '|' + str(phenotype.id) + ('' if strain is None else ('|' + str(strain.id))) + '|' + str(experiment.id) + '|' + str(reference.id) + '|' + '|'.join(x.format_name for x in conditions), 
+                          bioentity.format_name + '_' + str(phenotype.id) + ('' if strain is None else ('_' + str(strain.id))) + '_' + str(experiment.id) + '_' + str(reference.id) + '_' + '_'.join(x.format_name for x in conditions), 
                           'PHENOTYPE', source, reference, strain, experiment, note,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
@@ -217,7 +217,7 @@ class Domainevidence(Evidence):
                  start, end, evalue, status, date_of_run, protein, domain,
                  date_created, created_by):
         Evidence.__init__(self, domain.display_name + ' in ' + protein.display_name,
-                          protein.format_name + '|' + str(domain.id) + '|' + str(start) + '|' + str(end), 
+                          protein.format_name + '_' + str(domain.id) + '_' + str(start) + '_' + str(end), 
                           'DOMAIN', source, reference, strain, None, note, date_created, created_by)
         self.start = start
         self.end = end
@@ -243,7 +243,7 @@ class Qualifierevidence(Evidence):
                  date_created, created_by):
         Evidence.__init__(self, 
                           bioentity.display_name + ' ' + qualifier + ' in ' + strain.display_name,
-                          bioentity.format_name + '|' + strain.format_name, 
+                          bioentity.format_name + '_' + strain.format_name, 
                           'QUALIFIER', source, None, strain, None, None, date_created, created_by)
         self.bioentity_id = bioentity.id
         self.qualifier = qualifier
@@ -262,7 +262,7 @@ class Regulationevidence(Evidence):
                  bioentity1, bioentity2, conditions,
                  date_created, created_by):
         Evidence.__init__(self, bioentity1.display_name + '__' + bioentity2.display_name,
-                          bioentity1.format_name + '|' + bioentity2.format_name + '|' + ('-' if experiment is None else str(experiment.id)) + '|' + ('-' if reference is None else str(reference.id)) + '|' + ','.join([condition.format_name for condition in conditions]), 
+                          bioentity1.format_name + '_' + bioentity2.format_name + '_' + ('-' if experiment is None else str(experiment.id)) + '_' + ('-' if reference is None else str(reference.id)) + '_' + ','.join([condition.format_name for condition in conditions]), 
                           'REGULATION', source, reference, strain, experiment, note, date_created, created_by)
         self.bioentity1_id = bioentity1.id
         self.bioentity2_id = bioentity2.id
@@ -286,7 +286,7 @@ class Bindingevidence(Evidence):
                  date_created, created_by):
         Evidence.__init__(self, 
                           bioentity.display_name + ' has binding site ' + str(motif_id),
-                          bioentity.format_name + '|' + str(motif_id), 
+                          bioentity.format_name + '_' + str(motif_id), 
                           'BINDING', source, reference, strain, experiment, note, date_created, created_by)
         self.bioentity_id = bioentity.id
         self.total_score = total_score
