@@ -111,7 +111,10 @@ def create_bibentry(reference, id_to_journal, id_to_book, id_to_abstract, id_to_
     entries = []
     entries.append('PMID- ' + str(reference.pubmed_id)) 
     entries.append('STAT- ' + str(reference.ref_status))
-    entries.append('DP  - ' + str(reference.date_published)) 
+    try:
+        entries.append('DP  - ' + str(reference.date_published)) 
+    except:
+        pass
     if reference.title is not None:
         entries.append('TI  - ' + reference.title.encode('ascii', 'ignore'))
     entries.append('SO  - ' + str(id_to_source[reference.source_id])) 
