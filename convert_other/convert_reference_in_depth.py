@@ -168,7 +168,7 @@ def convert_bibentry(new_session_maker, chunk_size):
         id_to_journal = dict([(x.id, x) for x in new_session.query(NewJournal).all()])
         id_to_book = dict([(x.id, x) for x in new_session.query(NewBook).all()])
         id_to_abstract = dict([(x.id, x.text) for x in new_session.query(NewAbstract).all()])
-        id_to_source = dict([(x.id, x) for x in new_session.query(NewSource).all()])
+        id_to_source = dict([(x.id, x.display_name) for x in new_session.query(NewSource).all()])
         
         id_to_authors = {}
         id_to_author = dict([(x.id, x) for x in new_session.query(NewAuthor).all()])
