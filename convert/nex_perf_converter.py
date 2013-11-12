@@ -86,11 +86,11 @@ class NexPerfConverter(ConverterInterface):
         
     def convert_updated_flatfiles(self):
         #Data
-        #self.convert_protein_domain_details()
+        self.convert_protein_domain_details()
         
-        #self.convert_binding_site_details()
+        self.convert_binding_site_details()
         
-        #self.convert_regulation_overview()
+        self.convert_regulation_overview()
         self.convert_regulation_details()
         self.convert_regulation_graph()
         self.convert_regulation_target_enrich()
