@@ -51,7 +51,7 @@ class Bioconceptrelation(Relation):
                        'inherit_condition': id == Relation.id}
    
     def __init__(self, source, relation_type, parent, child, bioconrel_class_type, date_created, created_by):
-        Relation.__init__(self, 
+        Relation.__init__(self, parent.format_name + '_' + child.format_name + '_' + bioconrel_class_type, 
                           child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
                           str(parent.id) + '-' + str(child.id) + '|' + bioconrel_class_type, 
                           'BIOCONCEPT', source, relation_type, date_created, created_by)
@@ -138,8 +138,7 @@ def create_phenotype_format_name(observable, qualifier, mutant_type):
         if qualifier is None and mutant_type is None:
             format_name = create_format_name(observable)
         else:  
-            format_name = qualifier + '_' + observable + '_' + mutant_type
-    
+            format_name = create_format_name(qualifier + '_' + observable + '_' + mutant_type)
     return format_name
         
 class Phenotype(Bioconcept):

@@ -34,7 +34,7 @@ class Book(Base, EqualityByIDMixin):
     def __init__(self, book_id, source, title, volume_title, isbn, total_pages, publisher, publisher_location, date_created, created_by):
         self.id = book_id
         self.display_name = title
-        self.format_name = create_format_name(title + '' if volume_title is None else ('|' + volume_title))
+        self.format_name = create_format_name(title + '' if volume_title is None else ('_' + volume_title))
         self.obj_url = None
         self.source_id = source.id
         self.title = title
@@ -67,7 +67,7 @@ class Journal(Base, EqualityByIDMixin):
     def __init__(self, journal_id, source, title, med_abbr, issn_print, issn_online, date_created, created_by):
         self.id = journal_id
         self.display_name = title if title is not None else med_abbr
-        self.format_name = create_format_name(self.display_name[:99] if med_abbr is None else self.display_name[:50] + '|' + med_abbr[:49])
+        self.format_name = create_format_name(self.display_name[:99] if med_abbr is None else self.display_name[:50] + '_' + med_abbr[:49])
         self.obj_url = None
         self.source_id = source.id
         self.title = title
@@ -301,7 +301,7 @@ class Referencerelation(Relation):
                        'inherit_condition': id == Relation.id}
    
     def __init__(self, source, relation_type, parent, child, date_created, created_by):
-        Relation.__init__(self, parent.format_name + '|' + child.format_name, 
+        Relation.__init__(self, parent.format_name + '_' + child.format_name, 
                           child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
                           'REFERENCE', source, relation_type, date_created, created_by)
         self.parent_id = parent.id

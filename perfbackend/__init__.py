@@ -23,7 +23,7 @@ import uuid
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
 class PerfBackend(BackendInterface):
-    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass):
+    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
         class Base(object):
             __table_args__ = {'schema': schema, 'extend_existing':True}
                 
@@ -37,7 +37,7 @@ class PerfBackend(BackendInterface):
 
         create_data_classes()
         
-        self.log = set_up_logging('perfbackend')
+        self.log = set_up_logging(log_directory, 'perfbackend')
         
     #Renderer
     def get_renderer(self, method_name):
@@ -105,27 +105,6 @@ class PerfBackend(BackendInterface):
     def reference_list(self, reference_ids):
         from model_perf_schema.core import Reference
         return get_list(Reference, 'bibentry_json', reference_ids)
-     
-    #Go
-    def go(self, identifier):
-        from model_perf_schema.core import Bioconcept
-        biocon_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        return get_obj(Bioconcept, 'json', biocon_id)
-    
-    def go_ontology_graph(self, identifier):
-        obj_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        return get_data('go_ontology_graph', obj_id)
-    
-    def go_overview(self, identifier):
-        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return get_data('go_overview', bioent_id)
-    
-    def go_details(self, locus_identifier=None, go_identifier=None):
-        if locus_identifier is not None:
-            obj_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        else:  
-            obj_id = get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        return get_data('go_details', obj_id)
     
     #Interaction
     def interaction_overview(self, identifier):
@@ -156,27 +135,6 @@ class PerfBackend(BackendInterface):
     def literature_graph(self, identifier):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return get_data('literature_graph', bioent_id)
-    
-    #Phenotype
-    def phenotype(self, identifier, callback=None):
-        from model_perf_schema.core import Bioconcept
-        biocon_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return get_obj(Bioconcept, 'json', biocon_id)
-    
-    def phenotype_ontology_graph(self, identifier):
-        obj_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return get_data('phenotype_ontology_graph', obj_id)
-    
-    def phenotype_overview(self, identifier):
-        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return get_data('phenotype_overview', bioent_id)
-    
-    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None):
-        if locus_identifier is not None:
-            obj_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        else:  
-            obj_id = get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        return get_data('phenotype_details', obj_id)
     
     def go_enrichment(self, bioent_ids, callback=None):
         from model_perf_schema.core import Bioentity, Bioconcept
@@ -244,7 +202,7 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
     
     if identifier is None:
         return None
-    query = DBSession.query(Disambig).filter(Disambig.disambig_key==identifier.upper())
+    query = DBSession.query(Disambig).filter(Disambig.disambig_key==str(identifier).upper())
     if class_type is not None:
         query = query.filter(Disambig.class_type==class_type)
     if subclass_type is not None:
@@ -271,7 +229,7 @@ def get_all(cls, col_name, min_id, max_id):
         query = query.filter(cls.id < max_id)
     objs = query.all()
         
-    return '[' + ', '.join([getattr(obj, col_name) for obj in objs]) + ']'
+    return '[' + ', '.join(filter(None, [getattr(obj, col_name) for obj in objs])) + ']'
 
 def get_list(cls, col_name, obj_ids):
     num_chunks = ceil(1.0*len(obj_ids)/500)

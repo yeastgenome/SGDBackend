@@ -57,7 +57,7 @@ def convert_journal(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['issn_print', 'issn_online']
+        values_to_check = ['issn_print', 'issn_online', 'format_name', 'display_name', 'link', 'source_id']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -144,7 +144,7 @@ def convert_book(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['isbn', 'total_pages', 'publisher', 'publisher_location']
+        values_to_check = ['isbn', 'total_pages', 'publisher', 'publisher_location', 'format_name', 'display_name', 'link', 'source_id']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         

@@ -5,7 +5,6 @@ Created on Mar 12, 2013
 '''
 from datetime import datetime
 from mpmath import ceil
-from sgdbackend.config import log_directory
 from sgdbackend_query import get_obj_id, get_multi_obj_ids
 from sgdbackend_utils.cache import id_to_bioent, id_to_reference
 from string import upper
@@ -89,8 +88,8 @@ def retrieve_in_chunks(ids, f):
         result.update(f(chunk_ids))
     return result
 
-def set_up_logging(label):
-    logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.INFO)
+def set_up_logging(log_directory, label):
+    logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.ERROR)
     log = logging.getLogger(label)
     
     if log_directory is not None:
@@ -101,4 +100,5 @@ def set_up_logging(label):
         hdlr = logging.NullHandler()
     log.addHandler(hdlr) 
     log.setLevel(logging.INFO)
+    log.propagate = False
     return log
