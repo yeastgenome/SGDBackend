@@ -5,6 +5,7 @@ Created on Nov 28, 2012
 '''
 from model_new_schema import Base, EqualityByIDMixin, create_format_name
 from model_new_schema.misc import Url, Alias, Relation
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
@@ -51,9 +52,9 @@ class Bioconceptrelation(Relation):
                        'inherit_condition': id == Relation.id}
    
     def __init__(self, source, relation_type, parent, child, bioconrel_class_type, date_created, created_by):
-        Relation.__init__(self, parent.format_name + '_' + child.format_name + '_' + bioconrel_class_type, 
+        Relation.__init__(self, 
                           child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
-                          str(parent.id) + '-' + str(child.id) + '|' + bioconrel_class_type, 
+                          str(parent.id) + '_' + str(child.id) + '_' + bioconrel_class_type, 
                           'BIOCONCEPT', source, relation_type, date_created, created_by)
         self.parent_id = parent.id
         self.child_id = child.id
@@ -149,12 +150,14 @@ class Phenotype(Bioconcept):
     qualifier = Column('qualifier', String)
     mutant_type = Column('mutant_type', String)
     phenotype_type = Column('phenotype_type', String)
+    is_core_num = Column('is_core', Integer)
+    ancestor_type = Column('ancestor_type', String)
        
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
                        'inherit_condition': id==Bioconcept.id}
 
     def __init__(self, source, sgdid, description,
-                 observable, qualifier, mutant_type, phenotype_type, 
+                 observable, qualifier, mutant_type, phenotype_type, ancestor_type,
                  date_created, created_by):
         format_name = 'apo_ontology' if observable == 'observable' else create_phenotype_format_name(observable, qualifier, mutant_type)
         display_name = 'APO Ontology' if observable == 'observable' else create_phenotype_display_name(observable, qualifier, mutant_type)
@@ -166,5 +169,11 @@ class Phenotype(Bioconcept):
         self.qualifier = qualifier
         self.mutant_type = mutant_type
         self.phenotype_type = phenotype_type
+        self.is_core_num = 1 if self.mutant_type is None and self.qualifier is None else 0
+        self.ancestor_type = ancestor_type
+      
+    @hybrid_property  
+    def is_core(self):
+        return self.is_core_num == 1
 
     

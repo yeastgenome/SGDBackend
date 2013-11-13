@@ -3,8 +3,9 @@ Created on Oct 25, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update
+from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
+from sqlalchemy.orm import joinedload
 import logging
 import sys
 
@@ -23,7 +24,7 @@ def create_phenotype_type(observable):
     else:
         return 'cellular'
 
-def create_phenotype(old_phenotype, key_to_source):
+def create_phenotype(old_phenotype, key_to_source, observable_to_ancestor):
     from model_new_schema.bioconcept import Phenotype as NewPhenotype
     observable = old_phenotype.observable
     qualifier = old_phenotype.qualifier
@@ -31,18 +32,20 @@ def create_phenotype(old_phenotype, key_to_source):
     
     source = key_to_source['SGD']
     phenotype_type = create_phenotype_type(old_phenotype.observable)
+    ancestor_type = None if observable not in observable_to_ancestor else observable_to_ancestor[observable]
     new_phenotype = NewPhenotype(source, None, None,
-                                 observable, qualifier, mutant_type, phenotype_type,
+                                 observable, qualifier, mutant_type, phenotype_type, ancestor_type,
                                  old_phenotype.date_created, old_phenotype.created_by)
     return [new_phenotype]
 
-def create_phenotype_from_cv_term(old_cvterm, key_to_source):
+def create_phenotype_from_cv_term(old_cvterm, key_to_source, observable_to_ancestor):
     from model_new_schema.bioconcept import Phenotype as NewPhenotype
     observable = old_cvterm.name
     source = key_to_source['SGD']
     phenotype_type = create_phenotype_type(observable)
+    ancestor_type = None if observable not in observable_to_ancestor else observable_to_ancestor[observable]
     new_phenotype = NewPhenotype(source, None, None,
-                                 observable, None, None, phenotype_type,
+                                 observable, None, None, phenotype_type, ancestor_type, 
                                  old_cvterm.date_created, old_cvterm.created_by)
     return [new_phenotype]
 
@@ -50,7 +53,7 @@ def convert_phenotype(old_session_maker, new_session_maker):
     from model_new_schema.bioconcept import Phenotype as NewPhenotype
     from model_new_schema.evelements import Source as NewSource
     from model_old_schema.phenotype import Phenotype as OldPhenotype
-    from model_old_schema.cv import CVTerm as OldCVTerm
+    from model_old_schema.cv import CVTerm as OldCVTerm, CVTermRel as OldCVTermRel
     
     log = logging.getLogger('convert.bioconcept.phenotype')
     log.info('begin')
@@ -66,7 +69,8 @@ def convert_phenotype(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs]) 
                   
         #Values to check
-        values_to_check = ['observable', 'qualifier', 'mutant_type', 'phenotype_type', 'display_name', 'description', 'source_id', 'link', 'sgdid']
+        values_to_check = ['observable', 'qualifier', 'mutant_type', 'phenotype_type', 'display_name', 
+                           'description', 'source_id', 'link', 'sgdid', 'is_core_num', 'ancestor_type']
                 
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -74,13 +78,43 @@ def convert_phenotype(old_session_maker, new_session_maker):
         
         #Cache
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
-            
+             
         #Grab old objects
         old_objs = old_session.query(OldPhenotype).all()
+        old_cvterms = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no == 6).all()
+        
+        #Get ancestory_types
+        observable_to_ancestor = dict()
+        child_id_to_parent_id = dict([(x.child_id, x.parent_id) for x in old_session.query(OldCVTermRel).all()])   
+        id_to_observable = dict([(x.id, x.name) for x in old_cvterms])
+        observable_to_id = dict([(x.name, x.id) for x in old_cvterms])
+        for old_obj in old_objs:
+            if old_obj.observable in observable_to_id:
+                observable_id = observable_to_id[old_obj.observable]
+                if observable_id in child_id_to_parent_id:
+                    ancestry = [observable_id, child_id_to_parent_id[observable_id]]
+                else:
+                    ancestry = [observable_id, None]
+            else:
+                ancestry = [None]
+                
+            while ancestry[len(ancestry)-1] is not None:
+                latest_parent_id = ancestry[len(ancestry)-1]
+                if latest_parent_id in child_id_to_parent_id:
+                    ancestry.append(child_id_to_parent_id[latest_parent_id])
+                else:
+                    ancestry.append(None)
+            print ancestry
+            if len(ancestry) > 2:
+                ancestor_id = ancestry[len(ancestry)-3]
+                observable_to_ancestor[old_obj.observable] = id_to_observable[ancestor_id]
+            else:
+                observable_to_ancestor[old_obj.observable] = None
+            
         
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_phenotype(old_obj, key_to_source)
+            newly_created_objs = create_phenotype(old_obj, key_to_source, observable_to_ancestor)
                 
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:
@@ -97,11 +131,9 @@ def convert_phenotype(old_session_maker, new_session_maker):
                     untouched_obj_ids.remove(current_obj_by_key.id)
          
         #Convert cv terms           
-        old_objs = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no == 6).all()
-        
-        for old_obj in old_objs:
+        for old_obj in old_cvterms:
             #Convert old objects into new ones
-            newly_created_objs = create_phenotype_from_cv_term(old_obj, key_to_source)
+            newly_created_objs = create_phenotype_from_cv_term(old_obj, key_to_source, observable_to_ancestor)
                 
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:

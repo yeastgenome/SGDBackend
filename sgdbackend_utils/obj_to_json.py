@@ -48,6 +48,8 @@ def phenotype_to_json(biocon):
     biocon_json['observable'] = biocon.observable
     biocon_json['qualifier'] = biocon.qualifier
     biocon_json['mutant_type'] = biocon.mutant_type
+    biocon_json['is_core'] = biocon.is_core
+    biocon_json['ancestor_type'] = biocon.ancestor_type
     return biocon_json
     
 def biocon_to_json(biocon):

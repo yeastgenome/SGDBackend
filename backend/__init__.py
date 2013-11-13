@@ -119,9 +119,9 @@ def prep_views(chosen_backend, config):
 
     config.add_route('phenotype_ontology_graph', 
                      '/phenotype/{identifier}/ontology_graph', 
-                     view=lambda request: chosen_backend.response_wrapper('phenotype_ontology_graph')(
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_ontology_graph', request)(
                                 getattr(chosen_backend, 'phenotype_ontology_graph')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('phenotype_ontology_graph'))
         
     config.add_route('phenotype_overview', 
