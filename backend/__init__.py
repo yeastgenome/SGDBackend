@@ -123,6 +123,12 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'phenotype_ontology_graph')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('phenotype_ontology_graph'))
+    
+    config.add_route('phenotype_ontology', 
+                     '/phenotype/ontology', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_ontology', request)(
+                                getattr(chosen_backend, 'phenotype_ontology')()), 
+                     renderer=chosen_backend.get_renderer('phenotype_ontology'))
         
     config.add_route('phenotype_overview', 
                      '/locus/{identifier}/phenotype_overview', 

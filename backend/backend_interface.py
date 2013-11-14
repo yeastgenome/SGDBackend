@@ -137,6 +137,10 @@ class BackendInterface:
         return None
     
     @abstractmethod
+    def phenotype_ontology(self):
+        return None
+    
+    @abstractmethod
     def phenotype_ontology_graph(self, identifier):
         return None
     

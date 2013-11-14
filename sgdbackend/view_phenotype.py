@@ -132,3 +132,16 @@ def make_ontology_graph(phenotype_id):
     
     return {'nodes': list(nodes), 'edges': edges}
 
+'''
+-------------------------------Ontology---------------------------------------
+''' 
+
+def make_ontology():
+    relations = get_relations(Bioconceptrelation, 'PHENOTYPE')
+    id_to_phenotype = dict([(x.parent_id, id_to_biocon[x.parent_id]) for x in relations])
+    id_to_phenotype.update([(x.child_id, id_to_biocon[x.child_id]) for x in relations])
+    id_to_phenotype = dict([(k, v) for k, v in id_to_phenotype.iteritems() if v['is_core']])
+    child_to_parent = dict([(x.child_id, x.parent_id) for x in relations if x.parent_id in id_to_phenotype and x.child_id in id_to_phenotype])
+        
+    return {'elements': id_to_phenotype.values(), 'child_to_parent': child_to_parent}
+

@@ -212,6 +212,10 @@ class SGDBackend(BackendInterface):
         from sgdbackend import view_phenotype
         pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
         return None if pheno_id is None else json.dumps(view_phenotype.make_ontology_graph(pheno_id))
+    
+    def phenotype_ontology(self):
+        from sgdbackend import view_phenotype
+        return json.dumps(view_phenotype.make_ontology())
         
     def phenotype_overview(self, identifier):
         from sgdbackend_query import get_obj_id
