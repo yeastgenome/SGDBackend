@@ -30,6 +30,8 @@ def chemical_to_json(chem):
     return {
             'format_name': chem.format_name,
             'display_name': chem.display_name, 
+            'description': chem.description,
+            'chebi_id': chem.chebi_id,
             'link': chem.link,
             'id': chem.id
             }
@@ -56,6 +58,7 @@ def biocon_to_json(biocon):
     return {
             'format_name': biocon.format_name,
             'display_name': biocon.display_name, 
+            'description': biocon.description, 
             'class_type': biocon.class_type,
             'link': biocon.link,
             'id': biocon.id,

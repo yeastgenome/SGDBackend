@@ -44,7 +44,7 @@ def create_phenotype_from_cv_term(old_cvterm, key_to_source, observable_to_ances
     source = key_to_source['SGD']
     phenotype_type = create_phenotype_type(observable)
     ancestor_type = None if observable not in observable_to_ancestor else observable_to_ancestor[observable]
-    new_phenotype = NewPhenotype(source, None, None,
+    new_phenotype = NewPhenotype(source, None, old_cvterm.definition,
                                  observable, None, None, phenotype_type, ancestor_type, 
                                  old_cvterm.date_created, old_cvterm.created_by)
     return [new_phenotype]
@@ -87,16 +87,12 @@ def convert_phenotype(old_session_maker, new_session_maker):
         observable_to_ancestor = dict()
         child_id_to_parent_id = dict([(x.child_id, x.parent_id) for x in old_session.query(OldCVTermRel).all()])   
         id_to_observable = dict([(x.id, x.name) for x in old_cvterms])
-        observable_to_id = dict([(x.name, x.id) for x in old_cvterms])
-        for old_obj in old_objs:
-            if old_obj.observable in observable_to_id:
-                observable_id = observable_to_id[old_obj.observable]
-                if observable_id in child_id_to_parent_id:
-                    ancestry = [observable_id, child_id_to_parent_id[observable_id]]
-                else:
-                    ancestry = [observable_id, None]
+        for old_obj in old_cvterms:
+            observable_id = old_obj.id
+            if observable_id in child_id_to_parent_id:
+                ancestry = [observable_id, child_id_to_parent_id[observable_id]]
             else:
-                ancestry = [None]
+                ancestry = [observable_id, None]
                 
             while ancestry[len(ancestry)-1] is not None:
                 latest_parent_id = ancestry[len(ancestry)-1]
@@ -104,12 +100,11 @@ def convert_phenotype(old_session_maker, new_session_maker):
                     ancestry.append(child_id_to_parent_id[latest_parent_id])
                 else:
                     ancestry.append(None)
-            print ancestry
             if len(ancestry) > 2:
                 ancestor_id = ancestry[len(ancestry)-3]
-                observable_to_ancestor[old_obj.observable] = id_to_observable[ancestor_id]
+                observable_to_ancestor[old_obj.name] = id_to_observable[ancestor_id]
             else:
-                observable_to_ancestor[old_obj.observable] = None
+                observable_to_ancestor[old_obj.name] = None
             
         
         for old_obj in old_objs:

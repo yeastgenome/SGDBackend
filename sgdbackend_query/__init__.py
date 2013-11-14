@@ -1,7 +1,7 @@
 from model_new_schema.auxiliary import Locustabs, Disambig
 from model_new_schema.bioconcept import Bioconcept, Bioconceptrelation
 from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl
-from model_new_schema.chemical import Chemical
+from model_new_schema.chemical import Chemical, Chemicalrelation
 from model_new_schema.condition import Condition, Temperaturecondition, \
     Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition, \
     Chemicalcondition
@@ -89,17 +89,28 @@ def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None,
         else:
             query = query.filter(evidence_cls.bioentity_id == bioent_id)
     if chemical_id is not None:
-        ok_evidence_ids = set([x.evidence_id for x in session.query(Chemicalcondition).filter(Chemicalcondition.chemical_id == chemical_id).all()])
+        ok_evidence_ids = set()
+        child_ids = list(get_all_chemical_children(chemical_id))
+        print child_ids
+        num_chunks = ceil(1.0*len(child_ids)/500)
+        for i in range(num_chunks):
+            ok_evidence_ids.update([x.evidence_id for x in session.query(Chemicalcondition).filter(Chemicalcondition.chemical_id.in_(child_ids[i*500:(i+1)*500])).all()])
     if biocon_id is not None:
         evidences = []
-        child_ids = [x for x in get_all_bioconcept_children(biocon_id)]
+        child_ids = list(get_all_bioconcept_children(biocon_id))
         num_chunks = ceil(1.0*len(child_ids)/500)
         for i in range(num_chunks):
             evidences.extend(query.filter(evidence_cls.bioconcept_id.in_(child_ids[i*500:(i+1)*500])).all())
         return evidences    
     if print_query:
         print query
-    return query.all() if ok_evidence_ids is None else [x for x in query.all() if x.id in ok_evidence_ids]
+        
+    if ok_evidence_ids is None:
+        return query.all()
+    elif len(ok_evidence_ids) == 0:
+        return []
+    else:
+        return [x for x in query.all() if x.id in ok_evidence_ids]
 
 def get_all_bioconcept_children(parent_id):
     all_child_ids = set()
@@ -110,7 +121,18 @@ def get_all_bioconcept_children(parent_id):
             new_parent_ids = [x.child_id for x in session.query(Bioconceptrelation).filter(Bioconceptrelation.parent_id == new_parent_ids[0]).all()]
         else:
             new_parent_ids = [x.child_id for x in session.query(Bioconceptrelation).filter(Bioconceptrelation.parent_id.in_(new_parent_ids)).all()]
-    return all_child_ids         
+    return all_child_ids     
+
+def get_all_chemical_children(parent_id):
+    all_child_ids = set()
+    new_parent_ids = [parent_id]
+    while len(new_parent_ids) > 0:
+        all_child_ids.update(new_parent_ids)
+        if len(new_parent_ids) == 0:
+            new_parent_ids = [x.child_id for x in session.query(Chemicalrelation).filter(Chemicalrelation.parent_id == new_parent_ids[0]).all()]
+        else:
+            new_parent_ids = [x.child_id for x in session.query(Chemicalrelation).filter(Chemicalrelation.parent_id.in_(new_parent_ids)).all()]
+    return all_child_ids      
 
 def get_conditions(evidence_ids, print_query=False):
     conditions = []

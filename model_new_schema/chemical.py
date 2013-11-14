@@ -16,14 +16,18 @@ class Chemical(Base):
     format_name = Column('format_name', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer)
+    chebi_id = Column('chebi_id', String)
+    description = Column('description', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
-    def __init__(self, display_name, source, date_created, created_by):
+    def __init__(self, display_name, source, chebi_id, description, date_created, created_by):
         self.display_name = display_name
-        self.format_name = create_format_name(display_name)
+        self.format_name = create_format_name(display_name)[:95]
         self.link = '/chemical/' + self.format_name + '/overview'
         self.source_id = source.id
+        self.chebi_id = chebi_id
+        self.description = description
         self.date_created = date_created
         self.created_by = created_by
         
@@ -55,8 +59,9 @@ class Chemicalrelation(Relation):
                        'inherit_condition': id == Relation.id}
 
     def __init__(self, source, relation_type, parent, child, date_created, created_by):
-        Relation.__init__(self, parent.format_name + '_' + child.format_name, 
+        Relation.__init__(self, 
                           child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
+                          str(parent.id) + '_' + str(child.id), 
                           'CHEMICAL', source, relation_type, date_created, created_by)
         self.parent_id = parent.id
         self.child_id = child.id

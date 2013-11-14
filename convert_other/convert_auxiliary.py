@@ -301,21 +301,15 @@ def convert_biofact(new_session_maker, evidence_class, bioconcept_class, bioconc
 --------------------- Convert BioconCount ---------------------
 """
 
-def create_biocon_count(bioconcept, biocon_id_to_biofacts, biocon_id_to_children):
+def create_biocon_count(bioconcept, biocon_id_to_biofacts):
     from model_new_schema.auxiliary import BioconceptCount as NewBioconceptCount
     
-    bioent_ids = set()
-    if bioconcept.id in biocon_id_to_children:
-        child_ids = biocon_id_to_children[bioconcept.id]
-        for child_id in child_ids:
-            if child_id in biocon_id_to_biofacts:
-                bioent_ids.update([x.bioentity_id for x in biocon_id_to_biofacts[child_id]])
-    
-    return [NewBioconceptCount(bioconcept, len(bioent_ids))]
+    biofact_count = 0 if bioconcept.id not in biocon_id_to_biofacts else len(biocon_id_to_biofacts[bioconcept.id])
+    return [NewBioconceptCount(bioconcept, biofact_count, 1)]
 
 def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
     from model_new_schema.auxiliary import BioconceptCount, Biofact
-    from model_new_schema.bioconcept import Bioconceptrelation, Bioconcept
+    from model_new_schema.bioconcept import Bioconcept
     
     log = logging.getLogger(label)
     log.info('begin')
@@ -325,7 +319,7 @@ def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
         new_session = new_session_maker()
          
         #Values to check
-        values_to_check = ['genecount']     
+        values_to_check = ['genecount', 'is_relevant_num']     
         
         #Grab all current objects
         current_objs = new_session.query(BioconceptCount).filter(BioconceptCount.class_type == bioconcept_class_type).all()
@@ -341,29 +335,6 @@ def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
             else:
                 biocon_id_to_biofacts[biocon_id] = [biofact]
                 
-        biocon_id_to_parent_ids = {}
-        for bioconrelation in new_session.query(Bioconceptrelation).filter(Bioconceptrelation.bioconrel_class_type == bioconcept_class_type).all():
-            parent_id = bioconrelation.parent_id
-            child_id = bioconrelation.child_id
-            if child_id in biocon_id_to_parent_ids:
-                biocon_id_to_parent_ids[child_id].append(parent_id)
-            else:
-                biocon_id_to_parent_ids[child_id] = [parent_id]
-                
-        biocon_id_to_all_child_ids = {}
-        for child_id in biocon_id_to_parent_ids.keys():
-            parents = [child_id]
-            while len(parents) > 0:
-                new_parents = set()
-                for parent_id in parents:
-                    if parent_id in biocon_id_to_all_child_ids:
-                        biocon_id_to_all_child_ids[parent_id].add(child_id)
-                    else:
-                        biocon_id_to_all_child_ids[parent_id] = set([child_id])
-                    if parent_id in biocon_id_to_parent_ids:
-                        new_parents.update(biocon_id_to_parent_ids[parent_id])
-                parents = new_parents
-            
         untouched_obj_ids = set(id_to_current_obj.keys())
         
         used_unique_keys = set()   
@@ -372,7 +343,7 @@ def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
         
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_biocon_count(old_obj, biocon_id_to_biofacts, biocon_id_to_all_child_ids)
+            newly_created_objs = create_biocon_count(old_obj, biocon_id_to_biofacts)
      
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:

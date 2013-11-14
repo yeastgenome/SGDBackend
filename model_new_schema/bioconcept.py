@@ -163,7 +163,7 @@ class Phenotype(Bioconcept):
         display_name = 'APO Ontology' if observable == 'observable' else create_phenotype_display_name(observable, qualifier, mutant_type)
         Bioconcept.__init__(self, display_name, 
                             format_name, 
-                            'PHENOTYPE', '/phenotype/' + format_name + '/overview', source, sgdid, description, 
+                            'PHENOTYPE', '/phenotype/' + create_format_name(observable) + '/overview', source, sgdid, description, 
                             date_created, created_by)
         self.observable = observable
         self.qualifier = qualifier

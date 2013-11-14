@@ -8,16 +8,16 @@ def prep_views(chosen_backend, config):
     #Chemical views
     config.add_route('chemical', 
                      '/chemical/{identifier}/overview', 
-                     view=lambda request: chosen_backend.response_wrapper('chemical')(
+                     view=lambda request: chosen_backend.response_wrapper('chemical', request)(
                                 getattr(chosen_backend, 'chemical')(
-                                        identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                                        identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('chemical')) 
     
     config.add_route('chemical_ontology_graph', 
                      '/chemical/{identifier}/ontology_graph', 
-                     view=lambda request: chosen_backend.response_wrapper('chemical_ontology_graph')(
+                     view=lambda request: chosen_backend.response_wrapper('chemical_ontology_graph', request)(
                                 getattr(chosen_backend, 'chemical_ontology_graph')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('chemical_ontology_graph'))
     
     #Reference views
@@ -147,9 +147,9 @@ def prep_views(chosen_backend, config):
     
     config.add_route('phenotype_chem_details', 
                      '/chemical/{identifier}/locus_details', 
-                     view=lambda request: chosen_backend.response_wrapper('phenotype_details')(
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_details', request)(
                                 getattr(chosen_backend, 'phenotype_details')(
-                                        chemical_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier']), request), 
+                                        chemical_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('phenotype_details')) 
     
     #Interaction views
