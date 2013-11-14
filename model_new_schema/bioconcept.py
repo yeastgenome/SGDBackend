@@ -111,7 +111,7 @@ class Go(Bioconcept):
     def __init__(self, display_name, source, sgdid, description, 
                  go_id, go_aspect, date_created, created_by):
         Bioconcept.__init__(self, display_name, 'GO:' + str(go_id), 'GO', 
-                            'http://www.yeastgenome.org/cgi-bin/GO/goTerm.pl?goid=' + str(go_id), 
+                            '/go/GO:' + str(go_id) + '/overview', 
                             source, sgdid,
                             description, date_created, created_by)
         self.go_id = go_id
@@ -163,7 +163,7 @@ class Phenotype(Bioconcept):
         display_name = 'APO Ontology' if observable == 'observable' else create_phenotype_display_name(observable, qualifier, mutant_type)
         Bioconcept.__init__(self, display_name, 
                             format_name, 
-                            'PHENOTYPE', '/phenotype/' + 'apo_ontology' if observable == 'observable' else create_format_name(observable) + '/overview', source, sgdid, description, 
+                            'PHENOTYPE', '/phenotype/' + ('apo_ontology' if observable == 'observable' else create_format_name(observable)) + '/overview', source, sgdid, description, 
                             date_created, created_by)
         self.observable = observable
         self.qualifier = qualifier

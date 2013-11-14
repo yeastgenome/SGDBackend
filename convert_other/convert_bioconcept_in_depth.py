@@ -93,6 +93,88 @@ def convert_ecnumber_relation(new_session_maker):
     log.info('complete')
     
 """
+--------------------- Convert GO Relation ---------------------
+"""
+
+def create_go_relation(gopath, key_to_go, key_to_source):
+    from model_new_schema.bioconcept import Bioconceptrelation as NewBioconceptrelation
+    
+    source = key_to_source['SGD']
+    
+    parent_key = ('GO:' + str(gopath.ancestor.go_go_id), 'GO')
+    child_key = ('GO:' + str(gopath.child.go_go_id), 'GO')
+    
+    parent = None
+    child = None
+    if parent_key in key_to_go:
+        parent = key_to_go[parent_key]
+    if child_key in key_to_go:
+        child = key_to_go[child_key]
+    
+    if parent is not None and child is not None:
+        return [NewBioconceptrelation(source, gopath.relationship_type, parent, child, 'GO', None, None)]
+    else:
+        return []
+
+def convert_go_relation(old_session_maker, new_session_maker):
+    from model_new_schema.evelements import Source
+    from model_new_schema.bioconcept import Bioconceptrelation, Go
+    from model_old_schema.go import GoPath
+    
+    log = logging.getLogger('convert.bioconcept.go_relation')
+    log.info('begin')
+    output_creator = OutputCreator(log)
+    
+    try:
+        #Grab all current objects
+        new_session = new_session_maker()
+        current_objs = new_session.query(Bioconceptrelation).filter(Bioconceptrelation.bioconrel_class_type == 'GO').all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+                
+        #Values to check
+        values_to_check = ['parent_id', 'child_id']
+        
+        untouched_obj_ids = set(id_to_current_obj.keys())
+        
+        #Grab cached dictionaries
+        key_to_go = dict([(x.unique_key(), x) for x in new_session.query(Go).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
+        
+        old_session = old_session_maker()
+        old_objs = old_session.query(GoPath).filter(GoPath.generation == 1).options(joinedload('child'), joinedload('ancestor')).all()
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_go_relation(old_obj, key_to_go, key_to_source)
+                
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
+                        
+        #Delete untouched objs
+        for untouched_obj_id  in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+        
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+        
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
+        
+    log.info('complete')
+    
+"""
 --------------------- Convert Phenotype Relation ---------------------
 """
 
@@ -329,11 +411,15 @@ def convert(old_session_maker, new_session_maker):
     #convert_phenotype_relation(old_session_maker, new_session_maker)
     #convert_phenotype_alias(old_session_maker, new_session_maker)
     #convert_biofact(new_session_maker, Phenotypeevidence, Phenotype, 'PHENOTYPE', 'convert.phenotype.biofact', 10000)
-    convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
+    #convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
             
     
     #convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
  
     from model_new_schema.bioconcept import Go
-    #convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
+    from model_new_schema.evidence import Goevidence
+    #convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
+    convert_go_relation(old_session_maker, new_session_maker)
+    convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
+    convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
         

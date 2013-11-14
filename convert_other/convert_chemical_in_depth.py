@@ -3,9 +3,9 @@ Created on Oct 25, 2013
 
 @author: kpaskov
 '''
-from convert_other.convert_auxiliary import convert_disambigs
-from convert_utils import set_up_logging, create_or_update, \
-    create_format_name
+from convert_other.convert_auxiliary import convert_disambigs, \
+    convert_chem_count
+from convert_utils import set_up_logging, create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 import logging
@@ -111,7 +111,8 @@ def convert(old_session_maker, new_session_maker):
     
     log.info('begin')
         
-    convert_chemical_relation(old_session_maker, new_session_maker)
+    #convert_chemical_relation(old_session_maker, new_session_maker)
+    convert_chem_count(new_session_maker, 'convert.chemical.count')
             
     from model_new_schema.chemical import Chemical
     convert_disambigs(new_session_maker, Chemical, ['id', 'format_name'], 'CHEMICAL', None, 'convert.chemical.disambigs', 2000)

@@ -4,9 +4,12 @@ Created on Mar 15, 2013
 @author: kpaskov
 '''
 from go_enrichment import query_batter
+from model_new_schema.bioconcept import Bioconceptrelation
 from model_new_schema.evidence import Goevidence
+from mpmath import sqrt, ceil
 from sgdbackend_query import get_obj_id, get_evidence, get_conditions
 from sgdbackend_query.query_auxiliary import get_biofacts
+from sgdbackend_query.query_misc import get_relations
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
 from sgdbackend_utils.obj_to_json import condition_to_json, minimize_json, \
@@ -48,8 +51,9 @@ def make_overview(bioent_id):
 -------------------------------Details---------------------------------------
 '''
     
-def make_details(locus_id=None, go_id=None):
-    goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id)
+def make_details(locus_id=None, go_id=None, chemical_id=None):
+    goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id, chemical_id=chemical_id)
+    
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in goevidences]):
         evidence_id = condition.evidence_id
@@ -74,6 +78,75 @@ def make_evidence_row(goevidence, id_to_conditions):
     obj_json['with'] = with_conditions
     obj_json['from']= from_conditions
     obj_json['go_aspect'] = id_to_biocon[bioconcept_id]['go_aspect']
+    obj_json['code'] = goevidence.go_evidence
+    obj_json['method'] = goevidence.annotation_type
     obj_json['date_last_reviewed'] = str(goevidence.date_last_reviewed)
     return obj_json
+
+'''
+-------------------------------Ontology Graph---------------------------------------
+''' 
+
+def create_node(biocon, is_focus):
+    sub_type = None
+    if is_focus:
+        sub_type = 'FOCUS'
+    else:
+        sub_type = biocon['go_aspect']
+    return {'data':{'id':'Node' + str(biocon['id']), 'name':biocon['display_name'], 'link': biocon['link'], 
+                    'sub_type':sub_type, 'count': int(ceil(sqrt(biocon['count'])))}}
+
+def create_edge(interaction_id, biocon1_id, biocon2_id):
+    return {'data':{'target': 'Node' + str(biocon1_id), 'source': 'Node' + str(biocon2_id)}} 
+
+def make_ontology_graph(phenotype_id):
+    children = get_relations(Bioconceptrelation, 'GO', parent_ids=[phenotype_id])    
+    parents = get_relations(Bioconceptrelation, 'GO', child_ids=[phenotype_id])
+    if len(parents) > 0:
+        grandparents = get_relations(Bioconceptrelation, 'GO', child_ids=[parent.parent_id for parent in parents])
+        greatgrandparents = get_relations(Bioconceptrelation, 'GO', child_ids=[parent.parent_id for parent in grandparents])
+        greatgreatgrandparents = get_relations(Bioconceptrelation, 'GO', child_ids=[parent.parent_id for parent in greatgrandparents])
+        nodes = []
+        nodes.append(create_node(id_to_biocon[phenotype_id], True))
+        
+        child_ids = set([x.child_id for x in children])
+        parent_ids = set([x.parent_id for x in parents])
+        parent_ids.update([x.parent_id for x in grandparents])
+        parent_ids.update([x.parent_id for x in greatgrandparents])
+        parent_ids.update([x.parent_id for x in greatgreatgrandparents])
+        
+        child_id_to_child = dict([(x, id_to_biocon[x]) for x in child_ids])
+        parent_id_to_parent = dict([(x, id_to_biocon[x]) for x in parent_ids])
+        viable_ids = set([k for k, v in child_id_to_child.iteritems() if v['child_count'] > 0])
+        viable_ids.update([k for k, v in parent_id_to_parent.iteritems() if v['child_count'] > 0])
+        viable_ids.add(phenotype_id)
+        
+        nodes.extend([create_node(v, False) for k, v in child_id_to_child.iteritems() if k in viable_ids])
+        nodes.extend([create_node(v, False) for k, v in parent_id_to_parent.iteritems() if k in viable_ids])
+        
+        edges = []
+        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in children if x.child_id in viable_ids and x.parent_id in viable_ids])
+        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in parents if x.child_id in viable_ids and x.parent_id in viable_ids])
+        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in grandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
+        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in greatgrandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
+        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in greatgreatgrandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
+    else:
+        grandchildren = get_relations(Bioconceptrelation, 'GO', parent_ids=[x.child_id for x in children])  
+        
+        child_ids = set([x.child_id for x in children])
+        child_ids.update([x.child_id for x in grandchildren])  
+        
+        child_id_to_child = dict([(x, id_to_biocon[x]) for x in child_ids])
+        viable_ids = set([k for k, v in child_id_to_child.iteritems() if v['child_count'] > 0])
+        viable_ids.add(phenotype_id)
+        
+        nodes = []
+        nodes.append(create_node(id_to_biocon[phenotype_id], True))
+        nodes.extend([create_node(v, False) for k, v in child_id_to_child.iteritems() if k in viable_ids])
+        
+        edges = []
+        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in children if x.child_id in viable_ids and x.parent_id in viable_ids])
+        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in grandchildren if x.child_id in viable_ids and x.parent_id in viable_ids])
+    
+    return {'nodes': list(nodes), 'edges': edges}
         

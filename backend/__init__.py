@@ -74,12 +74,12 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('go'))
     
-    config.add_route('go_ontology', 
-                     '/go/{identifier}/ontology', 
-                     view=lambda request: chosen_backend.response_wrapper('go_ontology', request)(
-                                getattr(chosen_backend, 'go_ontology')(
+    config.add_route('go_ontology_graph', 
+                     '/go/{identifier}/ontology_graph', 
+                     view=lambda request: chosen_backend.response_wrapper('go_ontology_graph', request)(
+                                getattr(chosen_backend, 'go_ontology_graph')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
-                     renderer=chosen_backend.get_renderer('go_ontology'))
+                     renderer=chosen_backend.get_renderer('go_ontology_graph'))
     
     config.add_route('go_overview', 
                      '/locus/{identifier}/go_overview', 
@@ -101,6 +101,13 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'go_details')(
                                         go_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('go_details'))
+    
+    config.add_route('go_chem_details', 
+                     '/chemical/{identifier}/locus_details', 
+                     view=lambda request: chosen_backend.response_wrapper('go_details', request)(
+                                getattr(chosen_backend, 'go_details')(
+                                        chemical_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
+                     renderer=chosen_backend.get_renderer('go_details')) 
     
     config.add_route('go_enrichment', 
                      '/go_enrichment', 

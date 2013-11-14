@@ -62,7 +62,8 @@ def biocon_to_json(biocon):
             'class_type': biocon.class_type,
             'link': biocon.link,
             'id': biocon.id,
-            'count': 0 if biocon.count is None else biocon.count.genecount
+            'count': 0 if biocon.count is None else biocon.count.genecount,
+            'child_count': 0 if biocon.count is None else biocon.count.child_gene_count
             }
     
 def experiment_to_json(experiment):
