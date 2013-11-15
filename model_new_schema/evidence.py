@@ -175,6 +175,7 @@ class Phenotypeevidence(Evidence):
 
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Phenotype.id))
+    mutant_type = Column('mutant_type', String)
         
     #Relationship
     bioentity = relationship(Bioentity, uselist=False)
@@ -184,16 +185,17 @@ class Phenotypeevidence(Evidence):
                        'inherit_condition': id==Evidence.id}
     
     def __init__(self, source, reference, strain, experiment, note,
-                 bioentity, phenotype, conditions,
+                 bioentity, phenotype, mutant_type, conditions,
                  date_created, created_by):
         Evidence.__init__(self, 
                           bioentity.display_name + ' ' + phenotype.display_name + ' in ' + reference.display_name,
-                          bioentity.format_name + '_' + str(phenotype.id) + ('' if strain is None else ('_' + str(strain.id))) + '_' + str(experiment.id) + '_' + str(reference.id) + '_' + '_'.join(x.format_name for x in conditions), 
+                          bioentity.format_name + '_' + str(phenotype.id) + '_' + mutant_type + '_' + ('' if strain is None else ('_' + str(strain.id))) + '_' + str(experiment.id) + '_' + str(reference.id) + '_' + '_'.join(x.format_name for x in conditions), 
                           'PHENOTYPE', source, reference, strain, experiment, note,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
         self.bioconcept_id = phenotype.id
         self.conditions = conditions
+        self.mutant_type = mutant_type
         
 class Domainevidence(Evidence):
     __tablename__ = "domainevidence"

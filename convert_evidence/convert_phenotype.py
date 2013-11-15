@@ -35,8 +35,9 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
     reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
     bioent_id = old_phenotype_feature.feature_id
     bioentity = None if bioent_id not in id_to_bioentity else id_to_bioentity[bioent_id]
-    
-    phenotype_key = (create_phenotype_format_name(old_phenotype_feature.observable, old_phenotype_feature.qualifier, old_phenotype_feature.mutant_type), 'PHENOTYPE')
+
+    mutant_type = old_phenotype_feature.mutant_type    
+    phenotype_key = (create_phenotype_format_name(old_phenotype_feature.observable, old_phenotype_feature.qualifier), 'PHENOTYPE')
     phenotype = None if phenotype_key not in key_to_phenotype else key_to_phenotype[phenotype_key]
        
     experiment_key = create_format_name(old_phenotype_feature.experiment_type)
@@ -50,10 +51,17 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
     if old_experiment is not None:
         #Create note
         note_pieces = []
+        note_set = set()
         if old_experiment.experiment_comment is not None:
-            note_pieces.append(old_experiment.experiment_comment)
+            new_note = old_experiment.experiment_comment
+            if new_note not in note_set:
+                note_pieces.append(new_note)
+                note_set.add(new_note)
         for (a, b) in old_experiment.details:
-            note_pieces.append(a if b is None else a + ': ' + b)
+            new_note = a if b is None else a + ': ' + b
+            if new_note not in note_set:
+                note_pieces.append(new_note)
+                note_set.add(new_note)
         
         strain_details = None if old_experiment.strain == None else old_experiment.strain[1]
         if strain_details is not None:
@@ -106,7 +114,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
     source = None if source_key not in key_to_source else key_to_source[source_key]
         
     new_phenoevidence = NewPhenotypeevidence(source, reference, strain, experiment, note,
-                                         bioentity, phenotype, conditions,
+                                         bioentity, phenotype, mutant_type, conditions,
                                          old_phenotype_feature.date_created, old_phenotype_feature.created_by)
     return [new_phenoevidence]
 
@@ -131,7 +139,7 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
                   
         #Values to check
         values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id',
-                       'bioentity_id', 'bioconcept_id']
+                       'bioentity_id', 'bioconcept_id', 'mutant_type', 'note']
         
         #Grab cached dictionaries
         key_to_experiment = dict([(x.unique_key(), x) for x in new_session.query(NewExperiment).all()])

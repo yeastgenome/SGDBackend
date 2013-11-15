@@ -117,29 +117,20 @@ class Go(Bioconcept):
         self.go_id = go_id
         self.go_aspect = go_aspect
         
-def create_phenotype_display_name(observable, qualifier, mutant_type):
-    if qualifier is None and mutant_type is None:
+def create_phenotype_display_name(observable, qualifier):
+    if qualifier is None:
         display_name = observable
     else:
-        if mutant_type is None:
-            mutant_type = 'None'
-        if qualifier is None:
-            display_name = observable + ' in ' + mutant_type + ' mutant'
-        else:
-            display_name = qualifier + ' ' + observable + ' in ' + mutant_type + ' mutant'
+        display_name = qualifier + ' ' + observable
     return display_name
 
-def create_phenotype_format_name(observable, qualifier, mutant_type):
-    if qualifier is None and mutant_type is None:
+def create_phenotype_format_name(observable, qualifier):
+    if qualifier is None:
         format_name = create_format_name(observable)
     else:
         observable = '.' if observable is None else observable
         qualifier = '.' if qualifier is None else qualifier
-        mutant_type = '.' if mutant_type is None else mutant_type
-        if qualifier is None and mutant_type is None:
-            format_name = create_format_name(observable)
-        else:  
-            format_name = create_format_name(qualifier + '_' + observable + '_' + mutant_type)
+        format_name = create_format_name(qualifier + '_' + observable)
     return format_name
         
 class Phenotype(Bioconcept):
@@ -148,7 +139,6 @@ class Phenotype(Bioconcept):
     id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
     observable = Column('observable', String)
     qualifier = Column('qualifier', String)
-    mutant_type = Column('mutant_type', String)
     phenotype_type = Column('phenotype_type', String)
     is_core_num = Column('is_core', Integer)
     ancestor_type = Column('ancestor_type', String)
@@ -157,19 +147,18 @@ class Phenotype(Bioconcept):
                        'inherit_condition': id==Bioconcept.id}
 
     def __init__(self, source, sgdid, description,
-                 observable, qualifier, mutant_type, phenotype_type, ancestor_type,
+                 observable, qualifier, phenotype_type, ancestor_type,
                  date_created, created_by):
-        format_name = 'apo_ontology' if observable == 'observable' else create_phenotype_format_name(observable, qualifier, mutant_type)
-        display_name = 'APO Ontology' if observable == 'observable' else create_phenotype_display_name(observable, qualifier, mutant_type)
+        format_name = 'apo_ontology' if observable == 'observable' else create_phenotype_format_name(observable, qualifier)
+        display_name = 'APO Ontology' if observable == 'observable' else create_phenotype_display_name(observable, qualifier)
         Bioconcept.__init__(self, display_name, 
                             format_name, 
                             'PHENOTYPE', '/phenotype/' + ('apo_ontology' if observable == 'observable' else create_format_name(observable)) + '/overview', source, sgdid, description, 
                             date_created, created_by)
         self.observable = observable
         self.qualifier = qualifier
-        self.mutant_type = mutant_type
         self.phenotype_type = phenotype_type
-        self.is_core_num = 1 if self.mutant_type is None and self.qualifier is None else 0
+        self.is_core_num = 1 if self.qualifier is None else 0
         self.ancestor_type = ancestor_type
       
     @hybrid_property  

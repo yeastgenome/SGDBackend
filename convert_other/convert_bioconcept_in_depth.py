@@ -206,7 +206,7 @@ def create_phenotype_relation_from_phenotype(phenotype, key_to_phenotype, key_to
     
     source = key_to_source['SGD']
     
-    if phenotype.qualifier is not None or phenotype.mutant_type is not None:
+    if phenotype.qualifier is not None:
         parent_key = (create_format_name(phenotype.observable), 'PHENOTYPE')
         if parent_key in key_to_phenotype:
             parent = key_to_phenotype[parent_key]
@@ -408,10 +408,9 @@ def convert(old_session_maker, new_session_maker):
     
     from model_new_schema.bioconcept import Phenotype
     from model_new_schema.evidence import Phenotypeevidence
-    #convert_phenotype_relation(old_session_maker, new_session_maker)
+    convert_phenotype_relation(old_session_maker, new_session_maker)
     #convert_phenotype_alias(old_session_maker, new_session_maker)
-    #convert_biofact(new_session_maker, Phenotypeevidence, Phenotype, 'PHENOTYPE', 'convert.phenotype.biofact', 10000)
-    #convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
+    convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
             
     
     #convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)

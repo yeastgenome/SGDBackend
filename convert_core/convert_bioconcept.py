@@ -28,13 +28,12 @@ def create_phenotype(old_phenotype, key_to_source, observable_to_ancestor):
     from model_new_schema.bioconcept import Phenotype as NewPhenotype
     observable = old_phenotype.observable
     qualifier = old_phenotype.qualifier
-    mutant_type = old_phenotype.mutant_type
     
     source = key_to_source['SGD']
     phenotype_type = create_phenotype_type(old_phenotype.observable)
     ancestor_type = None if observable not in observable_to_ancestor else observable_to_ancestor[observable]
     new_phenotype = NewPhenotype(source, None, None,
-                                 observable, qualifier, mutant_type, phenotype_type, ancestor_type,
+                                 observable, qualifier, phenotype_type, ancestor_type,
                                  old_phenotype.date_created, old_phenotype.created_by)
     return [new_phenotype]
 
@@ -45,7 +44,7 @@ def create_phenotype_from_cv_term(old_cvterm, key_to_source, observable_to_ances
     phenotype_type = create_phenotype_type(observable)
     ancestor_type = None if observable not in observable_to_ancestor else observable_to_ancestor[observable]
     new_phenotype = NewPhenotype(source, None, old_cvterm.definition,
-                                 observable, None, None, phenotype_type, ancestor_type, 
+                                 observable, None, phenotype_type, ancestor_type, 
                                  old_cvterm.date_created, old_cvterm.created_by)
     return [new_phenotype]
 
@@ -69,7 +68,7 @@ def convert_phenotype(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs]) 
                   
         #Values to check
-        values_to_check = ['observable', 'qualifier', 'mutant_type', 'phenotype_type', 'display_name', 
+        values_to_check = ['observable', 'qualifier', 'phenotype_type', 'display_name', 
                            'description', 'source_id', 'link', 'sgdid', 'is_core_num', 'ancestor_type']
                 
         untouched_obj_ids = set(id_to_current_obj.keys())
