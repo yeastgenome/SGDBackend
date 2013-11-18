@@ -61,8 +61,14 @@ def make_details(locus_id=None, go_id=None, chemical_id=None):
             id_to_conditions[evidence_id].append(condition)
         else:
             id_to_conditions[evidence_id] = [condition]
-          
-    tables = create_simple_table(goevidences, make_evidence_row, id_to_conditions=id_to_conditions)
+    
+    bp_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'biological process']      
+    mf_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'molecular function']    
+    cc_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'cellular compartment']    
+    tables = {}
+    tables['biological_process'] = create_simple_table(bp_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
+    tables['molecular_function'] = create_simple_table(mf_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
+    tables['cellular_compartment'] = create_simple_table(cc_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
         
     return tables  
 
@@ -77,10 +83,10 @@ def make_evidence_row(goevidence, id_to_conditions):
     obj_json['bioconcept'] = minimize_json(id_to_biocon[bioconcept_id])
     obj_json['with'] = with_conditions
     obj_json['from']= from_conditions
-    obj_json['go_aspect'] = id_to_biocon[bioconcept_id]['go_aspect']
     obj_json['code'] = goevidence.go_evidence
     obj_json['method'] = goevidence.annotation_type
-    obj_json['date_last_reviewed'] = str(goevidence.date_last_reviewed)
+    obj_json['qualifier'] = goevidence.qualifier
+    obj_json['date_created'] = str(goevidence.date_created)
     return obj_json
 
 '''

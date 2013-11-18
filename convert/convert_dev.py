@@ -16,7 +16,8 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_chemical()
     #pastry_dev_converter.convert_phenotype()
     #pastry_dev_converter.convert_bioconcept_in_depth()
-    pastry_dev_converter.convert_phenotype()
+    pastry_dev_converter.convert_bioentity()
+    #pastry_dev_converter.convert_evelements()
     
     #Dev_nex -> Dev_perf
     #dev_perf_converter = NexPerfConverter(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, 
