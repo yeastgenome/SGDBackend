@@ -193,7 +193,7 @@ class PerfBackend(BackendInterface):
                             'disambig_key': disambig.disambig_key,
                             'class_type': disambig.class_type,
                             'subclass_type': disambig.subclass_type,
-                            'identifier': disambig.identifier} 
+                            'identifier': disambig.obj_id} 
                         for disambig in disambigs]) 
         
 #Useful methods
