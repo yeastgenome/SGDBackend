@@ -102,12 +102,13 @@ def prep_views(chosen_backend, config):
                                         go_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('go_details'))
     
-    config.add_route('go_chem_details', 
-                     '/chemical/{identifier}/locus_details', 
+    config.add_route('go_biocon_details_all', 
+                     '/go/{identifier}/locus_details_all', 
                      view=lambda request: chosen_backend.response_wrapper('go_details', request)(
                                 getattr(chosen_backend, 'go_details')(
-                                        chemical_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
-                     renderer=chosen_backend.get_renderer('go_details')) 
+                                        go_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'],
+                                        with_children=True)), 
+                     renderer=chosen_backend.get_renderer('go_details'))
     
     config.add_route('go_enrichment', 
                      '/go_enrichment', 
@@ -158,12 +159,29 @@ def prep_views(chosen_backend, config):
                                         phenotype_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('phenotype_details')) 
     
+    config.add_route('phenotype_biocon_details_all', 
+                     '/phenotype/{identifier}/locus_details_all', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_details', request)(
+                                getattr(chosen_backend, 'phenotype_details')(
+                                        phenotype_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'],
+                                        with_children=True)), 
+                     renderer=chosen_backend.get_renderer('phenotype_details'))
+    
     config.add_route('phenotype_chem_details', 
                      '/chemical/{identifier}/locus_details', 
                      view=lambda request: chosen_backend.response_wrapper('phenotype_details', request)(
                                 getattr(chosen_backend, 'phenotype_details')(
                                         chemical_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('phenotype_details')) 
+
+    config.add_route('phenotype_chem_details_all', 
+                     '/chemical/{identifier}/locus_details_all', 
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_details', request)(
+                                getattr(chosen_backend, 'phenotype_details')(
+                                        chemical_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'],
+                                        with_children=True)), 
+                     renderer=chosen_backend.get_renderer('phenotype_details'))
+    
     
     #Interaction views
     config.add_route('interaction_overview', 

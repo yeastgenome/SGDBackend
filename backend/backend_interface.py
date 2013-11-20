@@ -94,7 +94,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def go_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None):
+    def go_details(self, locus_identifier=None, phenotype_identifier=None, with_children=False):
         return None
     
     @abstractmethod
@@ -149,7 +149,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None):
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, with_children=False):
         return None
     
     #Protein

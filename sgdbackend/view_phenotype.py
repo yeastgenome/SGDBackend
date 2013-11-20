@@ -25,8 +25,8 @@ def make_overview(bioent_id):
 -------------------------------Details---------------------------------------
 '''
     
-def make_details(locus_id=None, phenotype_id=None, chemical_id=None):
-    phenoevidences = get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=phenotype_id, chemical_id=chemical_id)
+def make_details(locus_id=None, phenotype_id=None, chemical_id=None, with_children=False):
+    phenoevidences = get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=phenotype_id, chemical_id=chemical_id, with_children=with_children)
     
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in phenoevidences]):

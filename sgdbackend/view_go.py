@@ -51,8 +51,8 @@ def make_overview(bioent_id):
 -------------------------------Details---------------------------------------
 '''
     
-def make_details(locus_id=None, go_id=None, chemical_id=None):
-    goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id, chemical_id=chemical_id)
+def make_details(locus_id=None, go_id=None, chemical_id=None, with_children=False):
+    goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id, chemical_id=chemical_id, with_children=with_children)
     
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in goevidences]):
@@ -62,27 +62,32 @@ def make_details(locus_id=None, go_id=None, chemical_id=None):
         else:
             id_to_conditions[evidence_id] = [condition]
     
-    bp_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'biological process']      
-    mf_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'molecular function']    
-    cc_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'cellular compartment']    
-    tables = {}
-    tables['biological_process'] = create_simple_table(bp_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
-    tables['molecular_function'] = create_simple_table(mf_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
-    tables['cellular_compartment'] = create_simple_table(cc_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
+    if locus_id is not None or chemical_id is not None:  
+        bp_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'biological process']      
+        mf_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'molecular function']    
+        cc_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'cellular compartment']  
+    
+        tables = {}
+        tables['biological_process'] = create_simple_table(bp_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
+        tables['molecular_function'] = create_simple_table(mf_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
+        tables['cellular_compartment'] = create_simple_table(cc_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
+    else:
+        tables = create_simple_table(goevidences, make_evidence_row, id_to_conditions=id_to_conditions)
         
     return tables  
 
 def make_evidence_row(goevidence, id_to_conditions): 
     bioentity_id = goevidence.bioentity_id
     bioconcept_id = goevidence.bioconcept_id
-    with_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'With']
-    from_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'From']
+    #with_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'With']
+    #from_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'From']
         
     obj_json = evidence_to_json(goevidence)
     obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
     obj_json['bioconcept'] = minimize_json(id_to_biocon[bioconcept_id])
-    obj_json['with'] = with_conditions
-    obj_json['from']= from_conditions
+    #obj_json['with'] = with_conditions
+    #obj_json['from']= from_conditions
+    obj_json['conditions'] = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id]]
     obj_json['code'] = goevidence.go_evidence
     obj_json['method'] = goevidence.annotation_type
     obj_json['qualifier'] = goevidence.qualifier

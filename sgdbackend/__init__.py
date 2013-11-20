@@ -141,14 +141,14 @@ class SGDBackend(BackendInterface):
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_phenotype.make_overview(locus_id))
     
-    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None):
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, with_children=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_phenotype
         locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         phenotype_id = None if phenotype_identifier is None else get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
         chemical_id = None if chemical_identifier is None else get_obj_id(chemical_identifier, class_type='CHEMICAL')
         
-        return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id, chemical_id=chemical_id))
+        return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id, chemical_id=chemical_id, with_children=with_children))
     
     def go(self, identifier):
         from sgdbackend_query import get_obj_id
@@ -169,14 +169,13 @@ class SGDBackend(BackendInterface):
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_go.make_overview(locus_id))
     
-    def go_details(self, locus_identifier=None, go_identifier=None, chemical_identifier=None):
+    def go_details(self, locus_identifier=None, go_identifier=None, with_children=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_go
         locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         go_id = None if go_identifier is None else get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        chemical_id = None if chemical_identifier is None else get_obj_id(chemical_identifier, class_type='CHEMICAL')
 
-        return json.dumps(view_go.make_details(locus_id=locus_id, go_id=go_id, chemical_id=chemical_id))
+        return json.dumps(view_go.make_details(locus_id=locus_id, go_id=go_id, with_children=with_children))
     
     def go_enrichment(self, bioent_ids):
         from sgdbackend import view_go
