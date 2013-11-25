@@ -234,39 +234,6 @@ class SGDBackend(BackendInterface):
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_literature.make_graph(locus_id))
             
-    #Phenotype
-    def phenotype(self, identifier):
-        from sgdbackend_query import get_obj_id
-        from sgdbackend_utils.cache import id_to_biocon
-        pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return None if pheno_id is None else json.dumps(id_to_biocon[pheno_id])
-
-    def phenotype_ontology_graph(self, identifier):
-        from sgdbackend_query import get_obj_id
-        from sgdbackend_utils.cache import id_to_biocon
-        from sgdbackend import view_phenotype
-        pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return None if pheno_id is None else json.dumps(view_phenotype.make_ontology_graph(pheno_id))
-    
-    def phenotype_ontology(self):
-        from sgdbackend import view_phenotype
-        return json.dumps(view_phenotype.make_ontology())
-        
-    def phenotype_overview(self, identifier):
-        from sgdbackend_query import get_obj_id
-        from sgdbackend import view_phenotype
-        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_phenotype.make_overview(locus_id))
-    
-    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None):
-        from sgdbackend_query import get_obj_id
-        from sgdbackend import view_phenotype
-        locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        phenotype_id = None if phenotype_identifier is None else get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        chemical_id = None if chemical_identifier is None else get_obj_id(chemical_identifier, class_type='CHEMICAL')
-        
-        return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id, chemical_id=chemical_id))
-            
     #Protein
     def protein_domain_details(self, identifier):
         from sgdbackend_query import get_obj_id

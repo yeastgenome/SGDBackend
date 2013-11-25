@@ -90,9 +90,9 @@ def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None,
         else:
             query = query.filter(evidence_cls.bioentity_id == bioent_id)
     if chemical_id is not None:
+        if ok_evidence_ids is None:
+            ok_evidence_ids = set()
         if with_children:
-            if ok_evidence_ids is None:
-                ok_evidence_ids = set()
             child_ids = list(get_all_chemical_children(chemical_id))
             num_chunks = ceil(1.0*len(child_ids)/500)
             for i in range(num_chunks):
