@@ -49,7 +49,7 @@ class Generalcondition(Condition):
         Condition.__init__(self, 
                            note,
                            'g' + hashlib.md5(note).hexdigest()[:10],
-                           'CONDITION', note)
+                           'CONDITION', None, note)
         
 class Chemicalcondition(Condition):
     __tablename__ = 'chemicalcondition'
@@ -80,7 +80,7 @@ class Temperaturecondition(Condition):
     
     def __init__(self, note, temperature):
         Condition.__init__(self, str(temperature), 't' + str(temperature),
-                           'TEMPERATURE', None, note)
+                           'TEMPERATURE', None, None, note)
         self.temperature = temperature
         
 class Bioentitycondition(Condition):

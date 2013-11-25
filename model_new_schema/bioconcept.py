@@ -121,7 +121,7 @@ def create_phenotype_display_name(observable, qualifier):
     if qualifier is None:
         display_name = observable
     else:
-        display_name = qualifier + ' ' + observable
+        display_name = observable + ': ' + qualifier
     return display_name
 
 def create_phenotype_format_name(observable, qualifier):
@@ -151,9 +151,16 @@ class Phenotype(Bioconcept):
                  date_created, created_by):
         format_name = 'apo_ontology' if observable == 'observable' else create_phenotype_format_name(observable, qualifier)
         display_name = 'APO Ontology' if observable == 'observable' else create_phenotype_display_name(observable, qualifier)
+        link = None
+        if format_name == 'apo_ontology':
+            link = '/ontology/apo_ontology/overview'
+        elif qualifier is None:
+            link = '/observable/' + format_name + '/overview'
+        else:
+            link = '/phenotype/' + format_name + '/overview'
         Bioconcept.__init__(self, display_name, 
                             format_name, 
-                            'PHENOTYPE', '/phenotype/' + ('apo_ontology' if observable == 'observable' else create_format_name(observable)) + '/overview', source, sgdid, description, 
+                            'PHENOTYPE', link, source, sgdid, description, 
                             date_created, created_by)
         self.observable = observable
         self.qualifier = qualifier

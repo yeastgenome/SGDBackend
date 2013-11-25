@@ -15,8 +15,9 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_chemical()
     #pastry_dev_converter.convert_chemical()
     #pastry_dev_converter.convert_phenotype()
+    pastry_dev_converter.convert_bioconcept()
     #pastry_dev_converter.convert_bioconcept_in_depth()
-    pastry_dev_converter.convert_phenotype()
+    #pastry_dev_converter.convert_phenotype()
     #pastry_dev_converter.convert_evelements()
     
     #Dev_nex -> Dev_perf

@@ -99,7 +99,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
         for (a, b) in old_experiment.chemicals:
             chemical_key = create_format_name(a)
             chemical = None if chemical_key not in key_to_chemical else key_to_chemical[chemical_key]
-            conditions.append(Chemicalcondition(None, chemical, b))
+            conditions.append(Chemicalcondition(None, None, chemical, b))
         
         #Get other conditions
         from model_new_schema.condition import Generalcondition
