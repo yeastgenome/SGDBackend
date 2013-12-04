@@ -82,7 +82,7 @@ def make_evidence_row(goevidence, id_to_conditions):
     #with_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'With']
     #from_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'From']
         
-    obj_json = evidence_to_json(goevidence)
+    obj_json = evidence_to_json(goevidence).copy()
     obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
     obj_json['bioconcept'] = minimize_json(id_to_biocon[bioconcept_id])
     #obj_json['with'] = with_conditions

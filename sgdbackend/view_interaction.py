@@ -84,7 +84,7 @@ def make_evidence_row(interevidence, bioent_id=None):
         
     if interevidence.class_type == 'GENINTERACTION':
         phenotype_id = interevidence.phenotype_id
-        obj_json = evidence_to_json(interevidence)
+        obj_json = evidence_to_json(interevidence).copy()
         obj_json['bioentity1'] = minimize_json(id_to_bioent[bioent1_id], include_format_name=True)
         obj_json['bioentity2'] = minimize_json(id_to_bioent[bioent2_id], include_format_name=True)
         obj_json['phenotype'] = None if phenotype_id is None else minimize_json(id_to_biocon[phenotype_id])
@@ -94,7 +94,7 @@ def make_evidence_row(interevidence, bioent_id=None):
         return obj_json
         
     elif interevidence.class_type == 'PHYSINTERACTION':
-        obj_json = evidence_to_json(interevidence)
+        obj_json = evidence_to_json(interevidence).copy()
         obj_json['bioentity1'] = minimize_json(id_to_bioent[bioent1_id], include_format_name=True)
         obj_json['bioentity2'] = minimize_json(id_to_bioent[bioent2_id], include_format_name=True)
         obj_json['modification'] = interevidence.modification

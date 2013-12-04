@@ -50,39 +50,37 @@ def make_evidence_row(phenoevidence, id_to_conditions):
     bioentity_id = phenoevidence.bioentity_id
     bioconcept_id = phenoevidence.bioconcept_id
     conditions = [] if phenoevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[phenoevidence.id]]
-    
     notes = []
     allele = None
     reporter = None
     chemical = None
     for condition in conditions:
         if 'chemical' in condition:
-            chemical = condition['chemical']
+            chemical = condition['chemical'].copy()
             chemical['amount'] = condition['amount']
             chemical['note'] = condition['note']
         elif 'role' in condition and condition['role'] == 'Allele':
-            allele = condition['obj']
+            allele = condition['obj'].copy()
             allele['note'] = condition['note']
         elif 'role' in condition and condition['role'] == 'Reporter':
-            reporter = condition['obj']
+            reporter = condition['obj'].copy()
             reporter['note'] = condition['note']
         elif isinstance(condition, basestring):
             notes.append(condition)
         else:
             print condition
         
-    obj_json = evidence_to_json(phenoevidence)
+    obj_json = evidence_to_json(phenoevidence).copy()
     obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
     obj_json['bioconcept'] = id_to_biocon[bioconcept_id]
     obj_json['mutant_type'] = phenoevidence.mutant_type
     obj_json['allele'] = allele
     obj_json['reporter'] = reporter
     obj_json['chemical'] = chemical
-    
+        
     if obj_json['note'] is not None:
         notes.insert(0, obj_json['note'])
     obj_json['note'] = '; '.join(notes)
-    
     return obj_json
 
 '''

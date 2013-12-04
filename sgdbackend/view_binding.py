@@ -18,7 +18,7 @@ def make_details(bioent_id):
     return create_simple_table(binding_site_evidences, make_evidence_row) 
 
 def make_evidence_row(binding_evidence): 
-    obj_json = evidence_to_json(binding_evidence)
+    obj_json = evidence_to_json(binding_evidence).copy()
     obj_json['bioentity'] = minimize_json(id_to_bioent[binding_evidence.bioentity_id], include_format_name=True)
     obj_json['total_score'] = binding_evidence.total_score
     obj_json['expert_confidence'] = binding_evidence.expert_confidence
