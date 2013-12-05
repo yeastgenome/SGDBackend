@@ -301,10 +301,14 @@ def convert_biofact(new_session_maker, evidence_class, bioconcept_class, bioconc
 --------------------- Convert BioconCount ---------------------
 """
 
-def create_biocon_count(bioconcept, biocon_id_to_biofacts, biocon_id_to_child_count):
+def create_biocon_count(bioconcept, biocon_id_to_biofacts, biocon_id_to_child_count, biocon_id_to_children):
     from model_new_schema.auxiliary import BioconceptCount as NewBioconceptCount
     
     biofact_count = 0 if bioconcept.id not in biocon_id_to_biofacts else len(biocon_id_to_biofacts[bioconcept.id])
+    if bioconcept.class_type == 'PHENOTYPE':
+        for child in biocon_id_to_children[bioconcept.id]:
+            if not child.is_core:
+                biofact_count = biofact_count + 0 if child.id not in biocon_id_to_biofacts else len(biocon_id_to_biofacts[child.id])
     return [NewBioconceptCount(bioconcept, biofact_count, biocon_id_to_child_count[bioconcept.id])]
 
 def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
@@ -336,11 +340,14 @@ def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
                 biocon_id_to_biofacts[biocon_id] = [biofact]
             
         old_objs = new_session.query(Bioconcept).filter(Bioconcept.class_type == bioconcept_class_type).all()
-            
+           
+        biocon_id_to_biocon = dict([(x.id, x) for x in old_objs]) 
         relations = new_session.query(Bioconceptrelation).filter(Bioconceptrelation.bioconrel_class_type == bioconcept_class_type).all()
         child_to_parent_ids = dict([(x.id, []) for x in old_objs])
+        biocon_id_to_children = dict([(x.id, []) for x in old_objs])
         for relation in relations:
             child_to_parent_ids[relation.child_id].append(relation.parent_id)
+            biocon_id_to_children[relation.parent_id].append(biocon_id_to_biocon[relation.child_id])
             
         biocon_id_to_child_count = dict([(x.id, 0) for x in old_objs])
         for child_id in biocon_id_to_child_count.keys():
@@ -361,7 +368,7 @@ def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
         
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_biocon_count(old_obj, biocon_id_to_biofacts, biocon_id_to_child_count)
+            newly_created_objs = create_biocon_count(old_obj, biocon_id_to_biofacts, biocon_id_to_child_count, biocon_id_to_children)
      
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:
