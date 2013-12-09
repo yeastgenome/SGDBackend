@@ -23,13 +23,14 @@ class Bioentity(Base, EqualityByIDMixin):
     link = Column('obj_url', String)
     source_id = Column('source_id', String)
     sgdid = Column('sgdid', String)
+    uniprotid = Column('uniprotid', String)
     bioent_status = Column('bioent_status', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
     
     __mapper_args__ = {'polymorphic_on': class_type}
     
-    def __init__(self, bioentity_id, display_name, format_name, class_type, link, source, sgdid, bioent_status,
+    def __init__(self, bioentity_id, display_name, format_name, class_type, link, source, sgdid, uniprotid, bioent_status,
                  date_created, created_by):
         self.id = bioentity_id
         self.display_name = display_name
@@ -38,6 +39,7 @@ class Bioentity(Base, EqualityByIDMixin):
         self.link = link
         self.source_id = source.id
         self.sgdid = sgdid
+        self.uniprotid = uniprotid
         self.bioent_status = bioent_status
         self.date_created = date_created
         self.created_by = created_by
@@ -116,11 +118,11 @@ class Locus(Bioentity):
     __mapper_args__ = {'polymorphic_identity': 'LOCUS',
                        'inherit_condition': id == Bioentity.id}
     
-    def __init__(self, bioentity_id, display_name, format_name, source, sgdid, bioent_status, 
+    def __init__(self, bioentity_id, display_name, format_name, source, sgdid, uniprotid, bioent_status, 
                  locus_type, short_description, headline, description, genetic_position,
                  date_created, created_by):
         Bioentity.__init__(self, bioentity_id, display_name, format_name, 'LOCUS', 'http://www.yeastgenome.org/cgi-bin/locus.fpl?locus=' + format_name,
-                           source, sgdid, bioent_status, date_created, created_by)
+                           source, sgdid, uniprotid, bioent_status, date_created, created_by)
         self.short_description = short_description
         self.headline = headline
         self.description = description
@@ -144,7 +146,7 @@ class Protein(Bioentity):
                  locus, length, n_term_seq, c_term_seq,
                  date_created, created_by):
         Bioentity.__init__(self, bioentity_id, locus.display_name + 'p', locus.format_name + 'P', 
-                           'PROTEIN', locus.link.replace('/locus.f', '/protein/proteinPage.'), source, None, locus.bioent_status, date_created, created_by)
+                           'PROTEIN', locus.link.replace('/locus.f', '/protein/proteinPage.'), source, None, None, locus.bioent_status, date_created, created_by)
         self.locus_id = locus.id
         self.length = length
         self.n_term_seq = n_term_seq

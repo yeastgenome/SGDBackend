@@ -17,7 +17,7 @@ def make_details(protein_id):
     return create_simple_table(domain_evidences, make_evidence_row) 
 
 def make_evidence_row(domain_evidence): 
-    obj_json = evidence_to_json(domain_evidence)
+    obj_json = evidence_to_json(domain_evidence).copy()
     obj_json['protein'] = minimize_json(id_to_bioent[domain_evidence.bioentity_id])
     obj_json['domain'] = minimize_json(id_to_bioitem[domain_evidence.domain_id])
     obj_json['domain_description'] = id_to_bioitem[domain_evidence.domain_id]['description']

@@ -102,6 +102,25 @@ def break_up_file(filename, delimeter='\t'):
     f.close()
     return rows
 
+def read_obo(filename):
+    terms = []
+    f = open(filename, 'r')
+    current_term = None
+    for line in f:
+        line = line.strip()
+        if line == '[Term]':
+            if current_term is not None:
+                terms.append(current_term)
+            current_term = {}
+        elif current_term is not None and ': ' in line:
+            pieces = line.split(': ')
+            if pieces[0] in current_term:
+                current_term[pieces[0]] = [current_term[pieces[0]], pieces[1]]
+            else:
+                current_term[pieces[0]] = pieces[1]
+    f.close()
+    return terms
+
 def create_or_update(new_obj, current_obj_by_id, current_obj_by_key, values_to_check, session, output_creator):
     #If there's an object with the same key and it also has the same id, then that's our object - we just need to
     #check to make sure it's values match ours.

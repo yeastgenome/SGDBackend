@@ -71,6 +71,36 @@ class BackendInterface:
     def bioconcept_list(self, biocon_ids):
         return None
     
+    #Chemical
+    @abstractmethod
+    def chemical(self, identifier):
+        return None
+    
+    @abstractmethod
+    def chemical_ontology_graph(self, identifier):
+        return None
+    
+    #Go
+    @abstractmethod
+    def go(self, identifier):
+        return None
+    
+    @abstractmethod
+    def go_ontology_graph(self, identifier):
+        return None
+    
+    @abstractmethod
+    def go_overview(self, identifier):
+        return None
+    
+    @abstractmethod
+    def go_details(self, locus_identifier=None, phenotype_identifier=None, with_children=False):
+        return None
+    
+    @abstractmethod
+    def go_enrichment(self, identifier):
+        return None
+    
     #Interaction
     @abstractmethod
     def interaction_overview(self, identifier):
@@ -99,6 +129,27 @@ class BackendInterface:
     
     @abstractmethod
     def literature_graph(self, identifier):
+        return None
+    
+    #Phenotype
+    @abstractmethod
+    def phenotype(self, identifier):
+        return None
+    
+    @abstractmethod
+    def phenotype_ontology(self):
+        return None
+    
+    @abstractmethod
+    def phenotype_ontology_graph(self, identifier):
+        return None
+    
+    @abstractmethod
+    def phenotype_overview(self, identifier):
+        return None
+    
+    @abstractmethod
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, with_children=False):
         return None
     
     #Protein
