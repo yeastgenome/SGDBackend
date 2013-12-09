@@ -2,7 +2,14 @@
 Created on May 6, 2013
 
 @author: kpaskov
+
+ This code is used to convert phenotype data from the old schema to the new. It does this by
+ creating new schema objects from the old, then comparing these new objects to those already
+ stored in the new database. If a newly created object matches one that is already stored, the two
+ are compared and the database fields are updated. If a newly created object does not match one that is
+ already stored, it is added to the database.
 '''
+
 from convert_other.convert_auxiliary import convert_bioentity_reference, \
     convert_biofact
 from convert_utils import create_or_update, create_format_name
@@ -12,18 +19,7 @@ from sqlalchemy.orm import joinedload
 import logging
 import sys
 
-'''
- This code is used to convert phenotype data from the old schema to the new. It does this by
- creating new schema objects from the old, then comparing these new objects to those already
- stored in the new database. If a newly created object matches one that is already stored, the two
- are compared and the database fields are updated. If a newly created object does not match one that is 
- already stored, it is added to the database.
-'''
-
-
-"""
---------------------- Convert Evidence ---------------------
-"""
+# --------------------- Convert Evidence ---------------------
 
 def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype, 
                          id_to_reference, id_to_bioentity, key_to_strain, key_to_experiment, 
@@ -33,8 +29,8 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
 
     reference_id = key_to_reflink[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)].reference_id
     reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
-    bioent_id = old_phenotype_feature.feature_id
-    bioentity = None if bioent_id not in id_to_bioentity else id_to_bioentity[bioent_id]
+    bioentity_id = old_phenotype_feature.feature_id
+    bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
 
     mutant_type = old_phenotype_feature.mutant_type    
     phenotype_key = (create_phenotype_format_name(old_phenotype_feature.observable, old_phenotype_feature.qualifier), 'PHENOTYPE')
@@ -132,7 +128,9 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
     log = logging.getLogger('convert.phenotype.evidence')
     log.info('begin')
     output_creator = OutputCreator(log)
-    
+
+    new_session = None
+    old_session = None
     try:
         new_session = new_session_maker()
         old_session = old_session_maker()      
@@ -216,25 +214,21 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
     except Exception:
         log.exception('Unexpected error:' + str(sys.exc_info()[0]))
     finally:
-        new_session.close()
-        old_session.close()
+        if new_session is not None:
+            new_session.close()
+        if old_session is not None:
+            old_session.close()
         
     log.info('complete')
-  
-"""
----------------------Convert------------------------------
-"""  
+
+# ---------------------Convert------------------------------
 
 def convert(old_session_maker, new_session_maker):
     convert_evidence(old_session_maker, new_session_maker, 1000)
             
     from model_new_schema.evidence import Phenotypeevidence
     from model_new_schema.bioconcept import Phenotype
-    get_bioent_ids_f = lambda x: [x.bioentity_id]
-    convert_bioentity_reference(new_session_maker, Phenotypeevidence, 'PHENOTYPE', 'convert.phenotype.bioentity_reference', 10000, get_bioent_ids_f)
+    get_bioentity_ids_f = lambda x: [x.bioentity_id]
+    convert_bioentity_reference(new_session_maker, Phenotypeevidence, 'PHENOTYPE', 'convert.phenotype.bioentity_reference', 10000, get_bioentity_ids_f)
 
     convert_biofact(new_session_maker, Phenotypeevidence, Phenotype, 'PHENOTYPE', 'convert.phenotype.biofact', 10000)
-
-
-    
-    

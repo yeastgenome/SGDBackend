@@ -12,18 +12,15 @@ from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
 from sgdbackend_utils.obj_to_json import condition_to_json, minimize_json, \
     evidence_to_json
-'''
--------------------------------Overview---------------------------------------
-'''  
 
-def make_overview(bioent_id):
-    biofacts = get_biofacts('PHENOTYPE', bioent_id=bioent_id)
+# -------------------------------Overview---------------------------------------
+
+def make_overview(bioentity_id):
+    biofacts = get_biofacts('PHENOTYPE', bioent_id=bioentity_id)
 
     return {'count': len(biofacts)}
-    
-'''
--------------------------------Details---------------------------------------
-'''
+
+# -------------------------------Details---------------------------------------
     
 def make_details(locus_id=None, phenotype_id=None, chemical_id=None, with_children=False):
     phenoevidences = []
@@ -43,14 +40,13 @@ def make_details(locus_id=None, phenotype_id=None, chemical_id=None, with_childr
             id_to_conditions[evidence_id] = [condition]
             
     tables = create_simple_table(phenoevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        
     return tables  
 
-def make_evidence_row(phenoevidence, id_to_conditions): 
+def make_evidence_row(phenoevidence, id_to_conditions):
     bioentity_id = phenoevidence.bioentity_id
     bioconcept_id = phenoevidence.bioconcept_id
     conditions = [] if phenoevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[phenoevidence.id]]
-    notes = []
+    condition_entries = []
     allele = None
     reporter = None
     chemical = None
@@ -66,7 +62,7 @@ def make_evidence_row(phenoevidence, id_to_conditions):
             reporter = condition['obj'].copy()
             reporter['note'] = condition['note']
         elif isinstance(condition, basestring):
-            notes.append(condition)
+            condition_entries.append(condition)
         else:
             print condition
         
@@ -77,18 +73,14 @@ def make_evidence_row(phenoevidence, id_to_conditions):
     obj_json['allele'] = allele
     obj_json['reporter'] = reporter
     obj_json['chemical'] = chemical
-        
-    if obj_json['note'] is not None:
-        notes.insert(0, obj_json['note'])
-    obj_json['note'] = '; '.join(notes)
+    obj_json['condition'] = condition_entries
+
+    obj_json['note'] = obj_json['note']
     return obj_json
 
-'''
--------------------------------Ontology Graph---------------------------------------
-''' 
+# -------------------------------Ontology Graph---------------------------------------
 
 def create_node(biocon, is_focus):
-    sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
     else:
@@ -104,16 +96,16 @@ def make_ontology_graph(phenotype_id):
     parents = get_relations(Bioconceptrelation, 'PHENOTYPE', child_ids=[phenotype_id])
     if len(parents) > 0:
         grandparents = get_relations(Bioconceptrelation, 'PHENOTYPE', child_ids=[parent.parent_id for parent in parents])
-        greatgrandparents = get_relations(Bioconceptrelation, 'PHENOTYPE', child_ids=[parent.parent_id for parent in grandparents])
-        greatgreatgrandparents = get_relations(Bioconceptrelation, 'PHENOTYPE', child_ids=[parent.parent_id for parent in greatgrandparents])
+        great_grandparents = get_relations(Bioconceptrelation, 'PHENOTYPE', child_ids=[parent.parent_id for parent in grandparents])
+        great_great_grandparents = get_relations(Bioconceptrelation, 'PHENOTYPE', child_ids=[parent.parent_id for parent in great_grandparents])
         nodes = []
         nodes.append(create_node(id_to_biocon[phenotype_id], True))
         
         child_ids = set([x.child_id for x in children])
         parent_ids = set([x.parent_id for x in parents])
         parent_ids.update([x.parent_id for x in grandparents])
-        parent_ids.update([x.parent_id for x in greatgrandparents])
-        parent_ids.update([x.parent_id for x in greatgreatgrandparents])
+        parent_ids.update([x.parent_id for x in great_grandparents])
+        parent_ids.update([x.parent_id for x in great_great_grandparents])
         
         child_id_to_child = dict([(x, id_to_biocon[x]) for x in child_ids])
         parent_id_to_parent = dict([(x, id_to_biocon[x]) for x in parent_ids])
@@ -128,8 +120,8 @@ def make_ontology_graph(phenotype_id):
         edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in children if x.child_id in viable_ids and x.parent_id in viable_ids])
         edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in parents if x.child_id in viable_ids and x.parent_id in viable_ids])
         edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in grandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
-        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in greatgrandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
-        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in greatgreatgrandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
+        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in great_grandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
+        edges.extend([create_edge(x.id, x.child_id, x.parent_id) for x in great_great_grandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
     else:
         grandchildren = get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[x.child_id for x in children])  
         
@@ -150,9 +142,7 @@ def make_ontology_graph(phenotype_id):
     
     return {'nodes': list(nodes), 'edges': edges}
 
-'''
--------------------------------Ontology---------------------------------------
-''' 
+# -------------------------------Ontology---------------------------------------
 
 def make_ontology():
     relations = get_relations(Bioconceptrelation, 'PHENOTYPE')
