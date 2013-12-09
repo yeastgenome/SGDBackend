@@ -60,7 +60,7 @@ def make_details(divided, bioent_id):
 def make_evidence_row(regevidence, id_to_conditions): 
     conditions = [] if regevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[regevidence.id]]
         
-    obj_json = evidence_to_json(regevidence)
+    obj_json = evidence_to_json(regevidence).copy()
     obj_json['bioentity1'] = minimize_json(id_to_bioent[regevidence.bioentity1_id], include_format_name=True)
     obj_json['bioentity2'] = minimize_json(id_to_bioent[regevidence.bioentity2_id], include_format_name=True)
     obj_json['conditions'] = conditions

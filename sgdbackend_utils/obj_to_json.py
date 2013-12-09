@@ -28,7 +28,10 @@ def bioitem_to_json(bioitem):
     
 def chemical_to_json(chem):
     return {
+            'format_name': chem.format_name,
             'display_name': chem.display_name, 
+            'description': chem.description,
+            'chebi_id': chem.chebi_id,
             'link': chem.link,
             'id': chem.id
             }
@@ -41,14 +44,25 @@ def go_to_json(biocon):
     biocon_json['go_id'] = biocon.go_id
     biocon_json['go_aspect'] = biocon.go_aspect
     return biocon_json
+
+def phenotype_to_json(biocon):
+    biocon_json = biocon_to_json(biocon)
+    biocon_json['observable'] = biocon.observable
+    biocon_json['qualifier'] = biocon.qualifier
+    biocon_json['is_core'] = biocon.is_core
+    biocon_json['ancestor_type'] = biocon.ancestor_type
+    return biocon_json
     
 def biocon_to_json(biocon):
     return {
             'format_name': biocon.format_name,
             'display_name': biocon.display_name, 
+            'description': biocon.description, 
             'class_type': biocon.class_type,
             'link': biocon.link,
-            'id': biocon.id
+            'id': biocon.id,
+            'count': 0 if biocon.count is None else biocon.count.genecount,
+            'child_count': 0 if biocon.count is None else biocon.count.child_gene_count
             }
     
 def experiment_to_json(experiment):

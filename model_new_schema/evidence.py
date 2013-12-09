@@ -59,7 +59,6 @@ class Goevidence(Evidence):
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     go_evidence = Column('go_evidence', String)
     annotation_type = Column('annotation_type', String)
-    date_last_reviewed = Column('date_last_reviewed', Date)
     qualifier = Column('qualifier', String)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Go.id))
@@ -71,18 +70,17 @@ class Goevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "GO",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, source, reference, note,
+    def __init__(self, source, reference, experiment, note,
                  bioentity, bioconcept, 
-                 go_evidence, annotation_type, qualifier, date_last_reviewed, conditions,
+                 go_evidence, annotation_type, qualifier, conditions,
                  date_created, created_by):
         Evidence.__init__(self, bioentity.display_name + ' assoc. with ' + bioconcept.display_name + ' with ' + go_evidence + ' by ' + reference.display_name,
-                          bioentity.format_name + '_' + str(bioconcept.id) + '_' + go_evidence + '_' + annotation_type + '_' + str(reference.id), 
-                          'GO', source, reference, None, None, 
+                          bioentity.format_name + '_' + str(bioconcept.id) + '_' + go_evidence + '_' + str(reference.id), 
+                          'GO', source, reference, None, experiment, 
                           note, date_created, created_by)
         self.go_evidence = go_evidence
         self.annotation_type = annotation_type
         self.qualifier = qualifier
-        self.date_last_reviewed = date_last_reviewed
         self.bioentity_id = bioentity.id
         self.bioconcept_id = bioconcept.id
         self.conditions = conditions
@@ -175,6 +173,7 @@ class Phenotypeevidence(Evidence):
 
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Phenotype.id))
+    mutant_type = Column('mutant_type', String)
         
     #Relationship
     bioentity = relationship(Bioentity, uselist=False)
@@ -184,16 +183,17 @@ class Phenotypeevidence(Evidence):
                        'inherit_condition': id==Evidence.id}
     
     def __init__(self, source, reference, strain, experiment, note,
-                 bioentity, phenotype, conditions,
+                 bioentity, phenotype, mutant_type, conditions,
                  date_created, created_by):
         Evidence.__init__(self, 
                           bioentity.display_name + ' ' + phenotype.display_name + ' in ' + reference.display_name,
-                          bioentity.format_name + '_' + str(phenotype.id) + ('' if strain is None else ('_' + str(strain.id))) + '_' + str(experiment.id) + '_' + str(reference.id) + '_' + '_'.join(x.format_name for x in conditions), 
+                          bioentity.format_name + '_' + str(phenotype.id) + '_' + mutant_type + '_' + ('' if strain is None else ('_' + str(strain.id))) + '_' + str(experiment.id) + '_' + str(reference.id) + '_' + '_'.join(x.format_name for x in conditions), 
                           'PHENOTYPE', source, reference, strain, experiment, note,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
         self.bioconcept_id = phenotype.id
         self.conditions = conditions
+        self.mutant_type = mutant_type
         
 class Domainevidence(Evidence):
     __tablename__ = "domainevidence"
