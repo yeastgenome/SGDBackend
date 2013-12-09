@@ -308,7 +308,7 @@ def create_biocon_count(bioconcept, biocon_id_to_biofacts, biocon_id_to_child_co
     if bioconcept.class_type == 'PHENOTYPE':
         for child in biocon_id_to_children[bioconcept.id]:
             if not child.is_core:
-                biofact_count = biofact_count + 0 if child.id not in biocon_id_to_biofacts else len(biocon_id_to_biofacts[child.id])
+                biofact_count = biofact_count + (0 if child.id not in biocon_id_to_biofacts else len(biocon_id_to_biofacts[child.id]))
     return [NewBioconceptCount(bioconcept, biofact_count, biocon_id_to_child_count[bioconcept.id])]
 
 def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
