@@ -49,7 +49,7 @@ def make_overview(bioentity_id):
                                  0 if x not in large_scale_mutant_to_phenotypes else len(large_scale_mutant_to_phenotypes[x]),
                                  0 if x not in other_mutant_to_phenotypes else len(other_mutant_to_phenotypes[x]))) for x in mutant_list])
 
-    return {'experiment_types': ['classical', 'large_scale', 'other'], 'mutant_to_count': mutant_to_count, 'mutant_types': mutant_list}
+    return {'experiment_types': ['classical genetics', 'large-scale survey', 'other'], 'mutant_to_count': mutant_to_count, 'mutant_types': mutant_list}
 
 # -------------------------------Details---------------------------------------
     
