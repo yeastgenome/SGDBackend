@@ -9,16 +9,47 @@ from sgdbackend_query import get_evidence, get_conditions
 from sgdbackend_query.query_auxiliary import get_biofacts
 from sgdbackend_query.query_misc import get_relations
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
+from sgdbackend_utils.cache import id_to_biocon, id_to_bioent, id_to_experiment
 from sgdbackend_utils.obj_to_json import condition_to_json, minimize_json, \
     evidence_to_json
 
 # -------------------------------Overview---------------------------------------
 
 def make_overview(bioentity_id):
-    biofacts = get_biofacts('PHENOTYPE', bioent_id=bioentity_id)
+    phenoevidences = get_evidence(Phenotypeevidence, bioent_id=bioentity_id)
 
-    return {'count': len(biofacts)}
+    mutant_type_set = set()
+    classical_mutant_to_phenotypes = {}
+    large_scale_mutant_to_phenotypes = {}
+    other_mutant_to_phenotypes = {}
+
+    for phenoevidence in phenoevidences:
+        experiment = id_to_experiment[phenoevidence.experiment_id]
+        mutant_type = phenoevidence.mutant_type
+        phenotype = phenoevidence.bioconcept_id
+        if experiment['display_name'] == 'classical genetics':
+            if mutant_type in classical_mutant_to_phenotypes:
+                classical_mutant_to_phenotypes[mutant_type].add(phenotype)
+            else:
+                classical_mutant_to_phenotypes[mutant_type] = set([phenotype])
+        elif experiment['display_name'] == 'large-scale survey':
+            if mutant_type in large_scale_mutant_to_phenotypes:
+                large_scale_mutant_to_phenotypes[mutant_type].add(phenotype)
+            else:
+                large_scale_mutant_to_phenotypes[mutant_type] = set([phenotype])
+        else:
+            if mutant_type in other_mutant_to_phenotypes:
+                other_mutant_to_phenotypes[mutant_type].add(phenotype)
+            else:
+                other_mutant_to_phenotypes[mutant_type] = set([phenotype])
+        mutant_type_set.add(mutant_type)
+
+    mutant_list = list(mutant_type_set)
+    mutant_to_count = dict([(x, (0 if x not in classical_mutant_to_phenotypes else len(classical_mutant_to_phenotypes[x]),
+                                 0 if x not in large_scale_mutant_to_phenotypes else len(large_scale_mutant_to_phenotypes[x]),
+                                 0 if x not in other_mutant_to_phenotypes else len(other_mutant_to_phenotypes[x]))) for x in mutant_list])
+
+    return {'experiment_types': ['classical genetics', 'large-scale survey', 'other'], 'mutant_to_count': mutant_to_count, 'mutant_types': mutant_list}
 
 # -------------------------------Details---------------------------------------
     
