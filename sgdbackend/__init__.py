@@ -116,7 +116,7 @@ class SGDBackend(BackendInterface):
         from sgdbackend_query.query_reference import get_reference_bibs
         return json.dumps([{'id': x.id, 'text': x.text} for x in get_reference_bibs(reference_ids=reference_ids)])
         
-    #Go
+    #Phenotype
     
     def phenotype(self, identifier):
         from sgdbackend_query import get_obj_id
@@ -149,7 +149,23 @@ class SGDBackend(BackendInterface):
         chemical_id = None if chemical_identifier is None else get_obj_id(chemical_identifier, class_type='CHEMICAL')
         
         return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id, chemical_id=chemical_id, with_children=with_children))
-    
+
+    def phenotype_resources(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_query.query_misc import get_urls
+        from sgdbackend_utils.obj_to_json import url_to_json
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        if locus_id is not None:
+            phenotype_resources = get_urls('Phenotype Resources', bioent_id=locus_id)
+            mutant_resources = get_urls('Mutant Strains', bioent_id=locus_id)
+            phenotype_resources.sort(key=lambda x: x.display_name)
+            mutant_resources.sort(key=lambda x: x.display_name)
+            return json.dumps({'Phenotype Resources': [url_to_json(url) for url in phenotype_resources],
+                               'Mutant Resources': [url_to_json(url) for url in mutant_resources]})
+        return None
+
+    # Go
+
     def go(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_biocon

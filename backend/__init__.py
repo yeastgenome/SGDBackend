@@ -181,6 +181,13 @@ def prep_views(chosen_backend, config):
                                         chemical_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'],
                                         with_children=True)), 
                      renderer=chosen_backend.get_renderer('phenotype_details'))
+
+    config.add_route('phenotype_resources',
+                     '/locus/{identifier}/phenotype_resources',
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_resources', request)(
+                                getattr(chosen_backend, 'phenotype_resources')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('phenotype_resources'))
     
     
     #Interaction views
