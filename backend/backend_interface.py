@@ -151,6 +151,10 @@ class BackendInterface:
     @abstractmethod
     def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, with_children=False):
         return None
+
+    @abstractmethod
+    def phenotype_resources(self, identifier):
+        return None
     
     #Protein
     @abstractmethod
