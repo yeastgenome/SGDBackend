@@ -10,6 +10,7 @@ from mpmath import sqrt, ceil
 from sgdbackend_query import get_obj_id, get_evidence, get_conditions
 from sgdbackend_query.query_auxiliary import get_biofacts
 from sgdbackend_query.query_misc import get_relations
+from sgdbackend_query.query_paragraph import get_paragraph
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
 from sgdbackend_utils.obj_to_json import condition_to_json, minimize_json, \
@@ -57,7 +58,14 @@ def make_overview(bioent_id):
                                  0 if x not in htp_to_phenotypes else len(htp_to_phenotypes[x]),
                                  0 if x not in comp_mutant_to_phenotypes else len(comp_mutant_to_phenotypes[x]))) for x in ['biological process', 'molecular function', 'cellular component']])
 
-    return {'annotation_types': ['manually curated', 'high-throughput', 'computational'], 'aspect_to_count': aspect_to_count, 'aspects': ['biological process', 'molecular function', 'cellular component']}
+    overview = {'annotation_types': ['manually curated', 'high-throughput', 'computational'], 'aspect_to_count': aspect_to_count, 'aspects': ['biological process', 'molecular function', 'cellular component']}
+
+    paragraph = get_paragraph(bioent_id, 'GO')
+    if paragraph is not None:
+        overview['date_last_reviewed'] = paragraph.text
+
+    return overview
+
 
     
 '''
