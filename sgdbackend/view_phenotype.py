@@ -116,7 +116,7 @@ def create_node(biocon, is_focus):
         sub_type = 'FOCUS'
     else:
         sub_type = biocon['ancestor_type']
-    return {'data':{'id':'Node' + str(biocon['id']), 'name':biocon['display_name'] + ' (' + str(biocon['count']) + ')', 'link': biocon['link'], 
+    return {'data':{'id':'Node' + str(biocon['id']), 'name':biocon['display_name'] + ('' if biocon['format_name'] == 'ypo_ontology' else '(' + str(biocon['count']) + ')'), 'link': biocon['link'],
                     'sub_type':sub_type}}
 
 def create_edge(interaction_id, biocon1_id, biocon2_id):
