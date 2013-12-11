@@ -37,14 +37,27 @@ def make_enrichment(bioent_ids):
 '''  
 
 def make_overview(bioent_id):
-    biofacts = get_biofacts('GO', bioent_id=bioent_id)
-    biocons = [id_to_biocon[x.bioconcept_id] for x in biofacts]
-    
-    process_count = len([x for x in biocons if x['go_aspect'] == 'biological process'])
-    compartment_count = len([x for x in biocons if x['go_aspect'] == 'cellular compartment'])
-    function_count = len([x for x in biocons if x['go_aspect'] == 'molecular function'])
-    
-    return {'aspect_counts': {'process': process_count, 'compartment':compartment_count, 'function': function_count}}
+    goevidences = get_evidence(Goevidence, bioent_id=bioent_id)
+
+    comp_mutant_to_phenotypes = {'biological process':set(), 'molecular function':set(), 'cellular component':set()}
+    htp_to_phenotypes = {'biological process':set(), 'molecular function':set(), 'cellular component':set()}
+    manual_to_phenotypes = {'biological process':set(), 'molecular function':set(), 'cellular component':set()}
+
+    for goevidence in goevidences:
+        bioconcept = id_to_biocon[goevidence.bioconcept_id]
+        aspect = bioconcept['go_aspect']
+        if goevidence.annotation_type == 'computational':
+            comp_mutant_to_phenotypes[aspect].add(goevidence.bioconcept_id)
+        elif goevidence.annotation_type == 'high-throughput':
+            htp_to_phenotypes[aspect].add(goevidence.bioconcept_id)
+        elif goevidence.annotation_type == 'manually curated':
+            manual_to_phenotypes[aspect].add(goevidence.bioconcept_id)
+
+    aspect_to_count = dict([(x, (0 if x not in manual_to_phenotypes else len(manual_to_phenotypes[x]),
+                                 0 if x not in htp_to_phenotypes else len(htp_to_phenotypes[x]),
+                                 0 if x not in comp_mutant_to_phenotypes else len(comp_mutant_to_phenotypes[x]))) for x in ['biological process', 'molecular function', 'cellular component']])
+
+    return {'annotation_types': ['manually curated', 'high-throughput', 'computational'], 'aspect_to_count': aspect_to_count, 'aspects': ['molecular function', 'biological process', 'cellular component']}
 
     
 '''
