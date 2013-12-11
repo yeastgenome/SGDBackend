@@ -57,7 +57,7 @@ def make_overview(bioent_id):
                                  0 if x not in htp_to_phenotypes else len(htp_to_phenotypes[x]),
                                  0 if x not in comp_mutant_to_phenotypes else len(comp_mutant_to_phenotypes[x]))) for x in ['biological process', 'molecular function', 'cellular component']])
 
-    return {'annotation_types': ['manually curated', 'high-throughput', 'computational'], 'aspect_to_count': aspect_to_count, 'aspects': ['molecular function', 'biological process', 'cellular component']}
+    return {'annotation_types': ['manually curated', 'high-throughput', 'computational'], 'aspect_to_count': aspect_to_count, 'aspects': ['biological process', 'molecular function', 'cellular component']}
 
     
 '''
