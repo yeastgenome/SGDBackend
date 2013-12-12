@@ -165,10 +165,10 @@ def make_ontology_graph(phenotype_id):
         edges = [create_edge(x.child_id, x.parent_id, x.relation_type) for x in relations if x.child_id in viable_ids and x.parent_id in viable_ids]
 
     else:
-        grandchildren = get_relations(Bioconceptrelation, 'GO', parent_ids=[x.child_id for x in children])  
+        #grandchildren = get_relations(Bioconceptrelation, 'GO', parent_ids=[x.child_id for x in children])
         
         child_ids = set([x.child_id for x in children])
-        child_ids.update([x.child_id for x in grandchildren])  
+        #child_ids.update([x.child_id for x in grandchildren])
         
         child_id_to_child = dict([(x, id_to_biocon[x]) for x in child_ids])
         viable_ids = set([k for k, v in child_id_to_child.iteritems() if v['child_count'] > 0])
@@ -180,7 +180,7 @@ def make_ontology_graph(phenotype_id):
 
         relations = set()
         relations.update(children)
-        relations.update(grandchildren)
+        #relations.update(grandchildren)
         edges = [create_edge(x.child_id, x.parent_id, x.relation_type) for x in relations if x.child_id in viable_ids and x.parent_id in viable_ids]
 
     return {'nodes': list(nodes), 'edges': edges}

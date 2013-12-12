@@ -92,17 +92,25 @@ def convert_ecnumber_relation(new_session_maker):
         
     log.info('complete')
     
-"""
---------------------- Convert GO Relation ---------------------
-"""
+# --------------------- Convert GO Relation ---------------------
+
+def get_go_format_name(go_id):
+    if go_id == 8150:
+        return 'biological_process'
+    elif go_id == 5575:
+        return 'cellular_component'
+    elif go_id == 3674:
+        return 'molecular_function'
+    return 'GO:' + str(go_id)
+
 
 def create_go_relation(gopath, key_to_go, key_to_source):
     from model_new_schema.bioconcept import Bioconceptrelation as NewBioconceptrelation
     
     source = key_to_source['SGD']
     
-    parent_key = ('GO:' + str(gopath.ancestor.go_go_id), 'GO')
-    child_key = ('GO:' + str(gopath.child.go_go_id), 'GO')
+    parent_key = (get_go_format_name(gopath.ancestor.go_go_id), 'GO')
+    child_key = (get_go_format_name(gopath.child.go_go_id), 'GO')
     
     parent = None
     child = None
@@ -140,6 +148,8 @@ def convert_go_relation(old_session_maker, new_session_maker):
         #Grab cached dictionaries
         key_to_go = dict([(x.unique_key(), x) for x in new_session.query(Go).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
+
+        already_seen = set()
         
         old_session = old_session_maker()
         old_objs = old_session.query(GoPath).filter(GoPath.generation == 1).options(joinedload('child'), joinedload('ancestor')).all()
@@ -149,14 +159,16 @@ def convert_go_relation(old_session_maker, new_session_maker):
                 
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:
-                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                
-                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                    untouched_obj_ids.remove(current_obj_by_id.id)
-                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                    untouched_obj_ids.remove(current_obj_by_key.id)
+                if newly_created_obj.unique_key() not in already_seen:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+                    already_seen.add(newly_created_obj.unique_key())
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -174,9 +186,7 @@ def convert_go_relation(old_session_maker, new_session_maker):
         
     log.info('complete')
     
-"""
---------------------- Convert Phenotype Relation ---------------------
-"""
+# --------------------- Convert Phenotype Relation ---------------------
 
 def create_phenotype_relation(cvtermrel, key_to_phenotype, key_to_source):
     from model_new_schema.bioconcept import Bioconceptrelation as NewBioconceptrelation
@@ -286,9 +296,7 @@ def convert_phenotype_relation(old_session_maker, new_session_maker):
         
     log.info('complete')
     
-"""
---------------------- Convert Phenotype Alias ---------------------
-"""
+# --------------------- Convert Phenotype Alias ---------------------
 
 def create_phenotype_alias(cvtermsynonym, key_to_phenotype, key_to_source, id_to_cvterm):
     from model_new_schema.bioconcept import Bioconceptalias as NewBioconceptalias
@@ -399,25 +407,22 @@ def convert_phenotype_alias(old_session_maker, new_session_maker):
         
     log.info('complete')
     
-"""
----------------------Convert------------------------------
-"""   
+# ---------------------Convert------------------------------
 
 def convert(old_session_maker, new_session_maker):  
     #convert_ecnumber_relation(new_session_maker)
     
     from model_new_schema.bioconcept import Phenotype
-    convert_phenotype_relation(old_session_maker, new_session_maker)
-    convert_phenotype_alias(old_session_maker, new_session_maker)
-    convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
+    #convert_phenotype_relation(old_session_maker, new_session_maker)
+    #convert_phenotype_alias(old_session_maker, new_session_maker)
+    #convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
             
     
-    convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
+    #convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
  
     from model_new_schema.bioconcept import Go
     from model_new_schema.evidence import Goevidence
-    convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
+    #convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
     convert_go_relation(old_session_maker, new_session_maker)
     convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
     convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
-        

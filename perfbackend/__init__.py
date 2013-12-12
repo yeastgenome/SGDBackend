@@ -135,7 +135,8 @@ class PerfBackend(BackendInterface):
     def literature_graph(self, identifier):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return get_data('literature_graph', bioent_id)
-    
+
+    #GO
     def go_enrichment(self, bioent_ids, callback=None):
         from model_perf_schema.core import Bioentity, Bioconcept
         bioent_format_names = []
