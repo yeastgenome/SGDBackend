@@ -135,7 +135,8 @@ class PerfBackend(BackendInterface):
     def literature_graph(self, identifier):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return get_data('literature_graph', bioent_id)
-    
+
+    #GO
     def go_enrichment(self, bioent_ids, callback=None):
         from model_perf_schema.core import Bioentity, Bioconcept
         bioent_format_names = []
@@ -153,6 +154,35 @@ class PerfBackend(BackendInterface):
                             'match_count': enrichment_result[1],
                             'pvalue': enrichment_result[2]})
         return json.dumps(json_format)
+
+    def go(self, identifier):
+        pass
+    def go_details(self, locus_identifier=None, phenotype_identifier=None, with_children=False):
+        pass
+    def go_ontology_graph(self, identifier):
+        pass
+    def go_overview(self, identifier):
+        pass
+
+    #Phenotype
+    def phenotype(self, identifier):
+        pass
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, with_children=False):
+        pass
+    def phenotype_ontology(self):
+        pass
+    def phenotype_ontology_graph(self, identifier):
+        pass
+    def phenotype_overview(self, identifier):
+        pass
+    def phenotype_resources(self, identifier):
+        pass
+
+    #Chemical
+    def chemical(self, identifier):
+        pass
+    def chemical_ontology_graph(self, identifier):
+        pass
     
     #Protein
     def protein_domain_details(self, identifier):
