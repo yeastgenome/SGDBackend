@@ -424,5 +424,5 @@ def convert(old_session_maker, new_session_maker):
     from model_new_schema.evidence import Goevidence
     #convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
     convert_go_relation(old_session_maker, new_session_maker)
-    #convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
+    convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
     convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
