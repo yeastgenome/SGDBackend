@@ -59,11 +59,11 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
                 note_pieces.append(new_note)
                 note_set.add(new_note)
         
-        strain_details = None if old_experiment.strain == None else old_experiment.strain[1]
-        if strain_details is not None:
-            if strain_details not in note_set:
-                note_pieces.append(strain_details)
-                note_set.add(strain_details)
+        #strain_details = None if old_experiment.strain == None else old_experiment.strain[1]
+        #if strain_details is not None:
+        #    if strain_details not in note_set:
+        #        note_pieces.append(strain_details)
+        #        note_set.add(strain_details)
 
         note = '; '.join(note_pieces)
             
