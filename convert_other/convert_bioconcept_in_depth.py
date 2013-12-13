@@ -3,6 +3,7 @@ Created on Oct 25, 2013
 
 @author: kpaskov
 '''
+from sqlalchemy import or_
 from convert_other.convert_auxiliary import convert_disambigs, \
     convert_biocon_count, convert_biofact
 from convert_utils import create_or_update, create_format_name
@@ -10,8 +11,8 @@ from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 import logging
 import sys
-   
-   
+
+
 """
 --------------------- Convert ECNumber Relation ---------------------
 """
@@ -223,10 +224,41 @@ def create_phenotype_relation_from_phenotype(phenotype, key_to_phenotype, key_to
             return [NewBioconceptrelation(source, 'is a', parent, phenotype, 'PHENOTYPE', None, None)]
     return []
 
+def create_chemical_phenotype_relation(old_phenotype, key_to_phenotype, key_to_source):
+    from model_new_schema.bioconcept import Bioconceptrelation as NewBioconceptrelation, create_phenotype_format_name
+
+    new_relations = []
+    for phenotype_feature in old_phenotype.phenotype_features:
+        if len(phenotype_feature.experiment.chemicals) != 1:
+            print 'Chemical problem ' + str(phenotype_feature.experiment.chemicals)
+
+        source = key_to_source['SGD']
+
+        chemical = phenotype_feature.experiment.chemicals[0][0]
+        old_observable = old_phenotype.observable
+        if old_observable == 'resistance to chemicals':
+            new_observable = old_phenotype.observable.replace('chemicals', chemical)
+        else:
+            new_observable = old_phenotype.observable.replace('chemical', chemical)
+        qualifier = old_phenotype.qualifier
+
+        grandparent_key = (create_format_name(old_observable), 'PHENOTYPE')
+        parent_key = (create_format_name(new_observable), 'PHENOTYPE')
+        child_key = (create_phenotype_format_name(new_observable, qualifier), 'PHENOTYPE')
+
+        grandparent = key_to_phenotype[grandparent_key]
+        parent = key_to_phenotype[parent_key]
+        child = key_to_phenotype[child_key]
+
+        new_relations.append(NewBioconceptrelation(source, 'is a', grandparent, parent, 'PHENOTYPE', parent.date_created, parent.created_by))
+        new_relations.append(NewBioconceptrelation(source, 'is a', parent, child, 'PHENOTYPE', child.date_created, child.created_by))
+    return new_relations
+
 def convert_phenotype_relation(old_session_maker, new_session_maker):
     from model_new_schema.evelements import Source
     from model_new_schema.bioconcept import Bioconceptrelation, Phenotype
     from model_old_schema.cv import CVTermRel
+    from model_old_schema.phenotype import Phenotype as OldPhenotype
     
     log = logging.getLogger('convert.bioconcept.phenotype_relations')
     log.info('begin')
@@ -250,6 +282,7 @@ def convert_phenotype_relation(old_session_maker, new_session_maker):
         
         old_session = old_session_maker()
         old_objs = old_session.query(CVTermRel).options(joinedload('child'), joinedload('parent')).all()
+        already_seen = set()
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_phenotype_relation(old_obj, key_to_phenotype, key_to_source)
@@ -264,6 +297,7 @@ def convert_phenotype_relation(old_session_maker, new_session_maker):
                     untouched_obj_ids.remove(current_obj_by_id.id)
                 if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                     untouched_obj_ids.remove(current_obj_by_key.id)
+                already_seen.add(newly_created_obj.unique_key())
                     
         for old_obj in key_to_phenotype.values():
             #Convert old objects into new ones
@@ -279,6 +313,30 @@ def convert_phenotype_relation(old_session_maker, new_session_maker):
                     untouched_obj_ids.remove(current_obj_by_id.id)
                 if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                     untouched_obj_ids.remove(current_obj_by_key.id)
+                already_seen.add(newly_created_obj.unique_key())
+
+        old_chem_phenotypes = old_session.query(OldPhenotype).filter(or_(OldPhenotype.observable == 'chemical compound accumulation',
+                                                                           OldPhenotype.observable == 'chemical compound excretion',
+                                                                           OldPhenotype.observable == 'resistance to chemicals')).options(
+                                        joinedload('phenotype_features'), joinedload('phenotype_features.experiment'))
+
+        for old_obj in old_chem_phenotypes:
+            #Convert old objects into new ones
+            newly_created_objs = create_chemical_phenotype_relation(old_obj, key_to_phenotype, key_to_source)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                if newly_created_obj.unique_key() not in already_seen:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+                    already_seen.add(newly_created_obj.unique_key())
+
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -413,16 +471,14 @@ def convert(old_session_maker, new_session_maker):
     #convert_ecnumber_relation(new_session_maker)
     
     from model_new_schema.bioconcept import Phenotype
-    #convert_phenotype_relation(old_session_maker, new_session_maker)
+    convert_phenotype_relation(old_session_maker, new_session_maker)
     #convert_phenotype_alias(old_session_maker, new_session_maker)
-    #convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
-            
-    
-    #convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
+    convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
+    convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
  
-    from model_new_schema.bioconcept import Go
-    from model_new_schema.evidence import Goevidence
+    #from model_new_schema.bioconcept import Go
+    #from model_new_schema.evidence import Goevidence
     #convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
-    convert_go_relation(old_session_maker, new_session_maker)
-    convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
-    convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
+    #convert_go_relation(old_session_maker, new_session_maker)
+    #convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
+    #convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
