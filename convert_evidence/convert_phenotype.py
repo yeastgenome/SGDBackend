@@ -9,6 +9,7 @@ Created on May 6, 2013
  are compared and the database fields are updated. If a newly created object does not match one that is
  already stored, it is added to the database.
 '''
+import re
 
 from convert_other.convert_auxiliary import convert_bioentity_reference, \
     convert_biofact
@@ -21,6 +22,10 @@ import sys
 
 # --------------------- Convert Evidence ---------------------
 
+_digits = re.compile('\d')
+def contains_digits(d):
+    return bool(_digits.search(d))
+
 def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype, 
                          id_to_reference, id_to_bioentity, key_to_strain, key_to_experiment, 
                          key_to_bioitem, key_to_chemical, key_to_source):
@@ -32,9 +37,23 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
     bioentity_id = old_phenotype_feature.feature_id
     bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
 
-    mutant_type = old_phenotype_feature.mutant_type    
-    phenotype_key = (create_phenotype_format_name(old_phenotype_feature.observable, old_phenotype_feature.qualifier), 'PHENOTYPE')
+    mutant_type = old_phenotype_feature.mutant_type
+    observable = old_phenotype_feature.observable
+    qualifier = old_phenotype_feature.qualifier
+    if observable == 'chemical compound accumulation' or observable == 'chemical compound excretion' or observable == 'resistance to chemicals':
+        if len(old_phenotype_feature.experiment.chemicals) != 1:
+            print 'Chemical problem\t' + bioentity.display_name + '/' + bioentity.format_name + '\t' + str(old_phenotype_feature.experiment.chemicals)
+        chemical = old_phenotype_feature.experiment.chemicals[0][0]
+        if observable == 'resistance to chemicals':
+            observable = observable.replace('chemicals', chemical)
+        else:
+            observable = observable.replace('chemical', chemical)
+    phenotype_key = (create_phenotype_format_name(observable, qualifier), 'PHENOTYPE')
     phenotype = None if phenotype_key not in key_to_phenotype else key_to_phenotype[phenotype_key]
+
+    if phenotype is None:
+        print observable + ' ' + qualifier
+        return []
        
     experiment_key = create_format_name(old_phenotype_feature.experiment_type)
     experiment = None if experiment_key not in key_to_experiment else key_to_experiment[experiment_key]
@@ -95,7 +114,14 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
         for (a, b) in old_experiment.chemicals:
             chemical_key = create_format_name(a)
             chemical = None if chemical_key not in key_to_chemical else key_to_chemical[chemical_key]
-            conditions.append(Chemicalcondition(None, None, chemical, b))
+            amount = None
+            chemical_note = None
+            if b is not None:
+                if contains_digits(b):
+                    amount = b
+                else:
+                    chemical_note = b
+            conditions.append(Chemicalcondition(None, chemical_note, chemical, amount))
         
         #Get other conditions
         from model_new_schema.condition import Generalcondition
@@ -108,7 +134,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
             
     source_key = old_phenotype_feature.source
     source = None if source_key not in key_to_source else key_to_source[source_key]
-        
+
     new_phenoevidence = NewPhenotypeevidence(source, reference, strain, experiment, note,
                                          bioentity, phenotype, mutant_type, conditions,
                                          old_phenotype_feature.date_created, old_phenotype_feature.created_by)
@@ -167,12 +193,12 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
                 old_objs = old_session.query(OldPhenotypeFeature).filter(
                                 OldPhenotypeFeature.feature_id >= min_id).filter(
                                 OldPhenotypeFeature.feature_id < max_id).options(
-                                        joinedload('experiment')).all()
+                                        joinedload('experiment'), joinedload('phenotype')).all()
             else:
                 current_objs = new_session.query(NewPhenotypeevidence).filter(NewPhenotypeevidence.bioentity_id >= min_id).all()
                 old_objs = old_session.query(OldPhenotypeFeature).filter(
                                 OldPhenotypeFeature.feature_id >= min_id).options(
-                                        joinedload('experiment')).all()
+                                        joinedload('experiment'), joinedload('phenotype')).all()
 
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
