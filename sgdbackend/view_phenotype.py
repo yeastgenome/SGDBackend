@@ -10,7 +10,7 @@ from sgdbackend_query.query_auxiliary import get_biofacts
 from sgdbackend_query.query_evelements import get_experiment_graph
 from sgdbackend_query.query_misc import get_relations
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_biocon, id_to_bioent, id_to_experiment
+from sgdbackend_utils.cache import id_to_biocon, id_to_bioent, id_to_experiment, id_to_strain
 from sgdbackend_utils.obj_to_json import condition_to_json, minimize_json, \
     evidence_to_json
 
@@ -32,11 +32,14 @@ def make_overview(bioentity_id):
     classical_mutant_to_phenotypes = {}
     large_scale_mutant_to_phenotypes = {}
 
+    strain_to_phenotypes = {}
+
     for phenoevidence in phenoevidences:
         experiment_ancestry = get_experiment_ancestry(phenoevidence.experiment_id, child_experiment_id_to_parent_id)
         experiment = id_to_experiment[experiment_ancestry[0 if len(experiment_ancestry) < 3 else len(experiment_ancestry)-3]]
         mutant_type = phenoevidence.mutant_type
         phenotype = phenoevidence.bioconcept_id
+        strain = phenoevidence.strain_id
         if experiment['display_name'] == 'classical genetics':
             if mutant_type in classical_mutant_to_phenotypes:
                 classical_mutant_to_phenotypes[mutant_type].add(phenotype)
@@ -49,11 +52,21 @@ def make_overview(bioentity_id):
                 large_scale_mutant_to_phenotypes[mutant_type] = set([phenotype])
         mutant_type_set.add(mutant_type)
 
+        if strain is not None:
+            if strain in strain_to_phenotypes:
+                strain_to_phenotypes[strain].add(phenotype)
+            else:
+                strain_to_phenotypes[strain] = set([phenotype])
+
     mutant_list = list(mutant_type_set)
     mutant_to_count = dict([(x, (0 if x not in classical_mutant_to_phenotypes else len(classical_mutant_to_phenotypes[x]),
                                  0 if x not in large_scale_mutant_to_phenotypes else len(large_scale_mutant_to_phenotypes[x]))) for x in mutant_list])
 
-    return {'experiment_types': ['classical genetics', 'large-scale survey'], 'mutant_to_count': mutant_to_count, 'mutant_types': mutant_list}
+    strain_to_count = dict([(id_to_strain[x]['display_name'], len(y)) for x, y in strain_to_phenotypes.iteritems()])
+    strain_list = sorted(strain_to_count.keys(), key=lambda x: strain_to_count[x], reverse=True)
+
+
+    return {'experiment_types': ['classical genetics', 'large-scale survey'], 'mutant_to_count': mutant_to_count, 'mutant_types': mutant_list, 'strain_to_count':strain_to_count, 'strain_list': strain_list}
 
 # -------------------------------Details---------------------------------------
     
