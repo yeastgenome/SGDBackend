@@ -63,7 +63,7 @@ def create_chemical_phenotype(phenotype, key_to_source, observable_to_ancestor):
         if old_observable == 'resistance to chemicals':
             new_observable = phenotype.observable.replace('chemicals', chemical)
         else:
-            new_observable = phenotype.observable.replace('chemical', chemical)
+            new_observable = phenotype.observable.replace('chemical compound', chemical)
         qualifier = phenotype.qualifier
         phenotype_type = create_phenotype_type(old_observable)
         ancestor_type = None if old_observable not in observable_to_ancestor else observable_to_ancestor[old_observable]

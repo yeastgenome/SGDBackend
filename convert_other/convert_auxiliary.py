@@ -160,7 +160,7 @@ def convert_disambigs(new_session_maker, cls, fields, class_type, subclass_type,
         new_session = new_session_maker()
          
         #Values to check
-        values_to_check = []     
+        values_to_check = ['identifier']
         
         #Grab all current objects
         current_objs = new_session.query(Disambig).filter(Disambig.class_type == class_type).filter(Disambig.subclass_type == subclass_type).all()

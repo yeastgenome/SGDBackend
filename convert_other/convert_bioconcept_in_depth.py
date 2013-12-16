@@ -239,7 +239,7 @@ def create_chemical_phenotype_relation(old_phenotype, key_to_phenotype, key_to_s
         if old_observable == 'resistance to chemicals':
             new_observable = old_phenotype.observable.replace('chemicals', chemical)
         else:
-            new_observable = old_phenotype.observable.replace('chemical', chemical)
+            new_observable = old_phenotype.observable.replace('chemical compound', chemical)
         qualifier = old_phenotype.qualifier
 
         grandparent_key = (create_format_name(old_observable), 'PHENOTYPE')
@@ -473,7 +473,7 @@ def convert(old_session_maker, new_session_maker):
     from model_new_schema.bioconcept import Phenotype
     convert_phenotype_relation(old_session_maker, new_session_maker)
     #convert_phenotype_alias(old_session_maker, new_session_maker)
-    convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
+    #convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
     convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
  
     #from model_new_schema.bioconcept import Go

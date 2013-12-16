@@ -47,7 +47,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
         if observable == 'resistance to chemicals':
             observable = observable.replace('chemicals', chemical)
         else:
-            observable = observable.replace('chemical', chemical)
+            observable = observable.replace('chemical compound', chemical)
     phenotype_key = (create_phenotype_format_name(observable, qualifier), 'PHENOTYPE')
     phenotype = None if phenotype_key not in key_to_phenotype else key_to_phenotype[phenotype_key]
 
