@@ -80,7 +80,7 @@ def get_all(cls, print_query=False):
     return objs
 
 two_bioent_evidence_cls = set([Geninteractionevidence, Physinteractionevidence, Regulationevidence])
-def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None, with_children=False, print_query=False):
+def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None, reference_id=None, with_children=False, print_query=False):
     ok_evidence_ids = None
     query = session.query(evidence_cls)
     
@@ -110,6 +110,9 @@ def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None,
                 ok_evidence_ids.update([x.id for x in session.query(evidence_cls).filter(evidence_cls.bioconcept_id.in_(child_ids[i*500:(i+1)*500])).all()])
         else:
             query = query.filter(evidence_cls.bioconcept_id == biocon_id)
+
+    if reference_id is not None:
+        query = query.filter(evidence_cls.reference_id == reference_id)
 
     if print_query:
         print query

@@ -94,7 +94,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def go_details(self, locus_identifier=None, phenotype_identifier=None, with_children=False):
+    def go_details(self, locus_identifier=None, phenotype_identifier=None, reference_identifier=None, with_children=False):
         return None
     
     @abstractmethod
@@ -107,7 +107,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def interaction_details(self, identifier):
+    def interaction_details(self, locus_identifier=None, reference_identifier=None):
         return None
     
     @abstractmethod
@@ -124,7 +124,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def literature_details(self, identifier):
+    def literature_details(self, locus_identifier=None, reference_identifier=None):
         return None
     
     @abstractmethod
@@ -149,7 +149,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, with_children=False):
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, reference_identifier=None, with_children=False):
         return None
 
     @abstractmethod
@@ -158,7 +158,7 @@ class BackendInterface:
     
     #Protein
     @abstractmethod
-    def protein_domain_details(self, identifier):
+    def protein_domain_details(self, locus_identifier=None, reference_identifier=None):
         return None
     
     #Regulation
@@ -167,7 +167,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def regulation_details(self, identifier):
+    def regulation_details(self, locus_identifier=None, reference_identifier=None):
         return None
     
     @abstractmethod
@@ -180,7 +180,7 @@ class BackendInterface:
     
     #Sequence
     @abstractmethod
-    def binding_site_details(self, identifier):
+    def binding_site_details(self, locus_identifier=None, reference_identifier=None):
         return None
 
     
