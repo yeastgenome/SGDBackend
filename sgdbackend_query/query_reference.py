@@ -4,7 +4,7 @@ Created on Jul 9, 2013
 @author: kpaskov
 '''
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.reference import Bibentry
+from model_new_schema.reference import Bibentry, Abstract
 from sgdbackend_query import session
 from sqlalchemy.sql.expression import func
 
@@ -44,3 +44,18 @@ def get_reference_bibs(reference_ids=None, min_id=None, max_id=None, print_query
     if print_query:
         print query1
     return references
+
+#Used for reference_overview
+def get_abstract(reference_id, print_query=False):
+    query = session.query(Abstract).filter(Abstract.id == reference_id)
+    abstracts = query.all()
+    if len(abstracts) == 1:
+        return abstracts[0].text
+    return None
+
+def get_bibentry(reference_id, print_query=False):
+    query = session.query(Bibentry).filter(Bibentry.id == reference_id)
+    bibentries = query.all()
+    if len(bibentries) == 1:
+        return bibentries[0].text
+    return None

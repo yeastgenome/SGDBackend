@@ -101,8 +101,13 @@ class SGDBackend(BackendInterface):
     def reference(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_reference
+        from sgdbackend_query.query_reference import get_abstract, get_bibentry
+
         reference_id = get_obj_id(identifier, class_type='REFERENCE')
-        return None if reference_id is None else json.dumps(id_to_reference[reference_id])
+        reference = id_to_reference[reference_id]
+        reference['abstract'] = get_abstract(reference_id)
+        reference['bibentry'] = get_bibentry(reference_id)
+        return None if reference_id is None else json.dumps(reference)
        
     def all_references(self, min_id, max_id):
         from sgdbackend_utils.cache import id_to_reference
