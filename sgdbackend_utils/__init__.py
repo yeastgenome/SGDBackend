@@ -33,11 +33,14 @@ def create_simple_table(objs, f, **kwargs):
 
 def get_bioent_by_name(bioent_name, to_ignore, word_dict):
     if bioent_name not in to_ignore:
-        bioent_ids = None if bioent_name not in word_dict else word_dict[bioent_name]
-        bioent_id = None if bioent_ids is None or len(bioent_ids) == 0 else bioent_ids[0]
-        if bioent_id is None and bioent_name.endswith('P'):
-            bioent_id = get_obj_id(bioent_name[:-1], class_type='BIOENTITY', subclass_type='LOCUS')    
-        return None if bioent_id is None else id_to_bioent[bioent_id]
+        try:
+            int(bioent_name)
+        except ValueError:
+            bioent_ids = None if bioent_name not in word_dict else word_dict[bioent_name]
+            bioent_id = None if bioent_ids is None or len(bioent_ids) == 0 else bioent_ids[0]
+            if bioent_id is None and bioent_name.endswith('P'):
+                bioent_id = get_obj_id(bioent_name[:-1], class_type='BIOENTITY', subclass_type='LOCUS')
+            return None if bioent_id is None else id_to_bioent[bioent_id]
     return None
 
 def link_gene_names(text, to_ignore=set()):

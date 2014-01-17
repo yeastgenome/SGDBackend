@@ -4,11 +4,15 @@ Created on Jul 9, 2013
 @author: kpaskov
 '''
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.reference import Bibentry, Abstract
+from model_new_schema.reference import Bibentry, Abstract, AuthorReference
 from sgdbackend_query import session
 from sqlalchemy.sql.expression import func
+from sqlalchemy.orm import joinedload
 
 #Used to make bioent_names into links for reference abstracts.
+from sgdbackend_utils.obj_to_json import author_to_json
+
+
 def find_bioentities(text, print_query=False):
     """
     Find all bioentities (format_name/display_name) within a piece of text.
@@ -59,3 +63,9 @@ def get_bibentry(reference_id, print_query=False):
     if len(bibentries) == 1:
         return bibentries[0].text
     return None
+
+def get_authors(reference_id, print_query=False):
+    query = session.query(AuthorReference).options(joinedload("author")).filter(AuthorReference.reference_id == reference_id)
+    author_refs = query.all()
+    author_refs.sort(key=lambda x: x.order)
+    return [author_to_json(author_ref.author) for author_ref in author_refs]

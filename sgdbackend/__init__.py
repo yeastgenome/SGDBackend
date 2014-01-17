@@ -9,7 +9,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 import json
 import model_new_schema
-import sys
 import uuid
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
@@ -101,12 +100,14 @@ class SGDBackend(BackendInterface):
     def reference(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_reference
-        from sgdbackend_query.query_reference import get_abstract, get_bibentry
+        from sgdbackend_query.query_reference import get_abstract, get_bibentry, get_authors
+        from sgdbackend_utils import link_gene_names
 
         reference_id = get_obj_id(identifier, class_type='REFERENCE')
         reference = id_to_reference[reference_id]
-        reference['abstract'] = get_abstract(reference_id)
+        reference['abstract'] = link_gene_names(get_abstract(reference_id))
         reference['bibentry'] = get_bibentry(reference_id)
+        reference['authors'] = get_authors(reference_id)
         return None if reference_id is None else json.dumps(reference)
        
     def all_references(self, min_id, max_id):
