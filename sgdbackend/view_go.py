@@ -40,6 +40,9 @@ def make_enrichment(bioent_ids):
 def make_overview(bioent_id):
     goevidences = get_evidence(Goevidence, bioent_id=bioent_id)
 
+    if goevidences is None:
+        return {'biological process': {'Error': 'Too much data to display.'}, 'molecular function':{'Error': 'Too much data to display.'}, 'cellular component':{'Error': 'Too much data to display.'}}
+
     comp_mutant_to_phenotypes = {'biological process':set(), 'molecular function':set(), 'cellular component':set()}
     htp_to_phenotypes = {'biological process':set(), 'molecular function':set(), 'cellular component':set()}
     manual_to_phenotypes = {'biological process':set(), 'molecular function':set(), 'cellular component':set()}
@@ -72,8 +75,8 @@ def make_overview(bioent_id):
 -------------------------------Details---------------------------------------
 '''
     
-def make_details(locus_id=None, go_id=None, chemical_id=None, with_children=False):
-    goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id, chemical_id=chemical_id, with_children=with_children)
+def make_details(locus_id=None, go_id=None, chemical_id=None, reference_id=None, with_children=False):
+    goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children)
     
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in goevidences]):

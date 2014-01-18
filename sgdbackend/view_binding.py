@@ -13,8 +13,12 @@ from sgdbackend_utils.obj_to_json import minimize_json, evidence_to_json
 '''
 -------------------------------Details---------------------------------------
 '''
-def make_details(bioent_id):
-    binding_site_evidences = get_evidence(Bindingevidence, bioent_id=bioent_id)
+def make_details(locus_id=None, reference_id=None):
+    binding_site_evidences = get_evidence(Bindingevidence, bioent_id=locus_id, reference_id=reference_id)
+
+    if binding_site_evidences is None:
+        return {'Error': 'Too much data to display.'}
+
     return create_simple_table(binding_site_evidences, make_evidence_row) 
 
 def make_evidence_row(binding_evidence): 

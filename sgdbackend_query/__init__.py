@@ -80,7 +80,7 @@ def get_all(cls, print_query=False):
     return objs
 
 two_bioent_evidence_cls = set([Geninteractionevidence, Physinteractionevidence, Regulationevidence])
-def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None, with_children=False, print_query=False):
+def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None, reference_id=None, with_children=False, print_query=False):
     ok_evidence_ids = None
     query = session.query(evidence_cls)
     
@@ -111,11 +111,17 @@ def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None,
         else:
             query = query.filter(evidence_cls.bioconcept_id == biocon_id)
 
+    if reference_id is not None:
+        query = query.filter(evidence_cls.reference_id == reference_id)
+
     if print_query:
         print query
         
     if ok_evidence_ids is None:
-        return query.all()
+        if query.count() > 25000:
+            return None
+        else:
+            return query.all()
     elif len(ok_evidence_ids) == 0:
         return []
     else:
@@ -124,7 +130,9 @@ def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None,
         num_chunks = ceil(1.0*len(ok_evidence_ids)/500)
         for i in range(num_chunks):
             evidences.extend([x for x in query.filter(evidence_cls.id.in_(ok_evidence_ids[i*500:(i+1)*500])).all()])
-            
+
+        if len(evidences) > 25000:
+            return None
         return evidences
 
 def get_all_bioconcept_children(parent_id):

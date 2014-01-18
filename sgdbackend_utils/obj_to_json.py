@@ -35,6 +35,14 @@ def chemical_to_json(chem):
             'link': chem.link,
             'id': chem.id
             }
+
+def author_to_json(author):
+    return {
+        'format_name': author.format_name,
+        'display_name': author.display_name,
+        'link': author.link,
+        'id': author.id
+    }
     
 def source_to_json(source):
     return source.display_name

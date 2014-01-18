@@ -3,11 +3,14 @@ Created on May 31, 2013
 
 @author: kpaskov
 '''
+from model_new_schema.evidence import Literatureevidence
+from sgdbackend_query import get_evidence
 
 from sgdbackend_query.query_auxiliary import get_bioentity_references
-from sgdbackend_utils import make_references
+from sgdbackend_utils import make_references, create_simple_table
 from sgdbackend_utils.cache import id_to_reference, id_to_bioent
-  
+from sgdbackend_utils.obj_to_json import evidence_to_json, minimize_json
+
 '''
 -------------------------------Overview---------------------------------------
 '''   
@@ -22,16 +25,32 @@ def make_overview(bioent_id):
 -------------------------------Details---------------------------------------
 '''   
 
-def make_details(bioent_id):
-    references = {}
-    references['primary'] = make_references(['PRIMARY_LITERATURE'], bioent_id) 
-    references['additional'] = make_references(['ADDITIONAL_LITERATURE'], bioent_id) 
-    references['reviews'] = make_references(['REVIEW_LITERATURE'], bioent_id) 
-    references['go'] = make_references(['GO'], bioent_id, only_primary=True) 
-    references['phenotype'] = make_references(['PHENOTYPE'], bioent_id, only_primary=True) 
-    references['interaction'] = make_references(['GENINTERACTION', 'PHYSINTERACTION'], bioent_id) 
-    references['regulation'] = make_references(['REGULATION'], bioent_id) 
-    return references
+def make_details(locus_id=None, reference_id=None):
+    if locus_id is not None and reference_id is None:
+        references = {}
+        references['primary'] = make_references(['PRIMARY_LITERATURE'], locus_id)
+        references['additional'] = make_references(['ADDITIONAL_LITERATURE'], locus_id)
+        references['reviews'] = make_references(['REVIEW_LITERATURE'], locus_id)
+        references['go'] = make_references(['GO'], locus_id, only_primary=True)
+        references['phenotype'] = make_references(['PHENOTYPE'], locus_id, only_primary=True)
+        references['interaction'] = make_references(['GENINTERACTION', 'PHYSINTERACTION'], locus_id)
+        references['regulation'] = make_references(['REGULATION'], locus_id)
+        return references
+    else:
+        evidences = get_evidence(Literatureevidence, bioent_id=locus_id, reference_id=reference_id);
+        tables = {}
+        tables['primary'] = create_simple_table([x for x in evidences if x.topic == 'Primary Literature'], make_evidence_row)
+        tables['additional'] = create_simple_table([x for x in evidences if x.topic == 'Additional Literature'], make_evidence_row)
+        tables['reviews'] = create_simple_table([x for x in evidences if x.topic == 'Reviews'], make_evidence_row)
+        return tables
+
+def make_evidence_row(litevidence):
+    bioentity_id = litevidence.bioentity_id
+
+    obj_json = evidence_to_json(litevidence).copy()
+    obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
+    obj_json['topic'] = litevidence.topic
+    return obj_json
 
 '''
 -------------------------------Graph---------------------------------------
