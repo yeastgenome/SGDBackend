@@ -35,6 +35,13 @@ def make_overview(bioent_id):
     
 def make_details(divided, locus_id=None, reference_id=None):
     regevidences = get_evidence(Regulationevidence, bioent_id=locus_id, reference_id=reference_id)
+
+    if regevidences is None:
+        if divided:
+            return {'targets': {'Error': 'Too much data to display.'}, 'regulators': {'Error': 'Too much data to display.'}}
+        else:
+            return {'Error': 'Too much data to display.'}
+
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in regevidences]):
         evidence_id = condition.evidence_id

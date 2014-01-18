@@ -66,18 +66,10 @@ class BackendInterface:
     @abstractmethod
     def all_bioconcepts(self, min_id, max_id):
         return None
-    
-    @abstractmethod
-    def bioconcept_list(self, biocon_ids):
-        return None
-    
+
     #Chemical
     @abstractmethod
     def chemical(self, identifier):
-        return None
-    
-    @abstractmethod
-    def chemical_ontology_graph(self, identifier):
         return None
     
     #Go

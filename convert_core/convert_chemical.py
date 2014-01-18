@@ -18,13 +18,13 @@ def create_chemical(expt_property, key_to_source):
 
     display_name = expt_property.value
     source = key_to_source['SGD']
-    new_chemical = NewChemical(display_name, source, None, expt_property.date_created, expt_property.created_by)
+    new_chemical = NewChemical(display_name, source, None, None, expt_property.date_created, expt_property.created_by)
     return [new_chemical]
 
 def create_chemical_from_cv_term(old_cvterm, key_to_source):
     from model_new_schema.chemical import Chemical as NewChemical
     source = key_to_source['SGD']
-    new_chemical = NewChemical(old_cvterm.name, source, 
+    new_chemical = NewChemical(old_cvterm.name, source, None,
                                old_cvterm.definition, old_cvterm.date_created, old_cvterm.created_by)
     return [new_chemical]
 

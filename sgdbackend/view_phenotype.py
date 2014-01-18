@@ -75,9 +75,15 @@ def make_details(locus_id=None, phenotype_id=None, chemical_id=None, reference_i
     if phenotype_id is not None and id_to_biocon[phenotype_id]['is_core'] and not with_children:
         child_ids = [x.child_id for x in get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[phenotype_id]) if not id_to_biocon[x.child_id]['is_core']]
         for child_id in child_ids:
-            phenoevidences.extend(get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=child_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children))
+            more_evidences = get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=child_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children)
+            if more_evidences is None:
+                return {'Error': 'Too much data to display.'}
+            phenoevidences.extend(more_evidences)
 
-    phenoevidences.extend(get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=phenotype_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children))
+    more_evidences = get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=phenotype_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children)
+    if more_evidences is None:
+        return {'Error': 'Too much data to display.'}
+    phenoevidences.extend(more_evidences)
     
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in phenoevidences]):

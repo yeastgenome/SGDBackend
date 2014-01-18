@@ -11,14 +11,7 @@ def prep_views(chosen_backend, config):
                      view=lambda request: chosen_backend.response_wrapper('chemical', request)(
                                 getattr(chosen_backend, 'chemical')(
                                         identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
-                     renderer=chosen_backend.get_renderer('chemical')) 
-    
-    config.add_route('chemical_ontology_graph', 
-                     '/chemical/{identifier}/ontology_graph', 
-                     view=lambda request: chosen_backend.response_wrapper('chemical_ontology_graph', request)(
-                                getattr(chosen_backend, 'chemical_ontology_graph')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
-                     renderer=chosen_backend.get_renderer('chemical_ontology_graph'))
+                     renderer=chosen_backend.get_renderer('chemical'))
     
     #Reference views
     config.add_route('reference', 
@@ -57,14 +50,6 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'locustabs')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('locustabs'))
-    
-    #Biocon views
-    config.add_route('bioconcept_list', 
-                     '/bioconcept_list', 
-                     view=lambda request: chosen_backend.response_wrapper('bioentity_list', request)(
-                                getattr(chosen_backend, 'bioentity_list')(
-                                       None if 'biocon_ids' not in request.json_body else request.json_body['biocon_ids'])), 
-                     renderer=chosen_backend.get_renderer('bioentity_list')) 
     
     #Go views
     config.add_route('go', 

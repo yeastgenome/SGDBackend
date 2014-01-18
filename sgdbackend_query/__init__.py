@@ -118,7 +118,10 @@ def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None,
         print query
         
     if ok_evidence_ids is None:
-        return query.all()
+        if query.count() > 25000:
+            return None
+        else:
+            return query.all()
     elif len(ok_evidence_ids) == 0:
         return []
     else:
@@ -127,7 +130,9 @@ def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None,
         num_chunks = ceil(1.0*len(ok_evidence_ids)/500)
         for i in range(num_chunks):
             evidences.extend([x for x in query.filter(evidence_cls.id.in_(ok_evidence_ids[i*500:(i+1)*500])).all()])
-            
+
+        if len(evidences) > 25000:
+            return None
         return evidences
 
 def get_all_bioconcept_children(parent_id):

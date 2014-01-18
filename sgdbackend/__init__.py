@@ -79,22 +79,12 @@ class SGDBackend(BackendInterface):
         from sgdbackend_utils.cache import id_to_biocon
         return json.dumps([value for key, value in id_to_biocon.iteritems() if (min_id is None or key >= min_id) and (max_id is None or key < max_id)])
     
-    def bioconcept_list(self, biocon_ids):
-        from sgdbackend_utils.cache import id_to_biocon
-        return json.dumps([id_to_biocon[x] for x in biocon_ids])
-    
     #Chemical
     def chemical(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_chem
         chemical_id = get_obj_id(identifier, class_type='CHEMICAL')
         return None if chemical_id is None else json.dumps(id_to_chem[chemical_id])
-    
-    def chemical_ontology_graph(self, identifier):
-        from sgdbackend_query import get_obj_id
-        from sgdbackend import view_chemical
-        chemical_id = get_obj_id(identifier, class_type='CHEMICAL')
-        return None if chemical_id is None else json.dumps(view_chemical.make_ontology_graph(chemical_id))
     
     #Reference
     def reference(self, identifier):
@@ -286,7 +276,10 @@ class SGDBackend(BackendInterface):
         from sgdbackend import view_regulation
         locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
-        return json.dumps(view_regulation.make_details(True, locus_id=locus_id, reference_id=reference_id))
+        if reference_id is not None:
+            return json.dumps(view_regulation.make_details(False, locus_id=locus_id, reference_id=reference_id))
+        else:
+            return json.dumps(view_regulation.make_details(True, locus_id=locus_id, reference_id=reference_id))
             
     def regulation_graph(self, identifier):
         from sgdbackend_query import get_obj_id
