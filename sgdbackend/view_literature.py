@@ -17,8 +17,20 @@ from sgdbackend_utils.obj_to_json import evidence_to_json, minimize_json
 
 def make_overview(bioent_id):
     references = {}
-    references['primary'] = make_references(['PRIMARY_LITERATURE'], bioent_id) 
-    references['total_count'] = len(set([x.reference_id for x in get_bioentity_references(bioent_id=bioent_id)]))
+    references['primary'] = make_references(['PRIMARY_LITERATURE'], bioent_id)
+
+    primary_ids = set([x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
+    all_ids = set(primary_ids)
+    all_ids.update([x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
+    all_ids.update([x.reference_id for x in get_bioentity_references('ADDITIONAL_LITERATURE', bioent_id=bioent_id)])
+    all_ids.update([x.reference_id for x in get_bioentity_references('REVIEW_LITERATURE', bioent_id=bioent_id)])
+    all_ids.update([x.reference_id for x in get_bioentity_references('GO', bioent_id=bioent_id) if x.reference_id in primary_ids])
+    all_ids.update([x.reference_id for x in get_bioentity_references('PHENOTYPE', bioent_id=bioent_id) if x.reference_id in primary_ids])
+    all_ids.update([x.reference_id for x in get_bioentity_references('GENINTERACTION', bioent_id=bioent_id)])
+    all_ids.update([x.reference_id for x in get_bioentity_references('PHYSINTERACTION', bioent_id=bioent_id)])
+    all_ids.update([x.reference_id for x in get_bioentity_references('REGULATION', bioent_id=bioent_id)])
+
+    references['total_count'] = len(all_ids)
     return references
 
 '''
