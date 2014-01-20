@@ -117,8 +117,13 @@ class SGDBackend(BackendInterface):
     def phenotype(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_biocon
-        pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return None if pheno_id is None else json.dumps(id_to_biocon[pheno_id])
+        import view_phenotype
+        phenotype_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
+        if phenotype_id is None:
+            return None
+        phenotype_summary = dict(id_to_biocon[phenotype_id])
+        phenotype_summary['summary'] = view_phenotype.make_overview(phenotype_id=phenotype_id)
+        return None if phenotype_id is None else json.dumps(phenotype_summary)
 
     def phenotype_ontology_graph(self, identifier):
         from sgdbackend_query import get_obj_id
@@ -131,11 +136,11 @@ class SGDBackend(BackendInterface):
         from sgdbackend import view_phenotype
         return json.dumps(view_phenotype.make_ontology())
         
-    def phenotype_overview(self, identifier):
+    def phenotype_overview(self, locus_identifier=None, phenotype_identifier=None):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_phenotype
-        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_phenotype.make_overview(locus_id))
+        locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(view_phenotype.make_overview(locus_id=locus_id))
     
     def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, reference_identifier=None, with_children=False):
         from sgdbackend_query import get_obj_id

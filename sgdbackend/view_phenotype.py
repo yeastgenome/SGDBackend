@@ -24,8 +24,19 @@ def get_experiment_ancestry(experiment_id, child_experiment_id_to_parent_id):
     return ancestry
 
 
-def make_overview(bioentity_id):
-    phenoevidences = get_evidence(Phenotypeevidence, bioent_id=bioentity_id)
+def make_overview(locus_id=None, phenotype_id=None):
+    phenoevidences = []
+    if phenotype_id is not None and id_to_biocon[phenotype_id]['is_core']:
+        child_ids = [x.child_id for x in get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[phenotype_id]) if not id_to_biocon[x.child_id]['is_core']]
+        for child_id in child_ids:
+            more_evidences = get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=child_id)
+            if more_evidences is not None:
+                phenoevidences.extend(more_evidences)
+
+    more_evidences = get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=phenotype_id)
+    if more_evidences is not None:
+        phenoevidences.extend(more_evidences)
+
     child_experiment_id_to_parent_id = get_experiment_graph()
 
     mutant_type_set = set()
@@ -38,25 +49,28 @@ def make_overview(bioentity_id):
         experiment_ancestry = get_experiment_ancestry(phenoevidence.experiment_id, child_experiment_id_to_parent_id)
         experiment = id_to_experiment[experiment_ancestry[0 if len(experiment_ancestry) < 3 else len(experiment_ancestry)-3]]
         mutant_type = phenoevidence.mutant_type
-        phenotype = phenoevidence.bioconcept_id
+        if locus_id is not None:
+            grouper = phenoevidence.bioconcept_id
+        else:
+            grouper = phenoevidence.bioentity_id
         strain = phenoevidence.strain_id
         if experiment['display_name'] == 'classical genetics':
             if mutant_type in classical_mutant_to_phenotypes:
-                classical_mutant_to_phenotypes[mutant_type].add(phenotype)
+                classical_mutant_to_phenotypes[mutant_type].add(grouper)
             else:
-                classical_mutant_to_phenotypes[mutant_type] = set([phenotype])
+                classical_mutant_to_phenotypes[mutant_type] = set([grouper])
         elif experiment['display_name'] == 'large-scale survey':
             if mutant_type in large_scale_mutant_to_phenotypes:
-                large_scale_mutant_to_phenotypes[mutant_type].add(phenotype)
+                large_scale_mutant_to_phenotypes[mutant_type].add(grouper)
             else:
-                large_scale_mutant_to_phenotypes[mutant_type] = set([phenotype])
+                large_scale_mutant_to_phenotypes[mutant_type] = set([grouper])
         mutant_type_set.add(mutant_type)
 
         if strain is not None:
             if strain in strain_to_phenotypes:
-                strain_to_phenotypes[strain].add(phenotype)
+                strain_to_phenotypes[strain].add(grouper)
             else:
-                strain_to_phenotypes[strain] = set([phenotype])
+                strain_to_phenotypes[strain] = set([grouper])
 
     mutant_list = list(mutant_type_set)
     mutant_to_count = dict([(x, (0 if x not in classical_mutant_to_phenotypes else len(classical_mutant_to_phenotypes[x]),
