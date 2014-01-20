@@ -90,6 +90,7 @@ class Geninteractionevidence(Evidence):
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     phenotype_id = Column('phenotype_id', Integer, ForeignKey(Phenotype.id))
+    mutant_type = Column('mutant_type', String)
     annotation_type = Column('annotation_type', String)
     bait_hit = Column('bait_hit', String)
     bioentity1_id = Column('bioentity1_id', Integer, ForeignKey(Bioentity.id))
@@ -102,7 +103,7 @@ class Geninteractionevidence(Evidence):
     phenotype = relationship(Phenotype)
 
     def __init__(self, source, reference, strain, experiment,
-                 bioentity1, bioentity2, phenotype, annotation_type, bait_hit, note, 
+                 bioentity1, bioentity2, phenotype, mutant_type, annotation_type, bait_hit, note,
                  date_created, created_by):
         Evidence.__init__(self, bioentity1.display_name + '__' + bioentity2.display_name,
                           bioentity1.format_name + '_' + bioentity2.format_name + '_' + ('-' if strain is None else str(strain.id)) + '_' + bait_hit + '_' + str(experiment.id) + '_' + str(reference.id), 
@@ -111,6 +112,7 @@ class Geninteractionevidence(Evidence):
         self.bioentity1_id = bioentity1.id
         self.bioentity2_id = bioentity2.id
         self.phenotype_id = None if phenotype is None else phenotype.id
+        self.mutant_type = mutant_type
         self.annotation_type = annotation_type
         self.bait_hit = bait_hit
         self.note = note
