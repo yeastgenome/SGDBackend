@@ -117,12 +117,19 @@ class SGDBackend(BackendInterface):
     def phenotype(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_biocon
+        from sgdbackend_query.query_misc import get_relations
+        from model_new_schema.bioconcept import Bioconceptrelation
+
         import view_phenotype
         phenotype_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
         if phenotype_id is None:
             return None
         phenotype_summary = dict(id_to_biocon[phenotype_id])
         phenotype_summary['summary'] = view_phenotype.make_overview(phenotype_id=phenotype_id)
+
+        if phenotype_summary['is_core']:
+            phenotype_summary['qualifiers'] = [id_to_biocon[x.child_id] for x in get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[phenotype_id]) if not id_to_biocon[x.child_id]['is_core']]
+
         return None if phenotype_id is None else json.dumps(phenotype_summary)
 
     def phenotype_ontology_graph(self, identifier):
