@@ -92,6 +92,10 @@ class BackendInterface:
     @abstractmethod
     def go_enrichment(self, identifier):
         return None
+
+    @abstractmethod
+    def go_graph(self, identifier):
+        return None
     
     #Interaction
     @abstractmethod
@@ -146,6 +150,10 @@ class BackendInterface:
 
     @abstractmethod
     def phenotype_resources(self, identifier):
+        return None
+
+    @abstractmethod
+    def phenotype_graph(self, identifier):
         return None
     
     #Protein

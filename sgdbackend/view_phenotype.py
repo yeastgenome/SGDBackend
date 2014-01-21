@@ -221,3 +221,64 @@ def make_ontology():
         
     return {'elements': id_to_phenotype.values(), 'child_to_parent': child_to_parent}
 
+# -------------------------------Graph-----------------------------------------
+
+def create_bioent_node(bioent, is_focus, gene_count):
+    sub_type = None
+    if is_focus:
+        sub_type = 'FOCUS'
+    return {'data':{'id':'BioentNode' + str(bioent['id']), 'name':bioent['display_name'], 'link': bioent['link'],
+                    'sub_type':sub_type, 'type': 'BIOENTITY', 'gene_count':gene_count}}
+
+def create_biocon_node(biocon, gene_count):
+    return {'data':{'id':'BioconNode' + str(biocon['id']), 'name':biocon['display_name'], 'link': biocon['link'],
+                    'sub_type':None if not 'go_aspect' in biocon else biocon['go_aspect'], 'type': 'BIOCONCEPT', 'gene_count':gene_count}}
+
+def create_edge(bioent_id, biocon_id):
+    return {'data':{'target': 'BioentNode' + str(bioent_id), 'source': 'BioconNode' + str(biocon_id)}}
+
+def make_graph(bioent_id, biocon_type):
+
+    #Get bioconcepts for gene
+    bioconcept_ids = [x.bioconcept_id for x in get_biofacts(biocon_type, bioent_id=bioent_id)]
+
+    biocon_id_to_bioent_ids = {}
+    bioent_id_to_biocon_ids = {}
+
+    all_relevant_biofacts = get_biofacts(biocon_type, biocon_ids=bioconcept_ids)
+    for biofact in all_relevant_biofacts:
+        bioentity_id = biofact.bioentity_id
+        bioconcept_id = biofact.bioconcept_id
+        if bioconcept_id in biocon_id_to_bioent_ids:
+            biocon_id_to_bioent_ids[bioconcept_id].add(bioentity_id)
+        else:
+            biocon_id_to_bioent_ids[bioconcept_id] = set([bioentity_id])
+
+        if bioentity_id in bioent_id_to_biocon_ids:
+            bioent_id_to_biocon_ids[bioentity_id].add(bioconcept_id)
+        else:
+            bioent_id_to_biocon_ids[bioentity_id] = set([bioconcept_id])
+
+    cutoff = 1
+    node_count = len(bioent_id_to_biocon_ids) + len(biocon_id_to_bioent_ids)
+    edge_count = len(all_relevant_biofacts)
+    bioent_count = len(bioent_id_to_biocon_ids)
+    while node_count > 100 or edge_count > 250 or bioent_count > 50:
+        cutoff = cutoff + 1
+        bioent_ids_in_use = set([x for x, y in bioent_id_to_biocon_ids.iteritems() if len(y) >= cutoff])
+        biocon_ids_in_use = set([x for x, y in biocon_id_to_bioent_ids.iteritems() if len(y & bioent_ids_in_use) > 1])
+        biofacts_in_use = [x for x in all_relevant_biofacts if x.bioentity_id in bioent_ids_in_use and x.bioconcept_id in biocon_ids_in_use]
+        node_count = len(bioent_ids_in_use) + len(biocon_ids_in_use)
+        edge_count = len(biofacts_in_use)
+        bioent_count = len(bioent_ids_in_use)
+
+    bioent_to_score = dict({(x, len(y&biocon_ids_in_use)) for x, y in bioent_id_to_biocon_ids.iteritems()})
+    bioent_to_score[bioent_id] = 0
+
+    nodes = [create_bioent_node(id_to_bioent[x], x==bioent_id, len(bioent_id_to_biocon_ids[x] & biocon_ids_in_use)) for x in bioent_ids_in_use]
+    nodes.extend([create_biocon_node(id_to_biocon[x], max(bioent_to_score[x] for x in biocon_id_to_bioent_ids[x])) for x in biocon_ids_in_use])
+
+    edges = [create_edge(biofact.bioentity_id, biofact.bioconcept_id) for biofact in biofacts_in_use]
+
+    return {'nodes': nodes, 'edges': edges, 'max_cutoff': max(bioent_to_score.values()), 'min_cutoff':cutoff if len(bioent_ids_in_use) == 1 else min([bioent_to_score[x] for x in bioent_ids_in_use if x != bioent_id])}
+

@@ -109,6 +109,12 @@ def prep_views(chosen_backend, config):
                                        None if 'bioent_ids' not in request.json_body else request.json_body['bioent_ids'])),
                      renderer=chosen_backend.get_renderer('go_enrichment'))
 
+    config.add_route('go_graph', '/locus/{identifier}/go_graph',
+                     view=lambda request: chosen_backend.response_wrapper('go_graph', request)(
+                                getattr(chosen_backend, 'go_graph')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('go_graph'))
+
     #Phenotype views
     config.add_route('phenotype', 
                      '/phenotype/{identifier}/overview', 
@@ -187,6 +193,12 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'phenotype_resources')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('phenotype_resources'))
+
+    config.add_route('phenotype_graph', '/locus/{identifier}/phenotype_graph',
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_graph', request)(
+                                getattr(chosen_backend, 'phenotype_graph')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('phenotype_graph'))
     
     
     #Interaction views

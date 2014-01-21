@@ -169,5 +169,3 @@ class Phenotype(Bioconcept):
     @hybrid_property  
     def is_core(self):
         return self.is_core_num == 1
-
-    
