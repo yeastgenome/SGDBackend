@@ -173,6 +173,12 @@ class SGDBackend(BackendInterface):
                                'Mutant Resources': [url_to_json(url) for url in mutant_resources]})
         return None
 
+    def phenotype_graph(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_phenotype
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(view_phenotype.make_graph(locus_id, 'PHENOTYPE'))
+
     # Go
 
     def go(self, identifier):
@@ -206,6 +212,12 @@ class SGDBackend(BackendInterface):
     def go_enrichment(self, bioent_ids):
         from sgdbackend import view_go
         return json.dumps(view_go.make_enrichment(bioent_ids))
+
+    def go_graph(self, identifier):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_phenotype
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(view_phenotype.make_graph(locus_id, 'GO'))
        
     #Interaction
     def interaction_overview(self, identifier):
