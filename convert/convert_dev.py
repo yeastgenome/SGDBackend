@@ -20,11 +20,11 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_bioitem()
     #pastry_dev_converter.convert_chemical()
     #pastry_dev_converter.convert_phenotype()
-    pastry_dev_converter.convert_interaction()
+    #pastry_dev_converter.convert_interaction()
 
     #pastry_dev_converter.convert_chemical()
     #pastry_dev_converter.convert_phenotype()
-    #pastry_dev_converter.convert_bioconcept_in_depth()
+    pastry_dev_converter.convert_bioconcept_in_depth()
     #pastry_dev_converter.convert_go()
 
     #Dev_nex -> Dev_perf

@@ -236,6 +236,12 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'interaction_resources')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('interaction_resources'))
+
+    config.add_route('interaction_snapshot',
+                     '/snapshot/interaction',
+                     view=lambda request: chosen_backend.response_wrapper('interaction_snapshot', request)(
+                                getattr(chosen_backend, 'interaction_snapshot')()),
+                     renderer=chosen_backend.get_renderer('interaction_snapshot'))
     
     #Regulation views
     config.add_route('regulation_overview', 

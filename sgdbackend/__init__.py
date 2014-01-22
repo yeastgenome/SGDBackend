@@ -247,6 +247,10 @@ class SGDBackend(BackendInterface):
             resources.sort(key=lambda x: x.display_name)
             return json.dumps([url_to_json(url) for url in resources])
         return None
+
+    def interaction_snapshot(self):
+        from sgdbackend import view_interaction
+        return json.dumps(view_interaction.make_snapshot())
        
     #Literature
     def literature_overview(self, identifier):

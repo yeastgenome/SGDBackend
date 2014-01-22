@@ -1,23 +1,16 @@
-from model_new_schema.auxiliary import Locustabs, Disambig
-from model_new_schema.bioconcept import Bioconcept, Bioconceptrelation
-from model_new_schema.bioentity import Bioentity, Locus, Bioentityurl
-from model_new_schema.chemical import Chemical, Chemicalrelation
+from model_new_schema.auxiliary import Disambig, Interaction
+from model_new_schema.bioconcept import Bioconceptrelation
+from model_new_schema.chemical import Chemicalrelation
 from model_new_schema.condition import Condition, Temperaturecondition, \
     Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition, \
     Chemicalcondition
 from model_new_schema.evidence import Geninteractionevidence, \
     Physinteractionevidence, Regulationevidence
-from model_new_schema.misc import Url
-from model_new_schema.paragraph import Paragraph
-from model_new_schema.reference import Reference, Author, AuthorReference
 from mpmath import ceil
 from sgdbackend import DBSession
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
 from sqlalchemy.orm.util import with_polymorphic
 from sqlalchemy.sql.expression import func, or_
-import datetime
-import math
-import model_new_schema
 
 session = DBSession
 
@@ -178,4 +171,23 @@ def get_conditions(evidence_ids, print_query=False):
         conditions.extend(session.query(Generalcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
     
     return conditions
-    
+
+def get_evidence_snapshot(evidence_cls, attr_name):
+    field = getattr(evidence_cls, attr_name)
+    query = session.query(field, func.count(field)).group_by(field)
+    return dict(query.all())
+
+def get_evidence_count(evidence_cls):
+    return session.query(evidence_cls).count()
+
+def get_interaction_snapshot(subclasses):
+    query1 = session.query(Interaction.bioentity1_id, func.count(Interaction.bioentity1_id)).filter(Interaction.class_type.in_(subclasses)).group_by(Interaction.bioentity1_id)
+    query2 = session.query(Interaction.bioentity2_id, func.count(Interaction.bioentity2_id)).filter(Interaction.class_type.in_(subclasses)).group_by(Interaction.bioentity2_id)
+    bioentity1 = dict(query1.all())
+    bioentity2 = dict(query2.all())
+    for bioent_id, count in bioentity2.iteritems():
+        if bioent_id in bioentity1:
+            bioentity1[bioent_id] = bioentity1[bioent_id] + count
+        else:
+            bioentity1[bioent_id] = count
+    return bioentity1

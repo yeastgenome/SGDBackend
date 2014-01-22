@@ -113,6 +113,10 @@ class BackendInterface:
     @abstractmethod
     def interaction_resources(self, identifier):
         return None
+
+    @abstractmethod
+    def interaction_snapshot(self):
+        return None
     
     #Literature
     @abstractmethod

@@ -3,7 +3,8 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from sgdbackend_query import get_evidence
+from model_new_schema.evidence import Geninteractionevidence, Physinteractionevidence
+from sgdbackend_query import get_evidence, get_evidence_count, get_evidence_snapshot, get_interaction_snapshot
 from sgdbackend_query.query_auxiliary import get_interactions, \
     get_interactions_among
 from sgdbackend_utils import create_simple_table
@@ -218,4 +219,60 @@ def make_graph(bioent_id):
             'min_evidence_cutoff':min_evidence_count+1, 'max_evidence_cutoff':max_union_count,
             'max_phys_cutoff': max_phys_count, 'max_gen_cutoff': max_gen_count}
 
+'''
+-------------------------------Snapshot---------------------------------------
+'''
+def make_snapshot():
+    snapshot = {}
+    snapshot['interaction_type'] = {'Genetic': get_evidence_count(Geninteractionevidence), 'Physical': get_evidence_count(Physinteractionevidence)}
 
+    snapshot['annotation_type'] = get_evidence_snapshot(Geninteractionevidence, 'annotation_type')
+    for annot_type, count in get_evidence_snapshot(Physinteractionevidence, 'annotation_type').iteritems():
+        if annot_type in snapshot['annotation_type']:
+            snapshot['annotation_type'][annot_type] = snapshot['annotation_type'][annot_type] + count
+        else:
+            snapshot['annotation_type'][annot_type] = count
+
+    snapshot['modification'] = get_evidence_snapshot(Physinteractionevidence, 'modification')
+    snapshot['modification']['No Modification'] = snapshot['modification']['No Modification'] + snapshot['interaction_type']['Genetic']
+
+    snapshot['phenotype'] = dict([('No Phenotype' if x is None else id_to_biocon[x]['display_name'], y) for x, y in get_evidence_snapshot(Geninteractionevidence, 'phenotype_id').iteritems()])
+    snapshot['phenotype']['No Phenotype'] = snapshot['interaction_type']['Physical'] + snapshot['interaction_type']['Genetic'] - sum(snapshot['phenotype'].values())
+
+    physical_counts1 = get_evidence_snapshot(Physinteractionevidence, 'bioentity1_id')
+    physical_counts2 = get_evidence_snapshot(Physinteractionevidence, 'bioentity2_id')
+    genetic_counts1 = get_evidence_snapshot(Geninteractionevidence, 'bioentity1_id')
+    genetic_counts2 = get_evidence_snapshot(Geninteractionevidence, 'bioentity2_id')
+
+    interaction_counts = get_interaction_snapshot(['PHYSINTERACTION', 'GENINTERACTION'])
+
+    snapshot['annotation_histogram'] = {}
+    snapshot['interaction_histogram'] = {}
+    for bioent in id_to_bioent.values():
+        if bioent['class_type'] == 'LOCUS':
+            bioent_id = bioent['id']
+            annotation_count = (0 if bioent_id not in physical_counts1 else physical_counts1[bioent_id]) + \
+                               (0 if bioent_id not in physical_counts2 else physical_counts2[bioent_id]) + \
+                               (0 if bioent_id not in genetic_counts1 else genetic_counts1[bioent_id]) + \
+                               (0 if bioent_id not in genetic_counts2 else genetic_counts2[bioent_id])
+            interaction_count = 0 if bioent_id not in interaction_counts else interaction_counts[bioent_id]
+
+            if annotation_count > 0:
+                if annotation_count not in snapshot['annotation_histogram']:
+                    snapshot['annotation_histogram'][annotation_count] = 1
+                else:
+                    snapshot['annotation_histogram'][annotation_count] = snapshot['annotation_histogram'][annotation_count] + 1
+            if interaction_count > 0:
+                if interaction_count not in snapshot['interaction_histogram']:
+                    snapshot['interaction_histogram'][interaction_count] = 1
+                else:
+                    snapshot['interaction_histogram'][interaction_count] = snapshot['interaction_histogram'][interaction_count] + 1
+
+    for i in range(0, max(snapshot['annotation_histogram'].keys())):
+        if i not in snapshot['annotation_histogram']:
+            snapshot['annotation_histogram'][i] = 0
+
+    for i in range(0, max(snapshot['interaction_histogram'].keys())):
+        if i not in snapshot['interaction_histogram']:
+            snapshot['interaction_histogram'][i] = 0
+    return snapshot
