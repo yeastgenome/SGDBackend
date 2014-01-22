@@ -154,7 +154,7 @@ class Phenotype(Bioconcept):
                  observable, qualifier, phenotype_type, ancestor_type,
                  date_created, created_by):
         if observable == 'observable':
-            Bioconcept.__init__(self, 'YPO Ontology', 'ypo', 'PHENOTYPE', '/ontology/ypo/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'YPO Ontology', 'ypo', 'PHENOTYPE', '/ontology/phenotype/ypo/overview', source, sgdid, description, date_created, created_by)
         else:
             format_name = create_phenotype_format_name(observable, qualifier)
             link = '/observable/' + format_name + '/overview' if qualifier is None else '/phenotype/' + format_name + '/overview'

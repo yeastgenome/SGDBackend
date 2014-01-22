@@ -198,7 +198,7 @@ def create_phenotype_relation(cvtermrel, key_to_phenotype, key_to_source):
     child_key = (create_format_name(cvtermrel.child.name), 'PHENOTYPE')
     
     if parent_key == ('observable', 'PHENOTYPE'):
-        parent_key = ('ypo_ontology', 'PHENOTYPE')
+        parent_key = ('ypo', 'PHENOTYPE')
     
     parent = None
     child = None
@@ -472,7 +472,7 @@ def convert(old_session_maker, new_session_maker):
     
     from model_new_schema.bioconcept import Phenotype
     from model_new_schema.evidence import Phenotypeevidence
-    #convert_phenotype_relation(old_session_maker, new_session_maker)
+    convert_phenotype_relation(old_session_maker, new_session_maker)
     #convert_phenotype_alias(old_session_maker, new_session_maker)
     #convert_biofact(new_session_maker, Phenotypeevidence, Phenotype, 'PHENOTYPE', 'convert.phenotype.biofact', 10000)
     convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
