@@ -143,6 +143,11 @@ def make_evidence_row(phenoevidence, id_to_conditions):
     obj_json['chemical'] = chemical
     obj_json['condition'] = condition_entries
 
+    if obj_json['strain'] is not None:
+        obj_json['strain']['details'] = phenoevidence.strain_details
+    if obj_json['experiment'] is not None:
+        obj_json['experiment']['details'] = phenoevidence.experiment_details
+
     obj_json['note'] = obj_json['note']
     return obj_json
 

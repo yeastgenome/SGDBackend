@@ -18,12 +18,12 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_bioentity()
     #pastry_dev_converter.convert_bioconcept()
     #pastry_dev_converter.convert_bioitem()
-    pastry_dev_converter.convert_chemical()
+    #pastry_dev_converter.convert_chemical()
     #pastry_dev_converter.convert_phenotype()
     #pastry_dev_converter.convert_interaction()
 
     #pastry_dev_converter.convert_chemical()
-    #pastry_dev_converter.convert_phenotype()
+    pastry_dev_converter.convert_phenotype()
     #pastry_dev_converter.convert_reference_in_depth()
     #pastry_dev_converter.convert_go()
 
