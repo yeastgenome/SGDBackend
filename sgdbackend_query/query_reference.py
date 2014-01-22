@@ -73,9 +73,12 @@ def get_authors(reference_id, print_query=False):
     return [author_to_json(author_ref.author) for author_ref in author_refs]
 
 def get_author(author_identifier):
-    query = session.query(Author).filter(or_(Author.id == author_identifier, Author.format_name == author_identifier))
-    authors = query.all()
-    author = None if len(authors) == 0 else authors[0]
+    try:
+        author_id = int(author_identifier)
+        query = session.query(Author).filter(Author.id == author_id)
+    except:
+        query = session.query(Author).filter(Author.format_name == author_identifier)
+    author = query.first()
     return None if author is None else author_to_json(author)
 
 def get_references_for_author(author_id, print_query=False):
