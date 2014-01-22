@@ -303,13 +303,13 @@ def convert_biofact(new_session_maker, evidence_class, bioconcept_class, bioconc
 
 def create_biocon_count(bioconcept, biocon_id_to_biofacts, biocon_id_to_child_count, biocon_id_to_children):
     from model_new_schema.auxiliary import BioconceptCount as NewBioconceptCount
-    
-    biofact_count = 0 if bioconcept.id not in biocon_id_to_biofacts else len(biocon_id_to_biofacts[bioconcept.id])
+
+    bioentity_ids = set() if bioconcept.id not in biocon_id_to_biofacts else set([biofact.bioentity_id for biofact in biocon_id_to_biofacts[bioconcept.id]])
     if bioconcept.class_type == 'PHENOTYPE':
         for child in biocon_id_to_children[bioconcept.id]:
-            if not child.is_core:
-                biofact_count = biofact_count + (0 if child.id not in biocon_id_to_biofacts else len(biocon_id_to_biofacts[child.id]))
-    return [NewBioconceptCount(bioconcept, biofact_count, biocon_id_to_child_count[bioconcept.id])]
+            if not child.is_core and child.id in biocon_id_to_biofacts:
+                bioentity_ids.update([biofact.bioentity_id for biofact in biocon_id_to_biofacts[child.id]])
+    return [NewBioconceptCount(bioconcept, len(bioentity_ids), biocon_id_to_child_count[bioconcept.id])]
 
 def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
     from model_new_schema.auxiliary import BioconceptCount, Biofact
