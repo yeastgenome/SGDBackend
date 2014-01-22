@@ -4,12 +4,14 @@ Created on Jul 9, 2013
 @author: kpaskov
 '''
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.reference import Bibentry, Abstract, AuthorReference
+from model_new_schema.reference import Bibentry, Abstract, AuthorReference, Author
 from sgdbackend_query import session
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
+from sqlalchemy import or_
 
 #Used to make bioent_names into links for reference abstracts.
+from sgdbackend_utils import id_to_reference
 from sgdbackend_utils.obj_to_json import author_to_json
 
 
@@ -69,3 +71,14 @@ def get_authors(reference_id, print_query=False):
     author_refs = query.all()
     author_refs.sort(key=lambda x: x.order)
     return [author_to_json(author_ref.author) for author_ref in author_refs]
+
+def get_author(author_identifier):
+    query = session.query(Author).filter(or_(Author.id == author_identifier, Author.format_name == author_identifier))
+    authors = query.all()
+    author = None if len(authors) == 0 else authors[0]
+    return None if author is None else author_to_json(author)
+
+def get_references_for_author(author_id, print_query=False):
+    query = session.query(AuthorReference).filter(AuthorReference.author_id == author_id)
+    author_refs = query.all()
+    return [id_to_reference[author_ref.reference_id] for author_ref in author_refs]

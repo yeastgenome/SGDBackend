@@ -104,7 +104,16 @@ class SGDBackend(BackendInterface):
     def reference_list(self, reference_ids):
         from sgdbackend_query.query_reference import get_reference_bibs
         return json.dumps([{'id': x.id, 'text': x.text} for x in get_reference_bibs(reference_ids=reference_ids)])
-        
+
+    def author(self, identifier):
+        import view_reference
+        return json.dumps(view_reference.make_author(identifier))
+
+    def author_references(self, identifier):
+        import view_reference
+        author_json = view_reference.make_author(identifier)
+        return None if author_json is None else json.dumps(view_reference.make_author_references(author_json['id']))
+
     #Phenotype
     
     def phenotype(self, identifier):
