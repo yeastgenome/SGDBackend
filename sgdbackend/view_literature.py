@@ -150,5 +150,9 @@ def make_graph(bioent_id):
     
     return {'nodes': nodes.values(), 'edges': edges}
     
-    
-    
+'''
+-------------------------------Snapshot---------------------------------------
+'''
+def make_snapshot():
+    snapshot = {}
+    return snapshot

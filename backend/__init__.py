@@ -115,6 +115,12 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('go_graph'))
 
+    config.add_route('go_snapshot',
+                     '/snapshot/go',
+                     view=lambda request: chosen_backend.response_wrapper('go_snapshot', request)(
+                                getattr(chosen_backend, 'go_snapshot')()),
+                     renderer=chosen_backend.get_renderer('go_snapshot'))
+
     #Phenotype views
     config.add_route('phenotype', 
                      '/phenotype/{identifier}/overview', 
@@ -199,7 +205,12 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'phenotype_graph')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('phenotype_graph'))
-    
+
+    config.add_route('phenotype_snapshot',
+                     '/snapshot/phenotype',
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_snapshot', request)(
+                                getattr(chosen_backend, 'phenotype_snapshot')()),
+                     renderer=chosen_backend.get_renderer('phenotype_snapshot'))
     
     #Interaction views
     config.add_route('interaction_overview', 
@@ -278,6 +289,12 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'regulation_graph')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('regulation_graph'))
+
+    config.add_route('regulation_snapshot',
+                     '/snapshot/regulation',
+                     view=lambda request: chosen_backend.response_wrapper('regulation_snapshot', request)(
+                                getattr(chosen_backend, 'regulation_snapshot')()),
+                     renderer=chosen_backend.get_renderer('regulation_snapshot'))
     
     #Literature views
     config.add_route('literature_overview', 
@@ -306,6 +323,12 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'literature_graph')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('literature_graph'))
+
+    config.add_route('literature_snapshot',
+                     '/snapshot/literature',
+                     view=lambda request: chosen_backend.response_wrapper('literature_snapshot', request)(
+                                getattr(chosen_backend, 'literature_snapshot')()),
+                     renderer=chosen_backend.get_renderer('literature_snapshot'))
     
     #Protein views
     config.add_route('protein_domain_bioent_details',
