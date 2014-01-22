@@ -39,6 +39,14 @@ class BackendInterface:
     @abstractmethod
     def reference_list(self, reference_ids):
         return None
+
+    @abstractmethod
+    def author(self, identifier):
+        return None
+
+    @abstractmethod
+    def author_references(self, identifier):
+        return None
     
     #Bioent
     @abstractmethod

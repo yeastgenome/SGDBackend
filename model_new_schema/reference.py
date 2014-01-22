@@ -199,7 +199,7 @@ class Author(Base, EqualityByIDMixin):
         self.id = author_id
         self.display_name = display_name
         self.format_name = create_format_name(display_name)
-        self.link = None
+        self.link = '/author/' + self.format_name + '/overview'
         self.source_id = source.id
         self.created_by = created_by
         self.date_created = date_created

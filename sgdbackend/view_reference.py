@@ -1,6 +1,6 @@
 __author__ = 'kpaskov'
 
-from sgdbackend_query.query_reference import get_abstract, get_bibentry, get_authors
+from sgdbackend_query.query_reference import get_abstract, get_bibentry, get_authors, get_references_for_author, get_author
 from sgdbackend_utils import link_gene_names, id_to_reference
 from sgdbackend_query.query_auxiliary import get_bioentity_references
 
@@ -19,3 +19,15 @@ def make_overview(reference_id):
                              'phenotype': len([x for x in bioentity_references if x.class_type == 'PHENOTYPE']),
                              'regulation': len([x for x in bioentity_references if x.class_type == 'REGULATION']),}
     return reference
+
+'''
+-------------------------------Author---------------------------------------
+'''
+
+def make_author(author_identifier):
+    return get_author(author_identifier)
+
+def make_author_references(author_id):
+    references = get_references_for_author(author_id)
+    references.sort(key=lambda x: (x['year'], x['pubmed_id']), reverse=True) 
+    return references
