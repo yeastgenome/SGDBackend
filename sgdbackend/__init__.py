@@ -195,7 +195,6 @@ class SGDBackend(BackendInterface):
     
     def go_ontology_graph(self, identifier):
         from sgdbackend_query import get_obj_id
-        from sgdbackend_utils.cache import id_to_biocon
         from sgdbackend import view_go
         go_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
         return None if go_id is None else json.dumps(view_go.make_ontology_graph(go_id))
@@ -222,8 +221,9 @@ class SGDBackend(BackendInterface):
     def go_graph(self, identifier):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_phenotype
+        from sgdbackend_utils.cache import id_to_biocon
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_phenotype.make_graph(locus_id, 'GO'))
+        return None if locus_id is None else json.dumps(view_phenotype.make_graph(locus_id, 'GO', biocon_f=lambda x: id_to_biocon[x]['go_aspect'] == 'biological process'))
 
     def go_snapshot(self):
         from sgdbackend import view_go

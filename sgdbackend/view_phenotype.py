@@ -218,8 +218,8 @@ def make_ontology():
     id_to_phenotype.update([(x.child_id, id_to_biocon[x.child_id]) for x in relations])
     id_to_phenotype = dict([(k, v) for k, v in id_to_phenotype.iteritems() if v['is_core']])
     child_to_parent = dict([(x.child_id, x.parent_id) for x in relations if x.parent_id in id_to_phenotype and x.child_id in id_to_phenotype])
-        
-    return {'elements': id_to_phenotype.values(), 'child_to_parent': child_to_parent}
+
+    return {'elements': sorted(id_to_phenotype.values(), key=lambda x: x['display_name']), 'child_to_parent': child_to_parent}
 
 # -------------------------------Graph-----------------------------------------
 
@@ -237,7 +237,7 @@ def create_biocon_node(biocon, gene_count):
 def create_edge(bioent_id, biocon_id):
     return {'data':{'target': 'BioentNode' + str(bioent_id), 'source': 'BioconNode' + str(biocon_id)}}
 
-def make_graph(bioent_id, biocon_type):
+def make_graph(bioent_id, biocon_type, biocon_f=None):
 
     #Get bioconcepts for gene
     bioconcept_ids = [x.bioconcept_id for x in get_biofacts(biocon_type, bioent_id=bioent_id)]
@@ -245,7 +245,7 @@ def make_graph(bioent_id, biocon_type):
     biocon_id_to_bioent_ids = {}
     bioent_id_to_biocon_ids = {}
 
-    all_relevant_biofacts = get_biofacts(biocon_type, biocon_ids=bioconcept_ids)
+    all_relevant_biofacts = [x for x in get_biofacts(biocon_type, biocon_ids=bioconcept_ids) if biocon_f is None or biocon_f(x.bioconcept_id)]
     for biofact in all_relevant_biofacts:
         bioentity_id = biofact.bioentity_id
         bioconcept_id = biofact.bioconcept_id
