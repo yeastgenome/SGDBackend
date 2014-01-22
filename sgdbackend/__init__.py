@@ -172,6 +172,10 @@ class SGDBackend(BackendInterface):
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_phenotype.make_graph(locus_id, 'PHENOTYPE'))
 
+    def phenotype_snapshot(self):
+        from sgdbackend import view_phenotype
+        return json.dumps(view_phenotype.make_snapshot())
+
     # Go
 
     def go(self, identifier):
@@ -211,6 +215,10 @@ class SGDBackend(BackendInterface):
         from sgdbackend import view_phenotype
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_phenotype.make_graph(locus_id, 'GO'))
+
+    def go_snapshot(self):
+        from sgdbackend import view_go
+        return json.dumps(view_go.make_snapshot())
        
     #Interaction
     def interaction_overview(self, identifier):
@@ -271,6 +279,10 @@ class SGDBackend(BackendInterface):
         from sgdbackend import view_literature
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_literature.make_graph(locus_id))
+
+    def literature_snapshot(self):
+        from sgdbackend import view_literature
+        return json.dumps(view_literature.make_snapshot())
             
     #Protein
     def protein_domain_details(self, locus_identifier=None, reference_identifier=None):
@@ -318,6 +330,10 @@ class SGDBackend(BackendInterface):
             return json.dumps(view_go.make_enrichment(target_ids))
         else:
             return '[]'
+
+    def regulation_snapshot(self):
+        from sgdbackend import view_regulation
+        return json.dumps(view_regulation.make_snapshot())
       
     #Binding
     def binding_site_details(self, locus_identifier=None, reference_identifier=None):

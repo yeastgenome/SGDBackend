@@ -96,6 +96,10 @@ class BackendInterface:
     @abstractmethod
     def go_graph(self, identifier):
         return None
+
+    @abstractmethod
+    def go_snapshot(self):
+        return None
     
     #Interaction
     @abstractmethod
@@ -130,6 +134,10 @@ class BackendInterface:
     @abstractmethod
     def literature_graph(self, identifier):
         return None
+
+    @abstractmethod
+    def literature_snapshot(self):
+        return None
     
     #Phenotype
     @abstractmethod
@@ -159,6 +167,10 @@ class BackendInterface:
     @abstractmethod
     def phenotype_graph(self, identifier):
         return None
+
+    @abstractmethod
+    def phenotype_snapshot(self):
+        return None
     
     #Protein
     @abstractmethod
@@ -180,6 +192,10 @@ class BackendInterface:
     
     @abstractmethod
     def regulation_target_enrichment(self, identifier):
+        return None
+
+    @abstractmethod
+    def regulation_snapshot(self):
         return None
     
     #Sequence

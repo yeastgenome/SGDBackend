@@ -187,3 +187,10 @@ def make_ontology_graph(phenotype_id):
         edges = [create_edge(x.child_id, x.parent_id, x.relation_type) for x in relations if x.child_id in viable_ids and x.parent_id in viable_ids]
 
     return {'nodes': list(nodes), 'edges': edges}
+
+'''
+-------------------------------Snapshot---------------------------------------
+'''
+def make_snapshot():
+    snapshot = {}
+    return snapshot

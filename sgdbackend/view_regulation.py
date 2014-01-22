@@ -181,3 +181,9 @@ def make_graph(bioent_id):
             'min_evidence_cutoff':min_evidence_count+1, 'max_evidence_cutoff':max_union_count,
             'max_target_cutoff': max_target_count, 'max_regulator_cutoff': max_regulator_count}
 
+'''
+-------------------------------Snapshot---------------------------------------
+'''
+def make_snapshot():
+    snapshot = {}
+    return snapshot
