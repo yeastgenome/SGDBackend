@@ -145,6 +145,7 @@ def make_evidence_row(goevidence, id_to_conditions):
     obj_json = evidence_to_json(goevidence).copy()
     obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
     obj_json['bioconcept'] = minimize_json(id_to_biocon[bioconcept_id])
+    obj_json['bioconcept']['aspect'] = id_to_biocon[bioconcept_id]['go_aspect']
     #obj_json['with'] = with_conditions
     #obj_json['from']= from_conditions
     obj_json['conditions'] = [] if goevidence.id not in id_to_conditions else [fix_display_name(condition_to_json(x)) for x in id_to_conditions[goevidence.id]]
