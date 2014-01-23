@@ -74,7 +74,38 @@ def make_overview(bioent_id):
 '''
 -------------------------------Details---------------------------------------
 '''
-    
+
+#This is a hack - we need to figure out what we're doing with these relationships, but right now it's unclear.
+condition_format_name_to_display_name = {'activated by':	                'activated by',
+                                        'dependent on':	                    'dependent on',
+                                        'during':	                        'during',
+                                        'exists during':	                'during',
+                                        'happens during':	                'during',
+                                        'has part':	                        'has part',
+                                        'has regulation_target':	        'regulates',
+                                        'in presence_of':	                'in presence of',
+                                        'independent of':	                'independent of',
+                                        'inhibited by':	                    'inhibited by',
+                                        'localization dependent on':	    'localization requires',
+                                        'modified by':	                    'modified by',
+                                        'not during':	                    'except during',
+                                        'not exists during':	            'except during',
+                                        'not happens during':	            'except during',
+                                        'not occurs at':	                'not at',
+                                        'not occurs in':	                'not in',
+                                        'occurs at':	                    'at',
+                                        'occurs in':	                    'in',
+                                        'part of':	                        'part of',
+                                        'requires direct regulator':	    'requires direct regulation by',
+                                        'requires localization':	        'only when located at',
+                                        'requires modification':	        'only with modification',
+                                        'requires regulation by':	        'requires regulation by',
+                                        'requires regulator':	            'requires',
+                                        'requires sequence feature':	    'requires',
+                                        'requires substance':	            'requires',
+                                        'requires target sequence feature':	'requires feature in target',
+                                        'stabilizes':	                    'stabilizes'}
+
 def make_details(locus_id=None, go_id=None, chemical_id=None, reference_id=None, with_children=False):
     goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children)
     
@@ -98,7 +129,12 @@ def make_details(locus_id=None, go_id=None, chemical_id=None, reference_id=None,
     else:
         tables = create_simple_table(goevidences, make_evidence_row, id_to_conditions=id_to_conditions)
         
-    return tables  
+    return tables
+
+def fix_display_name(condition):
+    if condition['role'] in condition_format_name_to_display_name:
+        condition['role'] = condition_format_name_to_display_name[condition['role']]
+    return condition
 
 def make_evidence_row(goevidence, id_to_conditions): 
     bioentity_id = goevidence.bioentity_id
@@ -111,7 +147,7 @@ def make_evidence_row(goevidence, id_to_conditions):
     obj_json['bioconcept'] = minimize_json(id_to_biocon[bioconcept_id])
     #obj_json['with'] = with_conditions
     #obj_json['from']= from_conditions
-    obj_json['conditions'] = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id]]
+    obj_json['conditions'] = [] if goevidence.id not in id_to_conditions else [fix_display_name(condition_to_json(x)) for x in id_to_conditions[goevidence.id]]
     obj_json['code'] = goevidence.go_evidence
     obj_json['method'] = goevidence.annotation_type
     obj_json['qualifier'] = goevidence.qualifier
@@ -123,12 +159,11 @@ def make_evidence_row(goevidence, id_to_conditions):
 ''' 
 
 def create_node(biocon, is_focus):
-    sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
     else:
         sub_type = biocon['go_aspect']
-    return {'data':{'id':'Node' + str(biocon['id']), 'name':biocon['display_name'], 'link': biocon['link'], 
+    return {'data':{'id':'Node' + str(biocon['id']), 'name':biocon['display_name'] + ' (' + str(biocon['count']) + ')', 'link': biocon['link'],
                     'sub_type':sub_type, 'count': int(ceil(sqrt(biocon['count'])))}}
 
 def create_edge(biocon1_id, biocon2_id, label):
