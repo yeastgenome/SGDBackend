@@ -349,16 +349,18 @@ def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
             child_to_parent_ids[relation.child_id].append(relation.parent_id)
             biocon_id_to_children[relation.parent_id].append(biocon_id_to_biocon[relation.child_id])
             
-        biocon_id_to_child_count = dict([(x.id, 0) for x in old_objs])
-        for child_id in biocon_id_to_child_count.keys():
-            additional = 0 if child_id not in biocon_id_to_biofacts else len(biocon_id_to_biofacts[child_id])
+        biocon_id_to_all_children = dict([(x.id, set()) for x in old_objs])
+        for child_id in biocon_id_to_all_children.keys():
+            additional = [] if child_id not in biocon_id_to_biofacts else [x.bioentity_id for x in biocon_id_to_biofacts[child_id]]
             parent_ids = set([child_id])
             while len(parent_ids) > 0:
                 new_parent_ids = set()
                 for parent_id in parent_ids:
-                    biocon_id_to_child_count[parent_id] = biocon_id_to_child_count[parent_id] + additional
+                    biocon_id_to_all_children[parent_id].update(additional)
                     new_parent_ids.update(child_to_parent_ids[parent_id])
                 parent_ids = new_parent_ids
+
+        biocon_id_to_child_count = dict([(x, len(y)) for x, y in biocon_id_to_all_children.iteritems()])
                
         untouched_obj_ids = set(id_to_current_obj.keys())
         
