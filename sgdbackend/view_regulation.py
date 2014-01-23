@@ -4,12 +4,12 @@ Created on Mar 15, 2013
 @author: kpaskov
 '''
 from model_new_schema.evidence import Regulationevidence
-from sgdbackend_query import get_evidence, get_conditions
+from sgdbackend_query import get_evidence, get_conditions, get_evidence_over_time, get_evidence_snapshot, get_interaction_snapshot, get_snapshot_with_filter
 from sgdbackend_query.query_auxiliary import get_interactions, \
     get_interactions_among
 from sgdbackend_query.query_paragraph import get_paragraph
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_bioent
+from sgdbackend_utils.cache import id_to_bioent, id_to_experiment
 from sgdbackend_utils.obj_to_json import paragraph_to_json, condition_to_json, \
     minimize_json, evidence_to_json
  
@@ -186,4 +186,39 @@ def make_graph(bioent_id):
 '''
 def make_snapshot():
     snapshot = {}
+    snapshot['experiment'] = dict([(None if x is None else id_to_experiment[x]['display_name'], y) for x, y in get_evidence_snapshot(Regulationevidence, 'experiment_id').iteritems()])
+
+    # counts1 = get_evidence_snapshot(Regulationevidence, 'bioentity1_id')
+    # counts2 = get_evidence_snapshot(Regulationevidence, 'bioentity2_id')
+    #
+    # regulator_counts = get_snapshot_with_filter(Interaction, 'bioentity1_id', 'REGULATION')
+    # regulator_counts = get_snapshot_with_filter(Interaction, 'bioentity2_id', 'REGULATION')
+    #
+    # snapshot['annotation_histogram'] = {}
+    # snapshot['target_histogram'] = {}
+    # snapshot['regulator_histogram'] = {}
+    # for bioent in id_to_bioent.values():
+    #     if bioent['class_type'] == 'LOCUS' and bioent['locus_type'] == 'ORF':
+    #         bioent_id = bioent['id']
+    #         annotation_count = (0 if bioent_id not in counts1 else counts1[bioent_id]) + \
+    #                            (0 if bioent_id not in counts2 else counts2[bioent_id])
+    #         regulator_count = 0 if bioent_id not in regulator_counts else regulator_counts[bioent_id]
+    #         regulator_count = 0 if bioent_id not in regulator_counts else regulator_counts[bioent_id]
+    #         if annotation_count not in snapshot['annotation_histogram']:
+    #             snapshot['annotation_histogram'][annotation_count] = 1
+    #         else:
+    #             snapshot['annotation_histogram'][annotation_count] = snapshot['annotation_histogram'][annotation_count] + 1
+    #         if interaction_count not in snapshot['interaction_histogram']:
+    #             snapshot['interaction_histogram'][interaction_count] = 1
+    #         else:
+    #             snapshot['interaction_histogram'][interaction_count] = snapshot['interaction_histogram'][interaction_count] + 1
+    #
+    # for i in range(0, max(snapshot['annotation_histogram'].keys())):
+    #     if i not in snapshot['annotation_histogram']:
+    #         snapshot['annotation_histogram'][i] = 0
+    #
+    # for i in range(0, max(snapshot['interaction_histogram'].keys())):
+    #     if i not in snapshot['interaction_histogram']:
+    #         snapshot['interaction_histogram'][i] = 0
+
     return snapshot

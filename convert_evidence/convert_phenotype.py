@@ -32,7 +32,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
     from model_new_schema.evidence import Phenotypeevidence as NewPhenotypeevidence
     from model_new_schema.bioconcept import create_phenotype_format_name
 
-    reference_id = key_to_reflink[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)].reference_id
+    reference_id = None if ('PHENO_ANNOTATION_NO', old_phenotype_feature.id) not in key_to_reflink else key_to_reflink[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)].reference_id
     reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
     bioentity_id = old_phenotype_feature.feature_id
     bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
@@ -108,6 +108,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
                     amount = b
                 else:
                     chemical_note = b
+                    print 'Bad chemical concentration:' + b + ';' + bioentity.display_name + ';' + phenotype.display_name + ';' + reference.display_name
             conditions.append(Chemicalcondition(None, chemical_note, chemical, amount))
         
         #Get other conditions

@@ -1,11 +1,12 @@
-from model_new_schema.auxiliary import Disambig, Interaction
+from datetime import datetime, timedelta, time
+from model_new_schema.auxiliary import Disambig, Interaction, Biofact
 from model_new_schema.bioconcept import Bioconceptrelation
 from model_new_schema.chemical import Chemicalrelation
 from model_new_schema.condition import Condition, Temperaturecondition, \
     Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition, \
     Chemicalcondition
 from model_new_schema.evidence import Geninteractionevidence, \
-    Physinteractionevidence, Regulationevidence
+    Physinteractionevidence, Regulationevidence, Evidence
 from mpmath import ceil
 from sgdbackend import DBSession
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
@@ -177,6 +178,15 @@ def get_evidence_snapshot(evidence_cls, attr_name):
     query = session.query(field, func.count(field)).group_by(field)
     return dict(query.all())
 
+def get_evidence_over_time(subclass):
+    earliest = session.query(func.min(Evidence.date_created)).filter(Evidence.class_type == subclass).first()[0]
+    all_values = {}
+    today = datetime.today().date()
+    while earliest < today:
+        earliest = earliest + timedelta(weeks=52)
+        all_values[str(earliest)] = session.query(Evidence).filter(Evidence.class_type == subclass).filter(Evidence.date_created <= earliest).count()
+    return all_values
+
 def get_evidence_count(evidence_cls):
     return session.query(evidence_cls).count()
 
@@ -191,3 +201,8 @@ def get_interaction_snapshot(subclasses):
         else:
             bioentity1[bioent_id] = count
     return bioentity1
+
+def get_snapshot_with_filter(cls, subclass, attr_name, filter_name):
+    field = getattr(cls, attr_name)
+    query = session.query(field, func.count(field)).filter(getattr(cls, filter_name) == subclass).group_by(field)
+    return dict(query.all())

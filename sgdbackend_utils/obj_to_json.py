@@ -6,6 +6,7 @@ Created on Aug 9, 2013
 def locus_to_json(bioent):
     bioent_json = bioent_to_json(bioent)
     bioent_json['description'] = bioent.description
+    bioent_json['locus_type'] = bioent.locus_type
     return bioent_json
 
 def bioent_to_json(bioent):
