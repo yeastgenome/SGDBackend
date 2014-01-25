@@ -251,7 +251,11 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
     biocon_id_to_bioent_ids = {}
     bioent_id_to_biocon_ids = {}
 
-    all_relevant_biofacts = [x for x in get_biofacts(biocon_type, biocon_ids=bioconcept_ids) if biocon_f is None or biocon_f(x.bioconcept_id)]
+    if len(bioconcept_ids) > 0:
+        all_relevant_biofacts = [x for x in get_biofacts(biocon_type, biocon_ids=bioconcept_ids) if biocon_f is None or biocon_f(x.bioconcept_id)]
+    else:
+        all_relevant_biofacts = []
+
     for biofact in all_relevant_biofacts:
         bioentity_id = biofact.bioentity_id
         bioconcept_id = biofact.bioconcept_id
@@ -269,9 +273,9 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
     node_count = len(bioent_id_to_biocon_ids) + len(biocon_id_to_bioent_ids)
     edge_count = len(all_relevant_biofacts)
     bioent_count = len(bioent_id_to_biocon_ids)
-    biocon_ids_in_use = set()
-    bioent_ids_in_use = set()
-    biofacts_in_use = []
+    biocon_ids_in_use = set([x for x, y in biocon_id_to_bioent_ids.iteritems()])
+    bioent_ids_in_use = set([x for x, y in bioent_id_to_biocon_ids.iteritems()])
+    biofacts_in_use = [x for x in all_relevant_biofacts]
     while node_count > 100 or edge_count > 250 or bioent_count > 50:
         cutoff = cutoff + 1
         bioent_ids_in_use = set([x for x, y in bioent_id_to_biocon_ids.iteritems() if len(y) >= cutoff])
@@ -281,15 +285,19 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
         edge_count = len(biofacts_in_use)
         bioent_count = len(bioent_ids_in_use)
 
-    bioent_to_score = dict({(x, len(y&biocon_ids_in_use)) for x, y in bioent_id_to_biocon_ids.iteritems()})
-    bioent_to_score[bioent_id] = 0
+    if len(bioent_ids_in_use) > 0:
 
-    nodes = [create_bioent_node(id_to_bioent[x], x==bioent_id, len(bioent_id_to_biocon_ids[x] & biocon_ids_in_use)) for x in bioent_ids_in_use]
-    nodes.extend([create_biocon_node(id_to_biocon[x], max(bioent_to_score[x] for x in biocon_id_to_bioent_ids[x])) for x in biocon_ids_in_use])
+        bioent_to_score = dict({(x, len(y&biocon_ids_in_use)) for x, y in bioent_id_to_biocon_ids.iteritems()})
+        bioent_to_score[bioent_id] = 0
 
-    edges = [create_edge(biofact.bioentity_id, biofact.bioconcept_id) for biofact in biofacts_in_use]
+        nodes = [create_bioent_node(id_to_bioent[x], x==bioent_id, len(bioent_id_to_biocon_ids[x] & biocon_ids_in_use)) for x in bioent_ids_in_use]
+        nodes.extend([create_biocon_node(id_to_biocon[x], max(bioent_to_score[x] for x in biocon_id_to_bioent_ids[x])) for x in biocon_ids_in_use])
 
-    return {'nodes': nodes, 'edges': edges, 'max_cutoff': max(bioent_to_score.values()), 'min_cutoff':cutoff if len(bioent_ids_in_use) == 1 else min([bioent_to_score[x] for x in bioent_ids_in_use if x != bioent_id])}
+        edges = [create_edge(biofact.bioentity_id, biofact.bioconcept_id) for biofact in biofacts_in_use]
+
+        return {'nodes': nodes, 'edges': edges, 'max_cutoff': max(bioent_to_score.values()), 'min_cutoff':cutoff if len(bioent_ids_in_use) == 1 else min([bioent_to_score[x] for x in bioent_ids_in_use if x != bioent_id])}
+    else:
+        return {'nodes':[], 'edges':[], 'max_cutoff':0, 'min_cutoff':0}
 
 '''
 -------------------------------Snapshot---------------------------------------

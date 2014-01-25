@@ -13,9 +13,11 @@ from sgdbackend_utils.obj_to_json import minimize_json, evidence_to_json
 -------------------------------Details---------------------------------------
 ''' 
 def make_details(protein_id=None, reference_id=None):
-    domain_evidences = [x for x in get_evidence(Domainevidence, bioent_id=protein_id, reference_id=reference_id) if x.domain.display_name != 'seg' ]
+    domain_evidences = get_evidence(Domainevidence, bioent_id=protein_id, reference_id=reference_id)
     if domain_evidences is None:
         return {'Error': 'Too much data to display.'}
+
+    domain_evidences = [x for x in domain_evidences if x.domain.display_name != 'seg' ]
     return create_simple_table(domain_evidences, make_evidence_row) 
 
 def make_evidence_row(domain_evidence): 

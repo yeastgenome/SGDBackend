@@ -310,10 +310,7 @@ class SGDBackend(BackendInterface):
         from sgdbackend import view_regulation
         locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
-        if reference_id is not None:
-            return json.dumps(view_regulation.make_details(False, locus_id=locus_id, reference_id=reference_id))
-        else:
-            return json.dumps(view_regulation.make_details(True, locus_id=locus_id, reference_id=reference_id))
+        return json.dumps(view_regulation.make_details(locus_id=locus_id, reference_id=reference_id))
             
     def regulation_graph(self, identifier):
         from sgdbackend_query import get_obj_id

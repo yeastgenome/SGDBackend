@@ -18,9 +18,6 @@ from sgdbackend_utils.obj_to_json import paragraph_to_json, condition_to_json, \
 '''
 def make_overview(bioent_id):
     overview = {}
-    paragraph = get_paragraph(bioent_id, 'REGULATION')
-    if paragraph is not None:
-        overview['paragraph'] = paragraph_to_json(paragraph)
     interactions = get_interactions('REGULATION', bioent_id)
     target_count = len([interaction.bioentity2_id for interaction in interactions if interaction.bioentity1_id==bioent_id])
     regulator_count = len([interaction.bioentity1_id for interaction in interactions if interaction.bioentity2_id==bioent_id])
@@ -40,14 +37,11 @@ def make_paragraph(bioent_id):
 -------------------------------Evidence Table---------------------------------------
 '''
     
-def make_details(divided, locus_id=None, reference_id=None):
+def make_details(locus_id=None, reference_id=None):
     regevidences = get_evidence(Regulationevidence, bioent_id=locus_id, reference_id=reference_id)
 
     if regevidences is None:
-        if divided:
-            return {'targets': {'Error': 'Too much data to display.'}, 'regulators': {'Error': 'Too much data to display.'}}
-        else:
-            return {'Error': 'Too much data to display.'}
+        return {'Error': 'Too much data to display.'}
 
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in regevidences]):
@@ -56,20 +50,8 @@ def make_details(divided, locus_id=None, reference_id=None):
             id_to_conditions[evidence_id].append(condition)
         else:
             id_to_conditions[evidence_id] = [condition]
-            
-    tables = {}
 
-    if divided:
-        target_regevidences = [regevidence for regevidence in regevidences if regevidence.bioentity1_id==locus_id]
-        regulator_regevidences = [regevidence for regevidence in regevidences if regevidence.bioentity2_id==locus_id]
-        
-        tables['targets'] = create_simple_table(target_regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        tables['regulators'] = create_simple_table(regulator_regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        
-    else:
-        tables = create_simple_table(regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        
-    return tables    
+    return create_simple_table(regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
 
 def make_evidence_row(regevidence, id_to_conditions): 
     conditions = [] if regevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[regevidence.id]]

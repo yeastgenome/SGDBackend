@@ -255,17 +255,25 @@ class PerfBackend(BackendInterface):
         return get_all(Chemical, 'json', min_id, max_id)
     
     #Protein
-    def protein_domain_details(self, identifier):
-        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return get_bioentity_evidence(bioent_id, 'DOMAIN')
+    def protein_domain_details(self, locus_identifier=None, reference_identifier=None):
+        if locus_identifier is not None:
+            bioent_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+            return get_bioentity_evidence(bioent_id, 'DOMAIN')
+        elif reference_identifier is not None:
+            ref_id = get_obj_id(reference_identifier, class_type='REFERENCE')
+            return get_reference_evidence(ref_id, 'DOMAIN')
     
     def regulation_overview(self, identifier):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return get_bioentity_overview(bioent_id, 'REGULATION')
     
-    def regulation_details(self, identifier):
-        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return get_bioentity_evidence(bioent_id, 'REGULATION')
+    def regulation_details(self, locus_identifier=None, reference_identifier=None):
+        if locus_identifier is not None:
+            bioent_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+            return get_bioentity_evidence(bioent_id, 'REGULATION')
+        elif reference_identifier is not None:
+            ref_id = get_obj_id(reference_identifier, class_type='REFERENCE')
+            return get_reference_evidence(ref_id, 'REGULATION')
     
     def regulation_graph(self, identifier):
         bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
@@ -280,9 +288,13 @@ class PerfBackend(BackendInterface):
         return get_bioentity_paragraph(bioent_id, 'REGULATION')
     
     #Binding
-    def binding_site_details(self, identifier):
-        bioent_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return get_bioentity_evidence(bioent_id, 'BINDING')
+    def binding_site_details(self, locus_identifier=None, reference_identifier=None):
+        if locus_identifier is not None:
+            bioent_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+            return get_bioentity_evidence(bioent_id, 'BINDING')
+        elif reference_identifier is not None:
+            ref_id = get_obj_id(reference_identifier, class_type='REFERENCE')
+            return get_bioentity_evidence(ref_id, 'BINDING')
 
     #Misc
     def all_disambigs(self, min_id, max_id):
@@ -405,7 +417,7 @@ def get_bioentity_evidence(bioentity_id, class_type):
                     .filter(BioentityEvidence.bioentity_id == bioentity_id)
                     .filter(BioentityEvidence.class_type == class_type)
                     .options(joinedload(BioentityEvidence.evidence)).all()]
-        return data
+        return "[" + (", ".join(data)) + "]"
     return None
 
 def get_bioconcept_evidence(bioconcept_id, class_type):
@@ -415,7 +427,7 @@ def get_bioconcept_evidence(bioconcept_id, class_type):
                     .filter(BioconceptEvidence.bioconcept_id == bioconcept_id)
                     .filter(BioconceptEvidence.class_type == class_type)
                     .options(joinedload(BioconceptEvidence.evidence)).all()]
-        return data
+        return "[" + (", ".join(data)) + "]"
     return None
 
 def get_reference_evidence(reference_id, class_type):
@@ -425,7 +437,7 @@ def get_reference_evidence(reference_id, class_type):
                     .filter(ReferenceEvidence.reference_id == reference_id)
                     .filter(ReferenceEvidence.class_type == class_type)
                     .options(joinedload(ReferenceEvidence.evidence)).all()]
-        return data
+        return "[" + (", ".join(data)) + "]"
     return None
 
 def get_chemical_evidence(chemical_id, class_type):
@@ -435,5 +447,5 @@ def get_chemical_evidence(chemical_id, class_type):
                     .filter(BioentityEvidence.bioentity_id == chemical_id)
                     .filter(BioentityEvidence.class_type == class_type)
                     .options(joinedload(BioentityEvidence.evidence)).all()]
-        return data
+        return "[" + (", ".join(data)) + "]"
     return None

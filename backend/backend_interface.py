@@ -202,3 +202,4 @@ class BackendInterface:
     @abstractmethod
     def binding_site_details(self, locus_identifier=None, reference_identifier=None):
         return None
+

@@ -20,7 +20,7 @@ def create_data(cls, obj_id, class_type, json_obj):
 
 def update_data(json_obj, old_obj):
     changed = False
-    if old_obj.json != json_obj:
+    if json_obj is not None and old_obj.json != json_obj:
         old_obj.json = json_obj
         changed = True
     return changed
