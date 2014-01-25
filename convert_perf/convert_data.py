@@ -12,9 +12,9 @@ import sys
 --------------------- Convert Data ---------------------
 """
 
-def create_data(cls, obj_id, json_obj):
+def create_data(cls, obj_id, class_type, json_obj):
     if json_obj is not None:
-        return cls(obj_id, json_obj)
+        return cls(obj_id, class_type, json_obj)
     else:
         return None
 
@@ -25,7 +25,7 @@ def update_data(json_obj, old_obj):
         changed = True
     return changed
 
-def convert_data(session_maker, cls, new_obj_f, label, obj_ids, chunk_size):
+def convert_data(session_maker, cls, class_type, obj_type, new_obj_f, label, obj_ids, chunk_size):
     
     log = logging.getLogger(label)
     log.info('begin')
@@ -39,10 +39,10 @@ def convert_data(session_maker, cls, new_obj_f, label, obj_ids, chunk_size):
             chunk_obj_ids = obj_ids[i*chunk_size: (i+1)*chunk_size]
             
             #Grab old objects and current_objs
-            old_objs = session.query(cls).filter(cls.id.in_(chunk_obj_ids)).all()
+            old_objs = session.query(cls).filter(cls.class_type == class_type).filter(getattr(cls, obj_type).in_(chunk_obj_ids)).all()
             new_id_to_json_obj = dict([(x, new_obj_f(x)) for x in chunk_obj_ids])
                 
-            old_id_to_obj = dict([(x.id, x) for x in old_objs])
+            old_id_to_obj = dict([(getattr(x, obj_type), x) for x in old_objs])
             
             old_ids = set(old_id_to_obj.keys())
             new_ids = set(new_id_to_json_obj.keys())
@@ -51,7 +51,7 @@ def convert_data(session_maker, cls, new_obj_f, label, obj_ids, chunk_size):
             insert_ids = new_ids - old_ids
             for insert_id in insert_ids:
                 json_obj = new_id_to_json_obj[insert_id]
-                new_obj = create_data(cls, insert_id, json_obj)
+                new_obj = create_data(cls, insert_id, class_type, json_obj)
                 if new_obj is not None:
                     session.add(new_obj)
                     output_creator.added()

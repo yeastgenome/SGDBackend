@@ -85,6 +85,10 @@ class SGDBackend(BackendInterface):
         from sgdbackend_utils.cache import id_to_chem
         chemical_id = get_obj_id(identifier, class_type='CHEMICAL')
         return None if chemical_id is None else json.dumps(id_to_chem[chemical_id])
+
+    def all_chemicals(self, min_id, max_id):
+        from sgdbackend_utils.cache import id_to_chem
+        return json.dumps([value for key, value in id_to_chem.iteritems() if (min_id is None or key >= min_id) and (max_id is None or key < max_id)])
     
     #Reference
     def reference(self, identifier):
@@ -108,6 +112,10 @@ class SGDBackend(BackendInterface):
     def author(self, identifier):
         import view_reference
         return json.dumps(view_reference.make_author(identifier))
+
+    def all_authors(self, min_id, max_id):
+        from sgdbackend_query.query_reference import get_authors
+        return json.dumps(get_authors(min_id, max_id))
 
     def author_references(self, identifier):
         import view_reference
@@ -181,10 +189,6 @@ class SGDBackend(BackendInterface):
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_phenotype.make_graph(locus_id, 'PHENOTYPE'))
 
-    def phenotype_snapshot(self):
-        from sgdbackend import view_phenotype
-        return json.dumps(view_phenotype.make_snapshot())
-
     # Go
 
     def go(self, identifier):
@@ -224,10 +228,6 @@ class SGDBackend(BackendInterface):
         from sgdbackend_utils.cache import id_to_biocon
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_phenotype.make_graph(locus_id, 'GO', biocon_f=lambda x: id_to_biocon[x]['go_aspect'] == 'biological process'))
-
-    def go_snapshot(self):
-        from sgdbackend import view_go
-        return json.dumps(view_go.make_snapshot())
        
     #Interaction
     def interaction_overview(self, identifier):
@@ -246,7 +246,7 @@ class SGDBackend(BackendInterface):
         locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
 
-        return json.dumps(view_interaction.make_details(False, locus_id=locus_id, reference_id=reference_id))
+        return json.dumps(view_interaction.make_details(locus_id=locus_id, reference_id=reference_id))
         
     def interaction_graph(self, identifier):
         from sgdbackend_query import get_obj_id
@@ -265,10 +265,6 @@ class SGDBackend(BackendInterface):
             return json.dumps([url_to_json(url) for url in resources])
         return None
 
-    def interaction_snapshot(self):
-        from sgdbackend import view_interaction
-        return json.dumps(view_interaction.make_snapshot())
-       
     #Literature
     def literature_overview(self, identifier):
         from sgdbackend_query import get_obj_id
@@ -289,10 +285,6 @@ class SGDBackend(BackendInterface):
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_literature.make_graph(locus_id))
 
-    def literature_snapshot(self):
-        from sgdbackend import view_literature
-        return json.dumps(view_literature.make_snapshot())
-            
     #Protein
     def protein_domain_details(self, locus_identifier=None, reference_identifier=None):
         from sgdbackend_query import get_obj_id
@@ -340,9 +332,11 @@ class SGDBackend(BackendInterface):
         else:
             return '[]'
 
-    def regulation_snapshot(self):
+    def regulation_paragraph(self, identifier):
+        from sgdbackend_query import get_obj_id
         from sgdbackend import view_regulation
-        return json.dumps(view_regulation.make_snapshot())
+        locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(view_regulation.make_paragraph(locus_id))
       
     #Binding
     def binding_site_details(self, locus_identifier=None, reference_identifier=None):

@@ -415,16 +415,16 @@ def convert_paragraph(old_session_maker, new_session_maker):
 """   
 
 def convert(old_session_maker, new_session_maker):
-    #convert_evidence(old_session_maker, new_session_maker, 500)
+    convert_evidence(old_session_maker, new_session_maker, 500)
 
     convert_paragraph(old_session_maker, new_session_maker)
     
     from model_new_schema.bioconcept import Go
     from model_new_schema.evidence import Goevidence
     get_bioent_ids_f = lambda x: [x.bioentity_id]
-    #convert_bioentity_reference(new_session_maker, Goevidence, 'GO', 'convert.go.bioentity_reference', 10000, get_bioent_ids_f)
+    convert_bioentity_reference(new_session_maker, Goevidence, 'GO', 'convert.go.bioentity_reference', 10000, get_bioent_ids_f)
 
-    #convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
+    convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
             
 
     

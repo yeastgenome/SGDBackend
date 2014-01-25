@@ -9,6 +9,9 @@ Created on May 6, 2013
  are compared and the database fields are updated. If a newly created object does not match one that is
  already stored, it is added to the database.
 '''
+
+#1.24.14 Maitenance (sgd-dev): 30:45
+
 import re
 
 from convert_other.convert_auxiliary import convert_bioentity_reference, \

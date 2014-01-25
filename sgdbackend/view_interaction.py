@@ -49,20 +49,14 @@ def make_overview(bioent):
 -------------------------------Details---------------------------------------
 '''
     
-def make_details(divided, locus_id=None, reference_id=None):
+def make_details(locus_id=None, reference_id=None):
     from model_new_schema.evidence import Geninteractionevidence, Physinteractionevidence
     genetic_interevidences = get_evidence(Geninteractionevidence, bioent_id=locus_id, reference_id=reference_id)
     physical_interevidences = get_evidence(Physinteractionevidence, bioent_id=locus_id, reference_id=reference_id)
 
-    tables = {}
-    if divided:
-        tables['genetic'] = {'Error': 'Too much data to display.'} if genetic_interevidences is None else create_simple_table(genetic_interevidences, make_evidence_row, bioent_id=locus_id)
-        tables['physical'] = {'Error': 'Too much data to display.'} if physical_interevidences is None else create_simple_table(physical_interevidences, make_evidence_row, bioent_id=locus_id)
-        
-    else:
-        all_interevidences = [x for x in genetic_interevidences]
-        all_interevidences.extend(physical_interevidences)
-        tables = create_simple_table(all_interevidences, make_evidence_row, bioent_id=locus_id)
+    all_interevidences = [x for x in genetic_interevidences]
+    all_interevidences.extend(physical_interevidences)
+    tables = create_simple_table(all_interevidences, make_evidence_row, bioent_id=locus_id)
         
     return tables  
 

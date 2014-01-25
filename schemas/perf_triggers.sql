@@ -1,0 +1,106 @@
+
+/* Bioentity */
+
+DROP TRIGGER BIOENTITY_OVERVIEW_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_OVERVIEW_TRIGGER
+BEFORE INSERT ON bioentity_overview
+FOR EACH ROW
+BEGIN
+SELECT bioentity_overview_seq.nextval INTO :new.bioentity_overview_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_GRAPH_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_GRAPH_TRIGGER
+BEFORE INSERT ON bioentity_graph
+FOR EACH ROW
+BEGIN
+SELECT bioentity_graph_seq.nextval INTO :new.bioentity_graph_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_RESOURCES_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_RESOURCES_TRIGGER
+BEFORE INSERT ON bioentity_resources
+FOR EACH ROW
+BEGIN
+SELECT bioentity_resources_seq.nextval INTO :new.bioentity_resources_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_ENRICHMENT_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_ENRICHMENT_TRIGGER
+BEFORE INSERT ON bioentity_enrichment
+FOR EACH ROW
+BEGIN
+SELECT bioentity_enrichment_seq.nextval INTO :new.bioentity_enrichment_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_PARAGRAPH_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_PARAGRAPH_TRIGGER
+BEFORE INSERT ON bioentity_paragraph
+FOR EACH ROW
+BEGIN
+SELECT bioentity_paragraph_seq.nextval INTO :new.bioentity_paragraph_id FROM DUAL;
+END;
+/
+
+/* Bioconcept */
+
+DROP TRIGGER BIOCONCEPT_GRAPH_TRIGGER;
+--/
+CREATE TRIGGER BIOCONCEPT_GRAPH_TRIGGER
+BEFORE INSERT ON bioconcept_graph
+FOR EACH ROW
+BEGIN
+SELECT bioconcept_graph_seq.nextval INTO :new.bioconcept_graph_id FROM DUAL;
+END;
+/
+
+/* Evidence */
+
+DROP TRIGGER BIOENTITY_EVIDENCE_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_EVIDENCE_TRIGGER
+BEFORE INSERT ON bioentity_evidence
+FOR EACH ROW
+BEGIN
+SELECT bioentity_evidence_seq.nextval INTO :new.bioentity_evidence_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOCONCEPT_EVIDENCE_TRIGGER;
+--/
+CREATE TRIGGER BIOCONCEPT_EVIDENCE_TRIGGER
+BEFORE INSERT ON bioconcept_evidence
+FOR EACH ROW
+BEGIN
+SELECT bioconcept_evidence_seq.nextval INTO :new.bioconcept_evidence_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER REFERENCE_EVIDENCE_TRIGGER;
+--/
+CREATE TRIGGER REFERENCE_EVIDENCE_TRIGGER
+BEFORE INSERT ON reference_evidence
+FOR EACH ROW
+BEGIN
+SELECT reference_evidence_seq.nextval INTO :new.reference_evidence_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER CHEMICAL_EVIDENCE_TRIGGER;
+--/
+CREATE TRIGGER CHEMICAL_EVIDENCE_TRIGGER
+BEFORE INSERT ON chemical_evidence
+FOR EACH ROW
+BEGIN
+SELECT chemical_evidence_seq.nextval INTO :new.chemical_evidence_id FROM DUAL;
+END;
+/

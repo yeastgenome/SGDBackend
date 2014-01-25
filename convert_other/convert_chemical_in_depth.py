@@ -111,7 +111,7 @@ def convert(old_session_maker, new_session_maker):
     
     log.info('begin')
         
-    #convert_chemical_relation(old_session_maker, new_session_maker)
+    convert_chemical_relation(old_session_maker, new_session_maker)
     convert_chem_count(new_session_maker, 'convert.chemical.count')
             
     from model_new_schema.chemical import Chemical

@@ -8,7 +8,7 @@ from convert_perf import convert_core
 from convert_perf.convert_data import convert_data
 from convert_utils import prepare_schema_connection, check_session_maker, \
     set_up_logging
-from model_perf_schema.data import data_classes, create_data_classes
+from model_perf_schema.bioentity_data import data_classes, create_data_classes
 from perfbackend import PerfBackend
 import model_perf_schema
 import sys

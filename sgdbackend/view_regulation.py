@@ -28,7 +28,14 @@ def make_overview(bioent_id):
     overview['target_count'] = target_count
     overview['regulator_count'] = regulator_count
     return overview
-   
+
+'''
+-------------------------------Paragraph---------------------------------------
+'''
+def make_paragraph(bioent_id):
+    paragraph = get_paragraph(bioent_id, 'REGULATION')
+    return None if paragraph is None else paragraph_to_json(paragraph)
+
 '''
 -------------------------------Evidence Table---------------------------------------
 '''
@@ -187,38 +194,5 @@ def make_graph(bioent_id):
 def make_snapshot():
     snapshot = {}
     snapshot['experiment'] = dict([(None if x is None else id_to_experiment[x]['display_name'], y) for x, y in get_evidence_snapshot(Regulationevidence, 'experiment_id').iteritems()])
-
-    # counts1 = get_evidence_snapshot(Regulationevidence, 'bioentity1_id')
-    # counts2 = get_evidence_snapshot(Regulationevidence, 'bioentity2_id')
-    #
-    # regulator_counts = get_snapshot_with_filter(Interaction, 'bioentity1_id', 'REGULATION')
-    # regulator_counts = get_snapshot_with_filter(Interaction, 'bioentity2_id', 'REGULATION')
-    #
-    # snapshot['annotation_histogram'] = {}
-    # snapshot['target_histogram'] = {}
-    # snapshot['regulator_histogram'] = {}
-    # for bioent in id_to_bioent.values():
-    #     if bioent['class_type'] == 'LOCUS' and bioent['locus_type'] == 'ORF':
-    #         bioent_id = bioent['id']
-    #         annotation_count = (0 if bioent_id not in counts1 else counts1[bioent_id]) + \
-    #                            (0 if bioent_id not in counts2 else counts2[bioent_id])
-    #         regulator_count = 0 if bioent_id not in regulator_counts else regulator_counts[bioent_id]
-    #         regulator_count = 0 if bioent_id not in regulator_counts else regulator_counts[bioent_id]
-    #         if annotation_count not in snapshot['annotation_histogram']:
-    #             snapshot['annotation_histogram'][annotation_count] = 1
-    #         else:
-    #             snapshot['annotation_histogram'][annotation_count] = snapshot['annotation_histogram'][annotation_count] + 1
-    #         if interaction_count not in snapshot['interaction_histogram']:
-    #             snapshot['interaction_histogram'][interaction_count] = 1
-    #         else:
-    #             snapshot['interaction_histogram'][interaction_count] = snapshot['interaction_histogram'][interaction_count] + 1
-    #
-    # for i in range(0, max(snapshot['annotation_histogram'].keys())):
-    #     if i not in snapshot['annotation_histogram']:
-    #         snapshot['annotation_histogram'][i] = 0
-    #
-    # for i in range(0, max(snapshot['interaction_histogram'].keys())):
-    #     if i not in snapshot['interaction_histogram']:
-    #         snapshot['interaction_histogram'][i] = 0
 
     return snapshot

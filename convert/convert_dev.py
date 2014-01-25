@@ -19,14 +19,45 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_bioconcept()
     #pastry_dev_converter.convert_bioitem()
     #pastry_dev_converter.convert_chemical()
-    #pastry_dev_converter.convert_phenotype()
-    #pastry_dev_converter.convert_interaction()
 
-    #pastry_dev_converter.convert_chemical()
+    #pastry_dev_converter.convert_interaction()
+    #pastry_dev_converter.convert_literature()
+
     #pastry_dev_converter.convert_phenotype()
-    pastry_dev_converter.convert_bioconcept_in_depth()
     #pastry_dev_converter.convert_go()
 
+    #pastry_dev_converter.convert_bioentity_in_depth()
+    #pastry_dev_converter.convert_bioconcept_in_depth()
+    #pastry_dev_converter.convert_chemical_in_depth()
+    #pastry_dev_converter.convert_reference_in_depth()
+
+
     #Dev_nex -> Dev_perf
-    #dev_perf_converter = NexPerfConverter(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, 
-    #                                 config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    dev_perf_converter = NexPerfConverter(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS,
+                                     config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    #dev_perf_converter.convert_disambig()
+    #dev_perf_converter.convert_bioentity()
+    #dev_perf_converter.convert_bioconcept()
+    #dev_perf_converter.convert_reference()
+    #dev_perf_converter.convert_chemical()
+    #dev_perf_converter.convert_author()
+
+    #dev_perf_converter.convert_interaction_overview()
+    #dev_perf_converter.convert_interaction_graph()
+    #dev_perf_converter.convert_interaction_resources()
+
+    #dev_perf_converter.convert_literature_overview()
+    #dev_perf_converter.convert_literature_graph()
+
+    dev_perf_converter.convert_regulation_overview()
+    #dev_perf_converter.convert_regulation_graph()
+    #dev_perf_converter.convert_regulation_paragraph()
+
+    ##dev_perf_converter.convert_go_overview()
+    dev_perf_converter.convert_go_graph()
+    dev_perf_converter.convert_go_ontology_graph()
+
+    #dev_perf_converter.convert_phenotype_overview()
+    dev_perf_converter.convert_phenotype_graph()
+    dev_perf_converter.convert_phenotype_resources()
+    dev_perf_converter.convert_phenotype_ontology_graph()

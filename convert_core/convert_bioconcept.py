@@ -3,12 +3,16 @@ Created on Oct 25, 2013
 
 @author: kpaskov
 '''
+
+#1.23.14 Maitenance (sgd-dev): 1:04
+
 from sqlalchemy import or_
 from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 import logging
 import sys
+
 
 """
 --------------------- Convert Phenotype ---------------------
@@ -370,7 +374,6 @@ def convert_ecnumber(old_session_maker, new_session_maker):
 def convert(old_session_maker, new_session_maker):
     convert_phenotype(old_session_maker, new_session_maker)
     
-    #convert_go(old_session_maker, new_session_maker)
+    convert_go(old_session_maker, new_session_maker)
     
-    #convert_ecnumber(old_session_maker, new_session_maker)
-    
+    convert_ecnumber(old_session_maker, new_session_maker)

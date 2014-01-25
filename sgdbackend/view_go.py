@@ -117,19 +117,7 @@ def make_details(locus_id=None, go_id=None, chemical_id=None, reference_id=None,
         else:
             id_to_conditions[evidence_id] = [condition]
     
-    if locus_id is not None or chemical_id is not None:  
-        bp_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'biological process']      
-        mf_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'molecular function']    
-        cc_evidence = [x for x in goevidences if id_to_biocon[x.bioconcept_id]['go_aspect'] == 'cellular component']
-    
-        tables = {}
-        tables['biological_process'] = create_simple_table(bp_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
-        tables['molecular_function'] = create_simple_table(mf_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
-        tables['cellular_component'] = create_simple_table(cc_evidence, make_evidence_row, id_to_conditions=id_to_conditions)
-    else:
-        tables = create_simple_table(goevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        
-    return tables
+    return create_simple_table(goevidences, make_evidence_row, id_to_conditions=id_to_conditions)
 
 def fix_display_name(condition):
     if condition['role'] in condition_format_name_to_display_name:
@@ -139,15 +127,11 @@ def fix_display_name(condition):
 def make_evidence_row(goevidence, id_to_conditions): 
     bioentity_id = goevidence.bioentity_id
     bioconcept_id = goevidence.bioconcept_id
-    #with_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'With']
-    #from_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'From']
-        
+
     obj_json = evidence_to_json(goevidence).copy()
     obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
     obj_json['bioconcept'] = minimize_json(id_to_biocon[bioconcept_id])
     obj_json['bioconcept']['aspect'] = id_to_biocon[bioconcept_id]['go_aspect']
-    #obj_json['with'] = with_conditions
-    #obj_json['from']= from_conditions
     obj_json['conditions'] = [] if goevidence.id not in id_to_conditions else [fix_display_name(condition_to_json(x)) for x in id_to_conditions[goevidence.id]]
     obj_json['code'] = goevidence.go_evidence
     obj_json['method'] = goevidence.annotation_type

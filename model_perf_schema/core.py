@@ -41,7 +41,27 @@ class Reference(Base, EqualityByIDMixin):
             self.id = reference_id
             self.json = json
             self.bibentry_json = bibentry_json
-        
+
+class Chemical(Base, EqualityByIDMixin):
+        __tablename__ = 'chemical'
+
+        id = Column('chemical_id', Integer, primary_key=True)
+        json = Column('json', String)
+
+        def __init__(self, chemical_id, json):
+            self.id = chemical_id
+            self.json = json
+
+class Author(Base, EqualityByIDMixin):
+        __tablename__ = 'author'
+
+        id = Column('author_id', Integer, primary_key=True)
+        json = Column('json', String)
+
+        def __init__(self, author_id, json):
+            self.id = author_id
+            self.json = json
+
 class Disambig(Base, EqualityByIDMixin):
         __tablename__ = 'disambig'
     

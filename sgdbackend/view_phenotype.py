@@ -269,6 +269,9 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
     node_count = len(bioent_id_to_biocon_ids) + len(biocon_id_to_bioent_ids)
     edge_count = len(all_relevant_biofacts)
     bioent_count = len(bioent_id_to_biocon_ids)
+    biocon_ids_in_use = set()
+    bioent_ids_in_use = set()
+    biofacts_in_use = []
     while node_count > 100 or edge_count > 250 or bioent_count > 50:
         cutoff = cutoff + 1
         bioent_ids_in_use = set([x for x, y in bioent_id_to_biocon_ids.iteritems() if len(y) >= cutoff])

@@ -81,6 +81,14 @@ def get_author(author_identifier):
     author = query.first()
     return None if author is None else author_to_json(author)
 
+def get_authors(min_id, max_id):
+    query = session.query(Author)
+    if min_id is not None:
+        query = query.filter(Author.id >= min_id)
+    if max_id is not None:
+        query = query.filter(Author.id < max_id)
+    return [author_to_json(author) for author in query.all()]
+
 def get_references_for_author(author_id, print_query=False):
     query = session.query(AuthorReference).filter(AuthorReference.author_id == author_id)
     author_refs = query.all()

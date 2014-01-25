@@ -872,7 +872,7 @@ def convert_url(new_session_maker, chunk_size):
 """   
 
 def convert(old_session_maker, new_session_maker):
-    #convert_abstract(old_session_maker, new_session_maker, 3000)
+    convert_abstract(old_session_maker, new_session_maker, 3000)
     
     convert_author(old_session_maker, new_session_maker, 10000)
 

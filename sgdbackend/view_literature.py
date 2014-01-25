@@ -7,7 +7,7 @@ from model_new_schema.evidence import Literatureevidence
 from sgdbackend_query import get_evidence
 
 from sgdbackend_query.query_auxiliary import get_bioentity_references
-from sgdbackend_utils import make_references, create_simple_table
+from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_reference, id_to_bioent
 from sgdbackend_utils.obj_to_json import evidence_to_json, minimize_json
 
@@ -17,7 +17,6 @@ from sgdbackend_utils.obj_to_json import evidence_to_json, minimize_json
 
 def make_overview(bioent_id):
     references = {}
-    references['primary'] = make_references(['PRIMARY_LITERATURE'], bioent_id)
 
     primary_ids = set([x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
     all_ids = set(primary_ids)
@@ -55,6 +54,20 @@ def make_details(locus_id=None, reference_id=None):
         tables['additional'] = create_simple_table([x for x in evidences if x.topic == 'Additional Literature'], make_evidence_row)
         tables['reviews'] = create_simple_table([x for x in evidences if x.topic == 'Reviews'], make_evidence_row)
         return tables
+
+def make_references(bioent_ref_types, bioent_id, only_primary=False):
+    from sgdbackend_query.query_auxiliary import get_bioentity_references
+    reference_ids = set()
+    for bioent_ref_type in bioent_ref_types:
+        reference_ids.update([x.reference_id for x in get_bioentity_references(bioent_ref_type, bioent_id=bioent_id)])
+
+    if only_primary:
+        primary_ids = set([x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
+        reference_ids.intersection_update(primary_ids)
+
+    references = [id_to_reference[reference_id] for reference_id in reference_ids]
+    references.sort(key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
+    return references
 
 def make_evidence_row(litevidence):
     bioentity_id = litevidence.bioentity_id
