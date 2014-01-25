@@ -229,7 +229,7 @@ def create_go(old_go, key_to_source):
     display_name = old_go.go_term
     source = key_to_source['GO']
     new_go = NewGo(display_name, source, None, old_go.go_definition,
-                   old_go.go_go_id, abbrev_to_go_aspect[old_go.go_aspect],  
+                   'GO:' + str(old_go.go_go_id).zfill(7), abbrev_to_go_aspect[old_go.go_aspect],
                    old_go.date_created, old_go.created_by)
     return [new_go]
 

@@ -95,7 +95,7 @@ def condition_to_json(condition):
     if condition.class_type == 'CONDITION':
         return condition.note
     elif condition.class_type == 'CHEMICAL':
-        return {'chemical': id_to_chem[condition.chemical_id],
+        return {'chemical': minimize_json(id_to_chem[condition.chemical_id]),
                 'amount': condition.amount,
                 'note': condition.note
                 }
@@ -106,19 +106,19 @@ def condition_to_json(condition):
     elif condition.class_type == 'BIOENTITY':
         return {
                 'role': condition.role,
-                'obj': id_to_bioent[condition.bioentity_id],
+                'obj': minimize_json(id_to_bioent[condition.bioentity_id]),
                 'note': condition.note
                 }
     elif condition.class_type == 'BIOCONCEPT':
         return {
                 'role': condition.role,
-                'obj': id_to_biocon[condition.bioconcept_id],
+                'obj': minimize_json(id_to_biocon[condition.bioconcept_id]),
                 'note': condition.note
                 }
     elif condition.class_type == 'BIOITEM':
         return {
                 'role': condition.role,
-                'obj': id_to_bioitem[condition.bioitem_id],
+                'obj': minimize_json(id_to_bioitem[condition.bioitem_id]),
                 'note': condition.note
                 }
     return None

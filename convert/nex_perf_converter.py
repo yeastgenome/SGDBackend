@@ -187,8 +187,8 @@ class NexPerfConverter(ConverterInterface):
         self.data_wrapper(BioconceptGraph, "ONTOLOGY", 'bioconcept_id', 'phenotype_ontology_graph', self.phenotype_ids, 1000)
 
 
-
     def convert_interaction_details(self):
+        #1.25.14 First Load (sgd-dev): 53:59
         self.evidence_wrapper("INTERACTION", "interaction_details", self.locus_ids, 100, True)
     def convert_literature_details(self):
         self.evidence_wrapper("LITERATURE", "literature_details", self.locus_ids, 100, True)
@@ -201,7 +201,8 @@ class NexPerfConverter(ConverterInterface):
     def convert_go_details(self):
         self.evidence_wrapper("GO", "go_details", self.locus_ids, 100, True)
     def convert_phenotype_details(self):
-        self.evidence_wrapper("PHENOTYPE", "phenotype_details", self.locus_ids, 100, True)
+        #1.25.14 First Load (sgd-dev): 19:18
+        self.evidence_wrapper("PHENOTYPE", "phenotype_details", self.locus_ids, 750, True)
 
 if __name__ == "__main__":
     from convert import config

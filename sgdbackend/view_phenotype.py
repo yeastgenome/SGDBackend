@@ -3,7 +3,7 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.auxiliary import Biofact
+from model_new_schema import create_format_name
 from model_new_schema.bioconcept import Bioconceptrelation
 from model_new_schema.evidence import Phenotypeevidence
 from sgdbackend_query import get_evidence, get_conditions, get_evidence_snapshot, get_evidence_over_time, get_snapshot_with_filter
@@ -236,12 +236,23 @@ def create_bioent_node(bioent, is_focus, gene_count):
     return {'data':{'id':'BioentNode' + str(bioent['id']), 'name':bioent['display_name'], 'link': bioent['link'],
                     'sub_type':sub_type, 'type': 'BIOENTITY', 'gene_count':gene_count}}
 
-def create_biocon_node(biocon, gene_count):
-    return {'data':{'id':'BioconNode' + str(biocon['id']), 'name':biocon['display_name'], 'link': biocon['link'],
+def create_biocon_node(biocon_id, biocon_type, gene_count):
+    if biocon_type == 'PHENOTYPE':
+        return {'data':{'id':'BioconNode' + biocon_id, 'name':biocon_id, 'link': '/observable/' + create_format_name(biocon_id) + '/overview',
+                    'sub_type':None, 'type': 'BIOCONCEPT', 'gene_count':gene_count}}
+    else:
+        biocon = id_to_biocon[biocon_id]
+        return {'data':{'id':'BioconNode' + str(biocon['id']), 'name':biocon['display_name'], 'link': biocon['link'],
                     'sub_type':None if not 'go_aspect' in biocon else biocon['go_aspect'], 'type': 'BIOCONCEPT', 'gene_count':gene_count}}
 
 def create_edge(bioent_id, biocon_id):
     return {'data':{'target': 'BioentNode' + str(bioent_id), 'source': 'BioconNode' + str(biocon_id)}}
+
+def biocon_id_conversion(bioconcept_id, biocon_type):
+    if biocon_type == 'PHENOTYPE':
+        return id_to_biocon[bioconcept_id]["observable"]
+    else:
+        return bioconcept_id
 
 def make_graph(bioent_id, biocon_type, biocon_f=None):
 
@@ -258,7 +269,8 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
 
     for biofact in all_relevant_biofacts:
         bioentity_id = biofact.bioentity_id
-        bioconcept_id = biofact.bioconcept_id
+        bioconcept_id = biocon_id_conversion(biofact.bioconcept_id, biocon_type)
+
         if bioconcept_id in biocon_id_to_bioent_ids:
             biocon_id_to_bioent_ids[bioconcept_id].add(bioentity_id)
         else:
@@ -280,7 +292,7 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
         cutoff = cutoff + 1
         bioent_ids_in_use = set([x for x, y in bioent_id_to_biocon_ids.iteritems() if len(y) >= cutoff])
         biocon_ids_in_use = set([x for x, y in biocon_id_to_bioent_ids.iteritems() if len(y & bioent_ids_in_use) > 1])
-        biofacts_in_use = [x for x in all_relevant_biofacts if x.bioentity_id in bioent_ids_in_use and x.bioconcept_id in biocon_ids_in_use]
+        biofacts_in_use = [x for x in all_relevant_biofacts if x.bioentity_id in bioent_ids_in_use and biocon_id_conversion(x.bioconcept_id, biocon_type) in biocon_ids_in_use]
         node_count = len(bioent_ids_in_use) + len(biocon_ids_in_use)
         edge_count = len(biofacts_in_use)
         bioent_count = len(bioent_ids_in_use)
@@ -291,9 +303,9 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
         bioent_to_score[bioent_id] = 0
 
         nodes = [create_bioent_node(id_to_bioent[x], x==bioent_id, len(bioent_id_to_biocon_ids[x] & biocon_ids_in_use)) for x in bioent_ids_in_use]
-        nodes.extend([create_biocon_node(id_to_biocon[x], max(bioent_to_score[x] for x in biocon_id_to_bioent_ids[x])) for x in biocon_ids_in_use])
+        nodes.extend([create_biocon_node(x, biocon_type, max(bioent_to_score[x] for x in biocon_id_to_bioent_ids[x])) for x in biocon_ids_in_use])
 
-        edges = [create_edge(biofact.bioentity_id, biofact.bioconcept_id) for biofact in biofacts_in_use]
+        edges = [create_edge(biofact.bioentity_id, biocon_id_conversion(biofact.bioconcept_id, biocon_type)) for biofact in biofacts_in_use]
 
         return {'nodes': nodes, 'edges': edges, 'max_cutoff': max(bioent_to_score.values()), 'min_cutoff':cutoff if len(bioent_ids_in_use) == 1 else min([bioent_to_score[x] for x in bioent_ids_in_use if x != bioent_id])}
     else:

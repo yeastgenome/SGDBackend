@@ -14,11 +14,14 @@ import sys
 --------------------- Convert Evidence ---------------------
 """
 
+too_long = set()
 def create_evidence(obj_id, json_obj):
     from model_perf_schema.evidence import Evidence
-    if json_obj is not None:
+    if json_obj is not None and len(json_obj) < 4000:
         return Evidence(obj_id, json_obj)
     else:
+        print ('No json.' if json_obj is None else 'Too long: ' + json_obj)
+        too_long.add(obj_id)
         return None
 
 def create_bioentity_evidence(bioentity_id, class_type, evidence_id):
@@ -82,10 +85,11 @@ def convert_evidence(session_maker, class_type, new_obj_f, label, obj_ids, chunk
             #Inserts
             insert_tuples = new_tuples - old_tuples
             for insert_tuple in insert_tuples:
-                new_obj = create_bioentity_evidence(insert_tuple[0], class_type, insert_tuple[1])
-                if new_obj is not None:
-                    session.add(new_obj)
-                    output_creator.added()
+                if insert_tuple[1] not in too_long:
+                    new_obj = create_bioentity_evidence(insert_tuple[0], class_type, insert_tuple[1])
+                    if new_obj is not None:
+                        session.add(new_obj)
+                        output_creator.added()
                 
             #Deletes
             delete_tuples = old_tuples - new_tuples

@@ -27,7 +27,7 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_go()
 
     #pastry_dev_converter.convert_bioentity_in_depth()
-    #pastry_dev_converter.convert_bioconcept_in_depth()
+    pastry_dev_converter.convert_bioconcept_in_depth()
     #pastry_dev_converter.convert_chemical_in_depth()
     #pastry_dev_converter.convert_reference_in_depth()
 
@@ -53,12 +53,12 @@ if __name__ == "__main__":
     #dev_perf_converter.convert_regulation_graph()
     #dev_perf_converter.convert_regulation_paragraph()
 
-    dev_perf_converter.convert_interaction_details()
+    #dev_perf_converter.convert_interaction_details()
     dev_perf_converter.convert_regulation_details()
     dev_perf_converter.convert_protein_domain_details()
-    dev_perf_converter.convert_binding_site_details()
+    #dev_perf_converter.convert_binding_site_details()
     dev_perf_converter.convert_go_details()
-    dev_perf_converter.convert_phenotype_details()
+    #dev_perf_converter.convert_phenotype_details()
 
     #dev_perf_converter.convert_go_overview()
     #dev_perf_converter.convert_go_graph()
