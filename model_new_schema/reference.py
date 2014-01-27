@@ -123,7 +123,7 @@ class Reference(Base, EqualityByIDMixin):
         self.display_name = display_name
         self.format_name = sgdid if pubmed_id is None else str(pubmed_id)
         self.sgdid = sgdid
-        self.link = '/cgi-bin/reference/reference.pl?dbid=' + sgdid
+        self.link = '/reference/' + sgdid + '/overview'
         self.source_id=source_id
         self.ref_status = ref_status
         self.fulltext_status = fulltext_status

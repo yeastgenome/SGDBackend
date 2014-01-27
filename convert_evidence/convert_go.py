@@ -264,6 +264,7 @@ def create_evidence_from_gpad(gpad, uniprot_id_to_bioentity, pubmed_id_to_refere
         return None
     if reference is None:
         print pubmed_id[5:]
+        return None
         
     experiment = None if eco_evidence_id not in eco_id_to_experiment else eco_id_to_experiment[eco_evidence_id]
     if experiment is None:

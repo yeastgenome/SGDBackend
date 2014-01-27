@@ -142,7 +142,11 @@ def get_all_bioconcept_children(parent_id):
             for i in range(num_chunks):
                 latest_list.extend([x.child_id for x in session.query(Bioconceptrelation).filter(Bioconceptrelation.parent_id.in_(new_parent_ids[i*500:(i+1)*500])).all()])
             new_parent_ids = latest_list
-    return all_child_ids     
+    return all_child_ids
+
+def get_bioconcept_parent_ids(bioconrel_type, bioconcept_ids):
+    query = session.query(Bioconceptrelation).filter(Bioconceptrelation.bioconrel_class_type == bioconrel_type).filter(Bioconceptrelation.child_id.in_(bioconcept_ids))
+    return [x.parent_id for x in query.all()]
 
 def get_all_chemical_children(parent_id):
     all_child_ids = set()

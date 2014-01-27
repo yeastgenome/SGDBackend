@@ -13,6 +13,8 @@ if __name__ == "__main__":
     pastry_dev_converter = BudNexConverter(config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS, 
                                     config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
 
+    pastry_dev_converter.convert_all()
+
     #pastry_dev_converter.convert_evelements()
     #pastry_dev_converter.convert_reference()
     #pastry_dev_converter.convert_bioentity()
@@ -27,7 +29,7 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_go()
 
     #pastry_dev_converter.convert_bioentity_in_depth()
-    pastry_dev_converter.convert_bioconcept_in_depth()
+    #pastry_dev_converter.convert_bioconcept_in_depth()
     #pastry_dev_converter.convert_chemical_in_depth()
     #pastry_dev_converter.convert_reference_in_depth()
 
@@ -54,10 +56,10 @@ if __name__ == "__main__":
     #dev_perf_converter.convert_regulation_paragraph()
 
     #dev_perf_converter.convert_interaction_details()
-    dev_perf_converter.convert_regulation_details()
-    dev_perf_converter.convert_protein_domain_details()
+    #dev_perf_converter.convert_regulation_details()
+    #To do:dev_perf_converter.convert_protein_domain_details()
     #dev_perf_converter.convert_binding_site_details()
-    dev_perf_converter.convert_go_details()
+    #dev_perf_converter.convert_go_details()
     #dev_perf_converter.convert_phenotype_details()
 
     #dev_perf_converter.convert_go_overview()
@@ -67,4 +69,6 @@ if __name__ == "__main__":
     #dev_perf_converter.convert_phenotype_overview()
     #To do:dev_perf_converter.convert_phenotype_graph()
     #dev_perf_converter.convert_phenotype_resources()
-    dev_perf_converter.convert_phenotype_ontology_graph()
+    #dev_perf_converter.convert_phenotype_ontology_graph()
+
+    #dev_perf_converter.convert_regulation_target_enrich()

@@ -44,11 +44,11 @@ class BudNexConverter(ConverterInterface):
     
     def convert_all(self):
         #Core
-        self.convert_core()
+        #self.convert_core()
     
         #Evidence
-        self.convert_phenotype()
-        self.convert_literature()
+        #self.convert_phenotype()
+        #self.convert_literature()
         self.convert_go()
         self.convert_qualifier()
         self.convert_interaction()
@@ -60,6 +60,7 @@ class BudNexConverter(ConverterInterface):
         self.convert_bioentity_in_depth()
         self.convert_reference_in_depth()
         self.convert_bioconcept_in_depth()
+        self.convert_chemical_in_depth()
         
     def convert_daily(self):
         #Core
@@ -75,6 +76,7 @@ class BudNexConverter(ConverterInterface):
         self.convert_bioentity_in_depth()
         self.convert_reference_in_depth()
         self.convert_bioconcept_in_depth()
+        self.convert_chemical_in_depth()
         
     def convert_monthly(self):
         #Evidence

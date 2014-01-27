@@ -58,10 +58,8 @@ def create_chemical_phenotype(phenotype, key_to_source, observable_to_ancestor):
 
     new_phenotypes = []
     for phenotype_feature in phenotype.phenotype_features:
-        if len(phenotype_feature.experiment.chemicals) != 1:
-            print 'Chemical problem ' + str(phenotype_feature.experiment.chemicals)
+        chemical = ' and '.join([x[0] for x in phenotype_feature.experiment.chemicals])
 
-        chemical = phenotype_feature.experiment.chemicals[0][0]
         source = key_to_source['SGD']
         old_observable = phenotype.observable
         if old_observable == 'resistance to chemicals':

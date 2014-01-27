@@ -26,6 +26,7 @@ def get_experiment_ancestry(experiment_id, child_experiment_id_to_parent_id):
 
 
 def make_overview(locus_id=None, phenotype_id=None):
+    qualifiers = None
     phenoevidences = []
     if phenotype_id is not None and id_to_biocon[phenotype_id]['is_core']:
         child_ids = [x.child_id for x in get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[phenotype_id]) if not id_to_biocon[x.child_id]['is_core']]
@@ -33,6 +34,9 @@ def make_overview(locus_id=None, phenotype_id=None):
             more_evidences = get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=child_id)
             if more_evidences is not None:
                 phenoevidences.extend(more_evidences)
+
+        qualifiers = [id_to_biocon[x.child_id] for x in get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[phenotype_id]) if not id_to_biocon[x.child_id]['is_core']]
+
 
     more_evidences = get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=phenotype_id)
     if more_evidences is not None:
@@ -81,7 +85,10 @@ def make_overview(locus_id=None, phenotype_id=None):
     strain_list = sorted(strain_to_count.keys(), key=lambda x: strain_to_count[x], reverse=True)
 
 
-    return {'experiment_types': ['classical genetics', 'large-scale survey'], 'mutant_to_count': mutant_to_count, 'mutant_types': mutant_list, 'strain_to_count':strain_to_count, 'strain_list': strain_list}
+    overview = {'experiment_types': ['classical genetics', 'large-scale survey'], 'mutant_to_count': mutant_to_count, 'mutant_types': mutant_list, 'strain_to_count':strain_to_count, 'strain_list': strain_list}
+    if qualifiers is not None:
+        overview['qualifiers'] = qualifiers
+    return overview
 
 # -------------------------------Details---------------------------------------
     

@@ -119,7 +119,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def interaction_details(self, locus_identifier=None, reference_identifier=None):
+    def interaction_details(self, locus_identifier=None, reference_identifier=None, ids_only=False):
         return None
     
     @abstractmethod

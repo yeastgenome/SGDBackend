@@ -53,7 +53,7 @@ class BioentityEnrichment(Base, EqualityByIDMixin):
         id = Column('bioentity_enrichment_id', Integer, primary_key=True)
         bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
         class_type = Column('class', String)
-        json = Column('json', String)
+        json = Column('json', CLOB)
 
         def __init__(self, bioentity_id, class_type, json):
             self.bioentity_id = bioentity_id

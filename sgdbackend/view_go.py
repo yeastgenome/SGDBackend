@@ -7,7 +7,7 @@ from go_enrichment import query_batter
 from model_new_schema.bioconcept import Bioconceptrelation
 from model_new_schema.evidence import Goevidence
 from mpmath import sqrt, ceil
-from sgdbackend_query import get_obj_id, get_evidence, get_conditions
+from sgdbackend_query import get_obj_id, get_evidence, get_conditions, get_bioconcept_parent_ids
 from sgdbackend_query.query_auxiliary import get_biofacts
 from sgdbackend_query.query_misc import get_relations
 from sgdbackend_query.query_paragraph import get_paragraph
@@ -38,30 +38,13 @@ def make_enrichment(bioent_ids):
 '''  
 
 def make_overview(bioent_id):
-    goevidences = get_evidence(Goevidence, bioent_id=bioent_id)
+    overview = {}
 
-    if goevidences is None:
-        return {'biological process': {'Error': 'Too much data to display.'}, 'molecular function':{'Error': 'Too much data to display.'}, 'cellular component':{'Error': 'Too much data to display.'}}
+    gofacts = get_biofacts('GO', bioent_id=bioent_id)
+    biocon_ids = [x.bioconcept_id for x in gofacts]
 
-    comp_mutant_to_phenotypes = {'biological process':set(), 'molecular function':set(), 'cellular component':set()}
-    htp_to_phenotypes = {'biological process':set(), 'molecular function':set(), 'cellular component':set()}
-    manual_to_phenotypes = {'biological process':set(), 'molecular function':set(), 'cellular component':set()}
-
-    for goevidence in goevidences:
-        bioconcept = id_to_biocon[goevidence.bioconcept_id]
-        aspect = bioconcept['go_aspect']
-        if goevidence.annotation_type == 'computational':
-            comp_mutant_to_phenotypes[aspect].add(goevidence.bioconcept_id)
-        elif goevidence.annotation_type == 'high-throughput':
-            htp_to_phenotypes[aspect].add(goevidence.bioconcept_id)
-        elif goevidence.annotation_type == 'manually curated':
-            manual_to_phenotypes[aspect].add(goevidence.bioconcept_id)
-
-    aspect_to_count = dict([(x, (0 if x not in manual_to_phenotypes else len(manual_to_phenotypes[x]),
-                                 0 if x not in htp_to_phenotypes else len(htp_to_phenotypes[x]),
-                                 0 if x not in comp_mutant_to_phenotypes else len(comp_mutant_to_phenotypes[x]))) for x in ['biological process', 'molecular function', 'cellular component']])
-
-    overview = {'annotation_types': ['manually curated', 'high-throughput', 'computational'], 'aspect_to_count': aspect_to_count, 'aspects': ['biological process', 'molecular function', 'cellular component']}
+    slim_ids = get_bioconcept_parent_ids('GO_SLIM', biocon_ids)
+    overview['go_slim'] = [id_to_biocon[x] for x in slim_ids]
 
     paragraph = get_paragraph(bioent_id, 'GO')
     if paragraph is not None:

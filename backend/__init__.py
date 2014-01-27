@@ -150,11 +150,18 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'phenotype_ontology')()), 
                      renderer=chosen_backend.get_renderer('phenotype_ontology'))
         
-    config.add_route('phenotype_overview',
+    config.add_route('phenotype_bioent_overview',
                      '/locus/{identifier}/phenotype_overview', 
                      view=lambda request: chosen_backend.response_wrapper('phenotype_overview', request)(
                                 getattr(chosen_backend, 'phenotype_overview')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                                        locus_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('phenotype_overview'))
+
+    config.add_route('phenotype_biocon_overview',
+                     '/phenotype/{identifier}/phenotype_overview',
+                     view=lambda request: chosen_backend.response_wrapper('phenotype_overview', request)(
+                                getattr(chosen_backend, 'phenotype_overview')(
+                                        phenotype_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('phenotype_overview'))
     
     config.add_route('phenotype_bioent_details', 

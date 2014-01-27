@@ -22,11 +22,14 @@ class NexPerfConverter(ConverterInterface):
         
         self.backend = SGDBackend(nex_dbtype, nex_dbhost, nex_dbname, nex_schema, nex_dbuser, nex_dbpass, None)
         
-        from model_perf_schema.core import Bioentity, Bioconcept
+        from model_perf_schema.core import Bioentity, Bioconcept, Reference, Chemical, Author
         self.locus_ids = [x.id for x in self.session_maker().query(Bioentity).all() if json.loads(x.json)['class_type'] == 'LOCUS']
         bioconcepts = self.session_maker().query(Bioconcept).all()
         self.phenotype_ids = [x.id for x in bioconcepts if json.loads(x.json)['class_type'] == 'PHENOTYPE']
         self.go_ids = [x.id for x in bioconcepts if json.loads(x.json)['class_type'] == 'GO']
+        self.reference_ids = [x.id for x in self.session_maker().query(Reference).all()]
+        self.chemical_ids = [x.id for x in self.session_maker().query(Chemical).all()]
+        self.author_ids = [x.id for x in self.session_maker().query(Author).all()]
 
         self.log = set_up_logging('nex_perf_converter')
             
@@ -42,9 +45,9 @@ class NexPerfConverter(ConverterInterface):
         except Exception:
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
 
-    def evidence_wrapper(self, class_type, method_name, obj_ids, chunk_size, check_known_evidence):
+    def evidence_wrapper(self, cls, class_type, method_name, obj_type, chunk_size, check_known_evidence):
         try:
-            convert_evidence(self.session_maker, class_type, getattr(self.backend, method_name), 'nexperfconvert.' + method_name, obj_ids, chunk_size, check_known_evidence)
+            convert_evidence(self.session_maker, cls, class_type, getattr(self.backend, method_name), 'bioentity_id' if obj_type == 'locus' else obj_type + '_id', 'nexperfconvert.' + method_name, getattr(self, obj_type + '_ids'), chunk_size, check_known_evidence)
         except Exception:
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
     
@@ -53,6 +56,8 @@ class NexPerfConverter(ConverterInterface):
         self.convert_bioentity()
         self.convert_bioconcept()
         self.convert_reference()
+        self.convert_chemical()
+        self.convert_author()
         self.convert_disambig()
         
         #Data
@@ -70,21 +75,46 @@ class NexPerfConverter(ConverterInterface):
         self.convert_binding_site_details()
         
         self.convert_regulation_overview()
+        self.convert_regulation_paragraph()
         self.convert_regulation_details()
         self.convert_regulation_graph()
         self.convert_regulation_target_enrich()
+
+        self.convert_phenotype_overview()
+        self.convert_phenotype_details()
+        self.convert_phenotype_graph()
+        self.convert_phenotype_resources()
+        self.convert_phenotype_ontology_graph()
+
+        self.convert_go_overview()
+        self.convert_go_details()
+        self.convert_go_graph()
+        self.convert_go_ontology_graph()
         
     def convert_daily(self):
         #Core
         self.convert_bioentity()
         self.convert_bioconcept()
         self.convert_reference()
+        self.convert_chemical()
+        self.convert_author()
         self.convert_disambig()
         
         #Data
         self.convert_literature_overview()
         self.convert_literature_details()
         self.convert_literature_graph()
+
+        self.convert_phenotype_overview()
+        self.convert_phenotype_details()
+        self.convert_phenotype_graph()
+        self.convert_phenotype_resources()
+        self.convert_phenotype_ontology_graph()
+
+        self.convert_go_overview()
+        self.convert_go_details()
+        self.convert_go_graph()
+        self.convert_go_ontology_graph()
         
     def convert_monthly(self):
         #Data
@@ -153,7 +183,7 @@ class NexPerfConverter(ConverterInterface):
         self.data_wrapper(BioentityGraph, "REGULATION", 'bioentity_id', 'regulation_graph', self.locus_ids, 1000)
     def convert_regulation_target_enrich(self):
         from model_perf_schema.bioentity_data import BioentityEnrichment
-        self.data_wrapper(BioentityEnrichment, "REGULATION", 'bioentity_id', 'regulation_target_enrichment', self.locus_ids, 100)
+        self.data_wrapper(BioentityEnrichment, "REGULATION_TARGET", 'bioentity_id', 'regulation_target_enrichment', self.locus_ids, 100)
     def convert_regulation_paragraph(self):
         #1.24.14 First Load (sgd-dev): 7:22
         from model_perf_schema.bioentity_data import BioentityParagraph
@@ -176,33 +206,45 @@ class NexPerfConverter(ConverterInterface):
         from model_perf_schema.bioentity_data import BioentityOverview
         self.data_wrapper(BioentityOverview, "PHENOTYPE", 'bioentity_id', 'phenotype_overview', self.locus_ids, 1000)
     def convert_phenotype_graph(self):
+        #1.26.14 First Load (sgd-dev): 3:54:09
         from model_perf_schema.bioentity_data import BioentityGraph
-        self.data_wrapper(BioentityGraph, "PHENOTYPE", 'bioentity_id', 'phenotype_graph', self.locus_ids, 1000)
+        self.data_wrapper(BioentityGraph, "PHENOTYPE", 'bioentity_id', 'phenotype_graph', self.locus_ids, 100)
     def convert_phenotype_resources(self):
         #1.24.14 First Load (sgd-dev): 7:22
         from model_perf_schema.bioentity_data import BioentityResources
         self.data_wrapper(BioentityResources, "PHENOTYPE", 'bioentity_id', 'phenotype_resources', self.locus_ids, 1000)
     def convert_phenotype_ontology_graph(self):
+        #1.25.14 First Load (sgd-dev): 3:46
         from model_perf_schema.bioconcept_data import BioconceptGraph
         self.data_wrapper(BioconceptGraph, "ONTOLOGY", 'bioconcept_id', 'phenotype_ontology_graph', self.phenotype_ids, 1000)
 
 
     def convert_interaction_details(self):
         #1.25.14 First Load (sgd-dev): 53:59
-        self.evidence_wrapper("INTERACTION", "interaction_details", self.locus_ids, 100, True)
+        from model_perf_schema.evidence import BioentityEvidence, ReferenceEvidence
+        self.evidence_wrapper(BioentityEvidence, "INTERACTION", "interaction_details", 'locus', 1000, True)
+        self.evidence_wrapper(ReferenceEvidence, "INTERACTION", "interaction_details", 'reference', 100, False)
     def convert_literature_details(self):
-        self.evidence_wrapper("LITERATURE", "literature_details", self.locus_ids, 100, True)
+        from model_perf_schema.evidence import BioentityEvidence
+        self.evidence_wrapper(BioentityEvidence, "LITERATURE", "literature_details", 'locus', 100, True)
     def convert_protein_domain_details(self):
-        self.evidence_wrapper("DOMAIN", "protein_domain_details", self.locus_ids, 100, True)
+        from model_perf_schema.evidence import BioentityEvidence
+        self.evidence_wrapper(BioentityEvidence, "DOMAIN", "protein_domain_details", 'locus', 100, True)
     def convert_binding_site_details(self):
-        self.evidence_wrapper("BINDING", "binding_site_details", self.locus_ids, 1000, True)
+        from model_perf_schema.evidence import BioentityEvidence
+        self.evidence_wrapper(BioentityEvidence, "BINDING", "binding_site_details", 'locus', 1000, True)
     def convert_regulation_details(self):
-        self.evidence_wrapper("REGULATION", "regulation_details", self.locus_ids, 100, True)
+        #1.25.14 First Load (sgd-dev): 1:59:29
+        from model_perf_schema.evidence import BioentityEvidence
+        self.evidence_wrapper(BioentityEvidence, "REGULATION", "regulation_details", 'locus', 100, True)
     def convert_go_details(self):
-        self.evidence_wrapper("GO", "go_details", self.locus_ids, 100, True)
+        #1.25.14 First Load (sgd-dev): 17:20
+        from model_perf_schema.evidence import BioentityEvidence
+        self.evidence_wrapper(BioentityEvidence, "GO", "go_details", 'locus', 100, True)
     def convert_phenotype_details(self):
         #1.25.14 First Load (sgd-dev): 19:18
-        self.evidence_wrapper("PHENOTYPE", "phenotype_details", self.locus_ids, 750, True)
+        from model_perf_schema.evidence import BioentityEvidence
+        self.evidence_wrapper(BioentityEvidence, "PHENOTYPE", "phenotype_details", 'locus', 750, True)
 
 if __name__ == "__main__":
     from convert import config
@@ -216,4 +258,3 @@ if __name__ == "__main__":
         getattr(converter, method)()
     else:
         print 'Please enter nex_dbhost, perf_dbhost, and method.'
-        

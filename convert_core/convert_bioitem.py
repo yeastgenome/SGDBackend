@@ -68,7 +68,7 @@ def create_go_bioitems(old_dbxref, key_to_source):
     return []
 
 def convert_bioitems(old_session_maker, new_session_maker):
-    from model_new_schema.bioitem import Allele as NewAllele, Proteinbioitem as NewProteinbioitem
+    from model_new_schema.bioitem import Allele as NewAllele, Bioitem as NewBioitem
     from model_new_schema.evelements import Source as NewSource
     from model_old_schema.phenotype import PhenotypeFeature as OldPhenotypeFeature
     from model_old_schema.go import GorefDbxref as OldGorefDbxref
@@ -85,7 +85,7 @@ def convert_bioitems(old_session_maker, new_session_maker):
         #-------------Phenotype---------------
         #Grab all current objects
         current_objs = new_session.query(NewAllele).all()
-        current_objs.extend(new_session.query(NewProteinbioitem).all())
+        current_objs.extend(new_session.query(NewBioitem).all())
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs]) 
                   

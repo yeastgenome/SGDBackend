@@ -29,10 +29,10 @@ def create_litevidence(old_litevidence, id_to_reference, id_to_bioentity, key_to
     bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
     
     if reference is None:
-        print reference_id
+        print 'Reference not found: ' + str(reference_id)
         return []
     if bioentity is None:
-        print bioentity_id
+        print 'Bioentity not found: ' + str(bioentity_id)
         return []
     
     source = key_to_source['SGD']

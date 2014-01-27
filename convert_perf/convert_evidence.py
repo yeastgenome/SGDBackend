@@ -35,7 +35,7 @@ def update_evidence(json_obj, old_obj):
         changed = True
     return changed
 
-def convert_evidence(session_maker, class_type, new_obj_f, label, obj_ids, chunk_size, check_known_evidence):
+def convert_evidence(session_maker, cls, class_type, new_obj_f, arg_name, label, obj_ids, chunk_size, check_known_evidence):
     from model_perf_schema.evidence import Evidence, BioentityEvidence
     log = logging.getLogger(label)
     log.info('begin')
@@ -50,13 +50,13 @@ def convert_evidence(session_maker, class_type, new_obj_f, label, obj_ids, chunk
             chunk_obj_ids = obj_ids[i*chunk_size: (i+1)*chunk_size]
             
             #Grab old objects and current_objs
-            old_objs = session.query(BioentityEvidence).filter(BioentityEvidence.class_type == class_type).filter(BioentityEvidence.bioentity_id.in_(chunk_obj_ids)).all()
+            old_objs = session.query(cls).filter(cls.class_type == class_type).filter(getattr(cls, arg_name).in_(chunk_obj_ids)).all()
 
             new_tuples = set()
             id_to_evidence = {}
 
             for x in chunk_obj_ids:
-                y_json = json.loads(new_obj_f(x))
+                y_json = json.loads(new_obj_f(**{arg_name + 'entifier': x, 'ids_only': not check_known_evidence}))
                 new_tuples.update((x, evidence['id']) for evidence in y_json)
                 id_to_evidence.update([(evidence['id'], json.dumps(evidence)) for evidence in y_json])
 
@@ -78,7 +78,7 @@ def convert_evidence(session_maker, class_type, new_obj_f, label, obj_ids, chunk
             evidence_output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             session.commit()
 
-            old_tuple_to_obj = dict([((x.bioentity_id, x.evidence_id), x) for x in old_objs])
+            old_tuple_to_obj = dict([((getattr(x, arg_name), x.evidence_id), x) for x in old_objs])
             
             old_tuples = set(old_tuple_to_obj.keys())
 
@@ -90,7 +90,7 @@ def convert_evidence(session_maker, class_type, new_obj_f, label, obj_ids, chunk
                     if new_obj is not None:
                         session.add(new_obj)
                         output_creator.added()
-                
+
             #Deletes
             delete_tuples = old_tuples - new_tuples
             for delete_tuple in delete_tuples:
@@ -108,3 +108,4 @@ def convert_evidence(session_maker, class_type, new_obj_f, label, obj_ids, chunk
         session.close()
         
     log.info('complete')
+

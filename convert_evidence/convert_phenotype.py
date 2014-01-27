@@ -44,9 +44,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
     observable = old_phenotype_feature.observable
     qualifier = old_phenotype_feature.qualifier
     if observable == 'chemical compound accumulation' or observable == 'chemical compound excretion' or observable == 'resistance to chemicals':
-        if len(old_phenotype_feature.experiment.chemicals) != 1:
-            print 'Chemical problem\t' + bioentity.display_name + '/' + bioentity.format_name + '\t' + str(old_phenotype_feature.experiment.chemicals)
-        chemical = old_phenotype_feature.experiment.chemicals[0][0]
+        chemical = ' and '.join([x[0] for x in old_phenotype_feature.experiment.chemicals])
         if observable == 'resistance to chemicals':
             observable = observable.replace('chemicals', chemical)
         else:
@@ -55,7 +53,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
     phenotype = None if phenotype_key not in key_to_phenotype else key_to_phenotype[phenotype_key]
 
     if phenotype is None:
-        print observable + ' ' + qualifier
+        print 'Phenotype not found: ' + phenotype_key
         return []
        
     experiment_key = create_format_name(old_phenotype_feature.experiment_type)
@@ -71,7 +69,8 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
     old_experiment = old_phenotype_feature.experiment                                 
     if old_experiment is not None:
 
-        note = '; '.join([a if b is None else a + ': ' + b for (a, b) in old_experiment.details])
+        if len(old_experiment.details):
+            note = '; '.join([a if b is None else a + ': ' + b for (a, b) in old_experiment.details])
 
         strain_details = None if old_experiment.strain is None else old_experiment.strain[1]
         experiment_details = None if old_experiment.experiment_comment is None else old_experiment.experiment_comment
@@ -88,7 +87,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
             if reporter is not None:
                 conditions.append(Bioitemcondition(old_experiment.reporter[1], 'Reporter', reporter))
             else:
-                print reporter_key  
+                print 'Reporter not found: ' + reporter_key
         
         #Get allele
         if old_experiment.allele is not None:
@@ -97,7 +96,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
             if allele is not None:
                 conditions.append(Bioitemcondition(old_experiment.allele[1], 'Allele', allele)) 
             else:
-                print allele_key   
+                print 'Allele not found: ' + allele_key
             
         #Get chemicals
         from model_new_schema.condition import Chemicalcondition
@@ -111,7 +110,6 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
                     amount = b
                 else:
                     chemical_note = b
-                    print 'Bad chemical concentration:' + b + ';' + bioentity.display_name + ';' + phenotype.display_name + ';' + reference.display_name
             conditions.append(Chemicalcondition(None, chemical_note, chemical, amount))
         
         #Get other conditions
@@ -218,7 +216,7 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
                                 untouched_obj_ids.remove(current_obj_by_key.id)
                             already_seen_keys.add(key)
                         else:
-                            print key
+                            print 'Duplicate phenotype evidence (bioentity: ' + id_to_bioentity[newly_created_obj.bioentity_id].format_name + '; reference: ' + id_to_reference[newly_created_obj.reference_id].display_name + ')'
                             
             #Delete untouched objs
             for untouched_obj_id  in untouched_obj_ids:
