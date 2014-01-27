@@ -66,7 +66,7 @@ def get_bibentry(reference_id, print_query=False):
         return bibentries[0].text
     return None
 
-def get_authors(reference_id, print_query=False):
+def get_authors_for_reference(reference_id, print_query=False):
     query = session.query(AuthorReference).options(joinedload("author")).filter(AuthorReference.reference_id == reference_id)
     author_refs = query.all()
     author_refs.sort(key=lambda x: x.order)
