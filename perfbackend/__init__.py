@@ -163,7 +163,7 @@ class PerfBackend(BackendInterface):
         json_format = []
         
         for enrichment_result in enrichment_results:
-            identifier = 'GO:' + str(int(enrichment_result[0][3:]))
+            identifier = 'GO:' + str(int(enrichment_result[0][3:])).zfill(7)
             goterm_id = get_obj_id(str(identifier).lower(), 'BIOCONCEPT', 'GO')
             goterm = json.loads(get_obj(Bioconcept, 'json', goterm_id))
             json_format.append({'go': goterm,

@@ -319,7 +319,7 @@ class SGDBackend(BackendInterface):
         from sgdbackend import view_regulation
         from sgdbackend import view_go
         locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        target_ids = [x['bioentity2']['id'] for x in view_regulation.make_details(locus_id) if x['bioentity1']['id'] == locus_id]
+        target_ids = set([x['bioentity2']['id'] for x in view_regulation.make_details(locus_id=locus_id) if x['bioentity1']['id'] == locus_id])
         if len(target_ids) > 0:
             return json.dumps(view_go.make_enrichment(target_ids))
         else:

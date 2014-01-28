@@ -132,12 +132,13 @@ def create_node(biocon, is_focus):
     else:
         sub_type = biocon['go_aspect']
     return {'data':{'id':'Node' + str(biocon['id']), 'name':biocon['display_name'] + ' (' + str(biocon['count']) + ')', 'link': biocon['link'],
-                    'sub_type':sub_type, 'count': int(ceil(sqrt(biocon['count'])))}}
+                    'sub_type':sub_type}}
 
 def create_edge(biocon1_id, biocon2_id, label):
     return {'data':{'target': 'Node' + str(biocon1_id), 'source': 'Node' + str(biocon2_id), 'name':None if label == 'is a' else label}}
 
 def make_ontology_graph(phenotype_id):
+    all_children = None
     children = get_relations(Bioconceptrelation, 'GO', parent_ids=[phenotype_id])    
     parents = get_relations(Bioconceptrelation, 'GO', child_ids=[phenotype_id])
     if len(parents) > 0:
@@ -156,6 +157,15 @@ def make_ontology_graph(phenotype_id):
         child_id_to_child = dict([(x, id_to_biocon[x]) for x in child_ids])
         parent_id_to_parent = dict([(x, id_to_biocon[x]) for x in parent_ids])
         viable_ids = set([k for k, v in child_id_to_child.iteritems() if v['child_count'] > 0])
+
+        #If there are too many children, hide some.
+        all_children = []
+        hidden_children_count = 0
+        if len(viable_ids) > 8:
+            all_children = sorted([id_to_biocon[x] for x in viable_ids], key=lambda x: x['display_name'])
+            hidden_children_count = len(viable_ids)-7
+            viable_ids = set(list(viable_ids)[:7])
+
         viable_ids.update([k for k, v in parent_id_to_parent.iteritems() if v['child_count'] > 0])
         viable_ids.add(phenotype_id)
         
@@ -169,6 +179,10 @@ def make_ontology_graph(phenotype_id):
         relations.update(greatgrandparents)
         relations.update(greatgreatgrandparents)
         edges = [create_edge(x.child_id, x.parent_id, x.relation_type) for x in relations if x.child_id in viable_ids and x.parent_id in viable_ids]
+
+        if hidden_children_count > 0:
+            nodes.insert(0, {'data':{'id':'NodeMoreChildren', 'name':str(hidden_children_count) + ' more children', 'link': None, 'sub_type':id_to_biocon[phenotype_id]['go_aspect']}})
+            edges.insert(0, {'data':{'target': 'NodeMoreChildren', 'source': 'Node' + str(phenotype_id), 'name':None}})
 
     else:
         #grandchildren = get_relations(Bioconceptrelation, 'GO', parent_ids=[x.child_id for x in children])
@@ -189,7 +203,7 @@ def make_ontology_graph(phenotype_id):
         #relations.update(grandchildren)
         edges = [create_edge(x.child_id, x.parent_id, x.relation_type) for x in relations if x.child_id in viable_ids and x.parent_id in viable_ids]
 
-    return {'nodes': list(nodes), 'edges': edges}
+    return {'nodes': list(nodes), 'edges': edges, 'all_children': all_children}
 
 '''
 -------------------------------Snapshot---------------------------------------

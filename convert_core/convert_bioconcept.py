@@ -48,7 +48,10 @@ def create_phenotype_from_cv_term(old_cvterm, key_to_source, observable_to_ances
     source = key_to_source['SGD']
     phenotype_type = create_phenotype_type(observable)
     ancestor_type = None if observable not in observable_to_ancestor else observable_to_ancestor[observable]
-    new_phenotype = NewPhenotype(source, None, old_cvterm.definition,
+    description = old_cvterm.definition
+    if observable == 'observable':
+        description = 'Features of Saccharomyces cerevisiae cells, cultures, or colonies that can be detected, observed, measured, or monitored.'
+    new_phenotype = NewPhenotype(source, None, description,
                                  observable, None, phenotype_type, ancestor_type, 
                                  old_cvterm.date_created, old_cvterm.created_by)
     return [new_phenotype]
@@ -62,14 +65,20 @@ def create_chemical_phenotype(phenotype, key_to_source, observable_to_ancestor):
 
         source = key_to_source['SGD']
         old_observable = phenotype.observable
+        description = None
         if old_observable == 'resistance to chemicals':
             new_observable = phenotype.observable.replace('chemicals', chemical)
+            description = 'The level of resistance to exposure to ' + chemical + '.'
         else:
             new_observable = phenotype.observable.replace('chemical compound', chemical)
+            if old_observable == 'chemical compound accumulation':
+                description = 'The production and/or storage of ' + chemical + '.'
+            elif old_observable == 'chemical compound excretion':
+                description = 'The excretion from the cell of ' + chemical + '.'
         qualifier = phenotype.qualifier
         phenotype_type = create_phenotype_type(old_observable)
         ancestor_type = None if old_observable not in observable_to_ancestor else observable_to_ancestor[old_observable]
-        new_parent_phenotype = NewPhenotype(source, None, None,
+        new_parent_phenotype = NewPhenotype(source, None, description,
                                      new_observable, None, phenotype_type, ancestor_type,
                                      phenotype_feature.date_created, phenotype_feature.created_by)
         new_phenotype = NewPhenotype(source, None, None,

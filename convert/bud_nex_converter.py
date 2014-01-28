@@ -28,9 +28,12 @@ class BudNexConverter(ConverterInterface):
             
         self.log = set_up_logging('bud_nex_converter')
             
-    def wrapper(self, f):
+    def wrapper(self, f, no_old_session=False):
         try:
-            f(self.old_session_maker, self.new_session_maker)
+            if not no_old_session:
+                f(self.old_session_maker, self.new_session_maker)
+            else:
+                f(self.new_session_maker)
         except Exception:
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
             
@@ -49,9 +52,9 @@ class BudNexConverter(ConverterInterface):
         #Evidence
         #self.convert_phenotype()
         #self.convert_literature()
-        self.convert_go()
-        self.convert_qualifier()
-        self.convert_interaction()
+        #self.convert_go()
+        #self.convert_qualifier()
+        #self.convert_interaction()
         self.convert_binding()
         self.convert_protein_domain()
         self.convert_regulation()
@@ -111,11 +114,11 @@ class BudNexConverter(ConverterInterface):
     def convert_interaction(self):
         self.wrapper(convert_interaction.convert)
     def convert_binding(self):
-        self.wrapper(convert_binding.convert)
+        self.wrapper(convert_binding.convert, no_old_session=True)
     def convert_protein_domain(self):
-        self.wrapper(convert_protein_domain.convert)
+        self.wrapper(convert_protein_domain.convert, no_old_session=True)
     def convert_regulation(self):
-        self.wrapper(convert_regulation.convert)
+        self.wrapper(convert_regulation.convert, no_old_session=True)
     def convert_bioentity_in_depth(self):
         self.wrapper(convert_bioentity_in_depth.convert)
     def convert_reference_in_depth(self):

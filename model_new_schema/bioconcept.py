@@ -111,11 +111,11 @@ class Go(Bioconcept):
     def __init__(self, display_name, source, sgdid, description, 
                  go_id, go_aspect, date_created, created_by):
         if display_name == 'biological_process':
-            Bioconcept.__init__(self, 'GO Biological Process Ontology', 'biological_process', 'GO', '/ontology/go/biological_process/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'GO Biological Process Ontology', go_id, 'GO', '/ontology/go/biological_process/overview', source, sgdid, description, date_created, created_by)
         elif display_name == 'molecular_function':
-            Bioconcept.__init__(self, 'GO Molecular Function Ontology', 'molecular_function', 'GO', '/ontology/go/molecular_function/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'GO Molecular Function Ontology', go_id, 'GO', '/ontology/go/molecular_function/overview', source, sgdid, description, date_created, created_by)
         elif display_name == 'cellular_component':
-            Bioconcept.__init__(self, 'GO Cellular Component Ontology', 'cellular_component', 'GO', '/ontology/go/cellular_component/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'GO Cellular Component Ontology', go_id, 'GO', '/ontology/go/cellular_component/overview', source, sgdid, description, date_created, created_by)
         else:
             Bioconcept.__init__(self, display_name, go_id, 'GO', '/go/' + go_id + '/overview', source, sgdid, description, date_created, created_by)
         self.go_id = go_id
