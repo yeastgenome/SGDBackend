@@ -72,3 +72,16 @@ class BioentityParagraph(Base, EqualityByIDMixin):
             self.bioentity_id = bioentity_id
             self.class_type = class_type
             self.json = json
+
+class BioentityDetails(Base, EqualityByIDMixin):
+        __tablename__ = 'bioentity_details'
+
+        id = Column('bioentity_details_id', Integer, primary_key=True)
+        bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+        class_type = Column('class', String)
+        json = Column('json', CLOB)
+
+        def __init__(self, bioentity_id, class_type, json):
+            self.bioentity_id = bioentity_id
+            self.class_type = class_type
+            self.json = json

@@ -20,3 +20,29 @@ class BioconceptGraph(Base, EqualityByIDMixin):
         self.bioconcept_id = bioconcept_id
         self.class_type = class_type
         self.json = json
+
+class BioconceptDetails(Base, EqualityByIDMixin):
+    __tablename__ = 'bioconcept_details'
+
+    id = Column('bioconcept_details_id', Integer, primary_key=True)
+    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
+    class_type = Column('class', String)
+    json = Column('json', CLOB)
+
+    def __init__(self, bioconcept_id, class_type, json):
+        self.bioconcept_id = bioconcept_id
+        self.class_type = class_type
+        self.json = json
+
+class BioconceptOverview(Base, EqualityByIDMixin):
+    __tablename__ = 'bioconcept_overview'
+
+    id = Column('bioconcept_overview_id', Integer, primary_key=True)
+    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
+    class_type = Column('class', String)
+    json = Column('json', CLOB)
+
+    def __init__(self, bioconcept_id, class_type, json):
+        self.bioconcept_id = bioconcept_id
+        self.class_type = class_type
+        self.json = json

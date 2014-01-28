@@ -51,6 +51,16 @@ SELECT bioentity_paragraph_seq.nextval INTO :new.bioentity_paragraph_id FROM DUA
 END;
 /
 
+DROP TRIGGER BIOENTITY_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_DETAILS_TRIGGER
+BEFORE INSERT ON bioentity_details
+FOR EACH ROW
+BEGIN
+SELECT bioentity_details_seq.nextval INTO :new.bioentity_details_id FROM DUAL;
+END;
+/
+
 /* Bioconcept */
 
 DROP TRIGGER BIOCONCEPT_GRAPH_TRIGGER;
@@ -63,44 +73,44 @@ SELECT bioconcept_graph_seq.nextval INTO :new.bioconcept_graph_id FROM DUAL;
 END;
 /
 
-/* Evidence */
-
-DROP TRIGGER BIOENTITY_EVIDENCE_TRIGGER;
+DROP TRIGGER BIOCONCEPT_DETAILS_TRIGGER;
 --/
-CREATE TRIGGER BIOENTITY_EVIDENCE_TRIGGER
-BEFORE INSERT ON bioentity_evidence
+CREATE TRIGGER BIOCONCEPT_DETAILS_TRIGGER
+BEFORE INSERT ON bioconcept_details
 FOR EACH ROW
 BEGIN
-SELECT bioentity_evidence_seq.nextval INTO :new.bioentity_evidence_id FROM DUAL;
+SELECT bioconcept_details_seq.nextval INTO :new.bioconcept_details_id FROM DUAL;
 END;
 /
 
-DROP TRIGGER BIOCONCEPT_EVIDENCE_TRIGGER;
+DROP TRIGGER BIOCONCEPT_OVERVIEW_TRIGGER;
 --/
-CREATE TRIGGER BIOCONCEPT_EVIDENCE_TRIGGER
-BEFORE INSERT ON bioconcept_evidence
+CREATE TRIGGER BIOCONCEPT_OVERVIEW_TRIGGER
+BEFORE INSERT ON bioconcept_overview
 FOR EACH ROW
 BEGIN
-SELECT bioconcept_evidence_seq.nextval INTO :new.bioconcept_evidence_id FROM DUAL;
+SELECT bioconcept_OVERVIEW_seq.nextval INTO :new.bioconcept_overview_id FROM DUAL;
 END;
 /
 
-DROP TRIGGER REFERENCE_EVIDENCE_TRIGGER;
+/* Reference */
+DROP TRIGGER REFERENCE_DETAILS_TRIGGER;
 --/
-CREATE TRIGGER REFERENCE_EVIDENCE_TRIGGER
-BEFORE INSERT ON reference_evidence
+CREATE TRIGGER REFERENCE_DETAILS_TRIGGER
+BEFORE INSERT ON reference_details
 FOR EACH ROW
 BEGIN
-SELECT reference_evidence_seq.nextval INTO :new.reference_evidence_id FROM DUAL;
+SELECT reference_details_seq.nextval INTO :new.reference_details_id FROM DUAL;
 END;
 /
 
-DROP TRIGGER CHEMICAL_EVIDENCE_TRIGGER;
+/* Chemical */
+DROP TRIGGER CHEMICAL_DETAILS_TRIGGER;
 --/
-CREATE TRIGGER CHEMICAL_EVIDENCE_TRIGGER
-BEFORE INSERT ON chemical_evidence
+CREATE TRIGGER CHEMICAL_DETAILS_TRIGGER
+BEFORE INSERT ON chemical_details
 FOR EACH ROW
 BEGIN
-SELECT chemical_evidence_seq.nextval INTO :new.chemical_evidence_id FROM DUAL;
+SELECT chemical_details_seq.nextval INTO :new.chemical_details_id FROM DUAL;
 END;
 /

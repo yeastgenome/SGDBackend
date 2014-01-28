@@ -47,14 +47,14 @@ class BudNexConverter(ConverterInterface):
     
     def convert_all(self):
         #Core
-        #self.convert_core()
+        self.convert_core()
     
         #Evidence
-        #self.convert_phenotype()
-        #self.convert_literature()
-        #self.convert_go()
-        #self.convert_qualifier()
-        #self.convert_interaction()
+        self.convert_phenotype()
+        self.convert_literature()
+        self.convert_go()
+        self.convert_qualifier()
+        self.convert_interaction()
         self.convert_binding()
         self.convert_protein_domain()
         self.convert_regulation()

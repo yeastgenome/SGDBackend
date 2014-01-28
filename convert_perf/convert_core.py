@@ -447,50 +447,39 @@ def convert_author(session_maker, backend, chunk_size):
     try:
         session = session_maker()
 
-        min_author_id = 0
-        max_author_id = 50000
-        num_chunks = ceil(1.0*(max_author_id-min_author_id)/chunk_size)
-        for i in range(0, num_chunks):
-            min_id = min_author_id + i*chunk_size
-            max_id = min_author_id + (i+1)*chunk_size
+        #Grab old objects and current_objs
+        old_objs = session.query(Author).all()
+        new_json_objs = json.loads(backend.all_authors(None, None))
 
-            #Grab old objects and current_objs
-            if i < num_chunks-1:
-                old_objs = session.query(Author).filter(Author.id >= min_id).filter(Author.id < max_id).all()
-                new_json_objs = json.loads(backend.all_authors(min_id, min_id+chunk_size))
-            else:
-                old_objs = session.query(Author).filter(Author.id >= min_id).all()
-                new_json_objs = json.loads(backend.all_authors(min_id, None))
+        old_id_to_obj = dict([(x.id, x) for x in old_objs])
+        new_id_to_json_obj = dict([(x['id'], json.dumps(x)) for x in new_json_objs])
 
-            old_id_to_obj = dict([(x.id, x) for x in old_objs])
-            new_id_to_json_obj = dict([(x['id'], json.dumps(x)) for x in new_json_objs])
+        old_ids = set(old_id_to_obj.keys())
+        new_ids = set(new_id_to_json_obj.keys())
 
-            old_ids = set(old_id_to_obj.keys())
-            new_ids = set(new_id_to_json_obj.keys())
+        #Inserts
+        insert_ids = new_ids - old_ids
+        for insert_id in insert_ids:
+            json_obj = None if insert_id not in new_id_to_json_obj else new_id_to_json_obj[insert_id]
+            session.add(create_author(insert_id, json_obj))
+        output_creator.num_added = output_creator.num_added + len(insert_ids)
 
-            #Inserts
-            insert_ids = new_ids - old_ids
-            for insert_id in insert_ids:
-                json_obj = None if insert_id not in new_id_to_json_obj else new_id_to_json_obj[insert_id]
-                session.add(create_author(insert_id, json_obj))
-            output_creator.num_added = output_creator.num_added + len(insert_ids)
+        #Updates
+        update_ids = new_ids & old_ids
+        for update_id in update_ids:
+            json_obj = None if update_id not in new_id_to_json_obj else new_id_to_json_obj[update_id]
+            if update_author(json_obj, old_id_to_obj[update_id]):
+                output_creator.changed(update_id, 'json')
 
-            #Updates
-            update_ids = new_ids & old_ids
-            for update_id in update_ids:
-                json_obj = None if update_id not in new_id_to_json_obj else new_id_to_json_obj[update_id]
-                if update_author(json_obj, old_id_to_obj[update_id]):
-                    output_creator.changed(update_id, 'json')
-
-            #Deletes
-            delete_ids = old_ids - new_ids
-            for delete_id in delete_ids:
-                session.delete(old_id_to_obj[delete_id])
-            output_creator.num_removed = output_creator.num_removed + len(delete_ids)
+        #Deletes
+        delete_ids = old_ids - new_ids
+        for delete_id in delete_ids:
+            session.delete(old_id_to_obj[delete_id])
+        output_creator.num_removed = output_creator.num_removed + len(delete_ids)
 
 
-            output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
-            session.commit()
+        output_creator.finished()
+        session.commit()
 
 
     except Exception:

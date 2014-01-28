@@ -96,13 +96,7 @@ def convert_ecnumber_relation(new_session_maker):
 # --------------------- Convert GO Relation ---------------------
 
 def get_go_format_name(go_id):
-    if go_id == 8150:
-        return 'biological_process'
-    elif go_id == 5575:
-        return 'cellular_component'
-    elif go_id == 3674:
-        return 'molecular_function'
-    return 'GO:' + str(go_id).zfill(7)
+    return 'GO:' + str(int(go_id)).zfill(7)
 
 
 def create_go_relation(gopath, key_to_go, key_to_source):
@@ -245,7 +239,7 @@ def convert_go_slim_relation(old_session_maker, new_session_maker):
             if go_key in key_to_go:
                 slim_ids.add(key_to_go[go_key].id)
             else:
-                print 'GO term not found: ' + go_key
+                print 'GO term not found: ' + str(go_key)
 
         go_child_id_to_parent_ids = {}
         for go_relation in new_session.query(Bioconceptrelation).filter(Bioconceptrelation.bioconrel_class_type == 'GO'):

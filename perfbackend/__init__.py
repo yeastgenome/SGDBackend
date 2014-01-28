@@ -120,10 +120,10 @@ class PerfBackend(BackendInterface):
     def interaction_details(self, locus_identifier=None, reference_identifier=None):
         if locus_identifier is not None:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-            return get_bioentity_evidence(bioent_id, 'INTERACTION')
+            return get_bioentity_details(bioent_id, 'INTERACTION')
         if reference_identifier is not None:
             ref_id = get_obj_id(str(reference_identifier).lower(), class_type='REFERENCE')
-            return get_reference_evidence(ref_id, 'INTERACTION')
+            return get_reference_details(ref_id, 'INTERACTION')
         return None
     
     def interaction_graph(self, identifier):
@@ -142,10 +142,10 @@ class PerfBackend(BackendInterface):
     def literature_details(self, locus_identifier=None, reference_identifier=None):
         if locus_identifier is not None:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-            return get_bioentity_evidence(bioent_id, 'LITERATURE')
+            return get_bioentity_details(bioent_id, 'LITERATURE')
         if reference_identifier is not None:
             ref_id = get_obj_id(str(reference_identifier).lower(), class_type='REFERENCE')
-            return get_reference_evidence(ref_id, 'LITERATURE')
+            return get_reference_details(ref_id, 'LITERATURE')
         return None
     
     def literature_graph(self, identifier):
@@ -179,16 +179,16 @@ class PerfBackend(BackendInterface):
     def go_details(self, locus_identifier=None, go_identifier=None, reference_identifier=None, with_children=False):
         if locus_identifier is not None:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-            return get_bioentity_evidence(bioent_id, 'GO')
+            return get_bioentity_details(bioent_id, 'GO')
         elif go_identifier is not None:
             biocon_id = get_obj_id(str(go_identifier).lower(), class_type='BIOCONCEPT', subclass_type='GO')
             if with_children:
-                return get_bioconcept_evidence(biocon_id, 'LOCUS_ALL_CHILDREN')
+                return get_bioconcept_details(biocon_id, 'LOCUS_ALL_CHILDREN')
             else:
-                return get_bioconcept_evidence(biocon_id, 'LOCUS')
+                return get_bioconcept_details(biocon_id, 'LOCUS')
         elif reference_identifier is not None:
             ref_id = get_obj_id(str(reference_identifier).lower(), class_type='REFERENCE')
-            return get_reference_evidence(ref_id, 'GO')
+            return get_reference_details(ref_id, 'GO')
 
     def go_graph(self, identifier):
         bioent_id = get_obj_id(str(identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
@@ -211,19 +211,19 @@ class PerfBackend(BackendInterface):
     def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, reference_identifier=None, with_children=False):
         if locus_identifier is not None:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-            return get_bioentity_evidence(bioent_id, 'PHENOTYPE')
+            return get_bioentity_details(bioent_id, 'PHENOTYPE')
         elif phenotype_identifier is not None:
             biocon_id = get_obj_id(str(phenotype_identifier).lower(), class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
             if with_children:
-                return get_bioconcept_evidence(biocon_id, 'LOCUS_ALL_CHILDREN')
+                return get_bioconcept_details(biocon_id, 'LOCUS_ALL_CHILDREN')
             else:
-                return get_bioconcept_evidence(biocon_id, 'LOCUS')
+                return get_bioconcept_details(biocon_id, 'LOCUS')
         elif reference_identifier is not None:
             ref_id = get_obj_id(str(reference_identifier).lower(), class_type='REFERENCE')
-            return get_reference_evidence(ref_id, 'PHENOTYPE')
+            return get_reference_details(ref_id, 'PHENOTYPE')
         elif chemical_identifier is not None:
             ref_id = get_obj_id(str(chemical_identifier).lower(), class_type='CHEMICAL')
-            return get_chemical_evidence(ref_id, 'PHENOTYPE')
+            return get_chemical_details(ref_id, 'PHENOTYPE')
 
     def phenotype_ontology(self):
         pass
@@ -242,8 +242,7 @@ class PerfBackend(BackendInterface):
             return get_bioentity_overview(bioent_id, 'PHENOTYPE')
         elif phenotype_identifier is not None:
             biocon_id = get_obj_id(str(phenotype_identifier).lower(), class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-            pass
-            #return get_bioconcept_overview(bioent_id, 'PHENOTYPE')
+            return get_bioconcept_overview(biocon_id, 'PHENOTYPE')
 
     def phenotype_resources(self, identifier):
         bioent_id = get_obj_id(str(identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
@@ -263,10 +262,10 @@ class PerfBackend(BackendInterface):
     def protein_domain_details(self, locus_identifier=None, reference_identifier=None):
         if locus_identifier is not None:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-            return get_bioentity_evidence(bioent_id, 'DOMAIN')
+            return get_bioentity_details(bioent_id, 'DOMAIN')
         elif reference_identifier is not None:
             ref_id = get_obj_id(str(reference_identifier).lower(), class_type='REFERENCE')
-            return get_reference_evidence(ref_id, 'DOMAIN')
+            return get_reference_details(ref_id, 'DOMAIN')
     
     def regulation_overview(self, identifier):
         bioent_id = get_obj_id(str(identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
@@ -275,10 +274,10 @@ class PerfBackend(BackendInterface):
     def regulation_details(self, locus_identifier=None, reference_identifier=None):
         if locus_identifier is not None:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-            return get_bioentity_evidence(bioent_id, 'REGULATION')
+            return get_bioentity_details(bioent_id, 'REGULATION')
         elif reference_identifier is not None:
             ref_id = get_obj_id(str(reference_identifier).lower(), class_type='REFERENCE')
-            return get_reference_evidence(ref_id, 'REGULATION')
+            return get_reference_details(ref_id, 'REGULATION')
     
     def regulation_graph(self, identifier):
         bioent_id = get_obj_id(str(identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
@@ -296,10 +295,10 @@ class PerfBackend(BackendInterface):
     def binding_site_details(self, locus_identifier=None, reference_identifier=None):
         if locus_identifier is not None:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-            return get_bioentity_evidence(bioent_id, 'BINDING')
+            return get_bioentity_details(bioent_id, 'BINDING')
         elif reference_identifier is not None:
             ref_id = get_obj_id(str(reference_identifier).lower(), class_type='REFERENCE')
-            return get_bioentity_evidence(ref_id, 'BINDING')
+            return get_bioentity_details(ref_id, 'BINDING')
 
     #Misc
     def all_disambigs(self, min_id, max_id):
@@ -404,6 +403,13 @@ def get_bioentity_paragraph(bioentity_id, class_type):
         return None if data is None else data.json
     return None
 
+def get_bioentity_details(bioentity_id, class_type):
+    from model_perf_schema.bioentity_data import BioentityDetails
+    if bioentity_id is not None:
+        data = DBSession.query(BioentityDetails).filter(BioentityDetails.bioentity_id == bioentity_id).filter(BioentityDetails.class_type == class_type).first()
+        return None if data is None else data.json
+    return None
+
 #Get bioconcept data
 
 def get_bioconcept_graph(bioconcept_id, class_type):
@@ -413,49 +419,34 @@ def get_bioconcept_graph(bioconcept_id, class_type):
         return None if data is None else data.json
     return None
 
-# Get evidence
-
-def get_bioentity_evidence(bioentity_id, class_type):
-    from model_perf_schema.evidence import BioentityEvidence
-    from datetime import datetime
-    if bioentity_id is not None:
-        print str(datetime.now()) + 'Start evidence'
-        data = [x.evidence.json for x in DBSession.query(BioentityEvidence)
-                    .filter(BioentityEvidence.bioentity_id == bioentity_id)
-                    .filter(BioentityEvidence.class_type == class_type)
-                    .options(subqueryload(BioentityEvidence.evidence)).all()]
-        print str(datetime.now()) + 'Query finished'
-        returnValue = "[" + (", ".join(data)) + "]"
-        print str(datetime.now()) + 'String join finished'
-        return returnValue
-    return None
-
-def get_bioconcept_evidence(bioconcept_id, class_type):
-    from model_perf_schema.evidence import BioconceptEvidence
+def get_bioconcept_details(bioconcept_id, class_type):
+    from model_perf_schema.bioconcept_data import BioconceptDetails
     if bioconcept_id is not None:
-        data = [x.evidence.json for x in DBSession.query(BioconceptEvidence)
-                    .filter(BioconceptEvidence.bioconcept_id == bioconcept_id)
-                    .filter(BioconceptEvidence.class_type == class_type)
-                    .options(subqueryload(BioconceptEvidence.evidence)).all()]
-        return "[" + (", ".join(data)) + "]"
+        data = DBSession.query(BioconceptDetails).filter(BioconceptDetails.bioconcept_id == bioconcept_id).filter(BioconceptDetails.class_type == class_type).first()
+        return None if data is None else data.json
     return None
 
-def get_reference_evidence(reference_id, class_type):
-    from model_perf_schema.evidence import ReferenceEvidence
+def get_bioconcept_overview(bioconcept_id, class_type):
+    from model_perf_schema.bioconcept_data import BioconceptOverview
+    if bioconcept_id is not None:
+        data = DBSession.query(BioconceptOverview).filter(BioconceptOverview.bioconcept_id == bioconcept_id).filter(BioconceptOverview.class_type == class_type).first()
+        return None if data is None else data.json
+    return None
+
+#Get reference data
+
+def get_reference_details(reference_id, class_type):
+    from model_perf_schema.reference_data import ReferenceDetails
     if reference_id is not None:
-        data = [x.evidence.json for x in DBSession.query(ReferenceEvidence)
-                    .filter(ReferenceEvidence.reference_id == reference_id)
-                    .filter(ReferenceEvidence.class_type == class_type)
-                    .options(subqueryload(ReferenceEvidence.evidence)).all()]
-        return "[" + (", ".join(data)) + "]"
+        data = DBSession.query(ReferenceDetails).filter(ReferenceDetails.reference_id == reference_id).filter(ReferenceDetails.class_type == class_type).first()
+        return None if data is None else data.json
     return None
 
-def get_chemical_evidence(chemical_id, class_type):
-    from model_perf_schema.evidence import BioentityEvidence
+#Get chemical data
+
+def get_chemical_details(chemical_id, class_type):
+    from model_perf_schema.chemical_data import ChemicalDetails
     if chemical_id is not None:
-        data = [x.evidence.json for x in DBSession.query(BioentityEvidence)
-                    .filter(BioentityEvidence.bioentity_id == chemical_id)
-                    .filter(BioentityEvidence.class_type == class_type)
-                    .options(subqueryload(BioentityEvidence.evidence)).all()]
-        return "[" + (", ".join(data)) + "]"
+        data = DBSession.query(ChemicalDetails).filter(ChemicalDetails.chemical_id == chemical_id).filter(ChemicalDetails.class_type == class_type).first()
+        return None if data is None else data.json
     return None
