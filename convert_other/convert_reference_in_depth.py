@@ -942,10 +942,11 @@ def convert(old_session_maker, new_session_maker):
     
     #convert_url(new_session_maker, 3000)
         
-    convert_bibentry(new_session_maker, 3000)
+    #convert_bibentry(new_session_maker, 3000)
     
-    from model_new_schema.reference import Reference
+    from model_new_schema.reference import Reference, Author
     #convert_disambigs(new_session_maker, Reference, ['id', 'sgdid'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
+    convert_disambigs(new_session_maker, Author, ['format_name', 'id'], 'AUTHOR', None, 'convert.reference.author_disambigs', 3000)
    
 
    

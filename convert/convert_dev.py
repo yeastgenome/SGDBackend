@@ -53,10 +53,10 @@ if __name__ == "__main__":
     #dev_perf_converter.convert_literature_overview()
     #dev_perf_converter.convert_literature_graph()
 
-    dev_perf_converter.convert_go_details()
-    dev_perf_converter.convert_go_overview()
-    dev_perf_converter.convert_go_graph()
-    dev_perf_converter.convert_go_ontology_graph()
+    #dev_perf_converter.convert_go_details()
+    #dev_perf_converter.convert_go_overview()
+    #dev_perf_converter.convert_go_graph()
+    #dev_perf_converter.convert_go_ontology_graph()
 
     #dev_perf_converter.convert_regulation_details()
     #dev_perf_converter.convert_protein_domain_details()
@@ -71,5 +71,8 @@ if __name__ == "__main__":
     #dev_perf_converter.convert_phenotype_graph()
     #dev_perf_converter.convert_phenotype_resources()
     #dev_perf_converter.convert_phenotype_ontology_graph()
+
+    dev_perf_converter.convert_ontology()
+    #dev_perf_converter.convert_author_details()
 
 

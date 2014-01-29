@@ -62,6 +62,17 @@ class Author(Base, EqualityByIDMixin):
             self.id = author_id
             self.json = json
 
+class Ontology(Base, EqualityByIDMixin):
+        __tablename__ = 'ontology'
+
+        id = Column('ontology_id', Integer, primary_key=True)
+        class_type = Column('class', String)
+        json = Column('json', CLOB)
+
+        def __init__(self, class_type, json):
+            self.class_type = class_type
+            self.json = json
+
 class Disambig(Base, EqualityByIDMixin):
         __tablename__ = 'disambig'
     

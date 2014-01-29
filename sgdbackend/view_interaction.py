@@ -54,6 +54,9 @@ def make_details(locus_id=None, reference_id=None):
     genetic_interevidences = get_evidence(Geninteractionevidence, bioent_id=locus_id, reference_id=reference_id)
     physical_interevidences = get_evidence(Physinteractionevidence, bioent_id=locus_id, reference_id=reference_id)
 
+    if genetic_interevidences is None or physical_interevidences is None:
+        return {'Error': 'Too much data to display.'}
+
     all_interevidences = [x for x in genetic_interevidences]
     all_interevidences.extend(physical_interevidences)
     tables = create_simple_table(all_interevidences, make_evidence_row, bioent_id=locus_id)

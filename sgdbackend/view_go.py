@@ -46,7 +46,7 @@ def make_overview(bioent_id):
     biocon_ids = [x.bioconcept_id for x in gofacts]
 
     slim_ids = get_bioconcept_parent_ids('GO_SLIM', biocon_ids)
-    overview['go_slim'] = [id_to_biocon[x] for x in slim_ids]
+    overview['go_slim'] = [minimize_json(id_to_biocon[x]) for x in slim_ids]
 
     paragraph = get_paragraph(bioent_id, 'GO')
     if paragraph is not None:
@@ -93,6 +93,8 @@ condition_format_name_to_display_name = {'activated by':	                'activa
 
 def make_details(locus_id=None, go_id=None, chemical_id=None, reference_id=None, with_children=False):
     goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children)
+    if goevidences is None:
+        return {'Error': 'Too much data to display.'}
     
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in goevidences]):

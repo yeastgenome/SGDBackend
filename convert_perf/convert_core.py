@@ -304,7 +304,7 @@ def convert_reference(session_maker, backend, chunk_size):
                 new_bibentry_objs = json.loads(backend.all_bibentries(min_id, None))
                 
             old_id_to_obj = dict([(x.id, x) for x in old_objs])
-            new_id_to_json_obj = dict([(x['id'], json.dumps(x)) for x in new_json_objs])
+            new_id_to_json_obj = dict([(x['id'], backend.reference(int(x['id']), are_ids=False)) for x in new_json_objs])
             new_id_bibentry_obj = dict([(x['id'], json.dumps(x)) for x in new_bibentry_objs])
             
             old_ids = set(old_id_to_obj.keys())
@@ -475,6 +475,72 @@ def convert_author(session_maker, backend, chunk_size):
         delete_ids = old_ids - new_ids
         for delete_id in delete_ids:
             session.delete(old_id_to_obj[delete_id])
+        output_creator.num_removed = output_creator.num_removed + len(delete_ids)
+
+
+        output_creator.finished()
+        session.commit()
+
+
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        session.close()
+
+    log.info('complete')
+
+"""
+--------------------- Convert Ontology ---------------------
+"""
+
+def create_ontology(class_type, json_obj):
+    from model_perf_schema.core import Ontology
+    return Ontology(class_type, json_obj)
+
+def update_ontology(json_obj, ontology):
+    changed = False
+    if ontology.json != json_obj:
+        ontology.json = json_obj
+        changed = True
+    return changed
+
+def convert_ontology(session_maker, backend, chunk_size):
+    from model_perf_schema.core import Ontology
+
+    log = logging.getLogger('perfconvert.ontology')
+    log.info('begin')
+    output_creator = OutputCreator(log)
+
+    try:
+        session = session_maker()
+
+        #Grab old objects and current_objs
+        phenotype_ontology = backend.phenotype_ontology()
+
+        old_type_to_obj = dict([(x.class_type, x) for x in session.query(Ontology).all()])
+        new_type_to_json_obj = {'PHENOTYPE': phenotype_ontology}
+
+        old_types = set(old_type_to_obj.keys())
+        new_types = set(new_type_to_json_obj.keys())
+
+        #Inserts
+        insert_ids = new_types - old_types
+        for insert_id in insert_ids:
+            json_obj = None if insert_id not in new_type_to_json_obj else new_type_to_json_obj[insert_id]
+            session.add(create_ontology(insert_id, json_obj))
+        output_creator.num_added = output_creator.num_added + len(insert_ids)
+
+        #Updates
+        update_ids = new_types & old_types
+        for update_id in update_ids:
+            json_obj = None if update_id not in new_type_to_json_obj else new_type_to_json_obj[update_id]
+            if update_author(json_obj, old_type_to_obj[update_id]):
+                output_creator.changed(update_id, 'json')
+
+        #Deletes
+        delete_ids = old_types - new_types
+        for delete_id in delete_ids:
+            session.delete(old_type_to_obj[delete_id])
         output_creator.num_removed = output_creator.num_removed + len(delete_ids)
 
 

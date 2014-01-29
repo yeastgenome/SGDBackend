@@ -114,3 +114,25 @@ BEGIN
 SELECT chemical_details_seq.nextval INTO :new.chemical_details_id FROM DUAL;
 END;
 /
+
+/* Author */
+DROP TRIGGER AUTHOR_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER AUTHOR_DETAILS_TRIGGER
+BEFORE INSERT ON author_details
+FOR EACH ROW
+BEGIN
+SELECT author_details_seq.nextval INTO :new.author_details_id FROM DUAL;
+END;
+/
+
+/* Ontology */
+DROP TRIGGER ONTOLOGY_TRIGGER;
+--/
+CREATE TRIGGER ONTOLOGY__TRIGGER
+BEFORE INSERT ON ontology
+FOR EACH ROW
+BEGIN
+SELECT ontology_seq.nextval INTO :new.ontology_id FROM DUAL;
+END;
+/
