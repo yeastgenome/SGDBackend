@@ -559,7 +559,8 @@ def convert_phenotype_alias(old_session_maker, new_session_maker):
 # ---------------------Convert------------------------------
 
 def convert(old_session_maker, new_session_maker):  
-    convert_ecnumber_relation(new_session_maker)
+
+    #convert_ecnumber_relation(new_session_maker)
     
     from model_new_schema.bioconcept import Phenotype
     from model_new_schema.evidence import Phenotypeevidence
@@ -572,7 +573,7 @@ def convert(old_session_maker, new_session_maker):
     from model_new_schema.bioconcept import Go
     from model_new_schema.evidence import Goevidence
     #convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
-    #convert_go_relation(old_session_maker, new_session_maker)
-    #convert_go_slim_relation(old_session_maker, new_session_maker)
-    #convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
-    convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
+    convert_go_relation(old_session_maker, new_session_maker)
+    convert_go_slim_relation(old_session_maker, new_session_maker)
+    convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
+    #convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)

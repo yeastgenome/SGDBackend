@@ -90,7 +90,7 @@ class PerfBackend(BackendInterface):
 
     def author(self, identifier):
         from model_perf_schema.core import Author
-        auth_id = get_obj_id(str(identifier).lower(), class_type='AUTHOR')
+        auth_id = get_obj_id(str(identifier), class_type='AUTHOR')
         return get_obj(Author, 'json', auth_id)
 
     def all_authors(self, min_id, max_id, callback=None):
@@ -174,7 +174,7 @@ class PerfBackend(BackendInterface):
 
     def go(self, identifier):
         from model_perf_schema.core import Bioconcept
-        biocon_id = get_obj_id(str(identifier).upper(), class_type='BIOCONCEPT', subclass_type='GO')
+        biocon_id = get_obj_id(str(identifier).upper() if str(identifier).upper().startswith('GO') else str(identifier).lower(), class_type='BIOCONCEPT', subclass_type='GO')
         return get_obj(Bioconcept, 'json', biocon_id)
 
     def go_details(self, locus_identifier=None, go_identifier=None, reference_identifier=None, with_children=False):
@@ -182,7 +182,7 @@ class PerfBackend(BackendInterface):
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
             return get_bioentity_details(bioent_id, 'GO')
         elif go_identifier is not None:
-            biocon_id = get_obj_id(str(go_identifier).upper(), class_type='BIOCONCEPT', subclass_type='GO')
+            biocon_id = get_obj_id(str(go_identifier).upper() if str(go_identifier).upper().startswith('GO') else str(go_identifier).lower(), class_type='BIOCONCEPT', subclass_type='GO')
             if with_children:
                 return get_bioconcept_details(biocon_id, 'LOCUS_ALL_CHILDREN')
             else:
@@ -196,7 +196,7 @@ class PerfBackend(BackendInterface):
         return get_bioentity_graph(bioent_id, 'GO')
 
     def go_ontology_graph(self, identifier):
-        biocon_id = get_obj_id(str(identifier).upper(), class_type='BIOCONCEPT', subclass_type='GO')
+        biocon_id = get_obj_id(str(identifier).upper() if str(identifier).upper().startswith('GO') else str(identifier).lower(), class_type='BIOCONCEPT', subclass_type='GO')
         return get_bioconcept_graph(biocon_id, 'ONTOLOGY')
 
     def go_overview(self, identifier):
