@@ -121,7 +121,7 @@ class Locus(Bioentity):
     def __init__(self, bioentity_id, display_name, format_name, source, sgdid, uniprotid, bioent_status, 
                  locus_type, short_description, headline, description, genetic_position,
                  date_created, created_by):
-        Bioentity.__init__(self, bioentity_id, display_name, format_name, 'LOCUS', '/cgi-bin/locus.fpl?locus=' + format_name,
+        Bioentity.__init__(self, bioentity_id, display_name, format_name, 'LOCUS', '/cgi-bin/locus.fpl?locus=' + sgdid,
                            source, sgdid, uniprotid, bioent_status, date_created, created_by)
         self.short_description = short_description
         self.headline = headline

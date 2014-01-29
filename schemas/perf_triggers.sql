@@ -1,0 +1,138 @@
+
+/* Bioentity */
+
+DROP TRIGGER BIOENTITY_OVERVIEW_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_OVERVIEW_TRIGGER
+BEFORE INSERT ON bioentity_overview
+FOR EACH ROW
+BEGIN
+SELECT bioentity_overview_seq.nextval INTO :new.bioentity_overview_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_GRAPH_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_GRAPH_TRIGGER
+BEFORE INSERT ON bioentity_graph
+FOR EACH ROW
+BEGIN
+SELECT bioentity_graph_seq.nextval INTO :new.bioentity_graph_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_RESOURCES_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_RESOURCES_TRIGGER
+BEFORE INSERT ON bioentity_resources
+FOR EACH ROW
+BEGIN
+SELECT bioentity_resources_seq.nextval INTO :new.bioentity_resources_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_ENRICHMENT_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_ENRICHMENT_TRIGGER
+BEFORE INSERT ON bioentity_enrichment
+FOR EACH ROW
+BEGIN
+SELECT bioentity_enrichment_seq.nextval INTO :new.bioentity_enrichment_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_PARAGRAPH_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_PARAGRAPH_TRIGGER
+BEFORE INSERT ON bioentity_paragraph
+FOR EACH ROW
+BEGIN
+SELECT bioentity_paragraph_seq.nextval INTO :new.bioentity_paragraph_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_DETAILS_TRIGGER
+BEFORE INSERT ON bioentity_details
+FOR EACH ROW
+BEGIN
+SELECT bioentity_details_seq.nextval INTO :new.bioentity_details_id FROM DUAL;
+END;
+/
+
+/* Bioconcept */
+
+DROP TRIGGER BIOCONCEPT_GRAPH_TRIGGER;
+--/
+CREATE TRIGGER BIOCONCEPT_GRAPH_TRIGGER
+BEFORE INSERT ON bioconcept_graph
+FOR EACH ROW
+BEGIN
+SELECT bioconcept_graph_seq.nextval INTO :new.bioconcept_graph_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOCONCEPT_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER BIOCONCEPT_DETAILS_TRIGGER
+BEFORE INSERT ON bioconcept_details
+FOR EACH ROW
+BEGIN
+SELECT bioconcept_details_seq.nextval INTO :new.bioconcept_details_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOCONCEPT_OVERVIEW_TRIGGER;
+--/
+CREATE TRIGGER BIOCONCEPT_OVERVIEW_TRIGGER
+BEFORE INSERT ON bioconcept_overview
+FOR EACH ROW
+BEGIN
+SELECT bioconcept_OVERVIEW_seq.nextval INTO :new.bioconcept_overview_id FROM DUAL;
+END;
+/
+
+/* Reference */
+DROP TRIGGER REFERENCE_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER REFERENCE_DETAILS_TRIGGER
+BEFORE INSERT ON reference_details
+FOR EACH ROW
+BEGIN
+SELECT reference_details_seq.nextval INTO :new.reference_details_id FROM DUAL;
+END;
+/
+
+/* Chemical */
+DROP TRIGGER CHEMICAL_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER CHEMICAL_DETAILS_TRIGGER
+BEFORE INSERT ON chemical_details
+FOR EACH ROW
+BEGIN
+SELECT chemical_details_seq.nextval INTO :new.chemical_details_id FROM DUAL;
+END;
+/
+
+/* Author */
+DROP TRIGGER AUTHOR_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER AUTHOR_DETAILS_TRIGGER
+BEFORE INSERT ON author_details
+FOR EACH ROW
+BEGIN
+SELECT author_details_seq.nextval INTO :new.author_details_id FROM DUAL;
+END;
+/
+
+/* Ontology */
+DROP TRIGGER ONTOLOGY_TRIGGER;
+--/
+CREATE TRIGGER ONTOLOGY__TRIGGER
+BEFORE INSERT ON ontology
+FOR EACH ROW
+BEGIN
+SELECT ontology_seq.nextval INTO :new.ontology_id FROM DUAL;
+END;
+/

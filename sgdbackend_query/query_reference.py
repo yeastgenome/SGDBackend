@@ -66,7 +66,7 @@ def get_bibentry(reference_id, print_query=False):
         return bibentries[0].text
     return None
 
-def get_authors(reference_id, print_query=False):
+def get_authors_for_reference(reference_id, print_query=False):
     query = session.query(AuthorReference).options(joinedload("author")).filter(AuthorReference.reference_id == reference_id)
     author_refs = query.all()
     author_refs.sort(key=lambda x: x.order)
@@ -80,6 +80,14 @@ def get_author(author_identifier):
         query = session.query(Author).filter(Author.format_name == author_identifier)
     author = query.first()
     return None if author is None else author_to_json(author)
+
+def get_authors(min_id, max_id):
+    query = session.query(Author)
+    if min_id is not None:
+        query = query.filter(Author.id >= min_id)
+    if max_id is not None:
+        query = query.filter(Author.id < max_id)
+    return [author_to_json(author) for author in query.all()]
 
 def get_references_for_author(author_id, print_query=False):
     query = session.query(AuthorReference).filter(AuthorReference.author_id == author_id)

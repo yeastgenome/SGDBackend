@@ -83,7 +83,7 @@ def cache_core():
     for source in get_all(Source):
         json_form = source_to_json(source)
         id_to_source[source.id] = json_form
-        
+
     print 'Cache chemicals'
     #Cache sources
     from model_new_schema.chemical import Chemical

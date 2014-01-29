@@ -3,7 +3,7 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.auxiliary import Biofact
+from model_new_schema import create_format_name
 from model_new_schema.bioconcept import Bioconceptrelation
 from model_new_schema.evidence import Phenotypeevidence
 from sgdbackend_query import get_evidence, get_conditions, get_evidence_snapshot, get_evidence_over_time, get_snapshot_with_filter
@@ -26,6 +26,7 @@ def get_experiment_ancestry(experiment_id, child_experiment_id_to_parent_id):
 
 
 def make_overview(locus_id=None, phenotype_id=None):
+    qualifiers = None
     phenoevidences = []
     if phenotype_id is not None and id_to_biocon[phenotype_id]['is_core']:
         child_ids = [x.child_id for x in get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[phenotype_id]) if not id_to_biocon[x.child_id]['is_core']]
@@ -33,6 +34,9 @@ def make_overview(locus_id=None, phenotype_id=None):
             more_evidences = get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=child_id)
             if more_evidences is not None:
                 phenoevidences.extend(more_evidences)
+
+        qualifiers = [id_to_biocon[x.child_id] for x in get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[phenotype_id]) if not id_to_biocon[x.child_id]['is_core']]
+
 
     more_evidences = get_evidence(Phenotypeevidence, bioent_id=locus_id, biocon_id=phenotype_id)
     if more_evidences is not None:
@@ -81,7 +85,10 @@ def make_overview(locus_id=None, phenotype_id=None):
     strain_list = sorted(strain_to_count.keys(), key=lambda x: strain_to_count[x], reverse=True)
 
 
-    return {'experiment_types': ['classical genetics', 'large-scale survey'], 'mutant_to_count': mutant_to_count, 'mutant_types': mutant_list, 'strain_to_count':strain_to_count, 'strain_list': strain_list}
+    overview = {'experiment_types': ['classical genetics', 'large-scale survey'], 'mutant_to_count': mutant_to_count, 'mutant_types': mutant_list, 'strain_to_count':strain_to_count, 'strain_list': strain_list}
+    if qualifiers is not None:
+        overview['qualifiers'] = qualifiers
+    return overview
 
 # -------------------------------Details---------------------------------------
     
@@ -166,7 +173,8 @@ def create_ontology_edge(interaction_id, biocon1_id, biocon2_id):
     return {'data':{'target': 'Node' + str(biocon1_id), 'source': 'Node' + str(biocon2_id)}} 
 
 def make_ontology_graph(phenotype_id):
-    children = get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[phenotype_id])    
+    all_children = None
+    children = get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[phenotype_id])
     parents = get_relations(Bioconceptrelation, 'PHENOTYPE', child_ids=[phenotype_id])
     if len(parents) > 0:
         grandparents = get_relations(Bioconceptrelation, 'PHENOTYPE', child_ids=[parent.parent_id for parent in parents])
@@ -184,6 +192,15 @@ def make_ontology_graph(phenotype_id):
         child_id_to_child = dict([(x, id_to_biocon[x]) for x in child_ids])
         parent_id_to_parent = dict([(x, id_to_biocon[x]) for x in parent_ids])
         viable_ids = set([k for k, v in child_id_to_child.iteritems() if v['is_core']])
+
+        #If there are too many children, hide some.
+        all_children = []
+        hidden_children_count = 0
+        if len(viable_ids) > 8:
+            all_children = sorted([id_to_biocon[x] for x in viable_ids], key=lambda x: x['display_name'])
+            hidden_children_count = len(viable_ids)-7
+            viable_ids = set(list(viable_ids)[:7])
+
         viable_ids.update([k for k, v in parent_id_to_parent.iteritems() if v['is_core']])
         viable_ids.add(phenotype_id)
         
@@ -196,6 +213,11 @@ def make_ontology_graph(phenotype_id):
         edges.extend([create_ontology_edge(x.id, x.child_id, x.parent_id) for x in grandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
         edges.extend([create_ontology_edge(x.id, x.child_id, x.parent_id) for x in great_grandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
         edges.extend([create_ontology_edge(x.id, x.child_id, x.parent_id) for x in great_great_grandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
+
+        if hidden_children_count > 0:
+            nodes.insert(0, {'data':{'id':'NodeMoreChildren', 'name':str(hidden_children_count) + ' more children', 'link': None, 'sub_type':id_to_biocon[phenotype_id]['ancestor_type']}})
+            edges.insert(0, {'data':{'target': 'NodeMoreChildren', 'source': 'Node' + str(phenotype_id)}})
+
     else:
         grandchildren = get_relations(Bioconceptrelation, 'PHENOTYPE', parent_ids=[x.child_id for x in children])  
         
@@ -214,7 +236,7 @@ def make_ontology_graph(phenotype_id):
         edges.extend([create_ontology_edge(x.id, x.child_id, x.parent_id) for x in children if x.child_id in viable_ids and x.parent_id in viable_ids])
         edges.extend([create_ontology_edge(x.id, x.child_id, x.parent_id) for x in grandchildren if x.child_id in viable_ids and x.parent_id in viable_ids])
     
-    return {'nodes': list(nodes), 'edges': edges}
+    return {'nodes': list(nodes), 'edges': edges, 'all_children': all_children}
 
 # -------------------------------Ontology---------------------------------------
 
@@ -236,12 +258,23 @@ def create_bioent_node(bioent, is_focus, gene_count):
     return {'data':{'id':'BioentNode' + str(bioent['id']), 'name':bioent['display_name'], 'link': bioent['link'],
                     'sub_type':sub_type, 'type': 'BIOENTITY', 'gene_count':gene_count}}
 
-def create_biocon_node(biocon, gene_count):
-    return {'data':{'id':'BioconNode' + str(biocon['id']), 'name':biocon['display_name'], 'link': biocon['link'],
+def create_biocon_node(biocon_id, biocon_type, gene_count):
+    if biocon_type == 'PHENOTYPE':
+        return {'data':{'id':'BioconNode' + biocon_id, 'name':biocon_id, 'link': '/observable/' + create_format_name(biocon_id) + '/overview',
+                    'sub_type':None, 'type': 'BIOCONCEPT', 'gene_count':gene_count}}
+    else:
+        biocon = id_to_biocon[biocon_id]
+        return {'data':{'id':'BioconNode' + str(biocon['id']), 'name':biocon['display_name'], 'link': biocon['link'],
                     'sub_type':None if not 'go_aspect' in biocon else biocon['go_aspect'], 'type': 'BIOCONCEPT', 'gene_count':gene_count}}
 
 def create_edge(bioent_id, biocon_id):
     return {'data':{'target': 'BioentNode' + str(bioent_id), 'source': 'BioconNode' + str(biocon_id)}}
+
+def biocon_id_conversion(bioconcept_id, biocon_type):
+    if biocon_type == 'PHENOTYPE':
+        return id_to_biocon[bioconcept_id]["observable"]
+    else:
+        return bioconcept_id
 
 def make_graph(bioent_id, biocon_type, biocon_f=None):
 
@@ -251,10 +284,15 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
     biocon_id_to_bioent_ids = {}
     bioent_id_to_biocon_ids = {}
 
-    all_relevant_biofacts = [x for x in get_biofacts(biocon_type, biocon_ids=bioconcept_ids) if biocon_f is None or biocon_f(x.bioconcept_id)]
+    if len(bioconcept_ids) > 0:
+        all_relevant_biofacts = [x for x in get_biofacts(biocon_type, biocon_ids=bioconcept_ids) if biocon_f is None or biocon_f(x.bioconcept_id)]
+    else:
+        all_relevant_biofacts = []
+
     for biofact in all_relevant_biofacts:
         bioentity_id = biofact.bioentity_id
-        bioconcept_id = biofact.bioconcept_id
+        bioconcept_id = biocon_id_conversion(biofact.bioconcept_id, biocon_type)
+
         if bioconcept_id in biocon_id_to_bioent_ids:
             biocon_id_to_bioent_ids[bioconcept_id].add(bioentity_id)
         else:
@@ -269,24 +307,31 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
     node_count = len(bioent_id_to_biocon_ids) + len(biocon_id_to_bioent_ids)
     edge_count = len(all_relevant_biofacts)
     bioent_count = len(bioent_id_to_biocon_ids)
+    biocon_ids_in_use = set([x for x, y in biocon_id_to_bioent_ids.iteritems()])
+    bioent_ids_in_use = set([x for x, y in bioent_id_to_biocon_ids.iteritems()])
+    biofacts_in_use = [x for x in all_relevant_biofacts]
     while node_count > 100 or edge_count > 250 or bioent_count > 50:
         cutoff = cutoff + 1
         bioent_ids_in_use = set([x for x, y in bioent_id_to_biocon_ids.iteritems() if len(y) >= cutoff])
         biocon_ids_in_use = set([x for x, y in biocon_id_to_bioent_ids.iteritems() if len(y & bioent_ids_in_use) > 1])
-        biofacts_in_use = [x for x in all_relevant_biofacts if x.bioentity_id in bioent_ids_in_use and x.bioconcept_id in biocon_ids_in_use]
+        biofacts_in_use = [x for x in all_relevant_biofacts if x.bioentity_id in bioent_ids_in_use and biocon_id_conversion(x.bioconcept_id, biocon_type) in biocon_ids_in_use]
         node_count = len(bioent_ids_in_use) + len(biocon_ids_in_use)
         edge_count = len(biofacts_in_use)
         bioent_count = len(bioent_ids_in_use)
 
-    bioent_to_score = dict({(x, len(y&biocon_ids_in_use)) for x, y in bioent_id_to_biocon_ids.iteritems()})
-    bioent_to_score[bioent_id] = 0
+    if len(bioent_ids_in_use) > 0:
 
-    nodes = [create_bioent_node(id_to_bioent[x], x==bioent_id, len(bioent_id_to_biocon_ids[x] & biocon_ids_in_use)) for x in bioent_ids_in_use]
-    nodes.extend([create_biocon_node(id_to_biocon[x], max(bioent_to_score[x] for x in biocon_id_to_bioent_ids[x])) for x in biocon_ids_in_use])
+        bioent_to_score = dict({(x, len(y&biocon_ids_in_use)) for x, y in bioent_id_to_biocon_ids.iteritems()})
+        bioent_to_score[bioent_id] = 0
 
-    edges = [create_edge(biofact.bioentity_id, biofact.bioconcept_id) for biofact in biofacts_in_use]
+        nodes = [create_bioent_node(id_to_bioent[x], x==bioent_id, len(bioent_id_to_biocon_ids[x] & biocon_ids_in_use)) for x in bioent_ids_in_use]
+        nodes.extend([create_biocon_node(x, biocon_type, max(bioent_to_score[x] for x in biocon_id_to_bioent_ids[x])) for x in biocon_ids_in_use])
 
-    return {'nodes': nodes, 'edges': edges, 'max_cutoff': max(bioent_to_score.values()), 'min_cutoff':cutoff if len(bioent_ids_in_use) == 1 else min([bioent_to_score[x] for x in bioent_ids_in_use if x != bioent_id])}
+        edges = [create_edge(biofact.bioentity_id, biocon_id_conversion(biofact.bioconcept_id, biocon_type)) for biofact in biofacts_in_use]
+
+        return {'nodes': nodes, 'edges': edges, 'max_cutoff': max(bioent_to_score.values()), 'min_cutoff':cutoff if len(bioent_ids_in_use) == 1 else min([bioent_to_score[x] for x in bioent_ids_in_use if x != bioent_id])}
+    else:
+        return {'nodes':[], 'edges':[], 'max_cutoff':0, 'min_cutoff':0}
 
 '''
 -------------------------------Snapshot---------------------------------------

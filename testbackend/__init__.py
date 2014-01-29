@@ -1,7 +1,7 @@
 from backend.backend_interface import BackendInterface
 from datetime import datetime
 from go_enrichment import query_batter
-from model_perf_schema.data import create_data_classes, data_classes
+from model_perf_schema.bioentity_data import create_data_classes, data_classes
 from mpmath import ceil
 from perfbackend_utils import set_up_logging
 from pyramid.config import Configurator

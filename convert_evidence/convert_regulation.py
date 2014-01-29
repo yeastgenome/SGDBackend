@@ -152,7 +152,7 @@ def convert_evidence(new_session_maker, chunk_size):
                             untouched_obj_ids.remove(current_obj_by_key.id)
                         already_seen.add(unique_key)
                     else:
-                        print unique_key
+                        print 'Duplicate evidence entries: ' + str(unique_key)
                         
             #Delete untouched objs
             for untouched_obj  in untouched_obj_ids:
@@ -264,23 +264,24 @@ def create_paragraph_reference(row, key_to_bioentity, key_to_paragraph, pubmed_i
     
     paragraph_key = (bioent.format_name, 'REGULATION')
     if paragraph_key not in key_to_paragraph:
-        print 'Paragraph does nto exist. ' + str(paragraph_key)
+        print 'Paragraph does not exist. ' + str(paragraph_key)
         return None
     paragraph = key_to_paragraph[paragraph_key]
     
     paragraph_references = []
-    
-    pubmed_ids = row[3].split('|')
-    for pubmed_id in pubmed_ids:
-        num_pubmed_id = ''
-        if pubmed_id != '':
-            num_pubmed_id = int(pubmed_id.strip())
-        if num_pubmed_id not in pubmed_id_to_reference:
-            print 'Reference does not exist. ' + str(num_pubmed_id)
-            return None
-        reference = pubmed_id_to_reference[num_pubmed_id]
-        source = key_to_source['SGD']
-        paragraph_references.append(ParagraphReference(source, paragraph, reference, 'REGULATION', None, None))
+
+    if len(row) == 4:
+        pubmed_ids = row[3].split('|')
+        for pubmed_id in pubmed_ids:
+            num_pubmed_id = ''
+            if pubmed_id != '':
+                num_pubmed_id = int(pubmed_id.strip())
+            if num_pubmed_id not in pubmed_id_to_reference:
+                print 'Reference does not exist. ' + str(num_pubmed_id)
+                return None
+            reference = pubmed_id_to_reference[num_pubmed_id]
+            source = key_to_source['SGD']
+            paragraph_references.append(ParagraphReference(source, paragraph, reference, 'REGULATION', None, None))
         
    
     return paragraph_references
@@ -357,7 +358,7 @@ def convert_paragraph_reference(new_session_maker):
 """  
 
 def convert(new_session_maker):
-    convert_evidence(new_session_maker, 300)    
+    convert_evidence(new_session_maker, 300)
         
     from model_new_schema.evidence import Regulationevidence
     get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
@@ -369,6 +370,3 @@ def convert(new_session_maker):
     convert_interaction(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.interaction', 10000, True)
     
     convert_bioentity_reference(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.bioentity_reference', 10000, get_bioent_ids_f)
-                
-
-    

@@ -128,6 +128,8 @@ def convert_bioentity_reference(new_session_maker, evidence_class, class_type, l
 --------------------- Convert Disambigs ---------------------
 """
 
+additional_disambigs = {'GO:0003674': 'molecular_function', 'GO:0005575': 'cellular_component', 'GO:0008150': 'biological_process'}
+
 def is_number(str_value):
     try:
         int(str_value)
@@ -146,7 +148,12 @@ def create_disambigs(obj, fields, class_type, subclass_type):
     
     disambigs = []
     for field_value in field_values:
-        disambigs.append(Disambig(str(field_value), class_type, subclass_type, obj.id))
+        try:
+            disambigs.append(Disambig(str(field_value), class_type, subclass_type, obj.id))
+            if field_value in additional_disambigs:
+                disambigs.append(Disambig(additional_disambigs[field_value], class_type, subclass_type, obj.id))
+        except:
+            pass
     return disambigs
 
 def convert_disambigs(new_session_maker, cls, fields, class_type, subclass_type, label, chunk_size):

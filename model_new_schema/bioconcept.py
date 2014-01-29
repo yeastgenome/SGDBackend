@@ -102,7 +102,7 @@ class Go(Bioconcept):
     __tablename__ = 'gobioconcept'
     
     id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
-    go_id = Column('go_id', Integer)
+    go_id = Column('go_id', String)
     go_aspect = Column('go_aspect', String)
     
     __mapper_args__ = {'polymorphic_identity': "GO",
@@ -111,13 +111,13 @@ class Go(Bioconcept):
     def __init__(self, display_name, source, sgdid, description, 
                  go_id, go_aspect, date_created, created_by):
         if display_name == 'biological_process':
-            Bioconcept.__init__(self, 'GO Biological Process Ontology', 'biological_process', 'GO', '/ontology/go/biological_process/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'GO Biological Process Ontology', go_id, 'GO', '/ontology/go/biological_process/overview', source, sgdid, description, date_created, created_by)
         elif display_name == 'molecular_function':
-            Bioconcept.__init__(self, 'GO Molecular Function Ontology', 'molecular_function', 'GO', '/ontology/go/molecular_function/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'GO Molecular Function Ontology', go_id, 'GO', '/ontology/go/molecular_function/overview', source, sgdid, description, date_created, created_by)
         elif display_name == 'cellular_component':
-            Bioconcept.__init__(self, 'GO Cellular Component Ontology', 'cellular_component', 'GO', '/ontology/go/cellular_component/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'GO Cellular Component Ontology', go_id, 'GO', '/ontology/go/cellular_component/overview', source, sgdid, description, date_created, created_by)
         else:
-            Bioconcept.__init__(self, display_name, 'GO:' + str(go_id), 'GO', '/go/GO:' + str(go_id) + '/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, display_name, go_id, 'GO', '/go/' + go_id + '/overview', source, sgdid, description, date_created, created_by)
         self.go_id = go_id
         self.go_aspect = go_aspect
         
@@ -154,7 +154,7 @@ class Phenotype(Bioconcept):
                  observable, qualifier, phenotype_type, ancestor_type,
                  date_created, created_by):
         if observable == 'observable':
-            Bioconcept.__init__(self, 'YPO Ontology', 'ypo', 'PHENOTYPE', '/ontology/phenotype/ypo/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'Yeast Phenotype Ontology', 'ypo', 'PHENOTYPE', '/ontology/phenotype/ypo/overview', source, sgdid, description, date_created, created_by)
         else:
             format_name = create_phenotype_format_name(observable, qualifier)
             link = '/observable/' + format_name + '/overview' if qualifier is None else '/phenotype/' + format_name + '/overview'

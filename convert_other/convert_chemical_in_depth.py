@@ -82,8 +82,6 @@ def convert_chemical_relation(old_session_maker, new_session_maker):
                         untouched_obj_ids.remove(current_obj_by_id.id)
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                         untouched_obj_ids.remove(current_obj_by_key.id)
-                else:
-                    print unique_key
                     
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -111,9 +109,8 @@ def convert(old_session_maker, new_session_maker):
     
     log.info('begin')
         
-    #convert_chemical_relation(old_session_maker, new_session_maker)
-    convert_chem_count(new_session_maker, 'convert.chemical.count')
-            
+    convert_chemical_relation(old_session_maker, new_session_maker)
+
     from model_new_schema.chemical import Chemical
     convert_disambigs(new_session_maker, Chemical, ['id', 'format_name'], 'CHEMICAL', None, 'convert.chemical.disambigs', 2000)
  

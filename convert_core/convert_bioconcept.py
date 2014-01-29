@@ -3,12 +3,16 @@ Created on Oct 25, 2013
 
 @author: kpaskov
 '''
+
+#1.23.14 Maitenance (sgd-dev): 1:04
+
 from sqlalchemy import or_
 from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 import logging
 import sys
+
 
 """
 --------------------- Convert Phenotype ---------------------
@@ -44,7 +48,10 @@ def create_phenotype_from_cv_term(old_cvterm, key_to_source, observable_to_ances
     source = key_to_source['SGD']
     phenotype_type = create_phenotype_type(observable)
     ancestor_type = None if observable not in observable_to_ancestor else observable_to_ancestor[observable]
-    new_phenotype = NewPhenotype(source, None, old_cvterm.definition,
+    description = old_cvterm.definition
+    if observable == 'observable':
+        description = 'Features of Saccharomyces cerevisiae cells, cultures, or colonies that can be detected, observed, measured, or monitored.'
+    new_phenotype = NewPhenotype(source, None, description,
                                  observable, None, phenotype_type, ancestor_type, 
                                  old_cvterm.date_created, old_cvterm.created_by)
     return [new_phenotype]
@@ -54,20 +61,24 @@ def create_chemical_phenotype(phenotype, key_to_source, observable_to_ancestor):
 
     new_phenotypes = []
     for phenotype_feature in phenotype.phenotype_features:
-        if len(phenotype_feature.experiment.chemicals) != 1:
-            print 'Chemical problem ' + str(phenotype_feature.experiment.chemicals)
+        chemical = ' and '.join([x[0] for x in phenotype_feature.experiment.chemicals])
 
-        chemical = phenotype_feature.experiment.chemicals[0][0]
         source = key_to_source['SGD']
         old_observable = phenotype.observable
+        description = None
         if old_observable == 'resistance to chemicals':
             new_observable = phenotype.observable.replace('chemicals', chemical)
+            description = 'The level of resistance to exposure to ' + chemical + '.'
         else:
             new_observable = phenotype.observable.replace('chemical compound', chemical)
+            if old_observable == 'chemical compound accumulation':
+                description = 'The production and/or storage of ' + chemical + '.'
+            elif old_observable == 'chemical compound excretion':
+                description = 'The excretion from the cell of ' + chemical + '.'
         qualifier = phenotype.qualifier
         phenotype_type = create_phenotype_type(old_observable)
         ancestor_type = None if old_observable not in observable_to_ancestor else observable_to_ancestor[old_observable]
-        new_parent_phenotype = NewPhenotype(source, None, None,
+        new_parent_phenotype = NewPhenotype(source, None, description,
                                      new_observable, None, phenotype_type, ancestor_type,
                                      phenotype_feature.date_created, phenotype_feature.created_by)
         new_phenotype = NewPhenotype(source, None, None,
@@ -225,7 +236,7 @@ def create_go(old_go, key_to_source):
     display_name = old_go.go_term
     source = key_to_source['GO']
     new_go = NewGo(display_name, source, None, old_go.go_definition,
-                   old_go.go_go_id, abbrev_to_go_aspect[old_go.go_aspect],  
+                   'GO:' + str(old_go.go_go_id).zfill(7), abbrev_to_go_aspect[old_go.go_aspect],
                    old_go.date_created, old_go.created_by)
     return [new_go]
 
@@ -370,7 +381,6 @@ def convert_ecnumber(old_session_maker, new_session_maker):
 def convert(old_session_maker, new_session_maker):
     convert_phenotype(old_session_maker, new_session_maker)
     
-    #convert_go(old_session_maker, new_session_maker)
+    convert_go(old_session_maker, new_session_maker)
     
-    #convert_ecnumber(old_session_maker, new_session_maker)
-    
+    convert_ecnumber(old_session_maker, new_session_maker)

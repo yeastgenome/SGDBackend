@@ -49,58 +49,41 @@ def make_overview(bioent):
 -------------------------------Details---------------------------------------
 '''
     
-def make_details(divided, locus_id=None, reference_id=None):
+def make_details(locus_id=None, reference_id=None):
     from model_new_schema.evidence import Geninteractionevidence, Physinteractionevidence
     genetic_interevidences = get_evidence(Geninteractionevidence, bioent_id=locus_id, reference_id=reference_id)
     physical_interevidences = get_evidence(Physinteractionevidence, bioent_id=locus_id, reference_id=reference_id)
 
-    tables = {}
-    if divided:
-        tables['genetic'] = {'Error': 'Too much data to display.'} if genetic_interevidences is None else create_simple_table(genetic_interevidences, make_evidence_row, bioent_id=locus_id)
-        tables['physical'] = {'Error': 'Too much data to display.'} if physical_interevidences is None else create_simple_table(physical_interevidences, make_evidence_row, bioent_id=locus_id)
-        
-    else:
-        all_interevidences = [x for x in genetic_interevidences]
-        all_interevidences.extend(physical_interevidences)
-        tables = create_simple_table(all_interevidences, make_evidence_row, bioent_id=locus_id)
+    if genetic_interevidences is None or physical_interevidences is None:
+        return {'Error': 'Too much data to display.'}
+
+    all_interevidences = [x for x in genetic_interevidences]
+    all_interevidences.extend(physical_interevidences)
+    tables = create_simple_table(all_interevidences, make_evidence_row, bioent_id=locus_id)
         
     return tables  
 
-def make_evidence_row(interevidence, bioent_id=None): 
-    if bioent_id is not None:
-        if interevidence.bioentity1_id == bioent_id:
-            bioent1_id = bioent_id
-            bioent2_id = interevidence.bioentity2_id
-            direction = interevidence.bait_hit.split('-').pop(1)
-        else:
-            bioent1_id = bioent_id
-            bioent2_id = interevidence.bioentity1_id
-            direction = interevidence.bait_hit.split('-').pop(0)
-    else:
-        bioent1_id = interevidence.bioentity1_id
-        bioent2_id = interevidence.bioentity2_id
-        direction = interevidence.bait_hit
-        
+def make_evidence_row(interevidence, bioent_id=None):
     if interevidence.class_type == 'GENINTERACTION':
         phenotype_id = interevidence.phenotype_id
         obj_json = evidence_to_json(interevidence).copy()
-        obj_json['bioentity1'] = minimize_json(id_to_bioent[bioent1_id], include_format_name=True)
-        obj_json['bioentity2'] = minimize_json(id_to_bioent[bioent2_id], include_format_name=True)
+        obj_json['bioentity1'] = minimize_json(id_to_bioent[interevidence.bioentity1_id], include_format_name=True)
+        obj_json['bioentity2'] = minimize_json(id_to_bioent[interevidence.bioentity2_id], include_format_name=True)
         obj_json['phenotype'] = None if phenotype_id is None else minimize_json(id_to_biocon[phenotype_id])
         obj_json['mutant_type'] = interevidence.mutant_type
         obj_json['interaction_type'] = 'Genetic'
         obj_json['annotation_type'] = interevidence.annotation_type
-        obj_json['direction'] = direction
+        obj_json['bait_hit'] = interevidence.bait_hit
         return obj_json
         
     elif interevidence.class_type == 'PHYSINTERACTION':
         obj_json = evidence_to_json(interevidence).copy()
-        obj_json['bioentity1'] = minimize_json(id_to_bioent[bioent1_id], include_format_name=True)
-        obj_json['bioentity2'] = minimize_json(id_to_bioent[bioent2_id], include_format_name=True)
+        obj_json['bioentity1'] = minimize_json(id_to_bioent[interevidence.bioentity1_id], include_format_name=True)
+        obj_json['bioentity2'] = minimize_json(id_to_bioent[interevidence.bioentity2_id], include_format_name=True)
         obj_json['modification'] = interevidence.modification
         obj_json['interaction_type'] = 'Physical'
         obj_json['annotation_type'] = interevidence.annotation_type
-        obj_json['direction'] = direction
+        obj_json['bait_hit'] = interevidence.bait_hit
         return obj_json
     else:
         return None

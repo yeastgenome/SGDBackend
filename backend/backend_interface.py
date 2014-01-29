@@ -35,6 +35,10 @@ class BackendInterface:
     @abstractmethod
     def all_bibentries(self, min_id, max_id):
         return None
+
+    @abstractmethod
+    def all_authors(self, min_id, max_id):
+        return None
     
     @abstractmethod
     def reference_list(self, reference_ids):
@@ -79,6 +83,10 @@ class BackendInterface:
     @abstractmethod
     def chemical(self, identifier):
         return None
+
+    @abstractmethod
+    def all_chemicals(self, min_id, max_id):
+        return None
     
     #Go
     @abstractmethod
@@ -94,7 +102,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def go_details(self, locus_identifier=None, phenotype_identifier=None, reference_identifier=None, with_children=False):
+    def go_details(self, locus_identifier=None, go_identifier=None, reference_identifier=None, with_children=False):
         return None
     
     @abstractmethod
@@ -104,10 +112,6 @@ class BackendInterface:
     @abstractmethod
     def go_graph(self, identifier):
         return None
-
-    @abstractmethod
-    def go_snapshot(self):
-        return None
     
     #Interaction
     @abstractmethod
@@ -115,7 +119,7 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def interaction_details(self, locus_identifier=None, reference_identifier=None):
+    def interaction_details(self, locus_identifier=None, reference_identifier=None, ids_only=False):
         return None
     
     @abstractmethod
@@ -124,10 +128,6 @@ class BackendInterface:
     
     @abstractmethod
     def interaction_resources(self, identifier):
-        return None
-
-    @abstractmethod
-    def interaction_snapshot(self):
         return None
     
     #Literature
@@ -142,16 +142,12 @@ class BackendInterface:
     @abstractmethod
     def literature_graph(self, identifier):
         return None
-
-    @abstractmethod
-    def literature_snapshot(self):
-        return None
     
     #Phenotype
     @abstractmethod
     def phenotype(self, identifier):
         return None
-    
+
     @abstractmethod
     def phenotype_ontology(self):
         return None
@@ -175,10 +171,6 @@ class BackendInterface:
     @abstractmethod
     def phenotype_graph(self, identifier):
         return None
-
-    @abstractmethod
-    def phenotype_snapshot(self):
-        return None
     
     #Protein
     @abstractmethod
@@ -197,13 +189,13 @@ class BackendInterface:
     @abstractmethod
     def regulation_graph(self, identifier):
         return None
+
+    @abstractmethod
+    def regulation_paragraph(self, identifier):
+        return None
     
     @abstractmethod
     def regulation_target_enrichment(self, identifier):
-        return None
-
-    @abstractmethod
-    def regulation_snapshot(self):
         return None
     
     #Sequence
@@ -211,5 +203,3 @@ class BackendInterface:
     def binding_site_details(self, locus_identifier=None, reference_identifier=None):
         return None
 
-    
-    

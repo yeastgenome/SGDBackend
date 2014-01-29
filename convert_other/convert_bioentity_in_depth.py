@@ -395,7 +395,7 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
 """   
 
 def convert(old_session_maker, new_session_maker):  
-    #convert_alias(old_session_maker, new_session_maker)
+    convert_alias(old_session_maker, new_session_maker)
     
     convert_url(old_session_maker, new_session_maker, 1000)
         

@@ -18,9 +18,6 @@ from sgdbackend_utils.obj_to_json import paragraph_to_json, condition_to_json, \
 '''
 def make_overview(bioent_id):
     overview = {}
-    paragraph = get_paragraph(bioent_id, 'REGULATION')
-    if paragraph is not None:
-        overview['paragraph'] = paragraph_to_json(paragraph)
     interactions = get_interactions('REGULATION', bioent_id)
     target_count = len([interaction.bioentity2_id for interaction in interactions if interaction.bioentity1_id==bioent_id])
     regulator_count = len([interaction.bioentity1_id for interaction in interactions if interaction.bioentity2_id==bioent_id])
@@ -28,19 +25,23 @@ def make_overview(bioent_id):
     overview['target_count'] = target_count
     overview['regulator_count'] = regulator_count
     return overview
-   
+
+'''
+-------------------------------Paragraph---------------------------------------
+'''
+def make_paragraph(bioent_id):
+    paragraph = get_paragraph(bioent_id, 'REGULATION')
+    return None if paragraph is None else paragraph_to_json(paragraph)
+
 '''
 -------------------------------Evidence Table---------------------------------------
 '''
     
-def make_details(divided, locus_id=None, reference_id=None):
+def make_details(locus_id=None, reference_id=None):
     regevidences = get_evidence(Regulationevidence, bioent_id=locus_id, reference_id=reference_id)
 
     if regevidences is None:
-        if divided:
-            return {'targets': {'Error': 'Too much data to display.'}, 'regulators': {'Error': 'Too much data to display.'}}
-        else:
-            return {'Error': 'Too much data to display.'}
+        return {'Error': 'Too much data to display.'}
 
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in regevidences]):
@@ -49,20 +50,8 @@ def make_details(divided, locus_id=None, reference_id=None):
             id_to_conditions[evidence_id].append(condition)
         else:
             id_to_conditions[evidence_id] = [condition]
-            
-    tables = {}
 
-    if divided:
-        target_regevidences = [regevidence for regevidence in regevidences if regevidence.bioentity1_id==locus_id]
-        regulator_regevidences = [regevidence for regevidence in regevidences if regevidence.bioentity2_id==locus_id]
-        
-        tables['targets'] = create_simple_table(target_regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        tables['regulators'] = create_simple_table(regulator_regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        
-    else:
-        tables = create_simple_table(regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        
-    return tables    
+    return create_simple_table(regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
 
 def make_evidence_row(regevidence, id_to_conditions): 
     conditions = [] if regevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[regevidence.id]]
@@ -187,38 +176,5 @@ def make_graph(bioent_id):
 def make_snapshot():
     snapshot = {}
     snapshot['experiment'] = dict([(None if x is None else id_to_experiment[x]['display_name'], y) for x, y in get_evidence_snapshot(Regulationevidence, 'experiment_id').iteritems()])
-
-    # counts1 = get_evidence_snapshot(Regulationevidence, 'bioentity1_id')
-    # counts2 = get_evidence_snapshot(Regulationevidence, 'bioentity2_id')
-    #
-    # regulator_counts = get_snapshot_with_filter(Interaction, 'bioentity1_id', 'REGULATION')
-    # regulator_counts = get_snapshot_with_filter(Interaction, 'bioentity2_id', 'REGULATION')
-    #
-    # snapshot['annotation_histogram'] = {}
-    # snapshot['target_histogram'] = {}
-    # snapshot['regulator_histogram'] = {}
-    # for bioent in id_to_bioent.values():
-    #     if bioent['class_type'] == 'LOCUS' and bioent['locus_type'] == 'ORF':
-    #         bioent_id = bioent['id']
-    #         annotation_count = (0 if bioent_id not in counts1 else counts1[bioent_id]) + \
-    #                            (0 if bioent_id not in counts2 else counts2[bioent_id])
-    #         regulator_count = 0 if bioent_id not in regulator_counts else regulator_counts[bioent_id]
-    #         regulator_count = 0 if bioent_id not in regulator_counts else regulator_counts[bioent_id]
-    #         if annotation_count not in snapshot['annotation_histogram']:
-    #             snapshot['annotation_histogram'][annotation_count] = 1
-    #         else:
-    #             snapshot['annotation_histogram'][annotation_count] = snapshot['annotation_histogram'][annotation_count] + 1
-    #         if interaction_count not in snapshot['interaction_histogram']:
-    #             snapshot['interaction_histogram'][interaction_count] = 1
-    #         else:
-    #             snapshot['interaction_histogram'][interaction_count] = snapshot['interaction_histogram'][interaction_count] + 1
-    #
-    # for i in range(0, max(snapshot['annotation_histogram'].keys())):
-    #     if i not in snapshot['annotation_histogram']:
-    #         snapshot['annotation_histogram'][i] = 0
-    #
-    # for i in range(0, max(snapshot['interaction_histogram'].keys())):
-    #     if i not in snapshot['interaction_histogram']:
-    #         snapshot['interaction_histogram'][i] = 0
 
     return snapshot
