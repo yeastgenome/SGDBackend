@@ -53,7 +53,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
     phenotype = None if phenotype_key not in key_to_phenotype else key_to_phenotype[phenotype_key]
 
     if phenotype is None:
-        print 'Phenotype not found: ' + phenotype_key
+        print 'Phenotype not found: ' + str(phenotype_key)
         return []
        
     experiment_key = create_format_name(old_phenotype_feature.experiment_type)
@@ -87,7 +87,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
             if reporter is not None:
                 conditions.append(Bioitemcondition(old_experiment.reporter[1], 'Reporter', reporter))
             else:
-                print 'Reporter not found: ' + reporter_key
+                print 'Reporter not found: ' + str(reporter_key)
         
         #Get allele
         if old_experiment.allele is not None:
@@ -96,7 +96,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
             if allele is not None:
                 conditions.append(Bioitemcondition(old_experiment.allele[1], 'Allele', allele)) 
             else:
-                print 'Allele not found: ' + allele_key
+                print 'Allele not found: ' + str(allele_key)
             
         #Get chemicals
         from model_new_schema.condition import Chemicalcondition
@@ -116,10 +116,6 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
         from model_new_schema.condition import Generalcondition
         for (a, b) in old_experiment.condition:
             conditions.append(Generalcondition(a if b is None else a + ': ' + b))
-            
-        #Get conditions from experiment_comment
-        if old_experiment.experiment_comment is not None:
-            conditions.append(Generalcondition(old_experiment.experiment_comment))
             
     source_key = old_phenotype_feature.source
     source = None if source_key not in key_to_source else key_to_source[source_key]

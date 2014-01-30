@@ -139,7 +139,7 @@ def create_node(biocon, is_focus):
                     'sub_type':sub_type}}
 
 def create_edge(biocon1_id, biocon2_id, label):
-    return {'data':{'target': 'Node' + str(biocon1_id), 'source': 'Node' + str(biocon2_id), 'name':None if label == 'is a' else label}}
+    return {'data':{'target': 'Node' + str(biocon1_id), 'source': 'Node' + str(biocon2_id), 'name':label}}
 
 def make_ontology_graph(phenotype_id):
     all_children = None

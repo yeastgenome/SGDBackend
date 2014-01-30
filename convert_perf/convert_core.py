@@ -33,18 +33,17 @@ def update_disambig(disambig_json, disambig):
         changed = True
     return changed
 
-def convert_disambig(session_maker, backend, chunk_size):
+def convert_disambig(session_maker, backend, log, chunk_size):
     from model_perf_schema.core import Disambig
     
-    log = logging.getLogger('perfconvert.disambig')
-    log.info('begin')
+    log.info('convert_disambig')
     output_creator = OutputCreator(log)
     
     try:
         session = session_maker()
         
         min_disambig_id = 0
-        max_disambig_id = 400000
+        max_disambig_id = 900000
         num_chunks = ceil(1.0*(max_disambig_id-min_disambig_id)/chunk_size)
         for i in range(0, num_chunks):
             min_id = min_disambig_id + i*chunk_size
@@ -112,11 +111,10 @@ def update_bioentity(json_obj, locustabs_json, bioentity):
         changed = True
     return changed
 
-def convert_bioentity(session_maker, backend, chunk_size):
+def convert_bioentity(session_maker, backend, log, chunk_size):
     from model_perf_schema.core import Bioentity
     
-    log = logging.getLogger('perfconvert.bioentity')
-    log.info('begin')
+    log.info('convert_bioentity')
     output_creator = OutputCreator(log)
     
     try:
@@ -195,11 +193,10 @@ def update_bioconcept(json_obj, bioconcept):
         changed = True
     return changed
 
-def convert_bioconcept(session_maker, backend, chunk_size):
+def convert_bioconcept(session_maker, backend, log, chunk_size):
     from model_perf_schema.core import Bioconcept
     
-    log = logging.getLogger('perfconvert.bioconcept')
-    log.info('begin')
+    log.info('convert_bioconcept')
     output_creator = OutputCreator(log)
     
     try:
@@ -276,11 +273,10 @@ def update_reference(json_obj, bibentry, reference):
         changed = True
     return changed
 
-def convert_reference(session_maker, backend, chunk_size):
+def convert_reference(session_maker, backend, log, chunk_size):
     from model_perf_schema.core import Reference
     
-    log = logging.getLogger('perfconvert.reference')
-    log.info('begin')
+    log.info('convert_bioentity')
     output_creator = OutputCreator(log)
     
     try:
@@ -359,11 +355,10 @@ def update_chemical(json_obj, chemical):
         changed = True
     return changed
 
-def convert_chemical(session_maker, backend, chunk_size):
+def convert_chemical(session_maker, backend, log, chunk_size):
     from model_perf_schema.core import Chemical
 
-    log = logging.getLogger('perfconvert.chemical')
-    log.info('begin')
+    log.info('convert_bioentity')
     output_creator = OutputCreator(log)
 
     try:
@@ -437,11 +432,10 @@ def update_author(json_obj, author):
         changed = True
     return changed
 
-def convert_author(session_maker, backend, chunk_size):
+def convert_author(session_maker, backend, log, chunk_size):
     from model_perf_schema.core import Author
 
-    log = logging.getLogger('perfconvert.author')
-    log.info('begin')
+    log.info('convert_author')
     output_creator = OutputCreator(log)
 
     try:
@@ -504,11 +498,10 @@ def update_ontology(json_obj, ontology):
         changed = True
     return changed
 
-def convert_ontology(session_maker, backend, chunk_size):
+def convert_ontology(session_maker, backend, log, chunk_size):
     from model_perf_schema.core import Ontology
 
-    log = logging.getLogger('perfconvert.ontology')
-    log.info('begin')
+    log.info('convert_ontology')
     output_creator = OutputCreator(log)
 
     try:

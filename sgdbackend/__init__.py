@@ -156,7 +156,7 @@ class SGDBackend(BackendInterface):
         if are_ids:
             pheno_id = identifier
 
-            if id_to_biocon[pheno_id]['class_type'] != 'PHENOTYPE':
+            if pheno_id not in id_to_biocon or id_to_biocon[pheno_id]['class_type'] != 'PHENOTYPE':
                 return None
         else:
             pheno_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
@@ -174,7 +174,7 @@ class SGDBackend(BackendInterface):
             locus_id = locus_identifier
             phenotype_id = phenotype_identifier
 
-            if phenotype_id is not None and id_to_biocon[phenotype_id]['class_type'] != 'PHENOTYPE':
+            if phenotype_id is not None and (phenotype_id not in id_to_biocon or id_to_biocon[phenotype_id]['class_type'] != 'PHENOTYPE'):
                 return None
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
@@ -191,7 +191,7 @@ class SGDBackend(BackendInterface):
             chemical_id = chemical_identifier
             reference_id = reference_identifier
 
-            if phenotype_id is not None and id_to_biocon[phenotype_id]['class_type'] != 'PHENOTYPE':
+            if phenotype_id is not None and (phenotype_id not in id_to_biocon or id_to_biocon[phenotype_id]['class_type'] != 'PHENOTYPE'):
                 return None
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
@@ -244,7 +244,7 @@ class SGDBackend(BackendInterface):
         from sgdbackend_utils.cache import id_to_biocon
         if are_ids:
             go_id = identifier
-            if id_to_biocon[go_id]['class_type'] != 'GO':
+            if go_id not in id_to_biocon or id_to_biocon[go_id]['class_type'] != 'GO':
                 return None
         else:
             go_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
@@ -268,7 +268,7 @@ class SGDBackend(BackendInterface):
             go_id = go_identifier
             reference_id = reference_identifier
 
-            if go_id is not None and id_to_biocon[go_id]['class_type'] != 'GO':
+            if go_id is not None and (go_id not in id_to_biocon or id_to_biocon[go_id]['class_type'] != 'GO'):
                 return None
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')

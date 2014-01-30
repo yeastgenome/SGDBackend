@@ -52,6 +52,7 @@ def go_to_json(biocon):
     biocon_json = biocon_to_json(biocon)
     biocon_json['go_id'] = biocon.go_id
     biocon_json['go_aspect'] = biocon.go_aspect
+    biocon_json['aliases'] = [x.display_name for x in biocon.aliases]
     return biocon_json
 
 def phenotype_to_json(biocon):
@@ -125,8 +126,8 @@ def condition_to_json(condition):
     
 def reference_to_json(reference):
     urls = []
-    urls.append({'display_name': 'PubMed', 'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id)})
-
+    if reference.pubmed_id is not None:
+        urls.append({'display_name': 'PubMed', 'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id)})
     if reference.doi is not None:
         urls.append({'display_name': 'Full-Text', 'link': 'http://dx.doi.org/' + reference.doi})
     if reference.pubmed_central_id is not None:

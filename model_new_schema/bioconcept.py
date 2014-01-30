@@ -8,6 +8,7 @@ from model_new_schema.misc import Url, Alias, Relation
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.orm import relationship, backref
 
 class Bioconcept(Base, EqualityByIDMixin):
     __tablename__ = "bioconcept"
@@ -22,7 +23,7 @@ class Bioconcept(Base, EqualityByIDMixin):
     description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
-    
+
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"BIOCONCEPT"}
     
@@ -83,6 +84,8 @@ class Bioconceptalias(Alias):
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
     subclass_type = Column('subclass', String)
 
+    bioconcept = relationship(Bioconcept, uselist=False, backref='aliases')
+
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
                        'inherit_condition': id == Alias.id}
     
@@ -111,11 +114,11 @@ class Go(Bioconcept):
     def __init__(self, display_name, source, sgdid, description, 
                  go_id, go_aspect, date_created, created_by):
         if display_name == 'biological_process':
-            Bioconcept.__init__(self, 'GO Biological Process Ontology', go_id, 'GO', '/ontology/go/biological_process/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'biological process', go_id, 'GO', '/ontology/go/biological_process/overview', source, sgdid, description, date_created, created_by)
         elif display_name == 'molecular_function':
-            Bioconcept.__init__(self, 'GO Molecular Function Ontology', go_id, 'GO', '/ontology/go/molecular_function/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'molecular function', go_id, 'GO', '/ontology/go/molecular_function/overview', source, sgdid, description, date_created, created_by)
         elif display_name == 'cellular_component':
-            Bioconcept.__init__(self, 'GO Cellular Component Ontology', go_id, 'GO', '/ontology/go/cellular_component/overview', source, sgdid, description, date_created, created_by)
+            Bioconcept.__init__(self, 'cellular component', go_id, 'GO', '/ontology/go/cellular_component/overview', source, sgdid, description, date_created, created_by)
         else:
             Bioconcept.__init__(self, display_name, go_id, 'GO', '/go/' + go_id + '/overview', source, sgdid, description, date_created, created_by)
         self.go_id = go_id

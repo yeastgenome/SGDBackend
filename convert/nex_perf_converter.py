@@ -35,7 +35,7 @@ class NexPerfConverter(ConverterInterface):
 
     def core_wrapper(self, f, chunk_size):
         try:
-            f(self.session_maker, self.backend, chunk_size)
+            f(self.session_maker, self.backend, self.log, chunk_size)
         except Exception:
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
             
@@ -54,6 +54,7 @@ class NexPerfConverter(ConverterInterface):
         self.convert_chemical()
         self.convert_author()
         self.convert_disambig()
+        self.convert_ontology()
         
         #Data
 
@@ -91,25 +92,26 @@ class NexPerfConverter(ConverterInterface):
         
     def convert_daily(self):
         #Core
-        self.convert_bioentity()
+        #self.convert_bioentity()
         self.convert_bioconcept()
-        self.convert_reference()
-        self.convert_chemical()
-        self.convert_author()
-        self.convert_disambig()
+        #self.convert_reference()
+        #self.convert_chemical()
+        #self.convert_author()
+        #self.convert_disambig()
+        #self.convert_ontology()
         
         #Data
-        self.convert_author_details()
+        #self.convert_author_details()
 
-        self.convert_literature_overview()
-        self.convert_literature_details()
-        self.convert_literature_graph()
+        #self.convert_literature_overview()
+        #self.convert_literature_details()
+        #self.convert_literature_graph()
 
-        self.convert_phenotype_overview()
-        self.convert_phenotype_details()
-        self.convert_phenotype_graph()
-        self.convert_phenotype_resources()
-        self.convert_phenotype_ontology_graph()
+        #self.convert_phenotype_overview()
+        #self.convert_phenotype_details()
+        #self.convert_phenotype_graph()
+        #self.convert_phenotype_resources()
+        #self.convert_phenotype_ontology_graph()
 
         self.convert_go_overview()
         self.convert_go_details()
@@ -207,7 +209,8 @@ class NexPerfConverter(ConverterInterface):
     def convert_phenotype_overview(self):
         #1.24.14 First Load (sgd-dev): 10:17
         from model_perf_schema.bioconcept_data import BioconceptOverview
-        #self.data_wrapper(BioentityOverview, "PHENOTYPE", 'bioentity_id', lambda x: self.backend.phenotype_overview(locus_identifier=x, are_ids=True), 'phenotype_overview', self.locus_ids, 1000)
+        from model_perf_schema.bioentity_data import BioentityOverview
+        self.data_wrapper(BioentityOverview, "PHENOTYPE", 'bioentity_id', lambda x: self.backend.phenotype_overview(locus_identifier=x, are_ids=True), 'phenotype_overview', self.locus_ids, 1000)
         self.data_wrapper(BioconceptOverview, "PHENOTYPE", 'bioconcept_id', lambda x: self.backend.phenotype_overview(phenotype_identifier=x, are_ids=True), 'phenotype_overview', self.phenotype_ids, 1000)
     def convert_phenotype_graph(self):
         #1.26.14 First Load (sgd-dev): 3:54:09
@@ -261,10 +264,10 @@ class NexPerfConverter(ConverterInterface):
         from model_perf_schema.reference_data import ReferenceDetails
         from model_perf_schema.bioconcept_data import BioconceptDetails
         from model_perf_schema.chemical_data import ChemicalDetails
-        #self.data_wrapper(BioentityDetails, "PHENOTYPE", 'bioentity_id', lambda x: self.backend.phenotype_details(locus_identifier=x, are_ids=True), 'phenotype_details', self.locus_ids, 1000)
-        #self.data_wrapper(ReferenceDetails, "PHENOTYPE", 'reference_id', lambda x: self.backend.phenotype_details(reference_identifier=x, are_ids=True), 'phenotype_details', self.reference_ids, 1000)
-        #self.data_wrapper(BioconceptDetails, "LOCUS", 'bioconcept_id', lambda x: self.backend.phenotype_details(phenotype_identifier=x, are_ids=True), 'locus_details', self.phenotype_ids, 1000)
-        #self.data_wrapper(BioconceptDetails, "LOCUS_ALL_CHILDREN", 'bioconcept_id', lambda x: self.backend.phenotype_details(phenotype_identifier=x, with_children=True, are_ids=True), 'locus_details', self.phenotype_ids, 1000)
+        self.data_wrapper(BioentityDetails, "PHENOTYPE", 'bioentity_id', lambda x: self.backend.phenotype_details(locus_identifier=x, are_ids=True), 'phenotype_details', self.locus_ids, 1000)
+        self.data_wrapper(ReferenceDetails, "PHENOTYPE", 'reference_id', lambda x: self.backend.phenotype_details(reference_identifier=x, are_ids=True), 'phenotype_details', self.reference_ids, 1000)
+        self.data_wrapper(BioconceptDetails, "LOCUS", 'bioconcept_id', lambda x: self.backend.phenotype_details(phenotype_identifier=x, are_ids=True), 'locus_details', self.phenotype_ids, 1000)
+        self.data_wrapper(BioconceptDetails, "LOCUS_ALL_CHILDREN", 'bioconcept_id', lambda x: self.backend.phenotype_details(phenotype_identifier=x, with_children=True, are_ids=True), 'locus_details', self.phenotype_ids, 1000)
         self.data_wrapper(ChemicalDetails, "PHENOTYPE", 'chemical_id', lambda x: self.backend.phenotype_details(chemical_identifier=x, are_ids=True), 'phenotype_details', self.chemical_ids, 1000)
     def convert_author_details(self):
         from model_perf_schema.author_data import AuthorDetails

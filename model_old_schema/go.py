@@ -19,7 +19,7 @@ class GoSynonym(Base, EqualityByIDMixin):
     
     #Values
     id = Column('go_synonym_no', Integer, primary_key=True)
-    go_synonym = Column('go_synonym', String)
+    name = Column('go_synonym', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     

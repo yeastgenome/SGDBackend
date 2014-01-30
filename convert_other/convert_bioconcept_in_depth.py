@@ -107,16 +107,13 @@ def create_go_relation(gopath, key_to_go, key_to_source):
     parent_key = (get_go_format_name(gopath.ancestor.go_go_id), 'GO')
     child_key = (get_go_format_name(gopath.child.go_go_id), 'GO')
     
-    parent = None
-    child = None
-    if parent_key in key_to_go:
-        parent = key_to_go[parent_key]
-    if child_key in key_to_go:
-        child = key_to_go[child_key]
+    parent = None if parent_key not in key_to_go else key_to_go[parent_key]
+    child = None if child_key not in key_to_go else key_to_go[child_key]
     
     if parent is not None and child is not None:
         return [NewBioconceptrelation(source, gopath.relationship_type, parent, child, 'GO', None, None)]
     else:
+        print 'Could not find go. Parent: ' + str(parent_key) + ' Child: ' + str(child_key)
         return []
 
 def convert_go_relation(old_session_maker, new_session_maker):
@@ -134,7 +131,7 @@ def convert_go_relation(old_session_maker, new_session_maker):
         current_objs = new_session.query(Bioconceptrelation).filter(Bioconceptrelation.bioconrel_class_type == 'GO').all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
-                
+
         #Values to check
         values_to_check = ['parent_id', 'child_id']
         
@@ -251,16 +248,20 @@ def convert_go_slim_relation(old_session_maker, new_session_maker):
         #Convert old objects into new ones
         newly_created_objs = create_go_slim_relation(slim_ids, go_child_id_to_parent_ids, id_to_go, key_to_source)
 
+        already_seen = set()
+
         #Edit or add new objects
         for newly_created_obj in newly_created_objs:
-            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-            current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+            if newly_created_obj.unique_key() not in already_seen:
+                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
 
-            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                untouched_obj_ids.remove(current_obj_by_id.id)
-            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                untouched_obj_ids.remove(current_obj_by_key.id)
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
+                already_seen.add(newly_created_obj.unique_key())
 
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -291,16 +292,13 @@ def create_phenotype_relation(cvtermrel, key_to_phenotype, key_to_source):
     if parent_key == ('observable', 'PHENOTYPE'):
         parent_key = ('ypo', 'PHENOTYPE')
     
-    parent = None
-    child = None
-    if parent_key in key_to_phenotype:
-        parent = key_to_phenotype[parent_key]
-    if child_key in key_to_phenotype:
-        child = key_to_phenotype[child_key]
+    parent = None if parent_key not in key_to_phenotype else key_to_phenotype[parent_key]
+    child = None if child_key not in key_to_phenotype else key_to_phenotype[child_key]
     
     if parent is not None and child is not None:
         return [NewBioconceptrelation(source, cvtermrel.relationship_type, parent, child, 'PHENOTYPE', cvtermrel.date_created, cvtermrel.created_by)]
     else:
+        #print 'Could not find phenotype. Parent: ' + str(parent_key) + ' Child: ' + str(child_key)
         return []
     
 def create_phenotype_relation_from_phenotype(phenotype, key_to_phenotype, key_to_source):
@@ -310,8 +308,10 @@ def create_phenotype_relation_from_phenotype(phenotype, key_to_phenotype, key_to
     
     if phenotype.qualifier is not None:
         parent_key = (create_format_name(phenotype.observable), 'PHENOTYPE')
-        if parent_key in key_to_phenotype:
-            parent = key_to_phenotype[parent_key]
+        parent = None if parent_key not in key_to_phenotype else key_to_phenotype[parent_key]
+        if parent is None:
+            print 'Could not find phenotype. Parent: ' + str(parent_key)
+        else:
             return [NewBioconceptrelation(source, 'is a', parent, phenotype, 'PHENOTYPE', None, None)]
     return []
 
@@ -320,12 +320,9 @@ def create_chemical_phenotype_relation(old_phenotype, key_to_phenotype, key_to_s
 
     new_relations = []
     for phenotype_feature in old_phenotype.phenotype_features:
-        if len(phenotype_feature.experiment.chemicals) != 1:
-            print 'Chemical problem ' + str(phenotype_feature.experiment.chemicals)
-
         source = key_to_source['SGD']
 
-        chemical = phenotype_feature.experiment.chemicals[0][0]
+        chemical = ' and '.join([x[0] for x in phenotype_feature.experiment.chemicals])
         old_observable = old_phenotype.observable
         if old_observable == 'resistance to chemicals':
             new_observable = old_phenotype.observable.replace('chemicals', chemical)
@@ -337,12 +334,20 @@ def create_chemical_phenotype_relation(old_phenotype, key_to_phenotype, key_to_s
         parent_key = (create_format_name(new_observable), 'PHENOTYPE')
         child_key = (create_phenotype_format_name(new_observable, qualifier), 'PHENOTYPE')
 
-        grandparent = key_to_phenotype[grandparent_key]
-        parent = key_to_phenotype[parent_key]
-        child = key_to_phenotype[child_key]
+        grandparent = None if grandparent_key not in key_to_phenotype else key_to_phenotype[grandparent_key]
+        parent = None if parent_key not in key_to_phenotype else key_to_phenotype[parent_key]
+        child = None if child_key not in key_to_phenotype else key_to_phenotype[child_key]
 
-        new_relations.append(NewBioconceptrelation(source, 'is a', grandparent, parent, 'PHENOTYPE', parent.date_created, parent.created_by))
-        new_relations.append(NewBioconceptrelation(source, 'is a', parent, child, 'PHENOTYPE', child.date_created, child.created_by))
+        if parent is None or child is None:
+            print 'Could not find phenotype. Parent: ' + str(parent_key) + ' Child: ' + str(child_key)
+        else:
+            new_relations.append(NewBioconceptrelation(source, 'is a', parent, child, 'PHENOTYPE', child.date_created, child.created_by))
+
+        if grandparent is None or parent is None:
+            print 'Could not find phenotype. Grandparent: ' + str(grandparent_key) + ' Parent: ' + str(parent_key)
+        else:
+            new_relations.append(NewBioconceptrelation(source, 'is a', grandparent, parent, 'PHENOTYPE', parent.date_created, parent.created_by))
+
     return new_relations
 
 def convert_phenotype_relation(old_session_maker, new_session_maker):
@@ -445,53 +450,36 @@ def convert_phenotype_relation(old_session_maker, new_session_maker):
         
     log.info('complete')
     
-# --------------------- Convert Phenotype Alias ---------------------
+# --------------------- Convert GO Alias ---------------------
 
-def create_phenotype_alias(cvtermsynonym, key_to_phenotype, key_to_source, id_to_cvterm):
+def create_go_alias(old_goterm, key_to_go, key_to_source):
     from model_new_schema.bioconcept import Bioconceptalias as NewBioconceptalias
     
     source = key_to_source['SGD']
-    
-    phenotype_key = (create_format_name(id_to_cvterm[cvtermsynonym.cvterm_id].name), 'PHENOTYPE')
-        
-    phenotype = None
-    if phenotype_key in key_to_phenotype:
-        phenotype = key_to_phenotype[phenotype_key]
-    
-    if phenotype is not None:
-        return [NewBioconceptalias(cvtermsynonym.synonym, source, None, phenotype, cvtermsynonym.date_created, cvtermsynonym.created_by)]
-    else:
-        return []
-    
-def create_phenotype_alias_from_dbxref(cvterm_dbxref, key_to_phenotype, key_to_source, id_to_cvterm):
-    from model_new_schema.bioconcept import Bioconceptalias as NewBioconceptalias
-    
-    source = key_to_source['SGD']
-    
-    phenotype_key = (create_format_name(id_to_cvterm[cvterm_dbxref.cvterm_id].name), 'PHENOTYPE')
-        
-    phenotype = None
-    if phenotype_key in key_to_phenotype:
-        phenotype = key_to_phenotype[phenotype_key]
-    
-    if phenotype is not None:
-        return [NewBioconceptalias(cvterm_dbxref.dbxref.dbxref_id, source, cvterm_dbxref.dbxref.dbxref_type, phenotype, cvterm_dbxref.dbxref.date_created, cvterm_dbxref.dbxref.created_by)]
-    else:
-        return []
 
-def convert_phenotype_alias(old_session_maker, new_session_maker):
+    go_key = (get_go_format_name(old_goterm.go_go_id), 'GO')
+
+    go = None if go_key not in key_to_go else key_to_go[go_key]
+
+    if go is None:
+        print 'Go term not found: ' + str(go_key)
+        return []
+    else:
+        return [NewBioconceptalias(synonym.name, source, None, go, synonym.date_created, synonym.created_by) for synonym in old_goterm.synonyms]
+
+def convert_go_alias(old_session_maker, new_session_maker):
     from model_new_schema.evelements import Source
-    from model_new_schema.bioconcept import Bioconceptalias, Phenotype
-    from model_old_schema.cv import CVTermSynonym, CVTermDbxref, CVTerm
+    from model_new_schema.bioconcept import Bioconceptalias, Go
+    from model_old_schema.go import Go as OldGo
     
-    log = logging.getLogger('convert.bioconcept.phenotype_alias')
+    log = logging.getLogger('convert.bioconcept.go_alias')
     log.info('begin')
     output_creator = OutputCreator(log)
     
     try:
         #Grab all current objects
         new_session = new_session_maker()
-        current_objs = new_session.query(Bioconceptalias).filter(Bioconceptalias.subclass_type == 'PHENOTYPE').all()
+        current_objs = new_session.query(Bioconceptalias).filter(Bioconceptalias.subclass_type == 'GO').all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
@@ -501,33 +489,15 @@ def convert_phenotype_alias(old_session_maker, new_session_maker):
         untouched_obj_ids = set(id_to_current_obj.keys())
         
         #Grab cached dictionaries
-        key_to_phenotype = dict([(x.unique_key(), x) for x in new_session.query(Phenotype).all()])
+        key_to_go = dict([(x.unique_key(), x) for x in new_session.query(Go).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
- 
-        old_session = old_session_maker()       
-        id_to_cvterm = dict([(x.id, x) for x in old_session.query(CVTerm).filter(CVTerm.cv_no == 6).all()])
-        
-        old_objs = old_session.query(CVTermSynonym).filter(CVTermSynonym.cvterm_id.in_(id_to_cvterm.keys())).all()
-        for old_obj in old_objs:
-            #Convert old objects into new ones
-            newly_created_objs = create_phenotype_alias(old_obj, key_to_phenotype, key_to_source, id_to_cvterm)
-                
-            #Edit or add new objects
-            for newly_created_obj in newly_created_objs:
-                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                
-                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                    untouched_obj_ids.remove(current_obj_by_id.id)
-                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                    untouched_obj_ids.remove(current_obj_by_key.id)
          
-        #From cvterm_dbxrefs           
-        old_objs = old_session.query(CVTermDbxref).options(joinedload('dbxref')).filter(CVTermDbxref.cvterm_id.in_(id_to_cvterm.keys())).all()
+        #From cvterm_dbxrefs
+        old_session = old_session_maker()
+        old_objs = old_session.query(OldGo).options(joinedload('synonyms')).all()
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_phenotype_alias_from_dbxref(old_obj, key_to_phenotype, key_to_source, id_to_cvterm)
+            newly_created_objs = create_go_alias(old_obj, key_to_go, key_to_source)
                 
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:
@@ -555,25 +525,137 @@ def convert_phenotype_alias(old_session_maker, new_session_maker):
         new_session.close()
         
     log.info('complete')
+
+# --------------------- Convert Phenotype Alias ---------------------
+
+def create_phenotype_alias(cvtermsynonym, key_to_phenotype, key_to_source, id_to_cvterm):
+    from model_new_schema.bioconcept import Bioconceptalias as NewBioconceptalias
+
+    source = key_to_source['SGD']
+
+    phenotype_key = (create_format_name(id_to_cvterm[cvtermsynonym.cvterm_id].name), 'PHENOTYPE')
+
+    phenotype = None
+    if phenotype_key in key_to_phenotype:
+        phenotype = key_to_phenotype[phenotype_key]
+
+    if phenotype is not None:
+        return [NewBioconceptalias(cvtermsynonym.synonym, source, None, phenotype, cvtermsynonym.date_created, cvtermsynonym.created_by)]
+    else:
+        return []
+
+def create_phenotype_alias_from_dbxref(cvterm_dbxref, key_to_phenotype, key_to_source, id_to_cvterm):
+    from model_new_schema.bioconcept import Bioconceptalias as NewBioconceptalias
+
+    source = key_to_source['SGD']
+
+    phenotype_key = (create_format_name(id_to_cvterm[cvterm_dbxref.cvterm_id].name), 'PHENOTYPE')
+
+    phenotype = None
+    if phenotype_key in key_to_phenotype:
+        phenotype = key_to_phenotype[phenotype_key]
+
+    if phenotype is not None:
+        return [NewBioconceptalias(cvterm_dbxref.dbxref.dbxref_id, source, cvterm_dbxref.dbxref.dbxref_type, phenotype, cvterm_dbxref.dbxref.date_created, cvterm_dbxref.dbxref.created_by)]
+    else:
+        return []
+
+def convert_phenotype_alias(old_session_maker, new_session_maker):
+    from model_new_schema.evelements import Source
+    from model_new_schema.bioconcept import Bioconceptalias, Phenotype
+    from model_old_schema.cv import CVTermSynonym, CVTermDbxref, CVTerm
+
+    log = logging.getLogger('convert.bioconcept.phenotype_alias')
+    log.info('begin')
+    output_creator = OutputCreator(log)
+
+    try:
+        #Grab all current objects
+        new_session = new_session_maker()
+        current_objs = new_session.query(Bioconceptalias).filter(Bioconceptalias.subclass_type == 'PHENOTYPE').all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+
+        #Values to check
+        values_to_check = ['category', 'source_id']
+
+        untouched_obj_ids = set(id_to_current_obj.keys())
+
+        #Grab cached dictionaries
+        key_to_phenotype = dict([(x.unique_key(), x) for x in new_session.query(Phenotype).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
+
+        old_session = old_session_maker()
+        id_to_cvterm = dict([(x.id, x) for x in old_session.query(CVTerm).filter(CVTerm.cv_no == 6).all()])
+
+        old_objs = old_session.query(CVTermSynonym).filter(CVTermSynonym.cvterm_id.in_(id_to_cvterm.keys())).all()
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_phenotype_alias(old_obj, key_to_phenotype, key_to_source, id_to_cvterm)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
+
+        #From cvterm_dbxrefs
+        old_objs = old_session.query(CVTermDbxref).options(joinedload('dbxref')).filter(CVTermDbxref.cvterm_id.in_(id_to_cvterm.keys())).all()
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_phenotype_alias_from_dbxref(old_obj, key_to_phenotype, key_to_source, id_to_cvterm)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
+
+        #Delete untouched objs
+        for untouched_obj_id  in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
+
+    log.info('complete')
     
 # ---------------------Convert------------------------------
 
 def convert(old_session_maker, new_session_maker):  
 
-    #convert_ecnumber_relation(new_session_maker)
+    convert_ecnumber_relation(new_session_maker)
     
     from model_new_schema.bioconcept import Phenotype
     from model_new_schema.evidence import Phenotypeevidence
-    #convert_phenotype_relation(old_session_maker, new_session_maker)
-    #convert_phenotype_alias(old_session_maker, new_session_maker)
-    #convert_biofact(new_session_maker, Phenotypeevidence, Phenotype, 'PHENOTYPE', 'convert.phenotype.biofact', 10000)
-    #convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
-    #convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
+    convert_phenotype_relation(old_session_maker, new_session_maker)
+    convert_phenotype_alias(old_session_maker, new_session_maker)
+    convert_biofact(new_session_maker, Phenotypeevidence, Phenotype, 'PHENOTYPE', 'convert.phenotype.biofact', 10000)
+    convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
+    convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
  
     from model_new_schema.bioconcept import Go
     from model_new_schema.evidence import Goevidence
-    #convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
+    convert_go_alias(old_session_maker, new_session_maker)
+    convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
     convert_go_relation(old_session_maker, new_session_maker)
     convert_go_slim_relation(old_session_maker, new_session_maker)
     convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
-    #convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
+    convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)

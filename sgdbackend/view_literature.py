@@ -49,6 +49,8 @@ def make_details(locus_id=None, reference_id=None):
         return references
     else:
         evidences = get_evidence(Literatureevidence, bioent_id=locus_id, reference_id=reference_id);
+        if evidences is None:
+            return {'Error': 'Too much data to display.'}
         tables = {}
         tables['primary'] = create_simple_table([x for x in evidences if x.topic == 'Primary Literature'], make_evidence_row)
         tables['additional'] = create_simple_table([x for x in evidences if x.topic == 'Additional Literature'], make_evidence_row)

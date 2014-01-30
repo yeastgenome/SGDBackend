@@ -15,7 +15,7 @@ def make_overview(reference_id):
     reference['bibentry'] = get_bibentry(reference_id)
     reference['authors'] = get_authors_for_reference(reference_id)
     bioentity_references = get_bioentity_references(reference_id=reference_id)
-    reference['counts'] = {'interaction': len([x for x in bioentity_references if x.class_type == 'INTERACTION']),
+    reference['counts'] = {'interaction': len([x for x in bioentity_references if x.class_type == 'PHYSINTERACTION' or x.class_type == 'GENINTERACTION']),
                             'go': len([x for x in bioentity_references if x.class_type == 'GO']),
                             'phenotype': len([x for x in bioentity_references if x.class_type == 'PHENOTYPE']),
                             'regulation': len([x for x in bioentity_references if x.class_type == 'REGULATION']),}

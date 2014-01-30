@@ -926,23 +926,23 @@ def convert_url(new_session_maker, chunk_size):
 """   
 
 def convert(old_session_maker, new_session_maker):
-    #convert_abstract(old_session_maker, new_session_maker, 3000)
+    convert_abstract(old_session_maker, new_session_maker, 3000)
     
-    #convert_author(old_session_maker, new_session_maker, 10000)
+    convert_author(old_session_maker, new_session_maker, 10000)
 
-    #convert_author_reference(old_session_maker, new_session_maker, 10000)
+    convert_author_reference(old_session_maker, new_session_maker, 10000)
     
-    #convert_reftype(old_session_maker, new_session_maker)
+    convert_reftype(old_session_maker, new_session_maker)
     
-    #convert_reference_reftype(old_session_maker, new_session_maker)
+    convert_reference_reftype(old_session_maker, new_session_maker)
     
-    #convert_reference_relation(old_session_maker, new_session_maker)
+    convert_reference_relation(old_session_maker, new_session_maker)
     
-    #convert_alias(old_session_maker, new_session_maker, 3000)
+    convert_alias(old_session_maker, new_session_maker, 3000)
     
-    #convert_url(new_session_maker, 3000)
+    convert_url(new_session_maker, 3000)
         
-    #convert_bibentry(new_session_maker, 3000)
+    convert_bibentry(new_session_maker, 3000)
     
     from model_new_schema.reference import Reference, Author
     #convert_disambigs(new_session_maker, Reference, ['id', 'sgdid'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)

@@ -73,6 +73,13 @@ def get_all(cls, print_query=False):
         print query
     return objs
 
+def get_all_with_aliases(cls, print_query=False):
+    query = session.query(cls).options(joinedload('aliases'))
+    objs = query.all()
+    if print_query:
+        print query
+    return objs
+
 two_bioent_evidence_cls = set([Geninteractionevidence, Physinteractionevidence, Regulationevidence])
 def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None, reference_id=None, with_children=False, print_query=False):
     ok_evidence_ids = None
