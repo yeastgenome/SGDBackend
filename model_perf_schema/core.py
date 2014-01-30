@@ -24,7 +24,7 @@ class Bioconcept(Base, EqualityByIDMixin):
         __tablename__ = 'bioconcept'
     
         id = Column('bioconcept_id', Integer, primary_key=True)
-        json = Column('json', String)
+        json = Column('json', CLOB)
                 
         def __init__(self, bioconcept_id, json):
             self.id = bioconcept_id
