@@ -63,6 +63,26 @@ def create_go_bioitems(old_dbxref, key_to_source):
             urls = old_dbxref.urls
             if len(urls) == 1:
                 link = urls[0].url.replace('_SUBSTITUTE_THIS_', old_dbxref.dbxref_id)
+        elif dbxref_type == 'UniProtKB Subcellular Location':
+            link = "http://www.uniprot.org/locations/" + old_dbxref.dbxref_id
+        elif dbxref_type == 'InterPro':
+            link = "http://www.ebi.ac.uk/interpro/entry/" + old_dbxref.dbxref_id
+        elif dbxref_type == 'DNA accession ID':
+            link = None
+        elif dbxref_type == 'Gene ID':
+            link = None
+        elif dbxref_type == 'HAMAP ID':
+            link = None
+        elif dbxref_type == 'PANTHER':
+            link = None
+        elif dbxref_type == 'PDB identifier':
+            link = None
+        elif dbxref_type == 'Protein version ID':
+            link = None
+        elif dbxref_type == 'UniPathway ID':
+            link = 'http://www.grenoble.prabi.fr/obiwarehouse/unipathway/upa?upid=' + old_dbxref.dbxref_id
+        elif dbxref_type == 'UniProtKB Keyword':
+            link = 'http://www.uniprot.org/keywords/' + old_dbxref.dbxref_id
         return [NewBioitem(old_dbxref.dbxref_id, old_dbxref.dbxref_id, class_type, link, source, old_dbxref.dbxref_name)]
 
     return []

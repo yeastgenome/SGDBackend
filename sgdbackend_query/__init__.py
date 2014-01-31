@@ -176,8 +176,6 @@ def get_conditions(evidence_ids, print_query=False):
         conditions.extend(session.query(Bioconceptcondition).filter(Bioconceptcondition.evidence_id.in_(this_chunk)).all())
         conditions.extend(session.query(Bioitemcondition).filter(Bioitemcondition.evidence_id.in_(this_chunk)).all())
         conditions.extend(session.query(Generalcondition).filter(Generalcondition.evidence_id.in_(this_chunk)).all())
-
-    print [x for x in conditions if x.class_type == 'BIOITEM']
     return conditions
 
 def get_evidence_snapshot(evidence_cls, attr_name):

@@ -107,7 +107,7 @@ def make_details(locus_id=None, go_id=None, chemical_id=None, reference_id=None,
     return create_simple_table(goevidences, make_evidence_row, id_to_conditions=id_to_conditions)
 
 def fix_display_name(condition):
-    if condition['role'] in condition_format_name_to_display_name:
+    if 'role' in condition and condition['role'] in condition_format_name_to_display_name:
         condition['role'] = condition_format_name_to_display_name[condition['role']]
     return condition
 
