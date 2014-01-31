@@ -38,7 +38,7 @@ class Condition(Base, EqualityByIDMixin):
         self.note = note
         
     def unique_key(self):
-        return (self.format_name, self.class_type, self.evidence_id)
+        return (self.format_name, self.class_type, self.evidence_id, self.role)
     
 class Generalcondition(Condition):
     __mapper_args__ = {'polymorphic_identity': 'CONDITION',

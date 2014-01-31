@@ -66,15 +66,10 @@ def get_multi_obj_ids(identifiers, class_type=None, subclass_type=None, print_qu
         
     return disambig_dict
 
-def get_all(cls, print_query=False):
+def get_all(cls, print_query=False, join=None):
     query = session.query(cls)
-    objs = query.all()
-    if print_query:
-        print query
-    return objs
-
-def get_all_with_aliases(cls, print_query=False):
-    query = session.query(cls).options(joinedload('aliases'))
+    if join is not None:
+        query = query.options(joinedload(join))
     objs = query.all()
     if print_query:
         print query
@@ -175,13 +170,14 @@ def get_conditions(evidence_ids, print_query=False):
     num_chunks = ceil(1.0*len(evidence_ids)/500)
     for i in range(num_chunks):  
         this_chunk = evidence_ids[i*500:(i+1)*500]
-        conditions.extend(session.query(Temperaturecondition).filter(Condition.evidence_id.in_(this_chunk)).all())
-        conditions.extend(session.query(Chemicalcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
-        conditions.extend(session.query(Bioentitycondition).filter(Condition.evidence_id.in_(this_chunk)).all())
-        conditions.extend(session.query(Bioconceptcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
-        conditions.extend(session.query(Bioitemcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
-        conditions.extend(session.query(Generalcondition).filter(Condition.evidence_id.in_(this_chunk)).all())
-    
+        conditions.extend(session.query(Temperaturecondition).filter(Temperaturecondition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Chemicalcondition).filter(Chemicalcondition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Bioentitycondition).filter(Bioentitycondition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Bioconceptcondition).filter(Bioconceptcondition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Bioitemcondition).filter(Bioitemcondition.evidence_id.in_(this_chunk)).all())
+        conditions.extend(session.query(Generalcondition).filter(Generalcondition.evidence_id.in_(this_chunk)).all())
+
+    print [x for x in conditions if x.class_type == 'BIOITEM']
     return conditions
 
 def get_evidence_snapshot(evidence_cls, attr_name):

@@ -65,39 +65,45 @@ def create_evidence(old_go_feature, gofeat_id_to_gorefs, goref_id_to_dbxrefs, id
         for dbxref in old_dbxrefs:
             dbxref_type = dbxref.dbxref_type
             if dbxref_type == 'GOID':
-                go_key = ('GO:' + dbxref.dbxref_id, 'GO')
+                go_key = ('GO:' + str(int(dbxref.dbxref_id)).zfill(7), 'GO')
                 cond_go = None if go_key not in key_to_bioconcept else key_to_bioconcept[go_key]
                 if cond_go is not None:
                     conditions.append(Bioconceptcondition(None, 'With', cond_go))
-        
+                else:
+                    print 'Could not find bioconcept: ' + str(go_key)
             elif dbxref_type == 'EC number':
                 ec_key = (dbxref.dbxref_id, 'EC_NUMBER')
                 ec = None if ec_key not in key_to_bioconcept else key_to_bioconcept[ec_key]
                 if ec is not None:
                     conditions.append(Bioconceptcondition(None, 'With', ec))
+                else:
+                    print 'Could not find bioconcept: ' + str(ec_key)
                 
             elif dbxref_type == 'DBID Primary':
                 sgdid = dbxref.dbxref_id
                 cond_bioent = None if sgdid not in sgdid_to_bioentity else sgdid_to_bioentity[sgdid]
                 if cond_bioent is not None:
                     conditions.append(Bioentitycondition(None, 'With', cond_bioent))
-                
+                else:
+                    print 'Could not find bioentity: ' + str(sgdid)
             else:
                 bioitem_class_type = dbxref_type_to_class[dbxref_type]
                 bioitem_key = (dbxref.dbxref_id, bioitem_class_type)
                 bioitem = None if bioitem_key not in key_to_bioitem else key_to_bioitem[bioitem_key]
                 if bioitem is not None:
                     conditions.append(Bioitemcondition(None, 'With', bioitem))
+                else:
+                    print 'Could not find bioitem: ' + str(bioitem_key)
                             
         new_evidence = NewGoevidence(source, reference, None, None, bioent, go,
                                 old_go_feature.go_evidence, old_go_feature.annotation_type, qualifier, conditions,
                                 old_go_ref.date_created, old_go_ref.created_by)
-        new_conditions = []
         if new_evidence.unique_key() in key_to_gpad_info:
             info = key_to_gpad_info[new_evidence.unique_key()]
             new_evidence.experiment_id = info[0]
-            new_conditions = info[1]
-        evidences.append((new_evidence, new_conditions))
+            conditions.extend(info[1])
+        new_evidence.conditions = conditions
+        evidences.append((new_evidence, conditions))
     return evidences
 
 def convert_evidence(old_session_maker, new_session_maker, chunk_size):
@@ -108,6 +114,7 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.bioconcept import Bioconcept as NewBioconcept
     from model_new_schema.bioitem import Bioitem as NewBioitem
     from model_new_schema.chemical import Chemical as NewChemical
+    from model_new_schema.condition import Condition
     from model_old_schema.go import GoFeature as OldGoFeature, GoRef as OldGoRef, GorefDbxref as OldGorefDbxref
     
     log = logging.getLogger('convert.go.evidence')
@@ -170,23 +177,33 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
             #Grab all current objects and old objects
             if i < num_chunks-1:
                 current_objs = new_session.query(NewGoevidence).filter(NewGoevidence.bioentity_id >= min_id).filter(NewGoevidence.bioentity_id < max_id).all()
-            
+
                 old_objs = old_session.query(OldGoFeature).filter(
                                 OldGoFeature.feature_id >= min_id).filter(
                                 OldGoFeature.feature_id < max_id).all()
                                     
             else:
                 current_objs = new_session.query(NewGoevidence).filter(NewGoevidence.bioentity_id >= min_id).all()
-            
+
                 old_objs = old_session.query(OldGoFeature).filter(OldGoFeature.feature_id >= min_id).all()
-            
-            
+
+            evidence_ids = [x.id for x in current_objs]
+            condition_num_chunks = ceil(1.0*len(evidence_ids)/500)
+            condition_current_objs = []
+            for j in range(0, condition_num_chunks):
+                condition_current_objs.extend(new_session.query(Condition).filter(Condition.evidence_id.in_(evidence_ids[j*500:(j+1)*500])).all())
+
             id_to_current_obj = dict([(x.id, x) for x in current_objs])
             key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+            condition_id_to_current_obj = dict([(x.id, x) for x in condition_current_objs])
+            condition_key_to_current_obj = dict([(x.unique_key(), x) for x in condition_current_objs])
+
             
             untouched_obj_ids = set(id_to_current_obj.keys())
+            condition_untouched_obj_ids = set(condition_id_to_current_obj.keys())
             
             already_seen_obj = set()
+            condition_already_seen_obj = set()
         
             for old_obj in old_objs:
                 #Convert old objects into new ones
@@ -202,14 +219,23 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
                             obj_id = newly_created_obj.id
                             current_obj_by_id = None if obj_id not in id_to_current_obj else id_to_current_obj[obj_id]
                             current_obj_by_key = None if obj_key not in key_to_current_obj else key_to_current_obj[obj_key]
-                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                            created = create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
 
-                            if current_obj_by_key is not None:
-                                old_key_to_conditions = dict([((x.format_name, x.class_type), x) for x in current_obj_by_key.conditions])
+                            if not created:
                                 for condition in new_conditions:
-                                    if (condition.format_name, condition.class_type) not in old_key_to_conditions:
-                                        current_obj_by_key.conditions.append(condition)
-                                        output_creator.changed(obj_key, 'conditions')
+                                    condition.evidence_id = current_obj_by_key.id
+                                    condition_obj_key = condition.unique_key()
+                                    if condition_obj_key not in condition_already_seen_obj:
+                                        condition_obj_id = condition.id
+                                        condition_current_obj_by_id = None if condition_obj_id not in condition_id_to_current_obj else condition_id_to_current_obj[condition_obj_id]
+                                        condition_current_obj_by_key = None if condition_obj_key not in condition_key_to_current_obj else condition_key_to_current_obj[condition_obj_key]
+                                        create_or_update(condition, condition_current_obj_by_id, condition_current_obj_by_key, ['note', 'display_name'], new_session, output_creator)
+
+                                        if condition_current_obj_by_id is not None and condition_current_obj_by_id.id in condition_untouched_obj_ids:
+                                            condition_untouched_obj_ids.remove(condition_current_obj_by_id.id)
+                                        if condition_current_obj_by_key is not None and condition_current_obj_by_key.id in condition_untouched_obj_ids:
+                                            condition_untouched_obj_ids.remove(condition_current_obj_by_key.id)
+                                        condition_already_seen_obj.add(condition_obj_key)
 
                             if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
                                 untouched_obj_ids.remove(current_obj_by_id.id)
@@ -218,6 +244,8 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
                             already_seen_obj.add(obj_key)
                         else:
                             print 'Duplicate evidence: ' + str(obj_key)
+
+
                             
             #Delete untouched objs
             for untouched_obj_id  in untouched_obj_ids:
@@ -308,28 +336,37 @@ def create_evidence_from_gpad(gpad, uniprot_id_to_bioentity, pubmed_id_to_refere
         role = pieces[0].replace('_', ' ')
         value = pieces[1][:-1]
         if value.startswith('GO:'):
-            go_key = ('GO:' + str(int(value[3:])), 'GO')
+            go_key = ('GO:' + str(int(value[3:])).zfill(7), 'GO')
             cond_go = None if go_key not in key_to_bioconcept else key_to_bioconcept[go_key]
             if cond_go is not None:
                 conditions.append(Bioconceptcondition(None, role, cond_go))
+            else:
+                print 'Could not find bioconcept: ' + str(go_key)
+
     
         elif value.startswith('CHEBI:'):
-            chebi_id = value[6:]
+            chebi_id = value
             chemical = None if chebi_id not in chebi_id_to_chemical else chebi_id_to_chemical[chebi_id]
             if chemical is not None:
                 conditions.append(Chemicalcondition(None, role, chemical, None))
+            else:
+                print 'Could not find chemical: ' + str(chebi_id)
             
         elif value.startswith('SGD:'):
             sgdid = value[4:]
             cond_bioent = None if sgdid not in sgdid_to_bioentity else sgdid_to_bioentity[sgdid]
             if cond_bioent is not None:
                 conditions.append(Bioentitycondition(None, role, cond_bioent))
+            else:
+                print 'Could not find bioentity: ' + str(sgdid)
                 
         elif value.startswith('UniProtKB:'):
             uniprotid = value[10:]
             cond_bioent = None if uniprotid not in uniprot_id_to_bioentity else uniprot_id_to_bioentity[uniprotid]
             if cond_bioent is not None:
                 conditions.append(Bioentitycondition(None, role, cond_bioent))
+            else:
+                print 'Could not find bioentity: ' + str(uniprotid)
                 
         else:
             print 'Annotation not handled: ' + str(role, value)
@@ -430,7 +467,7 @@ def convert_paragraph(old_session_maker, new_session_maker):
 """   
 
 def convert(old_session_maker, new_session_maker):
-    convert_evidence(old_session_maker, new_session_maker, 500)
+    convert_evidence(old_session_maker, new_session_maker, 100)
 
     convert_paragraph(old_session_maker, new_session_maker)
     
@@ -440,15 +477,3 @@ def convert(old_session_maker, new_session_maker):
     convert_bioentity_reference(new_session_maker, Goevidence, 'GO', 'convert.go.bioentity_reference', 10000, get_bioent_ids_f)
 
     convert_biofact(new_session_maker, Goevidence, Go, 'GO', 'convert.go.biofact', 10000)
-            
-
-    
-
-    
-            
-        
-            
-            
-            
-            
-            

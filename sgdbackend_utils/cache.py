@@ -5,7 +5,7 @@ Created on Aug 9, 2013
 '''
 from obj_to_json import bioent_to_json, experiment_to_json, strain_to_json, \
     biocon_to_json, reference_to_json, locus_to_json
-from sgdbackend_query import get_all, get_all_with_aliases
+from sgdbackend_query import get_all
 from sgdbackend_utils.obj_to_json import bioitem_to_json, source_to_json, \
     chemical_to_json, go_to_json, phenotype_to_json
 
@@ -30,7 +30,7 @@ def cache_core():
         id_to_bioent[bioent.id] = json_form
         
     from model_new_schema.bioentity import Locus
-    for bioent in get_all(Locus):
+    for bioent in get_all(Locus, join="aliases"):
         json_form = locus_to_json(bioent)
         id_to_bioent[bioent.id] = json_form
 
@@ -44,7 +44,7 @@ def cache_core():
         id_to_biocon[biocon.id] = json_form
         
     from model_new_schema.bioconcept import Go
-    for biocon in get_all_with_aliases(Go):
+    for biocon in get_all(Go, join="aliases"):
         json_form = go_to_json(biocon)
         id_to_biocon[biocon.id] = json_form
         
@@ -77,7 +77,7 @@ def cache_core():
     print 'Cache references'
     #Cache references
     from model_new_schema.reference import Reference
-    for reference in get_all(Reference):
+    for reference in get_all(Reference, "journal"):
         json_form = reference_to_json(reference)
         id_to_reference[reference.id] = json_form
         

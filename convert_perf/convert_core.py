@@ -276,7 +276,7 @@ def update_reference(json_obj, bibentry, reference):
 def convert_reference(session_maker, backend, log, chunk_size):
     from model_perf_schema.core import Reference
     
-    log.info('convert_bioentity')
+    log.info('convert_reference')
     output_creator = OutputCreator(log)
     
     try:
@@ -358,7 +358,7 @@ def update_chemical(json_obj, chemical):
 def convert_chemical(session_maker, backend, log, chunk_size):
     from model_perf_schema.core import Chemical
 
-    log.info('convert_bioentity')
+    log.info('convert_chemical')
     output_creator = OutputCreator(log)
 
     try:

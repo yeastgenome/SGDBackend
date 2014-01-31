@@ -7,6 +7,7 @@ def locus_to_json(bioent):
     bioent_json = bioent_to_json(bioent)
     bioent_json['description'] = bioent.description
     bioent_json['locus_type'] = bioent.locus_type
+    bioent_json['aliases'] = [x.display_name for x in bioent.aliases]
     return bioent_json
 
 def bioent_to_json(bioent):
@@ -141,7 +142,8 @@ def reference_to_json(reference):
             'id': reference.id,
             'year': reference.year,
             'pubmed_id': reference.pubmed_id,
-            'urls': urls
+            'urls': urls,
+            'journal': None if reference.journal is None else reference.journal.med_abbr
             }
     
 def url_to_json(url):

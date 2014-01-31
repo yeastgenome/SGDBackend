@@ -72,7 +72,7 @@ class Bioentityalias(Alias):
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     subclass_type = Column('subclass', String)
     
-    bioentity = relationship(Bioentity, uselist=False)
+    bioentity = relationship(Bioentity, uselist=False, backref='aliases')
 
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
                        'inherit_condition': id == Alias.id}

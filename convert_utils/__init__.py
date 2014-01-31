@@ -145,6 +145,8 @@ def create_or_update(new_obj, current_obj_by_id, current_obj_by_key, values_to_c
         session.add(new_obj)
         output_creator.added()
         return True
+
+
         
 def set_up_logging(label):
     logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.DEBUG, datefmt='%m/%d/%Y %H:%M:%S')
