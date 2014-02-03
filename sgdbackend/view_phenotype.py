@@ -54,28 +54,24 @@ def make_overview(locus_id=None, phenotype_id=None):
         experiment_ancestry = get_experiment_ancestry(phenoevidence.experiment_id, child_experiment_id_to_parent_id)
         experiment = id_to_experiment[experiment_ancestry[0 if len(experiment_ancestry) < 3 else len(experiment_ancestry)-3]]
         mutant_type = phenoevidence.mutant_type
-        if locus_id is not None:
-            grouper = phenoevidence.bioconcept_id
-        else:
-            grouper = phenoevidence.bioentity_id
         strain = phenoevidence.strain_id
         if experiment['display_name'] == 'classical genetics':
             if mutant_type in classical_mutant_to_phenotypes:
-                classical_mutant_to_phenotypes[mutant_type].add(grouper)
+                classical_mutant_to_phenotypes[mutant_type].add(phenoevidence.id)
             else:
-                classical_mutant_to_phenotypes[mutant_type] = set([grouper])
+                classical_mutant_to_phenotypes[mutant_type] = set([phenoevidence.id])
         elif experiment['display_name'] == 'large-scale survey':
             if mutant_type in large_scale_mutant_to_phenotypes:
-                large_scale_mutant_to_phenotypes[mutant_type].add(grouper)
+                large_scale_mutant_to_phenotypes[mutant_type].add(phenoevidence.id)
             else:
-                large_scale_mutant_to_phenotypes[mutant_type] = set([grouper])
+                large_scale_mutant_to_phenotypes[mutant_type] = set([phenoevidence.id])
         mutant_type_set.add(mutant_type)
 
         if strain is not None:
             if strain in strain_to_phenotypes:
-                strain_to_phenotypes[strain].add(grouper)
+                strain_to_phenotypes[strain].add(phenoevidence.id)
             else:
-                strain_to_phenotypes[strain] = set([grouper])
+                strain_to_phenotypes[strain] = set([phenoevidence.id])
 
     mutant_list = list(mutant_type_set)
     mutant_to_count = dict([(x, (0 if x not in classical_mutant_to_phenotypes else len(classical_mutant_to_phenotypes[x]),

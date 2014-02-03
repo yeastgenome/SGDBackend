@@ -265,10 +265,10 @@ class NexPerfConverter(ConverterInterface):
         from model_perf_schema.bioconcept_data import BioconceptDetails
         from model_perf_schema.chemical_data import ChemicalDetails
         self.data_wrapper(BioentityDetails, "PHENOTYPE", 'bioentity_id', lambda x: self.backend.phenotype_details(locus_identifier=x, are_ids=True), 'phenotype_details', self.locus_ids, 1000)
-        #self.data_wrapper(ReferenceDetails, "PHENOTYPE", 'reference_id', lambda x: self.backend.phenotype_details(reference_identifier=x, are_ids=True), 'phenotype_details', self.reference_ids, 1000)
+        self.data_wrapper(ReferenceDetails, "PHENOTYPE", 'reference_id', lambda x: self.backend.phenotype_details(reference_identifier=x, are_ids=True), 'phenotype_details', self.reference_ids, 1000)
         self.data_wrapper(BioconceptDetails, "LOCUS", 'bioconcept_id', lambda x: self.backend.phenotype_details(phenotype_identifier=x, are_ids=True), 'locus_details', self.phenotype_ids, 1000)
         self.data_wrapper(BioconceptDetails, "LOCUS_ALL_CHILDREN", 'bioconcept_id', lambda x: self.backend.phenotype_details(phenotype_identifier=x, with_children=True, are_ids=True), 'locus_details', self.phenotype_ids, 1000)
-        #self.data_wrapper(ChemicalDetails, "PHENOTYPE", 'chemical_id', lambda x: self.backend.phenotype_details(chemical_identifier=x, are_ids=True), 'phenotype_details', self.chemical_ids, 1000)
+        self.data_wrapper(ChemicalDetails, "PHENOTYPE", 'chemical_id', lambda x: self.backend.phenotype_details(chemical_identifier=x, are_ids=True), 'phenotype_details', self.chemical_ids, 1000)
     def convert_author_details(self):
         from model_perf_schema.author_data import AuthorDetails
         self.data_wrapper(AuthorDetails, "REFERENCE", 'author_id', lambda x: self.backend.author_references(x, are_ids=True), 'author_details', self.author_ids, 1000)
