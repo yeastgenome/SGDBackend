@@ -114,11 +114,13 @@ def make_details(locus_id=None, phenotype_id=None, chemical_id=None, reference_i
             id_to_conditions[evidence_id].append(condition)
         else:
             id_to_conditions[evidence_id] = [condition]
+
+    child_experiment_id_to_parent_id = get_experiment_graph()
             
-    tables = create_simple_table(phenoevidences, make_evidence_row, id_to_conditions=id_to_conditions)
+    tables = create_simple_table(phenoevidences, make_evidence_row, id_to_conditions=id_to_conditions, child_experiment_id_to_parent_id=child_experiment_id_to_parent_id)
     return tables  
 
-def make_evidence_row(phenoevidence, id_to_conditions):
+def make_evidence_row(phenoevidence, id_to_conditions, child_experiment_id_to_parent_id):
     bioentity_id = phenoevidence.bioentity_id
     bioconcept_id = phenoevidence.bioconcept_id
     conditions = [] if phenoevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[phenoevidence.id]]
@@ -141,11 +143,15 @@ def make_evidence_row(phenoevidence, id_to_conditions):
             condition_entries.append(condition)
         else:
             print condition
+
+    experiment_ancestry = get_experiment_ancestry(phenoevidence.experiment_id, child_experiment_id_to_parent_id)
+    experiment_ancestor = id_to_experiment[experiment_ancestry[0 if len(experiment_ancestry) < 3 else len(experiment_ancestry)-3]]
         
     obj_json = evidence_to_json(phenoevidence).copy()
     obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
     obj_json['bioconcept'] = id_to_biocon[bioconcept_id]
     obj_json['mutant_type'] = phenoevidence.mutant_type
+    obj_json['experiment_type_category'] = experiment_ancestor['display_name']
     obj_json['allele'] = allele
     obj_json['reporter'] = reporter
     obj_json['chemical'] = chemical
