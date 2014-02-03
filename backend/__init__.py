@@ -327,6 +327,12 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'protein_domain_details')(
                                         locus_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('protein_domain_details'))
+
+    config.add_route('protein_graph', '/locus/{identifier}/protein_graph',
+                     view=lambda request: chosen_backend.response_wrapper('protein_graph', request)(
+                                getattr(chosen_backend, 'protein_graph')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('protein_graph'))
     
     config.add_route('binding_site_bioent_details',
                      '/locus/{identifier}/binding_site_details', 

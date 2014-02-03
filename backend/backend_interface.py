@@ -176,6 +176,10 @@ class BackendInterface:
     @abstractmethod
     def protein_domain_details(self, locus_identifier=None, reference_identifier=None):
         return None
+
+    @abstractmethod
+    def protein_graph(self, identifier):
+        return None
     
     #Regulation
     @abstractmethod
