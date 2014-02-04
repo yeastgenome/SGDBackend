@@ -200,11 +200,11 @@ def evidence_to_json(evidence):
             'class_type': evidence.class_type,
             'strain': None if evidence.strain_id is None else minimize_json(id_to_strain[evidence.strain_id]),
             'source': None if evidence.source_id is None else id_to_source[evidence.source_id],
-            'reference': None if evidence.reference_id is None else minimize_json(id_to_reference[evidence.reference_id]),
+            'reference': None if evidence.reference_id is None else minimize_json(id_to_reference[evidence.reference_id], include_pubmed_id=True),
             'experiment': None if evidence.experiment_id is None else minimize_json(id_to_experiment[evidence.experiment_id]),
             'note': evidence.note}
     
-def minimize_json(obj_json, include_format_name=False):
+def minimize_json(obj_json, include_format_name=False, include_pubmed_id=False):
     if obj_json is not None:
         min_json = {'display_name': obj_json['display_name'],
             'link': obj_json['link'],
@@ -213,5 +213,7 @@ def minimize_json(obj_json, include_format_name=False):
             min_json['class_type'] = obj_json['class_type']
         if include_format_name:
             min_json['format_name'] = obj_json['format_name']
+        if include_pubmed_id:
+            min_json['pubmed_id'] = obj_json['pubmed_id']
         return min_json 
     return None

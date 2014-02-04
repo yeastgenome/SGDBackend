@@ -75,7 +75,7 @@ class Goevidence(Evidence):
                  go_evidence, annotation_type, qualifier, conditions,
                  date_created, created_by):
         Evidence.__init__(self, bioentity.display_name + ' assoc. with ' + bioconcept.display_name + ' with ' + go_evidence + ' by ' + reference.display_name,
-                          bioentity.format_name + '_' + str(bioconcept.id) + '_' + go_evidence + '_' + str(reference.id), 
+                          bioentity.format_name + '_' + str(bioconcept.id) + '_' + go_evidence + '_' + str(reference.id) + ('_'.join(x.format_name for x in conditions)),
                           'GO', source, reference, None, experiment, 
                           note, date_created, created_by)
         self.go_evidence = go_evidence

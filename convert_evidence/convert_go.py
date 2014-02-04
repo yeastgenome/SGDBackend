@@ -102,8 +102,7 @@ def create_evidence(old_go_feature, gofeat_id_to_gorefs, goref_id_to_dbxrefs, id
             info = key_to_gpad_info[new_evidence.unique_key()]
             new_evidence.experiment_id = info[0]
             conditions.extend(info[1])
-        new_evidence.conditions = conditions
-        evidences.append((new_evidence, conditions))
+        evidences.append(new_evidence)
     return evidences
 
 def convert_evidence(old_session_maker, new_session_maker, chunk_size):
@@ -213,29 +212,13 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
                     
                 #Edit or add new objects
                 if newly_created_objs is not None:
-                    for newly_created_obj, new_conditions in newly_created_objs:
+                    for newly_created_obj in newly_created_objs:
                         obj_key = newly_created_obj.unique_key()
                         if obj_key not in already_seen_obj:
                             obj_id = newly_created_obj.id
                             current_obj_by_id = None if obj_id not in id_to_current_obj else id_to_current_obj[obj_id]
                             current_obj_by_key = None if obj_key not in key_to_current_obj else key_to_current_obj[obj_key]
                             created = create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-
-                            if not created:
-                                for condition in new_conditions:
-                                    condition.evidence_id = current_obj_by_key.id
-                                    condition_obj_key = condition.unique_key()
-                                    if condition_obj_key not in condition_already_seen_obj:
-                                        condition_obj_id = condition.id
-                                        condition_current_obj_by_id = None if condition_obj_id not in condition_id_to_current_obj else condition_id_to_current_obj[condition_obj_id]
-                                        condition_current_obj_by_key = None if condition_obj_key not in condition_key_to_current_obj else condition_key_to_current_obj[condition_obj_key]
-                                        create_or_update(condition, condition_current_obj_by_id, condition_current_obj_by_key, ['note', 'display_name'], new_session, output_creator)
-
-                                        if condition_current_obj_by_id is not None and condition_current_obj_by_id.id in condition_untouched_obj_ids:
-                                            condition_untouched_obj_ids.remove(condition_current_obj_by_id.id)
-                                        if condition_current_obj_by_key is not None and condition_current_obj_by_key.id in condition_untouched_obj_ids:
-                                            condition_untouched_obj_ids.remove(condition_current_obj_by_key.id)
-                                        condition_already_seen_obj.add(condition_obj_key)
 
                             if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
                                 untouched_obj_ids.remove(current_obj_by_id.id)
