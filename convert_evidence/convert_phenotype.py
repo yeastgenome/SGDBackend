@@ -42,6 +42,8 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
 
     mutant_type = old_phenotype_feature.mutant_type
     observable = old_phenotype_feature.observable
+    if observable == 'dessication resistance':
+        observable = 'desiccation resistance'
     qualifier = old_phenotype_feature.qualifier
     if observable == 'chemical compound accumulation' or observable == 'chemical compound excretion' or observable == 'resistance to chemicals':
         chemical = ' and '.join([x[0] for x in old_phenotype_feature.experiment.chemicals])

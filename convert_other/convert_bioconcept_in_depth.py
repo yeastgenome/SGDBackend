@@ -644,8 +644,8 @@ def convert(old_session_maker, new_session_maker):
     convert_ecnumber_relation(new_session_maker)
     
     from model_new_schema.bioconcept import Phenotype
-    #convert_phenotype_relation(old_session_maker, new_session_maker)
-    #convert_phenotype_alias(old_session_maker, new_session_maker)
+    convert_phenotype_relation(old_session_maker, new_session_maker)
+    convert_phenotype_alias(old_session_maker, new_session_maker)
     convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
     convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
  

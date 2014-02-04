@@ -2,7 +2,6 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/schemas/nex_schema.sql" dialect="Oracle" />
-    <file url="file://$PROJECT_DIR$/schemas/nex_triggers.sql" dialect="Oracle" />
   </component>
 </project>
 

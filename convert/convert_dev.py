@@ -20,7 +20,7 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_evelements()
     #pastry_dev_converter.convert_reference()
     #pastry_dev_converter.convert_bioentity()
-    #pastry_dev_converter.convert_bioconcept()
+    pastry_dev_converter.convert_bioconcept()
     #pastry_dev_converter.convert_bioitem()
     #pastry_dev_converter.convert_chemical()
 
@@ -37,8 +37,8 @@ if __name__ == "__main__":
 
 
     #Dev_nex -> Dev_perf
-    dev_perf_converter = NexPerfConverter(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS,
-                                     config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    #dev_perf_converter = NexPerfConverter(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS,
+    #                                 config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
     #dev_perf_converter.convert_daily()
     #dev_perf_converter.convert_bioentity()
     #dev_perf_converter.convert_bioconcept()
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     #dev_perf_converter.convert_chemical()
     #dev_perf_converter.convert_disambig()
 
-    dev_perf_converter.convert_interaction_details()
+    #dev_perf_converter.convert_interaction_details()
     #dev_perf_converter.convert_interaction_overview()
     #dev_perf_converter.convert_interaction_graph()
     #dev_perf_converter.convert_interaction_resources()
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     #dev_perf_converter.convert_go_graph()
     #dev_perf_converter.convert_go_ontology_graph()
 
-    dev_perf_converter.convert_regulation_details()
+    #dev_perf_converter.convert_regulation_details()
     #dev_perf_converter.convert_protein_domain_details()
     #dev_perf_converter.convert_binding_site_details()
     #dev_perf_converter.convert_regulation_overview()
