@@ -213,7 +213,7 @@ class Domainevidence(Evidence):
     status = Column('domain_status', String)
     date_of_run = Column('date_of_run', Date)
     bioentity_id = Column('protein_id', Integer, ForeignKey(Protein.id))
-    domain_id = Column('domain_id', Integer, ForeignKey(Domain.id))
+    bioitem_id = Column('domain_id', Integer, ForeignKey(Domain.id))
        
     __mapper_args__ = {'polymorphic_identity': 'DOMAIN',
                        'inherit_condition': id==Evidence.id}
@@ -233,7 +233,7 @@ class Domainevidence(Evidence):
         self.status = status
         self.date_of_run = date_of_run
         self.bioentity_id = protein.id
-        self.domain_id = domain.id
+        self.bioitem_id = domain.id
           
 class Qualifierevidence(Evidence):
     __tablename__ = "qualifierevidence"

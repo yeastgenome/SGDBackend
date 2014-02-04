@@ -110,7 +110,7 @@ def convert_domain_evidence(new_session_maker, chunk_size):
                 
         #Values to check
         values_to_check = ['reference_id', 'strain_id', 'source_id', 'reference_id', 'strain_id',
-                           'start', 'end', 'evalue', 'status', 'date_of_run', 'protein_id', 'domain_id']
+                           'start', 'end', 'evalue', 'status', 'date_of_run']
         
         #Grab cached dictionaries
         key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])       
