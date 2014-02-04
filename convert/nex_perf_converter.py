@@ -92,26 +92,26 @@ class NexPerfConverter(ConverterInterface):
         
     def convert_daily(self):
         #Core
-        #self.convert_bioentity()
+        self.convert_bioentity()
         self.convert_bioconcept()
-        #self.convert_reference()
-        #self.convert_chemical()
-        #self.convert_author()
-        #self.convert_disambig()
-        #self.convert_ontology()
+        self.convert_reference()
+        self.convert_chemical()
+        self.convert_author()
+        self.convert_disambig()
+        self.convert_ontology()
         
         #Data
-        #self.convert_author_details()
+        self.convert_author_details()
 
-        #self.convert_literature_overview()
-        #self.convert_literature_details()
-        #self.convert_literature_graph()
+        self.convert_literature_overview()
+        self.convert_literature_details()
+        self.convert_literature_graph()
 
-        #self.convert_phenotype_overview()
-        #self.convert_phenotype_details()
-        #self.convert_phenotype_graph()
-        #self.convert_phenotype_resources()
-        #self.convert_phenotype_ontology_graph()
+        self.convert_phenotype_overview()
+        self.convert_phenotype_details()
+        self.convert_phenotype_graph()
+        self.convert_phenotype_resources()
+        self.convert_phenotype_ontology_graph()
 
         self.convert_go_overview()
         self.convert_go_details()
