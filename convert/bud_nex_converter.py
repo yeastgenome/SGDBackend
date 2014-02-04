@@ -116,7 +116,7 @@ class BudNexConverter(ConverterInterface):
     def convert_binding(self):
         self.wrapper(convert_binding.convert, no_old_session=True)
     def convert_protein_domain(self):
-        self.wrapper(convert_protein_domain.convert, no_old_session=True)
+        self.wrapper(convert_protein_domain.convert)
     def convert_regulation(self):
         self.wrapper(convert_regulation.convert, no_old_session=True)
     def convert_bioentity_in_depth(self):

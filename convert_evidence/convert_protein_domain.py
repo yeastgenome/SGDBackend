@@ -3,8 +3,10 @@ Created on Sep 20, 2013
 
 @author: kpaskov
 '''
+from convert_core.convert_bioentity import create_protein_id
 from convert_utils import create_or_update, break_up_file, create_format_name
 from convert_utils.output_manager import OutputCreator
+from sqlalchemy.orm import joinedload
 from mpmath import ceil, floor
 import logging
 import sys
@@ -94,11 +96,42 @@ def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pu
                                      start, end, evalue, status, date_of_run, protein, domain, None, None)
     return [domain_evidence]
 
-def convert_domain_evidence(new_session_maker, chunk_size):
+def create_domain_evidence_from_protein_info(protein_info, id_to_bioentity, key_to_domain, key_to_source, key_to_strain):
+    from model_new_schema.evidence import Domainevidence
+
+    strain = key_to_strain['S288C']
+
+    protein_id = create_protein_id(protein_info.feature_id)
+    if protein_id not in id_to_bioentity:
+        print 'Bioentity could not be found: ' + str(protein_id)
+    protein = id_to_bioentity[protein_id]
+
+    domain_evidences = []
+    for protein_detail in protein_info.details:
+        if protein_detail.type == 'transmembrane domain':
+            domain_key = ('predicted_transmembrane_domain', 'DOMAIN')
+            source = key_to_source['TMHMM']
+        elif protein_detail.type == 'signal peptide':
+            domain_key = ('predicted_signal_peptide', 'DOMAIN')
+            source = key_to_source['SignalP']
+
+        domain = None if domain_key is None or domain_key not in key_to_domain else key_to_domain[domain_key]
+        if domain is None:
+            print 'Domain not found: ' + str(domain_key)
+        else:
+            domain_evidence = Domainevidence(source, None, strain, None,
+                 protein_detail.min_coord, protein_detail.max_coord, None, None, None, protein, domain,
+                 protein_detail.date_created, protein_detail.created_by)
+            domain_evidences.append(domain_evidence)
+
+    return domain_evidences
+
+def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.evidence import Domain, Domainevidence
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.reference import Reference
     from model_new_schema.evelements import Source, Strain
+    from model_old_schema.sequence import ProteinInfo as OldProteinInfo
     
     log = logging.getLogger('convert.protein_domain.evidence')
     log.info('begin')
@@ -109,11 +142,12 @@ def convert_domain_evidence(new_session_maker, chunk_size):
         new_session = new_session_maker()
                 
         #Values to check
-        values_to_check = ['reference_id', 'strain_id', 'source_id', 'reference_id', 'strain_id',
-                           'start', 'end', 'evalue', 'status', 'date_of_run', 'protein_id', 'domain_id']
+        values_to_check = ['reference_id', 'strain_id', 'source_id',
+                           'start', 'end', 'evalue', 'status', 'date_of_run']
         
         #Grab cached dictionaries
-        key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])       
+        key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])
+        id_to_bioentity = dict([(x.id, x) for x in new_session.query(Bioentity).all()])
         key_to_domain = dict([(x.unique_key(), x) for x in new_session.query(Domain).all()]) 
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).all()]) 
         key_to_strain = dict([(x.unique_key(), x) for x in new_session.query(Strain).all()])
@@ -203,7 +237,33 @@ def convert_domain_evidence(new_session_maker, chunk_size):
                     print unique_key
                 already_seen_obj.add(unique_key)
                         
-        output_creator.finished("1/1")
+        output_creator.finished("1/2")
+        new_session.commit()
+
+        #Grab protein_details
+        old_session = old_session_maker()
+        old_objs = old_session.query(OldProteinInfo).options(joinedload('details')).all()
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_domain_evidence_from_protein_info(old_obj, id_to_bioentity, key_to_domain, key_to_source, key_to_strain)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                unique_key = newly_created_obj.unique_key()
+                if unique_key not in already_seen_obj:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        del untouched_obj_ids[current_obj_by_id.id]
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        del untouched_obj_ids[current_obj_by_key.id]
+                else:
+                    print unique_key
+                already_seen_obj.add(unique_key)
+
+        output_creator.finished("2/2")
         new_session.commit()
                         
         #Delete untouched objs
@@ -226,10 +286,6 @@ def convert_domain_evidence(new_session_maker, chunk_size):
 ---------------------Convert------------------------------
 """   
 
-def convert(new_session_maker):  
+def convert(old_session_maker, new_session_maker):
 
-    convert_domain_evidence(new_session_maker, 1000)
-        
-
-    
-    
+    convert_domain_evidence(old_session_maker, new_session_maker, 1000)

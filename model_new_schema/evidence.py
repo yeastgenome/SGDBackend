@@ -233,7 +233,7 @@ class Domainevidence(Evidence):
         self.status = status
         self.date_of_run = date_of_run
         self.bioentity_id = protein.id
-        self.domain_id = domain.id
+        self.bioitem_id = domain.id
           
 class Qualifierevidence(Evidence):
     __tablename__ = "qualifierevidence"
