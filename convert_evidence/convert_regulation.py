@@ -151,8 +151,6 @@ def convert_evidence(new_session_maker, chunk_size):
                         if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                             untouched_obj_ids.remove(current_obj_by_key.id)
                         already_seen.add(unique_key)
-                    else:
-                        print 'Duplicate evidence entries: ' + str(unique_key)
                         
             #Delete untouched objs
             for untouched_obj  in untouched_obj_ids:

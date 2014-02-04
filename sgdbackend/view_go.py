@@ -45,8 +45,8 @@ def make_overview(bioent_id):
     gofacts = get_biofacts('GO', bioent_id=bioent_id)
     biocon_ids = [x.bioconcept_id for x in gofacts]
 
-    slim_ids = get_bioconcept_parent_ids('GO_SLIM', biocon_ids)
-    overview['go_slim'] = [minimize_json(id_to_biocon[x]) for x in slim_ids]
+    slim_ids = set(get_bioconcept_parent_ids('GO_SLIM', biocon_ids))
+    overview['go_slim'] = sorted([minimize_json(id_to_biocon[x]) for x in slim_ids], key=lambda y: y['display_name'])
 
     paragraph = get_paragraph(bioent_id, 'GO')
     if paragraph is not None:
@@ -119,6 +119,7 @@ def make_evidence_row(goevidence, id_to_conditions):
     obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
     obj_json['bioconcept'] = minimize_json(id_to_biocon[bioconcept_id])
     obj_json['bioconcept']['aspect'] = id_to_biocon[bioconcept_id]['go_aspect']
+    obj_json['bioconcept']['go_id'] = id_to_biocon[bioconcept_id]['go_id']
     obj_json['conditions'] = [] if goevidence.id not in id_to_conditions else [fix_display_name(condition_to_json(x)) for x in id_to_conditions[goevidence.id]]
     obj_json['code'] = goevidence.go_evidence
     obj_json['method'] = goevidence.annotation_type

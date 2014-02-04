@@ -140,4 +140,3 @@ if __name__ == "__main__":
         getattr(converter, method)()
     else:
         print 'Please enter bud_dbhost, nex_dbhost, and method.'
-        

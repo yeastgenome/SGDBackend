@@ -84,7 +84,7 @@ class Bioconceptalias(Alias):
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
     subclass_type = Column('subclass', String)
 
-    bioconcept = relationship(Bioconcept, uselist=False, backref='aliases')
+    bioconcept = relationship(Bioconcept, uselist=False, backref=backref('aliases', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
                        'inherit_condition': id == Alias.id}
@@ -136,8 +136,9 @@ def create_phenotype_format_name(observable, qualifier):
         format_name = create_format_name(observable)
     else:
         observable = '.' if observable is None else observable
+        observable = observable.replace("'", "")
         qualifier = '.' if qualifier is None else qualifier
-        format_name = create_format_name(qualifier + '_' + observable)
+        format_name = create_format_name(qualifier.lower() + '_' + observable.lower())
     return format_name
         
 class Phenotype(Bioconcept):

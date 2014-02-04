@@ -32,11 +32,16 @@ def create_phenotype_type(observable):
 def create_phenotype(old_phenotype, key_to_source, observable_to_ancestor):
     from model_new_schema.bioconcept import Phenotype as NewPhenotype
     observable = old_phenotype.observable
+    if observable == 'dessication resistance':
+        observable = 'desiccation resistance'
     qualifier = old_phenotype.qualifier
     
     source = key_to_source['SGD']
     phenotype_type = create_phenotype_type(old_phenotype.observable)
     ancestor_type = None if observable not in observable_to_ancestor else observable_to_ancestor[observable]
+    if ancestor_type is None:
+        print 'No ancestor type: ' + str(observable)
+        return []
     new_phenotype = NewPhenotype(source, None, None,
                                  observable, qualifier, phenotype_type, ancestor_type,
                                  old_phenotype.date_created, old_phenotype.created_by)
@@ -48,6 +53,9 @@ def create_phenotype_from_cv_term(old_cvterm, key_to_source, observable_to_ances
     source = key_to_source['SGD']
     phenotype_type = create_phenotype_type(observable)
     ancestor_type = None if observable not in observable_to_ancestor else observable_to_ancestor[observable]
+    if ancestor_type is None:
+        print 'No ancestor type: ' + str(observable)
+        return []
     description = old_cvterm.definition
     if observable == 'observable':
         description = 'Features of Saccharomyces cerevisiae cells, cultures, or colonies that can be detected, observed, measured, or monitored.'
@@ -144,7 +152,7 @@ def convert_phenotype(old_session_maker, new_session_maker):
                 ancestor_id = ancestry[len(ancestry)-3]
                 observable_to_ancestor[old_obj.name] = id_to_observable[ancestor_id]
             else:
-                observable_to_ancestor[old_obj.name] = None
+                observable_to_ancestor[old_obj.name] = id_to_observable[ancestry[0]]
             
         
         for old_obj in old_objs:
@@ -379,6 +387,7 @@ def convert_ecnumber(old_session_maker, new_session_maker):
 """  
 
 def convert(old_session_maker, new_session_maker):
+
     convert_phenotype(old_session_maker, new_session_maker)
     
     convert_go(old_session_maker, new_session_maker)

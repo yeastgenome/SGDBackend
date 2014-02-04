@@ -3,6 +3,7 @@ Created on Dec 11, 2012
 
 @author: kpaskov
 '''
+import hashlib
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.bioconcept import Go, Phenotype
 from model_new_schema.bioentity import Bioentity, Protein
@@ -75,7 +76,7 @@ class Goevidence(Evidence):
                  go_evidence, annotation_type, qualifier, conditions,
                  date_created, created_by):
         Evidence.__init__(self, bioentity.display_name + ' assoc. with ' + bioconcept.display_name + ' with ' + go_evidence + ' by ' + reference.display_name,
-                          bioentity.format_name + '_' + str(bioconcept.id) + '_' + go_evidence + '_' + str(reference.id), 
+                          bioentity.format_name + '_' + str(bioconcept.id) + '_' + go_evidence + '_' + str(reference.id) + ('_'.join(x.format_name for x in conditions)),
                           'GO', source, reference, None, experiment, 
                           note, date_created, created_by)
         self.go_evidence = go_evidence
@@ -192,7 +193,7 @@ class Phenotypeevidence(Evidence):
                  date_created, created_by):
         Evidence.__init__(self, 
                           bioentity.display_name + ' ' + phenotype.display_name + ' in ' + reference.display_name,
-                          bioentity.format_name + '_' + str(phenotype.id) + '_' + mutant_type + '_' + ('' if strain is None else ('_' + str(strain.id))) + '_' + str(experiment.id) + '_' + str(reference.id) + '_' + '_'.join(x.format_name for x in conditions), 
+                          bioentity.format_name + '_' + str(phenotype.id) + '_' + mutant_type + '_' + ('' if strain is None else ('_' + str(strain.id))) + '_' + str(experiment.id) + '_' + str(reference.id) + ('' if experiment_details is None else ('_' + hashlib.md5(experiment_details).hexdigest()[:10])) + '_'.join(x.format_name for x in conditions),
                           'PHENOTYPE', source, reference, strain, experiment, note,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
