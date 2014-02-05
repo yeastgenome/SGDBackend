@@ -362,8 +362,11 @@ class SGDBackend(BackendInterface):
     def literature_graph(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_literature
+        from sgdbackend_utils.cache import id_to_bioent
         if are_ids:
             locus_id = identifier
+            if locus_id not in id_to_bioent or id_to_bioent[locus_id]['class_type'] != 'LOCUS':
+                return None
         else:
             locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_literature.make_graph(locus_id))

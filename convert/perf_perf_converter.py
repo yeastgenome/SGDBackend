@@ -29,7 +29,7 @@ class PerfPerfConverter(ConverterInterface):
         self.chemical_ids = [x.id for x in self.session_maker().query(Chemical.id).all()]
         self.author_ids = [x.id for x in self.session_maker().query(Author.id).all()]
 
-        self.log = set_up_logging('nex_perf_converter')
+        self.log = set_up_logging('perf_perf_converter')
         print 'Ready'
 
     def core_wrapper(self, f, chunk_size):
@@ -76,7 +76,7 @@ class PerfPerfConverter(ConverterInterface):
         self.convert_regulation_paragraph()
         self.convert_regulation_details()
         self.convert_regulation_graph()
-        #self.convert_regulation_target_enrich()
+        self.convert_regulation_target_enrich()
 
         self.convert_phenotype_overview()
         self.convert_phenotype_details()

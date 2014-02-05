@@ -34,7 +34,7 @@ class Reference(Base, EqualityByIDMixin):
         __tablename__ = 'reference'
     
         id = Column('reference_id', Integer, primary_key=True)
-        json = Column('json', String)
+        json = Column('json', CLOB)
         bibentry_json = Column('bibentry_json', CLOB)
                 
         def __init__(self, reference_id, json, bibentry_json):

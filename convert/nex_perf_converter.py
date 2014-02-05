@@ -77,16 +77,16 @@ class NexPerfConverter(ConverterInterface):
         self.convert_regulation_paragraph()
         self.convert_regulation_details()
         self.convert_regulation_graph()
-        #self.convert_regulation_target_enrich()
+        self.convert_regulation_target_enrich()
 
-        self.convert_phenotype_overview()
         self.convert_phenotype_details()
+        self.convert_phenotype_overview()
         self.convert_phenotype_graph()
         self.convert_phenotype_resources()
         self.convert_phenotype_ontology_graph()
 
-        self.convert_go_overview()
         self.convert_go_details()
+        self.convert_go_overview()
         self.convert_go_graph()
         self.convert_go_ontology_graph()
         
@@ -107,14 +107,14 @@ class NexPerfConverter(ConverterInterface):
         self.convert_literature_details()
         self.convert_literature_graph()
 
-        self.convert_phenotype_overview()
         self.convert_phenotype_details()
+        self.convert_phenotype_overview()
         self.convert_phenotype_graph()
         self.convert_phenotype_resources()
         self.convert_phenotype_ontology_graph()
 
-        self.convert_go_overview()
         self.convert_go_details()
+        self.convert_go_overview()
         self.convert_go_graph()
         self.convert_go_ontology_graph()
         
