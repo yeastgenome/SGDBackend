@@ -96,42 +96,47 @@ def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pu
                                      start, end, evalue, status, date_of_run, protein, domain, None, None)
     return [domain_evidence]
 
-def create_domain_evidence_from_protein_info(protein_info, id_to_bioentity, key_to_domain, key_to_source, key_to_strain):
+def create_domain_evidence_from_protein_info(protein_detail, id_to_bioentity, key_to_domain, key_to_source, key_to_strain):
     from model_new_schema.evidence import Domainevidence
 
     strain = key_to_strain['S288C']
 
-    protein_id = create_protein_id(protein_info.feature_id)
+    protein_id = create_protein_id(protein_detail.info.feature_id)
     if protein_id not in id_to_bioentity:
         print 'Bioentity could not be found: ' + str(protein_id)
     protein = id_to_bioentity[protein_id]
 
-    domain_evidences = []
-    for protein_detail in protein_info.details:
-        if protein_detail.type == 'transmembrane domain':
-            domain_key = ('predicted_transmembrane_domain', 'DOMAIN')
-            source = key_to_source['TMHMM']
-        elif protein_detail.type == 'signal peptide':
-            domain_key = ('predicted_signal_peptide', 'DOMAIN')
-            source = key_to_source['SignalP']
 
-        domain = None if domain_key is None or domain_key not in key_to_domain else key_to_domain[domain_key]
-        if domain is None:
-            print 'Domain not found: ' + str(domain_key)
+    if protein_detail.type == 'transmembrane domain':
+        domain_key = ('predicted_transmembrane_domain', 'DOMAIN')
+        source = key_to_source['TMHMM']
+    elif protein_detail.type == 'signal peptide':
+        domain_key = ('predicted_signal_peptide', 'DOMAIN')
+        source = key_to_source['SignalP']
+    else:
+        print 'Type not handled: ' + protein_detail.type
+        return []
+
+    domain = None if domain_key is None or domain_key not in key_to_domain else key_to_domain[domain_key]
+    if domain is None:
+        print 'Domain not found: ' + str(domain_key)
+    else:
+        if protein_detail.min_coord is None or protein_detail.max_coord is None:
+            print 'Min or max coord is none.'
         else:
             domain_evidence = Domainevidence(source, None, strain, None,
-                 protein_detail.min_coord, protein_detail.max_coord, None, None, None, protein, domain,
-                 protein_detail.date_created, protein_detail.created_by)
-            domain_evidences.append(domain_evidence)
+                protein_detail.min_coord, protein_detail.max_coord, None, None, None, protein, domain,
+                protein_detail.date_created, protein_detail.created_by)
+            return [domain_evidence]
 
-    return domain_evidences
+    return []
 
 def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.evidence import Domain, Domainevidence
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.reference import Reference
     from model_new_schema.evelements import Source, Strain
-    from model_old_schema.sequence import ProteinInfo as OldProteinInfo
+    from model_old_schema.sequence import ProteinDetail as OldProteinDetail
     
     log = logging.getLogger('convert.protein_domain.evidence')
     log.info('begin')
@@ -242,7 +247,7 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
 
         #Grab protein_details
         old_session = old_session_maker()
-        old_objs = old_session.query(OldProteinInfo).options(joinedload('details')).all()
+        old_objs = old_session.query(OldProteinDetail).options(joinedload('info')).all()
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_domain_evidence_from_protein_info(old_obj, id_to_bioentity, key_to_domain, key_to_source, key_to_strain)

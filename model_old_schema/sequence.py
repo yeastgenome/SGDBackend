@@ -63,7 +63,7 @@ class ProteinInfo(Base, EqualityByIDMixin):
     __tablename__ = 'protein_info'
     
     id = Column('protein_info_no', Integer, primary_key=True)
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
@@ -78,8 +78,7 @@ class ProteinInfo(Base, EqualityByIDMixin):
     gravy_score = Column('gravy_score', Float)
     aromaticity_score = Column('aromaticity_score', Float)
     
-    details = relationship('ProteinDetail')
-    feature = relationship('Feature')
+    feature = relationship(Feature, uselist=False)
     
     ala = Column('ala', Integer)
     arg = Column('arg', Integer)
@@ -106,7 +105,7 @@ class ProteinDetail(Base, EqualityByIDMixin):
     __tablename__ = 'protein_detail'
     
     id = Column('protein_detail_no', Integer, primary_key=True)
-    info_id = Column('protein_info_no', Integer, ForeignKey('bud.protein_info.protein_info_no'))
+    info_id = Column('protein_info_no', Integer, ForeignKey(ProteinInfo.id))
     group = Column('protein_detail_group', String)
     type = Column('protein_detail_type', String)
     value = Column('protein_detail_value', String)
@@ -114,5 +113,5 @@ class ProteinDetail(Base, EqualityByIDMixin):
     max_coord = Column('max_coord', Integer)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
-    
-    
+
+    info = relationship(ProteinInfo, uselist=False, backref='details')
