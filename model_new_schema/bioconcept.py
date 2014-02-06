@@ -133,7 +133,7 @@ def create_phenotype_display_name(observable, qualifier):
 
 def create_phenotype_format_name(observable, qualifier):
     if qualifier is None:
-        format_name = create_format_name(observable)
+        format_name = create_format_name(observable.lower())
     else:
         observable = '.' if observable is None else observable
         observable = observable.replace("'", "")
