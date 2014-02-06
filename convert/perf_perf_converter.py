@@ -19,15 +19,6 @@ class PerfPerfConverter(ConverterInterface):
         check_session_maker(self.session_maker, perf2_dbhost, perf2_schema)
         
         self.backend = PerfBackend(perf1_dbtype, perf1_dbhost, perf1_dbname, perf1_schema, perf1_dbuser, perf1_dbpass, None)
-                        
-        from model_perf_schema.core import Bioentity, Bioconcept, Reference, Chemical, Author
-        self.locus_ids = [x.id for x in self.session_maker().query(Bioentity.id).all()]
-        bioconcepts = self.session_maker().query(Bioconcept.id).all()
-        self.phenotype_ids = [x.id for x in bioconcepts]
-        self.go_ids = [x.id for x in bioconcepts]
-        self.reference_ids = [x.id for x in self.session_maker().query(Reference.id).all()]
-        self.chemical_ids = [x.id for x in self.session_maker().query(Chemical.id).all()]
-        self.author_ids = [x.id for x in self.session_maker().query(Author.id).all()]
 
         self.log = set_up_logging('perf_perf_converter')
         print 'Ready'
@@ -45,6 +36,16 @@ class PerfPerfConverter(ConverterInterface):
         except Exception:
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
 
+    def load_ids(self):
+        from model_perf_schema.core import Bioentity, Bioconcept, Reference, Chemical, Author
+        self.locus_ids = [x.id for x in self.session_maker().query(Bioentity.id).all()]
+        bioconcepts = self.session_maker().query(Bioconcept.id).all()
+        self.phenotype_ids = [x.id for x in bioconcepts]
+        self.go_ids = [x.id for x in bioconcepts]
+        self.reference_ids = [x.id for x in self.session_maker().query(Reference.id).all()]
+        self.chemical_ids = [x.id for x in self.session_maker().query(Chemical.id).all()]
+        self.author_ids = [x.id for x in self.session_maker().query(Author.id).all()]
+
     def convert_all(self):
         #Core
         self.convert_bioentity()
@@ -54,6 +55,8 @@ class PerfPerfConverter(ConverterInterface):
         self.convert_author()
         self.convert_disambig()
         self.convert_ontology()
+
+        self.load_ids()
 
         #Data
 
@@ -99,6 +102,8 @@ class PerfPerfConverter(ConverterInterface):
         self.convert_disambig()
         self.convert_ontology()
 
+        self.load_ids()
+
         #Data
         self.convert_author_details()
 
@@ -118,6 +123,11 @@ class PerfPerfConverter(ConverterInterface):
         self.convert_go_ontology_graph()
 
     def convert_monthly(self):
+
+        from model_perf_schema.core import Bioentity, Reference
+        self.locus_ids = [x.id for x in self.session_maker().query(Bioentity.id).all()]
+        self.reference_ids = [x.id for x in self.session_maker().query(Reference.id).all()]
+
         #Data
         self.convert_interaction_overview()
         self.convert_interaction_details()
@@ -125,6 +135,11 @@ class PerfPerfConverter(ConverterInterface):
         self.convert_interaction_resources()
 
     def convert_updated_flatfiles(self):
+
+        from model_perf_schema.core import Bioentity, Reference
+        self.locus_ids = [x.id for x in self.session_maker().query(Bioentity.id).all()]
+        self.reference_ids = [x.id for x in self.session_maker().query(Reference.id).all()]
+
         #Data
         self.convert_protein_domain_details()
 
