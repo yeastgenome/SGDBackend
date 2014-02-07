@@ -286,8 +286,8 @@ def create_phenotype_relation(cvtermrel, key_to_phenotype, key_to_source):
     
     source = key_to_source['SGD']
     
-    parent_key = (create_format_name(cvtermrel.parent.name), 'PHENOTYPE')
-    child_key = (create_format_name(cvtermrel.child.name), 'PHENOTYPE')
+    parent_key = (create_format_name(cvtermrel.parent.name.lower()), 'PHENOTYPE')
+    child_key = (create_format_name(cvtermrel.child.name.lower()), 'PHENOTYPE')
     
     if parent_key == ('observable', 'PHENOTYPE'):
         parent_key = ('ypo', 'PHENOTYPE')
@@ -307,7 +307,7 @@ def create_phenotype_relation_from_phenotype(phenotype, key_to_phenotype, key_to
     source = key_to_source['SGD']
     
     if phenotype.qualifier is not None:
-        parent_key = (create_format_name(phenotype.observable), 'PHENOTYPE')
+        parent_key = (create_format_name(phenotype.observable.lower()), 'PHENOTYPE')
         parent = None if parent_key not in key_to_phenotype else key_to_phenotype[parent_key]
         if parent is None:
             print 'Could not find phenotype. Parent: ' + str(parent_key)
@@ -330,9 +330,9 @@ def create_chemical_phenotype_relation(old_phenotype, key_to_phenotype, key_to_s
             new_observable = old_phenotype.observable.replace('chemical compound', chemical)
         qualifier = old_phenotype.qualifier
 
-        grandparent_key = (create_format_name(old_observable), 'PHENOTYPE')
-        parent_key = (create_format_name(new_observable), 'PHENOTYPE')
-        child_key = (create_phenotype_format_name(new_observable, qualifier), 'PHENOTYPE')
+        grandparent_key = (create_format_name(old_observable.lower()), 'PHENOTYPE')
+        parent_key = (create_format_name(new_observable.lower()), 'PHENOTYPE')
+        child_key = (create_phenotype_format_name(new_observable.lower(), qualifier.lower()), 'PHENOTYPE')
 
         grandparent = None if grandparent_key not in key_to_phenotype else key_to_phenotype[grandparent_key]
         parent = None if parent_key not in key_to_phenotype else key_to_phenotype[parent_key]
@@ -641,17 +641,17 @@ def convert_phenotype_alias(old_session_maker, new_session_maker):
 
 def convert(old_session_maker, new_session_maker):  
 
-    convert_ecnumber_relation(new_session_maker)
+    #convert_ecnumber_relation(new_session_maker)
     
     from model_new_schema.bioconcept import Phenotype
     convert_phenotype_relation(old_session_maker, new_session_maker)
-    convert_phenotype_alias(old_session_maker, new_session_maker)
+    #convert_phenotype_alias(old_session_maker, new_session_maker)
     convert_biocon_count(new_session_maker, 'PHENOTYPE', 'convert.phenotype.biocon_count')
-    convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
+    #convert_disambigs(new_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE', 'convert.phenotype.disambigs', 2000)
  
     from model_new_schema.bioconcept import Go
-    convert_go_alias(old_session_maker, new_session_maker)
-    convert_go_relation(old_session_maker, new_session_maker)
-    convert_go_slim_relation(old_session_maker, new_session_maker)
-    convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
-    convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
+    #convert_go_alias(old_session_maker, new_session_maker)
+    #convert_go_relation(old_session_maker, new_session_maker)
+    #convert_go_slim_relation(old_session_maker, new_session_maker)
+    #convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
+    #convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)

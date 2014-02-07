@@ -138,6 +138,16 @@ class Protein(Bioentity):
     length = Column('protein_length', Integer)
     n_term_seq = Column('n_term_seq', String)
     c_term_seq = Column('c_term_seq', String)
+
+    #pi = Column('pi', Double)
+
+    #codon_bias = Column('codon_bias', Double)
+    #codon_adaptation_index = Column('cai', Double)
+    #frequency_of_optimal_codons = Column('fop', Double)
+    #hydropathicity = Column('hydropathicity', Double)
+    #aromaticity_score = Column('aromaticity_score', Double)
+
+
             
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Bioentity.id}
