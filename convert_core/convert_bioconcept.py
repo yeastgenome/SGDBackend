@@ -389,10 +389,11 @@ def convert_ecnumber(old_session_maker, new_session_maker):
 def create_complex(row, key_to_source, key_to_go):
     from model_new_schema.bioconcept import Complex
 
-    go_key = (row[1], 'GO')
+    go_key = (row[1][1:-1], 'GO')
     go = None if go_key not in key_to_go else key_to_go[go_key]
     if go is None:
         print 'Go not found: ' + str(go_key)
+        return []
 
     source = key_to_source['SGD']
 
@@ -424,7 +425,7 @@ def convert_complex(new_session_maker):
         key_to_go = dict([(x.unique_key(), x) for x in new_session.query(NewGo).all()])
 
         #Grab old objects
-        old_objs = break_up_file('data/go_complexes.csv', delimeter=',')
+        old_objs = break_up_file('data/go_complexes.txt')[2:]
 
         for old_obj in old_objs:
             #Convert old objects into new ones
