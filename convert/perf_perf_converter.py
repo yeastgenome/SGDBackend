@@ -49,7 +49,7 @@ class PerfPerfConverter(ConverterInterface):
         #Core
         self.convert_bioentity()
         self.convert_bioconcept()
-        self.convert_reference()
+        #self.convert_reference()
         self.convert_chemical()
         self.convert_author()
         self.convert_disambig()

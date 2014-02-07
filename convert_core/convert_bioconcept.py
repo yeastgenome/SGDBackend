@@ -464,10 +464,10 @@ def convert_complex(new_session_maker):
 
 def convert(old_session_maker, new_session_maker):
 
-    #convert_phenotype(old_session_maker, new_session_maker)
+    convert_phenotype(old_session_maker, new_session_maker)
     
-    #convert_go(old_session_maker, new_session_maker)
+    convert_go(old_session_maker, new_session_maker)
     
-    #convert_ecnumber(old_session_maker, new_session_maker)
+    convert_ecnumber(old_session_maker, new_session_maker)
 
     convert_complex(new_session_maker)

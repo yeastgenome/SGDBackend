@@ -212,6 +212,21 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'phenotype_graph')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('phenotype_graph'))
+
+    #Complex
+    config.add_route('complex',
+                     '/complex/{identifier}/overview',
+                     view=lambda request: chosen_backend.response_wrapper('complex', request)(
+                                getattr(chosen_backend, 'complex')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('complex'))
+
+    config.add_route('complex_graph',
+                     '/complex/{identifier}/graph',
+                     view=lambda request: chosen_backend.response_wrapper('complex_graph', request)(
+                                getattr(chosen_backend, 'complex_graph')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('complex_graph'))
     
     #Interaction views
     config.add_route('interaction_overview', 

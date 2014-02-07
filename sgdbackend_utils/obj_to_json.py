@@ -63,6 +63,12 @@ def phenotype_to_json(biocon):
     biocon_json['is_core'] = biocon.is_core
     biocon_json['ancestor_type'] = biocon.ancestor_type
     return biocon_json
+
+def complex_to_json(biocon, id_to_biocon):
+    biocon_json = biocon_to_json(biocon)
+    biocon_json['cellular_localization'] = biocon.cellular_localization
+    biocon_json['go'] = minimize_json(id_to_biocon[biocon.go_id])
+    return biocon_json
     
 def biocon_to_json(biocon):
     return {
