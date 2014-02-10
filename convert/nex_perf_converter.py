@@ -20,15 +20,6 @@ class NexPerfConverter(ConverterInterface):
         check_session_maker(self.session_maker, perf_dbhost, perf_schema)
         
         self.backend = SGDBackend(nex_dbtype, nex_dbhost, nex_dbname, nex_schema, nex_dbuser, nex_dbpass, None)
-        
-        from model_perf_schema.core import Bioentity, Bioconcept, Reference, Chemical, Author
-        self.locus_ids = [x.id for x in self.session_maker().query(Bioentity.id).all()]
-        bioconcepts = self.session_maker().query(Bioconcept.id).all()
-        self.phenotype_ids = [x.id for x in bioconcepts]
-        self.go_ids = [x.id for x in bioconcepts]
-        self.reference_ids = [x.id for x in self.session_maker().query(Reference.id).all()]
-        self.chemical_ids = [x.id for x in self.session_maker().query(Chemical.id).all()]
-        self.author_ids = [x.id for x in self.session_maker().query(Author.id).all()]
 
         self.log = set_up_logging('nex_perf_converter')
         print 'Ready'
@@ -45,6 +36,16 @@ class NexPerfConverter(ConverterInterface):
             convert_data(self.session_maker, cls, class_type, obj_type, new_obj_f, self.log, obj_ids, chunk_size)
         except Exception:
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
+
+    def load_ids(self):
+        from model_perf_schema.core import Bioentity, Bioconcept, Reference, Chemical, Author
+        self.locus_ids = [x.id for x in self.session_maker().query(Bioentity.id).all()]
+        bioconcepts = self.session_maker().query(Bioconcept.id).all()
+        self.phenotype_ids = [x.id for x in bioconcepts]
+        self.go_ids = [x.id for x in bioconcepts]
+        self.reference_ids = [x.id for x in self.session_maker().query(Reference.id).all()]
+        self.chemical_ids = [x.id for x in self.session_maker().query(Chemical.id).all()]
+        self.author_ids = [x.id for x in self.session_maker().query(Author.id).all()]
     
     def convert_all(self):
         #Core
@@ -55,6 +56,8 @@ class NexPerfConverter(ConverterInterface):
         self.convert_author()
         self.convert_disambig()
         self.convert_ontology()
+
+        self.load_ids()
         
         #Data
 
@@ -77,16 +80,16 @@ class NexPerfConverter(ConverterInterface):
         self.convert_regulation_paragraph()
         self.convert_regulation_details()
         self.convert_regulation_graph()
-        #self.convert_regulation_target_enrich()
+        self.convert_regulation_target_enrich()
 
-        self.convert_phenotype_overview()
         self.convert_phenotype_details()
+        self.convert_phenotype_overview()
         self.convert_phenotype_graph()
         self.convert_phenotype_resources()
         self.convert_phenotype_ontology_graph()
 
-        self.convert_go_overview()
         self.convert_go_details()
+        self.convert_go_overview()
         self.convert_go_graph()
         self.convert_go_ontology_graph()
         
@@ -99,6 +102,8 @@ class NexPerfConverter(ConverterInterface):
         self.convert_author()
         self.convert_disambig()
         self.convert_ontology()
+
+        self.load_ids()
         
         #Data
         self.convert_author_details()
@@ -107,18 +112,23 @@ class NexPerfConverter(ConverterInterface):
         self.convert_literature_details()
         self.convert_literature_graph()
 
-        self.convert_phenotype_overview()
         self.convert_phenotype_details()
+        self.convert_phenotype_overview()
         self.convert_phenotype_graph()
         self.convert_phenotype_resources()
         self.convert_phenotype_ontology_graph()
 
-        self.convert_go_overview()
         self.convert_go_details()
+        self.convert_go_overview()
         self.convert_go_graph()
         self.convert_go_ontology_graph()
         
     def convert_monthly(self):
+
+        from model_perf_schema.core import Bioentity, Bioconcept, Reference, Chemical, Author
+        self.locus_ids = [x.id for x in self.session_maker().query(Bioentity.id).all()]
+        self.reference_ids = [x.id for x in self.session_maker().query(Reference.id).all()]
+
         #Data
         self.convert_interaction_overview()
         self.convert_interaction_details()
@@ -126,6 +136,11 @@ class NexPerfConverter(ConverterInterface):
         self.convert_interaction_resources()
         
     def convert_updated_flatfiles(self):
+
+        from model_perf_schema.core import Bioentity, Bioconcept, Reference, Chemical, Author
+        self.locus_ids = [x.id for x in self.session_maker().query(Bioentity.id).all()]
+        self.reference_ids = [x.id for x in self.session_maker().query(Reference.id).all()]
+
         #Data
         self.convert_protein_domain_details()
         

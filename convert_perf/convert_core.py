@@ -203,7 +203,7 @@ def convert_bioconcept(session_maker, backend, log, chunk_size):
         session = session_maker()
         
         min_bioconcept_id = 0
-        max_bioconcept_id = 50000
+        max_bioconcept_id = 100000
         num_chunks = ceil(1.0*(max_bioconcept_id-min_bioconcept_id)/chunk_size)
         for i in range(0, num_chunks):
             min_id = min_bioconcept_id + i*chunk_size

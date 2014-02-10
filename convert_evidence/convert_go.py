@@ -95,14 +95,20 @@ def create_evidence(old_go_feature, gofeat_id_to_gorefs, goref_id_to_dbxrefs, id
                 else:
                     print 'Could not find bioitem: ' + str(bioitem_key)
                             
-        new_evidence = NewGoevidence(source, reference, None, None, bioent, go,
+        test_evidence = NewGoevidence(source, reference, None, None, bioent, go,
                                 old_go_feature.go_evidence, old_go_feature.annotation_type, qualifier, [],
                                 old_go_ref.date_created, old_go_ref.created_by)
-        if new_evidence.unique_key() in key_to_gpad_info:
-            info = key_to_gpad_info[new_evidence.unique_key()]
-            new_evidence.experiment_id = info[0]
+        experiment_id = None
+        if test_evidence.unique_key() in key_to_gpad_info:
+            info = key_to_gpad_info[test_evidence.unique_key()]
+            experiment_id = info[0]
             conditions.extend(info[1])
-        new_evidence.conditions = conditions
+
+        new_evidence = NewGoevidence(source, reference, None, None, bioent, go,
+                                old_go_feature.go_evidence, old_go_feature.annotation_type, qualifier, conditions,
+                                old_go_ref.date_created, old_go_ref.created_by)
+        new_evidence.experiment_id = experiment_id
+
         evidences.append(new_evidence)
     return evidences
 

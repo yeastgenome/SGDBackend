@@ -23,7 +23,7 @@ class Chemical(Base):
     
     def __init__(self, display_name, source, chebi_id, description, date_created, created_by):
         self.display_name = display_name
-        self.format_name = create_format_name(display_name)[:95]
+        self.format_name = create_format_name(display_name.lower())[:95]
         self.link = '/chemical/' + self.format_name + '/overview'
         self.source_id = source.id
         self.chebi_id = chebi_id

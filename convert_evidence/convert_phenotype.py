@@ -51,7 +51,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
             observable = observable.replace('chemicals', chemical)
         else:
             observable = observable.replace('chemical compound', chemical)
-    phenotype_key = (create_phenotype_format_name(observable, qualifier), 'PHENOTYPE')
+    phenotype_key = (create_phenotype_format_name(observable.lower(), qualifier), 'PHENOTYPE')
     phenotype = None if phenotype_key not in key_to_phenotype else key_to_phenotype[phenotype_key]
 
     if phenotype is None:
@@ -103,7 +103,7 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
         #Get chemicals
         from model_new_schema.condition import Chemicalcondition
         for (a, b) in old_experiment.chemicals:
-            chemical_key = create_format_name(a)
+            chemical_key = create_format_name(a.lower())
             chemical = None if chemical_key not in key_to_chemical else key_to_chemical[chemical_key]
             amount = None
             chemical_note = None

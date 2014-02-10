@@ -143,7 +143,7 @@ def create_disambigs(obj, fields, class_type, subclass_type):
     field_values = set()
     for field in fields:
         field_value = getattr(obj, field)
-        if field_value is not None and (field == 'id' or not is_number(field_value)):
+        if field_value is not None and (field == 'id' or field == 'pubmed_id' or not is_number(field_value)):
             field_values.add(field_value)
     
     disambigs = []
