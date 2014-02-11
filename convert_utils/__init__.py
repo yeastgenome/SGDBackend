@@ -39,7 +39,7 @@ def prepare_schema_connection(model_cls, dbtype, dbhost, dbname, schema, dbuser,
     model_cls.Base = declarative_base(cls=Base)
     model_cls.metadata = model_cls.Base.metadata
     engine_key = "%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname)
-    engine = create_engine(engine_key, convert_unicode=True, pool_recycle=3600)
+    engine = create_engine(engine_key, pool_recycle=3600)
     model_cls.Base.metadata.bind = engine
     session_maker = sessionmaker(bind=engine)
         
