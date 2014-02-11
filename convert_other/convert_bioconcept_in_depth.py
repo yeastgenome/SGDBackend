@@ -307,7 +307,7 @@ def create_phenotype_relation_from_phenotype(phenotype, key_to_phenotype, key_to
     source = key_to_source['SGD']
     
     if phenotype.qualifier is not None:
-        parent_key = (create_format_name(phenotype.observable), 'PHENOTYPE')
+        parent_key = (create_format_name(phenotype.observable.lower()), 'PHENOTYPE')
         parent = None if parent_key not in key_to_phenotype else key_to_phenotype[parent_key]
         if parent is None:
             print 'Could not find phenotype. Parent: ' + str(parent_key)
@@ -330,9 +330,9 @@ def create_chemical_phenotype_relation(old_phenotype, key_to_phenotype, key_to_s
             new_observable = old_phenotype.observable.replace('chemical compound', chemical)
         qualifier = old_phenotype.qualifier
 
-        grandparent_key = (create_format_name(old_observable), 'PHENOTYPE')
-        parent_key = (create_format_name(new_observable), 'PHENOTYPE')
-        child_key = (create_phenotype_format_name(new_observable, qualifier), 'PHENOTYPE')
+        grandparent_key = (create_format_name(old_observable.lower()), 'PHENOTYPE')
+        parent_key = (create_format_name(new_observable.lower()), 'PHENOTYPE')
+        child_key = (create_phenotype_format_name(new_observable.lower(), qualifier), 'PHENOTYPE')
 
         grandparent = None if grandparent_key not in key_to_phenotype else key_to_phenotype[grandparent_key]
         parent = None if parent_key not in key_to_phenotype else key_to_phenotype[parent_key]
