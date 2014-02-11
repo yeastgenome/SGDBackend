@@ -304,6 +304,9 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
         
         #Urls of interest
         old_web_displays = old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Interaction Resources').all()
+        old_web_displays.extend(old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Phenotype Resources').filter(OldWebDisplay.web_page_name == 'Locus').all())
+        old_web_displays.extend(old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Mutant Strains').filter(OldWebDisplay.web_page_name == 'Phenotype').all())
+
         url_to_display = dict([(x.url_id, x) for x in old_web_displays])
                 
         min_bioent_id = 0

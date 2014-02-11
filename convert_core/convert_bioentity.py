@@ -3,7 +3,7 @@ Created on May 31, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update
+from convert_utils import create_or_update, break_up_file
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 import logging
@@ -13,6 +13,7 @@ import sys
 #Maitenance (cherry-vm08): 2:56, 2:59 
 #First Load (sgd-ng1): 4:08, 3:49
 #Maitenance (sgd-ng1): 4:17
+#1.23.14 Maitenance (sgd-dev): :27
 
 """
 --------------------- Convert Locus ---------------------
@@ -23,7 +24,7 @@ def create_locus_type(old_feature_type):
     bioentity_type = bioentity_type.replace (" ", "_")
     return bioentity_type
 
-def create_locus(old_bioentity, key_to_source):
+def create_locus(old_bioentity, key_to_source, sgdid_to_uniprotid):
     from model_new_schema.bioentity import Locus
     
     locus_type = create_locus_type(old_bioentity.type)
@@ -48,9 +49,12 @@ def create_locus(old_bioentity, key_to_source):
         description = ann.description
         genetic_position = ann.genetic_position
         
+    sgdid = old_bioentity.dbxref_id
+    uniprotid = None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid]
+        
     source_key = old_bioentity.source
     source = None if source_key not in key_to_source else key_to_source[source_key]
-    bioentity = Locus(old_bioentity.id, display_name, format_name,  source, old_bioentity.dbxref_id, old_bioentity.status, 
+    bioentity = Locus(old_bioentity.id, display_name, format_name, source, sgdid, uniprotid, old_bioentity.status, 
                          locus_type, short_description, headline, description, genetic_position, 
                          old_bioentity.date_created, old_bioentity.created_by)
     return [bioentity]
@@ -72,10 +76,15 @@ def convert_locus(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
+        
+        sgdid_to_uniprotid = {}
+        for line in break_up_file('data/YEAST_559292_idmapping.dat'):
+            if line[1].strip() == 'SGD':
+                sgdid_to_uniprotid[line[2].strip()] = line[0].strip()
                 
         #Values to check
         values_to_check = ['display_name', 'link', 'source_id', 'bioent_status',
-                       'name_description', 'headline', 'description',  'sgdid',
+                       'name_description', 'headline', 'description', 'sgdid', 'uniprotid',
                        'genetic_position', 'locus_type']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
@@ -86,7 +95,7 @@ def convert_locus(old_session_maker, new_session_maker):
         
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_locus(old_obj, key_to_source)
+            newly_created_objs = create_locus(old_obj, key_to_source, sgdid_to_uniprotid)
                 
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:

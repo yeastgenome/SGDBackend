@@ -18,9 +18,8 @@ def get_json(url, data=None):
 
 def query_go_processes(bioent_format_names):
     if len(bioent_format_names) > 0:
-        enrichment = get_json('http://batter.stanford.edu/cgi-bin/termfinder2.pl', data={"genes":",".join(set(bioent_format_names)),"aspect":"P"})
-        if '\n' in enrichment:
-            enrichment = enrichment[enrichment.index('\n')+1:]
+        enrichment = get_json('http://batter.stanford.edu/cgi-bin/termfinder2.pl', data={"genes":",".join(set(bioent_format_names)),"aspect":"P"}).strip()
+        enrichment = enrichment.split('\n')[-1]
         try:
             enrichment_results = [(row["goid"], row["num_gene_annotated"], row['pvalue']) for row in json.loads(enrichment)]
             return enrichment_results

@@ -24,13 +24,6 @@ def test_protein_domain_details_structure(model, identifier='GAL4'):
         check_obj(entry['domain'])
         check_obj(entry['protein'])
         
-def test_bioconcept_list_structure(model, biocon_ids=[428, 429, 430]):
-    response = json.loads(model.bioconcept_list(biocon_ids))
-    assert response is not None
-    assert len(response) == 3
-    for entry in response:
-        check_biocon(entry)
-        
 def test_binding_site_details_structure(model, identifier='GAL4'):
     response = json.loads(model.binding_site_details(identifier))
     assert response is not None
@@ -43,4 +36,3 @@ def test_binding_site_details_structure(model, identifier='GAL4'):
         assert 'img_url' in entry
         
         check_obj(entry['bioentity'])
-        

@@ -3,7 +3,8 @@ Created on Jun 4, 2013
 
 @author: kpaskov
 '''
-from convert_utils import create_or_update, create_format_name, break_up_file
+from convert_utils import create_or_update, create_format_name, break_up_file, \
+    read_obo
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 import logging
@@ -12,6 +13,7 @@ import sys
 #Recorded times: 
 #Maitenance (cherry-vm08): 0:01, 
 #First Load (sgd-ng1): :09, :10
+#1.23.14 Maitenance (sgd-dev): :06
 
 """
 --------------------- Convert Experiment ---------------------
@@ -45,6 +47,12 @@ def create_experiment_from_binding_row(display_name, key_to_source):
     new_experiment = Experiment(display_name,source, None, None, None, None)
     return [new_experiment]
 
+def create_experiment_from_eco(eco_term, key_to_source):
+    from model_new_schema.evelements import Experiment
+    source = key_to_source['ECO']
+    new_experiment = Experiment(eco_term['name'], source, None if 'def' not in eco_term else eco_term['def'], eco_term['id'], None, None)
+    return [new_experiment]
+
 def convert_experiment(old_session_maker, new_session_maker):
     from model_new_schema.evelements import Experiment as NewExperiment, Source as NewSource
     from model_old_schema.cv import CVTerm as OldCVTerm
@@ -61,7 +69,7 @@ def convert_experiment(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['display_name', 'link', 'description', 'eco_id']
+        values_to_check = ['display_name', 'link', 'description', 'eco_id', 'source_id']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -73,6 +81,23 @@ def convert_experiment(old_session_maker, new_session_maker):
         
         #Cache
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
+        
+        for old_obj in read_obo('data/eco.obo'):
+            #Convert old objects into new ones
+            newly_created_objs = create_experiment_from_eco(old_obj, key_to_source)
+                
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                if newly_created_obj.unique_key() not in already_seen_objs:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+                    already_seen_objs.add(newly_created_obj.unique_key())
         
         for old_obj in old_objs:
             #Convert old objects into new ones
@@ -400,7 +425,7 @@ def convert_strain(old_session_maker, new_session_maker):
 --------------------- Convert Source ---------------------
 """
 sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAMs', 'Pfam', 'PRINTS', 
-               'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI', 'PubMedCentral', 'PubMed', '-']
+               'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI', 'PubMedCentral', 'PubMed', '-', 'ECO']
 
 def create_extra_source():
     from model_new_schema.evelements import Source as NewSource

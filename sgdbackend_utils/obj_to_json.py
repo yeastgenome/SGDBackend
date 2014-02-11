@@ -6,6 +6,8 @@ Created on Aug 9, 2013
 def locus_to_json(bioent):
     bioent_json = bioent_to_json(bioent)
     bioent_json['description'] = bioent.description
+    bioent_json['locus_type'] = bioent.locus_type
+    bioent_json['aliases'] = [x.display_name for x in bioent.aliases]
     return bioent_json
 
 def bioent_to_json(bioent):
@@ -28,10 +30,21 @@ def bioitem_to_json(bioitem):
     
 def chemical_to_json(chem):
     return {
+            'format_name': chem.format_name,
             'display_name': chem.display_name, 
+            'description': chem.description,
+            'chebi_id': chem.chebi_id,
             'link': chem.link,
             'id': chem.id
             }
+
+def author_to_json(author):
+    return {
+        'format_name': author.format_name,
+        'display_name': author.display_name,
+        'link': author.link,
+        'id': author.id
+    }
     
 def source_to_json(source):
     return source.display_name
@@ -40,15 +53,27 @@ def go_to_json(biocon):
     biocon_json = biocon_to_json(biocon)
     biocon_json['go_id'] = biocon.go_id
     biocon_json['go_aspect'] = biocon.go_aspect
+    biocon_json['aliases'] = [x.display_name for x in biocon.aliases]
+    return biocon_json
+
+def phenotype_to_json(biocon):
+    biocon_json = biocon_to_json(biocon)
+    biocon_json['observable'] = biocon.observable
+    biocon_json['qualifier'] = biocon.qualifier
+    biocon_json['is_core'] = biocon.is_core
+    biocon_json['ancestor_type'] = biocon.ancestor_type
     return biocon_json
     
 def biocon_to_json(biocon):
     return {
             'format_name': biocon.format_name,
             'display_name': biocon.display_name, 
+            'description': biocon.description, 
             'class_type': biocon.class_type,
             'link': biocon.link,
-            'id': biocon.id
+            'id': biocon.id,
+            'count': 0 if biocon.count is None else biocon.count.genecount,
+            'child_count': 0 if biocon.count is None else biocon.count.child_gene_count
             }
     
 def experiment_to_json(experiment):
@@ -72,7 +97,7 @@ def condition_to_json(condition):
     if condition.class_type == 'CONDITION':
         return condition.note
     elif condition.class_type == 'CHEMICAL':
-        return {'chemical': id_to_chem[condition.chemical_id],
+        return {'chemical': minimize_json(id_to_chem[condition.chemical_id]),
                 'amount': condition.amount,
                 'note': condition.note
                 }
@@ -83,27 +108,27 @@ def condition_to_json(condition):
     elif condition.class_type == 'BIOENTITY':
         return {
                 'role': condition.role,
-                'obj': id_to_bioent[condition.bioentity_id],
+                'obj': minimize_json(id_to_bioent[condition.bioentity_id]),
                 'note': condition.note
                 }
     elif condition.class_type == 'BIOCONCEPT':
         return {
                 'role': condition.role,
-                'obj': id_to_biocon[condition.bioconcept_id],
+                'obj': minimize_json(id_to_biocon[condition.bioconcept_id]),
                 'note': condition.note
                 }
     elif condition.class_type == 'BIOITEM':
         return {
                 'role': condition.role,
-                'obj': id_to_bioitem[condition.bioitem_id],
+                'obj': minimize_json(id_to_bioitem[condition.bioitem_id]),
                 'note': condition.note
                 }
     return None
     
 def reference_to_json(reference):
     urls = []
-    urls.append({'display_name': 'PubMed', 'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id)})
-
+    if reference.pubmed_id is not None:
+        urls.append({'display_name': 'PubMed', 'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id)})
     if reference.doi is not None:
         urls.append({'display_name': 'Full-Text', 'link': 'http://dx.doi.org/' + reference.doi})
     if reference.pubmed_central_id is not None:
@@ -117,7 +142,8 @@ def reference_to_json(reference):
             'id': reference.id,
             'year': reference.year,
             'pubmed_id': reference.pubmed_id,
-            'urls': urls
+            'urls': urls,
+            'journal': None if reference.journal is None else reference.journal.med_abbr
             }
     
 def url_to_json(url):
@@ -174,11 +200,11 @@ def evidence_to_json(evidence):
             'class_type': evidence.class_type,
             'strain': None if evidence.strain_id is None else minimize_json(id_to_strain[evidence.strain_id]),
             'source': None if evidence.source_id is None else id_to_source[evidence.source_id],
-            'reference': None if evidence.reference_id is None else minimize_json(id_to_reference[evidence.reference_id]),
+            'reference': None if evidence.reference_id is None else minimize_json(id_to_reference[evidence.reference_id], include_pubmed_id=True),
             'experiment': None if evidence.experiment_id is None else minimize_json(id_to_experiment[evidence.experiment_id]),
             'note': evidence.note}
     
-def minimize_json(obj_json, include_format_name=False):
+def minimize_json(obj_json, include_format_name=False, include_pubmed_id=False):
     if obj_json is not None:
         min_json = {'display_name': obj_json['display_name'],
             'link': obj_json['link'],
@@ -187,5 +213,7 @@ def minimize_json(obj_json, include_format_name=False):
             min_json['class_type'] = obj_json['class_type']
         if include_format_name:
             min_json['format_name'] = obj_json['format_name']
+        if include_pubmed_id:
+            min_json['pubmed_id'] = obj_json['pubmed_id']
         return min_json 
     return None

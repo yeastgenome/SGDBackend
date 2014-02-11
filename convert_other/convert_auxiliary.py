@@ -128,6 +128,8 @@ def convert_bioentity_reference(new_session_maker, evidence_class, class_type, l
 --------------------- Convert Disambigs ---------------------
 """
 
+additional_disambigs = {'GO:0003674': 'molecular_function', 'GO:0005575': 'cellular_component', 'GO:0008150': 'biological_process'}
+
 def is_number(str_value):
     try:
         int(str_value)
@@ -141,12 +143,17 @@ def create_disambigs(obj, fields, class_type, subclass_type):
     field_values = set()
     for field in fields:
         field_value = getattr(obj, field)
-        if field_value is not None and (field == 'id' or not is_number(field_value)):
+        if field_value is not None and (field == 'id' or field == 'pubmed_id' or not is_number(field_value)):
             field_values.add(field_value)
     
     disambigs = []
     for field_value in field_values:
-        disambigs.append(Disambig(str(field_value), class_type, subclass_type, obj.id))
+        try:
+            disambigs.append(Disambig(str(field_value), class_type, subclass_type, obj.id))
+            if field_value in additional_disambigs:
+                disambigs.append(Disambig(additional_disambigs[field_value], class_type, subclass_type, obj.id))
+        except:
+            pass
     return disambigs
 
 def convert_disambigs(new_session_maker, cls, fields, class_type, subclass_type, label, chunk_size):
@@ -160,7 +167,7 @@ def convert_disambigs(new_session_maker, cls, fields, class_type, subclass_type,
         new_session = new_session_maker()
          
         #Values to check
-        values_to_check = []     
+        values_to_check = ['identifier']
         
         #Grab all current objects
         current_objs = new_session.query(Disambig).filter(Disambig.class_type == class_type).filter(Disambig.subclass_type == subclass_type).all()
@@ -280,6 +287,223 @@ def convert_biofact(new_session_maker, evidence_class, bioconcept_class, bioconc
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
             min_id = min_id+chunk_size
+            
+        #Delete untouched objs
+        for untouched_obj_id  in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+        
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+        
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
+        
+    log.info('complete')
+    
+"""
+--------------------- Convert BioconCount ---------------------
+"""
+
+def create_biocon_count(bioconcept, biocon_id_to_biofacts, biocon_id_to_child_count, biocon_id_to_children):
+    from model_new_schema.auxiliary import BioconceptCount as NewBioconceptCount
+
+    bioentity_ids = set() if bioconcept.id not in biocon_id_to_biofacts else set([biofact.bioentity_id for biofact in biocon_id_to_biofacts[bioconcept.id]])
+    if bioconcept.class_type == 'PHENOTYPE':
+        for child in biocon_id_to_children[bioconcept.id]:
+            if not child.is_core and child.id in biocon_id_to_biofacts:
+                bioentity_ids.update([biofact.bioentity_id for biofact in biocon_id_to_biofacts[child.id]])
+    return [NewBioconceptCount(bioconcept, len(bioentity_ids), biocon_id_to_child_count[bioconcept.id])]
+
+def convert_biocon_count(new_session_maker, bioconcept_class_type, label):
+    from model_new_schema.auxiliary import BioconceptCount, Biofact
+    from model_new_schema.bioconcept import Bioconcept, Bioconceptrelation
+    
+    log = logging.getLogger(label)
+    log.info('begin')
+    output_creator = OutputCreator(log)
+    
+    try:   
+        new_session = new_session_maker()
+         
+        #Values to check
+        values_to_check = ['genecount', 'child_gene_count']     
+        
+        #Grab all current objects
+        current_objs = new_session.query(BioconceptCount).filter(BioconceptCount.class_type == bioconcept_class_type).all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+        
+        #Cache
+        biocon_id_to_biofacts = {}
+        for biofact in new_session.query(Biofact).filter(Biofact.bioconcept_class_type == bioconcept_class_type).all():
+            biocon_id = biofact.bioconcept_id
+            if biocon_id in biocon_id_to_biofacts:
+                biocon_id_to_biofacts[biocon_id].append(biofact)
+            else:
+                biocon_id_to_biofacts[biocon_id] = [biofact]
+            
+        old_objs = new_session.query(Bioconcept).filter(Bioconcept.class_type == bioconcept_class_type).all()
+           
+        biocon_id_to_biocon = dict([(x.id, x) for x in old_objs]) 
+        relations = new_session.query(Bioconceptrelation).filter(Bioconceptrelation.bioconrel_class_type == bioconcept_class_type).all()
+        child_to_parent_ids = dict([(x.id, []) for x in old_objs])
+        biocon_id_to_children = dict([(x.id, []) for x in old_objs])
+        for relation in relations:
+            child_to_parent_ids[relation.child_id].append(relation.parent_id)
+            biocon_id_to_children[relation.parent_id].append(biocon_id_to_biocon[relation.child_id])
+            
+        biocon_id_to_all_children = dict([(x.id, set()) for x in old_objs])
+        for child_id in biocon_id_to_all_children.keys():
+            additional = [] if child_id not in biocon_id_to_biofacts else [x.bioentity_id for x in biocon_id_to_biofacts[child_id]]
+            parent_ids = set([child_id])
+            while len(parent_ids) > 0:
+                new_parent_ids = set()
+                for parent_id in parent_ids:
+                    biocon_id_to_all_children[parent_id].update(additional)
+                    new_parent_ids.update(child_to_parent_ids[parent_id])
+                parent_ids = new_parent_ids
+
+        biocon_id_to_child_count = dict([(x, len(y)) for x, y in biocon_id_to_all_children.iteritems()])
+               
+        untouched_obj_ids = set(id_to_current_obj.keys())
+        
+        used_unique_keys = set()   
+        
+        
+        
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_biocon_count(old_obj, biocon_id_to_biofacts, biocon_id_to_child_count, biocon_id_to_children)
+     
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                unique_key = newly_created_obj.unique_key()
+                if unique_key not in used_unique_keys:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    used_unique_keys.add(unique_key)
+                    
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
+            
+        #Delete untouched objs
+        for untouched_obj_id  in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+        
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+        
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
+        
+    log.info('complete')
+    
+"""
+--------------------- Convert ChemCount ---------------------
+"""
+
+def create_chem_count(chemical, chem_id_to_genes, chem_id_to_child_count):
+    from model_new_schema.auxiliary import ChemicalCount as NewChemicalCount
+    
+    count = 0 if chemical.id not in chem_id_to_genes else len(chem_id_to_genes[chem_id_to_genes.id])
+    return [NewChemicalCount(chemical, count, chem_id_to_child_count[chemical.id])]
+
+def convert_chem_count(new_session_maker, label):
+    from model_new_schema.auxiliary import ChemicalCount
+    from model_new_schema.chemical import Chemical, Chemicalrelation
+    from model_new_schema.evidence import Phenotypeevidence
+    from model_new_schema.condition import Chemicalcondition
+    
+    log = logging.getLogger(label)
+    log.info('begin')
+    output_creator = OutputCreator(log)
+    
+    try:   
+        new_session = new_session_maker()
+         
+        #Values to check
+        values_to_check = ['genecount', 'child_gene_count']     
+        
+        #Grab all current objects
+        current_objs = new_session.query(ChemicalCount).all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+        
+        #Cache
+        chem_id_to_genes = {}
+        evidence_to_chemicals = dict()
+        for condition in new_session.query(Chemicalcondition).all():
+            chemical_id = condition.chemical_id
+            evidence_id = condition.evidence_id
+            if evidence_id in evidence_to_chemicals:
+                evidence_to_chemicals[evidence_id].add(chemical_id)
+            else:
+                evidence_to_chemicals[evidence_id] = set([chemical_id])
+        evidence_ids = evidence_to_chemicals.keys()
+        
+        num_chunks = int(ceil(1.0*len(evidence_ids)/500))
+        for i in range(num_chunks):
+            for evidence in new_session.query(Phenotypeevidence).filter(Phenotypeevidence.id.in_(evidence_ids[i*500:(i+1)*500])):
+                chemicals = evidence_to_chemicals[evidence.id]
+                for chemical in chemicals:
+                    if chemical in chem_id_to_genes:
+                        chem_id_to_genes[chemical].add(evidence.bioentity_id)
+                    else:
+                        chem_id_to_genes[chemical] = set([evidence.bioentity_id])
+            
+            
+        old_objs = new_session.query(Chemical).all()
+            
+        relations = new_session.query(Chemicalrelation).all()
+        child_to_parent_ids = dict([(x.id, []) for x in old_objs])
+        for relation in relations:
+            child_to_parent_ids[relation.child_id].append(relation.parent_id)
+            
+        biocon_id_to_child_count = dict([(x.id, 0) for x in old_objs])
+        for child_id in biocon_id_to_child_count.keys():
+            additional = 0 if child_id not in chem_id_to_genes else len(chem_id_to_genes[child_id])
+            parent_ids = set([child_id])
+            while len(parent_ids) > 0:
+                new_parent_ids = set()
+                for parent_id in parent_ids:
+                    biocon_id_to_child_count[parent_id] = biocon_id_to_child_count[parent_id] + additional
+                    new_parent_ids.update(child_to_parent_ids[parent_id])
+                parent_ids = new_parent_ids
+               
+        untouched_obj_ids = set(id_to_current_obj.keys())
+        
+        used_unique_keys = set()   
+        
+        
+        
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_biocon_count(old_obj, chem_id_to_genes, biocon_id_to_child_count)
+     
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                unique_key = newly_created_obj.unique_key()
+                if unique_key not in used_unique_keys:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    used_unique_keys.add(unique_key)
+                    
+                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_id.id)
+                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                    untouched_obj_ids.remove(current_obj_by_key.id)
             
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:

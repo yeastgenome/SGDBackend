@@ -109,44 +109,98 @@ def convert_abstract(old_session_maker, new_session_maker, chunk_size):
 def create_bibentry(reference, id_to_journal, id_to_book, id_to_abstract, id_to_reftypes, id_to_authors, id_to_source):
     from model_new_schema.reference import Bibentry
     entries = []
-    entries.append('PMID- ' + str(reference.pubmed_id)) 
-    entries.append('STAT- ' + str(reference.ref_status))
+    try:
+        entries.append('PMID- ' + str(reference.pubmed_id))
+    except:
+        pass
+    try:
+        entries.append('STAT- ' + str(reference.ref_status))
+    except:
+        pass
     try:
         entries.append('DP  - ' + str(reference.date_published)) 
     except:
         pass
     if reference.title is not None:
-        entries.append('TI  - ' + reference.title.encode('ascii', 'ignore'))
-    entries.append('SO  - ' + str(id_to_source[reference.source_id])) 
-    entries.append('LR  - ' + str(reference.date_revised)) 
-    entries.append('IP  - ' + str(reference.issue)) 
-    entries.append('PG  - ' + str(reference.page)) 
-    entries.append('VI  - ' + str(reference.volume)) 
+        try:
+            entries.append('TI  - ' + reference.title.encode('ascii', 'ignore'))
+        except:
+            pass
+    try:
+        entries.append('SO  - ' + str(id_to_source[reference.source_id]))
+    except:
+        pass
+    try:
+        entries.append('LR  - ' + str(reference.date_revised))
+    except:
+        pass
+    try:
+        entries.append('IP  - ' + str(reference.issue))
+    except:
+        pass
+    try:
+        entries.append('PG  - ' + str(reference.page))
+    except:
+        pass
+    try:
+        entries.append('VI  - ' + str(reference.volume))
+    except:
+        pass
         
     if reference.id in id_to_authors:
         for author in id_to_authors[reference.id]:
-            entries.append('AU  - ' + str(author))
+            try:
+                entries.append('AU  - ' + str(author))
+            except:
+                pass
        
     if reference.id in id_to_reftypes:     
         for reftype in id_to_reftypes[reference.id]:
-            entries.append('PT  - ' + str(reftype))
+            try:
+                entries.append('PT  - ' + str(reftype))
+            except:
+                pass
         
     if reference.id in id_to_abstract:
-        entries.append('AB  - ' + str(id_to_abstract[reference.id]))
+        try:
+            entries.append('AB  - ' + str(id_to_abstract[reference.id]))
+        except:
+            pass
         
     if reference.journal_id is not None:
         journal = id_to_journal[reference.journal_id]
-        entries.append('TA  - ' + str(journal.med_abbr)) 
-        entries.append('JT  - ' + str(journal.title)) 
-        entries.append('IS  - ' + str(journal.issn_print)) 
+        try:
+            entries.append('TA  - ' + str(journal.med_abbr))
+        except:
+            pass
+        try:
+            entries.append('JT  - ' + str(journal.title))
+        except:
+            pass
+        try:
+            entries.append('IS  - ' + str(journal.issn_print))
+        except:
+            pass
 
         
     if reference.book_id is not None:
         book = id_to_book[reference.book_id]
-        entries.append('PL  - ' + str(book.publisher_location)) 
-        entries.append('BTI - ' + str(book.title))
-        entries.append('VTI - ' + str(book.volume_title)) 
-        entries.append('ISBN- ' + str(book.isbn))     
+        try:
+            entries.append('PL  - ' + str(book.publisher_location))
+        except:
+            pass
+        try:
+            entries.append('BTI - ' + str(book.title))
+        except:
+            pass
+        try:
+            entries.append('VTI - ' + str(book.volume_title))
+        except:
+            pass
+        try:
+            entries.append('ISBN- ' + str(book.isbn))
+        except:
+            pass
     ref_bib = Bibentry(reference.id, '\n'.join([str(x) for x in entries]))
     return [ref_bib]
 
@@ -875,7 +929,7 @@ def convert(old_session_maker, new_session_maker):
     convert_abstract(old_session_maker, new_session_maker, 3000)
     
     convert_author(old_session_maker, new_session_maker, 10000)
-    
+
     convert_author_reference(old_session_maker, new_session_maker, 10000)
     
     convert_reftype(old_session_maker, new_session_maker)
@@ -890,8 +944,9 @@ def convert(old_session_maker, new_session_maker):
         
     convert_bibentry(new_session_maker, 3000)
     
-    from model_new_schema.reference import Reference
-    convert_disambigs(new_session_maker, Reference, ['id', 'sgdid'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
+    from model_new_schema.reference import Reference, Author
+    convert_disambigs(new_session_maker, Reference, ['id', 'sgdid', 'pubmed_id'], 'REFERENCE', None, 'convert.reference.disambigs', 3000)
+    convert_disambigs(new_session_maker, Author, ['format_name', 'id'], 'AUTHOR', None, 'convert.reference.author_disambigs', 3000)
    
 
    

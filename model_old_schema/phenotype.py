@@ -19,7 +19,7 @@ class PhenotypeFeature(Base, EqualityByIDMixin):
     phenotype_id = Column('phenotype_no', Integer, ForeignKey('bud.phenotype.phenotype_no'))
     experiment_id = Column('experiment_no', Integer, ForeignKey('bud.experiment.experiment_no'))
     
-    phenotype = relationship('Phenotype', lazy='joined', uselist=False)
+    phenotype = relationship('Phenotype', uselist=False, backref='phenotype_features')
     source = association_proxy('phenotype', 'source')
     experiment_type = association_proxy('phenotype', 'experiment_type')
     mutant_type = association_proxy('phenotype', 'mutant_type')
@@ -28,7 +28,7 @@ class PhenotypeFeature(Base, EqualityByIDMixin):
     created_by = association_proxy('phenotype', 'created_by')
     date_created = association_proxy('phenotype', 'date_created')
 
-    experiment = relationship('Experiment', lazy='joined', uselist=False)
+    experiment = relationship('Experiment', uselist=False)
     experiment_comment = association_proxy('experiment', 'experiment_comment')
     experiment_properties = association_proxy('experiment', 'properties')
      

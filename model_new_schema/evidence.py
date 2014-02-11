@@ -3,6 +3,7 @@ Created on Dec 11, 2012
 
 @author: kpaskov
 '''
+import hashlib
 from model_new_schema import Base, EqualityByIDMixin
 from model_new_schema.bioconcept import Go, Phenotype
 from model_new_schema.bioentity import Bioentity, Protein
@@ -59,7 +60,6 @@ class Goevidence(Evidence):
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     go_evidence = Column('go_evidence', String)
     annotation_type = Column('annotation_type', String)
-    date_last_reviewed = Column('date_last_reviewed', Date)
     qualifier = Column('qualifier', String)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Go.id))
@@ -71,18 +71,17 @@ class Goevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "GO",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, source, reference, note,
+    def __init__(self, source, reference, experiment, note,
                  bioentity, bioconcept, 
-                 go_evidence, annotation_type, qualifier, date_last_reviewed, conditions,
+                 go_evidence, annotation_type, qualifier, conditions,
                  date_created, created_by):
         Evidence.__init__(self, bioentity.display_name + ' assoc. with ' + bioconcept.display_name + ' with ' + go_evidence + ' by ' + reference.display_name,
-                          bioentity.format_name + '_' + str(bioconcept.id) + '_' + go_evidence + '_' + annotation_type + '_' + str(reference.id), 
-                          'GO', source, reference, None, None, 
+                          bioentity.format_name + '_' + str(bioconcept.id) + '_' + go_evidence + '_' + str(reference.id) + ('_'.join(x.format_name for x in conditions)),
+                          'GO', source, reference, None, experiment, 
                           note, date_created, created_by)
         self.go_evidence = go_evidence
         self.annotation_type = annotation_type
         self.qualifier = qualifier
-        self.date_last_reviewed = date_last_reviewed
         self.bioentity_id = bioentity.id
         self.bioconcept_id = bioconcept.id
         self.conditions = conditions
@@ -92,6 +91,7 @@ class Geninteractionevidence(Evidence):
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     phenotype_id = Column('phenotype_id', Integer, ForeignKey(Phenotype.id))
+    mutant_type = Column('mutant_type', String)
     annotation_type = Column('annotation_type', String)
     bait_hit = Column('bait_hit', String)
     bioentity1_id = Column('bioentity1_id', Integer, ForeignKey(Bioentity.id))
@@ -104,7 +104,7 @@ class Geninteractionevidence(Evidence):
     phenotype = relationship(Phenotype)
 
     def __init__(self, source, reference, strain, experiment,
-                 bioentity1, bioentity2, phenotype, annotation_type, bait_hit, note, 
+                 bioentity1, bioentity2, phenotype, mutant_type, annotation_type, bait_hit, note,
                  date_created, created_by):
         Evidence.__init__(self, bioentity1.display_name + '__' + bioentity2.display_name,
                           bioentity1.format_name + '_' + bioentity2.format_name + '_' + ('-' if strain is None else str(strain.id)) + '_' + bait_hit + '_' + str(experiment.id) + '_' + str(reference.id), 
@@ -113,6 +113,7 @@ class Geninteractionevidence(Evidence):
         self.bioentity1_id = bioentity1.id
         self.bioentity2_id = bioentity2.id
         self.phenotype_id = None if phenotype is None else phenotype.id
+        self.mutant_type = mutant_type
         self.annotation_type = annotation_type
         self.bait_hit = bait_hit
         self.note = note
@@ -175,6 +176,9 @@ class Phenotypeevidence(Evidence):
 
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Phenotype.id))
+    mutant_type = Column('mutant_type', String)
+    strain_details = Column('strain_details', String)
+    experiment_details = Column('experiment_details', String)
         
     #Relationship
     bioentity = relationship(Bioentity, uselist=False)
@@ -184,16 +188,20 @@ class Phenotypeevidence(Evidence):
                        'inherit_condition': id==Evidence.id}
     
     def __init__(self, source, reference, strain, experiment, note,
-                 bioentity, phenotype, conditions,
+                 bioentity, phenotype, mutant_type, strain_details, experiment_details,
+                 conditions,
                  date_created, created_by):
         Evidence.__init__(self, 
                           bioentity.display_name + ' ' + phenotype.display_name + ' in ' + reference.display_name,
-                          bioentity.format_name + '_' + str(phenotype.id) + ('' if strain is None else ('_' + str(strain.id))) + '_' + str(experiment.id) + '_' + str(reference.id) + '_' + '_'.join(x.format_name for x in conditions), 
+                          bioentity.format_name + '_' + str(phenotype.id) + '_' + mutant_type + '_' + ('' if strain is None else ('_' + str(strain.id))) + '_' + str(experiment.id) + '_' + str(reference.id) + ('' if experiment_details is None else ('_' + hashlib.md5(experiment_details).hexdigest()[:10])) + '_'.join(x.format_name for x in conditions),
                           'PHENOTYPE', source, reference, strain, experiment, note,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
         self.bioconcept_id = phenotype.id
         self.conditions = conditions
+        self.mutant_type = mutant_type
+        self.strain_details = strain_details
+        self.experiment_details = experiment_details
         
 class Domainevidence(Evidence):
     __tablename__ = "domainevidence"
@@ -205,7 +213,7 @@ class Domainevidence(Evidence):
     status = Column('domain_status', String)
     date_of_run = Column('date_of_run', Date)
     bioentity_id = Column('protein_id', Integer, ForeignKey(Protein.id))
-    domain_id = Column('domain_id', Integer, ForeignKey(Domain.id))
+    bioitem_id = Column('domain_id', Integer, ForeignKey(Domain.id))
        
     __mapper_args__ = {'polymorphic_identity': 'DOMAIN',
                        'inherit_condition': id==Evidence.id}
@@ -225,7 +233,7 @@ class Domainevidence(Evidence):
         self.status = status
         self.date_of_run = date_of_run
         self.bioentity_id = protein.id
-        self.domain_id = domain.id
+        self.bioitem_id = domain.id
           
 class Qualifierevidence(Evidence):
     __tablename__ = "qualifierevidence"

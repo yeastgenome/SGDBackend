@@ -4,12 +4,12 @@ Created on Mar 15, 2013
 @author: kpaskov
 '''
 from model_new_schema.evidence import Regulationevidence
-from sgdbackend_query import get_evidence, get_conditions
+from sgdbackend_query import get_evidence, get_conditions, get_evidence_over_time, get_evidence_snapshot, get_interaction_snapshot, get_snapshot_with_filter
 from sgdbackend_query.query_auxiliary import get_interactions, \
     get_interactions_among
 from sgdbackend_query.query_paragraph import get_paragraph
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_bioent
+from sgdbackend_utils.cache import id_to_bioent, id_to_experiment
 from sgdbackend_utils.obj_to_json import paragraph_to_json, condition_to_json, \
     minimize_json, evidence_to_json
  
@@ -18,9 +18,6 @@ from sgdbackend_utils.obj_to_json import paragraph_to_json, condition_to_json, \
 '''
 def make_overview(bioent_id):
     overview = {}
-    paragraph = get_paragraph(bioent_id, 'REGULATION')
-    if paragraph is not None:
-        overview['paragraph'] = paragraph_to_json(paragraph)
     interactions = get_interactions('REGULATION', bioent_id)
     target_count = len([interaction.bioentity2_id for interaction in interactions if interaction.bioentity1_id==bioent_id])
     regulator_count = len([interaction.bioentity1_id for interaction in interactions if interaction.bioentity2_id==bioent_id])
@@ -28,13 +25,24 @@ def make_overview(bioent_id):
     overview['target_count'] = target_count
     overview['regulator_count'] = regulator_count
     return overview
-   
+
+'''
+-------------------------------Paragraph---------------------------------------
+'''
+def make_paragraph(bioent_id):
+    paragraph = get_paragraph(bioent_id, 'REGULATION')
+    return None if paragraph is None else paragraph_to_json(paragraph)
+
 '''
 -------------------------------Evidence Table---------------------------------------
 '''
     
-def make_details(divided, bioent_id):
-    regevidences = get_evidence(Regulationevidence, bioent_id=bioent_id)
+def make_details(locus_id=None, reference_id=None):
+    regevidences = get_evidence(Regulationevidence, bioent_id=locus_id, reference_id=reference_id)
+
+    if regevidences is None:
+        return {'Error': 'Too much data to display.'}
+
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in regevidences]):
         evidence_id = condition.evidence_id
@@ -42,25 +50,13 @@ def make_details(divided, bioent_id):
             id_to_conditions[evidence_id].append(condition)
         else:
             id_to_conditions[evidence_id] = [condition]
-            
-    tables = {}
 
-    if divided:
-        target_regevidences = [regevidence for regevidence in regevidences if regevidence.bioentity1_id==bioent_id]
-        regulator_regevidences = [regevidence for regevidence in regevidences if regevidence.bioentity2_id==bioent_id]
-        
-        tables['targets'] = create_simple_table(target_regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        tables['regulators'] = create_simple_table(regulator_regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        
-    else:
-        tables = create_simple_table(regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        
-    return tables    
+    return create_simple_table(regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
 
 def make_evidence_row(regevidence, id_to_conditions): 
     conditions = [] if regevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[regevidence.id]]
         
-    obj_json = evidence_to_json(regevidence)
+    obj_json = evidence_to_json(regevidence).copy()
     obj_json['bioentity1'] = minimize_json(id_to_bioent[regevidence.bioentity1_id], include_format_name=True)
     obj_json['bioentity2'] = minimize_json(id_to_bioent[regevidence.bioentity2_id], include_format_name=True)
     obj_json['conditions'] = conditions
@@ -174,3 +170,11 @@ def make_graph(bioent_id):
             'min_evidence_cutoff':min_evidence_count+1, 'max_evidence_cutoff':max_union_count,
             'max_target_cutoff': max_target_count, 'max_regulator_cutoff': max_regulator_count}
 
+'''
+-------------------------------Snapshot---------------------------------------
+'''
+def make_snapshot():
+    snapshot = {}
+    snapshot['experiment'] = dict([(None if x is None else id_to_experiment[x]['display_name'], y) for x, y in get_evidence_snapshot(Regulationevidence, 'experiment_id').iteritems()])
+
+    return snapshot

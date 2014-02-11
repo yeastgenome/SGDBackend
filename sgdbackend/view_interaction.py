@@ -3,7 +3,8 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from sgdbackend_query import get_evidence
+from model_new_schema.evidence import Geninteractionevidence, Physinteractionevidence
+from sgdbackend_query import get_evidence, get_evidence_count, get_evidence_snapshot, get_interaction_snapshot
 from sgdbackend_query.query_auxiliary import get_interactions, \
     get_interactions_among
 from sgdbackend_utils import create_simple_table
@@ -48,59 +49,41 @@ def make_overview(bioent):
 -------------------------------Details---------------------------------------
 '''
     
-def make_details(divided, bioent_id):
+def make_details(locus_id=None, reference_id=None):
     from model_new_schema.evidence import Geninteractionevidence, Physinteractionevidence
-    genetic_interevidences = get_evidence(Geninteractionevidence, bioent_id=bioent_id)
-    physical_interevidences = get_evidence(Physinteractionevidence, bioent_id=bioent_id)
-            
-    tables = {}
+    genetic_interevidences = get_evidence(Geninteractionevidence, bioent_id=locus_id, reference_id=reference_id)
+    physical_interevidences = get_evidence(Physinteractionevidence, bioent_id=locus_id, reference_id=reference_id)
+
+    if genetic_interevidences is None or physical_interevidences is None:
+        return {'Error': 'Too much data to display.'}
 
     all_interevidences = [x for x in genetic_interevidences]
     all_interevidences.extend(physical_interevidences)
-
-    if divided:
-        tables['genetic'] = create_simple_table(genetic_interevidences, make_evidence_row, bioent_id=bioent_id)
-        tables['physical'] = create_simple_table(physical_interevidences, make_evidence_row, bioent_id=bioent_id)
-        
-    else:
-        tables = create_simple_table(all_interevidences, make_evidence_row, bioent_id=bioent_id)
+    tables = create_simple_table(all_interevidences, make_evidence_row, bioent_id=locus_id)
         
     return tables  
 
-def make_evidence_row(interevidence, bioent_id=None): 
-    if bioent_id is not None:
-        if interevidence.bioentity1_id == bioent_id:
-            bioent1_id = bioent_id
-            bioent2_id = interevidence.bioentity2_id
-            direction = interevidence.bait_hit.split('-').pop(1)
-        else:
-            bioent1_id = bioent_id
-            bioent2_id = interevidence.bioentity1_id
-            direction = interevidence.bait_hit.split('-').pop(0)
-    else:
-        bioent1_id = interevidence.bioentity1_id
-        bioent2_id = interevidence.bioentity2_id
-        direction = interevidence.bait_hit
-        
+def make_evidence_row(interevidence, bioent_id=None):
     if interevidence.class_type == 'GENINTERACTION':
         phenotype_id = interevidence.phenotype_id
-        obj_json = evidence_to_json(interevidence)
-        obj_json['bioentity1'] = minimize_json(id_to_bioent[bioent1_id], include_format_name=True)
-        obj_json['bioentity2'] = minimize_json(id_to_bioent[bioent2_id], include_format_name=True)
+        obj_json = evidence_to_json(interevidence).copy()
+        obj_json['bioentity1'] = minimize_json(id_to_bioent[interevidence.bioentity1_id], include_format_name=True)
+        obj_json['bioentity2'] = minimize_json(id_to_bioent[interevidence.bioentity2_id], include_format_name=True)
         obj_json['phenotype'] = None if phenotype_id is None else minimize_json(id_to_biocon[phenotype_id])
+        obj_json['mutant_type'] = interevidence.mutant_type
         obj_json['interaction_type'] = 'Genetic'
         obj_json['annotation_type'] = interevidence.annotation_type
-        obj_json['direction'] = direction
+        obj_json['bait_hit'] = interevidence.bait_hit
         return obj_json
         
     elif interevidence.class_type == 'PHYSINTERACTION':
-        obj_json = evidence_to_json(interevidence)
-        obj_json['bioentity1'] = minimize_json(id_to_bioent[bioent1_id], include_format_name=True)
-        obj_json['bioentity2'] = minimize_json(id_to_bioent[bioent2_id], include_format_name=True)
+        obj_json = evidence_to_json(interevidence).copy()
+        obj_json['bioentity1'] = minimize_json(id_to_bioent[interevidence.bioentity1_id], include_format_name=True)
+        obj_json['bioentity2'] = minimize_json(id_to_bioent[interevidence.bioentity2_id], include_format_name=True)
         obj_json['modification'] = interevidence.modification
         obj_json['interaction_type'] = 'Physical'
         obj_json['annotation_type'] = interevidence.annotation_type
-        obj_json['direction'] = direction
+        obj_json['bait_hit'] = interevidence.bait_hit
         return obj_json
     else:
         return None
@@ -219,4 +202,58 @@ def make_graph(bioent_id):
             'min_evidence_cutoff':min_evidence_count+1, 'max_evidence_cutoff':max_union_count,
             'max_phys_cutoff': max_phys_count, 'max_gen_cutoff': max_gen_count}
 
+'''
+-------------------------------Snapshot---------------------------------------
+'''
+def make_snapshot():
+    snapshot = {}
+    snapshot['interaction_type'] = {'Genetic': get_evidence_count(Geninteractionevidence), 'Physical': get_evidence_count(Physinteractionevidence)}
 
+    snapshot['annotation_type'] = get_evidence_snapshot(Geninteractionevidence, 'annotation_type')
+    for annot_type, count in get_evidence_snapshot(Physinteractionevidence, 'annotation_type').iteritems():
+        if annot_type in snapshot['annotation_type']:
+            snapshot['annotation_type'][annot_type] = snapshot['annotation_type'][annot_type] + count
+        else:
+            snapshot['annotation_type'][annot_type] = count
+
+    snapshot['modification'] = get_evidence_snapshot(Physinteractionevidence, 'modification')
+    snapshot['modification']['No Modification'] = snapshot['modification']['No Modification'] + snapshot['interaction_type']['Genetic']
+
+    snapshot['phenotype'] = dict([('No Phenotype' if x is None else id_to_biocon[x]['display_name'], y) for x, y in get_evidence_snapshot(Geninteractionevidence, 'phenotype_id').iteritems()])
+    snapshot['phenotype']['No Phenotype'] = snapshot['interaction_type']['Physical'] + snapshot['interaction_type']['Genetic'] - sum(snapshot['phenotype'].values())
+
+    physical_counts1 = get_evidence_snapshot(Physinteractionevidence, 'bioentity1_id')
+    physical_counts2 = get_evidence_snapshot(Physinteractionevidence, 'bioentity2_id')
+    genetic_counts1 = get_evidence_snapshot(Geninteractionevidence, 'bioentity1_id')
+    genetic_counts2 = get_evidence_snapshot(Geninteractionevidence, 'bioentity2_id')
+
+    interaction_counts = get_interaction_snapshot(['PHYSINTERACTION', 'GENINTERACTION'])
+
+    snapshot['annotation_histogram'] = {}
+    snapshot['interaction_histogram'] = {}
+    for bioent in id_to_bioent.values():
+        if bioent['class_type'] == 'LOCUS' and bioent['locus_type'] == 'ORF':
+            bioent_id = bioent['id']
+            annotation_count = (0 if bioent_id not in physical_counts1 else physical_counts1[bioent_id]) + \
+                               (0 if bioent_id not in physical_counts2 else physical_counts2[bioent_id]) + \
+                               (0 if bioent_id not in genetic_counts1 else genetic_counts1[bioent_id]) + \
+                               (0 if bioent_id not in genetic_counts2 else genetic_counts2[bioent_id])
+            interaction_count = 0 if bioent_id not in interaction_counts else interaction_counts[bioent_id]
+
+            if annotation_count not in snapshot['annotation_histogram']:
+                snapshot['annotation_histogram'][annotation_count] = 1
+            else:
+                snapshot['annotation_histogram'][annotation_count] = snapshot['annotation_histogram'][annotation_count] + 1
+            if interaction_count not in snapshot['interaction_histogram']:
+                snapshot['interaction_histogram'][interaction_count] = 1
+            else:
+                snapshot['interaction_histogram'][interaction_count] = snapshot['interaction_histogram'][interaction_count] + 1
+
+    for i in range(0, max(snapshot['annotation_histogram'].keys())):
+        if i not in snapshot['annotation_histogram']:
+            snapshot['annotation_histogram'][i] = 0
+
+    for i in range(0, max(snapshot['interaction_histogram'].keys())):
+        if i not in snapshot['interaction_histogram']:
+            snapshot['interaction_histogram'][i] = 0
+    return snapshot

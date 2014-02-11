@@ -19,7 +19,7 @@ class GoSynonym(Base, EqualityByIDMixin):
     
     #Values
     id = Column('go_synonym_no', Integer, primary_key=True)
-    go_synonym = Column('go_synonym', String)
+    name = Column('go_synonym', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
@@ -117,7 +117,20 @@ class GorefDbxref(Base, EqualityByIDMixin):
     dbxref = relationship(Dbxref, uselist=False)
     goref = relationship(GoRef, backref='goref_dbxrefs', uselist=False)
     
-    
-    
+class GoSet(Base, EqualityByIDMixin):
+    __tablename__ = 'go_set'
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+
+    #Values
+    id = Column('go_set_no', Integer, primary_key = True)
+    go_id = Column('go_no', Integer, ForeignKey('bud.go.go_no'))
+    name = Column('go_set_name', String)
+    genome_count = Column('genome_count', Integer)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+
+    go = relationship(Go, uselist=False)
+
+
     
 

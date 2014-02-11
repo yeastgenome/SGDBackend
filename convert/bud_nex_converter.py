@@ -10,7 +10,7 @@ from convert_evidence import convert_literature, convert_go, convert_qualifier, 
     convert_interaction, convert_binding, convert_protein_domain, convert_regulation, \
     convert_phenotype
 from convert_other import convert_bioentity_in_depth, convert_reference_in_depth, \
-    convert_bioconcept_in_depth
+    convert_bioconcept_in_depth, convert_chemical_in_depth
 from convert_utils import prepare_schema_connection, check_session_maker, \
     set_up_logging
 import model_new_schema
@@ -28,9 +28,12 @@ class BudNexConverter(ConverterInterface):
             
         self.log = set_up_logging('bud_nex_converter')
             
-    def wrapper(self, f):
+    def wrapper(self, f, no_old_session=False):
         try:
-            f(self.old_session_maker, self.new_session_maker)
+            if not no_old_session:
+                f(self.old_session_maker, self.new_session_maker)
+            else:
+                f(self.new_session_maker)
         except Exception:
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
             
@@ -60,6 +63,7 @@ class BudNexConverter(ConverterInterface):
         self.convert_bioentity_in_depth()
         self.convert_reference_in_depth()
         self.convert_bioconcept_in_depth()
+        self.convert_chemical_in_depth()
         
     def convert_daily(self):
         #Core
@@ -75,6 +79,7 @@ class BudNexConverter(ConverterInterface):
         self.convert_bioentity_in_depth()
         self.convert_reference_in_depth()
         self.convert_bioconcept_in_depth()
+        self.convert_chemical_in_depth()
         
     def convert_monthly(self):
         #Evidence
@@ -109,17 +114,19 @@ class BudNexConverter(ConverterInterface):
     def convert_interaction(self):
         self.wrapper(convert_interaction.convert)
     def convert_binding(self):
-        self.wrapper(convert_binding.convert)
+        self.wrapper(convert_binding.convert, no_old_session=True)
     def convert_protein_domain(self):
-        self.wrapper(convert_protein_domain.convert)
+        self.wrapper(convert_protein_domain.convert, no_old_session=True)
     def convert_regulation(self):
-        self.wrapper(convert_regulation.convert)
+        self.wrapper(convert_regulation.convert, no_old_session=True)
     def convert_bioentity_in_depth(self):
         self.wrapper(convert_bioentity_in_depth.convert)
     def convert_reference_in_depth(self):
         self.wrapper(convert_reference_in_depth.convert)
     def convert_bioconcept_in_depth(self):
         self.wrapper(convert_bioconcept_in_depth.convert)
+    def convert_chemical_in_depth(self):
+        self.wrapper(convert_chemical_in_depth.convert)
         
 if __name__ == "__main__":
     from convert import config
@@ -133,4 +140,3 @@ if __name__ == "__main__":
         getattr(converter, method)()
     else:
         print 'Please enter bud_dbhost, nex_dbhost, and method.'
-        

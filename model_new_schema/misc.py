@@ -6,7 +6,7 @@ Created on Mar 4, 2013
 from model_new_schema import Base, EqualityByIDMixin
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
- 
+
 class Url(Base):
     __tablename__ = 'url'
     id = Column('url_id', Integer, primary_key=True)
@@ -42,7 +42,7 @@ class Alias(Base, EqualityByIDMixin):
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     class_type = Column('class', String)
-    source_id = Column('source_id', Integer, ForeignKey('nex.source.source_id'))
+    source_id = Column('source_id', Integer)
     category = Column('category', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)

@@ -4,9 +4,13 @@ Created on Mar 15, 2013
 @author: kpaskov
 '''
 from go_enrichment import query_batter
+from model_new_schema.bioconcept import Bioconceptrelation
 from model_new_schema.evidence import Goevidence
-from sgdbackend_query import get_obj_id, get_evidence, get_conditions
+from mpmath import sqrt, ceil
+from sgdbackend_query import get_obj_id, get_evidence, get_conditions, get_bioconcept_parent_ids
 from sgdbackend_query.query_auxiliary import get_biofacts
+from sgdbackend_query.query_misc import get_relations
+from sgdbackend_query.query_paragraph import get_paragraph
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
 from sgdbackend_utils.obj_to_json import condition_to_json, minimize_json, \
@@ -20,13 +24,15 @@ def make_enrichment(bioent_ids):
     enrichment_results = query_batter.query_go_processes(bioent_format_names)
     json_format = []
     for enrichment_result in enrichment_results:
-        identifier = 'GO:' + str(int(enrichment_result[0][3:]))
+        identifier = 'GO:' + str(int(enrichment_result[0][3:])).zfill(7)
         goterm_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
         if goterm_id is not None:
             goterm = id_to_biocon[goterm_id]
             json_format.append({'go': goterm,
                             'match_count': enrichment_result[1],
                             'pvalue': enrichment_result[2]})
+        else:
+            print 'Go term not found: ' + str(enrichment_result[0])
     return json_format
 
 '''
@@ -34,22 +40,62 @@ def make_enrichment(bioent_ids):
 '''  
 
 def make_overview(bioent_id):
-    biofacts = get_biofacts('GO', bioent_id=bioent_id)
-    biocons = [id_to_biocon[x.bioconcept_id] for x in biofacts]
-    
-    process_count = len([x for x in biocons if x['go_aspect'] == 'biological process'])
-    compartment_count = len([x for x in biocons if x['go_aspect'] == 'cellular compartment'])
-    function_count = len([x for x in biocons if x['go_aspect'] == 'molecular function'])
-    
-    return {'aspect_counts': {'process': process_count, 'compartment':compartment_count, 'function': function_count}}
+    overview = {}
+
+    gofacts = get_biofacts('GO', bioent_id=bioent_id)
+    biocon_ids = [x.bioconcept_id for x in gofacts]
+
+    slim_ids = set(get_bioconcept_parent_ids('GO_SLIM', biocon_ids))
+    overview['go_slim'] = sorted([minimize_json(id_to_biocon[x]) for x in slim_ids], key=lambda y: y['display_name'])
+
+    paragraph = get_paragraph(bioent_id, 'GO')
+    if paragraph is not None:
+        overview['date_last_reviewed'] = paragraph.text
+
+    return overview
+
 
     
 '''
 -------------------------------Details---------------------------------------
 '''
+
+#This is a hack - we need to figure out what we're doing with these relationships, but right now it's unclear.
+condition_format_name_to_display_name = {'activated by':	                'activated by',
+                                        'dependent on':	                    'dependent on',
+                                        'during':	                        'during',
+                                        'exists during':	                'during',
+                                        'happens during':	                'during',
+                                        'has part':	                        'has part',
+                                        'has regulation_target':	        'regulates',
+                                        'in presence_of':	                'in presence of',
+                                        'independent of':	                'independent of',
+                                        'inhibited by':	                    'inhibited by',
+                                        'localization dependent on':	    'localization requires',
+                                        'modified by':	                    'modified by',
+                                        'not during':	                    'except during',
+                                        'not exists during':	            'except during',
+                                        'not happens during':	            'except during',
+                                        'not occurs at':	                'not at',
+                                        'not occurs in':	                'not in',
+                                        'occurs at':	                    'at',
+                                        'occurs in':	                    'in',
+                                        'part of':	                        'part of',
+                                        'requires direct regulator':	    'requires direct regulation by',
+                                        'requires localization':	        'only when located at',
+                                        'requires modification':	        'only with modification',
+                                        'requires regulation by':	        'requires regulation by',
+                                        'requires regulator':	            'requires',
+                                        'requires sequence feature':	    'requires',
+                                        'requires substance':	            'requires',
+                                        'requires target sequence feature':	'requires feature in target',
+                                        'stabilizes':	                    'stabilizes'}
+
+def make_details(locus_id=None, go_id=None, chemical_id=None, reference_id=None, with_children=False):
+    goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children)
+    if goevidences is None:
+        return {'Error': 'Too much data to display.'}
     
-def make_details(locus_id=None, go_id=None):
-    goevidences = get_evidence(Goevidence, bioent_id=locus_id, biocon_id=go_id)
     id_to_conditions = {}
     for condition in get_conditions([x.id for x in goevidences]):
         evidence_id = condition.evidence_id
@@ -57,23 +103,116 @@ def make_details(locus_id=None, go_id=None):
             id_to_conditions[evidence_id].append(condition)
         else:
             id_to_conditions[evidence_id] = [condition]
-          
-    tables = create_simple_table(goevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-        
-    return tables  
+    
+    return create_simple_table(goevidences, make_evidence_row, id_to_conditions=id_to_conditions)
+
+def fix_display_name(condition):
+    if 'role' in condition and condition['role'] in condition_format_name_to_display_name:
+        condition['role'] = condition_format_name_to_display_name[condition['role']]
+    return condition
 
 def make_evidence_row(goevidence, id_to_conditions): 
     bioentity_id = goevidence.bioentity_id
     bioconcept_id = goevidence.bioconcept_id
-    with_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'With']
-    from_conditions = [] if goevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[goevidence.id] if x.role == 'From']
-        
-    obj_json = evidence_to_json(goevidence)
+
+    obj_json = evidence_to_json(goevidence).copy()
     obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
     obj_json['bioconcept'] = minimize_json(id_to_biocon[bioconcept_id])
-    obj_json['with'] = with_conditions
-    obj_json['from']= from_conditions
-    obj_json['go_aspect'] = id_to_biocon[bioconcept_id]['go_aspect']
-    obj_json['date_last_reviewed'] = str(goevidence.date_last_reviewed)
+    obj_json['bioconcept']['aspect'] = id_to_biocon[bioconcept_id]['go_aspect']
+    obj_json['bioconcept']['go_id'] = id_to_biocon[bioconcept_id]['go_id']
+    obj_json['conditions'] = [] if goevidence.id not in id_to_conditions else [fix_display_name(condition_to_json(x)) for x in id_to_conditions[goevidence.id]]
+    obj_json['code'] = goevidence.go_evidence
+    obj_json['method'] = goevidence.annotation_type
+    obj_json['qualifier'] = goevidence.qualifier
+    obj_json['date_created'] = str(goevidence.date_created)
     return obj_json
+
+'''
+-------------------------------Ontology Graph---------------------------------------
+''' 
+
+def create_node(biocon, is_focus):
+    if is_focus:
+        sub_type = 'FOCUS'
+    else:
+        sub_type = biocon['go_aspect']
+    return {'data':{'id':'Node' + str(biocon['id']), 'name':biocon['display_name'] + ' (' + str(biocon['count']) + ')', 'link': biocon['link'],
+                    'sub_type':sub_type}}
+
+def create_edge(biocon1_id, biocon2_id, label):
+    return {'data':{'target': 'Node' + str(biocon1_id), 'source': 'Node' + str(biocon2_id), 'name':label}}
+
+def make_ontology_graph(phenotype_id):
+    all_children = None
+    children = get_relations(Bioconceptrelation, 'GO', parent_ids=[phenotype_id])    
+    parents = get_relations(Bioconceptrelation, 'GO', child_ids=[phenotype_id])
+    if len(parents) > 0:
+        grandparents = get_relations(Bioconceptrelation, 'GO', child_ids=[parent.parent_id for parent in parents])
+        greatgrandparents = get_relations(Bioconceptrelation, 'GO', child_ids=[parent.parent_id for parent in grandparents])
+        greatgreatgrandparents = get_relations(Bioconceptrelation, 'GO', child_ids=[parent.parent_id for parent in greatgrandparents])
+        nodes = []
+        nodes.append(create_node(id_to_biocon[phenotype_id], True))
         
+        child_ids = set([x.child_id for x in children])
+        parent_ids = set([x.parent_id for x in parents])
+        parent_ids.update([x.parent_id for x in grandparents])
+        parent_ids.update([x.parent_id for x in greatgrandparents])
+        parent_ids.update([x.parent_id for x in greatgreatgrandparents])
+        
+        child_id_to_child = dict([(x, id_to_biocon[x]) for x in child_ids])
+        parent_id_to_parent = dict([(x, id_to_biocon[x]) for x in parent_ids])
+        viable_ids = set([k for k, v in child_id_to_child.iteritems() if v['child_count'] > 0])
+
+        #If there are too many children, hide some.
+        all_children = []
+        hidden_children_count = 0
+        if len(viable_ids) > 8:
+            all_children = sorted([id_to_biocon[x] for x in viable_ids], key=lambda x: x['display_name'])
+            hidden_children_count = len(viable_ids)-7
+            viable_ids = set(list(viable_ids)[:7])
+
+        viable_ids.update([k for k, v in parent_id_to_parent.iteritems() if v['child_count'] > 0])
+        viable_ids.add(phenotype_id)
+        
+        nodes.extend([create_node(v, False) for k, v in child_id_to_child.iteritems() if k in viable_ids])
+        nodes.extend([create_node(v, False) for k, v in parent_id_to_parent.iteritems() if k in viable_ids])
+
+        relations = set()
+        relations.update(children)
+        relations.update(parents)
+        relations.update(grandparents)
+        relations.update(greatgrandparents)
+        relations.update(greatgreatgrandparents)
+        edges = [create_edge(x.child_id, x.parent_id, x.relation_type) for x in relations if x.child_id in viable_ids and x.parent_id in viable_ids]
+
+        if hidden_children_count > 0:
+            nodes.insert(0, {'data':{'id':'NodeMoreChildren', 'name':str(hidden_children_count) + ' more children', 'link': None, 'sub_type':id_to_biocon[phenotype_id]['go_aspect']}})
+            edges.insert(0, {'data':{'target': 'NodeMoreChildren', 'source': 'Node' + str(phenotype_id), 'name':None}})
+
+    else:
+        #grandchildren = get_relations(Bioconceptrelation, 'GO', parent_ids=[x.child_id for x in children])
+        
+        child_ids = set([x.child_id for x in children])
+        #child_ids.update([x.child_id for x in grandchildren])
+        
+        child_id_to_child = dict([(x, id_to_biocon[x]) for x in child_ids])
+        viable_ids = set([k for k, v in child_id_to_child.iteritems() if v['child_count'] > 0])
+        viable_ids.add(phenotype_id)
+        
+        nodes = []
+        nodes.append(create_node(id_to_biocon[phenotype_id], True))
+        nodes.extend([create_node(v, False) for k, v in child_id_to_child.iteritems() if k in viable_ids])
+
+        relations = set()
+        relations.update(children)
+        #relations.update(grandchildren)
+        edges = [create_edge(x.child_id, x.parent_id, x.relation_type) for x in relations if x.child_id in viable_ids and x.parent_id in viable_ids]
+
+    return {'nodes': list(nodes), 'edges': edges, 'all_children': all_children}
+
+'''
+-------------------------------Snapshot---------------------------------------
+'''
+def make_snapshot():
+    snapshot = {}
+    return snapshot

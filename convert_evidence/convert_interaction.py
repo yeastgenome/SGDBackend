@@ -3,6 +3,10 @@ Created on May 6, 2013
 
 @author: kpaskov
 '''
+
+#1.23.14 Maitenance (sgd-dev): 1:39:30
+
+
 from convert_other.convert_auxiliary import convert_interaction, convert_bioentity_reference
 from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
@@ -27,7 +31,7 @@ import sys
 
 def create_interevidence(old_interaction, key_to_experiment, key_to_phenotype,
                          id_to_reference, id_to_bioents, key_to_source, 
-                         inter_id_to_feature_ids, inter_id_to_phenotype_key):
+                         inter_id_to_feature_ids, inter_id_to_phenotype_key, inter_id_to_mutant_type):
     from model_new_schema.evidence import Geninteractionevidence as NewGeninteractionevidence, Physinteractionevidence as NewPhysinteractionevidence
         
     reference_ids = old_interaction.reference_ids
@@ -60,10 +64,11 @@ def create_interevidence(old_interaction, key_to_experiment, key_to_phenotype,
     
     if old_interaction.interaction_type == 'genetic interactions':
         phenotype_key = None if old_interaction.id not in inter_id_to_phenotype_key else inter_id_to_phenotype_key[old_interaction.id]
-        phenotype = None if phenotype_key is None or phenotype_key not in key_to_phenotype else key_to_phenotype[phenotype_key]
+        mutant_type = None if old_interaction.id not in inter_id_to_mutant_type else inter_id_to_mutant_type[old_interaction.id]
+        phenotype = None if phenotype_key is None else key_to_phenotype[phenotype_key]
         
         new_genetic_interevidence = NewGeninteractionevidence(source, reference, None, experiment, 
-                                                            bioentity1, bioentity2, phenotype, 
+                                                            bioentity1, bioentity2, phenotype, mutant_type,
                                                             old_interaction.annotation_type, bait_hit, note,
                                                             old_interaction.date_created, old_interaction.created_by)
         return [new_genetic_interevidence]  
@@ -93,7 +98,7 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
                   
         #Values to check
         gen_values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id',
-                       'bioentity1_id', 'bioentity2_id', 'phenotype_id', 
+                       'bioentity1_id', 'bioentity2_id', 'phenotype_id', 'mutant_type',
                        'note', 'annotation_type']
         
         phys_values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id',
@@ -130,10 +135,12 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
                     
         #Get interaction_phenotypes
         inter_id_to_phenotype_key = {}
+        inter_id_to_mutant_type = {}
         for phenotype_interaction in old_session.query(OldInteractionPhenotype).options(joinedload('phenotype')).all():
             old_phenotype = phenotype_interaction.phenotype
-            phenotype_key = (create_phenotype_format_name(old_phenotype.observable, old_phenotype.qualifier, old_phenotype.mutant_type), 'PHENOTYPE')
+            phenotype_key = (create_phenotype_format_name(old_phenotype.observable, old_phenotype.qualifier), 'PHENOTYPE')
             inter_id_to_phenotype_key[phenotype_interaction.interaction_id] = phenotype_key
+            inter_id_to_mutant_type[phenotype_interaction.interaction_id] = old_phenotype.mutant_type
         
         min_bioent_id = 0
         max_bioent_id = 10000
@@ -188,7 +195,7 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
             gen_id_to_current_obj = dict([(x.id, x) for x in gen_current_objs])
             gen_key_to_current_obj = dict([(x.unique_key(), x) for x in gen_current_objs])
             gen_untouched_obj_ids.update(gen_id_to_current_obj)
-            
+
             phys_id_to_current_obj = dict([(x.id, x) for x in phys_current_objs])
             phys_key_to_current_obj = dict([(x.unique_key(), x) for x in phys_current_objs])
             phys_untouched_obj_ids.update(phys_id_to_current_obj)
@@ -197,7 +204,7 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
                 #Convert old objects into new ones
                 newly_created_objs = create_interevidence(old_obj, key_to_experiment, key_to_phenotype, 
                                                           id_to_reference, id_to_bioent, key_to_source,
-                                                          inter_id_to_feature_ids, inter_id_to_phenotype_key)
+                                                          inter_id_to_feature_ids, inter_id_to_phenotype_key, inter_id_to_mutant_type)
                     
                 #Edit or add new objects
                 for newly_created_obj in newly_created_objs:

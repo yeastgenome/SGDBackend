@@ -16,6 +16,7 @@ import sys
 #Maitenance (cherry-vm08): 51:17
 #First Load (sgd-ng1): 35:28
 #Maitenance (sgd-ng1): 26:20
+#1.23.14 Maitenance (sgd-dev): 14:41
 
 """
 --------------------- Convert Journal ---------------------
@@ -318,7 +319,7 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
         ref_min_id = 0      
         count = 100000
         num_chunks = ceil(1.0*count/chunk_size)
-        for i in range(0, num_chunks):
+        for i in reversed(range(0, num_chunks)):
             min_id = ref_min_id + i*chunk_size
             max_id = ref_min_id + (i+1)*chunk_size
             #Grab all current objects
