@@ -405,9 +405,7 @@ class SGDBackend(BackendInterface):
     #Complex
     def complex(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
-        from sgdbackend_query.query_auxiliary import get_biofacts
-        from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
-        from sgdbackend_utils.obj_to_json import minimize_json
+        from sgdbackend_utils.cache import id_to_biocon
 
         if are_ids:
             complex_id = identifier
@@ -417,21 +415,23 @@ class SGDBackend(BackendInterface):
 
     def complex_genes(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
-        from sgdbackend_query.query_auxiliary import get_biofacts
-        from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
-        from sgdbackend_utils.obj_to_json import minimize_json
+        from sgdbackend import view_complex
 
         if are_ids:
             complex_id = identifier
         else:
             complex_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='COMPLEX')
+        return None if complex_id is None else json.dumps(view_complex.make_genes(complex_id))
 
-        complex = None if complex_id not in id_to_biocon else id_to_biocon[complex_id]
-        if complex is None:
-            return None
+    def complex_details(self, identifier, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_complex
 
-        genes = [minimize_json(id_to_bioent[x.bioentity_id]) for x in get_biofacts('GO', biocon_id=complex['go_id'])]
-        return json.dumps(genes)
+        if are_ids:
+            complex_id = identifier
+        else:
+            complex_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='COMPLEX')
+        return None if complex_id is None else json.dumps(view_complex.make_details(complex_id))
 
     def complex_graph(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id

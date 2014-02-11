@@ -221,6 +221,20 @@ def prep_views(chosen_backend, config):
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('complex'))
 
+    config.add_route('complex_genes',
+                     '/complex/{identifier}/genes',
+                     view=lambda request: chosen_backend.response_wrapper('complex_genes', request)(
+                                getattr(chosen_backend, 'complex_genes')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('complex_genes'))
+
+    config.add_route('complex_details',
+                     '/complex/{identifier}/locus_details',
+                     view=lambda request: chosen_backend.response_wrapper('complex_details', request)(
+                                getattr(chosen_backend, 'complex_details')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('complex_details'))
+
     config.add_route('complex_graph',
                      '/complex/{identifier}/graph',
                      view=lambda request: chosen_backend.response_wrapper('complex_graph', request)(

@@ -1,10 +1,26 @@
 from model_new_schema import create_format_name
+from sgdbackend import view_go
 from sgdbackend_query.query_auxiliary import get_biofacts, get_interactions_among
 
 __author__ = 'kpaskov'
 
 from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
 
+
+# -------------------------------Genes-----------------------------------------
+def make_genes(complex_id):
+    from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
+    from sgdbackend_utils.obj_to_json import minimize_json
+
+    locus_ids = set([x['bioentity']['id'] for x in view_go.make_details(go_id=id_to_biocon[complex_id]['go']['id'], with_children=True)])
+    genes = [minimize_json(id_to_bioent[x.bioentity_id]) for x in locus_ids]
+    return genes
+
+'''
+-------------------------------Details---------------------------------------
+'''
+def make_details(complex_id):
+    return view_go.make_details(go_id=id_to_biocon[complex_id]['go']['id'], with_children=True)
 
 # -------------------------------Graph-----------------------------------------
 
