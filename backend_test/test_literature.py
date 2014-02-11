@@ -10,9 +10,6 @@ import json
 def test_literature_overview_structure(model, identifier='YFL039C'):
     response = json.loads(model.literature_overview(identifier))
     assert 'total_count' in response
-    assert 'primary' in response
-    for entry in response['primary']:
-        check_reference(entry)
     
 def test_literature_details_structure(model, identifier='YFL039C'):
     response = json.loads(model.literature_details(identifier))

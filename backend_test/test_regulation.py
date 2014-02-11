@@ -23,19 +23,9 @@ def test_regulation_overview_structure(model, identifier='GAL4'):
 def test_regulation_details_structure(model, identifier='GAL4'):
     response = json.loads(model.regulation_details(identifier))
     assert response is not None
-    assert 'regulators' in response
-    assert 'targets' in response
     
-    for entry in response['regulators']:
+    for entry in response:
         check_evidence(entry)
-        assert 'bioentity1' in entry
-        assert 'bioentity2' in entry
-        assert 'conditions' in entry
-        
-        check_obj(entry['bioentity1'])
-        check_obj(entry['bioentity2'])
-        
-    for entry in response['targets']:
         assert 'bioentity1' in entry
         assert 'bioentity2' in entry
         assert 'conditions' in entry

@@ -23,10 +23,6 @@ word_to_bioent_id = {}
 
 def cache_core():
 
-    from model_new_schema.evidence import Goevidence
-    key_to_evidence = dict([(x.unique_key(), x) for x in get_all(Goevidence)])
-    print 'Done getting all.'
-
     print 'Cache bioents'
     #Cache bioents
     from model_new_schema.bioentity import Bioentity
