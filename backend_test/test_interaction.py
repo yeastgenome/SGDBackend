@@ -18,13 +18,13 @@ def test_interaction_overview_structure(model, identifier='YFL039C'):
     assert 'num_both_interactors' in response
     
 def test_interaction_details_structure(model, identifier='YFL039C'):
-    response = json.loads(model.interaction_details(identifier=identifier))
+    response = json.loads(model.interaction_details(locus_identifier=identifier))
     assert response is not None
     for entry in response:
         check_evidence(entry)
         assert 'bioentity1' in entry
         assert 'bioentity2' in entry
-        assert 'direction' in entry
+        assert 'bait_hit' in entry
         assert 'interaction_type' in entry
         assert 'annotation_type' in entry
         

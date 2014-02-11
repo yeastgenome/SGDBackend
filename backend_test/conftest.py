@@ -3,8 +3,11 @@ Created on Aug 20, 2013
 
 @author: kpaskov
 '''
-from backend import prepare_sgdbackend, prepare_perfbackend
 import pytest
+from backend import prepare_backend, config
+from perfbackend import PerfBackend
+from sgdbackend import SGDBackend
+
 
 def pytest_addoption(parser):
     parser.addoption("--runslow", action="store_true",
@@ -20,7 +23,7 @@ def pytest_runtest_setup(item):
 def model(request):
     model_type = request.config.getoption("--model")
     if model_type == 'sgdbackend':
-        return prepare_sgdbackend()[0]
+        return SGDBackend(config.DBTYPE, config.NEX_DBHOST, config.DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.sgdbackend_log_directory)
     if model_type == 'perfbackend':
-        return prepare_perfbackend()[0]
+        return PerfBackend(config.DBTYPE, config.PERF_DBHOST, config.DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, config.perfbackend_log_directory)
     raise Exception('No backend supplied.')

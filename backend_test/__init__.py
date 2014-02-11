@@ -1,4 +1,3 @@
-from backend import prepare_sgdbackend, prepare_perfbackend
 import conftest
 import pytest
 
