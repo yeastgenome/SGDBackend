@@ -10,10 +10,9 @@ from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
 # -------------------------------Genes-----------------------------------------
 def make_genes(complex_id):
     from sgdbackend_utils.cache import id_to_biocon, id_to_bioent
-    from sgdbackend_utils.obj_to_json import minimize_json
 
     locus_ids = set([x['bioentity']['id'] for x in view_go.make_details(go_id=id_to_biocon[complex_id]['go']['id'], with_children=True)])
-    genes = [minimize_json(id_to_bioent[x.bioentity_id]) for x in locus_ids]
+    genes = [id_to_bioent[x] for x in locus_ids]
     return genes
 
 '''
@@ -24,12 +23,9 @@ def make_details(complex_id):
 
 # -------------------------------Graph-----------------------------------------
 
-def create_bioent_node(bioent, is_focus, gene_count):
-    sub_type = None
-    if is_focus:
-        sub_type = 'FOCUS'
+def create_bioent_node(bioent):
     return {'data':{'id':'BioentNode' + str(bioent['id']), 'name':bioent['display_name'], 'link': bioent['link'],
-                    'sub_type':sub_type, 'type': 'BIOENTITY', 'gene_count':gene_count}}
+                    'sub_type':None, 'type': 'BIOENTITY'}}
 
 def create_biocon_node(biocon_id, biocon_type, gene_count):
     if biocon_type == 'PHENOTYPE':
@@ -44,12 +40,12 @@ def create_bioent_biocon_edge(bioent_id, biocon_id):
     return {'data':{'target': 'BioentNode' + str(bioent_id), 'source': 'BioconNode' + str(biocon_id)}}
 
 def create_bioent_bioent_edge(bioent_id1, bioent_id2):
-    return {'data':{'target': 'BioentNode' + str(bioent_id1), 'source': 'BioconNode' + str(bioent_id2)}}
+    return {'data':{'target': 'BioentNode' + str(bioent_id1), 'source': 'BioentNode' + str(bioent_id2)}}
 
 def make_graph(biocon_id):
 
     #Get bioentities for complex
-    bioentity_ids = [x.bioentity_id for x in get_biofacts('GO', biocon_id=id_to_biocon[biocon_id]['go_id'])]
+    bioentity_ids = [x['id'] for x in make_genes(biocon_id)]
 
     interactions = get_interactions_among('PHYSINTERACTION', bioentity_ids, 0)
 
