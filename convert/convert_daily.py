@@ -52,6 +52,17 @@ if __name__ == "__main__":
             db1_db2_converter.convert_reference()
     ReferenceThread().start()
 
+    class PhenotypeGraphsThread (threading.Thread):
+        def __init__(self):
+            threading.Thread.__init__(self)
+            self.name = 'Phenotype Graphs'
+        def run(self):
+            master_db1_converter.convert_phenotype_graph()
+            master_db1_converter.convert_phenotype_ontology_graph()
+
+            db1_db2_converter.convert_phenotype_graph()
+            db1_db2_converter.convert_phenotype_ontology_graph()
+
     class PhenotypeThread (threading.Thread):
         def __init__(self):
             threading.Thread.__init__(self)
@@ -59,17 +70,15 @@ if __name__ == "__main__":
         def run(self):
             pastry_master_converter.convert_phenotype()
 
+            PhenotypeGraphsThread().start()
+
             master_db1_converter.convert_phenotype_details()
             master_db1_converter.convert_phenotype_overview()
-            master_db1_converter.convert_phenotype_graph()
             master_db1_converter.convert_phenotype_resources()
-            master_db1_converter.convert_phenotype_ontology_graph()
 
             db1_db2_converter.convert_phenotype_details()
             db1_db2_converter.convert_phenotype_overview()
-            db1_db2_converter.convert_phenotype_graph()
             db1_db2_converter.convert_phenotype_resources()
-            db1_db2_converter.convert_phenotype_ontology_graph()
     PhenotypeThread().start()
 
     class LiteratureThread (threading.Thread):
@@ -88,6 +97,17 @@ if __name__ == "__main__":
             db1_db2_converter.convert_literature_graph()
     LiteratureThread().start()
 
+    class GoGraphThread (threading.Thread):
+        def __init__(self):
+            threading.Thread.__init__(self)
+            self.name = 'Go'
+        def run(self):
+            master_db1_converter.convert_go_graph()
+            master_db1_converter.convert_go_ontology_graph()
+
+            db1_db2_converter.convert_go_graph()
+            db1_db2_converter.convert_go_ontology_graph()
+
     class GoThread (threading.Thread):
         def __init__(self):
             threading.Thread.__init__(self)
@@ -95,15 +115,14 @@ if __name__ == "__main__":
         def run(self):
             pastry_master_converter.convert_go()
 
+            GoGraphThread().start()
+
             master_db1_converter.convert_go_details()
             master_db1_converter.convert_go_overview()
-            master_db1_converter.convert_go_graph()
-            master_db1_converter.convert_go_ontology_graph()
 
             db1_db2_converter.convert_go_details()
             db1_db2_converter.convert_go_overview()
-            db1_db2_converter.convert_go_graph()
-            db1_db2_converter.convert_go_ontology_graph()
+
     GoThread().start()
 
     pastry_master_converter.convert_bioentity_in_depth()
