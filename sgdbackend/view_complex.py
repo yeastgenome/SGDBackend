@@ -83,11 +83,15 @@ def make_graph(complex_id):
     biocon_ids_in_use = bioconcept_id_to_scores.keys()
     complex_ids_in_use = complex_id_to_scores.keys()
     edges_in_use = edge_to_score.keys()
-    while node_count > 100 or edge_count > 250:
+    while node_count > 50 or edge_count > 250:
         cutoff = cutoff + 1
+        biocon_ids_in_use = set([x for x, y in bioconcept_id_to_scores.iteritems() if len(y) > 1])
+        complex_ids_in_use = set([x for x, y in complex_id_to_scores.iteritems() if len(y) > 1])
         edges_in_use = set([x for x, y in edge_to_score.iteritems() if y > cutoff])
-        biocon_ids_in_use = set([x for x, y in bioconcept_id_to_scores.iteritems() if len(y) > 1 and sorted(y)[-2] > cutoff])
-        complex_ids_in_use = set([x for x, y in complex_id_to_scores.iteritems() if len(y) > 1 and sorted(y)[-2] > cutoff])
+
+        biocon_ids_in_use = set(x for x in biocon_ids_in_use if len([z for z in edges_in_use if z[1] == x]) > 1)
+        complex_ids_in_use = set(x for x in complex_ids_in_use if len([z for z in edges_in_use if z[0] == x]) > 1)
+        edges_in_use = set([x for x in edges_in_use if x[0] in complex_ids_in_use and x[1] in biocon_ids_in_use])
 
         node_count = len(complex_ids_in_use) + len(biocon_ids_in_use)
         edge_count = len(edges_in_use)
