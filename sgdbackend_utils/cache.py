@@ -54,10 +54,10 @@ def cache_core():
         json_form = phenotype_to_json(biocon)
         id_to_biocon[biocon.id] = json_form
 
-    from model_new_schema.bioconcept import Complex
-    for biocon in get_all(Complex):
-        json_form = complex_to_json(biocon, id_to_biocon)
-        id_to_biocon[biocon.id] = json_form
+    from model_new_schema.bioentity import Complex
+    for bioent in get_all(Complex):
+        json_form = complex_to_json(bioent, id_to_biocon)
+        id_to_bioent[bioent.id] = json_form
         
     print 'Cache bioitems' 
     #Cache bioitems

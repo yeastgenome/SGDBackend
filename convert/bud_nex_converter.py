@@ -8,7 +8,7 @@ from convert_core import convert_evelements, convert_reference, \
     convert_bioentity, convert_bioconcept, convert_bioitem, convert_chemical
 from convert_evidence import convert_literature, convert_go, convert_qualifier, \
     convert_interaction, convert_binding, convert_protein_domain, convert_regulation, \
-    convert_phenotype
+    convert_phenotype, convert_complex
 from convert_other import convert_bioentity_in_depth, convert_reference_in_depth, \
     convert_bioconcept_in_depth, convert_chemical_in_depth
 from convert_utils import prepare_schema_connection, check_session_maker, \
@@ -111,6 +111,8 @@ class BudNexConverter(ConverterInterface):
         self.wrapper(convert_go.convert)
     def convert_qualifier(self):
         self.wrapper(convert_qualifier.convert)
+    def convert_complex(self):
+        self.wrapper(convert_complex.convert, no_old_session=True)
     def convert_interaction(self):
         self.wrapper(convert_interaction.convert)
     def convert_binding(self):

@@ -7,11 +7,12 @@ This is some test code to experiment with working with SQLAlchemy - particularly
 will eventually be the Bioentity classes/tables in the new SGD website schema. This code is currently meant to run on the KPASKOV 
 schema on fasolt.
 '''
-from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema import Base, EqualityByIDMixin, create_format_name
+from model_new_schema.bioconcept import Go
 from model_new_schema.misc import Alias, Url, Relation
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String, Date, Numeric
 
 class Bioentity(Base, EqualityByIDMixin):
     __tablename__ = 'bioentity'
@@ -25,12 +26,13 @@ class Bioentity(Base, EqualityByIDMixin):
     sgdid = Column('sgdid', String)
     uniprotid = Column('uniprotid', String)
     bioent_status = Column('bioent_status', String)
+    description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
     
     __mapper_args__ = {'polymorphic_on': class_type}
     
-    def __init__(self, bioentity_id, display_name, format_name, class_type, link, source, sgdid, uniprotid, bioent_status,
+    def __init__(self, bioentity_id, display_name, format_name, class_type, link, source, sgdid, uniprotid, bioent_status, description,
                  date_created, created_by):
         self.id = bioentity_id
         self.display_name = display_name
@@ -41,6 +43,7 @@ class Bioentity(Base, EqualityByIDMixin):
         self.sgdid = sgdid
         self.uniprotid = uniprotid
         self.bioent_status = bioent_status
+        self.description = description
         self.date_created = date_created
         self.created_by = created_by
             
@@ -111,7 +114,6 @@ class Locus(Bioentity):
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     name_description = Column('name_description', String)
     headline = Column('headline', String)
-    description = Column('description', String)
     genetic_position = Column('genetic_position', String)
     locus_type = Column('locus_type', String)
         
@@ -122,10 +124,9 @@ class Locus(Bioentity):
                  locus_type, short_description, headline, description, genetic_position,
                  date_created, created_by):
         Bioentity.__init__(self, bioentity_id, display_name, format_name, 'LOCUS', '/cgi-bin/locus.fpl?locus=' + sgdid,
-                           source, sgdid, uniprotid, bioent_status, date_created, created_by)
+                           source, sgdid, uniprotid, bioent_status, description, date_created, created_by)
         self.short_description = short_description
         self.headline = headline
-        self.description = description
         self.genetic_position = genetic_position
         self.locus_type = locus_type
     
@@ -134,32 +135,85 @@ class Protein(Bioentity):
     
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
+
     molecular_weight = Column('molecular_weight', Integer)
-    length = Column('protein_length', Integer)
-    n_term_seq = Column('n_term_seq', String)
-    c_term_seq = Column('c_term_seq', String)
+    pi = Column('pi', Numeric)
 
-    #pi = Column('pi', Double)
+    #amino acid composition
+    ala = Column('ala', Integer)
+    arg = Column('arg', Integer)
+    asn = Column('asn', Integer)
+    asp = Column('asp', Integer)
+    cys = Column('cys', Integer)
+    gln = Column('gln', Integer)
+    glu = Column('glu', Integer)
+    gly = Column('gly', Integer)
+    his = Column('his', Integer)
+    ile = Column('ile', Integer)
+    leu = Column('leu', Integer)
+    lys = Column('lys', Integer)
+    met = Column('met', Integer)
+    phe = Column('phe', Integer)
+    pro = Column('pro', Integer)
+    ser = Column('ser', Integer)
+    thr = Column('thr', Integer)
+    trp = Column('trp', Integer)
+    tyr = Column('tyr', Integer)
+    val = Column('val', Integer)
 
-    #codon_bias = Column('codon_bias', Double)
-    #codon_adaptation_index = Column('cai', Double)
-    #frequency_of_optimal_codons = Column('fop', Double)
-    #hydropathicity = Column('hydropathicity', Double)
-    #aromaticity_score = Column('aromaticity_score', Double)
+    #atomic composition
+    carbon = Column('carbon', Integer)
+    hydrogen = Column('hydrogen', Integer)
+    nitrogen = Column('nitrogen', Integer)
+    oxygen = Column('oxygen', Integer)
+    sulfur = Column('sulfur', Integer)
+
+    #estimated half-life
+    ecoli_vivo = Column('ecoli_vivo', String)
+    mammal_vitro = Column('mammal_vitro', String)
+    yeast_vivo = Column('yeast_vivo', String)
+
+    #extinction coefficients at 280nm
+    all_cys_half = Column('all_cys_half', String)
+    no_cys_half = Column('no_cys_half', String)
+    all_cys_reduced = Column('all_cys_reduced', String)
+    all_cys = Column('all_cys', String)
+
+    aliphatic_index = Column('aliphatic_index', Numeric)
+    instability_index = Column('instability_index', Numeric)
+
+    codon_bias = Column('codon_bias', Numeric)
+    codon_adaptation_index = Column('cai', Numeric)
+    frequency_of_optimal_codons = Column('fop', Numeric)
+    hydropathicity = Column('hydropathicity', Numeric)
+    aromaticity_score = Column('aromaticity_score', Numeric)
 
 
-            
+
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Bioentity.id}
     
     def __init__(self, bioentity_id, source,
-                 locus, length, n_term_seq, c_term_seq,
-                 date_created, created_by):
+                 locus, date_created, created_by):
         Bioentity.__init__(self, bioentity_id, locus.display_name + 'p', locus.format_name + 'P', 
-                           'PROTEIN', locus.link.replace('/locus.f', '/protein/proteinPage.'), source, None, None, locus.bioent_status, date_created, created_by)
+                           'PROTEIN', locus.link.replace('/locus.f', '/protein/proteinPage.'), source, None, None, locus.bioent_status, locus.description, date_created, created_by)
         self.locus_id = locus.id
-        self.length = length
-        self.n_term_seq = n_term_seq
-        self.c_term_seq = c_term_seq
+
+class Complex(Bioentity):
+    __tablename__ = 'complexbioentity'
+
+    id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key = True)
+    go_id = Column('go_id', Integer, ForeignKey(Go.id))
+    cellular_localization = Column('cellular_localization', String)
+
+    __mapper_args__ = {'polymorphic_identity': "COMPLEX",
+                       'inherit_condition': id==Bioentity.id}
+
+    def __init__(self, source, sgdid,
+                 go, cellular_localization):
+        format_name = create_format_name(go.display_name.lower())
+        Bioentity.__init__(self, None, go.display_name, format_name, 'COMPLEX', '/complex/' + format_name + '/overview', source, sgdid, None, None, go.description, None, None)
+        self.go_id = go.id
+        self.cellular_localization = cellular_localization
 
     

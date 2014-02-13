@@ -9,6 +9,10 @@ from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_bioitem
 from sgdbackend_utils.obj_to_json import minimize_json, evidence_to_json
 
+# -------------------------------Overview---------------------------------------
+def make_overview(protein_id):
+    return id_to_bioent[protein_id]
+
 '''
 -------------------------------Details---------------------------------------
 ''' 

@@ -372,6 +372,22 @@ class SGDBackend(BackendInterface):
         return None if locus_id is None else json.dumps(view_literature.make_graph(locus_id))
 
     #Protein
+    def protein_overview(self, identifier, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_protein
+        from sgdbackend_utils.cache import id_to_bioent
+        if are_ids:
+            locus_id = identifier
+            if locus_id not in id_to_bioent or id_to_bioent[locus_id]['class_type'] != 'LOCUS':
+                return None
+        else:
+            locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        protein_id = None
+        if locus_id is not None:
+            if locus_id + 200000 in id_to_bioent:
+                protein_id = locus_id + 200000
+        return None if locus_id is None else json.dumps(view_protein.make_overview(protein_id))
+
     def protein_domain_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_bioent
@@ -405,13 +421,13 @@ class SGDBackend(BackendInterface):
     #Complex
     def complex(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
-        from sgdbackend_utils.cache import id_to_biocon
+        from sgdbackend_utils.cache import id_to_bioent
 
         if are_ids:
             complex_id = identifier
         else:
             complex_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='COMPLEX')
-        return None if complex_id is None else json.dumps(id_to_biocon[complex_id])
+        return None if complex_id is None else json.dumps(id_to_bioent[complex_id])
 
     def complex_genes(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
@@ -435,12 +451,14 @@ class SGDBackend(BackendInterface):
 
     def complex_graph(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
-        from sgdbackend import view_complex
+        from sgdbackend import view_complex, view_phenotype
+        from sgdbackend_utils.cache import id_to_biocon
         if are_ids:
             complex_id = identifier
         else:
             complex_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='COMPLEX')
-        return None if complex_id is None else json.dumps(view_complex.make_graph(complex_id))
+        return None if complex_id is None else json.dumps(view_phenotype.make_graph(complex_id, 'GO', bioent_type='COMPLEX', biocon_f=lambda x: id_to_biocon[x]['go_aspect'] == 'biological process'))
+
 
     #Regulation
     def regulation_overview(self, identifier, are_ids=False):

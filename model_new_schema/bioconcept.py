@@ -174,19 +174,4 @@ class Phenotype(Bioconcept):
     def is_core(self):
         return self.is_core_num == 1
 
-class Complex(Bioconcept):
-    __tablename__ = 'complexbioconcept'
 
-    id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
-    go_id = Column('go_id', Integer, ForeignKey(Go.id))
-    cellular_localization = Column('cellular_localization', String)
-
-    __mapper_args__ = {'polymorphic_identity': "COMPLEX",
-                       'inherit_condition': id==Bioconcept.id}
-
-    def __init__(self, source, sgdid,
-                 go, cellular_localization):
-        format_name = create_format_name(go.display_name.lower())
-        Bioconcept.__init__(self, go.display_name, format_name, 'COMPLEX', '/complex/' + format_name + '/overview', source, sgdid, go.description, None, None)
-        self.go_id = go.id
-        self.cellular_localization = cellular_localization

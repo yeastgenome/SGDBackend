@@ -301,4 +301,25 @@ class Bindingevidence(Evidence):
         self.expert_confidence = expert_confidence
         self.link = "/static/img/yetfasco/" + bioentity.format_name + "_" + str(motif_id) + ".0.png"
         self.motif_id = motif_id
-        
+
+class Complexevidence(Evidence):
+    __tablename__ = "complexevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    complex_id = Column('complex_id', Integer, ForeignKey(Bioentity.id))
+    go_id = Column('go_id', Integer, ForeignKey(Bioentity.id))
+
+    __mapper_args__ = {'polymorphic_identity': 'COMPLEX',
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, reference, strain, experiment, note,
+                 bioentity, complex, go,
+                 date_created, created_by):
+        Evidence.__init__(self,
+                          bioentity.display_name + ' is in complex ' + complex.display_name,
+                          bioentity.format_name + '_' + str(complex.id) + ('' if go is None else str(go.id)),
+                          'COMPLEX', source, reference, strain, experiment, note, date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.complex_id = complex.id
+        self.go_id = None if go is None else go.id

@@ -278,7 +278,7 @@ def biocon_id_conversion(bioconcept_id, biocon_type):
     else:
         return bioconcept_id
 
-def make_graph(bioent_id, biocon_type, biocon_f=None):
+def make_graph(bioent_id, biocon_type, biocon_f=None, bioent_type='LOCUS'):
 
     #Get bioconcepts for gene
     bioconcept_ids = [x.bioconcept_id for x in get_biofacts(biocon_type, bioent_id=bioent_id)]
@@ -287,7 +287,7 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
     bioent_id_to_biocon_ids = {}
 
     if len(bioconcept_ids) > 0:
-        all_relevant_biofacts = [x for x in get_biofacts(biocon_type, biocon_ids=bioconcept_ids) if biocon_f is None or biocon_f(x.bioconcept_id)]
+        all_relevant_biofacts = [x for x in get_biofacts(biocon_type, biocon_ids=bioconcept_ids, bioent_type=bioent_type) if biocon_f is None or biocon_f(x.bioconcept_id)]
     else:
         all_relevant_biofacts = []
 
@@ -309,8 +309,8 @@ def make_graph(bioent_id, biocon_type, biocon_f=None):
     node_count = len(bioent_id_to_biocon_ids) + len(biocon_id_to_bioent_ids)
     edge_count = len(all_relevant_biofacts)
     bioent_count = len(bioent_id_to_biocon_ids)
-    biocon_ids_in_use = set([x for x, y in biocon_id_to_bioent_ids.iteritems()])
-    bioent_ids_in_use = set([x for x, y in bioent_id_to_biocon_ids.iteritems()])
+    bioent_ids_in_use = set([x for x, y in bioent_id_to_biocon_ids.iteritems() if len(y) >= cutoff])
+    biocon_ids_in_use = set([x for x, y in biocon_id_to_bioent_ids.iteritems() if len(y & bioent_ids_in_use) > 1])
     biofacts_in_use = [x for x in all_relevant_biofacts]
     while node_count > 100 or edge_count > 250 or bioent_count > 50:
         cutoff = cutoff + 1

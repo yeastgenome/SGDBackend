@@ -12,6 +12,7 @@ if __name__ == "__main__":
     #Pastry -> Dev_nex
     pastry_dev_converter = BudNexConverter(config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS,
                                     config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+    pastry_dev_converter.convert_complex()
 
     #pastry_dev_converter.convert_protein_domain()
     #pastry_dev_converter.convert_daily()
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_evelements()
     #pastry_dev_converter.convert_reference()
     #pastry_dev_converter.convert_bioentity()
-    pastry_dev_converter.convert_bioconcept()
+    #pastry_dev_converter.convert_bioconcept()
     #pastry_dev_converter.convert_bioitem()
     #pastry_dev_converter.convert_chemical()
 
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_protein_domain()
 
     #pastry_dev_converter.convert_bioentity_in_depth()
-    pastry_dev_converter.convert_bioconcept_in_depth()
+    #pastry_dev_converter.convert_bioconcept_in_depth()
     #pastry_dev_converter.convert_chemical_in_depth()
     #pastry_dev_converter.convert_reference_in_depth()
 

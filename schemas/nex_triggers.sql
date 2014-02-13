@@ -131,6 +131,19 @@ SELECT bioconcept_seq.nextval INTO :new.bioconcept_id FROM DUAL;
 END;
 /
 
+/* BIOENTITY */
+DROP TRIGGER BIOENTITY_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_TRIGGER
+BEFORE INSERT ON bioentity
+FOR EACH ROW
+BEGIN
+IF (:new.bioentity_id IS NULL) THEN
+SELECT bioentity_seq.nextval INTO :new.bioentity_id FROM DUAL;
+END IF;
+END;
+/
+
 
 /* Auxilliary */
 DROP TRIGGER AUX_BIOENT_REF_TRIGGER;

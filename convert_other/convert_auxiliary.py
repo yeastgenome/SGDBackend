@@ -247,7 +247,7 @@ def convert_biofact(new_session_maker, evidence_class, bioconcept_class, bioconc
         values_to_check = []     
         
         #Grab all current objects
-        current_objs = new_session.query(Biofact).filter(Biofact.bioconcept_class_type == bioconcept_class_type).all()
+        current_objs = new_session.query(Biofact).filter(Biofact.bioconcept_class_type == bioconcept_class_type).filter(Biofact.bioentity_class_type == 'LOCUS').all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         

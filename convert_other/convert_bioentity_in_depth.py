@@ -395,18 +395,20 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
 """   
 
 def convert(old_session_maker, new_session_maker):  
-    convert_alias(old_session_maker, new_session_maker)
+    #convert_alias(old_session_maker, new_session_maker)
     
-    convert_url(old_session_maker, new_session_maker, 1000)
+    #convert_url(old_session_maker, new_session_maker, 1000)
         
-    convert_bioentitytabs(new_session_maker)
+    #convert_bioentitytabs(new_session_maker)
     
     from model_new_schema.bioentity import Locus
-    convert_disambigs(new_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS', 'convert.bioentity_in_depth.locus_disambigs', 1000)
+    #convert_disambigs(new_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS', 'convert.bioentity_in_depth.locus_disambigs', 1000)
  
     from model_new_schema.bioentity import Protein
-    convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.bioentity_in_depth.protein_disambigs', 10000)
-    
+    #convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.bioentity_in_depth.protein_disambigs', 10000)
+
+    from model_new_schema.bioentity import Complex
+    convert_disambigs(new_session_maker, Complex, ['id', 'format_name'], 'BIOCONCEPT', 'COMPLEX', 'convert.complex.disambigs', 1000)
 
    
 

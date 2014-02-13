@@ -5,7 +5,6 @@ Created on Aug 9, 2013
 '''
 def locus_to_json(bioent):
     bioent_json = bioent_to_json(bioent)
-    bioent_json['description'] = bioent.description
     bioent_json['locus_type'] = bioent.locus_type
     bioent_json['aliases'] = [x.display_name for x in bioent.aliases]
     return bioent_json
@@ -18,6 +17,7 @@ def bioent_to_json(bioent):
             'link': bioent.link,
             'class_type': bioent.class_type,
             'sgdid': bioent.sgdid,
+            'description': bioent.description
             }
     
 def bioitem_to_json(bioitem):
@@ -64,11 +64,11 @@ def phenotype_to_json(biocon):
     biocon_json['ancestor_type'] = biocon.ancestor_type
     return biocon_json
 
-def complex_to_json(biocon, id_to_biocon):
-    biocon_json = biocon_to_json(biocon)
-    biocon_json['cellular_localization'] = biocon.cellular_localization
-    biocon_json['go'] = minimize_json(id_to_biocon[biocon.go_id])
-    return biocon_json
+def complex_to_json(bioent, id_to_biocon):
+    bioent_json = bioent_to_json(bioent)
+    bioent_json['cellular_localization'] = bioent.cellular_localization
+    bioent_json['go'] = minimize_json(id_to_biocon[bioent.go_id])
+    return bioent_json
     
 def biocon_to_json(biocon):
     return {
