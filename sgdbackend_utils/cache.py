@@ -7,7 +7,7 @@ from obj_to_json import bioent_to_json, experiment_to_json, strain_to_json, \
     biocon_to_json, reference_to_json, locus_to_json, complex_to_json
 from sgdbackend_query import get_all
 from sgdbackend_utils.obj_to_json import bioitem_to_json, source_to_json, \
-    chemical_to_json, go_to_json, phenotype_to_json
+    chemical_to_json, go_to_json, phenotype_to_json, protein_to_json
 
 
 id_to_bioent = {}
@@ -33,6 +33,11 @@ def cache_core():
     from model_new_schema.bioentity import Locus
     for bioent in get_all(Locus, join="aliases"):
         json_form = locus_to_json(bioent)
+        id_to_bioent[bioent.id] = json_form
+
+    from model_new_schema.bioentity import Protein
+    for bioent in get_all(Protein):
+        json_form = protein_to_json(bioent, id_to_bioent)
         id_to_bioent[bioent.id] = json_form
 
     create_word_to_bioent_id()

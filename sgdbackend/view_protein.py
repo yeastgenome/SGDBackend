@@ -16,8 +16,8 @@ def make_overview(protein_id):
 '''
 -------------------------------Details---------------------------------------
 ''' 
-def make_details(protein_id=None, reference_id=None):
-    domain_evidences = get_evidence(Domainevidence, bioent_id=protein_id, reference_id=reference_id)
+def make_details(protein_id=None, reference_id=None, domain_id=None):
+    domain_evidences = get_evidence(Domainevidence, bioent_id=protein_id, reference_id=reference_id, bioitem_id=domain_id)
     if domain_evidences is None:
         return {'Error': 'Too much data to display.'}
 
@@ -26,9 +26,8 @@ def make_details(protein_id=None, reference_id=None):
 
 def make_evidence_row(domain_evidence): 
     obj_json = evidence_to_json(domain_evidence).copy()
-    obj_json['protein'] = minimize_json(id_to_bioent[domain_evidence.bioentity_id])
-    obj_json['domain'] = minimize_json(id_to_bioitem[domain_evidence.bioitem_id])
-    obj_json['domain_description'] = id_to_bioitem[domain_evidence.bioitem_id]['description']
+    obj_json['protein'] = id_to_bioent[domain_evidence.bioentity_id]
+    obj_json['domain'] = id_to_bioitem[domain_evidence.bioitem_id]
     obj_json['start'] = domain_evidence.start
     obj_json['end'] = domain_evidence.end
     obj_json['evalue'] = domain_evidence.evalue

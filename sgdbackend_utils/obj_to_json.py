@@ -9,6 +9,11 @@ def locus_to_json(bioent):
     bioent_json['aliases'] = [x.display_name for x in bioent.aliases]
     return bioent_json
 
+def protein_to_json(bioent, id_to_bioent):
+    bioent_json = bioent_to_json(bioent)
+    bioent_json['locus'] = minimize_json(id_to_bioent[bioent.locus_id])
+    return bioent_json
+
 def bioent_to_json(bioent):
     return {
             'id': bioent.id,

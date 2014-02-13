@@ -5,7 +5,7 @@ Created on Dec 11, 2012
 '''
 import hashlib
 from model_new_schema import Base, EqualityByIDMixin
-from model_new_schema.bioconcept import Go, Phenotype
+from model_new_schema.bioconcept import Go, Phenotype, ECNumber
 from model_new_schema.bioentity import Bioentity, Protein
 from model_new_schema.evelements import Source, Strain, Experiment
 from model_new_schema.bioitem import Domain
@@ -323,3 +323,26 @@ class Complexevidence(Evidence):
         self.bioentity_id = bioentity.id
         self.complex_id = complex.id
         self.go_id = None if go is None else go.id
+
+class ECNumberevidence(Evidence):
+    __tablename__ = "ecnumberevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Protein.id))
+    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(ECNumber.id))
+
+    #Relationships
+    bioentity = relationship(Protein, uselist=False)
+    bioconcept = relationship(ECNumber, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "ECNUMBER",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, bioentity, bioconcept, date_created, created_by):
+        Evidence.__init__(self,
+                          bioentity.display_name + ' is a ' + bioconcept.display_name,
+                          bioentity.format_name + '_' + bioconcept.id,
+                          'ECNUMBER', source, None, None, None, None,
+                          date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.bioconcept = bioconcept.id

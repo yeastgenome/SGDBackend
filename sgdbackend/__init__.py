@@ -98,6 +98,43 @@ class SGDBackend(BackendInterface):
     def all_chemicals(self, min_id, max_id):
         from sgdbackend_utils.cache import id_to_chem
         return json.dumps([value for key, value in id_to_chem.iteritems() if (min_id is None or key >= min_id) and (max_id is None or key < max_id)])
+
+    #Domain
+    def domain(self, identifier, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_bioitem
+        if are_ids:
+            domain_id = identifier
+        else:
+            domain_id = get_obj_id(identifier, class_type='BIOITEM', subclass_type='DOMAIN')
+        return None if domain_id is None else json.dumps(id_to_bioitem[domain_id])
+
+    #ECNumber
+    def ec_number(self, identifier, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_utils.cache import id_to_biocon
+        if are_ids:
+            ec_number_id = identifier
+        else:
+            ec_number_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='EC_NUMBER')
+        return None if ec_number_id is None else json.dumps(id_to_biocon[ec_number_id])
+
+    def ec_number_details(self, locus_identifier=None, ec_number_identifier=None, with_children=False, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_ec_number
+        from sgdbackend_utils.cache import id_to_biocon
+        if are_ids:
+            locus_id = locus_identifier
+            ec_number_id = ec_number_identifier
+
+            if ec_number_id is not None and (ec_number_id not in id_to_biocon or id_to_biocon[ec_number_id]['class_type'] != 'EC_NUMBER'):
+                return None
+        else:
+            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+            phenotype_id = None if ec_number_identifier is None else get_obj_id(ec_number_identifier, class_type='BIOCONCEPT', subclass_type='EC_NUMBER')
+
+        return json.dumps(view_ec_number.make_details(locus_id=locus_id, ec_number_id=ec_number_id, with_children=with_children))
+
     
     #Reference
     def reference(self, identifier, are_ids=False):
@@ -388,21 +425,23 @@ class SGDBackend(BackendInterface):
                 protein_id = locus_id + 200000
         return None if locus_id is None else json.dumps(view_protein.make_overview(protein_id))
 
-    def protein_domain_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
+    def protein_domain_details(self, locus_identifier=None, reference_identifier=None, domain_identifier=None, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend_utils.cache import id_to_bioent
         from sgdbackend import view_protein
         if are_ids:
             locus_id = locus_identifier
             reference_id = reference_identifier
+            domain_id = domain_identifier
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
+            domain_id = None if domain_identifier is None else get_obj_id(domain_identifier, class_type='BIOITEM', subclass_type='DOMAIN')
         protein_id = None
         if locus_id is not None:
             if locus_id + 200000 in id_to_bioent:
                 protein_id = locus_id + 200000
-        return json.dumps(view_protein.make_details(protein_id=protein_id, reference_id=reference_id))
+        return json.dumps(view_protein.make_details(protein_id=protein_id, reference_id=reference_id, domain_id=domain_id))
 
     def protein_graph(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
