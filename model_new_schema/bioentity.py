@@ -136,60 +136,6 @@ class Protein(Bioentity):
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
 
-    molecular_weight = Column('molecular_weight', Integer)
-    pi = Column('pi', Numeric)
-
-    #amino acid composition
-    ala = Column('ala', Integer)
-    arg = Column('arg', Integer)
-    asn = Column('asn', Integer)
-    asp = Column('asp', Integer)
-    cys = Column('cys', Integer)
-    gln = Column('gln', Integer)
-    glu = Column('glu', Integer)
-    gly = Column('gly', Integer)
-    his = Column('his', Integer)
-    ile = Column('ile', Integer)
-    leu = Column('leu', Integer)
-    lys = Column('lys', Integer)
-    met = Column('met', Integer)
-    phe = Column('phe', Integer)
-    pro = Column('pro', Integer)
-    ser = Column('ser', Integer)
-    thr = Column('thr', Integer)
-    trp = Column('trp', Integer)
-    tyr = Column('tyr', Integer)
-    val = Column('val', Integer)
-
-    #atomic composition
-    carbon = Column('carbon', Integer)
-    hydrogen = Column('hydrogen', Integer)
-    nitrogen = Column('nitrogen', Integer)
-    oxygen = Column('oxygen', Integer)
-    sulfur = Column('sulfur', Integer)
-
-    #estimated half-life
-    ecoli_vivo = Column('ecoli_vivo', String)
-    mammal_vitro = Column('mammal_vitro', String)
-    yeast_vivo = Column('yeast_vivo', String)
-
-    #extinction coefficients at 280nm
-    all_cys_half = Column('all_cys_half', String)
-    no_cys_half = Column('no_cys_half', String)
-    all_cys_reduced = Column('all_cys_reduced', String)
-    all_cys = Column('all_cys', String)
-
-    aliphatic_index = Column('aliphatic_index', Numeric)
-    instability_index = Column('instability_index', Numeric)
-
-    codon_bias = Column('codon_bias', Numeric)
-    codon_adaptation_index = Column('cai', Numeric)
-    frequency_of_optimal_codons = Column('fop', Numeric)
-    hydropathicity = Column('hydropathicity', Numeric)
-    aromaticity_score = Column('aromaticity_score', Numeric)
-
-
-
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Bioentity.id}
     

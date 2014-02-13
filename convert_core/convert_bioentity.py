@@ -139,8 +139,7 @@ def create_protein(old_protein, id_to_bioentity, key_to_source):
         print 'Bioentity does not exist. ' + str(locus_id)
     locus = None if locus_id not in id_to_bioentity else id_to_bioentity[locus_id]
     source = key_to_source['SGD']
-    protein = Protein(create_protein_id(locus_id), source, locus, old_protein.length, 
-                      old_protein.n_term_seq, old_protein.c_term_seq, old_protein.date_created, old_protein.created_by)
+    protein = Protein(create_protein_id(locus_id), source, locus, old_protein.date_created, old_protein.created_by)
     return [protein]
 
 def convert_protein(old_session_maker, new_session_maker):
