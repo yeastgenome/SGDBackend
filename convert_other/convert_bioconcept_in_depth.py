@@ -332,7 +332,7 @@ def create_chemical_phenotype_relation(old_phenotype, key_to_phenotype, key_to_s
 
         grandparent_key = (create_format_name(old_observable.lower()), 'PHENOTYPE')
         parent_key = (create_format_name(new_observable.lower()), 'PHENOTYPE')
-        child_key = (create_phenotype_format_name(new_observable.lower(), qualifier.lower()), 'PHENOTYPE')
+        child_key = (create_phenotype_format_name(new_observable.lower(), qualifier), 'PHENOTYPE')
 
         grandparent = None if grandparent_key not in key_to_phenotype else key_to_phenotype[grandparent_key]
         parent = None if parent_key not in key_to_phenotype else key_to_phenotype[parent_key]
