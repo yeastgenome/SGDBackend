@@ -142,7 +142,7 @@ class Protein(Bioentity):
     def __init__(self, bioentity_id, source,
                  locus, date_created, created_by):
         Bioentity.__init__(self, bioentity_id, locus.display_name + 'p', locus.format_name + 'P', 
-                           'PROTEIN', locus.link.replace('/locus.f', '/protein/proteinPage.'), source, None, None, locus.bioent_status, locus.description, date_created, created_by)
+                           'PROTEIN', '/locus/' + locus.format_name + '/protein', source, None, None, locus.bioent_status, locus.description, date_created, created_by)
         self.locus_id = locus.id
 
 class Complex(Bioentity):

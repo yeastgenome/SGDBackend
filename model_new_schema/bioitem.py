@@ -50,9 +50,10 @@ class Domain(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'DOMAIN',
                        'inherit_condition': id == Bioitem.id}
     
-    def __init__(self, display_name, link, source, description, 
+    def __init__(self, display_name, source, description,
                  interpro_id, interpro_description):
-        Bioitem.__init__(self, display_name, create_format_name(display_name), 'DOMAIN', link, source, description)
+        format_name = create_format_name(display_name)
+        Bioitem.__init__(self, display_name, format_name, 'DOMAIN', '/domain/' + format_name + '/overview', source, description)
         self.interpro_id = interpro_id
         self.interpro_description = interpro_description
     
