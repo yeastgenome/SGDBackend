@@ -52,9 +52,9 @@ def make_details(locus_id=None, reference_id=None):
         if evidences is None:
             return {'Error': 'Too much data to display.'}
         tables = {}
-        tables['primary'] = create_simple_table([x for x in evidences if x.topic == 'Primary Literature'], make_evidence_row)
-        tables['additional'] = create_simple_table([x for x in evidences if x.topic == 'Additional Literature'], make_evidence_row)
-        tables['reviews'] = create_simple_table([x for x in evidences if x.topic == 'Reviews'], make_evidence_row)
+        tables['primary'] = sorted(create_simple_table([x for x in evidences if x.topic == 'Primary Literature'], make_evidence_row), key=lambda x: x['bioentity']['display_name'])
+        tables['additional'] = sorted(create_simple_table([x for x in evidences if x.topic == 'Additional Literature'], make_evidence_row), key=lambda x: x['bioentity']['display_name'])
+        tables['reviews'] = sorted(create_simple_table([x for x in evidences if x.topic == 'Reviews'], make_evidence_row), key=lambda x: x['bioentity']['display_name'])
         return tables
 
 def make_references(bioent_ref_types, bioent_id, only_primary=False):
