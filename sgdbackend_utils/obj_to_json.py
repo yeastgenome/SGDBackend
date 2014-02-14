@@ -25,12 +25,13 @@ def bioent_to_json(bioent):
             'description': bioent.description
             }
     
-def bioitem_to_json(bioitem):
+def bioitem_to_json(bioitem, id_to_source):
     return {
             'display_name': bioitem.display_name, 
             'link': bioitem.link,
             'id': bioitem.id,
             'description': bioitem.description,
+            'source': None if bioitem.source_id is None else id_to_source[bioitem.source_id]
             }
     
 def chemical_to_json(chem):

@@ -63,12 +63,19 @@ def cache_core():
     for bioent in get_all(Complex):
         json_form = complex_to_json(bioent, id_to_biocon)
         id_to_bioent[bioent.id] = json_form
+
+    print 'Cache sources'
+    #Cache sources
+    from model_new_schema.evelements import Source
+    for source in get_all(Source):
+        json_form = source_to_json(source)
+        id_to_source[source.id] = json_form
         
     print 'Cache bioitems' 
     #Cache bioitems
     from model_new_schema.bioitem import Bioitem
     for bioitem in get_all(Bioitem):
-        json_form = bioitem_to_json(bioitem)
+        json_form = bioitem_to_json(bioitem, id_to_source)
         id_to_bioitem[bioitem.id] = json_form
         
     print 'Cache experiments'
@@ -91,13 +98,6 @@ def cache_core():
     for reference in get_all(Reference, "journal"):
         json_form = reference_to_json(reference)
         id_to_reference[reference.id] = json_form
-        
-    print 'Cache sources'
-    #Cache sources
-    from model_new_schema.evelements import Source
-    for source in get_all(Source):
-        json_form = source_to_json(source)
-        id_to_source[source.id] = json_form
 
     print 'Cache chemicals'
     #Cache sources

@@ -234,7 +234,9 @@ def convert_go_slim_relation(old_session_maker, new_session_maker):
         for old_goset in old_gosets:
             go_key = (get_go_format_name(old_goset.go.go_go_id), 'GO')
             if go_key in key_to_go:
-                slim_ids.add(key_to_go[go_key].id)
+                go = key_to_go[go_key]
+                if go.go_id != 'GO:0008150' and go.go_id != 'GO:0003674' and go.go_id != 'GO:0005575':
+                    slim_ids.add(go.id)
             else:
                 print 'GO term not found: ' + str(go_key)
 
@@ -643,7 +645,7 @@ def convert(old_session_maker, new_session_maker):
 
     from model_new_schema.bioconcept import ECNumber
     #convert_ecnumber_relation(new_session_maker)
-    convert_disambigs(new_session_maker, ECNumber, ['id', 'format_name'], 'BIOCONCEPT', 'ECNUMBER', 'convert.ecnumber.disambigs', 2000)
+    #convert_disambigs(new_session_maker, ECNumber, ['id', 'format_name'], 'BIOCONCEPT', 'ECNUMBER', 'convert.ecnumber.disambigs', 2000)
     
     from model_new_schema.bioconcept import Phenotype
     #convert_phenotype_relation(old_session_maker, new_session_maker)
@@ -654,6 +656,6 @@ def convert(old_session_maker, new_session_maker):
     from model_new_schema.bioconcept import Go
     #convert_go_alias(old_session_maker, new_session_maker)
     #convert_go_relation(old_session_maker, new_session_maker)
-    #convert_go_slim_relation(old_session_maker, new_session_maker)
+    convert_go_slim_relation(old_session_maker, new_session_maker)
     #convert_biocon_count(new_session_maker, 'GO', 'convert.go.biocon_count')
     #convert_disambigs(new_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO', 'convert.go.disambigs', 2000)
