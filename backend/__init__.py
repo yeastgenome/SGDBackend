@@ -405,6 +405,14 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'ec_number_details')(
                                         ec_number_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('ec_number_details'))
+
+    #Sequence views
+    config.add_route('sequence_details',
+                     '/locus/{identifier}/sequence_details',
+                     view=lambda request: chosen_backend.response_wrapper('sequence_details', request)(
+                                getattr(chosen_backend, 'sequence_details')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('sequence_details'))
     
 def prepare_backend(backend_type):
     configurator = Configurator()

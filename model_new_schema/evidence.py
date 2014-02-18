@@ -13,6 +13,8 @@ from model_new_schema.reference import Reference
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
+from model_new_schema.sequence import Sequence, Contig
+
 
 class Evidence(Base, EqualityByIDMixin):
     __tablename__ = "evidence"
@@ -346,3 +348,70 @@ class ECNumberevidence(Evidence):
                           date_created, created_by)
         self.bioentity_id = bioentity.id
         self.bioconcept = bioconcept.id
+
+class Sequenceevidence(Evidence):
+    __tablename__ = "sequenceevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    sequence_id = Column('biosequence_id', Integer, ForeignKey(Sequence.id))
+    contig_id = Column('contig_id', Integer)
+    start = Column('start_index', Integer)
+    end = Column('end_index', Integer)
+    strand = Column('strand', String)
+
+    #Relationships
+    bioentity = relationship(Bioentity, uselist=False)
+    sequence = relationship(Sequence, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "SEQUENCE",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, strain, bioentity, sequence, contig, start, end, strand, date_created, created_by):
+        Evidence.__init__(self,
+                          bioentity.display_name + ' has ' + sequence.display_name + ' in strain ' + strain.display_name,
+                          bioentity.format_name + '_' + str(sequence.id) + '_' + str(strain.id),
+                          'SEQUENCE', source, None, strain, None, None,
+                          date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.sequence_id = sequence.id
+        self.contig_id = contig.id
+        self.start = start
+        self.end = end
+        self.strand = strand
+
+class SequenceLabel(Base, EqualityByIDMixin):
+    __tablename__ = 'sequencelabel'
+
+    id = Column('sequencelabel_id', Integer, primary_key=True)
+    evidence_id = Column('evidence_id', Integer, ForeignKey(Sequenceevidence.id))
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
+    class_type = Column('subclass', String)
+    relative_start = Column('relative_start_index', Integer)
+    relative_end = Column('relative_end_index', Integer)
+    chromosomal_start = Column('chromosomal_start_index', Integer)
+    chromosomal_end = Column('chromosomal_end_index', Integer)
+    phase = Column('phase', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    evidence = relationship(Sequenceevidence, uselist=False)
+
+    def __init__(self, evidence, class_type, relative_start, relative_end, chromosomal_start, chromosomal_end, phase,
+                 date_created, created_by):
+        self.evidence_id = evidence.id
+        self.display_name = class_type
+        self.format_name = class_type
+        self.class_type = class_type.upper()
+        self.relative_start = relative_start
+        self.relative_end = relative_end
+        self.chromosomal_start = chromosomal_start
+        self.chromosomal_end = chromosomal_end
+        self.phase = phase
+        self.date_created = date_created
+        self.created_by = created_by
+
+    def unique_key(self):
+        return (self.evidence_id, self.class_type, self.chromosomal_start, self.chromosomal_end)

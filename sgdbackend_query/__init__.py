@@ -6,8 +6,9 @@ from model_new_schema.condition import Condition, Temperaturecondition, \
     Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition, \
     Chemicalcondition
 from model_new_schema.evidence import Geninteractionevidence, \
-    Physinteractionevidence, Regulationevidence, Evidence
+    Physinteractionevidence, Regulationevidence, Evidence, SequenceLabel, Sequenceevidence
 from mpmath import ceil
+from model_new_schema.sequence import Contig
 from sgdbackend import DBSession
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
 from sqlalchemy.orm.util import with_polymorphic
@@ -74,6 +75,10 @@ def get_all(cls, print_query=False, join=None):
     if print_query:
         print query
     return objs
+
+def get_sequence_evidence(bioent_id):
+    query = session.query(Sequenceevidence).options(joinedload('sequence')).filter(Sequenceevidence.bioentity_id == bioent_id)
+    return query.all()
 
 two_bioent_evidence_cls = set([Geninteractionevidence, Physinteractionevidence, Regulationevidence])
 def get_evidence(evidence_cls, bioent_id=None, biocon_id=None, chemical_id=None, reference_id=None, bioitem_id=None, complex_id=None, with_children=False, print_query=False):
@@ -182,6 +187,27 @@ def get_conditions(evidence_ids, print_query=False):
         conditions.extend(session.query(Bioitemcondition).filter(Bioitemcondition.evidence_id.in_(this_chunk)).all())
         conditions.extend(session.query(Generalcondition).filter(Generalcondition.evidence_id.in_(this_chunk)).all())
     return conditions
+
+def get_sequence_labels(evidence_ids):
+    sequence_labels = []
+    num_chunks = ceil(1.0*len(evidence_ids)/500)
+    for i in range(num_chunks):
+        this_chunk = evidence_ids[i*500:(i+1)*500]
+        sequence_labels.extend(session.query(SequenceLabel).filter(SequenceLabel.evidence_id.in_(this_chunk)).all())
+    return sequence_labels
+
+def get_sequence_neighbors(evidence):
+    if evidence.contig_id is None:
+        return []
+    else:
+        return session.query(Sequenceevidence).filter(
+                                                    Sequenceevidence.contig_id == evidence.contig_id).filter(
+                                                    Sequenceevidence.start >= evidence.start - 5000).filter(
+                                                    Sequenceevidence.start <= evidence.end + 5000).filter(
+                                                    Sequenceevidence.id != evidence.id).all()
+
+def get_contigs(evidences):
+    return session.query(Contig).filter(Contig.id.in_([x.contig_id for x in evidences])).all()
 
 def get_evidence_snapshot(evidence_cls, attr_name):
     field = getattr(evidence_cls, attr_name)

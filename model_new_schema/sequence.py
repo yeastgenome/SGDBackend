@@ -8,9 +8,9 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date, Numeric, CLOB
 
 class Sequence(Base, EqualityByIDMixin):
-    __tablename__ = 'sequence'
+    __tablename__ = 'biosequence'
 
-    id = Column('sequence_id', Integer, primary_key=True)
+    id = Column('biosequence_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     class_type = Column('subclass', String)
@@ -27,6 +27,7 @@ class Sequence(Base, EqualityByIDMixin):
         self.format_name = format_name
         self.class_type = class_type
         self.residues = residues
+        self.length = len(residues)
         self.date_created = date_created
         self.created_by = created_by
 
@@ -38,7 +39,7 @@ class Dnasequence(Sequence):
                        'inherit_condition': id==Sequence.id}
 
     def __init__(self, residues):
-        hash = hashlib.md5(residues).hexdigest()[:10]
+        hash = hashlib.md5(residues).hexdigest()
         Sequence.__init__(self, 'Sequence: ' + hash, hash, 'DNA', residues, None, None)
 
 class Rnasequence(Sequence):
@@ -46,70 +47,67 @@ class Rnasequence(Sequence):
                        'inherit_condition': id==Sequence.id}
 
     def __init__(self, residues):
-        hash = hashlib.md5(residues).hexdigest()[:10]
+        hash = hashlib.md5(residues).hexdigest()
         Sequence.__init__(self, 'Sequence: ' + hash, hash, 'RNA', residues, None, None)
 
 class Proteinsequence(Sequence):
-    __tablename__ = "proteinsequence"
+    #__tablename__ = "proteinsequence"
 
-    id = Column('sequence_id', Integer, ForeignKey(Sequence.id), primary_key=True)
+    #id = Column('sequence_id', Integer, ForeignKey(Sequence.id), primary_key=True)
 
-    molecular_weight = Column('molecular_weight', Integer)
-    pi = Column('pi', Numeric)
+    #molecular_weight = Column('molecular_weight', Integer)
+    #pi = Column('pi', Numeric)
 
     #amino acid composition
-    ala = Column('ala', Integer)
-    arg = Column('arg', Integer)
-    asn = Column('asn', Integer)
-    asp = Column('asp', Integer)
-    cys = Column('cys', Integer)
-    gln = Column('gln', Integer)
-    glu = Column('glu', Integer)
-    gly = Column('gly', Integer)
-    his = Column('his', Integer)
-    ile = Column('ile', Integer)
-    leu = Column('leu', Integer)
-    lys = Column('lys', Integer)
-    met = Column('met', Integer)
-    phe = Column('phe', Integer)
-    pro = Column('pro', Integer)
-    ser = Column('ser', Integer)
-    thr = Column('thr', Integer)
-    trp = Column('trp', Integer)
-    tyr = Column('tyr', Integer)
-    val = Column('val', Integer)
+    #ala = Column('ala', Integer)
+    #arg = Column('arg', Integer)
+    #asn = Column('asn', Integer)
+    #asp = Column('asp', Integer)
+    #cys = Column('cys', Integer)
+    #gln = Column('gln', Integer)
+    #glu = Column('glu', Integer)
+    #gly = Column('gly', Integer)
+    #his = Column('his', Integer)
+    #ile = Column('ile', Integer)
+    #leu = Column('leu', Integer)
+    #lys = Column('lys', Integer)
+    #met = Column('met', Integer)
+    #phe = Column('phe', Integer)
+    #pro = Column('pro', Integer)
+    #ser = Column('ser', Integer)
+    #thr = Column('thr', Integer)
+    #trp = Column('trp', Integer)
+    #tyr = Column('tyr', Integer)
+    #val = Column('val', Integer)
 
     #atomic composition
-    carbon = Column('carbon', Integer)
-    hydrogen = Column('hydrogen', Integer)
-    nitrogen = Column('nitrogen', Integer)
-    oxygen = Column('oxygen', Integer)
-    sulfur = Column('sulfur', Integer)
+    #carbon = Column('carbon', Integer)
+    #hydrogen = Column('hydrogen', Integer)
+    #nitrogen = Column('nitrogen', Integer)
+    #oxygen = Column('oxygen', Integer)
+    #sulfur = Column('sulfur', Integer)
 
-    #estimated half-life
-    ecoli_vivo = Column('ecoli_vivo', String)
-    mammal_vitro = Column('mammal_vitro', String)
-    yeast_vivo = Column('yeast_vivo', String)
+    #aliphatic_index = Column('aliphatic_index', Numeric)
+    #instability_index = Column('instability_index', Numeric)
 
-    #extinction coefficients at 280nm
-    all_cys_half = Column('all_cys_half', String)
-    no_cys_half = Column('no_cys_half', String)
-    all_cys_reduced = Column('all_cys_reduced', String)
-    all_cys = Column('all_cys', String)
-
-    aliphatic_index = Column('aliphatic_index', Numeric)
-    instability_index = Column('instability_index', Numeric)
-
-    codon_bias = Column('codon_bias', Numeric)
-    codon_adaptation_index = Column('cai', Numeric)
-    frequency_of_optimal_codons = Column('fop', Numeric)
-    hydropathicity = Column('hydropathicity', Numeric)
-    aromaticity_score = Column('aromaticity_score', Numeric)
+    #codon_bias = Column('codon_bias', Numeric)
+    #codon_adaptation_index = Column('cai', Numeric)
+    #frequency_of_optimal_codons = Column('fop', Numeric)
+    #hydropathicity = Column('hydropathicity', Numeric)
+    #aromaticity_score = Column('aromaticity_score', Numeric)
 
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Sequence.id}
 
     def __init__(self, residues, date_created=None, created_by=None):
-        hash = hashlib.md5(residues).hexdigest()[:10]
+        hash = hashlib.md5(residues).hexdigest()
         Sequence.__init__(self, 'Sequence: ' + hash, hash,
                            'PROTEIN', residues, date_created, created_by)
+
+class Contig(Sequence):
+    __mapper_args__ = {'polymorphic_identity': "CONTIG",
+                       'inherit_condition': id==Sequence.id}
+
+    def __init__(self, display_name, residues, strain):
+        format_name = strain.format_name + '_' + display_name
+        Sequence.__init__(self, display_name, format_name, 'CONTIG', residues, None, None)

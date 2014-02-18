@@ -207,16 +207,16 @@ def convert_protein(old_session_maker, new_session_maker):
 --------------------- Convert Complex ---------------------
 """
 
-def create_complex(row, key_to_source, key_to_go, go_id_to_cellular_localization):
+def create_complex(row, key_to_source, key_to_go):
     from model_new_schema.bioentity import Complex
 
-    go_key = (row[2][:-1], 'GO')
+    go_key = (row[2], 'GO')
     go = None if go_key not in key_to_go else key_to_go[go_key]
     if go is None:
         print 'Go not found: ' + str(go_key)
         return []
 
-    cellular_localization = None if go.id not in go_id_to_cellular_localization else go_id_to_cellular_localization[go.id]
+    cellular_localization = row[3]
 
     source = key_to_source['SGD']
 
@@ -250,15 +250,12 @@ def convert_complex(new_session_maker):
         key_to_go = dict([(x.unique_key(), x) for x in gos])
         id_to_go = dict([(x.id, x) for x in gos])
 
-        #Get ancestory_types
-        go_id_to_cellular_localization = dict([(x.child_id, id_to_go[x.parent_id].display_name) for x in new_session.query(Bioconceptrelation).filter(Bioconceptrelation.bioconrel_class_type == 'GO_SLIM')])
-
         #Grab old objects
         old_objs = break_up_file('data/go_complexes.txt')[2:]
 
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_complex(old_obj, key_to_source, key_to_go, go_id_to_cellular_localization)
+            newly_created_objs = create_complex(old_obj, key_to_source, key_to_go)
 
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:
@@ -286,7 +283,7 @@ def convert_complex(new_session_maker):
         new_session.close()
 
     log.info('complete')
-    
+
 
 """
 ---------------------Convert------------------------------

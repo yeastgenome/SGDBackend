@@ -563,6 +563,16 @@ class SGDBackend(BackendInterface):
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
         return json.dumps(view_binding.make_details(locus_id=locus_id, reference_id=reference_id))
+
+    #Sequence
+    def sequence_details(self, identifier, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_sequence
+        if are_ids:
+            locus_id = identifier
+        else:
+            locus_id = None if identifier is None else get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return json.dumps(view_sequence.make_details(locus_id))
     
     #Misc
     def all_disambigs(self, min_id, max_id):

@@ -362,6 +362,38 @@ def create_strain(old_cv_term, key_to_source):
                                old_cv_term.date_created, old_cv_term.created_by)
     return [new_strain]
 
+def create_extra_strains(key_to_source):
+    from model_new_schema.evelements import Strain as NewStrain
+
+    source = key_to_source['SGD']
+    return [NewStrain('AWRI1631', source, 'Haploid derivative of South African commercial wine strain N96.', None, None),
+                   NewStrain('AWRI796', source, 'South African red wine strain.', None, None),
+                   NewStrain('BY4741', source, 'S288C-derivative laboratory strain.', None, None),
+                   NewStrain('BY4742', source, 'S288C-derivative laboratory strain.', None, None),
+                   NewStrain('CBS7960', source, 'Brazilian bioethanol factory isolate.', None, None),
+                   NewStrain('CLIB215', source, 'New Zealand bakery isolate.', None, None),
+                   NewStrain('CLIB324', source, 'Vietnamese bakery isolate.', None, None),
+                   NewStrain('CLIB382', source, 'Irish beer isolate.', None, None),
+                   NewStrain('EC1118', source, 'Commercial wine strain.', None, None),
+                   NewStrain('EC9-8', source, 'Haploid derivative of Israeli canyon isolate.', None, None),
+                   NewStrain('FostersB', source, 'Commercial ale strain.', None, None),
+                   NewStrain('FostersO', source, 'Commercial ale strain.', None, None),
+                   NewStrain('JAY291', source, 'Haploid derivative of Brazilian industrial bioethanol strain PE-2.', None, None),
+                   NewStrain('Kyokai7', source, 'Japanese sake yeast.', None, None),
+                   NewStrain('LalvinQA23', source, 'Portuguese Vinho Verde white wine strain.', None, None),
+                   NewStrain('M22', source, 'Italian vineyard isolate.', None, None),
+                   NewStrain('PW5', source, 'Nigerian Raphia palm wine isolate.', None, None),
+                   NewStrain('T7', source, 'Missouri oak tree exudate isolate.', None, None),
+                   NewStrain('T73', source, 'Spanish red wine strain.', None, None),
+                   NewStrain('UC5', source, 'Japanese sake yeast.', None, None),
+                   NewStrain('VIN13', source, 'South African white wine strain.', None, None),
+                   NewStrain('VL3', source, 'French white wine strain.', None, None),
+                   NewStrain('Y10', source, 'Philippine coconut isolate.', None, None),
+                   NewStrain('YJM269', source, 'Austrian Blauer Portugieser wine grape isolate.', None, None),
+                   NewStrain('YJM789', source, 'Haploid derivative of opportunistic human pathogen.', None, None),
+                   NewStrain('YPS163', source, 'Pennsylvania woodland isolate.', None, None),
+                   NewStrain('ZTW1', source, 'Chinese corn mash bioethanol isolate.', None, None)]
+
 def convert_strain(old_session_maker, new_session_maker):
     from model_new_schema.evelements import Strain as NewStrain, Source as NewSource
     from model_old_schema.cv import CVTerm as OldCVTerm
@@ -403,6 +435,18 @@ def convert_strain(old_session_maker, new_session_maker):
                     untouched_obj_ids.remove(current_obj_by_id.id)
                 if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                     untouched_obj_ids.remove(current_obj_by_key.id)
+
+        #Edit or add new objects
+        newly_created_objs = create_extra_strains(key_to_source)
+        for newly_created_obj in newly_created_objs:
+            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+            current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                  untouched_obj_ids.remove(current_obj_by_id.id)
+            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                untouched_obj_ids.remove(current_obj_by_key.id)
                                                 
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -529,13 +573,13 @@ def convert_source(old_session_maker, new_session_maker):
 """  
 
 def convert(old_session_maker, new_session_maker):
-    convert_source(old_session_maker, new_session_maker)
+    #convert_source(old_session_maker, new_session_maker)
     
-    convert_experiment(old_session_maker, new_session_maker)
+    #convert_experiment(old_session_maker, new_session_maker)
     
-    convert_experiment_alias(old_session_maker, new_session_maker)
+    #convert_experiment_alias(old_session_maker, new_session_maker)
     
-    convert_experiment_relation(old_session_maker, new_session_maker)
+    #convert_experiment_relation(old_session_maker, new_session_maker)
     
     convert_strain(old_session_maker, new_session_maker)
 

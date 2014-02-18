@@ -222,3 +222,7 @@ class BackendInterface:
     def binding_site_details(self, locus_identifier=None, reference_identifier=None):
         return None
 
+    @abstractmethod
+    def sequence_details(self, identifier):
+        return None
+

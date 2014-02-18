@@ -195,6 +195,6 @@ def convert_biofact(new_session_maker):
 """  
 
 def convert(new_session_maker):
-    #convert_evidence(new_session_maker)
+    convert_evidence(new_session_maker)
 
     convert_biofact(new_session_maker)

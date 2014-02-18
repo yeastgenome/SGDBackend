@@ -176,6 +176,7 @@ class Locustabs(Base, EqualityByIDMixin):
     
     id = Column('bioentity_id', Integer, primary_key=True)
     summary = Column('summary', Integer)
+    sequence = Column('seq', Integer)
     history = Column('history', Integer)
     literature = Column('literature', Integer)
     go = Column('go', Integer)
@@ -186,7 +187,7 @@ class Locustabs(Base, EqualityByIDMixin):
     protein = Column('protein', Integer)
     wiki = Column('wiki', Integer)
             
-    def __init__(self, bioentity_id, show_summary, show_history, show_literature, show_go, show_phenotype, 
+    def __init__(self, bioentity_id, show_summary, show_sequence, show_history, show_literature, show_go, show_phenotype,
                  show_interactions, show_expression, show_regulation, show_protein, show_wiki):
         self.id = bioentity_id
         self.summary = show_summary
@@ -198,6 +199,7 @@ class Locustabs(Base, EqualityByIDMixin):
         self.expression = show_expression
         self.regulation = show_regulation
         self.protein = show_protein
+        self.sequence = show_sequence
         self.wiki = show_wiki
             
     def unique_key(self):

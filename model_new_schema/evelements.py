@@ -85,6 +85,7 @@ class Strain(Base, EqualityByIDMixin):
         self.format_name = create_format_name(display_name)
         self.link = None
         self.source_id = source.id
+        self.description = description
         self.date_created = date_created
         self.created_by = created_by
         

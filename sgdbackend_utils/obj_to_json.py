@@ -99,7 +99,8 @@ def experiment_to_json(experiment):
 def strain_to_json(strain):
     return {
             'format_name': strain.format_name,
-            'display_name': strain.display_name, 
+            'display_name': strain.display_name,
+            'description': strain.description,
             'link': strain.link,
             'id': strain.id
             }
@@ -136,6 +137,19 @@ def condition_to_json(condition):
                 'note': condition.note
                 }
     return None
+
+def sequence_to_json(sequence):
+    return {
+        'residues': sequence.residues,
+        'length': sequence.length
+    }
+
+def sequence_label_to_json(sequence_label):
+    return {
+        'display_name': sequence_label.display_name,
+        'relative_start': sequence_label.relative_start,
+        'relative_end': sequence_label.relative_end
+    }
     
 def reference_to_json(reference):
     urls = []
@@ -179,6 +193,7 @@ def locustab_to_json(bioentitytab):
             'expression_tab': bioentitytab.expression == 1,
             'regulation_tab': bioentitytab.regulation == 1,
             'protein_tab': bioentitytab.protein == 1,
+            'sequence_tab': bioentitytab.sequence == 1,
             'wiki_tab': bioentitytab.wiki == 1
            }
     
