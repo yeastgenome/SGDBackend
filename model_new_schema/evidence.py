@@ -397,7 +397,7 @@ class SequenceLabel(Base, EqualityByIDMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    evidence = relationship(Sequenceevidence, uselist=False)
+    evidence = relationship(Sequenceevidence, uselist=False, backref='labels')
 
     def __init__(self, evidence, class_type, relative_start, relative_end, chromosomal_start, chromosomal_end, phase,
                  date_created, created_by):
@@ -415,3 +415,28 @@ class SequenceLabel(Base, EqualityByIDMixin):
 
     def unique_key(self):
         return (self.evidence_id, self.class_type, self.chromosomal_start, self.chromosomal_end)
+
+class Proteinsequenceevidence(Evidence):
+    __tablename__ = "proteinsequenceevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    sequence_id = Column('biosequence_id', Integer, ForeignKey(Sequence.id))
+    dnasequence_id = Column('dnasequence_id', Integer)
+
+    #Relationships
+    bioentity = relationship(Bioentity, uselist=False)
+    sequence = relationship(Sequence, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "PROTEINSEQUENCE",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, strain, bioentity, sequence, dnasequence, date_created, created_by):
+        Evidence.__init__(self,
+                          bioentity.display_name + ' has ' + sequence.display_name + ' in strain ' + strain.display_name,
+                          bioentity.format_name + '_' + str(sequence.id) + '_' + str(strain.id),
+                          'PROTEINSEQUENCE', source, None, strain, None, None,
+                          date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.sequence_id = sequence.id
+        self.dnasequence_id = dnasequence.id

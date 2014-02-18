@@ -3,6 +3,7 @@ Created on Sep 23, 2013
 
 @author: kpaskov
 '''
+from convert_core.convert_bioentity import create_protein_id
 from convert_utils import create_or_update
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
@@ -420,26 +421,43 @@ codons = [a+b+c for a in bases for b in bases for c in bases]
 amino_acids = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'
 codon_table = dict(zip(codons, amino_acids))
 
-def translate(seq):
+def translate(seq, labels):
     seq = seq.lower().replace('\n', '').replace(' ', '')
     peptide = ''
 
-    for i in xrange(0, len(seq), 3):
-        codon = seq[i: i+3]
-        amino_acid = codon_table.get(codon, '*')
-        if amino_acid != '*':
+    labels = [label for label in sorted(labels, key=lambda x: x.relative_start) if label.display_name == 'CDS']
+
+    if len(labels) > 0:
+        for label in labels:
+            for i in xrange(label.relative_start-1, label.relative_end, 3):
+                codon = seq[i: i+3]
+                amino_acid = codon_table.get(codon, '*')
+                #if amino_acid != '*':
+                #    peptide += amino_acid
+                #else:
+                #    break
+                peptide += amino_acid
+    else:
+        for i in xrange(0, len(seq), 3):
+            codon = seq[i: i+3]
+            amino_acid = codon_table.get(codon, '*')
+            #if amino_acid != '*':
+            #    peptide += amino_acid
+            #else:
+            #    break
             peptide += amino_acid
-        else:
-            break
 
     return peptide
 
-def create_protein_sequence(dna_sequence):
+def create_protein_sequence(sequenceevidence):
     from model_new_schema.sequence import Proteinsequence
-    return [Proteinsequence(translate(dna_sequence.residues))]
+    dna_sequence = sequenceevidence.sequence
+    labels = sequenceevidence.labels
+    return [Proteinsequence(translate(dna_sequence.residues, labels))]
 
 def convert_protein_sequence(new_session_maker):
     from model_new_schema.sequence import Proteinsequence, Dnasequence
+    from model_new_schema.evidence import Sequenceevidence
 
     log = logging.getLogger('convert.sequence.sequence')
     log.info('begin')
@@ -459,7 +477,7 @@ def convert_protein_sequence(new_session_maker):
         untouched_obj_ids = set(id_to_current_obj.keys())
         already_seen = set()
 
-        old_objs = new_session.query(Dnasequence).all()
+        old_objs = new_session.query(Sequenceevidence).options(joinedload(Sequenceevidence.sequence), joinedload(Sequenceevidence.labels)).all()
 
         for old_obj in old_objs:
             #Convert old objects into new ones
@@ -503,18 +521,26 @@ def convert_protein_sequence(new_session_maker):
 
 
 def create_protein_evidence(seqevidence, key_to_source, id_to_bioentity, key_to_sequence, id_to_strain):
-    from model_new_schema.evidence import Sequenceevidence
+    from model_new_schema.evidence import Proteinsequenceevidence
     source = key_to_source['SGD']
-    sequence = key_to_sequence[create_protein_sequence(seqevidence.sequence)[0].unique_key()]
-    bioentity = id_to_bioentity[seqevidence.bioentity_id]
+    protein_sequence_key = create_protein_sequence(seqevidence)[0].unique_key()
+    sequence = None if protein_sequence_key not in key_to_sequence else key_to_sequence[protein_sequence_key]
+    bioentity_id = create_protein_id(seqevidence.bioentity_id)
+    bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
+    if bioentity is None:
+        #print "Bioentity not found: " + str(bioentity_id)
+        return []
+    if sequence is None:
+        print "Sequence not found: " + str(protein_sequence_key)
+        return []
     strain = id_to_strain[seqevidence.strain_id]
 
-    return [Sequenceevidence(source, strain, bioentity, sequence, 1, sequence.length, seqevidence.strand, None, None)]
+    return [Proteinsequenceevidence(source, strain, bioentity, sequence, seqevidence.sequence, None, None)]
 
 def convert_protein_evidence(new_session_maker):
-    from model_new_schema.evidence import Sequenceevidence
+    from model_new_schema.evidence import Sequenceevidence, Proteinsequenceevidence
     from model_new_schema.evelements import Source, Strain
-    from model_new_schema.sequence import Dnasequence
+    from model_new_schema.sequence import Proteinsequence
     from model_new_schema.bioentity import Bioentity
 
     log = logging.getLogger('convert.sequence.evidence')
@@ -529,19 +555,19 @@ def convert_protein_evidence(new_session_maker):
 
         #Grab cached dictionaries
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
-        key_to_sequence = dict([(x.unique_key(), x) for x in new_session.query(Dnasequence).all()])
+        key_to_sequence = dict([(x.unique_key(), x) for x in new_session.query(Proteinsequence).all()])
         id_to_bioentity = dict([(x.id, x) for x in new_session.query(Bioentity).all()])
         id_to_strain = dict([(x.id, x) for x in new_session.query(Strain).all()])
 
         #Grab current objects
-        current_objs = new_session.query(Sequenceevidence).options(joinedload(Sequenceevidence.sequence)).filter(Sequenceevidence.sequence.class_type == 'PROTEIN').all()
+        current_objs = new_session.query(Proteinsequenceevidence).all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
 
         untouched_obj_ids = set(id_to_current_obj.keys())
         already_seen = set()
 
-        old_objs = new_session.query(Sequenceevidence).options(joinedload(Sequenceevidence.sequence)).filter(Sequenceevidence.sequence.class_type == 'DNA').all()
+        old_objs = new_session.query(Sequenceevidence).options(joinedload(Sequenceevidence.sequence), joinedload(Sequenceevidence.labels)).all()
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_protein_evidence(old_obj, key_to_source, id_to_bioentity, key_to_sequence, id_to_strain)
@@ -664,8 +690,8 @@ def convert(new_session_maker):
     #convert_contig(new_session_maker)
 
     #convert_dna_sequence(new_session_maker)
-    convert_dna_evidence(new_session_maker)
+    #convert_dna_evidence(new_session_maker)
     #convert_dna_sequence_label(new_session_maker)
 
-    #convert_protein_sequence(new_session_maker)
-    #convert_protein_evidence(new_session_maker)
+    convert_protein_sequence(new_session_maker)
+    convert_protein_evidence(new_session_maker)

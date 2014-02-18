@@ -82,7 +82,7 @@ class Strain(Base, EqualityByIDMixin):
     
     def __init__(self, display_name, source, description, date_created, created_by):
         self.display_name = display_name;
-        self.format_name = create_format_name(display_name)
+        self.format_name = create_format_name(display_name).replace('.', '')
         self.link = None
         self.source_id = source.id
         self.description = description
