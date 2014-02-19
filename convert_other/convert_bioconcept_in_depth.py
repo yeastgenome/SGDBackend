@@ -286,8 +286,8 @@ def create_phenotype_relation(cvtermrel, key_to_phenotype, key_to_source):
     
     source = key_to_source['SGD']
     
-    parent_key = (create_format_name(cvtermrel.parent.name), 'PHENOTYPE')
-    child_key = (create_format_name(cvtermrel.child.name), 'PHENOTYPE')
+    parent_key = (create_format_name(cvtermrel.parent.name.lower()), 'PHENOTYPE')
+    child_key = (create_format_name(cvtermrel.child.name.lower()), 'PHENOTYPE')
     
     if parent_key == ('observable', 'PHENOTYPE'):
         parent_key = ('ypo', 'PHENOTYPE')
@@ -641,7 +641,7 @@ def convert_phenotype_alias(old_session_maker, new_session_maker):
 
 def convert(old_session_maker, new_session_maker):  
 
-    convert_ecnumber_relation(new_session_maker)
+    #convert_ecnumber_relation(new_session_maker)
     
     from model_new_schema.bioconcept import Phenotype
     convert_phenotype_relation(old_session_maker, new_session_maker)
