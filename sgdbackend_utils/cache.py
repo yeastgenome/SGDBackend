@@ -4,7 +4,7 @@ Created on Aug 9, 2013
 @author: kpaskov
 '''
 from obj_to_json import bioent_to_json, experiment_to_json, strain_to_json, \
-    biocon_to_json, reference_to_json, locus_to_json, complex_to_json
+    biocon_to_json, reference_to_json, locus_to_json, complex_to_json, domain_to_json
 from sgdbackend_query import get_all
 from sgdbackend_utils.obj_to_json import bioitem_to_json, source_to_json, \
     chemical_to_json, go_to_json, phenotype_to_json, protein_to_json
@@ -76,6 +76,11 @@ def cache_core():
     from model_new_schema.bioitem import Bioitem
     for bioitem in get_all(Bioitem):
         json_form = bioitem_to_json(bioitem, id_to_source)
+        id_to_bioitem[bioitem.id] = json_form
+
+    from model_new_schema.bioitem import Domain
+    for bioitem in get_all(Domain):
+        json_form = domain_to_json(bioitem, id_to_source)
         id_to_bioitem[bioitem.id] = json_form
         
     print 'Cache experiments'

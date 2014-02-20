@@ -250,7 +250,7 @@ def create_domain(row, key_to_source):
     interpro_description = None if interpro_description == 'NULL' else interpro_description
     interpro_id = None if interpro_id == 'NULL' else interpro_id
 
-    domain = Domain(display_name, link, source, description if description is not None else interpro_description, interpro_id, interpro_description)
+    domain = Domain(display_name, source, description if description is not None else interpro_description, interpro_id, interpro_description, link)
     return [domain]
 
 def create_domain_from_tf_file(row, key_to_source):
@@ -265,14 +265,14 @@ def create_domain_from_tf_file(row, key_to_source):
 
     source = key_to_source['JASPAR']
 
-    domain = Domain(display_name, link, source, description if description is not None else interpro_description, interpro_id, interpro_description)
+    domain = Domain(display_name, source, description if description is not None else interpro_description, interpro_id, interpro_description, link)
     return [domain]
 
 def create_domain_from_protein_details(key_to_source):
     from model_new_schema.bioitem import Domain
 
-    transmembrane = Domain('predicted transmembrane domain', None, key_to_source['TMHMM'], None, None, None)
-    signal_peptide = Domain('predicted signal peptide', None, key_to_source['SignalP'], None, None, None)
+    transmembrane = Domain('predicted transmembrane domain', key_to_source['TMHMM'], 'predicted transmembrane domain', None, None, None)
+    signal_peptide = Domain('predicted signal peptide', key_to_source['SignalP'], 'predicted signal peptide', None, None, None)
     return [transmembrane, signal_peptide]
 
 def convert_domain(new_session_maker, chunk_size):
@@ -291,7 +291,7 @@ def convert_domain(new_session_maker, chunk_size):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
 
         #Values to check
-        values_to_check = ['display_name', 'description', 'interpro_id', 'interpro_description', 'link', 'source_id']
+        values_to_check = ['display_name', 'description', 'interpro_id', 'interpro_description', 'link', 'source_id', 'external_link']
 
         untouched_obj_ids = set(id_to_current_obj.keys())
 
@@ -402,5 +402,5 @@ def convert_domain(new_session_maker, chunk_size):
 """  
 
 def convert(old_session_maker, new_session_maker):
-    convert_bioitems(old_session_maker, new_session_maker)
+    #convert_bioitems(old_session_maker, new_session_maker)
     convert_domain(new_session_maker, 5000)

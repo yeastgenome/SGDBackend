@@ -33,7 +33,14 @@ def bioitem_to_json(bioitem, id_to_source):
             'description': bioitem.description,
             'source': None if bioitem.source_id is None else id_to_source[bioitem.source_id]
             }
-    
+
+def domain_to_json(bioitem, id_to_source):
+    bioitem_json = bioitem_to_json(bioitem, id_to_source)
+    bioitem_json['interpro_id'] = bioitem.interpro_id;
+    bioitem_json['interpro_description'] = bioitem.interpro_description
+    bioitem_json['external_link'] = bioitem.external_link
+    return bioitem_json
+
 def chemical_to_json(chem):
     return {
             'format_name': chem.format_name,
