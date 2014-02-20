@@ -230,3 +230,7 @@ class BackendInterface:
     def protein_sequence_details(self, identifier):
         return None
 
+    @abstractmethod
+    def protein_phosphorylation_details(self, identifier):
+        return None
+

@@ -440,3 +440,27 @@ class Proteinsequenceevidence(Evidence):
         self.bioentity_id = bioentity.id
         self.sequence_id = sequence.id
         self.dnasequence_id = dnasequence.id
+
+class Phosphorylationevidence(Evidence):
+    __tablename__ = "phosphorylationevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    site_index = Column('site_index', Integer)
+    site_residue = Column('site_residue', String)
+
+    #Relationships
+    bioentity = relationship(Bioentity, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "PHOSPHORYLATION",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, bioentity, site_index, site_residue, date_created, created_by):
+        Evidence.__init__(self,
+                          bioentity.display_name + ' has ' + site_residue + str(site_index),
+                          bioentity.format_name + '_' + site_residue + '_' + str(site_index),
+                          'PHOSPHORYLATION', source, None, None, None, None,
+                          date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.site_index = site_index
+        self.site_residue = site_residue

@@ -3,7 +3,7 @@ Created on Sep 20, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.evidence import Domainevidence
+from model_new_schema.evidence import Domainevidence, Phosphorylationevidence
 from sgdbackend_query import get_evidence
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_bioitem
@@ -33,6 +33,23 @@ def make_evidence_row(domain_evidence):
     obj_json['evalue'] = domain_evidence.evalue
     obj_json['status'] = domain_evidence.status
     obj_json['date_of_run'] = domain_evidence.date_of_run
+    return obj_json
+
+'''
+-------------------------------Details---------------------------------------
+'''
+def make_phosphorylation_details(protein_id=None):
+    phospho_evidences = get_evidence(Phosphorylationevidence, bioent_id=protein_id)
+    if phospho_evidences is None:
+        return {'Error': 'Too much data to display.'}
+
+    return create_simple_table(sorted(phospho_evidences, key=lambda x: x.site_index), make_phospho_evidence_row)
+
+def make_phospho_evidence_row(phospho_evidence):
+    obj_json = evidence_to_json(phospho_evidence).copy()
+    obj_json['protein'] = id_to_bioent[phospho_evidence.bioentity_id]
+    obj_json['site_index'] = phospho_evidence.site_index
+    obj_json['site_residue'] = phospho_evidence.site_residue
     return obj_json
 
 # -------------------------------Graph-----------------------------------------
