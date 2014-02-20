@@ -5,7 +5,7 @@ Created on Mar 15, 2013
 '''
 from go_enrichment import query_batter
 from model_new_schema.bioconcept import Bioconceptrelation
-from model_new_schema.evidence import Sequenceevidence
+from model_new_schema.evidence import Sequenceevidence, Proteinsequenceevidence
 from mpmath import sqrt, ceil
 from sgdbackend_query import get_sequence_evidence, get_sequence_labels, get_sequence_neighbors, get_contigs
 from sgdbackend_query.query_misc import get_relations
@@ -76,7 +76,7 @@ def make_evidence_row(seqevidence, id_to_labels, id_to_neighbors, id_to_contig):
 '''
 
 def make_details(locus_id):
-    seqevidences = get_sequence_evidence(locus_id)
+    seqevidences = get_sequence_evidence(Sequenceevidence, locus_id)
     if seqevidences is None:
         return {'Error': 'Too much data to display.'}
 
@@ -101,6 +101,13 @@ def make_details(locus_id):
                                id_to_neighbors=id_to_neighbors,
                                id_to_contig=id_to_contig)
 
+def make_protein_details(locus_id):
+    seqevidences = get_sequence_evidence(Proteinsequenceevidence, locus_id + 200000)
+    if seqevidences is None:
+        return {'Error': 'Too much data to display.'}
+
+    return create_simple_table(sorted(seqevidences, key=lambda x: id_to_strain[x.strain_id]['display_name'] if id_to_strain[x.strain_id]['display_name'] != 'S288C' else 'AAA'), make_protein_evidence_row)
+
 def make_evidence_row(seqevidence, id_to_labels, id_to_neighbors, id_to_contig):
     bioentity_id = seqevidence.bioentity_id
 
@@ -118,4 +125,14 @@ def make_evidence_row(seqevidence, id_to_labels, id_to_neighbors, id_to_contig):
     if seqevidence.contig_id is not None:
         contig = id_to_contig[seqevidence.contig_id]
         obj_json['contig'] = {'display_name': contig.display_name, 'format_name': contig.format_name}
+    return obj_json
+
+def make_protein_evidence_row(seqevidence):
+    bioentity_id = seqevidence.bioentity_id
+
+    obj_json = evidence_to_json(seqevidence).copy()
+    obj_json['strain']['description'] = id_to_strain[seqevidence.strain_id]['description']
+    obj_json['strain']['format_name'] = id_to_strain[seqevidence.strain_id]['format_name']
+    obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
+    obj_json['sequence'] = sequence_to_json(seqevidence.sequence)
     return obj_json

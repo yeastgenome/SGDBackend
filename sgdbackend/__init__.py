@@ -573,6 +573,15 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if identifier is None else get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return json.dumps(view_sequence.make_details(locus_id))
+
+    def protein_sequence_details(self, identifier, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_sequence
+        if are_ids:
+            locus_id = identifier
+        else:
+            locus_id = None if identifier is None else get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return json.dumps(view_sequence.make_protein_details(locus_id))
     
     #Misc
     def all_disambigs(self, min_id, max_id):

@@ -25,7 +25,7 @@ def create_evidence(complex, id_to_go, id_to_bioentity, go_id_to_bioent_ids, key
     return evidences
 
 def convert_evidence(new_session_maker):
-    from model_new_schema.evidence import Complexevidence
+    from model_new_schema.evidence import Complexevidence, Goevidence
     from model_new_schema.evelements import Source
     from model_new_schema.bioentity import Bioentity, Complex
     from model_new_schema.bioconcept import Go
@@ -50,8 +50,8 @@ def convert_evidence(new_session_maker):
         complexes = new_session.query(Complex).all()
 
         go_id_to_bioent_ids = dict([(x.go_id, set()) for x in complexes])
-        for biofact in new_session.query(Biofact).filter(Biofact.bioconcept_class_type == 'GO').filter(Biofact.bioconcept_id.in_([x.go_id for x in complexes])):
-            go_id_to_bioent_ids[biofact.bioconcept_id].add(biofact.bioentity_id)
+        for goevidence in new_session.query(Goevidence).filter(Goevidence.bioconcept_id.in_([x.go_id for x in complexes])).filter(Goevidence.qualifier != 'colocalizes with'):
+            go_id_to_bioent_ids[goevidence.bioconcept_id].add(goevidence.bioentity_id)
         
         current_objs = new_session.query(Complexevidence).filter(Complexevidence.go_id != None).all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])

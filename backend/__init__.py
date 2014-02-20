@@ -413,6 +413,13 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'sequence_details')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('sequence_details'))
+
+    config.add_route('protein_sequence_details',
+                     '/locus/{identifier}/protein_sequence_details',
+                     view=lambda request: chosen_backend.response_wrapper('protein_sequence_details', request)(
+                                getattr(chosen_backend, 'protein_sequence_details')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('protein_sequence_details'))
     
 def prepare_backend(backend_type):
     configurator = Configurator()

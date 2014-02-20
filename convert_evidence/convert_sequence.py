@@ -3,10 +3,12 @@ Created on Sep 23, 2013
 
 @author: kpaskov
 '''
+from math import ceil
 from convert_core.convert_bioentity import create_protein_id
 from convert_utils import create_or_update
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql.expression import or_, func
 import logging
 import sys
 
@@ -425,11 +427,12 @@ def translate(seq, labels):
     seq = seq.lower().replace('\n', '').replace(' ', '')
     peptide = ''
 
-    labels = [label for label in sorted(labels, key=lambda x: x.relative_start) if label.display_name == 'CDS']
+    labels = [label for label in sorted(labels, key=lambda x: x.relative_start) if label.class_type == 'CDS']
 
     if len(labels) > 0:
+        label_index = 0
         for label in labels:
-            for i in xrange(label.relative_start-1, label.relative_end, 3):
+            for i in xrange(label.relative_start + (-1 if label_index == 0 else 1), label.relative_end, 3):
                 codon = seq[i: i+3]
                 amino_acid = codon_table.get(codon, '*')
                 #if amino_acid != '*':
@@ -437,6 +440,7 @@ def translate(seq, labels):
                 #else:
                 #    break
                 peptide += amino_acid
+            label_index += 1
     else:
         for i in xrange(0, len(seq), 3):
             codon = seq[i: i+3]
@@ -453,9 +457,9 @@ def create_protein_sequence(sequenceevidence):
     from model_new_schema.sequence import Proteinsequence
     dna_sequence = sequenceevidence.sequence
     labels = sequenceevidence.labels
-    return [Proteinsequence(translate(dna_sequence.residues, labels))]
+    return [Proteinsequence(translate(dna_sequence.residues, labels), dna_sequence)]
 
-def convert_protein_sequence(new_session_maker):
+def convert_protein_sequence(new_session_maker, chunk_size):
     from model_new_schema.sequence import Proteinsequence, Dnasequence
     from model_new_schema.evidence import Sequenceevidence
 
@@ -467,42 +471,52 @@ def convert_protein_sequence(new_session_maker):
         new_session = new_session_maker()
 
         #Values to check
-        values_to_check = []
+        values_to_check = ['residues']
 
-        #Grab current objects
-        current_objs = new_session.query(Proteinsequence).all()
-        id_to_current_obj = dict([(x.id, x) for x in current_objs])
-        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+        min_seq_id = new_session.query(func.min(Dnasequence.id)).first()[0]
+        max_seq_id = new_session.query(func.max(Dnasequence.id)).first()[0] + 1
+        num_chunks = int(ceil(1.0*(max_seq_id-min_seq_id)/chunk_size))
+        for i in range(0, num_chunks):
+            min_id = min_seq_id + i*chunk_size
+            max_id = min_seq_id + (i+1)*chunk_size
 
-        untouched_obj_ids = set(id_to_current_obj.keys())
-        already_seen = set()
+            #Grab current objects
+            current_objs = new_session.query(Proteinsequence).filter(Proteinsequence.dnasequence_id >= min_id).filter(Proteinsequence.dnasequence_id < max_id).all()
+            id_to_current_obj = dict([(x.id, x) for x in current_objs])
+            key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
 
-        old_objs = new_session.query(Sequenceevidence).options(joinedload(Sequenceevidence.sequence), joinedload(Sequenceevidence.labels)).all()
+            untouched_obj_ids = set(id_to_current_obj.keys())
+            already_seen = set()
 
-        for old_obj in old_objs:
-            #Convert old objects into new ones
-            newly_created_objs = create_protein_sequence(old_obj)
+            old_objs = new_session.query(Sequenceevidence).options(joinedload(Sequenceevidence.sequence), joinedload(Sequenceevidence.labels)).filter(Sequenceevidence.sequence_id >= min_id).filter(Sequenceevidence.sequence_id < max_id).all()
 
-            if newly_created_objs is not None:
-                #Edit or add new objects
-                for newly_created_obj in newly_created_objs:
-                    unique_key = newly_created_obj.unique_key()
-                    if unique_key not in already_seen:
-                        current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                        current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
-                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+            for old_obj in old_objs:
+                #Convert old objects into new ones
+                newly_created_objs = create_protein_sequence(old_obj)
 
-                        if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                            untouched_obj_ids.remove(current_obj_by_id.id)
-                        if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                            untouched_obj_ids.remove(current_obj_by_key.id)
+                if newly_created_objs is not None:
+                    #Edit or add new objects
+                    for newly_created_obj in newly_created_objs:
+                        unique_key = newly_created_obj.unique_key()
+                        if unique_key not in already_seen:
+                            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                            current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
 
-                        already_seen.add(unique_key)
+                            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                                untouched_obj_ids.remove(current_obj_by_id.id)
+                            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                                untouched_obj_ids.remove(current_obj_by_key.id)
 
-        #Delete untouched objs
-        for untouched_obj_id  in untouched_obj_ids:
-            new_session.delete(id_to_current_obj[untouched_obj_id])
-            output_creator.removed()
+                            already_seen.add(unique_key)
+
+            #Delete untouched objs
+            for untouched_obj_id in untouched_obj_ids:
+                new_session.delete(id_to_current_obj[untouched_obj_id])
+                output_creator.removed()
+
+            output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
+            new_session.commit()
 
         #Commit
         output_creator.finished()
@@ -523,7 +537,7 @@ def convert_protein_sequence(new_session_maker):
 def create_protein_evidence(seqevidence, key_to_source, id_to_bioentity, key_to_sequence, id_to_strain):
     from model_new_schema.evidence import Proteinsequenceevidence
     source = key_to_source['SGD']
-    protein_sequence_key = create_protein_sequence(seqevidence)[0].unique_key()
+    protein_sequence_key = (str(seqevidence.sequence_id), 'PROTEIN')
     sequence = None if protein_sequence_key not in key_to_sequence else key_to_sequence[protein_sequence_key]
     bioentity_id = create_protein_id(seqevidence.bioentity_id)
     bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
@@ -537,10 +551,10 @@ def create_protein_evidence(seqevidence, key_to_source, id_to_bioentity, key_to_
 
     return [Proteinsequenceevidence(source, strain, bioentity, sequence, seqevidence.sequence, None, None)]
 
-def convert_protein_evidence(new_session_maker):
+def convert_protein_evidence(new_session_maker, chunk_size):
     from model_new_schema.evidence import Sequenceevidence, Proteinsequenceevidence
     from model_new_schema.evelements import Source, Strain
-    from model_new_schema.sequence import Proteinsequence
+    from model_new_schema.sequence import Proteinsequence, Dnasequence
     from model_new_schema.bioentity import Bioentity
 
     log = logging.getLogger('convert.sequence.evidence')
@@ -555,7 +569,6 @@ def convert_protein_evidence(new_session_maker):
 
         #Grab cached dictionaries
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
-        key_to_sequence = dict([(x.unique_key(), x) for x in new_session.query(Proteinsequence).all()])
         id_to_bioentity = dict([(x.id, x) for x in new_session.query(Bioentity).all()])
         id_to_strain = dict([(x.id, x) for x in new_session.query(Strain).all()])
 
@@ -567,32 +580,45 @@ def convert_protein_evidence(new_session_maker):
         untouched_obj_ids = set(id_to_current_obj.keys())
         already_seen = set()
 
-        old_objs = new_session.query(Sequenceevidence).options(joinedload(Sequenceevidence.sequence), joinedload(Sequenceevidence.labels)).all()
-        for old_obj in old_objs:
-            #Convert old objects into new ones
-            newly_created_objs = create_protein_evidence(old_obj, key_to_source, id_to_bioentity, key_to_sequence, id_to_strain)
+        min_seq_id = new_session.query(func.min(Dnasequence.id)).first()[0]
+        max_seq_id = new_session.query(func.max(Dnasequence.id)).first()[0] + 1
+        num_chunks = int(ceil(1.0*(max_seq_id-min_seq_id)/chunk_size))
+        for i in range(0, num_chunks):
+            min_id = min_seq_id + i*chunk_size
+            max_id = min_seq_id + (i+1)*chunk_size
 
-            if newly_created_objs is not None:
-                #Edit or add new objects
-                for newly_created_obj in newly_created_objs:
-                    unique_key = newly_created_obj.unique_key()
-                    if unique_key not in already_seen:
-                        current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                        current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
-                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+            key_to_sequence = dict([(x.unique_key(), x) for x in new_session.query(Proteinsequence).filter(Proteinsequence.dnasequence_id >= min_id).filter(Proteinsequence.dnasequence_id < max_id).all()])
 
-                        if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                            untouched_obj_ids.remove(current_obj_by_id.id)
-                        if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                            untouched_obj_ids.remove(current_obj_by_key.id)
-                        already_seen.add(unique_key)
+            old_objs = new_session.query(Sequenceevidence).filter(Sequenceevidence.sequence_id >= min_id).filter(Sequenceevidence.sequence_id < max_id).all()
+            for old_obj in old_objs:
+                #Convert old objects into new ones
+                newly_created_objs = create_protein_evidence(old_obj, key_to_source, id_to_bioentity, key_to_sequence, id_to_strain)
+
+                if newly_created_objs is not None:
+                    #Edit or add new objects
+                    for newly_created_obj in newly_created_objs:
+                        unique_key = newly_created_obj.unique_key()
+                        if unique_key not in already_seen:
+                            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                            current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                                untouched_obj_ids.remove(current_obj_by_id.id)
+                            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                                untouched_obj_ids.remove(current_obj_by_key.id)
+                            already_seen.add(unique_key)
+
+            output_creator.finished()
+            new_session.commit()
+
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
             new_session.delete(id_to_current_obj[untouched_obj_id])
             output_creator.removed()
 
         #Commit
-        output_creator.finished()
+        output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
         new_session.commit()
 
     except Exception:
@@ -693,5 +719,16 @@ def convert(new_session_maker):
     #convert_dna_evidence(new_session_maker)
     #convert_dna_sequence_label(new_session_maker)
 
-    convert_protein_sequence(new_session_maker)
-    convert_protein_evidence(new_session_maker)
+    convert_protein_sequence(new_session_maker, 1000)
+    #convert_protein_evidence(new_session_maker, 1000)
+
+    #class SeqLab():
+    #    def __init__(self, relative_start, relative_end, class_type):
+    #        self.relative_end = relative_end
+    #        self.relative_start = relative_start
+    #        self.class_type = class_type
+
+
+    #labels = [SeqLab(1, 10, "CDS"), SeqLab(11, 319, "intron"), SeqLab(320, 1437, "CDS")]
+    #residues = "ATGGATTCTGGTATGTTCTAGCGCTTGCACCATCCCATTTAACTGTAAGAAGAATTGCACGGTCCCAATTGCTCGAGAGATTTCTCTTTTACCTTTTTTTACTATTTTTCACTCTCCCATAACCTCCTATATTGACTGATCTGTAATAACCACGATATTATTGGAATAAATAGGGGCTTGAAATTTGGAAAAAAAAAAAAAACTGAAATATTTTCGTGATAAGTGATAGTGATATTCTTCTTTTATTTGCTACTGTTACTAAGTCTCATGTACTAACATCGATTGCTTCATTCTTTTTGTTGCTATATTATATGTTTAGAGGTTGCTGCTTTGGTTATTGATAACGGTTCTGGTATGTGTAAAGCCGGTTTTGCCGGTGACGACGCTCCTCGTGCTGTCTTCCCATCTATCGTCGGTAGACCAAGACACCAAGGTATCATGGTCGGTATGGGTCAAAAAGACTCCTACGTTGGTGATGAAGCTCAATCCAAGAGAGGTATCTTGACTTTACGTTACCCAATTGAACACGGTATTGTCACCAACTGGGACGATATGGAAAAGATCTGGCATCATACCTTCTACAACGAATTGAGAGTTGCCCCAGAAGAACACCCTGTTCTTTTGACTGAAGCTCCAATGAACCCTAAATCAAACAGAGAAAAGATGACTCAAATTATGTTTGAAACTTTCAACGTTCCAGCCTTCTACGTTTCCATCCAAGCCGTTTTGTCCTTGTACTCTTCCGGTAGAACTACTGGTATTGTTTTGGATTCCGGTGATGGTGTTACTCACGTCGTTCCAATTTACGCTGGTTTCTCTCTACCTCACGCCATTTTGAGAATCGATTTGGCCGGTAGAGATTTGACTGACTACTTGATGAAGATCTTGAGTGAACGTGGTTACTCTTTCTCCACCACTGCTGAAAGAGAAATTGTCCGTGACATCAAGGAAAAACTATGTTACGTCGCCTTGGACTTCGAACAAGAAATGCAAACCGCTGCTCAATCTTCTTCAATTGAAAAATCCTACGAACTTCCAGATGGTCAAGTCATCACTATTGGTAACGAAAGATTCAGAGCCCCAGAAGCTTTGTTCCATCCTTCTGTTTTGGGTTTGGAATCTGCCGGTATTGACCAAACTACTTACAACTCCATCATGAAGTGTGATGTCGATGTCCGTAAGGAATTATACGGTAACATCGTTATGTCCGGTGGTACCACCATGTTCCCAGGTATTGCCGAAAGAATGCAAAAGGAAATCACCGCTTTGGCTCCATCTTCCATGAAGGTCAAGATCATTGCTCCTCCAGAAAGAAAGTACTCCGTCTGGATTGGTGGTTCTATCTTGGCTTCTTTGACTACCTTCCAACAAATGTGGATCTCAAAACAAGAATACGACGAAAGTGGTCCATCTATCGTTCACCACAAGTGTTTCTAA"
+    #print translate(residues, labels)

@@ -76,8 +76,8 @@ def get_all(cls, print_query=False, join=None):
         print query
     return objs
 
-def get_sequence_evidence(bioent_id):
-    query = session.query(Sequenceevidence).options(joinedload('sequence')).filter(Sequenceevidence.bioentity_id == bioent_id)
+def get_sequence_evidence(sequence_cls, bioent_id):
+    query = session.query(sequence_cls).options(joinedload('sequence')).filter(sequence_cls.bioentity_id == bioent_id)
     return query.all()
 
 two_bioent_evidence_cls = set([Geninteractionevidence, Physinteractionevidence, Regulationevidence])
@@ -203,7 +203,7 @@ def get_sequence_neighbors(evidence):
         return session.query(Sequenceevidence).filter(
                                                     Sequenceevidence.contig_id == evidence.contig_id).filter(
                                                     Sequenceevidence.start >= evidence.start - 5000).filter(
-                                                    Sequenceevidence.start <= evidence.end + 5000).filter(
+                                                    Sequenceevidence.start <= evidence.start + 5000).filter(
                                                     Sequenceevidence.id != evidence.id).all()
 
 def get_contigs(evidences):

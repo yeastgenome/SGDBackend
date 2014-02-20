@@ -51,58 +51,19 @@ class Rnasequence(Sequence):
         Sequence.__init__(self, 'Sequence: ' + hash, hash, 'RNA', residues, None, None)
 
 class Proteinsequence(Sequence):
-    #__tablename__ = "proteinsequence"
+    __tablename__ = "proteinbiosequence"
 
-    #id = Column('sequence_id', Integer, ForeignKey(Sequence.id), primary_key=True)
-
-    #molecular_weight = Column('molecular_weight', Integer)
-    #pi = Column('pi', Numeric)
-
-    #amino acid composition
-    #ala = Column('ala', Integer)
-    #arg = Column('arg', Integer)
-    #asn = Column('asn', Integer)
-    #asp = Column('asp', Integer)
-    #cys = Column('cys', Integer)
-    #gln = Column('gln', Integer)
-    #glu = Column('glu', Integer)
-    #gly = Column('gly', Integer)
-    #his = Column('his', Integer)
-    #ile = Column('ile', Integer)
-    #leu = Column('leu', Integer)
-    #lys = Column('lys', Integer)
-    #met = Column('met', Integer)
-    #phe = Column('phe', Integer)
-    #pro = Column('pro', Integer)
-    #ser = Column('ser', Integer)
-    #thr = Column('thr', Integer)
-    #trp = Column('trp', Integer)
-    #tyr = Column('tyr', Integer)
-    #val = Column('val', Integer)
-
-    #atomic composition
-    #carbon = Column('carbon', Integer)
-    #hydrogen = Column('hydrogen', Integer)
-    #nitrogen = Column('nitrogen', Integer)
-    #oxygen = Column('oxygen', Integer)
-    #sulfur = Column('sulfur', Integer)
-
-    #aliphatic_index = Column('aliphatic_index', Numeric)
-    #instability_index = Column('instability_index', Numeric)
-
-    #codon_bias = Column('codon_bias', Numeric)
-    #codon_adaptation_index = Column('cai', Numeric)
-    #frequency_of_optimal_codons = Column('fop', Numeric)
-    #hydropathicity = Column('hydropathicity', Numeric)
-    #aromaticity_score = Column('aromaticity_score', Numeric)
+    id = Column('biosequence_id', Integer, ForeignKey(Sequence.id), primary_key=True)
+    dnasequence_id = Column('dnasequence_id', Integer)
 
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Sequence.id}
 
-    def __init__(self, residues, date_created=None, created_by=None):
+    def __init__(self, residues, dnasequence, date_created=None, created_by=None):
         hash = hashlib.md5(residues).hexdigest()
-        Sequence.__init__(self, 'Sequence: ' + hash, hash,
+        Sequence.__init__(self, 'Sequence: ' + hash, str(dnasequence.id),
                            'PROTEIN', residues, date_created, created_by)
+        self.dnasequence_id = dnasequence.id
 
 class Contig(Sequence):
     __mapper_args__ = {'polymorphic_identity': "CONTIG",
