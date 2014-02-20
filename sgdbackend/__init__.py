@@ -171,6 +171,10 @@ class SGDBackend(BackendInterface):
         author_json = view_reference.make_author(identifier)
         return None if author_json is None else json.dumps(view_reference.make_author_references(author_json['id']))
 
+    def references_this_week(self, are_ids=False):
+        import view_reference
+        return json.dumps(view_reference.make_references_this_week())
+
     #Phenotype
     
     def phenotype(self, identifier, are_ids=False):

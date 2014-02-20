@@ -51,6 +51,10 @@ class BackendInterface:
     @abstractmethod
     def author_references(self, identifier):
         return None
+
+    @abstractmethod
+    def references_this_week(self):
+        return None
     
     #Bioent
     @abstractmethod

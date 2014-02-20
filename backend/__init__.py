@@ -41,6 +41,12 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'author_references')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('author_references'))
+
+    config.add_route('references_this_week',
+                     '/new/references',
+                     view=lambda request: chosen_backend.response_wrapper('references_this_week', request)(
+                                getattr(chosen_backend, 'references_this_week')()),
+                     renderer=chosen_backend.get_renderer('references_this_week'))
     
     #Bioent views
     config.add_route('bioentity_list', 

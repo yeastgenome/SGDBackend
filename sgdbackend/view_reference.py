@@ -1,6 +1,8 @@
+from sgdbackend import view_literature
+
 __author__ = 'kpaskov'
 
-from sgdbackend_query.query_reference import get_abstract, get_bibentry, get_authors_for_reference, get_references_for_author, get_author
+from sgdbackend_query.query_reference import get_abstract, get_bibentry, get_authors_for_reference, get_references_for_author, get_author, get_references_this_week
 from sgdbackend_utils import link_gene_names, id_to_reference
 from sgdbackend_query.query_auxiliary import get_bioentity_references
 
@@ -31,4 +33,16 @@ def make_author(author_identifier):
 def make_author_references(author_id):
     references = get_references_for_author(author_id)
     references.sort(key=lambda x: (x['year'], x['pubmed_id']), reverse=True) 
+    return references
+
+'''
+-------------------------------This Week---------------------------------------
+'''
+
+def make_references_this_week():
+    references = get_references_this_week()
+    references = [id_to_reference[x.id] for x in sorted(references, key=lambda x: x.date_created, reverse=True)]
+    for reference in references:
+        literature_details = view_literature.make_details(reference_id=reference['id'])
+        reference['literature_details'] = literature_details
     return references

@@ -169,7 +169,7 @@ def reference_to_json(reference):
             'year': reference.year,
             'pubmed_id': reference.pubmed_id,
             'urls': urls,
-            'journal': None if reference.journal is None else reference.journal.med_abbr
+            'journal': None if reference.journal is None else reference.journal.med_abbr,
             }
     
 def url_to_json(url):

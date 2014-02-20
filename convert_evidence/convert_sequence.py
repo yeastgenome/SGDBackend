@@ -705,6 +705,82 @@ def convert_contig(new_session_maker):
         new_session.close()
 
     log.info('complete')
+
+# -------------------Check protein sequences------------------------
+
+def convert_protein_evidence(old_session_maker, new_session_maker, chunk_size):
+    from model_new_schema.evidence import Sequenceevidence, Proteinsequenceevidence
+    from model_new_schema.evelements import Source, Strain
+    from model_new_schema.sequence import Proteinsequence, Dnasequence
+    from model_new_schema.bioentity import Bioentity
+
+    log = logging.getLogger('convert.check.protein.sequence')
+    log.info('begin')
+    output_creator = OutputCreator(log)
+
+    try:
+        new_session = new_session_maker()
+
+        #Grab cached dictionaries
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
+        id_to_bioentity = dict([(x.id, x) for x in new_session.query(Bioentity).all()])
+        id_to_strain = dict([(x.id, x) for x in new_session.query(Strain).all()])
+
+        #Grab current objects
+        current_objs = new_session.query(Proteinsequenceevidence).all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+
+        untouched_obj_ids = set(id_to_current_obj.keys())
+        already_seen = set()
+
+        min_seq_id = new_session.query(func.min(Dnasequence.id)).first()[0]
+        max_seq_id = new_session.query(func.max(Dnasequence.id)).first()[0] + 1
+        num_chunks = int(ceil(1.0*(max_seq_id-min_seq_id)/chunk_size))
+        for i in range(0, num_chunks):
+            min_id = min_seq_id + i*chunk_size
+            max_id = min_seq_id + (i+1)*chunk_size
+
+            key_to_sequence = dict([(x.unique_key(), x) for x in new_session.query(Proteinsequence).filter(Proteinsequence.dnasequence_id >= min_id).filter(Proteinsequence.dnasequence_id < max_id).all()])
+
+            old_objs = new_session.query(Sequenceevidence).filter(Sequenceevidence.sequence_id >= min_id).filter(Sequenceevidence.sequence_id < max_id).all()
+            for old_obj in old_objs:
+                #Convert old objects into new ones
+                newly_created_objs = create_protein_evidence(old_obj, key_to_source, id_to_bioentity, key_to_sequence, id_to_strain)
+
+                if newly_created_objs is not None:
+                    #Edit or add new objects
+                    for newly_created_obj in newly_created_objs:
+                        unique_key = newly_created_obj.unique_key()
+                        if unique_key not in already_seen:
+                            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                            current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                                untouched_obj_ids.remove(current_obj_by_id.id)
+                            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                                untouched_obj_ids.remove(current_obj_by_key.id)
+                            already_seen.add(unique_key)
+
+            output_creator.finished()
+            new_session.commit()
+
+        #Delete untouched objs
+        for untouched_obj_id  in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+
+        #Commit
+        output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
+        new_session.commit()
+
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
+
+    log.info('complete')
     
 """
 ---------------------Convert------------------------------

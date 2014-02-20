@@ -3,8 +3,9 @@ Created on Jul 9, 2013
 
 @author: kpaskov
 '''
+from datetime import timedelta, date
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.reference import Bibentry, Abstract, AuthorReference, Author
+from model_new_schema.reference import Bibentry, Abstract, AuthorReference, Author, Reference
 from sgdbackend_query import session
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
@@ -93,3 +94,8 @@ def get_references_for_author(author_id, print_query=False):
     query = session.query(AuthorReference).filter(AuthorReference.author_id == author_id)
     author_refs = query.all()
     return [id_to_reference[author_ref.reference_id] for author_ref in author_refs]
+
+def get_references_this_week(print_query=False):
+    a_week_ago = date.today() - timedelta(days=7)
+    query = session.query(Reference).filter(Reference.date_created > a_week_ago)
+    return query.all()
