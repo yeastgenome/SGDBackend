@@ -583,14 +583,16 @@ class SGDBackend(BackendInterface):
         return json.dumps(view_binding.make_details(locus_id=locus_id, reference_id=reference_id))
 
     #Sequence
-    def sequence_details(self, identifier, are_ids=False):
+    def sequence_details(self, locus_identifier=None, contig_identifier=None, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_sequence
         if are_ids:
-            locus_id = identifier
+            locus_id = locus_identifier
+            contig_id = contig_identifier
         else:
-            locus_id = None if identifier is None else get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return json.dumps(view_sequence.make_details(locus_id))
+            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+            contig_id = None if contig_identifier is None else get_obj_id(contig_identifier, class_type='SEQUENCE', subclass_type='CONTIG')
+        return json.dumps(view_sequence.make_details(locus_id=locus_id, contig_id=contig_id))
 
     def protein_sequence_details(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
@@ -600,6 +602,16 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if identifier is None else get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return json.dumps(view_sequence.make_protein_details(locus_id))
+
+    def contig(self, identifier, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_sequence
+
+        if are_ids:
+            contig_id = identifier
+        else:
+            contig_id = get_obj_id(identifier, class_type='SEQUENCE', subclass_type='CONTIG')
+        return None if contig_id is None else json.dumps(view_sequence.make_contig(contig_id))
     
     #Misc
     def all_disambigs(self, min_id, max_id):

@@ -148,7 +148,11 @@ def condition_to_json(condition):
 def sequence_to_json(sequence):
     return {
         'residues': sequence.residues,
-        'length': sequence.length
+        'length': sequence.length,
+        'id': sequence.id,
+        'display_name': sequence.display_name,
+        'format_name': sequence.format_name,
+        'link': sequence.link
     }
 
 def sequence_label_to_json(sequence_label):

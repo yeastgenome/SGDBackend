@@ -97,6 +97,11 @@ class BackendInterface:
     def domain(self, identifier):
         return None
 
+    #Contig
+    @abstractmethod
+    def contig(self, identifier):
+        return None
+
     #ECNumber
     @abstractmethod
     def ec_number(self, identifier):

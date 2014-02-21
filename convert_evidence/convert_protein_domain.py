@@ -67,7 +67,7 @@ def create_domain_evidence(row, key_to_bioentity, key_to_domain, key_to_strain, 
                                      int(start), int(end), evalue, status, date_of_run, protein, domain, None, None)
     return [domain_evidence]
 
-def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source):
+def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source, protein_id_to_sequence):
     from model_new_schema.evidence import Domainevidence
     
     bioent_format_name = row[2].strip()
@@ -84,7 +84,7 @@ def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pu
     if protein is None:
         print bioent_key
         return []
-    end = protein.length
+    end = protein_id_to_sequence[protein.id].length
     
     domain_key = (db_identifier, 'DOMAIN')
     domain = None if domain_key not in key_to_domain else key_to_domain[domain_key]
@@ -219,31 +219,6 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
             
         id_to_current_obj = dict([(x.id, x) for x in untouched_obj_ids.values()])
         key_to_current_obj = dict([(x.unique_key(), x) for x in untouched_obj_ids.values()])
-            
-        #Grab JASPAR evidence from file
-        old_objs = break_up_file('data/TF_family_class_accession04302013.txt')
-        for old_obj in old_objs:
-            #Convert old objects into new ones
-            newly_created_objs = create_domain_evidence_from_tf_file(old_obj, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source)
-                
-            #Edit or add new objects
-            for newly_created_obj in newly_created_objs:
-                unique_key = newly_created_obj.unique_key()
-                if unique_key not in already_seen_obj:
-                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                    current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
-                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                        
-                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        del untouched_obj_ids[current_obj_by_id.id]
-                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        del untouched_obj_ids[current_obj_by_key.id]
-                else:
-                    print unique_key
-                already_seen_obj.add(unique_key)
-                        
-        output_creator.finished("1/2")
-        new_session.commit()
 
         #Grab protein_details
         old_session = old_session_maker()
@@ -260,6 +235,31 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
                     current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
                     create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
 
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        del untouched_obj_ids[current_obj_by_id.id]
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        del untouched_obj_ids[current_obj_by_key.id]
+                else:
+                    print unique_key
+                already_seen_obj.add(unique_key)
+
+        output_creator.finished("1/2")
+        new_session.commit()
+            
+        #Grab JASPAR evidence from file
+        old_objs = break_up_file('data/TF_family_class_accession04302013.txt')
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_domain_evidence_from_tf_file(old_obj, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source, {})
+                
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                unique_key = newly_created_obj.unique_key()
+                if unique_key not in already_seen_obj:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                        
                     if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
                         del untouched_obj_ids[current_obj_by_id.id]
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:

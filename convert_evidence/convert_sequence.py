@@ -5,6 +5,7 @@ Created on Sep 23, 2013
 '''
 from math import ceil
 from convert_core.convert_bioentity import create_protein_id
+from convert_other.convert_auxiliary import convert_disambigs
 from convert_utils import create_or_update
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
@@ -675,7 +676,7 @@ def convert_contig(new_session_maker):
         new_session = new_session_maker()
 
         #Values to check
-        values_to_check = ['display_name', 'residues']
+        values_to_check = ['display_name', 'residues', 'link']
 
         #Grab current objects
         current_objs = new_session.query(Contig).all()
@@ -688,7 +689,7 @@ def convert_contig(new_session_maker):
         already_seen = set()
 
         for filename, strain in sequence_files:
-            convert_strain_contig(filename, key_to_strain[strain], values_to_check, new_session, output_creator, id_to_current_obj, key_to_current_obj, already_seen, untouched_obj_ids)
+            convert_strain_contig(filename, key_to_strain[strain.replace('.', '')], values_to_check, new_session, output_creator, id_to_current_obj, key_to_current_obj, already_seen, untouched_obj_ids)
 
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -790,12 +791,14 @@ def convert_protein_evidence(old_session_maker, new_session_maker, chunk_size):
 def convert(new_session_maker):
 
     #convert_contig(new_session_maker)
+    from model_new_schema.sequence import Contig
+    convert_disambigs(new_session_maker, Contig, ['id', 'format_name'], 'SEQUENCE', 'CONTIG', 'convert.contig.disambigs', 1000)
 
     #convert_dna_sequence(new_session_maker)
     #convert_dna_evidence(new_session_maker)
     #convert_dna_sequence_label(new_session_maker)
 
-    convert_protein_sequence(new_session_maker, 1000)
+    #convert_protein_sequence(new_session_maker, 1000)
     #convert_protein_evidence(new_session_maker, 1000)
 
     #class SeqLab():

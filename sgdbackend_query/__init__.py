@@ -76,8 +76,12 @@ def get_all(cls, print_query=False, join=None):
         print query
     return objs
 
-def get_sequence_evidence(sequence_cls, bioent_id):
-    query = session.query(sequence_cls).options(joinedload('sequence')).filter(sequence_cls.bioentity_id == bioent_id)
+def get_sequence_evidence(sequence_cls, locus_id=None, contig_id=None):
+    query = session.query(sequence_cls).options(joinedload('sequence'))
+    if locus_id is not None:
+        query = query.filter(sequence_cls.bioentity_id == locus_id)
+    if contig_id is not None:
+        query = query.filter(sequence_cls.contig_id == contig_id)
     return query.all()
 
 two_bioent_evidence_cls = set([Geninteractionevidence, Physinteractionevidence, Regulationevidence])
@@ -208,6 +212,10 @@ def get_sequence_neighbors(evidence):
 
 def get_contigs(evidences):
     return session.query(Contig).filter(Contig.id.in_([x.contig_id for x in evidences])).all()
+
+def get_contig(contig_id):
+    return session.query(Contig).filter(Contig.id == contig_id).first()
+
 
 def get_evidence_snapshot(evidence_cls, attr_name):
     field = getattr(evidence_cls, attr_name)

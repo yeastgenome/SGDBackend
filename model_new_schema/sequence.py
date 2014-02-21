@@ -13,6 +13,7 @@ class Sequence(Base, EqualityByIDMixin):
     id = Column('biosequence_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
+    link = Column('obj_url', String)
     class_type = Column('subclass', String)
     residues = Column('residues', CLOB)
     length = Column('length', Integer)
@@ -21,10 +22,11 @@ class Sequence(Base, EqualityByIDMixin):
 
     __mapper_args__ = {'polymorphic_on': class_type}
 
-    def __init__(self, display_name, format_name, class_type, residues,
+    def __init__(self, display_name, format_name, link, class_type, residues,
                  date_created, created_by):
         self.display_name = display_name
         self.format_name = format_name
+        self.link = link
         self.class_type = class_type
         self.residues = residues
         self.length = len(residues)
@@ -40,7 +42,7 @@ class Dnasequence(Sequence):
 
     def __init__(self, residues):
         hash = hashlib.md5(residues).hexdigest()
-        Sequence.__init__(self, 'Sequence: ' + hash, hash, 'DNA', residues, None, None)
+        Sequence.__init__(self, 'Sequence: ' + hash, hash, None, 'DNA', residues, None, None)
 
 class Rnasequence(Sequence):
     __mapper_args__ = {'polymorphic_identity': "RNA",
@@ -48,7 +50,7 @@ class Rnasequence(Sequence):
 
     def __init__(self, residues):
         hash = hashlib.md5(residues).hexdigest()
-        Sequence.__init__(self, 'Sequence: ' + hash, hash, 'RNA', residues, None, None)
+        Sequence.__init__(self, 'Sequence: ' + hash, hash, None, 'RNA', residues, None, None)
 
 class Proteinsequence(Sequence):
     __tablename__ = "proteinbiosequence"
@@ -61,7 +63,7 @@ class Proteinsequence(Sequence):
 
     def __init__(self, residues, dnasequence, date_created=None, created_by=None):
         hash = hashlib.md5(residues).hexdigest()
-        Sequence.__init__(self, 'Sequence: ' + hash, str(dnasequence.id),
+        Sequence.__init__(self, 'Sequence: ' + hash, str(dnasequence.id), None,
                            'PROTEIN', residues, date_created, created_by)
         self.dnasequence_id = dnasequence.id
 
@@ -71,4 +73,4 @@ class Contig(Sequence):
 
     def __init__(self, display_name, residues, strain):
         format_name = strain.format_name + '_' + display_name
-        Sequence.__init__(self, display_name, format_name, 'CONTIG', residues, None, None)
+        Sequence.__init__(self, display_name, format_name, '/contig/' + format_name + '/overview', 'CONTIG', residues, None, None)

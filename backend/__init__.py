@@ -413,11 +413,18 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('ec_number_details'))
 
     #Sequence views
-    config.add_route('sequence_details',
+    config.add_route('sequence__bioent_details',
                      '/locus/{identifier}/sequence_details',
                      view=lambda request: chosen_backend.response_wrapper('sequence_details', request)(
                                 getattr(chosen_backend, 'sequence_details')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('sequence_details'))
+
+    config.add_route('sequence_contig_details',
+                     '/contig/{identifier}/sequence_details',
+                     view=lambda request: chosen_backend.response_wrapper('sequence_details', request)(
+                                getattr(chosen_backend, 'sequence_details')(
+                                        contig_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('sequence_details'))
 
     config.add_route('protein_sequence_details',
@@ -433,6 +440,13 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'protein_phosphorylation_details')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('protein_phosphorylation_details'))
+
+    config.add_route('contig',
+                     '/contig/{identifier}/overview',
+                     view=lambda request: chosen_backend.response_wrapper('contig', request)(
+                                getattr(chosen_backend, 'contig')(
+                                        identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('contig'))
 
 
     
