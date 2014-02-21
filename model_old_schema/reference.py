@@ -120,16 +120,16 @@ class DbxrefRef(Base, EqualityByIDMixin):
     
     dbxref = relationship(Dbxref, uselist=False, lazy='joined')
     reference = relationship(Reference, uselist=False, backref='dbxrefrefs')
-    
+
 class Ref_URL(Base):
     __tablename__ = 'ref_url'
-    
+
     id = Column('ref_url_no', Integer, primary_key = True)
     reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
     url_id = Column('url_no', Integer, ForeignKey(Url.id))
-    
-    url = relationship(Url)
-    reference = relationship(Reference)
+
+    url = relationship(Url, uselist=False)
+    reference = relationship(Reference, uselist=False)
     
 class RefTemp(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = 'ref_temp'

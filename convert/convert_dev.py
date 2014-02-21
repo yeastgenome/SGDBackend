@@ -18,9 +18,9 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_bioitem()
 
     #pastry_dev_converter.convert_evelements()
-    #pastry_dev_converter.convert_reference()
+    pastry_dev_converter.convert_reference()
     #pastry_dev_converter.convert_bioentity()
-    pastry_dev_converter.convert_bioconcept()
+    #pastry_dev_converter.convert_bioconcept()
     #pastry_dev_converter.convert_bioitem()
     #pastry_dev_converter.convert_chemical()
 
