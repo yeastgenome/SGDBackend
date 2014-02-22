@@ -109,7 +109,8 @@ def strain_to_json(strain):
             'display_name': strain.display_name,
             'description': strain.description,
             'link': strain.link,
-            'id': strain.id
+            'id': strain.id,
+            'is_alternative_reference': strain.is_alternative_reference
             }
     
 def condition_to_json(condition):

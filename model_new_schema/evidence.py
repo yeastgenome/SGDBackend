@@ -455,11 +455,11 @@ class Phosphorylationevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "PHOSPHORYLATION",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, source, bioentity, site_index, site_residue, date_created, created_by):
+    def __init__(self, source, reference, experiment, bioentity, site_index, site_residue, date_created, created_by):
         Evidence.__init__(self,
                           bioentity.display_name + ' has ' + site_residue + str(site_index),
-                          bioentity.format_name + '_' + site_residue + '_' + str(site_index),
-                          'PHOSPHORYLATION', source, None, None, None, None,
+                          bioentity.format_name + '_' + site_residue + '_' + str(site_index) + ('' if reference is None else '_' + str(reference.id)),
+                          'PHOSPHORYLATION', source, reference, None, experiment, None,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
         self.site_index = site_index

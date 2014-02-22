@@ -16,7 +16,9 @@ import sys
 --------------------- Convert Phosphorylation Evidence ---------------------
 """
 
-def create_phosphorylation_evidence(row, key_to_source, key_to_bioentity):
+kinase_reference_id_to_num_annotations = {}
+kinase_references_not_in_db = set()
+def create_phosphorylation_evidence(row, key_to_source, key_to_bioentity, pubmed_id_to_reference):
     from model_new_schema.evidence import Phosphorylationevidence
     source = key_to_source['PhosphoGRID']
     if len(row) == 19:
@@ -28,13 +30,34 @@ def create_phosphorylation_evidence(row, key_to_source, key_to_bioentity):
         site_index = int(row[2][1:])
         site_residue = row[2][0]
 
-        return [Phosphorylationevidence(source, bioentity, site_index, site_residue, None, None)]
+        experiment = None
+
+        pmids_we_dont_have = [x for x in row[4].split('|') if x not in pubmed_id_to_reference]
+        if len(pmids_we_dont_have) > 0:
+            print pmids_we_dont_have
+
+        kinase_references = row[12].split('|')
+        for kinase_ref in kinase_references:
+            if kinase_ref in kinase_reference_id_to_num_annotations:
+                kinase_reference_id_to_num_annotations[kinase_ref] = kinase_reference_id_to_num_annotations[kinase_ref] + 1
+            else:
+                kinase_reference_id_to_num_annotations[kinase_ref] = 1
+            if kinase_ref not in pubmed_id_to_reference:
+                kinase_references_not_in_db.add(kinase_ref)
+
+        references = filter(None, [None if x not in pubmed_id_to_reference else pubmed_id_to_reference[x] for x in row[4].split('|')])
+        if len(references) > 0:
+            return [Phosphorylationevidence(source, x, experiment, bioentity, site_index, site_residue, None, None) for x in references]
+        else:
+            return [Phosphorylationevidence(source, None, experiment, bioentity, site_index, site_residue, None, None)]
+
     return []
 
 def convert_phosphorylation_evidence(new_session_maker, chunk_size):
     from model_new_schema.evidence import Phosphorylationevidence
     from model_new_schema.evelements import Source
     from model_new_schema.bioentity import Bioentity
+    from model_new_schema.reference import Reference
 
     log = logging.getLogger('convert.phosphorylation.evidence')
     log.info('begin')
@@ -49,6 +72,7 @@ def convert_phosphorylation_evidence(new_session_maker, chunk_size):
         #Grab cached dictionaries
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])
+        pubmed_id_to_reference = dict([(str(x.pubmed_id), x) for x in new_session.query(Reference).all()])
 
         #Grab current objects
         current_objs = new_session.query(Phosphorylationevidence).all()
@@ -67,7 +91,7 @@ def convert_phosphorylation_evidence(new_session_maker, chunk_size):
 
             for old_obj in old_objs[min_id:max_id]:
                 #Convert old objects into new ones
-                newly_created_objs = create_phosphorylation_evidence(old_obj, key_to_source, key_to_bioentity)
+                newly_created_objs = create_phosphorylation_evidence(old_obj, key_to_source, key_to_bioentity, pubmed_id_to_reference)
 
                 if newly_created_objs is not None:
                     #Edit or add new objects
@@ -86,6 +110,9 @@ def convert_phosphorylation_evidence(new_session_maker, chunk_size):
 
             output_creator.finished()
             new_session.commit()
+
+        print kinase_reference_id_to_num_annotations
+        print kinase_references_not_in_db
 
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:

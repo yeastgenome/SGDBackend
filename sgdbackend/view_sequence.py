@@ -66,6 +66,7 @@ def make_evidence_row(seqevidence, id_to_labels, id_to_neighbors, id_to_contig):
 
     obj_json = evidence_to_json(seqevidence).copy()
     obj_json['strain']['description'] = id_to_strain[seqevidence.strain_id]['description']
+    obj_json['strain']['is_alternative_reference'] = id_to_strain[seqevidence.strain_id]['is_alternative_reference']
     obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
     obj_json['sequence'] = sequence_to_json(seqevidence.sequence)
     obj_json['sequence_labels'] = [] if seqevidence.id not in id_to_labels else sorted([sequence_label_to_json(x) for x in id_to_labels[seqevidence.id]], key=lambda x: x['relative_start'])
