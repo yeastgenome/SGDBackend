@@ -5,7 +5,7 @@ Created on Jul 9, 2013
 '''
 from datetime import timedelta, date
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.reference import Bibentry, Abstract, AuthorReference, Author, Reference
+from model_new_schema.reference import Bibentry, Abstract, AuthorReference, Author, Reference, Referencerelation
 from sgdbackend_query import session
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
@@ -72,6 +72,10 @@ def get_authors_for_reference(reference_id, print_query=False):
     author_refs = query.all()
     author_refs.sort(key=lambda x: x.order)
     return [author_to_json(author_ref.author) for author_ref in author_refs]
+
+def get_related_references(reference_id):
+    query = session.query(Referencerelation).filter(or_(Referencerelation.parent_id == reference_id, Referencerelation.child_id == reference_id))
+    return query.all()
 
 def get_author(author_identifier):
     try:
