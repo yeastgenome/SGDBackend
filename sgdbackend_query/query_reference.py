@@ -5,7 +5,7 @@ Created on Jul 9, 2013
 '''
 from datetime import timedelta, date
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.reference import Bibentry, Abstract, AuthorReference, Author, Reference, Referencerelation
+from model_new_schema.reference import Bibentry, Abstract, AuthorReference, Author, Reference, Referencerelation, ReferenceReftype
 from sgdbackend_query import session
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
@@ -66,6 +66,10 @@ def get_bibentry(reference_id, print_query=False):
     if len(bibentries) == 1:
         return bibentries[0].text
     return None
+
+def get_reftypes(reference_id, print_query=False):
+    query = session.query(ReferenceReftype).options(joinedload(ReferenceReftype.reftype)).filter(ReferenceReftype.reference_id == reference_id)
+    return [x.reftype.display_name for x in query.all()]
 
 def get_authors_for_reference(reference_id, print_query=False):
     query = session.query(AuthorReference).options(joinedload("author")).filter(AuthorReference.reference_id == reference_id)

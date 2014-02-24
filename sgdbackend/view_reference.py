@@ -2,7 +2,7 @@ from sgdbackend import view_literature
 
 __author__ = 'kpaskov'
 
-from sgdbackend_query.query_reference import get_abstract, get_bibentry, get_authors_for_reference, get_references_for_author, get_author, get_references_this_week, get_related_references
+from sgdbackend_query.query_reference import get_abstract, get_bibentry, get_authors_for_reference, get_references_for_author, get_author, get_references_this_week, get_related_references, get_reftypes
 from sgdbackend_utils import link_gene_names, id_to_reference
 from sgdbackend_query.query_auxiliary import get_bioentity_references
 
@@ -15,6 +15,7 @@ def make_overview(reference_id):
     abstract = get_abstract(reference_id)
     reference['abstract'] = None if abstract is None else link_gene_names(abstract)
     reference['bibentry'] = get_bibentry(reference_id)
+    reference['reftypes'] = get_reftypes(reference_id)
     reference['authors'] = get_authors_for_reference(reference_id)
     bioentity_references = get_bioentity_references(reference_id=reference_id)
     reference['counts'] = {'interaction': len([x for x in bioentity_references if x.class_type == 'PHYSINTERACTION' or x.class_type == 'GENINTERACTION']),
@@ -27,6 +28,7 @@ def make_overview(reference_id):
     for refrel in related_references:
         abstract = get_abstract(refrel['id'])
         refrel['abstract'] = None if abstract is None else link_gene_names(abstract)
+        refrel['reftypes'] = get_reftypes(refrel['id'])
 
     reference['related_references'] = related_references
 
