@@ -3,13 +3,15 @@ Created on May 28, 2013
 
 @author: kpaskov
 '''
+import logging
+import sys
+
 from convert_utils import create_or_update
 from mpmath import ceil
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func
-import logging
-import sys
+
 
 """
 --------------------- Convert Bioentity Reference ---------------------
@@ -37,8 +39,7 @@ def create_bioentity_reference_from_paragraph(paragraph, class_type):
 def convert_bioentity_reference(new_session_maker, evidence_class, class_type, label, chunk_size, get_bioent_ids_f, 
                                 filter_f=None):
     from model_new_schema.auxiliary import BioentityReference
-    from model_new_schema.paragraph import Paragraph
-    
+
     log = logging.getLogger(label)
     log.info('begin')
     output_creator = OutputCreator(log)
@@ -143,6 +144,8 @@ def create_disambigs(obj, fields, class_type, subclass_type):
     field_values = set()
     for field in fields:
         field_value = getattr(obj, field)
+        if field == 'doi':
+            field_value = None if field_value is None else 'doi:' + field_value.lower()
         if field_value is not None and (field == 'id' or field == 'pubmed_id' or not is_number(field_value)):
             field_values.add(field_value)
     
