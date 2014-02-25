@@ -1,3 +1,6 @@
+import json
+import uuid
+
 from backend.backend_interface import BackendInterface
 from go_enrichment import query_batter
 from mpmath import ceil
@@ -10,11 +13,10 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker, joinedload, subqueryload
 from sqlalchemy.schema import MetaData
-from sqlalchemy.sql.expression import select
+from sqlalchemy.sql.expression import select, func
 from zope.sqlalchemy import ZopeTransactionExtension
-import json
 import model_perf_schema
-import uuid
+
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
@@ -442,7 +444,7 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
     
     if identifier is None:
         return None
-    query = DBSession.query(Disambig).filter(Disambig.disambig_key==identifier)
+    query = DBSession.query(Disambig).filter(func.lower(Disambig.disambig_key)==func.lower(str(identifier)))
     if class_type is not None:
         query = query.filter(Disambig.class_type==class_type)
     if subclass_type is not None:

@@ -163,7 +163,7 @@ class Disambig(Base, EqualityByIDMixin):
     identifier = Column('obj_id', String)
     
     def __init__(self, disambig_key, class_type, subclass_type, identifier):
-        self.disambig_key = disambig_key
+        self.disambig_key = disambig_key.replace('/', '-').replace(' ', '_')
         self.class_type = class_type
         self.subclass_type = subclass_type
         self.identifier = identifier
