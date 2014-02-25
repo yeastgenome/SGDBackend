@@ -160,7 +160,9 @@ def sequence_label_to_json(sequence_label):
     return {
         'display_name': sequence_label.display_name,
         'relative_start': sequence_label.relative_start,
-        'relative_end': sequence_label.relative_end
+        'relative_end': sequence_label.relative_end,
+        'chromosomal_start': sequence_label.chromosomal_start,
+        'chromosomal_end': sequence_label.chromosomal_end
     }
     
 def reference_to_json(reference):

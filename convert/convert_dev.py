@@ -6,7 +6,6 @@ Created on Oct 24, 2013
 
 from convert import config
 from convert.bud_nex_converter import BudNexConverter
-from convert.nex_perf_converter import NexPerfConverter
 
 if __name__ == "__main__":   
     #Pastry -> Dev_nex
@@ -17,8 +16,8 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_daily()
     #pastry_dev_converter.convert_bioitem()
 
-    #pastry_dev_converter.convert_evelements()
-    pastry_dev_converter.convert_reference()
+    pastry_dev_converter.convert_evelements()
+    #pastry_dev_converter.convert_reference()
     #pastry_dev_converter.convert_bioentity()
     #pastry_dev_converter.convert_bioconcept()
     #pastry_dev_converter.convert_bioitem()

@@ -3,12 +3,14 @@ Created on Jun 4, 2013
 
 @author: kpaskov
 '''
+import logging
+import sys
+
 from convert_utils import create_or_update, create_format_name, break_up_file, \
     read_obo
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
-import logging
-import sys
+
 
 #Recorded times: 
 #Maitenance (cherry-vm08): 0:01, 
@@ -357,6 +359,8 @@ def convert_experiment_relation(old_session_maker, new_session_maker):
 --------------------- Convert Strain ---------------------
 """
 
+alternative_reference_strains = {'CEN.PK', 'D273-10B', 'FL100', 'JK9-3d', 'RM11-1a', 'SEY6210', 'SK1', 'Sigma1278b', 'W303', 'X2180-1A', 'Y55'}
+
 def create_strain(old_cv_term, key_to_source):
     from model_new_schema.evelements import Strain as NewStrain
     
@@ -365,7 +369,7 @@ def create_strain(old_cv_term, key_to_source):
     
     source = key_to_source['SGD']
     
-    new_strain = NewStrain(display_name, source, description, 0,
+    new_strain = NewStrain(display_name, source, description, 1 if display_name in alternative_reference_strains else 0,
                                old_cv_term.date_created, old_cv_term.created_by)
     return [new_strain]
 
@@ -417,7 +421,7 @@ def convert_strain(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['display_name', 'link', 'description']
+        values_to_check = ['display_name', 'link', 'description', 'is_alternative_reference']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
