@@ -7,7 +7,7 @@ from model_new_schema.evidence import Domainevidence, Phosphorylationevidence
 from sgdbackend_query import get_evidence
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_bioitem
-from sgdbackend_utils.obj_to_json import minimize_json, evidence_to_json
+from sgdbackend_utils.obj_to_json import evidence_to_json
 
 # -------------------------------Overview---------------------------------------
 def make_overview(protein_id):
@@ -63,7 +63,7 @@ def create_bioent_node(bioent, is_focus):
 
 def create_domain_node(bioitem):
     return {'data':{'id':'DomainNode' + str(bioitem['id']), 'name':bioitem['display_name'], 'link': bioitem['link'],
-                    'sub_type':None, 'type': 'BIOITEM'}}
+                    'sub_type':None, 'type': 'BIOITEM', 'source': bioitem['source']}}
 
 def create_edge(bioent_id, domain_id):
     return {'data':{'target': 'BioentNode' + str(bioent_id), 'source': 'DomainNode' + str(domain_id)}}
