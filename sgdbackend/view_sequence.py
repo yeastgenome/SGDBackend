@@ -3,14 +3,11 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from go_enrichment import query_batter
-from model_new_schema.bioconcept import Bioconceptrelation
 from model_new_schema.evidence import Sequenceevidence, Proteinsequenceevidence
 from mpmath import sqrt, ceil
 from sgdbackend_query import get_sequence_evidence, get_sequence_labels, get_sequence_neighbors, get_contigs, get_contig
-from sgdbackend_query.query_misc import get_relations
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_biocon, id_to_bioent, id_to_strain
+from sgdbackend_utils.cache import id_to_bioent, id_to_strain
 from sgdbackend_utils.obj_to_json import sequence_to_json, minimize_json, \
     evidence_to_json, sequence_label_to_json
 
@@ -67,7 +64,7 @@ def make_evidence_row(seqevidence, id_to_labels, id_to_neighbors, id_to_contig):
     obj_json = evidence_to_json(seqevidence).copy()
     obj_json['strain']['description'] = id_to_strain[seqevidence.strain_id]['description']
     obj_json['strain']['is_alternative_reference'] = id_to_strain[seqevidence.strain_id]['is_alternative_reference']
-    obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
+    obj_json['bioentity'] = id_to_bioent[bioentity_id]
     obj_json['sequence'] = sequence_to_json(seqevidence.sequence)
     obj_json['sequence_labels'] = [] if seqevidence.id not in id_to_labels else sorted([sequence_label_to_json(x) for x in id_to_labels[seqevidence.id]], key=lambda x: x['relative_start'])
     obj_json['neighbors'] = [] if seqevidence.id not in id_to_neighbors else id_to_neighbors[seqevidence.id]
