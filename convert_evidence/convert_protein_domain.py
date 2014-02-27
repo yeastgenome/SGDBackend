@@ -3,13 +3,15 @@ Created on Sep 20, 2013
 
 @author: kpaskov
 '''
+import logging
+import sys
+
 from convert_core.convert_bioentity import create_protein_id
 from convert_utils import create_or_update, break_up_file, create_format_name
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 from mpmath import ceil, floor
-import logging
-import sys
+
 
 #Recorded times: 
   
@@ -114,7 +116,7 @@ def create_domain_evidence_from_protein_info(protein_detail, id_to_bioentity, ke
         domain_key = ('predicted_signal_peptide', 'DOMAIN')
         source = key_to_source['SignalP']
     else:
-        print 'Type not handled: ' + protein_detail.type
+        #print 'Type not handled: ' + protein_detail.type
         return []
 
     domain = None if domain_key is None or domain_key not in key_to_domain else key_to_domain[domain_key]

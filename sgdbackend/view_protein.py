@@ -33,6 +33,7 @@ def make_evidence_row(domain_evidence):
     obj_json['evalue'] = domain_evidence.evalue
     obj_json['status'] = domain_evidence.status
     obj_json['date_of_run'] = domain_evidence.date_of_run
+    obj_json['domain']['count'] = len(set([x.bioentity_id for x in get_evidence(Domainevidence, bioitem_id=domain_evidence.bioitem_id)]))
     return obj_json
 
 '''
@@ -72,7 +73,6 @@ def make_graph(protein_id):
 
     #Get domains for protein
     domain_ids = set([x.bioitem_id for x in get_evidence(Domainevidence, bioent_id=protein_id) if x.domain.display_name != 'seg' ])
-    unique_domains = []
 
     domain_id_to_bioent_ids = {}
     bioent_id_to_domain_ids = {}
@@ -81,8 +81,6 @@ def make_graph(protein_id):
     for domain_id in domain_ids:
         domain_domainevidences = get_evidence(Domainevidence, bioitem_id=domain_id)
         all_relevant_edges.update([(x.bioentity_id, x.bioitem_id) for x in domain_domainevidences if x.domain.display_name != 'seg' ])
-        if len(set([x.bioentity_id for x in domain_domainevidences])) == 1:
-            unique_domains.extend([make_evidence_row(x) for x in domain_domainevidences])
 
     for edge in all_relevant_edges:
         bioentity_id = edge[0]
@@ -124,6 +122,6 @@ def make_graph(protein_id):
 
         edges = [create_edge(evidence[0], evidence[1]) for evidence in edges_in_use]
 
-        return {'nodes': nodes, 'edges': edges, 'max_cutoff': max(bioent_to_score.values()), 'min_cutoff':cutoff if len(bioent_ids_in_use) == 1 else min([bioent_to_score[x] for x in bioent_ids_in_use if x != protein_id]), 'unique_domains':unique_domains}
+        return {'nodes': nodes, 'edges': edges, 'max_cutoff': max(bioent_to_score.values()), 'min_cutoff':cutoff if len(bioent_ids_in_use) == 1 else min([bioent_to_score[x] for x in bioent_ids_in_use if x != protein_id])}
     else:
-        return {'nodes':[], 'edges':[], 'max_cutoff':0, 'min_cutoff':0, 'unique_domains':unique_domains}
+        return {'nodes':[], 'edges':[], 'max_cutoff':0, 'min_cutoff':0}

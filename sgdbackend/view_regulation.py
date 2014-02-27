@@ -4,10 +4,10 @@ Created on Mar 15, 2013
 @author: kpaskov
 '''
 from model_new_schema.evidence import Regulationevidence
-from sgdbackend_query import get_evidence, get_conditions, get_evidence_over_time, get_evidence_snapshot, get_interaction_snapshot, get_snapshot_with_filter
+from sgdbackend_query import get_evidence, get_conditions, get_evidence_snapshot
 from sgdbackend_query.query_auxiliary import get_interactions, \
     get_interactions_among
-from sgdbackend_query.query_paragraph import get_paragraph, get_paragraph_references
+from sgdbackend_query.query_paragraph import get_paragraph
 from sgdbackend_utils import create_simple_table
 from sgdbackend_utils.cache import id_to_bioent, id_to_experiment
 from sgdbackend_utils.obj_to_json import paragraph_to_json, condition_to_json, \
@@ -51,12 +51,7 @@ def make_details(locus_id=None, reference_id=None):
         else:
             id_to_conditions[evidence_id] = [condition]
 
-    table = {}
-    table['evidence'] = create_simple_table(regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
-    if reference_id is not None:
-        table['paragraph_bioentities'] = [minimize_json(id_to_bioent[x.paragraph.bioentity_id]) for x in get_paragraph_references(reference_id, 'REGULATION')]
-
-    return table
+    return create_simple_table(regevidences, make_evidence_row, id_to_conditions=id_to_conditions)
 
 def make_evidence_row(regevidence, id_to_conditions): 
     conditions = [] if regevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[regevidence.id]]
