@@ -3,11 +3,12 @@ Created on Oct 29, 2013
 
 @author: kpaskov
 '''
+import json
+import sys
+
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
-import json
-import logging
-import sys
+
 
 """
 --------------------- Convert Disambig ---------------------
@@ -288,7 +289,7 @@ def convert_reference(session_maker, backend, log, chunk_size):
         min_reference_id = 0
         max_reference_id = 100000
         num_chunks = ceil(1.0*(max_reference_id-min_reference_id)/chunk_size)
-        for i in range(0, num_chunks):
+        for i in reversed(range(0, num_chunks)):
             min_id = min_reference_id + i*chunk_size
             max_id = min_reference_id + (i+1)*chunk_size
             
