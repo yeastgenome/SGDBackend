@@ -3,13 +3,15 @@ Created on Sep 10, 2013
 
 @author: kpaskov
 '''
+import logging
+import sys
+
 from convert_other.convert_auxiliary import convert_bioentity_reference, \
     convert_interaction
 from convert_utils import create_or_update, create_format_name, break_up_file
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil, floor
-import logging
-import sys
+
 
 #Recorded times:
 #First Load (sgd-ng1): 28:31
@@ -48,8 +50,9 @@ def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, 
     #unknown_field1 = row[7]
     #unknown_field2 = row[8]
     #unknown_field3 = row[9]
-    pubmed_id = int(row[10].strip())
-    source_key = row[11].strip()
+    #unknown_field4 = row[10]
+    pubmed_id = int(row[11].strip())
+    source_key = row[12].strip()
     
     bioent1_key = (bioent1_format_name, 'LOCUS') 
     bioent1 = None if bioent1_key not in key_to_bioent else key_to_bioent[bioent1_key]
