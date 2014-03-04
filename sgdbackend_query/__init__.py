@@ -1,18 +1,19 @@
-from datetime import datetime, timedelta, time
-from model_new_schema.auxiliary import Disambig, Interaction, Biofact
+from datetime import datetime, timedelta
+from model_new_schema.auxiliary import Disambig, Interaction
 from model_new_schema.bioconcept import Bioconceptrelation
 from model_new_schema.chemical import Chemicalrelation
-from model_new_schema.condition import Condition, Temperaturecondition, \
+from model_new_schema.condition import Temperaturecondition, \
     Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition, \
     Chemicalcondition
 from model_new_schema.evidence import Geninteractionevidence, \
     Physinteractionevidence, Regulationevidence, Evidence, SequenceLabel, Sequenceevidence
 from mpmath import ceil
 from model_new_schema.sequence import Contig
-from sgdbackend import DBSession
+
 from sqlalchemy.orm import joinedload, subqueryload_all, subqueryload
 from sqlalchemy.orm.util import with_polymorphic
 from sqlalchemy.sql.expression import func, or_
+from sgdbackend import DBSession
 
 session = DBSession
 

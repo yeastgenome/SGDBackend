@@ -3,12 +3,14 @@ Created on May 31, 2013
 
 @author: kpaskov
 '''
+from model_new_schema.bioentity import Bioentity
 from model_new_schema.evidence import Literatureevidence
+from model_new_schema.reference import Reference
 from sgdbackend_query import get_evidence
 
 from sgdbackend_query.query_auxiliary import get_bioentity_references
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_reference, id_to_bioent
+from sgdbackend_utils.cache import get_objs, get_obj
 from sgdbackend_utils.obj_to_json import evidence_to_json, minimize_json
 
 '''
@@ -67,7 +69,7 @@ def make_references(bioent_ref_types, bioent_id, only_primary=False):
         primary_ids = set([x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
         reference_ids.intersection_update(primary_ids)
 
-    references = [id_to_reference[reference_id] for reference_id in reference_ids]
+    references = get_objs(Reference, reference_ids).values()
     references.sort(key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
     return references
 
@@ -75,7 +77,7 @@ def make_evidence_row(litevidence):
     bioentity_id = litevidence.bioentity_id
 
     obj_json = evidence_to_json(litevidence).copy()
-    obj_json['bioentity'] = minimize_json(id_to_bioent[bioentity_id], include_format_name=True)
+    obj_json['bioentity'] = minimize_json(get_obj(Bioentity, bioentity_id), include_format_name=True)
     obj_json['topic'] = litevidence.topic
     return obj_json
 
@@ -148,13 +150,13 @@ def make_graph(bioent_id):
     nodes = {}
     nodes_ive_seen = set()
     for reference_id in top_references:
-        nodes['Ref' + str(reference_id)] = create_litguide_ref_node(id_to_reference[reference_id], False)
+        nodes['Ref' + str(reference_id)] = create_litguide_ref_node(get_obj(Reference, reference_id), False)
         for neigh_id in reference_id_to_bioent_ids[reference_id]:
             if neigh_id in nodes_ive_seen:
-                nodes[neigh_id] = create_litguide_bioent_node(id_to_bioent[neigh_id], False)
+                nodes[neigh_id] = create_litguide_bioent_node(get_obj(Bioentity, neigh_id), False)
             else:
                 nodes_ive_seen.add(neigh_id)
-    nodes[bioent_id] = create_litguide_bioent_node(id_to_bioent[bioent_id], True)
+    nodes[bioent_id] = create_litguide_bioent_node(get_obj(Bioentity, bioent_id), True)
      
     edges = []           
     for reference_id in top_references:
@@ -164,10 +166,3 @@ def make_graph(bioent_id):
         
     
     return {'nodes': nodes.values(), 'edges': edges}
-    
-'''
--------------------------------Snapshot---------------------------------------
-'''
-def make_snapshot():
-    snapshot = {}
-    return snapshot

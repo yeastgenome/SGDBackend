@@ -1,9 +1,9 @@
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
-import sys
 
-def prep_views(chosen_backend, config):  
+
+def prep_views(chosen_backend, config):
     
     #Chemical views
     config.add_route('chemical', 
@@ -426,13 +426,6 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'sequence_details')(
                                         contig_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('sequence_details'))
-
-    config.add_route('protein_sequence_details',
-                     '/locus/{identifier}/protein_sequence_details',
-                     view=lambda request: chosen_backend.response_wrapper('protein_sequence_details', request)(
-                                getattr(chosen_backend, 'protein_sequence_details')(
-                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('protein_sequence_details'))
 
     config.add_route('protein_phosphorylation_details',
                      '/locus/{identifier}/protein_phosphorylation_details',

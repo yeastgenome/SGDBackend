@@ -3,19 +3,12 @@ Created on Aug 9, 2013
 
 @author: kpaskov
 '''
-def locus_to_json(bioent):
-    bioent_json = bioent_to_json(bioent)
-    bioent_json['locus_type'] = bioent.locus_type
-    bioent_json['aliases'] = [x.display_name for x in bioent.aliases]
-    return bioent_json
-
-def protein_to_json(bioent, id_to_bioent):
-    bioent_json = bioent_to_json(bioent)
-    bioent_json['locus'] = minimize_json(id_to_bioent[bioent.locus_id], include_format_name=True)
-    return bioent_json
 
 def bioent_to_json(bioent):
-    return {
+    from sgdbackend_utils.cache import get_obj
+    from model_new_schema.bioentity import Bioentity
+
+    bioent_json = {
             'id': bioent.id,
             'format_name': bioent.format_name,
             'display_name': bioent.display_name, 
@@ -24,21 +17,37 @@ def bioent_to_json(bioent):
             'sgdid': bioent.sgdid,
             'description': bioent.description
             }
+
+    if bioent.class_type == 'LOCUS':
+        bioent_json['locus_type'] = bioent.locus_type
+        bioent_json['aliases'] = [x.display_name for x in bioent.aliases]
+    elif bioent.class_type == 'COMPLEX':
+        bioent_json['cellular_localization'] = bioent.cellular_localization
+        bioent_json['go'] = minimize_json(biocon_to_json(bioent.go))
+    elif bioent.class_type == 'TRANSCRIPT':
+        bioent_json['locus'] = minimize_json(bioent_to_json(get_obj(Bioentity, bioent.locus_id), include_format_name=True))
+    elif bioent.class_type == 'PROTEIN':
+        bioent_json['locus'] = minimize_json(bioent_to_json(get_obj(Bioentity, bioent.locus_id), include_format_name=True))
+
+    return bioent_json
     
-def bioitem_to_json(bioitem, id_to_source):
-    return {
+def bioitem_to_json(bioitem):
+    from model_new_schema.evelements import Source
+    from sgdbackend_utils.cache import get_obj
+
+    bioitem_json = {
             'display_name': bioitem.display_name, 
             'link': bioitem.link,
             'id': bioitem.id,
             'description': bioitem.description,
-            'source': None if bioitem.source_id is None else id_to_source[bioitem.source_id]
+            'source': None if bioitem.source_id is None else get_obj(Source, bioitem.source_id)
             }
 
-def domain_to_json(bioitem, id_to_source):
-    bioitem_json = bioitem_to_json(bioitem, id_to_source)
-    bioitem_json['interpro_id'] = bioitem.interpro_id;
-    bioitem_json['interpro_description'] = bioitem.interpro_description
-    bioitem_json['external_link'] = bioitem.external_link
+    if bioitem.class_type == 'DOMAIN':
+        bioitem_json['interpro_id'] = bioitem.interpro_id
+        bioitem_json['interpro_description'] = bioitem.interpro_description
+        bioitem_json['external_link'] = bioitem.external_link
+
     return bioitem_json
 
 def chemical_to_json(chem):
@@ -62,29 +71,8 @@ def author_to_json(author):
 def source_to_json(source):
     return source.display_name
     
-def go_to_json(biocon):
-    biocon_json = biocon_to_json(biocon)
-    biocon_json['go_id'] = biocon.go_id
-    biocon_json['go_aspect'] = biocon.go_aspect
-    biocon_json['aliases'] = [x.display_name for x in biocon.aliases]
-    return biocon_json
-
-def phenotype_to_json(biocon):
-    biocon_json = biocon_to_json(biocon)
-    biocon_json['observable'] = biocon.observable
-    biocon_json['qualifier'] = biocon.qualifier
-    biocon_json['is_core'] = biocon.is_core
-    biocon_json['ancestor_type'] = biocon.ancestor_type
-    return biocon_json
-
-def complex_to_json(bioent, id_to_biocon):
-    bioent_json = bioent_to_json(bioent)
-    bioent_json['cellular_localization'] = bioent.cellular_localization
-    bioent_json['go'] = minimize_json(id_to_biocon[bioent.go_id])
-    return bioent_json
-    
 def biocon_to_json(biocon):
-    return {
+    biocon_json = {
             'format_name': biocon.format_name,
             'display_name': biocon.display_name, 
             'description': biocon.description, 
@@ -94,6 +82,18 @@ def biocon_to_json(biocon):
             'count': 0 if biocon.count is None else biocon.count.genecount,
             'child_count': 0 if biocon.count is None else biocon.count.child_gene_count
             }
+
+    if biocon.class_type == 'GO':
+        biocon_json['go_id'] = biocon.go_id
+        biocon_json['go_aspect'] = biocon.go_aspect
+        biocon_json['aliases'] = [x.display_name for x in biocon.aliases]
+    elif biocon.class_type == 'PHENOTYPE':
+        biocon_json['observable'] = biocon.observable
+        biocon_json['qualifier'] = biocon.qualifier
+        biocon_json['is_core'] = biocon.is_core
+        biocon_json['ancestor_type'] = biocon.ancestor_type
+
+    return biocon_json
     
 def experiment_to_json(experiment):
     return {
@@ -114,11 +114,16 @@ def strain_to_json(strain):
             }
     
 def condition_to_json(condition):
-    from sgdbackend_utils.cache import id_to_chem, id_to_bioent, id_to_biocon, id_to_bioitem
+    from sgdbackend_utils.cache import get_obj
+    from model_new_schema.bioentity import Bioentity
+    from model_new_schema.bioconcept import Bioconcept
+    from model_new_schema.bioitem import Bioitem
+    from model_new_schema.chemical import Chemical
+
     if condition.class_type == 'CONDITION':
         return condition.note
     elif condition.class_type == 'CHEMICAL':
-        return {'chemical': minimize_json(id_to_chem[condition.chemical_id]),
+        return {'chemical': minimize_json(get_obj(Chemical, condition.chemical_id)),
                 'amount': condition.amount,
                 'note': condition.note
                 }
@@ -129,19 +134,19 @@ def condition_to_json(condition):
     elif condition.class_type == 'BIOENTITY':
         return {
                 'role': condition.role,
-                'obj': minimize_json(id_to_bioent[condition.bioentity_id]),
+                'obj': minimize_json(get_obj(Bioentity, condition.bioentity_id)),
                 'note': condition.note
                 }
     elif condition.class_type == 'BIOCONCEPT':
         return {
                 'role': condition.role,
-                'obj': minimize_json(id_to_biocon[condition.bioconcept_id]),
+                'obj': minimize_json(get_obj(Bioconcept, condition.bioconcept_id)),
                 'note': condition.note
                 }
     elif condition.class_type == 'BIOITEM':
         return {
                 'role': condition.role,
-                'obj': minimize_json(id_to_bioitem[condition.bioitem_id]),
+                'obj': minimize_json(get_obj(Bioitem, condition.bioitem_id)),
                 'note': condition.note
                 }
     return None
@@ -222,11 +227,12 @@ def disambig_to_json(disambig):
     
 def paragraph_to_json(paragraph):
     from sgdbackend_utils import link_gene_names
-    from sgdbackend_utils.cache import id_to_bioent
+    from model_new_schema.bioentity import Bioentity
+    from sgdbackend_utils.cache import get_obj
 
     references = [reference_to_json(x) for x in paragraph.references]
     references.sort(key=lambda x: (x['year'], x['pubmed_id']), reverse=True) 
-    bioent = id_to_bioent[paragraph.bioentity_id]
+    bioent = get_obj(Bioentity, paragraph.bioentity_id)
     to_ignore = {bioent['format_name'], bioent['display_name'], bioent['format_name'] + 'P', bioent['display_name'] + 'P'}
     text = link_gene_names(paragraph.text, to_ignore=to_ignore)
     return {
@@ -235,14 +241,17 @@ def paragraph_to_json(paragraph):
            }
     
 def evidence_to_json(evidence):
-    from sgdbackend_utils.cache import id_to_strain, id_to_source, id_to_reference, id_to_experiment
+    from model_new_schema.evelements import Strain, Source, Experiment
+    from model_new_schema.reference import Reference
+    from sgdbackend_utils.cache import get_obj
+
     return {
             'id':evidence.id,
             'class_type': evidence.class_type,
-            'strain': None if evidence.strain_id is None else minimize_json(id_to_strain[evidence.strain_id]),
-            'source': None if evidence.source_id is None else id_to_source[evidence.source_id],
-            'reference': None if evidence.reference_id is None else minimize_json(id_to_reference[evidence.reference_id], include_pubmed_id=True),
-            'experiment': None if evidence.experiment_id is None else minimize_json(id_to_experiment[evidence.experiment_id]),
+            'strain': None if evidence.strain_id is None else minimize_json(get_obj(Strain, evidence.strain_id)),
+            'source': None if evidence.source_id is None else get_obj(Source, evidence.source_id),
+            'reference': None if evidence.reference_id is None else minimize_json(get_obj(Reference, evidence.reference_id), include_pubmed_id=True),
+            'experiment': None if evidence.experiment_id is None else minimize_json(get_obj(Experiment, evidence.experiment_id)),
             'note': evidence.note}
     
 def minimize_json(obj_json, include_format_name=False, include_pubmed_id=False):

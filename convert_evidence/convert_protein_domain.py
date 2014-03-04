@@ -6,7 +6,6 @@ Created on Sep 20, 2013
 import logging
 import sys
 
-from convert_core.convert_bioentity import create_protein_id
 from convert_utils import create_or_update, break_up_file, create_format_name
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload

@@ -3,12 +3,13 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
-from model_new_schema.evidence import Geninteractionevidence, Physinteractionevidence
-from sgdbackend_query import get_evidence, get_evidence_count, get_evidence_snapshot, get_interaction_snapshot
+from model_new_schema.bioconcept import Bioconcept
+from model_new_schema.bioentity import Bioentity
+from sgdbackend_query import get_evidence
 from sgdbackend_query.query_auxiliary import get_interactions, \
     get_interactions_among
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_bioent, id_to_biocon
+from sgdbackend_utils.cache import get_obj
 from sgdbackend_utils.obj_to_json import minimize_json, evidence_to_json
 from sgdbackend_utils.venn import calc_venn_measurements
 
@@ -67,9 +68,9 @@ def make_evidence_row(interevidence, bioent_id=None):
     if interevidence.class_type == 'GENINTERACTION':
         phenotype_id = interevidence.phenotype_id
         obj_json = evidence_to_json(interevidence).copy()
-        obj_json['bioentity1'] = minimize_json(id_to_bioent[interevidence.bioentity1_id], include_format_name=True)
-        obj_json['bioentity2'] = minimize_json(id_to_bioent[interevidence.bioentity2_id], include_format_name=True)
-        obj_json['phenotype'] = None if phenotype_id is None else minimize_json(id_to_biocon[phenotype_id])
+        obj_json['bioentity1'] = minimize_json(get_obj(Bioentity, interevidence.bioentity1_id), include_format_name=True)
+        obj_json['bioentity2'] = minimize_json(get_obj(Bioentity, interevidence.bioentity2_id), include_format_name=True)
+        obj_json['phenotype'] = None if phenotype_id is None else minimize_json(get_obj(Bioconcept, phenotype_id))
         obj_json['mutant_type'] = interevidence.mutant_type
         obj_json['interaction_type'] = 'Genetic'
         obj_json['annotation_type'] = interevidence.annotation_type
@@ -78,8 +79,8 @@ def make_evidence_row(interevidence, bioent_id=None):
         
     elif interevidence.class_type == 'PHYSINTERACTION':
         obj_json = evidence_to_json(interevidence).copy()
-        obj_json['bioentity1'] = minimize_json(id_to_bioent[interevidence.bioentity1_id], include_format_name=True)
-        obj_json['bioentity2'] = minimize_json(id_to_bioent[interevidence.bioentity2_id], include_format_name=True)
+        obj_json['bioentity1'] = minimize_json(get_obj(Bioentity, interevidence.bioentity1_id), include_format_name=True)
+        obj_json['bioentity2'] = minimize_json(get_obj(Bioentity, interevidence.bioentity2_id), include_format_name=True)
         obj_json['modification'] = interevidence.modification
         obj_json['interaction_type'] = 'Physical'
         obj_json['annotation_type'] = interevidence.annotation_type
@@ -171,12 +172,12 @@ def make_graph(bioent_id):
     old_min_evidence_count = min_evidence_count
     min_evidence_count = 10
     edges = []
-    nodes = [create_node(id_to_bioent[bioent_id], True, max_gen_count, max_phys_count)]
+    nodes = [create_node(get_obj(Bioentity, bioent_id), True, max_gen_count, max_phys_count)]
     while len(edges) + len(evidence_count_to_physical[min_evidence_count]) + len(evidence_count_to_genetic[min_evidence_count]) + len(evidence_count_to_phys_tangents[min_evidence_count]) + len(evidence_count_to_gen_tangents[min_evidence_count]) < 250 and min_evidence_count > old_min_evidence_count:
         for neighbor_id in evidence_count_to_neighbors[min_evidence_count]:
             physical_count = 0 if neighbor_id not in neighbor_id_to_physevidence_count else neighbor_id_to_physevidence_count[neighbor_id]
             genetic_count = 0 if neighbor_id not in neighbor_id_to_genevidence_count else neighbor_id_to_genevidence_count[neighbor_id]
-            nodes.append(create_node(id_to_bioent[neighbor_id], False, genetic_count, physical_count))
+            nodes.append(create_node(get_obj(Bioentity, neighbor_id), False, genetic_count, physical_count))
         
         for genetic_id in evidence_count_to_genetic[min_evidence_count]:
             genevidence_count = neighbor_id_to_genevidence_count[genetic_id]
@@ -201,59 +202,3 @@ def make_graph(bioent_id):
     return {'nodes': nodes, 'edges': edges, 
             'min_evidence_cutoff':min_evidence_count+1, 'max_evidence_cutoff':max_union_count,
             'max_phys_cutoff': max_phys_count, 'max_gen_cutoff': max_gen_count}
-
-'''
--------------------------------Snapshot---------------------------------------
-'''
-def make_snapshot():
-    snapshot = {}
-    snapshot['interaction_type'] = {'Genetic': get_evidence_count(Geninteractionevidence), 'Physical': get_evidence_count(Physinteractionevidence)}
-
-    snapshot['annotation_type'] = get_evidence_snapshot(Geninteractionevidence, 'annotation_type')
-    for annot_type, count in get_evidence_snapshot(Physinteractionevidence, 'annotation_type').iteritems():
-        if annot_type in snapshot['annotation_type']:
-            snapshot['annotation_type'][annot_type] = snapshot['annotation_type'][annot_type] + count
-        else:
-            snapshot['annotation_type'][annot_type] = count
-
-    snapshot['modification'] = get_evidence_snapshot(Physinteractionevidence, 'modification')
-    snapshot['modification']['No Modification'] = snapshot['modification']['No Modification'] + snapshot['interaction_type']['Genetic']
-
-    snapshot['phenotype'] = dict([('No Phenotype' if x is None else id_to_biocon[x]['display_name'], y) for x, y in get_evidence_snapshot(Geninteractionevidence, 'phenotype_id').iteritems()])
-    snapshot['phenotype']['No Phenotype'] = snapshot['interaction_type']['Physical'] + snapshot['interaction_type']['Genetic'] - sum(snapshot['phenotype'].values())
-
-    physical_counts1 = get_evidence_snapshot(Physinteractionevidence, 'bioentity1_id')
-    physical_counts2 = get_evidence_snapshot(Physinteractionevidence, 'bioentity2_id')
-    genetic_counts1 = get_evidence_snapshot(Geninteractionevidence, 'bioentity1_id')
-    genetic_counts2 = get_evidence_snapshot(Geninteractionevidence, 'bioentity2_id')
-
-    interaction_counts = get_interaction_snapshot(['PHYSINTERACTION', 'GENINTERACTION'])
-
-    snapshot['annotation_histogram'] = {}
-    snapshot['interaction_histogram'] = {}
-    for bioent in id_to_bioent.values():
-        if bioent['class_type'] == 'LOCUS' and bioent['locus_type'] == 'ORF':
-            bioent_id = bioent['id']
-            annotation_count = (0 if bioent_id not in physical_counts1 else physical_counts1[bioent_id]) + \
-                               (0 if bioent_id not in physical_counts2 else physical_counts2[bioent_id]) + \
-                               (0 if bioent_id not in genetic_counts1 else genetic_counts1[bioent_id]) + \
-                               (0 if bioent_id not in genetic_counts2 else genetic_counts2[bioent_id])
-            interaction_count = 0 if bioent_id not in interaction_counts else interaction_counts[bioent_id]
-
-            if annotation_count not in snapshot['annotation_histogram']:
-                snapshot['annotation_histogram'][annotation_count] = 1
-            else:
-                snapshot['annotation_histogram'][annotation_count] = snapshot['annotation_histogram'][annotation_count] + 1
-            if interaction_count not in snapshot['interaction_histogram']:
-                snapshot['interaction_histogram'][interaction_count] = 1
-            else:
-                snapshot['interaction_histogram'][interaction_count] = snapshot['interaction_histogram'][interaction_count] + 1
-
-    for i in range(0, max(snapshot['annotation_histogram'].keys())):
-        if i not in snapshot['annotation_histogram']:
-            snapshot['annotation_histogram'][i] = 0
-
-    for i in range(0, max(snapshot['interaction_histogram'].keys())):
-        if i not in snapshot['interaction_histogram']:
-            snapshot['interaction_histogram'][i] = 0
-    return snapshot

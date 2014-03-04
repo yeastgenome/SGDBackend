@@ -132,9 +132,9 @@ class Locus(Bioentity):
     
 class Protein(Bioentity):
     __tablename__ = "proteinbioentity"
-    
+
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
-    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
+    locus_id = Column('locus_id')
 
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Bioentity.id}
@@ -142,7 +142,22 @@ class Protein(Bioentity):
     def __init__(self, bioentity_id, source,
                  locus, date_created, created_by):
         Bioentity.__init__(self, bioentity_id, locus.display_name + 'p', locus.format_name + 'P', 
-                           'PROTEIN', '/locus/' + locus.format_name + '/protein', source, None, None, locus.bioent_status, locus.description, date_created, created_by)
+                           'PROTEIN', '/locus/' + locus.sgdid + '/overview', source, None, None, locus.bioent_status, locus.description, date_created, created_by)
+        self.locus_id = locus.id
+
+class Transcript(Bioentity):
+    __tablename__ = "transcriptbioentity"
+
+    id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
+    locus_id = Column('locus_id')
+
+    __mapper_args__ = {'polymorphic_identity': 'TRANSCRIPT',
+                       'inherit_condition': id == Bioentity.id}
+
+    def __init__(self, bioentity_id, source,
+                 locus, date_created, created_by):
+        Bioentity.__init__(self, bioentity_id, locus.display_name + 't', locus.format_name + 'T',
+                           'TRANSCRIPT', '/locus/' + locus.sgdid + '/overview', source, None, None, locus.bioent_status, locus.description, date_created, created_by)
         self.locus_id = locus.id
 
 class Complex(Bioentity):
@@ -161,5 +176,3 @@ class Complex(Bioentity):
         Bioentity.__init__(self, None, go.display_name, format_name, 'COMPLEX', '/complex/' + format_name + '/overview', source, sgdid, None, None, go.description, None, None)
         self.go_id = go.id
         self.cellular_localization = cellular_localization
-
-    

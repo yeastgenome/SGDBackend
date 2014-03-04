@@ -3,14 +3,16 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
+import datetime
+import logging
+import sys
+
 from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
-import datetime
-import logging
 import requests
-import sys
+
 
 #Recorded times: 
 #Maitenance (cherry-vm08): 51:17
@@ -258,7 +260,7 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
     pubmed_id = None
     pubmed_central_id = None
     if old_reference.pubmed_id is not None:
-        pubmed_id = int(old_reference.pubmed_id)
+        pubmed_id = old_reference.pubmed_id
         pubmed_central_id = pubmed_id_to_pubmed_central_id[pubmed_id]
         
     year = None

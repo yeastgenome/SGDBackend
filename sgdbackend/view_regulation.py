@@ -3,13 +3,14 @@ Created on Mar 15, 2013
 
 @author: kpaskov
 '''
+from model_new_schema.bioentity import Bioentity
 from model_new_schema.evidence import Regulationevidence
-from sgdbackend_query import get_evidence, get_conditions, get_evidence_snapshot
+from sgdbackend_query import get_evidence, get_conditions
 from sgdbackend_query.query_auxiliary import get_interactions, \
     get_interactions_among
 from sgdbackend_query.query_paragraph import get_paragraph
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_bioent, id_to_experiment
+from sgdbackend_utils.cache import get_obj
 from sgdbackend_utils.obj_to_json import paragraph_to_json, condition_to_json, \
     minimize_json, evidence_to_json
  
@@ -57,8 +58,8 @@ def make_evidence_row(regevidence, id_to_conditions):
     conditions = [] if regevidence.id not in id_to_conditions else [condition_to_json(x) for x in id_to_conditions[regevidence.id]]
         
     obj_json = evidence_to_json(regevidence).copy()
-    obj_json['bioentity1'] = minimize_json(id_to_bioent[regevidence.bioentity1_id], include_format_name=True)
-    obj_json['bioentity2'] = minimize_json(id_to_bioent[regevidence.bioentity2_id], include_format_name=True)
+    obj_json['bioentity1'] = minimize_json(get_obj(Bioentity, regevidence.bioentity1_id), include_format_name=True)
+    obj_json['bioentity2'] = minimize_json(get_obj(Bioentity, regevidence.bioentity2_id), include_format_name=True)
     obj_json['conditions'] = conditions
     return obj_json
 
@@ -132,7 +133,7 @@ def make_graph(bioent_id):
     old_min_evidence_count = min_evidence_count
     min_evidence_count = 10
     edges = []
-    nodes = [create_node(id_to_bioent[bioent_id], True, max_target_count, max_regulator_count, 'FOCUS')]
+    nodes = [create_node(get_obj(Bioentity, bioent_id), True, max_target_count, max_regulator_count, 'FOCUS')]
     accepted_neighbor_ids = set()
     while len(edges) + len(evidence_count_to_targets[min_evidence_count]) + len(evidence_count_to_regulators[min_evidence_count]) + len(evidence_count_to_tangents[min_evidence_count]) < 250 and min_evidence_count > old_min_evidence_count:
         accepted_neighbor_ids.update(evidence_count_to_neighbors[min_evidence_count])
@@ -164,17 +165,8 @@ def make_graph(bioent_id):
             node_type = 'TARGET'
         if targevidence_count <= min_evidence_count:
             node_type = 'REGULATOR'
-        nodes.append(create_node(id_to_bioent[neighbor_id], False, targevidence_count, regevidence_count, node_type))
+        nodes.append(create_node(get_obj(Bioentity, neighbor_id), False, targevidence_count, regevidence_count, node_type))
     
     return {'nodes': nodes, 'edges': edges, 
             'min_evidence_cutoff':min_evidence_count+1, 'max_evidence_cutoff':max_union_count,
             'max_target_cutoff': max_target_count, 'max_regulator_cutoff': max_regulator_count}
-
-'''
--------------------------------Snapshot---------------------------------------
-'''
-def make_snapshot():
-    snapshot = {}
-    snapshot['experiment'] = dict([(None if x is None else id_to_experiment[x]['display_name'], y) for x, y in get_evidence_snapshot(Regulationevidence, 'experiment_id').iteritems()])
-
-    return snapshot

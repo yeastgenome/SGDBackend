@@ -4,13 +4,14 @@ Created on Sep 23, 2013
 @author: kpaskov
 '''
 from math import ceil
-from convert_core.convert_bioentity import create_protein_id
+import logging
+import sys
+
 from convert_utils import create_or_update, break_up_file
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import or_, func
-import logging
-import sys
+
 
 """
 --------------------- Convert Phosphorylation Evidence ---------------------

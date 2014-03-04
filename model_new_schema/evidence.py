@@ -13,7 +13,7 @@ from model_new_schema.reference import Reference
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
-from model_new_schema.sequence import Sequence, Contig
+from model_new_schema.sequence import Sequence
 
 
 class Evidence(Base, EqualityByIDMixin):
@@ -422,7 +422,6 @@ class Proteinsequenceevidence(Evidence):
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     sequence_id = Column('biosequence_id', Integer, ForeignKey(Sequence.id))
-    dnasequence_id = Column('dnasequence_id', Integer)
 
     #Relationships
     bioentity = relationship(Bioentity, uselist=False)
@@ -431,7 +430,7 @@ class Proteinsequenceevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "PROTEINSEQUENCE",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, source, strain, bioentity, sequence, dnasequence, date_created, created_by):
+    def __init__(self, source, strain, bioentity, sequence, date_created, created_by):
         Evidence.__init__(self,
                           bioentity.display_name + ' has ' + sequence.display_name + ' in strain ' + strain.display_name,
                           bioentity.format_name + '_' + str(sequence.id) + '_' + str(strain.id),
@@ -439,7 +438,6 @@ class Proteinsequenceevidence(Evidence):
                           date_created, created_by)
         self.bioentity_id = bioentity.id
         self.sequence_id = sequence.id
-        self.dnasequence_id = dnasequence.id
 
 class Phosphorylationevidence(Evidence):
     __tablename__ = "phosphorylationevidence"

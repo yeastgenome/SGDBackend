@@ -56,16 +56,14 @@ class Proteinsequence(Sequence):
     __tablename__ = "proteinbiosequence"
 
     id = Column('biosequence_id', Integer, ForeignKey(Sequence.id), primary_key=True)
-    dnasequence_id = Column('dnasequence_id', Integer)
 
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Sequence.id}
 
-    def __init__(self, residues, dnasequence, date_created=None, created_by=None):
+    def __init__(self, residues, date_created=None, created_by=None):
         hash = hashlib.md5(residues).hexdigest()
-        Sequence.__init__(self, 'Sequence: ' + hash, str(dnasequence.id), None,
+        Sequence.__init__(self, 'Sequence: ' + hash, str(hash), None,
                            'PROTEIN', residues, date_created, created_by)
-        self.dnasequence_id = dnasequence.id
 
 class Contig(Sequence):
     __mapper_args__ = {'polymorphic_identity': "CONTIG",

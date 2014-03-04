@@ -3,15 +3,17 @@ Created on Sep 20, 2013
 
 @author: kpaskov
 '''
+from model_new_schema.bioentity import Bioentity
+from model_new_schema.bioitem import Bioitem
 from model_new_schema.evidence import Domainevidence, Phosphorylationevidence
 from sgdbackend_query import get_evidence
 from sgdbackend_utils import create_simple_table
-from sgdbackend_utils.cache import id_to_bioent, id_to_bioitem
+from sgdbackend_utils.cache import get_obj
 from sgdbackend_utils.obj_to_json import evidence_to_json
 
 # -------------------------------Overview---------------------------------------
 def make_overview(protein_id):
-    return id_to_bioent[protein_id]
+    return get_obj(Bioentity, protein_id)
 
 '''
 -------------------------------Details---------------------------------------
@@ -26,8 +28,8 @@ def make_details(protein_id=None, reference_id=None, domain_id=None):
 
 def make_evidence_row(domain_evidence): 
     obj_json = evidence_to_json(domain_evidence).copy()
-    obj_json['protein'] = id_to_bioent[domain_evidence.bioentity_id]
-    obj_json['domain'] = id_to_bioitem[domain_evidence.bioitem_id]
+    obj_json['protein'] = get_obj(Bioentity, domain_evidence.bioentity_id)
+    obj_json['domain'] = get_obj(Bioitem, domain_evidence.bioitem_id)
     obj_json['start'] = domain_evidence.start
     obj_json['end'] = domain_evidence.end
     obj_json['evalue'] = domain_evidence.evalue
@@ -48,7 +50,7 @@ def make_phosphorylation_details(protein_id=None):
 
 def make_phospho_evidence_row(phospho_evidence):
     obj_json = evidence_to_json(phospho_evidence).copy()
-    obj_json['protein'] = id_to_bioent[phospho_evidence.bioentity_id]
+    obj_json['protein'] = get_obj(Bioentity, phospho_evidence.bioentity_id)
     obj_json['site_index'] = phospho_evidence.site_index
     obj_json['site_residue'] = phospho_evidence.site_residue
     return obj_json
@@ -117,8 +119,8 @@ def make_graph(protein_id):
         bioent_to_score = dict({(x, len(y&domain_ids_in_use)) for x, y in bioent_id_to_domain_ids.iteritems()})
         bioent_to_score[protein_id] = 0
 
-        nodes = [create_bioent_node(id_to_bioent[x], x==protein_id) for x in bioent_ids_in_use]
-        nodes.extend([create_domain_node(id_to_bioitem[x]) for x in domain_ids_in_use])
+        nodes = [create_bioent_node(get_obj(Bioentity, x), x==protein_id) for x in bioent_ids_in_use]
+        nodes.extend([create_domain_node(get_obj(Bioitem, x)) for x in domain_ids_in_use])
 
         edges = [create_edge(evidence[0], evidence[1]) for evidence in edges_in_use]
 
