@@ -40,5 +40,5 @@ sgdbackend_logs/*
 perfconvert_utils/config_passwords.py
 convert/config.py
 backend/config.py
-data
+data/*
 

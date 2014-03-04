@@ -13,6 +13,8 @@ Created on May 6, 2013
 #1.24.14 Maitenance (sgd-dev): 30:45
 
 import re
+import logging
+import sys
 
 from convert_other.convert_auxiliary import convert_bioentity_reference, \
     convert_biofact
@@ -20,8 +22,6 @@ from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
-import logging
-import sys
 
 # --------------------- Convert Evidence ---------------------
 
@@ -29,14 +29,14 @@ _digits = re.compile('\d')
 def contains_digits(d):
     return bool(_digits.search(d))
 
-def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype, 
+def create_evidence(old_phenotype_feature, key_to_reflinks, key_to_phenotype,
                          id_to_reference, id_to_bioentity, key_to_strain, key_to_experiment, 
                          key_to_bioitem, key_to_chemical, key_to_source):
     from model_new_schema.evidence import Phenotypeevidence as NewPhenotypeevidence
     from model_new_schema.bioconcept import create_phenotype_format_name
 
-    reference_id = None if ('PHENO_ANNOTATION_NO', old_phenotype_feature.id) not in key_to_reflink else key_to_reflink[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)].reference_id
-    reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
+    reference_ids = [] if ('PHENO_ANNOTATION_NO', old_phenotype_feature.id) not in key_to_reflinks else [x.reference_id for x in key_to_reflinks[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)]]
+    references = [id_to_reference[reference_id] for reference_id in reference_ids]
     bioentity_id = old_phenotype_feature.feature_id
     bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
 
@@ -122,11 +122,11 @@ def create_evidence(old_phenotype_feature, key_to_reflink, key_to_phenotype,
     source_key = old_phenotype_feature.source
     source = None if source_key not in key_to_source else key_to_source[source_key]
 
-    new_phenoevidence = NewPhenotypeevidence(source, reference, strain, experiment, note,
+    new_phenoevidences = [NewPhenotypeevidence(source, reference, strain, experiment, note,
                                          bioentity, phenotype, mutant_type, strain_details, experiment_details,
                                          conditions,
-                                         old_phenotype_feature.date_created, old_phenotype_feature.created_by)
-    return [new_phenoevidence]
+                                         old_phenotype_feature.date_created, old_phenotype_feature.created_by) for reference in references]
+    return new_phenoevidences
 
 def convert_evidence(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.evidence import Phenotypeevidence as NewPhenotypeevidence
@@ -164,8 +164,14 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
         key_to_chemical = dict([(x.unique_key(), x) for x in new_session.query(NewChemical).all()])
         
         old_reflinks = old_session.query(OldReflink).all()
-        key_to_reflink = dict([((x.col_name, x.primary_key), x) for x in old_reflinks])
-        
+        key_to_reflinks = dict()
+        for old_reflink in old_reflinks:
+            reflink_key = (old_reflink.col_name, old_reflink.primary_key)
+            if reflink_key in key_to_reflinks:
+                key_to_reflinks[reflink_key].append(old_reflink)
+            else:
+                key_to_reflinks[reflink_key] = [old_reflink]
+
         already_seen_keys = set()
         
         min_bioent_id = 0
@@ -195,7 +201,7 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
                         
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_evidence(old_obj, key_to_reflink, key_to_phenotype, id_to_reference, 
+                newly_created_objs = create_evidence(old_obj, key_to_reflinks, key_to_phenotype, id_to_reference,
                                                      id_to_bioentity, key_to_strain, key_to_experiment, key_to_bioitem, key_to_chemical,
                                                      key_to_source)
                     
