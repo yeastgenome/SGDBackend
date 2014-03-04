@@ -3,12 +3,14 @@ Created on Jun 4, 2013
 
 @author: kpaskov
 '''
+import logging
+import sys
+
 from convert_utils import create_or_update, create_format_name, break_up_file, \
     read_obo
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
-import logging
-import sys
+
 
 #Recorded times: 
 #Maitenance (cherry-vm08): 0:01, 
@@ -120,7 +122,7 @@ def convert_experiment(old_session_maker, new_session_maker):
         experiment_names = set()
         
         rows = break_up_file('data/yeastmine_regulation.tsv')
-        experiment_names.update([(row[4], row[5], row[11]) for row in rows])
+        experiment_names.update([(row[4], row[5], row[12]) for row in rows])
                 
         for experiment_name, eco_id, source_key in experiment_names:
             newly_created_objs = create_experiment_from_reg_row(experiment_name, eco_id, source_key, key_to_source)
