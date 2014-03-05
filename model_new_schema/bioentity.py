@@ -136,6 +136,8 @@ class Protein(Bioentity):
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
 
+    locus = relationship(Locus, uselist=False, primaryjoin="Protein.locus_id==Locus.id")
+
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Bioentity.id}
     
@@ -150,6 +152,8 @@ class Transcript(Bioentity):
 
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
+
+    locus = relationship(Locus, uselist=False, primaryjoin="Transcript.locus_id==Locus.id")
 
     __mapper_args__ = {'polymorphic_identity': 'TRANSCRIPT',
                        'inherit_condition': id == Bioentity.id}
@@ -166,6 +170,9 @@ class Complex(Bioentity):
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key = True)
     go_id = Column('go_id', Integer, ForeignKey(Go.id))
     cellular_localization = Column('cellular_localization', String)
+
+    #Relationships
+    go = relationship(Go, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': "COMPLEX",
                        'inherit_condition': id==Bioentity.id}

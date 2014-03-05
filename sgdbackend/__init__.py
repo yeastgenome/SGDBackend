@@ -526,7 +526,7 @@ class SGDBackend(BackendInterface):
         if are_ids:
             complex_id = identifier
         else:
-            complex_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='COMPLEX')
+            complex_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='COMPLEX')
         return None if complex_id is None else json.dumps(view_phenotype.make_graph(complex_id, 'GO', bioent_type='COMPLEX', biocon_f=lambda x: get_obj(Bioconcept, x)['go_aspect'] == 'biological process'))
 
 
