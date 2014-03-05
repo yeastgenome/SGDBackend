@@ -409,10 +409,8 @@ def create_coding_evidence(strain, id_to_sequence, key_to_source, key_to_bioenti
 
         if bioentity is None:
             print "Bioentity not found: " + str(bioentity_key)
-            return []
         if sequence is None:
             print "Sequence not found: " + str(sequence_key)
-            return []
 
         evidences.append(CodingDNAsequenceevidence(source, strain, bioentity, sequence, None, None))
     return evidences
@@ -883,10 +881,8 @@ def create_protein_evidence(strain, id_to_sequence, key_to_source, key_to_bioent
 
         if bioentity is None:
             print "Bioentity not found: " + str(bioentity_key)
-            return []
         if sequence is None:
             print "Sequence not found: " + str(sequence_key)
-            return []
 
         proteinevidences.append(Proteinsequenceevidence(source, strain, bioentity, sequence, None, None))
     return proteinevidences

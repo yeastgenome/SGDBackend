@@ -152,7 +152,7 @@ def condition_to_json(condition):
     return None
 
 def sequence_to_json(sequence):
-    return {
+    seq_json = {
         'residues': sequence.residues,
         'length': sequence.length,
         'id': sequence.id,
@@ -160,6 +160,52 @@ def sequence_to_json(sequence):
         'format_name': sequence.format_name,
         'link': sequence.link
     }
+
+    if sequence.class_type == 'PROTEIN':
+        seq_json['pi'] = str(sequence.pi)
+        seq_json['cai'] = str(sequence.cai)
+        seq_json['codon_bias'] = str(sequence.codon_bias)
+        seq_json['fop_score'] = str(sequence.fop_score)
+        seq_json['gravy_score'] = str(sequence.gravy_score)
+        seq_json['aromaticity_score'] = str(sequence.aromaticity_score)
+        seq_json['aliphatic_index'] = str(sequence.aliphatic_index)
+        seq_json['instability_index'] = str(sequence.instability_index)
+        seq_json['ala'] = sequence.ala
+        seq_json['arg'] = sequence.arg
+        seq_json['asn'] = sequence.asn
+        seq_json['asp'] = sequence.asp
+        seq_json['cys'] = sequence.cys
+        seq_json['gln'] = sequence.gln
+        seq_json['glu'] = sequence.glu
+        seq_json['gly'] = sequence.gly
+        seq_json['his'] = sequence.his
+        seq_json['ile'] = sequence.ile
+        seq_json['leu'] = sequence.leu
+        seq_json['lys'] = sequence.lys
+        seq_json['met'] = sequence.met
+        seq_json['phe'] = sequence.phe
+        seq_json['pro'] = sequence.pro
+        seq_json['thr'] = sequence.thr
+        seq_json['ser'] = sequence.ser
+        seq_json['trp'] = sequence.trp
+        seq_json['tyr'] = sequence.tyr
+        seq_json['val'] = sequence.val
+        seq_json['hydrogen'] = sequence.hydrogen
+        seq_json['sulfur'] = sequence.sulfur
+        seq_json['oxygen'] = sequence.oxygen
+        seq_json['carbon'] = sequence.carbon
+        seq_json['nitrogen'] = sequence.nitrogen
+        seq_json['yeast_half_life'] = sequence.yeast_half_life
+        seq_json['ecoli_half_life'] = sequence.ecoli_half_life
+        seq_json['mammal_half_life'] = sequence.mammal_half_life
+        seq_json['no_cys_ext_coeff'] = sequence.no_cys_ext_coeff
+        seq_json['all_cys_ext_coeff'] = sequence.all_cys_ext_coeff
+        seq_json['all_half_cys_ext_coeff'] = sequence.all_half_cys_ext_coeff
+        seq_json['all_pairs_cys_ext_coeff'] = sequence.all_pairs_cys_ext_coeff
+
+
+
+    return seq_json
 
 def sequence_label_to_json(sequence_label):
     return {

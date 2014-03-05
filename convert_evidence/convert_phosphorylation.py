@@ -68,12 +68,11 @@ def convert_phosphorylation_evidence(new_session_maker, chunk_size):
         new_session = new_session_maker()
 
         #Values to check
-        values_to_check = ['site_residue', 'site_index']
+        values_to_check = ['site_residue', 'site_index', 'bioentity_id']
 
         #Grab cached dictionaries
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])
-        pubmed_id_to_reference = dict([(str(x.pubmed_id), x) for x in new_session.query(Reference).all()])
 
         #Grab current objects
         current_objs = new_session.query(Phosphorylationevidence).all()
@@ -84,6 +83,16 @@ def convert_phosphorylation_evidence(new_session_maker, chunk_size):
         already_seen = set()
 
         old_objs = break_up_file('data/phosphosites.txt')
+
+        pubmed_ids = set()
+        for row in old_objs:
+            if len(row) == 19:
+                try:
+                    pubmed_ids.update([int(x) for x in row[4].split('|')])
+                except:
+                    print row[4]
+
+        pubmed_id_to_reference = dict([(str(x.pubmed_id), x) for x in new_session.query(Reference).filter(Reference.pubmed_id.in_(pubmed_ids)).all()])
 
         num_chunks = int(ceil(1.0*len(old_objs)/chunk_size))
         for i in range(0, num_chunks):

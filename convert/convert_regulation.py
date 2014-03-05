@@ -25,9 +25,10 @@ if __name__ == "__main__":
     master_db1_converter.convert_regulation_overview()
     master_db1_converter.convert_regulation_details()
     master_db1_converter.convert_regulation_graph()
-    master_db1_converter.convert_regulation_target_enrich()
 
     db1_db2_converter.convert_regulation_overview()
     db1_db2_converter.convert_regulation_details()
     db1_db2_converter.convert_regulation_graph()
+
+    master_db1_converter.convert_regulation_target_enrich()
     db1_db2_converter.convert_regulation_target_enrich()

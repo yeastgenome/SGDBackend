@@ -97,16 +97,15 @@ def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pu
                                      start, end, evalue, status, date_of_run, protein, domain, None, None)
     return [domain_evidence]
 
-def create_domain_evidence_from_protein_info(protein_detail, id_to_bioentity, key_to_domain, key_to_source, key_to_strain):
+def create_domain_evidence_from_protein_info(protein_detail, id_to_bioentity, key_to_bioentity, key_to_domain, key_to_source, key_to_strain):
     from model_new_schema.evidence import Domainevidence
 
     strain = key_to_strain['S288C']
 
-    protein_id = create_protein_id(protein_detail.info.feature_id)
-    if protein_id not in id_to_bioentity:
-        print 'Bioentity could not be found: ' + str(protein_id)
-    protein = id_to_bioentity[protein_id]
-
+    protein_key = (id_to_bioentity[protein_detail.info.feature_id].format_name + 'P', 'PROTEIN')
+    protein = None if protein_key not in key_to_bioentity else key_to_bioentity[protein_key]
+    if protein is None:
+        print 'Bioentity could not be found: ' + str(protein_key)
 
     if protein_detail.type == 'transmembrane domain':
         domain_key = ('predicted_transmembrane_domain', 'DOMAIN')
@@ -149,52 +148,35 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
                 
         #Values to check
         values_to_check = ['reference_id', 'strain_id', 'source_id',
-                           'start', 'end', 'evalue', 'status', 'date_of_run']
+                           'start', 'end', 'evalue', 'status', 'date_of_run', 'bioentity_id', 'bioitem_id']
         
         #Grab cached dictionaries
         key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])
-        id_to_bioentity = dict([(x.id, x) for x in new_session.query(Bioentity).all()])
-        key_to_domain = dict([(x.unique_key(), x) for x in new_session.query(Domain).all()]) 
-        pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).all()]) 
+        id_to_bioentity = dict([(x.id, x) for x in key_to_bioentity.values()])
+        print 'Bioentities'
+        key_to_domain = dict([(x.unique_key(), x) for x in new_session.query(Domain).all()])
+        print 'Domains'
         key_to_strain = dict([(x.unique_key(), x) for x in new_session.query(Strain).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
-        
-        untouched_obj_ids = dict()
+        print 'Ready'
+
         already_seen_obj = set()
-        
+
+        current_objs = new_session.query(Domainevidence).all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+        print 'Evidence'
+
+        untouched_obj_ids = set(id_to_current_obj.keys())
+
         #Grab old objects
         data = break_up_file('data/yeastmine_protein_domains.tsv')
-        
-        min_protein_id = 200000
-        max_protein_id = 210000
-        num_chunks = ceil(1.0*(max_protein_id-min_protein_id)/chunk_size)
-        
-        #Break into chunks
-        data_chunks = [[] for x in range(0, num_chunks)]
-        for row in data:
-            bioent_format_name = row[1].strip()
-            bioent_key = (bioent_format_name + 'P', 'PROTEIN')
-            protein = None if bioent_key not in key_to_bioentity else key_to_bioentity[bioent_key]
-            if protein is not None:
-                index = int(min(num_chunks-1, int(floor(1.0*(protein.id-min_protein_id)/chunk_size))))
-                data_chunks[index].append(row)
 
+        num_chunks = ceil(1.0*len(data)/1000)
 
         for i in range(0, num_chunks):
-            min_id = min_protein_id + i*chunk_size
-            max_id = max_protein_id + (i+1)*chunk_size
-            
-            if i < num_chunks-1:
-                current_objs = new_session.query(Domainevidence).filter(Domainevidence.bioentity_id >= min_id).filter(Domainevidence.bioentity_id < max_id).all()
-            else:
-                current_objs = new_session.query(Domainevidence).filter(Domainevidence.bioentity_id >= min_id).all()
-                
-            id_to_current_obj = dict([(x.id, x) for x in current_objs])
-            key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
-        
-            untouched_obj_ids.update(id_to_current_obj)
                         
-            old_objs = data_chunks[i]
+            old_objs = data[i*1000: (i+1)*1000];
             for old_obj in old_objs:
                 #Convert old objects into new ones
                 newly_created_objs = create_domain_evidence(old_obj, key_to_bioentity, key_to_domain, key_to_strain, key_to_source)
@@ -209,15 +191,14 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
                         create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
                         
                         if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                            del untouched_obj_ids[current_obj_by_id.id]
+                            untouched_obj_ids.remove(current_obj_by_id.id)
                         if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                            del untouched_obj_ids[current_obj_by_key.id]
+                            untouched_obj_ids.remove(current_obj_by_key.id)
                     already_seen_obj.add(obj_key)
                             
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
-            min_id = min_id+chunk_size
-            
+
         id_to_current_obj = dict([(x.id, x) for x in untouched_obj_ids.values()])
         key_to_current_obj = dict([(x.unique_key(), x) for x in untouched_obj_ids.values()])
 
@@ -226,7 +207,7 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
         old_objs = old_session.query(OldProteinDetail).options(joinedload('info')).all()
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_domain_evidence_from_protein_info(old_obj, id_to_bioentity, key_to_domain, key_to_source, key_to_strain)
+            newly_created_objs = create_domain_evidence_from_protein_info(old_obj, id_to_bioentity, key_to_bioentity, key_to_domain, key_to_source, key_to_strain)
 
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:
@@ -237,9 +218,9 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
                     create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
 
                     if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        del untouched_obj_ids[current_obj_by_id.id]
+                        untouched_obj_ids.remove(current_obj_by_id.id)
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        del untouched_obj_ids[current_obj_by_key.id]
+                        untouched_obj_ids.remove(current_obj_by_key.id)
                 else:
                     print unique_key
                 already_seen_obj.add(unique_key)
@@ -249,6 +230,9 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
             
         #Grab JASPAR evidence from file
         old_objs = break_up_file('data/TF_family_class_accession04302013.txt')
+
+        pubmed_ids = set([row[6] for row in old_objs])
+        pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).filter(Reference.pubmed_id.in_(pubmed_ids)).all()])
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_domain_evidence_from_tf_file(old_obj, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source, {})
@@ -262,9 +246,9 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
                     create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
                         
                     if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        del untouched_obj_ids[current_obj_by_id.id]
+                        untouched_obj_ids.remove(current_obj_by_id.id)
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        del untouched_obj_ids[current_obj_by_key.id]
+                        untouched_obj_ids.remove(current_obj_by_key.id)
                 else:
                     print unique_key
                 already_seen_obj.add(unique_key)

@@ -23,9 +23,11 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_bioitem()
     #pastry_dev_converter.convert_chemical()
 
-    pastry_dev_converter.convert_sequence()
+    #pastry_dev_converter.convert_sequence()
     #pastry_dev_converter.convert_interaction()
     #pastry_dev_converter.convert_literature()
+    pastry_dev_converter.convert_protein_domain()
+    #pastry_dev_converter.convert_phosphorylation()
 
     #pastry_dev_converter.convert_phenotype()
     #pastry_dev_converter.convert_go()

@@ -430,6 +430,7 @@ class SGDBackend(BackendInterface):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_protein
         from model_new_schema.bioentity import Bioentity
+
         if are_ids:
             locus_id = identifier
             locus = get_obj(Bioentity, locus_id)
@@ -437,16 +438,11 @@ class SGDBackend(BackendInterface):
                 return None
         else:
             locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        protein_id = None
-        if locus_id is not None:
-            if get_obj(Bioentity, locus_id + 200000) is not None:
-                protein_id = locus_id + 200000
-        return None if locus_id is None else json.dumps(view_protein.make_overview(protein_id))
+        return None if locus_id is None else json.dumps(view_protein.make_overview(locus_id=locus_id))
 
     def protein_domain_details(self, locus_identifier=None, reference_identifier=None, domain_identifier=None, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_protein
-        from model_new_schema.bioentity import Bioentity
         if are_ids:
             locus_id = locus_identifier
             reference_id = reference_identifier
@@ -455,39 +451,25 @@ class SGDBackend(BackendInterface):
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
             domain_id = None if domain_identifier is None else get_obj_id(domain_identifier, class_type='BIOITEM', subclass_type='DOMAIN')
-        protein_id = None
-        if locus_id is not None:
-            if get_obj(Bioentity, locus_id) is not None:
-                protein_id = locus_id + 200000
-        return json.dumps(view_protein.make_details(protein_id=protein_id, reference_id=reference_id, domain_id=domain_id))
+        return None if locus_id is None else json.dumps(view_protein.make_details(locus_id=locus_id, reference_id=reference_id, domain_id=domain_id))
 
     def protein_graph(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_protein
-        from model_new_schema.bioentity import Bioentity
         if are_ids:
             locus_id = identifier
         else:
             locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        protein_id = None
-        if locus_id is not None:
-            if get_obj(Bioentity, locus_id + 200000) is not None:
-                protein_id = locus_id + 200000
-        return None if locus_id is None else json.dumps(view_protein.make_graph(protein_id))
+        return None if locus_id is None else json.dumps(view_protein.make_graph(locus_id=locus_id))
 
     def protein_phosphorylation_details(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_protein
-        from model_new_schema.bioentity import Bioentity
         if are_ids:
             locus_id = identifier
         else:
             locus_id = None if identifier is None else get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        protein_id = None
-        if locus_id is not None:
-            if get_obj(Bioentity, locus_id + 200000) is not None:
-                protein_id = locus_id + 200000
-        return json.dumps(view_protein.make_phosphorylation_details(protein_id=protein_id))
+        return None if locus_id is None else json.dumps(view_protein.make_phosphorylation_details(locus_id=locus_id))
 
     #Complex
     def complex(self, identifier, are_ids=False):
