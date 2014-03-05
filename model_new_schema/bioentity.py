@@ -134,7 +134,7 @@ class Protein(Bioentity):
     __tablename__ = "proteinbioentity"
 
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
-    locus_id = Column('locus_id')
+    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
 
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Bioentity.id}
@@ -149,7 +149,7 @@ class Transcript(Bioentity):
     __tablename__ = "transcriptbioentity"
 
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
-    locus_id = Column('locus_id')
+    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
 
     __mapper_args__ = {'polymorphic_identity': 'TRANSCRIPT',
                        'inherit_condition': id == Bioentity.id}
