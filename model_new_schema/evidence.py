@@ -355,10 +355,6 @@ class Sequenceevidence(Evidence):
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     sequence_id = Column('biosequence_id', Integer, ForeignKey(Sequence.id))
-    contig_id = Column('contig_id', Integer)
-    start = Column('start_index', Integer)
-    end = Column('end_index', Integer)
-    strand = Column('strand', String)
 
     #Relationships
     bioentity = relationship(Bioentity, uselist=False)
@@ -367,18 +363,14 @@ class Sequenceevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "SEQUENCE",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, source, strain, bioentity, sequence, contig, start, end, strand, date_created, created_by):
+    def __init__(self, source, strain, class_type, bioentity, sequence, date_created, created_by):
         Evidence.__init__(self,
                           bioentity.display_name + ' has ' + sequence.display_name + ' in strain ' + strain.display_name,
                           bioentity.format_name + '_' + str(sequence.id) + '_' + str(strain.id),
-                          'SEQUENCE', source, None, strain, None, None,
+                          class_type, source, None, strain, None, None,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
         self.sequence_id = sequence.id
-        self.contig_id = contig.id
-        self.start = start
-        self.end = end
-        self.strand = strand
 
 class SequenceLabel(Base, EqualityByIDMixin):
     __tablename__ = 'sequencelabel'
@@ -416,28 +408,38 @@ class SequenceLabel(Base, EqualityByIDMixin):
     def unique_key(self):
         return (self.evidence_id, self.class_type, self.chromosomal_start, self.chromosomal_end)
 
-class Proteinsequenceevidence(Evidence):
-    __tablename__ = "proteinsequenceevidence"
+class GenomicDNAsequenceevidence(Sequenceevidence):
+    __tablename__ = "gendnasequenceevidence"
 
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-    sequence_id = Column('biosequence_id', Integer, ForeignKey(Sequence.id))
+    contig_id = Column('contig_id', Integer)
+    start = Column('start_index', Integer)
+    end = Column('end_index', Integer)
+    strand = Column('strand', String)
 
-    #Relationships
-    bioentity = relationship(Bioentity, uselist=False)
-    sequence = relationship(Sequence, uselist=False)
+    __mapper_args__ = {'polymorphic_identity': "GENDNASEQUENCE",
+                       'inherit_condition': id==Evidence.id}
 
+    def __init__(self, source, strain, bioentity, sequence, contig, start, end, strand, date_created, created_by):
+        Sequenceevidence.__init__(self, source, strain, 'GENDNASEQUENCE', bioentity, sequence, date_created, created_by)
+        self.contig_id = contig.id
+        self.start = start
+        self.end = end
+        self.strand = strand
+
+class Proteinsequenceevidence(Sequenceevidence):
     __mapper_args__ = {'polymorphic_identity': "PROTEINSEQUENCE",
                        'inherit_condition': id==Evidence.id}
 
     def __init__(self, source, strain, bioentity, sequence, date_created, created_by):
-        Evidence.__init__(self,
-                          bioentity.display_name + ' has ' + sequence.display_name + ' in strain ' + strain.display_name,
-                          bioentity.format_name + '_' + str(sequence.id) + '_' + str(strain.id),
-                          'PROTEINSEQUENCE', source, None, strain, None, None,
-                          date_created, created_by)
-        self.bioentity_id = bioentity.id
-        self.sequence_id = sequence.id
+        Sequenceevidence.__init__(self, source, strain, 'PROTEINSEQUENCE', bioentity, sequence, date_created, created_by)
+
+class CodingDNAsequenceevidence(Sequenceevidence):
+    __mapper_args__ = {'polymorphic_identity': "CODDNASEQUENCE",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, strain, bioentity, sequence, date_created, created_by):
+        Sequenceevidence.__init__(self, source, strain, 'CODDNASEQUENCE', bioentity, sequence, date_created, created_by)
 
 class Phosphorylationevidence(Evidence):
     __tablename__ = "phosphorylationevidence"

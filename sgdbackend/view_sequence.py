@@ -5,7 +5,6 @@ Created on Mar 15, 2013
 '''
 from model_new_schema.bioentity import Bioentity, Protein
 from model_new_schema.evelements import Strain
-from model_new_schema.evidence import Sequenceevidence, Proteinsequenceevidence
 from mpmath import sqrt, ceil
 from sgdbackend import DBSession
 from sgdbackend_query import get_sequence_evidence, get_sequence_labels, get_sequence_neighbors, get_contigs, get_contig
@@ -34,7 +33,11 @@ def make_contig(contig_id):
 '''
 
 def make_details(locus_id=None, contig_id=None):
-    dna_seqevidences = get_sequence_evidence(Sequenceevidence, locus_id=locus_id, contig_id=contig_id)
+    seqevidences = get_sequence_evidence(locus_id=locus_id, contig_id=contig_id)
+
+    dna_seqevidences = [x for x in seqevidences if x.class_type == 'GENDNASEQUENCE']
+    protein_seqevidences = [x for x in seqevidences if x.class_type == 'PROTEINSEQUENCE']
+    coding_seqevidences = [x for x in seqevidences if x.class_type == 'CODDNASEQUENCE']
     
     id_to_labels = {}
     for sequence_label in get_sequence_labels([x.id for x in dna_seqevidences]):
@@ -54,17 +57,18 @@ def make_details(locus_id=None, contig_id=None):
 
 
     tables = {}
-    tables['dna'] = create_simple_table(sorted(dna_seqevidences, key=lambda x: get_obj(Strain, x.strain_id)['display_name'] if get_obj(Strain, x.strain_id)['display_name'] != 'S288C' else 'AAA'), make_dna_evidence_row,
+    tables['genomic_dna'] = create_simple_table(sorted(dna_seqevidences, key=lambda x: get_obj(Strain, x.strain_id)['display_name'] if get_obj(Strain, x.strain_id)['display_name'] != 'S288C' else 'AAA'), make_dna_evidence_row,
                                id_to_labels=id_to_labels,
                                id_to_neighbors=id_to_neighbors,
                                id_to_contig=id_to_contig)
 
     protein_ids = [x.id for x in DBSession.query(Protein).filter(Protein.locus_id == locus_id).all()]
-    protein_seqevidences = []
     for protein_id in protein_ids:
-        protein_seqevidences.extend(get_sequence_evidence(Proteinsequenceevidence, locus_id=protein_id))
+        protein_seqevidences.extend([x for x in get_sequence_evidence(locus_id=protein_id) if x.class_type == 'PROTEINSEQUENCE'])
 
-    tables['protein'] = create_simple_table(sorted(protein_seqevidences, key=lambda x: get_obj(Strain, x.strain_id)['display_name'] if get_obj(Strain, x.strain_id)['display_name'] != 'S288C' else 'AAA'), make_protein_evidence_row)
+    tables['protein'] = create_simple_table(sorted(protein_seqevidences, key=lambda x: get_obj(Strain, x.strain_id)['display_name'] if get_obj(Strain, x.strain_id)['display_name'] != 'S288C' else 'AAA'), make_sequence_evidence_row)
+    tables['coding_dna'] = create_simple_table(sorted(coding_seqevidences, key=lambda x: get_obj(Strain, x.strain_id)['display_name'] if get_obj(Strain, x.strain_id)['display_name'] != 'S288C' else 'AAA'), make_sequence_evidence_row)
+
     return tables
 
 def make_dna_evidence_row(seqevidence, id_to_labels, id_to_neighbors, id_to_contig):
@@ -86,7 +90,7 @@ def make_dna_evidence_row(seqevidence, id_to_labels, id_to_neighbors, id_to_cont
         obj_json['contig'] = sequence_to_json(contig)
     return obj_json
 
-def make_protein_evidence_row(seqevidence):
+def make_sequence_evidence_row(seqevidence):
     bioentity_id = seqevidence.bioentity_id
 
     obj_json = evidence_to_json(seqevidence).copy()

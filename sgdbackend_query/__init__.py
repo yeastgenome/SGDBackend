@@ -6,7 +6,7 @@ from model_new_schema.condition import Temperaturecondition, \
     Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition, \
     Chemicalcondition
 from model_new_schema.evidence import Geninteractionevidence, \
-    Physinteractionevidence, Regulationevidence, Evidence, SequenceLabel, Sequenceevidence
+    Physinteractionevidence, Regulationevidence, Evidence, SequenceLabel, Sequenceevidence, GenomicDNAsequenceevidence
 from mpmath import ceil
 from model_new_schema.sequence import Contig
 
@@ -77,12 +77,14 @@ def get_all(cls, print_query=False, join=None):
         print query
     return objs
 
-def get_sequence_evidence(sequence_cls, locus_id=None, contig_id=None):
-    query = session.query(sequence_cls).options(joinedload('sequence'))
-    if locus_id is not None:
-        query = query.filter(sequence_cls.bioentity_id == locus_id)
+def get_sequence_evidence(locus_id=None, contig_id=None):
     if contig_id is not None:
-        query = query.filter(sequence_cls.contig_id == contig_id)
+        query = session.query(GenomicDNAsequenceevidence).options(joinedload('sequence')).filter(GenomicDNAsequenceevidence.contig_id == contig_id)
+    else:
+        query = session.query(Sequenceevidence).options(joinedload('sequence'))
+
+    if locus_id is not None:
+        query = query.filter(Sequenceevidence.bioentity_id == locus_id)
     return query.all()
 
 two_bioent_evidence_cls = set([Geninteractionevidence, Physinteractionevidence, Regulationevidence])
@@ -205,11 +207,11 @@ def get_sequence_neighbors(evidence):
     if evidence.contig_id is None:
         return []
     else:
-        return session.query(Sequenceevidence).filter(
-                                                    Sequenceevidence.contig_id == evidence.contig_id).filter(
-                                                    Sequenceevidence.start >= evidence.start - 5000).filter(
-                                                    Sequenceevidence.start <= evidence.start + 5000).filter(
-                                                    Sequenceevidence.id != evidence.id).all()
+        return session.query(GenomicDNAsequenceevidence).filter(
+                                                    GenomicDNAsequenceevidence.contig_id == evidence.contig_id).filter(
+                                                    GenomicDNAsequenceevidence.start >= evidence.start - 5000).filter(
+                                                    GenomicDNAsequenceevidence.start <= evidence.start + 5000).filter(
+                                                    GenomicDNAsequenceevidence.id != evidence.id).all()
 
 def get_contigs(evidences):
     return session.query(Contig).filter(Contig.id.in_([x.contig_id for x in evidences])).all()

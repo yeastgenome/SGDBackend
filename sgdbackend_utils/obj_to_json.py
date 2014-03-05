@@ -25,9 +25,9 @@ def bioent_to_json(bioent):
         bioent_json['cellular_localization'] = bioent.cellular_localization
         bioent_json['go'] = minimize_json(biocon_to_json(bioent.go))
     elif bioent.class_type == 'TRANSCRIPT':
-        bioent_json['locus'] = minimize_json(bioent_to_json(get_obj(Bioentity, bioent.locus_id), include_format_name=True))
+        bioent_json['locus'] = minimize_json(get_obj(Bioentity, bioent.locus_id), include_format_name=True)
     elif bioent.class_type == 'PROTEIN':
-        bioent_json['locus'] = minimize_json(bioent_to_json(get_obj(Bioentity, bioent.locus_id), include_format_name=True))
+        bioent_json['locus'] = minimize_json(get_obj(Bioentity, bioent.locus_id), include_format_name=True)
 
     return bioent_json
     

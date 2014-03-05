@@ -411,6 +411,4 @@ def convert(old_session_maker, new_session_maker):
     #convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.bioentity_in_depth.protein_disambigs', 10000)
 
     #convert_disambigs(new_session_maker, Complex, ['id', 'format_name'], 'BIOCONCEPT', 'COMPLEX', 'convert.complex.disambigs', 1000)
-
-   
-
+    pass
