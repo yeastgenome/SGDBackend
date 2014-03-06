@@ -170,6 +170,7 @@ def sequence_to_json(sequence):
         seq_json['aromaticity_score'] = str(sequence.aromaticity_score)
         seq_json['aliphatic_index'] = str(sequence.aliphatic_index)
         seq_json['instability_index'] = str(sequence.instability_index)
+        seq_json['molecular_weight'] = None if sequence.molecular_weight is None else str(round(float(str(sequence.molecular_weight))))
         seq_json['ala'] = sequence.ala
         seq_json['arg'] = sequence.arg
         seq_json['asn'] = sequence.asn
