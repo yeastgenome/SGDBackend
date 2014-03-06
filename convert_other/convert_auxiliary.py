@@ -3,13 +3,15 @@ Created on May 28, 2013
 
 @author: kpaskov
 '''
+import logging
+import sys
+
 from convert_utils import create_or_update
 from mpmath import ceil
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func
-import logging
-import sys
+
 
 """
 --------------------- Convert Bioentity Reference ---------------------
@@ -37,8 +39,7 @@ def create_bioentity_reference_from_paragraph(paragraph, class_type):
 def convert_bioentity_reference(new_session_maker, evidence_class, class_type, label, chunk_size, get_bioent_ids_f, 
                                 filter_f=None):
     from model_new_schema.auxiliary import BioentityReference
-    from model_new_schema.paragraph import Paragraph
-    
+
     log = logging.getLogger(label)
     log.info('begin')
     output_creator = OutputCreator(log)
@@ -88,12 +89,12 @@ def convert_bioentity_reference(new_session_maker, evidence_class, class_type, l
             min_id = min_id+chunk_size
             
         #Add paragraph-related bioent_references.
-        old_objs = new_session.query(Paragraph).filter(Paragraph.class_type == class_type).options(joinedload('paragraph_references')).all()                               
+        old_objs = new_session.query(Paragraph).filter(Paragraph.class_type == class_type).options(joinedload('paragraph_references')).all()
         for old_obj in old_objs:
             if filter_f is None or filter_f(old_obj):
                 #Convert old objects into new ones
                 newly_created_objs = create_bioentity_reference_from_paragraph(old_obj, class_type)
-         
+
                 #Edit or add new objects
                 for newly_created_obj in newly_created_objs:
                     unique_key = newly_created_obj.unique_key()
@@ -102,7 +103,7 @@ def convert_bioentity_reference(new_session_maker, evidence_class, class_type, l
                         current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
                         create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
                         used_unique_keys.add(unique_key)
-                        
+
                     if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
                         untouched_obj_ids.remove(current_obj_by_id.id)
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
@@ -143,6 +144,8 @@ def create_disambigs(obj, fields, class_type, subclass_type):
     field_values = set()
     for field in fields:
         field_value = getattr(obj, field)
+        if field == 'doi':
+            field_value = None if field_value is None else 'doi:' + field_value.lower()
         if field_value is not None and (field == 'id' or field == 'pubmed_id' or not is_number(field_value)):
             field_values.add(field_value)
     
@@ -247,7 +250,7 @@ def convert_biofact(new_session_maker, evidence_class, bioconcept_class, bioconc
         values_to_check = []     
         
         #Grab all current objects
-        current_objs = new_session.query(Biofact).filter(Biofact.bioconcept_class_type == bioconcept_class_type).all()
+        current_objs = new_session.query(Biofact).filter(Biofact.bioconcept_class_type == bioconcept_class_type).filter(Biofact.bioentity_class_type == 'LOCUS').all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         

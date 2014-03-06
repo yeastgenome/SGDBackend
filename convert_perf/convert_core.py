@@ -3,11 +3,12 @@ Created on Oct 29, 2013
 
 @author: kpaskov
 '''
+import json
+import sys
+
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
-import json
-import logging
-import sys
+
 
 """
 --------------------- Convert Disambig ---------------------
@@ -261,14 +262,17 @@ def convert_bioconcept(session_maker, backend, log, chunk_size):
 
 def create_reference(bioentity_id, json_obj, bibentry):
     from model_perf_schema.core import Reference
-    return Reference(bioentity_id, json_obj, bibentry)
+    if json_obj is not None and bibentry is not None:
+        return Reference(bioentity_id, json_obj, bibentry)
+    else:
+        return None
 
 def update_reference(json_obj, bibentry, reference):
     changed = False
-    if reference.json != json_obj:
+    if json_obj is not None and reference.json != json_obj:
         reference.json = json_obj
         changed = True
-    if reference.bibentry_json != bibentry:
+    if bibentry is not None and reference.bibentry_json != bibentry:
         reference.bibentry_json = bibentry
         changed = True
     return changed
@@ -285,7 +289,7 @@ def convert_reference(session_maker, backend, log, chunk_size):
         min_reference_id = 0
         max_reference_id = 100000
         num_chunks = ceil(1.0*(max_reference_id-min_reference_id)/chunk_size)
-        for i in range(0, num_chunks):
+        for i in reversed(range(0, num_chunks)):
             min_id = min_reference_id + i*chunk_size
             max_id = min_reference_id + (i+1)*chunk_size
             
@@ -311,8 +315,10 @@ def convert_reference(session_maker, backend, log, chunk_size):
             for insert_id in insert_ids:
                 json_obj = None if insert_id not in new_id_to_json_obj else new_id_to_json_obj[insert_id]
                 bibentry = None if insert_id not in new_id_bibentry_obj else new_id_bibentry_obj[insert_id]
-                session.add(create_reference(insert_id, json_obj, bibentry))
-            output_creator.num_added = output_creator.num_added + len(insert_ids)
+                new_reference = create_reference(insert_id, json_obj, bibentry)
+                if new_reference is not None:
+                    session.add(new_reference)
+                    output_creator.num_added = output_creator.num_added + 1
                
             #Updates
             update_ids = new_ids & old_ids

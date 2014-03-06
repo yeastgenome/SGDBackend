@@ -3,8 +3,9 @@ Created on Jul 9, 2013
 
 @author: kpaskov
 '''
+from datetime import timedelta, date
 from model_new_schema.bioentity import Bioentity
-from model_new_schema.reference import Bibentry, Abstract, AuthorReference, Author
+from model_new_schema.reference import Bibentry, Abstract, AuthorReference, Author, Reference, Referencerelation, ReferenceReftype
 from sgdbackend_query import session
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
@@ -66,11 +67,19 @@ def get_bibentry(reference_id, print_query=False):
         return bibentries[0].text
     return None
 
+def get_reftypes(reference_id, print_query=False):
+    query = session.query(ReferenceReftype).options(joinedload(ReferenceReftype.reftype)).filter(ReferenceReftype.reference_id == reference_id)
+    return [x.reftype.display_name for x in query.all()]
+
 def get_authors_for_reference(reference_id, print_query=False):
     query = session.query(AuthorReference).options(joinedload("author")).filter(AuthorReference.reference_id == reference_id)
     author_refs = query.all()
     author_refs.sort(key=lambda x: x.order)
     return [author_to_json(author_ref.author) for author_ref in author_refs]
+
+def get_related_references(reference_id):
+    query = session.query(Referencerelation).filter(or_(Referencerelation.parent_id == reference_id, Referencerelation.child_id == reference_id))
+    return query.all()
 
 def get_author(author_identifier):
     try:
@@ -93,3 +102,8 @@ def get_references_for_author(author_id, print_query=False):
     query = session.query(AuthorReference).filter(AuthorReference.author_id == author_id)
     author_refs = query.all()
     return [id_to_reference[author_ref.reference_id] for author_ref in author_refs]
+
+def get_references_this_week(print_query=False):
+    a_week_ago = date.today() - timedelta(days=7)
+    query = session.query(Reference).filter(Reference.date_created > a_week_ago)
+    return query.all()

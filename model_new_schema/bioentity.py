@@ -7,11 +7,12 @@ This is some test code to experiment with working with SQLAlchemy - particularly
 will eventually be the Bioentity classes/tables in the new SGD website schema. This code is currently meant to run on the KPASKOV 
 schema on fasolt.
 '''
-from model_new_schema import Base, EqualityByIDMixin
+from model_new_schema import Base, EqualityByIDMixin, create_format_name
+from model_new_schema.bioconcept import Go
 from model_new_schema.misc import Alias, Url, Relation
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String, Date, Numeric
 
 class Bioentity(Base, EqualityByIDMixin):
     __tablename__ = 'bioentity'
@@ -25,12 +26,13 @@ class Bioentity(Base, EqualityByIDMixin):
     sgdid = Column('sgdid', String)
     uniprotid = Column('uniprotid', String)
     bioent_status = Column('bioent_status', String)
+    description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
     
     __mapper_args__ = {'polymorphic_on': class_type}
     
-    def __init__(self, bioentity_id, display_name, format_name, class_type, link, source, sgdid, uniprotid, bioent_status,
+    def __init__(self, bioentity_id, display_name, format_name, class_type, link, source, sgdid, uniprotid, bioent_status, description,
                  date_created, created_by):
         self.id = bioentity_id
         self.display_name = display_name
@@ -41,6 +43,7 @@ class Bioentity(Base, EqualityByIDMixin):
         self.sgdid = sgdid
         self.uniprotid = uniprotid
         self.bioent_status = bioent_status
+        self.description = description
         self.date_created = date_created
         self.created_by = created_by
             
@@ -111,7 +114,6 @@ class Locus(Bioentity):
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     name_description = Column('name_description', String)
     headline = Column('headline', String)
-    description = Column('description', String)
     genetic_position = Column('genetic_position', String)
     locus_type = Column('locus_type', String)
         
@@ -122,34 +124,62 @@ class Locus(Bioentity):
                  locus_type, short_description, headline, description, genetic_position,
                  date_created, created_by):
         Bioentity.__init__(self, bioentity_id, display_name, format_name, 'LOCUS', '/cgi-bin/locus.fpl?locus=' + sgdid,
-                           source, sgdid, uniprotid, bioent_status, date_created, created_by)
+                           source, sgdid, uniprotid, bioent_status, description, date_created, created_by)
         self.short_description = short_description
         self.headline = headline
-        self.description = description
         self.genetic_position = genetic_position
         self.locus_type = locus_type
     
 class Protein(Bioentity):
     __tablename__ = "proteinbioentity"
-    
+
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
-    molecular_weight = Column('molecular_weight', Integer)
-    length = Column('protein_length', Integer)
-    n_term_seq = Column('n_term_seq', String)
-    c_term_seq = Column('c_term_seq', String)
-            
+
+    locus = relationship(Locus, uselist=False, primaryjoin="Protein.locus_id==Locus.id")
+
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Bioentity.id}
     
     def __init__(self, bioentity_id, source,
-                 locus, length, n_term_seq, c_term_seq,
-                 date_created, created_by):
+                 locus, date_created, created_by):
         Bioentity.__init__(self, bioentity_id, locus.display_name + 'p', locus.format_name + 'P', 
-                           'PROTEIN', locus.link.replace('/locus.f', '/protein/proteinPage.'), source, None, None, locus.bioent_status, date_created, created_by)
+                           'PROTEIN', '/locus/' + locus.sgdid + '/overview', source, None, None, locus.bioent_status, locus.description, date_created, created_by)
         self.locus_id = locus.id
-        self.length = length
-        self.n_term_seq = n_term_seq
-        self.c_term_seq = c_term_seq
 
-    
+class Transcript(Bioentity):
+    __tablename__ = "transcriptbioentity"
+
+    id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
+    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
+
+    locus = relationship(Locus, uselist=False, primaryjoin="Transcript.locus_id==Locus.id")
+
+    __mapper_args__ = {'polymorphic_identity': 'TRANSCRIPT',
+                       'inherit_condition': id == Bioentity.id}
+
+    def __init__(self, bioentity_id, source,
+                 locus, date_created, created_by):
+        Bioentity.__init__(self, bioentity_id, locus.display_name + 't', locus.format_name + 'T',
+                           'TRANSCRIPT', '/locus/' + locus.sgdid + '/overview', source, None, None, locus.bioent_status, locus.description, date_created, created_by)
+        self.locus_id = locus.id
+
+class Complex(Bioentity):
+    __tablename__ = 'complexbioentity'
+
+    id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key = True)
+    go_id = Column('go_id', Integer, ForeignKey(Go.id))
+    cellular_localization = Column('cellular_localization', String)
+
+    #Relationships
+    go = relationship(Go, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "COMPLEX",
+                       'inherit_condition': id==Bioentity.id}
+
+    def __init__(self, source, sgdid,
+                 go, cellular_localization):
+        format_name = create_format_name(go.display_name.lower())
+        Bioentity.__init__(self, None, go.display_name, format_name, 'COMPLEX', '/complex/' + format_name + '/overview', source, sgdid, None, None, go.description, None, None)
+        self.go_id = go.id
+        self.cellular_localization = cellular_localization

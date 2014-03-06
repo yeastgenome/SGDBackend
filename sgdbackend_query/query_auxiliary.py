@@ -51,7 +51,7 @@ def get_bioentity_references(class_type=None, bioent_id=None, reference_id=None,
         print query
     return bioent_refs
 
-def get_biofacts(biocon_type, biocon_id=None, bioent_id=None, bioent_ids=None, biocon_ids=None, print_query=False):
+def get_biofacts(biocon_type, biocon_id=None, bioent_id=None, bioent_ids=None, biocon_ids=None, bioent_type=None, print_query=False):
     '''
     get_biofacts('GO', biocon=get_biocon('DNA_repair', 'GO'), print_query=True)
     
@@ -61,6 +61,8 @@ def get_biofacts(biocon_type, biocon_id=None, bioent_id=None, bioent_ids=None, b
     '''
     
     query = session.query(Biofact).filter(Biofact.bioconcept_class_type==biocon_type)
+    if bioent_type is not None:
+        query = query.filter(Biofact.bioentity_class_type == bioent_type)
     if bioent_id is not None:
         query = query.filter(Biofact.bioentity_id==bioent_id)
     if biocon_id is not None:

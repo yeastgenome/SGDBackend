@@ -51,6 +51,10 @@ class BackendInterface:
     @abstractmethod
     def author_references(self, identifier):
         return None
+
+    @abstractmethod
+    def references_this_week(self):
+        return None
     
     #Bioent
     @abstractmethod
@@ -86,6 +90,21 @@ class BackendInterface:
 
     @abstractmethod
     def all_chemicals(self, min_id, max_id):
+        return None
+
+    #Domain
+    @abstractmethod
+    def domain(self, identifier):
+        return None
+
+    #Contig
+    @abstractmethod
+    def contig(self, identifier):
+        return None
+
+    #ECNumber
+    @abstractmethod
+    def ec_number(self, identifier):
         return None
     
     #Go
@@ -174,7 +193,16 @@ class BackendInterface:
     
     #Protein
     @abstractmethod
-    def protein_domain_details(self, locus_identifier=None, reference_identifier=None):
+    def protein_domain_details(self, locus_identifier=None, reference_identifier=None, domain_identifier=None):
+        return None
+
+    @abstractmethod
+    def ec_number_details(self, locus_identifier=None, ec_number_identifier=None):
+        return None
+
+
+    @abstractmethod
+    def protein_graph(self, identifier):
         return None
     
     #Regulation
@@ -201,5 +229,13 @@ class BackendInterface:
     #Sequence
     @abstractmethod
     def binding_site_details(self, locus_identifier=None, reference_identifier=None):
+        return None
+
+    @abstractmethod
+    def sequence_details(self, identifier):
+        return None
+
+    @abstractmethod
+    def protein_phosphorylation_details(self, identifier):
         return None
 

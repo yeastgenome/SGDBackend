@@ -7,7 +7,7 @@ Created on Oct 25, 2013
 #1.23.14 Maitenance (sgd-dev): 1:04
 
 from sqlalchemy import or_
-from convert_utils import create_or_update, create_format_name
+from convert_utils import create_or_update, create_format_name, break_up_file
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
 import logging

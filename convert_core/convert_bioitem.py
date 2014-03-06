@@ -250,7 +250,7 @@ def create_domain(row, key_to_source):
     interpro_description = None if interpro_description == 'NULL' else interpro_description
     interpro_id = None if interpro_id == 'NULL' else interpro_id
 
-    domain = Domain(display_name, link, source, description if description is not None else interpro_description, interpro_id, interpro_description)
+    domain = Domain(display_name, source, description if description is not None else interpro_description, interpro_id, interpro_description, link)
     return [domain]
 
 def create_domain_from_tf_file(row, key_to_source):
@@ -265,8 +265,15 @@ def create_domain_from_tf_file(row, key_to_source):
 
     source = key_to_source['JASPAR']
 
-    domain = Domain(display_name, link, source, description if description is not None else interpro_description, interpro_id, interpro_description)
+    domain = Domain(display_name, source, description if description is not None else interpro_description, interpro_id, interpro_description, link)
     return [domain]
+
+def create_domain_from_protein_details(key_to_source):
+    from model_new_schema.bioitem import Domain
+
+    transmembrane = Domain('predicted transmembrane domain', key_to_source['TMHMM'], 'predicted transmembrane domain', None, None, None)
+    signal_peptide = Domain('predicted signal peptide', key_to_source['SignalP'], 'predicted signal peptide', None, None, None)
+    return [transmembrane, signal_peptide]
 
 def convert_domain(new_session_maker, chunk_size):
     from model_new_schema.bioitem import Domain
@@ -284,7 +291,7 @@ def convert_domain(new_session_maker, chunk_size):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
 
         #Values to check
-        values_to_check = ['display_name', 'description', 'interpro_id', 'interpro_description', 'link', 'source_id']
+        values_to_check = ['display_name', 'description', 'interpro_id', 'interpro_description', 'link', 'source_id', 'external_link']
 
         untouched_obj_ids = set(id_to_current_obj.keys())
 
@@ -346,7 +353,29 @@ def convert_domain(new_session_maker, chunk_size):
                             untouched_obj_ids.remove(current_obj_by_key.id)
                         used_unique_keys.add(unique_key)
 
-        output_creator.finished("1/1")
+        output_creator.finished("1/2")
+        new_session.commit()
+
+        #Protein domains from protein_details
+        newly_created_objs = create_domain_from_protein_details(key_to_source)
+
+        if newly_created_objs is not None:
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                unique_key = newly_created_obj.unique_key()
+                if unique_key not in used_unique_keys:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    used_unique_keys.add(unique_key)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+                    used_unique_keys.add(unique_key)
+
+        output_creator.finished("2/2")
         new_session.commit()
 
         #Delete untouched objs
@@ -373,5 +402,5 @@ def convert_domain(new_session_maker, chunk_size):
 """  
 
 def convert(old_session_maker, new_session_maker):
-    convert_bioitems(old_session_maker, new_session_maker)
+    #convert_bioitems(old_session_maker, new_session_maker)
     convert_domain(new_session_maker, 5000)

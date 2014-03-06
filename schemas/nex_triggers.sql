@@ -131,6 +131,19 @@ SELECT bioconcept_seq.nextval INTO :new.bioconcept_id FROM DUAL;
 END;
 /
 
+/* BIOENTITY */
+DROP TRIGGER BIOENTITY_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_TRIGGER
+BEFORE INSERT ON bioentity
+FOR EACH ROW
+BEGIN
+IF (:new.bioentity_id IS NULL) THEN
+SELECT bioentity_seq.nextval INTO :new.bioentity_id FROM DUAL;
+END IF;
+END;
+/
+
 
 /* Auxilliary */
 DROP TRIGGER AUX_BIOENT_REF_TRIGGER;
@@ -175,6 +188,27 @@ SELECT chem_seq.nextval INTO :new.chemical_id FROM DUAL;
 END;
 /
 
+/* Sequence */
+
+DROP TRIGGER SEQ_TRIGGER;
+--/
+CREATE TRIGGER SEQ_TRIGGER
+BEFORE INSERT ON biosequence
+FOR EACH ROW
+BEGIN
+SELECT bioseq_seq.nextval INTO :new.biosequence_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER SEQLABEL_TRIGGER;
+--/
+CREATE TRIGGER SEQLABEL_TRIGGER
+BEFORE INSERT ON sequencelabel
+FOR EACH ROW
+BEGIN
+SELECT seqlabel_seq.nextval INTO :new.sequencelabel_id FROM DUAL;
+END;
+/
 
 
 

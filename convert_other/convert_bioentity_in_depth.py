@@ -3,13 +3,14 @@ Created on May 31, 2013
 
 @author: kpaskov
 '''
-from convert_other.convert_auxiliary import convert_disambigs
+import logging
+import sys
+
 from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
-import logging
-import sys
+
 
 #Recorded times: 
 #Maitenance (cherry-vm08): 2:56, 2:59 
@@ -25,10 +26,11 @@ def create_bioentitytabs(locus):
     
     show_summary = 1
     show_history = 1
+    show_sequence = 1
     show_wiki = 1
     
     if locus.bioent_status != 'Active':
-        return [Locustabs(locus.id, show_summary, show_history, 0, 
+        return [Locustabs(locus.id, show_summary, show_sequence, show_history, 0,
                           0, 0, 0, 0, 0, 0, show_wiki)]
     
     show_literature = 1
@@ -70,7 +72,7 @@ def create_bioentitytabs(locus):
     show_protein = 0 if locus.locus_type in no_protein else 1
     
     
-    return [Locustabs(locus.id, show_summary, show_history, show_literature, 
+    return [Locustabs(locus.id, show_summary, show_sequence, show_history, show_literature,
                           show_go, show_phenotype, show_interactions, show_expression, 
                           show_regulation, show_protein, show_wiki)]
 
@@ -91,7 +93,7 @@ def convert_bioentitytabs(new_session_maker):
                 
         #Values to check
         values_to_check = ['summary', 'history', 'literature', 'go', 'phenotype', 'interactions', 'expression',
-                           'regulation', 'protein', 'wiki']
+                           'regulation', 'protein', 'sequence', 'wiki']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -109,6 +111,7 @@ def convert_bioentitytabs(new_session_maker):
                     current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
                     current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
                     create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    print current_obj_by_key.sequence
                     
                     if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
                         untouched_obj_ids.remove(current_obj_by_id.id)
@@ -130,7 +133,8 @@ def convert_bioentitytabs(new_session_maker):
         new_session.close()
         
     log.info('complete')
-    
+
+
 """
 --------------------- Convert Alias ---------------------
 """
@@ -394,19 +398,17 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
 ---------------------Convert------------------------------
 """   
 
-def convert(old_session_maker, new_session_maker):  
-    convert_alias(old_session_maker, new_session_maker)
+def convert(old_session_maker, new_session_maker):
+
+    #convert_alias(old_session_maker, new_session_maker)
     
-    convert_url(old_session_maker, new_session_maker, 1000)
+    #convert_url(old_session_maker, new_session_maker, 1000)
         
-    convert_bioentitytabs(new_session_maker)
-    
-    from model_new_schema.bioentity import Locus
-    convert_disambigs(new_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS', 'convert.bioentity_in_depth.locus_disambigs', 1000)
- 
-    from model_new_schema.bioentity import Protein
-    convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.bioentity_in_depth.protein_disambigs', 10000)
-    
+    #convert_bioentitytabs(new_session_maker)
 
-   
+    #convert_disambigs(new_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS', 'convert.bioentity_in_depth.locus_disambigs', 1000)
 
+    #convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.bioentity_in_depth.protein_disambigs', 10000)
+
+    #convert_disambigs(new_session_maker, Complex, ['id', 'format_name'], 'BIOCONCEPT', 'COMPLEX', 'convert.complex.disambigs', 1000)
+    pass

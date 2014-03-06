@@ -1,9 +1,9 @@
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 from sqlalchemy.engine import create_engine
-import sys
 
-def prep_views(chosen_backend, config):  
+
+def prep_views(chosen_backend, config):
     
     #Chemical views
     config.add_route('chemical', 
@@ -41,6 +41,12 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'author_references')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('author_references'))
+
+    config.add_route('references_this_week',
+                     '/new/references',
+                     view=lambda request: chosen_backend.response_wrapper('references_this_week', request)(
+                                getattr(chosen_backend, 'references_this_week')()),
+                     renderer=chosen_backend.get_renderer('references_this_week'))
     
     #Bioent views
     config.add_route('bioentity_list', 
@@ -212,6 +218,35 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'phenotype_graph')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('phenotype_graph'))
+
+    #Complex
+    config.add_route('complex',
+                     '/complex/{identifier}/overview',
+                     view=lambda request: chosen_backend.response_wrapper('complex', request)(
+                                getattr(chosen_backend, 'complex')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('complex'))
+
+    config.add_route('complex_genes',
+                     '/complex/{identifier}/genes',
+                     view=lambda request: chosen_backend.response_wrapper('complex_genes', request)(
+                                getattr(chosen_backend, 'complex_genes')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('complex_genes'))
+
+    config.add_route('complex_details',
+                     '/complex/{identifier}/locus_details',
+                     view=lambda request: chosen_backend.response_wrapper('complex_details', request)(
+                                getattr(chosen_backend, 'complex_details')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('complex_details'))
+
+    config.add_route('complex_graph',
+                     '/complex/{identifier}/graph',
+                     view=lambda request: chosen_backend.response_wrapper('complex_graph', request)(
+                                getattr(chosen_backend, 'complex_graph')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('complex_graph'))
     
     #Interaction views
     config.add_route('interaction_overview', 
@@ -327,6 +362,26 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'protein_domain_details')(
                                         locus_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('protein_domain_details'))
+
+    config.add_route('protein_domain_bioitem_details',
+                     '/domain/{identifier}/locus_details',
+                     view=lambda request: chosen_backend.response_wrapper('protein_domain_details', request)(
+                                getattr(chosen_backend, 'protein_domain_details')(
+                                        domain_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('protein_domain_details'))
+
+    config.add_route('domain',
+                     '/domain/{identifier}/overview',
+                     view=lambda request: chosen_backend.response_wrapper('domain', request)(
+                                getattr(chosen_backend, 'domain')(
+                                        identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('domain'))
+
+    config.add_route('protein_graph', '/locus/{identifier}/protein_graph',
+                     view=lambda request: chosen_backend.response_wrapper('protein_graph', request)(
+                                getattr(chosen_backend, 'protein_graph')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('protein_graph'))
     
     config.add_route('binding_site_bioent_details',
                      '/locus/{identifier}/binding_site_details', 
@@ -334,6 +389,59 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'binding_site_details')(
                                         locus_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('binding_site_details'))
+
+    #EC Number views
+    config.add_route('ec_number',
+                     '/ec_number/{identifier}/overview',
+                     view=lambda request: chosen_backend.response_wrapper('ec_number', request)(
+                                getattr(chosen_backend, 'ec_number')(
+                                        identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('ec_number'))
+
+    config.add_route('ec_number_bioent_details',
+                     '/locus/{identifier}/ec_number_details',
+                     view=lambda request: chosen_backend.response_wrapper('ec_number_details', request)(
+                                getattr(chosen_backend, 'ec_number_details')(
+                                        locus_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('ec_number_details'))
+
+    config.add_route('ec_number_biocon_details',
+                     '/ec_number/{identifier}/locus_details',
+                     view=lambda request: chosen_backend.response_wrapper('ec_number_details', request)(
+                                getattr(chosen_backend, 'ec_number_details')(
+                                        ec_number_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('ec_number_details'))
+
+    #Sequence views
+    config.add_route('sequence__bioent_details',
+                     '/locus/{identifier}/sequence_details',
+                     view=lambda request: chosen_backend.response_wrapper('sequence_details', request)(
+                                getattr(chosen_backend, 'sequence_details')(
+                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('sequence_details'))
+
+    config.add_route('sequence_contig_details',
+                     '/contig/{identifier}/sequence_details',
+                     view=lambda request: chosen_backend.response_wrapper('sequence_details', request)(
+                                getattr(chosen_backend, 'sequence_details')(
+                                        contig_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('sequence_details'))
+
+    config.add_route('protein_phosphorylation_details',
+                     '/locus/{identifier}/protein_phosphorylation_details',
+                     view=lambda request: chosen_backend.response_wrapper('protein_phosphorylation_details', request)(
+                                getattr(chosen_backend, 'protein_phosphorylation_details')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('protein_phosphorylation_details'))
+
+    config.add_route('contig',
+                     '/contig/{identifier}/overview',
+                     view=lambda request: chosen_backend.response_wrapper('contig', request)(
+                                getattr(chosen_backend, 'contig')(
+                                        identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('contig'))
+
+
     
 def prepare_backend(backend_type):
     configurator = Configurator()

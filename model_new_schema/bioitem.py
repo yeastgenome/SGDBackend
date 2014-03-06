@@ -46,15 +46,18 @@ class Domain(Bioitem):
     id = Column('bioitem_id', Integer, primary_key=True)
     interpro_id = Column('interpro_id', String)
     interpro_description = Column('interpro_description', String)
+    external_link = Column('external_url', String)
     
     __mapper_args__ = {'polymorphic_identity': 'DOMAIN',
                        'inherit_condition': id == Bioitem.id}
     
-    def __init__(self, display_name, link, source, description, 
-                 interpro_id, interpro_description):
-        Bioitem.__init__(self, display_name, create_format_name(display_name), 'DOMAIN', link, source, description)
+    def __init__(self, display_name, source, description,
+                 interpro_id, interpro_description, external_link):
+        format_name = create_format_name(display_name)
+        Bioitem.__init__(self, display_name, format_name, 'DOMAIN', '/domain/' + format_name + '/overview', source, description)
         self.interpro_id = interpro_id
         self.interpro_description = interpro_description
+        self.external_link = external_link
     
 class Proteinbioitem(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',

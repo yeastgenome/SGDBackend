@@ -3,12 +3,14 @@ Created on Jun 4, 2013
 
 @author: kpaskov
 '''
+import logging
+import sys
+
 from convert_utils import create_or_update, create_format_name, break_up_file, \
     read_obo
 from convert_utils.output_manager import OutputCreator
 from sqlalchemy.orm import joinedload
-import logging
-import sys
+
 
 #Recorded times: 
 #Maitenance (cherry-vm08): 0:01, 
@@ -120,7 +122,7 @@ def convert_experiment(old_session_maker, new_session_maker):
         experiment_names = set()
         
         rows = break_up_file('data/yeastmine_regulation.tsv')
-        experiment_names.update([(row[4], row[5], row[11]) for row in rows])
+        experiment_names.update([(row[4], row[5], row[12]) for row in rows])
                 
         for experiment_name, eco_id, source_key in experiment_names:
             newly_created_objs = create_experiment_from_reg_row(experiment_name, eco_id, source_key, key_to_source)
@@ -143,7 +145,12 @@ def convert_experiment(old_session_maker, new_session_maker):
             if len(row) < 10:
                 print row
         experiment_names.update([row[9][1:-1] for row in rows])
-        
+
+        rows = break_up_file('data/phosphosites.txt')
+        for row in rows:
+            if len(row) == 19:
+                experiment_names.update(row[3].split('|'))
+
         for experiment_name in experiment_names:
             newly_created_objs = create_experiment_from_binding_row(experiment_name, key_to_source)
             for newly_created_obj in newly_created_objs:
@@ -156,7 +163,9 @@ def convert_experiment(old_session_maker, new_session_maker):
                         untouched_obj_ids.remove(current_obj_by_id.id)
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                         untouched_obj_ids.remove(current_obj_by_key.id)   
-                    already_seen_objs.add(newly_created_obj.unique_key())                      
+                    already_seen_objs.add(newly_created_obj.unique_key())
+
+
                         
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -350,6 +359,8 @@ def convert_experiment_relation(old_session_maker, new_session_maker):
 --------------------- Convert Strain ---------------------
 """
 
+alternative_reference_strains = {'CEN.PK', 'D273-10B', 'FL100', 'JK9-3d', 'RM11-1a', 'SEY6210', 'SK1', 'Sigma1278b', 'W303', 'X2180-1A', 'Y55'}
+
 def create_strain(old_cv_term, key_to_source):
     from model_new_schema.evelements import Strain as NewStrain
     
@@ -358,9 +369,41 @@ def create_strain(old_cv_term, key_to_source):
     
     source = key_to_source['SGD']
     
-    new_strain = NewStrain(display_name, source, description,
+    new_strain = NewStrain(display_name, source, description, 1 if display_name in alternative_reference_strains else 0,
                                old_cv_term.date_created, old_cv_term.created_by)
     return [new_strain]
+
+def create_extra_strains(key_to_source):
+    from model_new_schema.evelements import Strain as NewStrain
+
+    source = key_to_source['SGD']
+    return [NewStrain('AWRI1631', source, 'Haploid derivative of South African commercial wine strain N96.', 0, None, None),
+                   NewStrain('AWRI796', source, 'South African red wine strain.', 0, None, None),
+                   NewStrain('BY4741', source, 'S288C-derivative laboratory strain.', 0, None, None),
+                   NewStrain('BY4742', source, 'S288C-derivative laboratory strain.', 0, None, None),
+                   NewStrain('CBS7960', source, 'Brazilian bioethanol factory isolate.', 0, None, None),
+                   NewStrain('CLIB215', source, 'New Zealand bakery isolate.', 0, None, None),
+                   NewStrain('CLIB324', source, 'Vietnamese bakery isolate.', 0, None, None),
+                   NewStrain('CLIB382', source, 'Irish beer isolate.', 0, None, None),
+                   NewStrain('EC1118', source, 'Commercial wine strain.', 0, None, None),
+                   NewStrain('EC9-8', source, 'Haploid derivative of Israeli canyon isolate.', 0, None, None),
+                   NewStrain('FostersB', source, 'Commercial ale strain.', 0, None, None),
+                   NewStrain('FostersO', source, 'Commercial ale strain.', 0, None, None),
+                   NewStrain('JAY291', source, 'Haploid derivative of Brazilian industrial bioethanol strain PE-2.', 0, None, None),
+                   NewStrain('Kyokai7', source, 'Japanese sake yeast.', 0, None, None),
+                   NewStrain('LalvinQA23', source, 'Portuguese Vinho Verde white wine strain.', 0, None, None),
+                   NewStrain('M22', source, 'Italian vineyard isolate.', 0, None, None),
+                   NewStrain('PW5', source, 'Nigerian Raphia palm wine isolate.', 0, None, None),
+                   NewStrain('T7', source, 'Missouri oak tree exudate isolate.', 0, None, None),
+                   NewStrain('T73', source, 'Spanish red wine strain.', 0, None, None),
+                   NewStrain('UC5', source, 'Japanese sake yeast.', 0, None, None),
+                   NewStrain('VIN13', source, 'South African white wine strain.', 0, None, None),
+                   NewStrain('VL3', source, 'French white wine strain.', 0, None, None),
+                   NewStrain('Y10', source, 'Philippine coconut isolate.', 0, None, None),
+                   NewStrain('YJM269', source, 'Austrian Blauer Portugieser wine grape isolate.', 0, None, None),
+                   NewStrain('YJM789', source, 'Haploid derivative of opportunistic human pathogen.', 0, None, None),
+                   NewStrain('YPS163', source, 'Pennsylvania woodland isolate.', 0, None, None),
+                   NewStrain('ZTW1', source, 'Chinese corn mash bioethanol isolate.', 0, None, None)]
 
 def convert_strain(old_session_maker, new_session_maker):
     from model_new_schema.evelements import Strain as NewStrain, Source as NewSource
@@ -378,7 +421,7 @@ def convert_strain(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
                 
         #Values to check
-        values_to_check = ['display_name', 'link', 'description']
+        values_to_check = ['display_name', 'link', 'description', 'is_alternative_reference']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -403,6 +446,18 @@ def convert_strain(old_session_maker, new_session_maker):
                     untouched_obj_ids.remove(current_obj_by_id.id)
                 if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                     untouched_obj_ids.remove(current_obj_by_key.id)
+
+        #Edit or add new objects
+        newly_created_objs = create_extra_strains(key_to_source)
+        for newly_created_obj in newly_created_objs:
+            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+            current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                  untouched_obj_ids.remove(current_obj_by_id.id)
+            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                untouched_obj_ids.remove(current_obj_by_key.id)
                                                 
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -425,7 +480,7 @@ def convert_strain(old_session_maker, new_session_maker):
 --------------------- Convert Source ---------------------
 """
 sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAMs', 'Pfam', 'PRINTS', 
-               'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI', 'PubMedCentral', 'PubMed', '-', 'ECO']
+               'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI', 'PubMedCentral', 'PubMed', '-', 'ECO', 'TMHMM', 'SignalP', 'PhosphoGRID']
 
 def create_extra_source():
     from model_new_schema.evelements import Source as NewSource

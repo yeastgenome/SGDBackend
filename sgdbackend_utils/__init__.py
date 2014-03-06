@@ -4,11 +4,11 @@ Created on Mar 12, 2013
 @author: kpaskov
 '''
 from datetime import datetime
-from mpmath import ceil
-from sgdbackend_query import get_obj_id, get_multi_obj_ids
-from sgdbackend_utils.cache import id_to_bioent, id_to_reference, word_to_bioent_id
 from string import upper
 import logging
+
+from mpmath import ceil
+
 
 def create_simple_table(objs, f, **kwargs):
     table = []
@@ -17,15 +17,15 @@ def create_simple_table(objs, f, **kwargs):
         table.append(entries)
     return table
 
-def get_bioent_by_name(bioent_name, to_ignore, word_to_bioent_id):
+def get_bioent_by_name(bioent_name, to_ignore):
+    from model_new_schema.bioentity import Bioentity
+    from sgdbackend_utils.cache import get_obj, get_word_to_bioent_id
     if bioent_name not in to_ignore:
         try:
             int(bioent_name)
         except ValueError:
-            bioent_id = None if bioent_name not in word_to_bioent_id else word_to_bioent_id[bioent_name]
-            if bioent_id is None and bioent_name.endswith('P'):
-                bioent_id = None if bioent_name[:-1] not in word_to_bioent_id else word_to_bioent_id[bioent_name[:-1]]
-            return None if bioent_id is None else id_to_bioent[bioent_id]
+            bioent_id = get_word_to_bioent_id(bioent_name)
+            return None if bioent_id is None else get_obj(Bioentity, bioent_id)
     return None
 
 def link_gene_names(text, to_ignore=set()):
@@ -39,7 +39,7 @@ def link_gene_names(text, to_ignore=set()):
         else:
             bioent_name = word
         
-        bioent = get_bioent_by_name(upper(bioent_name), to_ignore, word_to_bioent_id)
+        bioent = get_bioent_by_name(upper(bioent_name), to_ignore)
             
         if bioent is not None:
             new_chunks.append(text[chunk_start: i])

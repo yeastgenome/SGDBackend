@@ -5,7 +5,7 @@ Created on Dec 11, 2012
 '''
 import hashlib
 from model_new_schema import Base, EqualityByIDMixin
-from model_new_schema.bioconcept import Go, Phenotype
+from model_new_schema.bioconcept import Go, Phenotype, ECNumber
 from model_new_schema.bioentity import Bioentity, Protein
 from model_new_schema.evelements import Source, Strain, Experiment
 from model_new_schema.bioitem import Domain
@@ -13,6 +13,8 @@ from model_new_schema.reference import Reference
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
+from model_new_schema.sequence import Sequence
+
 
 class Evidence(Base, EqualityByIDMixin):
     __tablename__ = "evidence"
@@ -301,4 +303,164 @@ class Bindingevidence(Evidence):
         self.expert_confidence = expert_confidence
         self.link = "/static/img/yetfasco/" + bioentity.format_name + "_" + str(motif_id) + ".0.png"
         self.motif_id = motif_id
-        
+
+class Complexevidence(Evidence):
+    __tablename__ = "complexevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    complex_id = Column('complex_id', Integer, ForeignKey(Bioentity.id))
+    go_id = Column('go_id', Integer, ForeignKey(Bioentity.id))
+
+    __mapper_args__ = {'polymorphic_identity': 'COMPLEX',
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, reference, strain, experiment, note,
+                 bioentity, complex, go,
+                 date_created, created_by):
+        Evidence.__init__(self,
+                          bioentity.display_name + ' is in complex ' + complex.display_name,
+                          bioentity.format_name + '_' + str(complex.id) + ('' if go is None else str(go.id)),
+                          'COMPLEX', source, reference, strain, experiment, note, date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.complex_id = complex.id
+        self.go_id = None if go is None else go.id
+
+class ECNumberevidence(Evidence):
+    __tablename__ = "ecnumberevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Protein.id))
+    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(ECNumber.id))
+
+    #Relationships
+    bioentity = relationship(Protein, uselist=False)
+    bioconcept = relationship(ECNumber, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "ECNUMBER",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, bioentity, bioconcept, date_created, created_by):
+        Evidence.__init__(self,
+                          bioentity.display_name + ' is a ' + bioconcept.display_name,
+                          bioentity.format_name + '_' + bioconcept.id,
+                          'ECNUMBER', source, None, None, None, None,
+                          date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.bioconcept = bioconcept.id
+
+class Sequenceevidence(Evidence):
+    __tablename__ = "sequenceevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    sequence_id = Column('biosequence_id', Integer, ForeignKey(Sequence.id))
+
+    #Relationships
+    bioentity = relationship(Bioentity, uselist=False)
+    sequence = relationship(Sequence, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "SEQUENCE",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, strain, class_type, bioentity, sequence, date_created, created_by):
+        Evidence.__init__(self,
+                          bioentity.display_name + ' has ' + sequence.display_name + ' in strain ' + strain.display_name,
+                          bioentity.format_name + '_' + str(sequence.id) + '_' + str(strain.id),
+                          class_type, source, None, strain, None, None,
+                          date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.sequence_id = sequence.id
+
+class SequenceLabel(Base, EqualityByIDMixin):
+    __tablename__ = 'sequencelabel'
+
+    id = Column('sequencelabel_id', Integer, primary_key=True)
+    evidence_id = Column('evidence_id', Integer, ForeignKey(Sequenceevidence.id))
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
+    class_type = Column('subclass', String)
+    relative_start = Column('relative_start_index', Integer)
+    relative_end = Column('relative_end_index', Integer)
+    chromosomal_start = Column('chromosomal_start_index', Integer)
+    chromosomal_end = Column('chromosomal_end_index', Integer)
+    phase = Column('phase', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    evidence = relationship(Sequenceevidence, uselist=False, backref='labels')
+
+    def __init__(self, evidence, class_type, relative_start, relative_end, chromosomal_start, chromosomal_end, phase,
+                 date_created, created_by):
+        self.evidence_id = evidence.id
+        self.display_name = class_type
+        self.format_name = class_type
+        self.class_type = class_type.upper()
+        self.relative_start = relative_start
+        self.relative_end = relative_end
+        self.chromosomal_start = chromosomal_start
+        self.chromosomal_end = chromosomal_end
+        self.phase = phase
+        self.date_created = date_created
+        self.created_by = created_by
+
+    def unique_key(self):
+        return (self.evidence_id, self.class_type, self.chromosomal_start, self.chromosomal_end)
+
+class GenomicDNAsequenceevidence(Sequenceevidence):
+    __tablename__ = "gendnasequenceevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    contig_id = Column('contig_id', Integer)
+    start = Column('start_index', Integer)
+    end = Column('end_index', Integer)
+    strand = Column('strand', String)
+
+    __mapper_args__ = {'polymorphic_identity': "GENDNASEQUENCE",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, strain, bioentity, sequence, contig, start, end, strand, date_created, created_by):
+        Sequenceevidence.__init__(self, source, strain, 'GENDNASEQUENCE', bioentity, sequence, date_created, created_by)
+        self.contig_id = contig.id
+        self.start = start
+        self.end = end
+        self.strand = strand
+
+class Proteinsequenceevidence(Sequenceevidence):
+    __mapper_args__ = {'polymorphic_identity': "PROTEINSEQUENCE",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, strain, bioentity, sequence, date_created, created_by):
+        Sequenceevidence.__init__(self, source, strain, 'PROTEINSEQUENCE', bioentity, sequence, date_created, created_by)
+
+class CodingDNAsequenceevidence(Sequenceevidence):
+    __mapper_args__ = {'polymorphic_identity': "CODDNASEQUENCE",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, strain, bioentity, sequence, date_created, created_by):
+        Sequenceevidence.__init__(self, source, strain, 'CODDNASEQUENCE', bioentity, sequence, date_created, created_by)
+
+class Phosphorylationevidence(Evidence):
+    __tablename__ = "phosphorylationevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    site_index = Column('site_index', Integer)
+    site_residue = Column('site_residue', String)
+
+    #Relationships
+    bioentity = relationship(Bioentity, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "PHOSPHORYLATION",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, reference, experiment, bioentity, site_index, site_residue, date_created, created_by):
+        Evidence.__init__(self,
+                          bioentity.display_name + ' has ' + site_residue + str(site_index),
+                          bioentity.format_name + '_' + site_residue + '_' + str(site_index) + ('' if reference is None else '_' + str(reference.id)),
+                          'PHOSPHORYLATION', source, reference, None, experiment, None,
+                          date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.site_index = site_index
+        self.site_residue = site_residue

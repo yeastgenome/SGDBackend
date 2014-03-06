@@ -77,14 +77,17 @@ class Strain(Base, EqualityByIDMixin):
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer)
     description = Column('description', String)
+    is_alternative_reference = Column('is_alternative_reference', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue()) 
     
-    def __init__(self, display_name, source, description, date_created, created_by):
+    def __init__(self, display_name, source, description, is_alternative_reference, date_created, created_by):
         self.display_name = display_name;
-        self.format_name = create_format_name(display_name)
+        self.format_name = create_format_name(display_name).replace('.', '')
         self.link = None
         self.source_id = source.id
+        self.description = description
+        self.is_alternative_reference = is_alternative_reference
         self.date_created = date_created
         self.created_by = created_by
         

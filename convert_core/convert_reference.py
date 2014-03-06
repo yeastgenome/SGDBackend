@@ -3,14 +3,16 @@ Created on Feb 27, 2013
 
 @author: kpaskov
 '''
+import datetime
+import logging
+import sys
+
 from convert_utils import create_or_update, create_format_name
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
-import datetime
-import logging
 import requests
-import sys
+
 
 #Recorded times: 
 #Maitenance (cherry-vm08): 51:17
@@ -234,7 +236,7 @@ def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
         min_id = min_id + chunk_size
     return pubmed_id_to_central_id
 
-def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id, key_to_source):
+def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id, reference_id_to_doi, key_to_source):
     from model_new_schema.reference import Reference as NewReference
     
     citation = create_citation(old_reference.citation)
@@ -258,7 +260,7 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
     pubmed_id = None
     pubmed_central_id = None
     if old_reference.pubmed_id is not None:
-        pubmed_id = int(old_reference.pubmed_id)
+        pubmed_id = old_reference.pubmed_id
         pubmed_central_id = pubmed_id_to_pubmed_central_id[pubmed_id]
         
     year = None
@@ -276,21 +278,23 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
     else:
         print 'Source not found.' + source_key
         return None
+
+    doi = None if old_reference.id not in reference_id_to_doi else reference_id_to_doi[old_reference.id]
     
     new_ref = NewReference(old_reference.id, display_name, old_reference.dbxref_id, source_id, 
                            old_reference.status, pubmed_id, pubmed_central_id,
                            old_reference.pdf_status, citation, year, 
                            old_reference.date_published, date_revised, 
                            old_reference.issue, old_reference.page, old_reference.volume, old_reference.title,
-                           new_journal, new_book, old_reference.doi,
+                           new_journal, new_book, doi,
                            old_reference.date_created, old_reference.created_by)
     return [new_ref]
 
 def convert_reference(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.reference import Reference as NewReference, Book as NewBook, Journal as NewJournal
     from model_new_schema.evelements import Source as NewSource
-    from model_old_schema.reference import Reference as OldReference
-    
+    from model_old_schema.reference import Reference as OldReference, Ref_URL as OldRefUrl
+
     log = logging.getLogger('convert.reference.reference')
     log.info('begin')
     output_creator = OutputCreator(log)
@@ -309,9 +313,11 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
         key_to_journal = dict([(x.unique_key(), x) for x in new_session.query(NewJournal).all()])
         key_to_book = dict([(x.unique_key(), x) for x in new_session.query(NewBook).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
-        
+
         #Grab old objects
         old_session = old_session_maker()
+
+        reference_id_to_doi = dict([(x.reference_id, x.url.url[18:]) for x in old_session.query(OldRefUrl).options(joinedload('url')).all() if x.url.url_type == 'DOI full text'])
         
         used_unique_keys = set()
         used_citations = set()
@@ -343,7 +349,7 @@ def convert_reference(old_session_maker, new_session_maker, chunk_size):
             
             for old_obj in old_objs:
                 #Convert old objects into new ones
-                newly_created_objs = create_reference(old_obj, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id, key_to_source)
+                newly_created_objs = create_reference(old_obj, key_to_journal, key_to_book, pubmed_id_to_pubmed_central_id, reference_id_to_doi, key_to_source)
                 
                 #Edit or add new objects
                 for newly_created_obj in newly_created_objs:
