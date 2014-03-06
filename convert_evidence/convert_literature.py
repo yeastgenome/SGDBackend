@@ -6,14 +6,16 @@ Created on Jul 3, 2013
 
 #1.23.14 Maitenance (sgd-dev): 1:15:15
 
+import logging
+import sys
+
 from convert_other.convert_auxiliary import convert_bioentity_reference
 from convert_utils import create_or_update
 from convert_utils.output_manager import OutputCreator
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import or_
-import logging
-import sys
+
 
 """
 --------------------- Convert Physical Interaction Evidence ---------------------
@@ -76,14 +78,10 @@ def convert_litevidence(old_session_maker, new_session_maker, chunk_size):
             max_id = min_bioent_id + (i+1)*chunk_size
        
             #Grab all current objects
-            current_objs = new_session.query(NewLiteratureevidence).filter(NewLiteratureevidence.bioentity_id >= min_id).filter(NewLiteratureevidence.bioentity_id < max_id).all()
-            id_to_current_obj = dict([(x.id, x) for x in current_objs])
-            key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
-            
-            untouched_obj_ids = set(id_to_current_obj.keys())
-            
-            #Grab old objects                  
-            old_objs = old_session.query(OldLitguideFeat).filter(
+            if i < num_chunks-1:
+                current_objs = new_session.query(NewLiteratureevidence).filter(NewLiteratureevidence.bioentity_id >= min_id).filter(NewLiteratureevidence.bioentity_id < max_id).all()
+                #Grab old objects
+                old_objs = old_session.query(OldLitguideFeat).filter(
                                                 OldLitguideFeat.feature_id >= min_id).filter(
                                                 OldLitguideFeat.feature_id < max_id).filter(
                                                 or_(OldLitguideFeat.topic=='Additional Literature',
@@ -91,6 +89,21 @@ def convert_litevidence(old_session_maker, new_session_maker, chunk_size):
                                                     OldLitguideFeat.topic=='Omics',
                                                     OldLitguideFeat.topic=='Reviews')).options(
                                                 joinedload('litguide')).all()
+            else:
+                current_objs = new_session.query(NewLiteratureevidence).filter(NewLiteratureevidence.bioentity_id >= min_id).all()
+                #Grab old objects
+                old_objs = old_session.query(OldLitguideFeat).filter(
+                                                OldLitguideFeat.feature_id >= min_id).filter(
+                                                or_(OldLitguideFeat.topic=='Additional Literature',
+                                                    OldLitguideFeat.topic=='Primary Literature',
+                                                    OldLitguideFeat.topic=='Omics',
+                                                    OldLitguideFeat.topic=='Reviews')).options(
+                                                joinedload('litguide')).all()
+
+            id_to_current_obj = dict([(x.id, x) for x in current_objs])
+            key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+
+            untouched_obj_ids = set(id_to_current_obj.keys())
         
             for old_obj in old_objs:
                 #Convert old objects into new ones
