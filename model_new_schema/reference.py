@@ -331,7 +331,7 @@ class Referencealias(Alias):
                        'inherit_condition': id == Alias.id}
     
     def __init__(self, display_name, source, category, reference, date_created, created_by):
-        Alias.__init__(self, display_name, reference.format_name, 'REFERENCE', source, category, date_created, created_by)
+        Alias.__init__(self, display_name, reference.format_name, 'REFERENCE', None, source, category, date_created, created_by)
         self.reference_id = reference.id
  
 

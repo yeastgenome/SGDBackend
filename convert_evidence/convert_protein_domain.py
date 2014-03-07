@@ -68,7 +68,7 @@ def create_domain_evidence(row, key_to_bioentity, key_to_domain, key_to_strain, 
                                      int(start), int(end), evalue, status, date_of_run, protein, domain, None, None)
     return [domain_evidence]
 
-def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source, protein_id_to_sequence):
+def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source, protein_id_to_length):
     from model_new_schema.evidence import Domainevidence
     
     bioent_format_name = row[2].strip()
@@ -78,14 +78,14 @@ def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pu
     evalue = None
     status = 'T'
     date_of_run = None
-    pubmed_id = row[6]
+    pubmed_id = int(row[6].strip())
     
     bioent_key = (bioent_format_name + 'P', 'PROTEIN')
     protein = None if bioent_key not in key_to_bioentity else key_to_bioentity[bioent_key]
     if protein is None:
         print bioent_key
         return []
-    end = protein_id_to_sequence[protein.id].length
+    end = protein_id_to_length[protein.id]
     
     domain_key = (db_identifier, 'DOMAIN')
     domain = None if domain_key not in key_to_domain else key_to_domain[domain_key]
@@ -132,7 +132,7 @@ def create_domain_evidence_from_protein_info(protein_detail, id_to_bioentity, ke
     return []
 
 def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
-    from model_new_schema.evidence import Domain, Domainevidence
+    from model_new_schema.evidence import Domain, Domainevidence, Proteinsequenceevidence
     from model_new_schema.bioentity import Bioentity
     from model_new_schema.reference import Reference
     from model_new_schema.evelements import Source, Strain
@@ -199,9 +199,6 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
             output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
             new_session.commit()
 
-        id_to_current_obj = dict([(x.id, x) for x in untouched_obj_ids.values()])
-        key_to_current_obj = dict([(x.unique_key(), x) for x in untouched_obj_ids.values()])
-
         #Grab protein_details
         old_session = old_session_maker()
         old_objs = old_session.query(OldProteinDetail).options(joinedload('info')).all()
@@ -231,11 +228,14 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
         #Grab JASPAR evidence from file
         old_objs = break_up_file('data/TF_family_class_accession04302013.txt')
 
-        pubmed_ids = set([row[6] for row in old_objs])
+        pubmed_ids = set([int(row[6].strip()) for row in old_objs])
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).filter(Reference.pubmed_id.in_(pubmed_ids)).all()])
+
+        protein_id_to_length = dict([(x.bioentity_id, x.sequence.length) for x in new_session.query(Proteinsequenceevidence).filter(Proteinsequenceevidence.source_id == 1).option(joinedload('sequence')).all()])
+
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_domain_evidence_from_tf_file(old_obj, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source, {})
+            newly_created_objs = create_domain_evidence_from_tf_file(old_obj, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source, protein_id_to_length)
                 
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:

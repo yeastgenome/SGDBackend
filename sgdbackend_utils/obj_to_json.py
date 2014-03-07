@@ -20,7 +20,7 @@ def bioent_to_json(bioent):
 
     if bioent.class_type == 'LOCUS':
         bioent_json['locus_type'] = bioent.locus_type
-        bioent_json['aliases'] = [x.display_name for x in bioent.aliases]
+        bioent_json['aliases'] = [x.display_name for x in bioent.aliases if x.link is None]
     elif bioent.class_type == 'COMPLEX':
         bioent_json['cellular_localization'] = bioent.cellular_localization
         bioent_json['go'] = minimize_json(biocon_to_json(bioent.go))
@@ -285,6 +285,18 @@ def paragraph_to_json(paragraph):
     return {
             'text': text,
             'references': references
+           }
+
+def alias_to_json(alias):
+    from model_new_schema.evelements import Source
+    from sgdbackend_utils.cache import get_obj
+
+    return {
+            'id': alias.id,
+            'display_name': alias.display_name,
+            'link': alias.link,
+            'source': None if alias.source_id is None else get_obj(Source, alias.source_id),
+            'category': alias.category
            }
     
 def evidence_to_json(evidence):

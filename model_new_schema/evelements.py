@@ -65,7 +65,7 @@ class Experimentalias(Alias):
                        'inherit_condition': id == Alias.id}
     
     def __init__(self, display_name, source, category, experiment, date_created, created_by):
-        Alias.__init__(self, display_name, experiment.format_name, 'EXPERIMENT', source, category, date_created, created_by)
+        Alias.__init__(self, display_name, experiment.format_name, 'EXPERIMENT', None, source, category, date_created, created_by)
         self.experiment_id = experiment.id
 
 class Strain(Base, EqualityByIDMixin):

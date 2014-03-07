@@ -69,6 +69,10 @@ class BackendInterface:
     @abstractmethod
     def locus(self, identifier):
         return None
+
+    @abstractmethod
+    def locus_alias(self, identifier):
+        return None
     
     @abstractmethod
     def locustabs(self, identifier):
@@ -200,9 +204,12 @@ class BackendInterface:
     def ec_number_details(self, locus_identifier=None, ec_number_identifier=None):
         return None
 
-
     @abstractmethod
     def protein_graph(self, identifier):
+        return None
+
+    @abstractmethod
+    def protein_resources(self, identifier):
         return None
     
     #Regulation

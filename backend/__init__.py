@@ -63,6 +63,13 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'locus')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])), 
                      renderer=chosen_backend.get_renderer('locus'))
+
+    config.add_route('locus_alias',
+                     '/locus/{identifier}/alias',
+                     view=lambda request: chosen_backend.response_wrapper('locus_alias', request)(
+                                getattr(chosen_backend, 'locus_alias')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('locus_alias'))
     
     config.add_route('locustabs', 
                      '/locus/{identifier}/tabs', 
@@ -382,6 +389,12 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'protein_graph')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('protein_graph'))
+
+    config.add_route('protein_resources', '/locus/{identifier}/protein_resources',
+                     view=lambda request: chosen_backend.response_wrapper('protein_resources', request)(
+                                getattr(chosen_backend, 'protein_resources')(
+                                        None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('protein_resources'))
     
     config.add_route('binding_site_bioent_details',
                      '/locus/{identifier}/binding_site_details', 

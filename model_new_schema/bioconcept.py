@@ -90,7 +90,7 @@ class Bioconceptalias(Alias):
                        'inherit_condition': id == Alias.id}
     
     def __init__(self, display_name, source, category, bioconcept, date_created, created_by):
-        Alias.__init__(self, display_name, bioconcept.format_name, 'BIOCONCEPT', source, category, date_created, created_by)
+        Alias.__init__(self, display_name, bioconcept.format_name, 'BIOCONCEPT', None, source, category, date_created, created_by)
         self.bioconcept_id = bioconcept.id
         self.subclass_type = bioconcept.class_type
 
