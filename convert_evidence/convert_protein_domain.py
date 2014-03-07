@@ -231,7 +231,7 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
         pubmed_ids = set([int(row[6].strip()) for row in old_objs])
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).filter(Reference.pubmed_id.in_(pubmed_ids)).all()])
 
-        protein_id_to_length = dict([(x.bioentity_id, x.sequence.length) for x in new_session.query(Proteinsequenceevidence).filter(Proteinsequenceevidence.source_id == 1).options(joinedload('sequence')).all()])
+        protein_id_to_length = dict([(x.bioentity_id, x.sequence.length) for x in new_session.query(Proteinsequenceevidence).filter(Proteinsequenceevidence.source_id == 1).option(joinedload('sequence')).all()])
 
         for old_obj in old_objs:
             #Convert old objects into new ones
@@ -257,8 +257,8 @@ def convert_domain_evidence(old_session_maker, new_session_maker, chunk_size):
         new_session.commit()
                         
         #Delete untouched objs
-        for untouched_obj_id in untouched_obj_ids:
-            new_session.delete(id_to_current_obj[untouched_obj_id])
+        for untouched_obj  in untouched_obj_ids.values():
+            new_session.delete(untouched_obj)
             output_creator.removed()
         
         #Commit

@@ -363,20 +363,6 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('literature_graph'))
     
     #Protein views
-    config.add_route('protein_overview',
-                     '/locus/{identifier}/protein_overview',
-                     view=lambda request: chosen_backend.response_wrapper('protein_overview', request)(
-                                getattr(chosen_backend, 'protein_overview')(
-                                        identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('protein_overview'))
-
-    config.add_route('sequence_overview',
-                     '/locus/{identifier}/sequence_overview',
-                     view=lambda request: chosen_backend.response_wrapper('sequence_overview', request)(
-                                getattr(chosen_backend, 'sequence_overview')(
-                                        identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('sequence_overview'))
-
     config.add_route('protein_domain_bioent_details',
                      '/locus/{identifier}/protein_domain_details', 
                      view=lambda request: chosen_backend.response_wrapper('protein_domain_details', request)(
@@ -398,11 +384,11 @@ def prep_views(chosen_backend, config):
                                         identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('domain'))
 
-    config.add_route('protein_domain_graph', '/locus/{identifier}/protein_domain_graph',
-                     view=lambda request: chosen_backend.response_wrapper('protein_domain_graph', request)(
-                                getattr(chosen_backend, 'protein_domain_graph')(
+    config.add_route('protein_graph', '/locus/{identifier}/protein_graph',
+                     view=lambda request: chosen_backend.response_wrapper('protein_graph', request)(
+                                getattr(chosen_backend, 'protein_graph')(
                                         None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('protein_domain_graph'))
+                     renderer=chosen_backend.get_renderer('protein_graph'))
 
     config.add_route('protein_resources', '/locus/{identifier}/protein_resources',
                      view=lambda request: chosen_backend.response_wrapper('protein_resources', request)(

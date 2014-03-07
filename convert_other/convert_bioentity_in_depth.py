@@ -330,18 +330,21 @@ def create_url_from_dbxref(old_dbxref_feat, url_to_display, id_to_bioentity, key
                                              old_url.date_created, old_url.created_by))
     return urls
 
-def create_url_from_protein_sequence(locus, key_to_source):
+def create_url_from_protein_sequence(locus, protein_sequence, key_to_source):
     from model_new_schema.bioentity import Bioentityurl
-    return [Bioentityurl('NCBI Dart', 'http://www.ncbi.nlm.nih.gov/Structure/lexington/lexington.cgi?FILTER=on&EXPECT=0.01&cmd=seq&fasta=_SUBSTITUTE_SEQUENCE_', key_to_source['NCBI'], 'Domain', locus, None, None),
-                Bioentityurl('SMART domain', 'http://smart.embl-heidelberg.de/smart/show_motifs.pl?SEQUENCE=_SUBSTITUTE_SEQUENCE_', key_to_source['SMART'], 'Domain', locus, None, None),
-                Bioentityurl('PFAM domain', 'http://pfam.sanger.ac.uk/search/sequence?seqOpts=both&ga=0&evalue=1.0&seq=_SUBSTITUTE_SEQUENCE_', key_to_source['Pfam'], 'Domain', locus, None, None),
-                Bioentityurl('PROSITE Pattern', 'http://us.expasy.org/cgi-bin/prosite/PSScan.cgi?seq=_SUBSTITUTE_SEQUENCE_', key_to_source['Prosite'], 'Domain', locus, None, None),
+    if protein_sequence is not None:
+        return [Bioentityurl('NCBI Dart', 'http://www.ncbi.nlm.nih.gov/Structure/lexington/lexington.cgi?FILTER=on&EXPECT=0.01&cmd=seq&fasta=' + protein_sequence, key_to_source['NCBI'], 'Domain', locus, None, None),
+                Bioentityurl('SMART domain', 'http://smart.embl-heidelberg.de/smart/show_motifs.pl?SEQUENCE=' + protein_sequence, key_to_source['SMART'], 'Domain', locus, None, None),
+                Bioentityurl('PFAM domain', 'http://pfam.sanger.ac.uk/search/sequence?seqOpts=both&ga=0&evalue=1.0&seq=' + protein_sequence, key_to_source['Pfam'], 'Domain', locus, None, None),
+                Bioentityurl('PROSITE Pattern', 'http://us.expasy.org/cgi-bin/prosite/PSScan.cgi?seq=' + protein_sequence, key_to_source['Prosite'], 'Domain', locus, None, None),
                 Bioentityurl('SCOP', 'http://supfam.org/SUPERFAMILY/cgi-bin/gene.cgi?genome=sc&seqid=' + locus.format_name, key_to_source['NCBI'], 'Domain', locus, None, None)]
+    return None
 
 def convert_url(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.bioentity import Bioentity as NewBioentity, Bioentityurl as NewBioentityurl
     from model_new_schema.evelements import Source as NewSource
     from model_old_schema.general import WebDisplay as OldWebDisplay, FeatUrl as OldFeatUrl, DbxrefFeat as OldDbxrefFeat
+    from model_new_schema.evidence import Proteinsequenceevidence
     from model_new_schema.bioentity import Protein
     
     log = logging.getLogger('convert.bioentity_in_depth.bioentity_url')
@@ -373,8 +376,6 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
         old_web_displays.extend(old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Localization Resources').filter(OldWebDisplay.web_page_name == 'Protein').all())
 
         url_to_display = dict([(x.url_id, x) for x in old_web_displays])
-
-        locus_ids_with_protein = set([x.locus_id for x in new_session.query(Protein).all()])
                 
         min_bioent_id = 0
         max_bioent_id = 10000
@@ -422,7 +423,7 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
             #Grab old objects (dbxref)
             old_objs = old_session.query(OldDbxrefFeat).filter(
                                             OldDbxrefFeat.feature_id >= min_id).filter(
-                                            OldDbxrefFeat.feature_id < max_id).options(
+                                            OldDbxrefFeat.feature_id < min_id+chunk_size).options(
                                                             joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).all()
             
             for old_obj in old_objs:
@@ -442,10 +443,12 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
                             untouched_obj_ids.remove(current_obj_by_key.id)
 
 
-
-            for locus_id in locus_ids_with_protein:
-                if locus_id > min_id and (i == num_chunks-1 or locus_id < max_id):
-                    newly_created_objs = create_url_from_protein_sequence(id_to_bioentity[locus_id], key_to_source)
+            protein_id_to_sequence = dict([(x.bioentity_id, x.sequence.residues) for x in new_session.query(Proteinsequenceevidence).filter(Proteinsequenceevidence.source_id == 1).option(joinedload('sequence')).all()])
+            protein_id_to_locus_id = dict([(x.id, x.locus_id) for x in new_session.query(Protein).all()])
+            for protein_id, locus_id in protein_id_to_locus_id.iteritems():
+                if protein_id in protein_id_to_sequence:
+                    sequence = protein_id_to_sequence[protein_id]
+                    newly_created_objs = create_url_from_protein_sequence(id_to_bioentity[locus_id], sequence, key_to_source)
 
                     if newly_created_objs is not None:
                         #Edit or add new objects
@@ -481,9 +484,9 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
 
 def convert(old_session_maker, new_session_maker):
 
-    #convert_alias(old_session_maker, new_session_maker)
+    convert_alias(old_session_maker, new_session_maker)
     
-    convert_url(old_session_maker, new_session_maker, 1000)
+    #convert_url(old_session_maker, new_session_maker, 1000)
         
     #convert_bioentitytabs(new_session_maker)
 
