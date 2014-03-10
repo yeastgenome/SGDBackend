@@ -453,20 +453,6 @@ class SGDBackend(BackendInterface):
             locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_protein.make_overview(locus_id=locus_id))
 
-    def sequence_overview(self, identifier, are_ids=False):
-        from sgdbackend_query import get_obj_id
-        from sgdbackend import view_sequence
-        from model_new_schema.bioentity import Bioentity
-
-        if are_ids:
-            locus_id = identifier
-            locus = get_obj(Bioentity, locus_id)
-            if locus is None or locus['class_type'] != 'LOCUS':
-                return None
-        else:
-            locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_sequence.make_overview(locus_id=locus_id))
-
     def protein_domain_details(self, locus_identifier=None, domain_identifier=None, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_protein
@@ -478,7 +464,7 @@ class SGDBackend(BackendInterface):
             domain_id = None if domain_identifier is None else get_obj_id(domain_identifier, class_type='BIOITEM', subclass_type='DOMAIN')
         return None if locus_id is None and domain_id is None else json.dumps(view_protein.make_details(locus_id=locus_id, domain_id=domain_id))
 
-    def protein_domain_graph(self, identifier, are_ids=False):
+    def protein_graph(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_protein
         if are_ids:

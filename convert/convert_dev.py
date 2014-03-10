@@ -33,7 +33,8 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_go()
     #pastry_dev_converter.convert_protein_domain()
 
-    pastry_dev_converter.convert_bioentity_in_depth()
+    #pastry_dev_converter.convert_bioentity_in_depth()
+    pastry_dev_converter.convert_bioitem_in_depth()
     #pastry_dev_converter.convert_bioconcept_in_depth()
     #pastry_dev_converter.convert_chemical_in_depth()
     #pastry_dev_converter.convert_reference_in_depth()
