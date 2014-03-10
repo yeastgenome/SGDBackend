@@ -23,14 +23,17 @@ def make_overview(locus_id):
 '''
 -------------------------------Details---------------------------------------
 ''' 
-def make_details(locus_id=None, reference_id=None, domain_id=None):
+def make_details(locus_id=None, domain_id=None):
     domain_evidences = []
-    protein_ids = [x.id for x in DBSession.query(Protein).filter(Protein.locus_id == locus_id).all()]
-    for protein_id in protein_ids:
-        evidences = get_evidence(Domainevidence, bioent_id=protein_id, reference_id=reference_id, bioitem_id=domain_id)
-        if evidences is None:
-            return {'Error': 'Too much data to display.'}
-        domain_evidences.extend(evidences)
+    if locus_id is not None:
+        protein_ids = [x.id for x in DBSession.query(Protein).filter(Protein.locus_id == locus_id).all()]
+        for protein_id in protein_ids:
+            evidences = get_evidence(Domainevidence, bioent_id=protein_id, bioitem_id=domain_id)
+            if evidences is None:
+                return {'Error': 'Too much data to display.'}
+            domain_evidences.extend(evidences)
+    else:
+        domain_evidences = get_evidence(Domainevidence, bioent_id=None, bioitem_id=domain_id)
 
     domain_evidences = [x for x in domain_evidences if x.domain.display_name != 'seg' ]
     return create_simple_table(domain_evidences, make_evidence_row) 

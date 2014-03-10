@@ -25,8 +25,8 @@ def make_overview(reference_id):
                             'phenotype': len([x for x in bioentity_references if x.class_type == 'PHENOTYPE']),
                             'regulation': len([x for x in bioentity_references if x.class_type == 'REGULATION']),}
     related_refs = get_related_references(reference_id)
-    related_references = [get_obj(x.child_id) for x in related_refs if x.parent_id == reference_id]
-    related_references.extend([get_obj(x.parent_id) for x in related_refs if x.child_id == reference_id])
+    related_references = [get_obj(Reference, x.child_id) for x in related_refs if x.parent_id == reference_id]
+    related_references.extend([get_obj(Reference, x.parent_id) for x in related_refs if x.child_id == reference_id])
     for refrel in related_references:
         abstract = get_abstract(refrel['id'])
         refrel['abstract'] = None if abstract is None else link_gene_names(abstract)
@@ -54,7 +54,7 @@ def make_author_references(author_id):
 
 def make_references_this_week():
     references = get_references_this_week()
-    references = [get_obj(x.id) for x in sorted(references, key=lambda x: x.date_created, reverse=True)]
+    references = [get_obj(Reference, x.id) for x in sorted(references, key=lambda x: x.date_created, reverse=True)]
     for reference in references:
         literature_details = view_literature.make_details(reference_id=reference['id'])
         reference['literature_details'] = literature_details
