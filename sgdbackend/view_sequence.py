@@ -18,7 +18,7 @@ from sgdbackend_utils.obj_to_json import sequence_to_json, minimize_json, \
 -------------------------------Overview---------------------------------------
 '''  
 
-def make_overview(bioent_id):
+def make_overview(locus_id):
     return []
 
 '''

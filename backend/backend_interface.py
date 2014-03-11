@@ -194,10 +194,18 @@ class BackendInterface:
     @abstractmethod
     def phenotype_graph(self, identifier):
         return None
-    
+
     #Protein
     @abstractmethod
-    def protein_domain_details(self, locus_identifier=None, reference_identifier=None, domain_identifier=None):
+    def protein_overview(self, identifier):
+        return None
+
+    @abstractmethod
+    def sequence_overview(self, identifier):
+        return None
+
+    @abstractmethod
+    def protein_domain_details(self, locus_identifier=None, domain_identifier=None):
         return None
 
     @abstractmethod
@@ -205,7 +213,7 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def protein_graph(self, identifier):
+    def protein_domain_graph(self, identifier):
         return None
 
     @abstractmethod

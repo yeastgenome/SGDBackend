@@ -4,6 +4,7 @@ Created on Aug 9, 2013
 @author: kpaskov
 '''
 from string import lower
+from math import ceil
 from obj_to_json import bioent_to_json, experiment_to_json, strain_to_json, \
     biocon_to_json, reference_to_json
 from sgdbackend_utils.obj_to_json import bioitem_to_json, source_to_json, \
@@ -66,8 +67,15 @@ def get_objs(cls, obj_ids):
     still_need = obj_ids - already_have
 
     from sgdbackend import DBSession
-    for obj in DBSession.query(cls).filter(cls.id.in_(still_need)).all():
-        id_to_obj[obj.id] = obj_to_json(obj)
+    if len(still_need) < 500:
+        for obj in DBSession.query(cls).filter(cls.id.in_(still_need)).all():
+            id_to_obj[obj.id] = obj_to_json(obj)
+    else:
+        num_chunks = int(ceil(1.0*len(still_need)/500))
+        still_need = list(still_need)
+        for i in range(0, num_chunks):
+            for obj in DBSession.query(cls).filter(cls.id.in_(still_need[i*500:(i+1)*500])).all():
+                id_to_obj[obj.id] = obj_to_json(obj)
 
     return dict([(x, get_obj(cls, x)) for x in obj_ids])
 
