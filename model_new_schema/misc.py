@@ -42,6 +42,7 @@ class Alias(Base, EqualityByIDMixin):
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     class_type = Column('class', String)
+    link = Column('obj_url', String)
     source_id = Column('source_id', Integer)
     category = Column('category', String)
     date_created = Column('date_created', Date)
@@ -50,10 +51,11 @@ class Alias(Base, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_on': class_type,
                        'polymorphic_identity':"ALIAS"}
         
-    def __init__(self, display_name, format_name, class_type, source, category, date_created, created_by):
+    def __init__(self, display_name, format_name, class_type, link, source, category, date_created, created_by):
         self.display_name = display_name
         self.format_name = format_name
         self.class_type = class_type
+        self.link = link
         self.source_id = source.id
         self.category = category
         self.date_created = date_created

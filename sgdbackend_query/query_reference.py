@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
 
 #Used to make bioent_names into links for reference abstracts.
-from sgdbackend_utils import id_to_reference
+from sgdbackend_utils.cache import get_obj
 from sgdbackend_utils.obj_to_json import author_to_json
 
 
@@ -101,7 +101,7 @@ def get_authors(min_id, max_id):
 def get_references_for_author(author_id, print_query=False):
     query = session.query(AuthorReference).filter(AuthorReference.author_id == author_id)
     author_refs = query.all()
-    return [id_to_reference[author_ref.reference_id] for author_ref in author_refs]
+    return [get_obj(Reference, author_ref.reference_id) for author_ref in author_refs]
 
 def get_references_this_week(print_query=False):
     a_week_ago = date.today() - timedelta(days=7)

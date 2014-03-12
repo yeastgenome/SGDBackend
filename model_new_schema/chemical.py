@@ -45,7 +45,7 @@ class Chemicalalias(Alias):
                        'inherit_condition': id == Alias.id}
     
     def __init__(self, display_name, source, category, chemical, date_created, created_by):
-        Alias.__init__(self, display_name, chemical.format_name, 'CHEMICAL', source, category, date_created, created_by)
+        Alias.__init__(self, display_name, chemical.format_name, 'CHEMICAL', None, source, category, date_created, created_by)
         self.chemical_id = chemical.id
         
 class Chemicalrelation(Relation):

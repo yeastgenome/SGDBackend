@@ -10,10 +10,8 @@ requires = [
     'pyramid',
     'waitress',
     'simplejson',
-    'mpmath',
     'requests',
     'mpmath',
-    'intermine',
     'cx_oracle',
     'sqlalchemy'
     ]

@@ -69,6 +69,10 @@ class BackendInterface:
     @abstractmethod
     def locus(self, identifier):
         return None
+
+    @abstractmethod
+    def locus_alias(self, identifier):
+        return None
     
     @abstractmethod
     def locustabs(self, identifier):
@@ -190,19 +194,30 @@ class BackendInterface:
     @abstractmethod
     def phenotype_graph(self, identifier):
         return None
-    
+
     #Protein
     @abstractmethod
-    def protein_domain_details(self, locus_identifier=None, reference_identifier=None, domain_identifier=None):
+    def protein_overview(self, identifier):
+        return None
+
+    @abstractmethod
+    def sequence_overview(self, identifier):
+        return None
+
+    @abstractmethod
+    def protein_domain_details(self, locus_identifier=None, domain_identifier=None):
         return None
 
     @abstractmethod
     def ec_number_details(self, locus_identifier=None, ec_number_identifier=None):
         return None
 
+    @abstractmethod
+    def protein_domain_graph(self, identifier):
+        return None
 
     @abstractmethod
-    def protein_graph(self, identifier):
+    def protein_resources(self, identifier):
         return None
     
     #Regulation

@@ -80,8 +80,8 @@ class Bioentityalias(Alias):
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
                        'inherit_condition': id == Alias.id}
     
-    def __init__(self, display_name, source, category, bioentity, date_created, created_by):
-        Alias.__init__(self, display_name, bioentity.format_name, 'BIOENTITY', source, category, date_created, created_by)
+    def __init__(self, display_name, link, source, category, bioentity, date_created, created_by):
+        Alias.__init__(self, display_name, bioentity.format_name, 'BIOENTITY', link, source, category, date_created, created_by)
         self.bioentity_id = bioentity.id
         self.subclass_type = bioentity.class_type
 

@@ -16,7 +16,7 @@ from sqlalchemy.orm import joinedload
 #Maitenance (cherry-vm08): 2:56, 2:59 
 #First Load (sgd-ng1): 4:08, 3:49
 #Maitenance (sgd-ng1): 4:17
-    
+
 """
 --------------------- Convert Bioentity Tabs ---------------------
 """
@@ -148,14 +148,32 @@ def create_alias(old_alias, id_to_bioentity, key_to_source):
     display_name = old_alias.alias_name
     source = key_to_source['SGD']
     
-    new_alias = Bioentityalias(display_name, source, old_alias.alias_type, bioentity,
+    new_alias = Bioentityalias(display_name, None, source, old_alias.alias_type, bioentity,
                                old_alias.date_created, old_alias.created_by)
     return [new_alias] 
+
+def create_alias_from_dbxref(old_dbxref_feat, id_to_bioentity, key_to_source):
+    from model_new_schema.bioentity import Bioentityalias
+
+    if old_dbxref_feat.dbxref.dbxref_type != 'DBID Primary':
+        source = key_to_source[old_dbxref_feat.dbxref.source.replace('/', '-')]
+        bioentity_id = old_dbxref_feat.feature_id
+        bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
+        display_name = old_dbxref_feat.dbxref.dbxref_id
+        link = None
+        if len(old_dbxref_feat.dbxref.urls) > 0:
+            link = old_dbxref_feat.dbxref.urls[0].url.replace('_SUBSTITUTE_THIS_', display_name)
+
+        new_alias = Bioentityalias(display_name, link, source, old_dbxref_feat.dbxref.dbxref_type, bioentity,
+                               old_dbxref_feat.dbxref.date_created, old_dbxref_feat.dbxref.created_by)
+        return [new_alias]
+    return []
 
 def convert_alias(old_session_maker, new_session_maker):
     from model_new_schema.bioentity import Bioentity as NewBioentity, Bioentityalias as NewBioentityalias
     from model_new_schema.evelements import Source as NewSource
     from model_old_schema.feature import AliasFeature as OldAliasFeature
+    from model_old_schema.general import DbxrefFeat as OldDbxrefFeat
     
     log = logging.getLogger('convert.bioentity_in_depth.bioentity_alias')
     log.info('begin')
@@ -169,7 +187,7 @@ def convert_alias(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         
         #Values to check
-        values_to_check = ['source_id', 'category', 'created_by', 'date_created', 'subclass_type']
+        values_to_check = ['source_id', 'category', 'created_by', 'date_created', 'subclass_type', 'link']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         already_seen_obj = set()
@@ -195,6 +213,30 @@ def convert_alias(old_session_maker, new_session_maker):
                     current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
                     create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
                     
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+                already_seen_obj.add(newly_created_obj.unique_key())
+
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+
+        #Grab old objects
+        old_objs = old_session.query(OldDbxrefFeat).options(joinedload(OldDbxrefFeat.dbxref), joinedload('dbxref.dbxref_urls')).all()
+
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_alias_from_dbxref(old_obj, id_to_bioentity, key_to_source)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                if newly_created_obj.unique_key() not in already_seen_obj:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
                     if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
                         untouched_obj_ids.remove(current_obj_by_id.id)
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
@@ -275,6 +317,8 @@ def create_url_from_dbxref(old_dbxref_feat, url_to_display, id_to_bioentity, key
                     link = link.replace('_SUBSTITUTE_THIS_', id_to_bioentity[feature_id].format_name)
                 elif url_type == 'query by ID assigned by database':
                     link = link.replace('_SUBSTITUTE_THIS_', str(dbxref_id))
+                elif url_type == 'query by SGDID':
+                    link = link.replace('_SUBSTITUTE_THIS_', id_to_bioentity[feature_id].sgdid)
                 else:
                     print "Can't handle this url. " + str(old_url.url_type)
                     return None
@@ -286,10 +330,19 @@ def create_url_from_dbxref(old_dbxref_feat, url_to_display, id_to_bioentity, key
                                              old_url.date_created, old_url.created_by))
     return urls
 
+def create_url_from_protein_sequence(locus, key_to_source):
+    from model_new_schema.bioentity import Bioentityurl
+    return [Bioentityurl('NCBI Dart', 'http://www.ncbi.nlm.nih.gov/Structure/lexington/lexington.cgi?FILTER=on&EXPECT=0.01&cmd=seq&fasta=_SUBSTITUTE_SEQUENCE_', key_to_source['NCBI'], 'Domain', locus, None, None),
+                Bioentityurl('SMART domain', 'http://smart.embl-heidelberg.de/smart/show_motifs.pl?SEQUENCE=_SUBSTITUTE_SEQUENCE_', key_to_source['SMART'], 'Domain', locus, None, None),
+                Bioentityurl('PFAM domain', 'http://pfam.sanger.ac.uk/search/sequence?seqOpts=both&ga=0&evalue=1.0&seq=_SUBSTITUTE_SEQUENCE_', key_to_source['Pfam'], 'Domain', locus, None, None),
+                Bioentityurl('PROSITE Pattern', 'http://us.expasy.org/cgi-bin/prosite/PSScan.cgi?seq=_SUBSTITUTE_SEQUENCE_', key_to_source['Prosite'], 'Domain', locus, None, None),
+                Bioentityurl('SCOP', 'http://supfam.org/SUPERFAMILY/cgi-bin/gene.cgi?genome=sc&seqid=' + locus.format_name, key_to_source['NCBI'], 'Domain', locus, None, None)]
+
 def convert_url(old_session_maker, new_session_maker, chunk_size):
     from model_new_schema.bioentity import Bioentity as NewBioentity, Bioentityurl as NewBioentityurl
     from model_new_schema.evelements import Source as NewSource
     from model_old_schema.general import WebDisplay as OldWebDisplay, FeatUrl as OldFeatUrl, DbxrefFeat as OldDbxrefFeat
+    from model_new_schema.bioentity import Protein
     
     log = logging.getLogger('convert.bioentity_in_depth.bioentity_url')
     log.info('begin')
@@ -307,11 +360,21 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
         
         #Urls of interest
+        #Interaction Resources
         old_web_displays = old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Interaction Resources').all()
+        #Phenotype Resources
         old_web_displays.extend(old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Phenotype Resources').filter(OldWebDisplay.web_page_name == 'Locus').all())
         old_web_displays.extend(old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Mutant Strains').filter(OldWebDisplay.web_page_name == 'Phenotype').all())
+        #Protein Resources
+        old_web_displays.extend(old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Post-translational modifications').filter(OldWebDisplay.web_page_name == 'Protein').all())
+        old_web_displays.extend(old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Protein Information Homologs').filter(OldWebDisplay.web_page_name == 'Locus').all())
+        old_web_displays.extend(old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Analyze Sequence S288C vs. other species').filter(OldWebDisplay.web_page_name == 'Locus').all())
+        old_web_displays.extend(old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Protein databases/Other').filter(OldWebDisplay.web_page_name == 'Protein').all())
+        old_web_displays.extend(old_session.query(OldWebDisplay).filter(OldWebDisplay.label_location == 'Localization Resources').filter(OldWebDisplay.web_page_name == 'Protein').all())
 
         url_to_display = dict([(x.url_id, x) for x in old_web_displays])
+
+        locus_ids_with_protein = set([x.locus_id for x in new_session.query(Protein).all()])
                 
         min_bioent_id = 0
         max_bioent_id = 10000
@@ -359,7 +422,7 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
             #Grab old objects (dbxref)
             old_objs = old_session.query(OldDbxrefFeat).filter(
                                             OldDbxrefFeat.feature_id >= min_id).filter(
-                                            OldDbxrefFeat.feature_id < min_id+chunk_size).options(
+                                            OldDbxrefFeat.feature_id < max_id).options(
                                                             joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).all()
             
             for old_obj in old_objs:
@@ -377,7 +440,25 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
                             untouched_obj_ids.remove(current_obj_by_id.id)
                         if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                             untouched_obj_ids.remove(current_obj_by_key.id)
-                                
+
+
+
+            for locus_id in locus_ids_with_protein:
+                if locus_id > min_id and (i == num_chunks-1 or locus_id < max_id):
+                    newly_created_objs = create_url_from_protein_sequence(id_to_bioentity[locus_id], key_to_source)
+
+                    if newly_created_objs is not None:
+                        #Edit or add new objects
+                        for newly_created_obj in newly_created_objs:
+                            current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                            current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                            create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                            if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                                untouched_obj_ids.remove(current_obj_by_id.id)
+                            if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                                untouched_obj_ids.remove(current_obj_by_key.id)
+
             #Delete untouched objs
             for untouched_obj_id  in untouched_obj_ids:
                 new_session.delete(id_to_current_obj[untouched_obj_id])
@@ -402,7 +483,7 @@ def convert(old_session_maker, new_session_maker):
 
     #convert_alias(old_session_maker, new_session_maker)
     
-    #convert_url(old_session_maker, new_session_maker, 1000)
+    convert_url(old_session_maker, new_session_maker, 1000)
         
     #convert_bioentitytabs(new_session_maker)
 
@@ -411,4 +492,3 @@ def convert(old_session_maker, new_session_maker):
     #convert_disambigs(new_session_maker, Protein, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'PROTEIN', 'convert.bioentity_in_depth.protein_disambigs', 10000)
 
     #convert_disambigs(new_session_maker, Complex, ['id', 'format_name'], 'BIOCONCEPT', 'COMPLEX', 'convert.complex.disambigs', 1000)
-    pass

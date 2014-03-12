@@ -480,7 +480,7 @@ def convert_strain(old_session_maker, new_session_maker):
 --------------------- Convert Source ---------------------
 """
 sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAMs', 'Pfam', 'PRINTS', 
-               'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI', 'PubMedCentral', 'PubMed', '-', 'ECO', 'TMHMM', 'SignalP', 'PhosphoGRID']
+               'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI', 'PubMedCentral', 'PubMed', '-', 'ECO', 'TMHMM', 'SignalP', 'PhosphoGRID', 'GenBank/EMBL/DDBJ']
 
 def create_extra_source():
     from model_new_schema.evelements import Source as NewSource
@@ -586,13 +586,13 @@ def convert_source(old_session_maker, new_session_maker):
 def convert(old_session_maker, new_session_maker):
     convert_source(old_session_maker, new_session_maker)
     
-    convert_experiment(old_session_maker, new_session_maker)
+    #convert_experiment(old_session_maker, new_session_maker)
     
-    convert_experiment_alias(old_session_maker, new_session_maker)
+    #convert_experiment_alias(old_session_maker, new_session_maker)
     
-    convert_experiment_relation(old_session_maker, new_session_maker)
+    #convert_experiment_relation(old_session_maker, new_session_maker)
     
-    convert_strain(old_session_maker, new_session_maker)
+    #convert_strain(old_session_maker, new_session_maker)
 
 
     

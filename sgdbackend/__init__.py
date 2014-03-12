@@ -12,6 +12,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 import model_new_schema
 from sgdbackend_utils.cache import get_all_objs, get_objs, get_obj
+from sgdbackend_utils.obj_to_json import alias_to_json
 
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
@@ -67,6 +68,18 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(get_obj(Bioentity, locus_id))
+
+    def locus_alias(self, identifier, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from model_new_schema.bioentity import Bioentityalias
+        if are_ids:
+            locus_id = identifier
+        else:
+            locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        if locus_id is not None:
+            aliases = DBSession.query(Bioentityalias).filter(Bioentityalias.bioentity_id == locus_id).all()
+            return json.dumps([alias_to_json(alias) for alias in aliases])
+        return None
 
     def locustabs(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
@@ -440,20 +453,32 @@ class SGDBackend(BackendInterface):
             locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_protein.make_overview(locus_id=locus_id))
 
-    def protein_domain_details(self, locus_identifier=None, reference_identifier=None, domain_identifier=None, are_ids=False):
+    def sequence_overview(self, identifier, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend import view_sequence
+        from model_new_schema.bioentity import Bioentity
+
+        if are_ids:
+            locus_id = identifier
+            locus = get_obj(Bioentity, locus_id)
+            if locus is None or locus['class_type'] != 'LOCUS':
+                return None
+        else:
+            locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(view_sequence.make_overview(locus_id=locus_id))
+
+    def protein_domain_details(self, locus_identifier=None, domain_identifier=None, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_protein
         if are_ids:
             locus_id = locus_identifier
-            reference_id = reference_identifier
             domain_id = domain_identifier
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-            reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
             domain_id = None if domain_identifier is None else get_obj_id(domain_identifier, class_type='BIOITEM', subclass_type='DOMAIN')
-        return None if locus_id is None else json.dumps(view_protein.make_details(locus_id=locus_id, reference_id=reference_id, domain_id=domain_id))
+        return None if locus_id is None and domain_id is None else json.dumps(view_protein.make_details(locus_id=locus_id, domain_id=domain_id))
 
-    def protein_graph(self, identifier, are_ids=False):
+    def protein_domain_graph(self, identifier, are_ids=False):
         from sgdbackend_query import get_obj_id
         from sgdbackend import view_protein
         if are_ids:
@@ -470,6 +495,29 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if identifier is None else get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_protein.make_phosphorylation_details(locus_id=locus_id))
+
+    def protein_resources(self, identifier, are_ids=False):
+        from sgdbackend_query import get_obj_id
+        from sgdbackend_query.query_misc import get_urls
+        from sgdbackend_utils.obj_to_json import url_to_json
+        if are_ids:
+            locus_id = identifier
+        else:
+            locus_id = get_obj_id(identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        if locus_id is not None:
+            other = sorted(get_urls('Post-translational modifications', bioent_id=locus_id), key=lambda x: x.display_name)
+            homologs = get_urls('Protein Information Homologs', bioent_id=locus_id)
+            homologs.extend(get_urls('Analyze Sequence S288C vs. other species', bioent_id=locus_id))
+            homologs.sort(key=lambda x: x.display_name)
+            protein_databases = sorted(get_urls('Protein databases/Other', bioent_id=locus_id), key=lambda x: x.display_name)
+            localization = sorted(get_urls('Localization Resources', bioent_id=locus_id), key=lambda x: x.display_name)
+            domain = sorted(get_urls('Domain', bioent_id=locus_id), key=lambda x: x.display_name)
+            return json.dumps({'Homologs': [url_to_json(url) for url in homologs],
+                               'Protein Databases': [url_to_json(url) for url in protein_databases],
+                               'Localization': [url_to_json(url) for url in localization],
+                               'Domain': [url_to_json(url) for url in domain],
+                               'Other': [url_to_json(url) for url in other]})
+        return None
 
     #Complex
     def complex(self, identifier, are_ids=False):
