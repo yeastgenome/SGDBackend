@@ -41,14 +41,13 @@ setup(name='SGDBackend',
       zip_safe=False,
       install_requires=requires,
       tests_require=requires,
-      test_suite="sgdbackend",
+      test_suite="nex",
       extras_require={
         'test': tests_require,
       },
       entry_points="""\
       [paste.app_factory]
-      sgdbackend = backend:sgdbackend
-      perfbackend = backend:perfbackend
-      testbackend = backend:testbackend
+      sgdbackend = src:nexbackend
+      perfbackend = src:perfbackend
       """,
       )
