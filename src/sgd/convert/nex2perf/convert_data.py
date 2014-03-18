@@ -2,7 +2,7 @@ import sys
 
 from mpmath import ceil
 
-from src.sgd.convert.output_manager import OutputCreator
+from src.sgd.convert import OutputCreator
 
 __author__ = 'kpaskov'
 

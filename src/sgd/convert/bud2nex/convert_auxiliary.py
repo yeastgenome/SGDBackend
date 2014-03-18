@@ -4,8 +4,7 @@ import sys
 from mpmath import ceil
 from sqlalchemy.sql.expression import func
 
-from src.sgd.convert import create_or_update
-from src.sgd.convert.output_manager import OutputCreator
+from src.sgd.convert import OutputCreator, create_or_update
 
 
 __author__ = 'kpaskov'

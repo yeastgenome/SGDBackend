@@ -13,10 +13,9 @@ import sys
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert import create_format_name, create_or_update
+from src.sgd.convert import OutputCreator, create_format_name, create_or_update
 from src.sgd.convert.bud2nex.convert_auxiliary import convert_bioentity_reference, \
     convert_biofact
-from src.sgd.convert.output_manager import OutputCreator
 
 
 __author__ = 'kpaskov'

@@ -1,7 +1,7 @@
 from src.sgd.convert import config
-from src.sgd.convert.bud_nex_converter import BudNexConverter
-from src.sgd.convert.nex_perf_converter import NexPerfConverter
-from src.sgd.convert.perf_perf_converter import PerfPerfConverter
+from src.sgd.convert.bud2nex import BudNexConverter
+from src.sgd.convert.nex2perf import NexPerfConverter
+from src.sgd.convert.perf2perf import PerfPerfConverter
 
 __author__ = 'kpaskov'
 
@@ -11,17 +11,10 @@ if __name__ == "__main__":
     
     master_db1_converter = NexPerfConverter(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, 
                                      config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
-    master_db1_converter.load_ids()
-    
+
     db1_db2_converter = PerfPerfConverter(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, 
                                      config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
-    master_db1_converter.load_ids()
-    
-    pastry_master_converter.convert_binding()
-    pastry_master_converter.convert_protein_domain()
 
-    master_db1_converter.convert_protein_domain_details()
-    master_db1_converter.convert_binding_site_details()
-
-    db1_db2_converter.convert_protein_domain_details()
-    db1_db2_converter.convert_binding_site_details()
+    pastry_master_converter.convert_protein()
+    master_db1_converter.convert_protein()
+    db1_db2_converter.convert_protein()

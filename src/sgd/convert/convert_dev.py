@@ -1,5 +1,5 @@
 from src.sgd.convert import config
-from src.sgd.convert.bud_nex_converter import BudNexConverter
+from src.sgd.convert.bud2nex import BudNexConverter
 
 __author__ = 'kpaskov'
 
@@ -24,6 +24,7 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_literature()
     #pastry_dev_converter.convert_protein_domain()
     #pastry_dev_converter.convert_phosphorylation()
+    pastry_dev_converter.convert_ec_number()
 
     #pastry_dev_converter.convert_phenotype()
     #pastry_dev_converter.convert_go()
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 
     #pastry_dev_converter.convert_bioentity_in_depth()
     #pastry_dev_converter.convert_bioitem_in_depth()
-    pastry_dev_converter.convert_bioconcept_in_depth()
+    #pastry_dev_converter.convert_bioconcept_in_depth()
     #pastry_dev_converter.convert_chemical_in_depth()
     #pastry_dev_converter.convert_reference_in_depth()
 

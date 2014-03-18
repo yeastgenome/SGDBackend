@@ -2,8 +2,7 @@ from math import ceil
 import logging
 import sys
 
-from src.sgd.convert import break_up_file, create_or_update
-from src.sgd.convert.output_manager import OutputCreator
+from src.sgd.convert import OutputCreator, break_up_file, create_or_update
 
 
 __author__ = 'kpaskov'

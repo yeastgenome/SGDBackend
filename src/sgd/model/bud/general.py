@@ -74,7 +74,7 @@ class DbxrefFeat(Base, EqualityByIDMixin):
     
     #Relationships
     feature = relationship(Feature, uselist=False)
-    dbxref = relationship(Dbxref, uselist=False)
+    dbxref = relationship(Dbxref, uselist=False, backref='dbxref_feats')
     
 class DbxrefUrl(Base, EqualityByIDMixin):
     __tablename__ = 'dbxref_url'

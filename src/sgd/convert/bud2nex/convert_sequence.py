@@ -5,8 +5,7 @@ import sys
 
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert import create_or_update
-from src.sgd.convert.output_manager import OutputCreator
+from src.sgd.convert import create_or_update, OutputCreator
 
 
 __author__ = 'kpaskov'

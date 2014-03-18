@@ -342,11 +342,11 @@ class ECNumberevidence(Evidence):
     def __init__(self, source, bioentity, bioconcept, date_created, created_by):
         Evidence.__init__(self,
                           bioentity.display_name + ' is a ' + bioconcept.display_name,
-                          bioentity.format_name + '_' + bioconcept.id,
+                          bioentity.format_name + '_' + str(bioconcept.id),
                           'ECNUMBER', source, None, None, None, None,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
-        self.bioconcept = bioconcept.id
+        self.bioconcept_id = bioconcept.id
 
 class Sequenceevidence(Evidence):
     __tablename__ = "sequenceevidence"
