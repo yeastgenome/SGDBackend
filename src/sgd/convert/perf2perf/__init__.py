@@ -3,20 +3,20 @@ import sys
 from src.sgd.convert import ConverterInterface
 from src.sgd.convert.nex2perf import convert_core
 from src.sgd.convert.nex2perf.convert_data import convert_data
-from src.sgd.backend.nex import SGDBackend
+from src.sgd.backend.perf import PerfBackend
 from src.sgd.model import perf
 
 __author__ = 'kpaskov'
 
-class NexPerfConverter(ConverterInterface):
-    def __init__(self, nex_dbtype, nex_dbhost, nex_dbname, nex_schema, nex_dbuser, nex_dbpass,
-                 perf_dbtype, perf_dbhost, perf_dbname, perf_schema, perf_dbuser, perf_dbpass):
-        self.session_maker = prepare_schema_connection(perf, perf_dbtype, perf_dbhost, perf_dbname, perf_schema, perf_dbuser, perf_dbpass)
-        check_session_maker(self.session_maker, perf_dbhost, perf_schema)
+class PerfPerfConverter(ConverterInterface):
+    def __init__(self, perf1_dbtype, perf1_dbhost, perf1_dbname, perf1_schema, perf1_dbuser, perf1_dbpass,
+                 perf2_dbtype, perf2_dbhost, perf2_dbname, perf2_schema, perf2_dbuser, perf2_dbpass):
+        self.session_maker = prepare_schema_connection(perf, perf2_dbtype, perf2_dbhost, perf2_dbname, perf2_schema, perf2_dbuser, perf2_dbpass)
+        check_session_maker(self.session_maker, perf2_dbhost, perf2_schema)
         
-        self.backend = SGDBackend(nex_dbtype, nex_dbhost, nex_dbname, nex_schema, nex_dbuser, nex_dbpass, None)
+        self.backend = PerfBackend(perf1_dbtype, perf1_dbhost, perf1_dbname, perf1_schema, perf1_dbuser, perf1_dbpass, None)
 
-        self.log = set_up_logging('nex_perf_converter')
+        self.log = set_up_logging('perf_perf_converter')
         print 'Ready'
 
     def core_wrapper(self, f, chunk_size):
@@ -24,7 +24,7 @@ class NexPerfConverter(ConverterInterface):
             f(self.session_maker, self.backend, self.log, chunk_size)
         except Exception:
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
-            
+
     def data_wrapper(self, cls, class_type, obj_type, new_obj_f, label, obj_ids, chunk_size):
         try:
             self.log.info(label)
@@ -34,9 +34,13 @@ class NexPerfConverter(ConverterInterface):
 
     def convert_basic(self):
         self.core_wrapper(convert_core.convert_bioentity, 1000)
+        #1.24.14 First Load (sgd-dev): :13
         self.core_wrapper(convert_core.convert_bioconcept, 10000)
+        #1.24.14 First Load (sgd-dev): :12
         self.core_wrapper(convert_core.convert_chemical, 1000)
+        #1.24.14 First Load (sgd-dev): :20
         self.core_wrapper(convert_core.convert_author, None)
+        #1.24.14 First Load (sgd-dev): 3:05
         self.core_wrapper(convert_core.convert_disambig, 10000)
         self.core_wrapper(convert_core.convert_ontology, None)
 
@@ -45,6 +49,7 @@ class NexPerfConverter(ConverterInterface):
         from src.sgd.model.perf.core import Author
 
         author_ids = [x.id for x in self.session_maker().query(Author.id).all()]
+
         self.data_wrapper(AuthorDetails, "REFERENCE", 'author_id', lambda x: self.backend.author_references(x, are_ids=True), 'author_details', author_ids, 1000)
 
     def convert_reference(self):
@@ -177,13 +182,13 @@ class NexPerfConverter(ConverterInterface):
         self.data_wrapper(BioentityDetails, "BINDING", 'bioentity_id', lambda x: self.backend.binding_site_details(locus_identifier=x, are_ids=True), 'binding_site_details', locus_ids, 1000)
 
 if __name__ == "__main__":
-    from src.sgd.convert import config, prepare_schema_connection, check_session_maker, set_up_logging
+    from src.sgd.convert import config, check_session_maker, prepare_schema_connection, set_up_logging
 
     if len(sys.argv) == 4:
         nex_dbhost = sys.argv[1]
         perf_dbhost = sys.argv[2]
         method = sys.argv[3]
-        converter = NexPerfConverter(config.NEX_DBTYPE, nex_dbhost, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, 
+        converter = PerfPerfConverter(config.NEX_DBTYPE, nex_dbhost, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS,
                                      config.PERF_DBTYPE, perf_dbhost, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
         getattr(converter, method)()
     else:

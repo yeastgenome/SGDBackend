@@ -5,9 +5,8 @@ from mpmath import ceil
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import func
 
-from src.sgd.convert import create_or_update, create_format_name
+from src.sgd.convert import OutputCreator, create_or_update, create_format_name
 from src.sgd.convert.bud2nex.convert_auxiliary import convert_disambigs
-from src.sgd.convert.output_manager import OutputCreator
 
 
 __author__ = 'kpaskov'

@@ -1,8 +1,7 @@
 import logging
 import sys
 
-from src.sgd.convert import create_or_update
-from src.sgd.convert.output_manager import OutputCreator
+from src.sgd.convert import OutputCreator, create_or_update
 
 
 __author__ = 'kpaskov'

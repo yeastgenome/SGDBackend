@@ -67,18 +67,15 @@ def make_evidence_row(ecevidence):
     bioconcept_id = ecevidence.bioconcept_id
         
     obj_json = evidence_to_json(ecevidence).copy()
-    obj_json['bioentity'] = minimize_json(get_obj(Bioentity, bioentity_id), include_format_name=True)
+    obj_json['bioentity'] = get_obj(Bioentity, bioentity_id)
+    obj_json['bioentity']['locus']['description'] = get_obj(Bioentity, obj_json['bioentity']['locus']['id'])['description']
     obj_json['bioconcept'] = minimize_json(get_obj(Bioconcept, bioconcept_id))
     return obj_json
 
 # -------------------------------Ontology Graph---------------------------------------
 def create_node(biocon, is_focus):
-    if is_focus:
-        sub_type = 'FOCUS'
-    else:
-        sub_type = biocon['ancestor_type']
     return {'data':{'id':'Node' + str(biocon['id']), 'name':biocon['display_name'] + ('' if biocon['format_name'] == 'ypo' else ' (' + str(biocon['count']) + ')'), 'link': biocon['link'],
-                    'sub_type':sub_type}}
+                    'sub_type':'FOCUS' if is_focus else None}}
 
 def create_ontology_edge(interaction_id, biocon1_id, biocon2_id):
     return {'data':{'target': 'Node' + str(biocon1_id), 'source': 'Node' + str(biocon2_id)}} 
@@ -102,7 +99,7 @@ def make_ontology_graph(ec_number_id):
         
         child_id_to_child = get_objs(Bioconcept, child_ids)
         parent_id_to_parent = get_objs(Bioconcept, parent_ids)
-        viable_ids = set([k for k, v in child_id_to_child.iteritems() if v['is_core']])
+        viable_ids = set([k for k, v in child_id_to_child.iteritems()])
 
         #If there are too many children, hide some.
         all_children = []
@@ -112,7 +109,7 @@ def make_ontology_graph(ec_number_id):
             hidden_children_count = len(viable_ids)-7
             viable_ids = set(list(viable_ids)[:7])
 
-        viable_ids.update([k for k, v in parent_id_to_parent.iteritems() if v['is_core']])
+        viable_ids.update([k for k, v in parent_id_to_parent.iteritems()])
         viable_ids.add(ec_number_id)
         
         nodes.extend([create_node(v, False) for k, v in child_id_to_child.iteritems() if k in viable_ids])
@@ -126,7 +123,7 @@ def make_ontology_graph(ec_number_id):
         edges.extend([create_ontology_edge(x.id, x.child_id, x.parent_id) for x in great_great_grandparents if x.child_id in viable_ids and x.parent_id in viable_ids])
 
         if hidden_children_count > 0:
-            nodes.insert(0, {'data':{'id':'NodeMoreChildren', 'name':str(hidden_children_count) + ' more children', 'link': None, 'sub_type':get_obj(Bioconcept, ec_number_id)['ancestor_type']}})
+            nodes.insert(0, {'data':{'id':'NodeMoreChildren', 'name':str(hidden_children_count) + ' more children', 'link': None, 'sub_type':None}})
             edges.insert(0, {'data':{'target': 'NodeMoreChildren', 'source': 'Node' + str(ec_number_id)}})
 
     else:
@@ -136,7 +133,7 @@ def make_ontology_graph(ec_number_id):
         child_ids.update([x.child_id for x in grandchildren])  
         
         child_id_to_child = get_objs(Bioconcept, child_ids)
-        viable_ids = set([k for k, v in child_id_to_child.iteritems() if v['is_core']])
+        viable_ids = set([k for k, v in child_id_to_child.iteritems()])
         viable_ids.add(ec_number_id)
         
         nodes = []

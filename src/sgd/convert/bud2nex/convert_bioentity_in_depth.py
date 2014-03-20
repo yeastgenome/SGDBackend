@@ -4,8 +4,7 @@ import sys
 from mpmath import ceil
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert import create_or_update, create_format_name
-from src.sgd.convert.output_manager import OutputCreator
+from src.sgd.convert import OutputCreator, create_or_update, create_format_name
 
 
 __author__ = 'kpaskov'

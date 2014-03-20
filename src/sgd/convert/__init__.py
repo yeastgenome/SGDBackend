@@ -1,3 +1,4 @@
+from abc import abstractmethod, ABCMeta
 from datetime import datetime
 import logging
 
@@ -9,6 +10,91 @@ from src.sgd.convert.config import log_directory
 
 
 __author__ = 'kpaskov'
+
+class ConverterInterface:
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def convert_basic(self):
+        return None
+
+    @abstractmethod
+    def convert_basic_continued(self):
+        return None
+
+    @abstractmethod
+    def convert_reference(self):
+        return None
+
+    @abstractmethod
+    def convert_phenotype(self):
+        return None
+
+    @abstractmethod
+    def convert_literature(self):
+        return None
+
+    @abstractmethod
+    def convert_go(self):
+        return None
+
+    @abstractmethod
+    def convert_complex(self):
+        return None
+
+    @abstractmethod
+    def convert_sequence(self):
+        return None
+
+    @abstractmethod
+    def convert_interaction(self):
+        return None
+
+    @abstractmethod
+    def convert_protein(self):
+        return None
+
+    @abstractmethod
+    def convert_regulation(self):
+        return None
+
+output = []
+
+def write_to_output_file(text):
+    print text
+    output.append(text)
+
+class OutputCreator():
+    num_added = 0
+    num_changed = 0
+    fields_changed = {}
+    num_removed = 0
+    log = None
+
+    def __init__(self, log):
+        self.log = log
+
+    def added(self):
+        self.num_added = self.num_added+1
+
+    def removed(self):
+        self.num_removed = self.num_removed+1
+
+    def changed(self, key, field_name):
+        self.num_changed = self.num_changed+1
+        if field_name in self.fields_changed:
+            self.fields_changed[field_name] = self.fields_changed[field_name] + 1
+        else:
+            self.fields_changed[field_name] = 1
+
+    def finished(self, msg=None):
+        if msg is not None:
+            self.log.info(msg + ' ' + str((self.num_added, self.num_changed, self.num_removed)))
+        else:
+            self.log.info((self.num_added, self.num_changed, self.num_removed))
+
+    def change_made(self):
+        return self.num_added + self.num_changed + self.num_removed != 0
 
 def check_session_maker(session_maker, DBHOST, SCHEMA):
     query = None
@@ -141,8 +227,6 @@ def create_or_update(new_obj, current_obj_by_id, current_obj_by_key, values_to_c
         session.add(new_obj)
         output_creator.added()
         return True
-
-
 
 def set_up_logging(label):
     logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.DEBUG, datefmt='%m/%d/%Y %H:%M:%S')

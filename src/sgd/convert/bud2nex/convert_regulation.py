@@ -3,10 +3,9 @@ import sys
 
 from mpmath import ceil, floor
 
-from src.sgd.convert import create_or_update, break_up_file, create_format_name
+from src.sgd.convert import OutputCreator, create_or_update, break_up_file, create_format_name
 from src.sgd.convert.bud2nex.convert_auxiliary import convert_bioentity_reference, \
     convert_interaction
-from src.sgd.convert.output_manager import OutputCreator
 
 
 __author__ = 'kpaskov'

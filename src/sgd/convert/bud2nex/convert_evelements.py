@@ -3,8 +3,7 @@ import sys
 
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert import read_obo, create_or_update, break_up_file, create_format_name
-from src.sgd.convert.output_manager import OutputCreator
+from src.sgd.convert import OutputCreator, read_obo, create_or_update, break_up_file, create_format_name
 
 
 __author__ = 'kpaskov'
