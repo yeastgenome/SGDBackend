@@ -209,4 +209,5 @@ class Contig(Sequence):
     def to_full_json(self):
         obj_json = self.to_json()
         obj_json['residues'] = self.residues
+        obj_json['length'] = self.length
         return obj_json

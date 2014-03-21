@@ -83,7 +83,7 @@ def get_phenotype_evidence(locus_id, phenotype_id, chemical_id, reference_id, wi
     if reference_id is not None:
         query = query.filter_by(reference_id=reference_id)
     if chemical_id is not None:
-        chemical_evidence_ids = set([x.evidence_id for x in DBSession.query(Chemicalcondition).filter_by(chemical_id=chemical_id).all()])
+        chemical_evidence_ids = set([x.evidence_id for x in DBSession.query(Chemicalcondition).filter_by(bioitem_id=chemical_id).all()])
 
         if phenotype_id is not None:
             if with_children:

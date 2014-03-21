@@ -1,4 +1,4 @@
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
@@ -52,6 +52,7 @@ class Bioentity(Base, EqualityByIDMixin):
             'display_name': self.display_name,
             'link': self.link,
             'id': self.id,
+            'class_type': self.class_type
             }
     
 class Bioentityurl(Url):
@@ -61,7 +62,7 @@ class Bioentityurl(Url):
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     subclass_type = Column('subclass', String)
     
-    bioentity = relationship(Bioentity, uselist=False)
+    bioentity = relationship(Bioentity, uselist=False, backref=backref('urls', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
                        'inherit_condition': id == Url.id}
@@ -79,7 +80,7 @@ class Bioentityalias(Alias):
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     subclass_type = Column('subclass', String)
     
-    bioentity = relationship(Bioentity, uselist=False, backref='aliases')
+    bioentity = relationship(Bioentity, uselist=False, backref=backref('aliases', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
                        'inherit_condition': id == Alias.id}
@@ -101,8 +102,8 @@ class Bioentityrelation(Relation):
                        'inherit_condition': id == Relation.id}
    
     #Relationships
-    parent = relationship(Bioentity, backref="children", uselist=False, primaryjoin="Bioentityrelation.parent_id==Bioentity.id")
-    child = relationship(Bioentity, backref="parents", uselist=False, primaryjoin="Bioentityrelation.child_id==Bioentity.id")
+    parent = relationship(Bioentity, backref=backref("children", passive_deletes=True), uselist=False, primaryjoin="Bioentityrelation.parent_id==Bioentity.id")
+    child = relationship(Bioentity, backref=backref("parents", passive_deletes=True), uselist=False, primaryjoin="Bioentityrelation.child_id==Bioentity.id")
 
     def __init__(self, source, relation_type, parent, child, date_created, created_by):
         Relation.__init__(self, parent.format_name + '|' + child.format_name, 
@@ -120,12 +121,13 @@ class Locus(Bioentity):
     headline = Column('headline', String)
     genetic_position = Column('genetic_position', String)
     locus_type = Column('locus_type', String)
+    gene_name = Column('gene_name', String)
         
     __mapper_args__ = {'polymorphic_identity': 'LOCUS',
                        'inherit_condition': id == Bioentity.id}
     
     def __init__(self, bioentity_id, display_name, format_name, source, sgdid, uniprotid, bioent_status, 
-                 locus_type, short_description, headline, description, genetic_position,
+                 locus_type, short_description, headline, description, genetic_position, gene_name,
                  date_created, created_by):
         Bioentity.__init__(self, bioentity_id, display_name, format_name, 'LOCUS', '/cgi-bin/locus.fpl?locus=' + sgdid,
                            source, sgdid, uniprotid, bioent_status, description, date_created, created_by)
@@ -133,6 +135,7 @@ class Locus(Bioentity):
         self.headline = headline
         self.genetic_position = genetic_position
         self.locus_type = locus_type
+        self.gene_name = gene_name
 
     def to_full_json(self):
         obj_json = self.to_json()

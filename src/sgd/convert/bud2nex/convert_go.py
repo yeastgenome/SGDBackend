@@ -5,7 +5,6 @@ from mpmath import ceil
 from sqlalchemy.orm import joinedload
 
 from src.sgd.convert import OutputCreator, create_format_name, create_or_update, break_up_file
-from src.sgd.convert.bud2nex.convert_bioitem import dbxref_type_to_class
 from src.sgd.convert.bud2nex.convert_auxiliary import convert_bioentity_reference, \
     convert_biofact
 
@@ -57,20 +56,21 @@ def create_evidence(old_go_feature, gofeat_id_to_gorefs, goref_id_to_dbxrefs, id
         conditions = []
             
         old_dbxrefs = [] if old_go_ref.id not in goref_id_to_dbxrefs else goref_id_to_dbxrefs[old_go_ref.id]
-        for dbxref in old_dbxrefs:
+        for dbxrefref in old_dbxrefs:
+            dbxref = dbxrefref.dbxref
             dbxref_type = dbxref.dbxref_type
             if dbxref_type == 'GOID':
                 go_key = ('GO:' + str(int(dbxref.dbxref_id)).zfill(7), 'GO')
                 cond_go = None if go_key not in key_to_bioconcept else key_to_bioconcept[go_key]
                 if cond_go is not None:
-                    conditions.append(Bioconceptcondition(None, 'With', cond_go))
+                    conditions.append(Bioconceptcondition(None, dbxrefref.support_type, cond_go))
                 else:
                     print 'Could not find bioconcept: ' + str(go_key)
             elif dbxref_type == 'EC number':
                 ec_key = (dbxref.dbxref_id, 'EC_NUMBER')
                 ec = None if ec_key not in key_to_bioconcept else key_to_bioconcept[ec_key]
                 if ec is not None:
-                    conditions.append(Bioconceptcondition(None, 'With', ec))
+                    conditions.append(Bioconceptcondition(None, dbxrefref.support_type, ec))
                 else:
                     print 'Could not find bioconcept: ' + str(ec_key)
                 
@@ -78,15 +78,14 @@ def create_evidence(old_go_feature, gofeat_id_to_gorefs, goref_id_to_dbxrefs, id
                 sgdid = dbxref.dbxref_id
                 cond_bioent = None if sgdid not in sgdid_to_bioentity else sgdid_to_bioentity[sgdid]
                 if cond_bioent is not None:
-                    conditions.append(Bioentitycondition(None, 'With', cond_bioent))
+                    conditions.append(Bioentitycondition(None, dbxrefref.support_type, cond_bioent))
                 else:
                     print 'Could not find bioentity: ' + str(sgdid)
             else:
-                bioitem_class_type = dbxref_type_to_class[dbxref_type]
-                bioitem_key = (dbxref.dbxref_id, bioitem_class_type)
+                bioitem_key = (dbxref.dbxref_id, 'ORPHAN')
                 bioitem = None if bioitem_key not in key_to_bioitem else key_to_bioitem[bioitem_key]
                 if bioitem is not None:
-                    conditions.append(Bioitemcondition(None, 'With', bioitem))
+                    conditions.append(Bioitemcondition(None, dbxrefref.support_type, bioitem))
                 else:
                     print 'Could not find bioitem: ' + str(bioitem_key)
                             
@@ -109,12 +108,11 @@ def create_evidence(old_go_feature, gofeat_id_to_gorefs, goref_id_to_dbxrefs, id
 
 def convert_evidence(old_session_maker, new_session_maker, chunk_size):
     from src.sgd.model.nex.evidence import Condition, Goevidence as NewGoevidence
-    from src.sgd.model.nex.evelements import Source as NewSource, Experiment as NewExperiment
+    from src.sgd.model.nex.misc import Source as NewSource, Experiment as NewExperiment
     from src.sgd.model.nex.reference import Reference as NewReference
     from src.sgd.model.nex.bioentity import Bioentity as NewBioentity
     from src.sgd.model.nex.bioconcept import Bioconcept as NewBioconcept
-    from src.sgd.model.nex.bioitem import Bioitem as NewBioitem
-    from src.sgd.model.nex.chemical import Chemical as NewChemical
+    from src.sgd.model.nex.bioitem import Bioitem as NewBioitem, Chemical as NewChemical
     from src.sgd.model.bud.go import GoFeature as OldGoFeature, GoRef as OldGoRef, GorefDbxref as OldGorefDbxref
 
     new_session = None
@@ -156,9 +154,9 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
         old_gorefdbxrefs = old_session.query(OldGorefDbxref).options(joinedload('dbxref')).all()
         for old_gorefdbxref in old_gorefdbxrefs:
             if old_gorefdbxref.goref_id in goref_id_to_dbxrefs:
-                goref_id_to_dbxrefs[old_gorefdbxref.goref_id].append(old_gorefdbxref.dbxref)
+                goref_id_to_dbxrefs[old_gorefdbxref.goref_id].append(old_gorefdbxref)
             else:
-                goref_id_to_dbxrefs[old_gorefdbxref.goref_id] = [old_gorefdbxref.dbxref]
+                goref_id_to_dbxrefs[old_gorefdbxref.goref_id] = [old_gorefdbxref]
             
         key_to_gpad_info = {}    
         for x in break_up_file('data/gp_association.559292_sgd'):
@@ -371,7 +369,7 @@ def create_paragraph(gofeature, key_to_bioentity, key_to_source):
 def convert_paragraph(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.paragraph import Paragraph
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.bud.go import GoFeature as OldGoFeature
 
     new_session = None

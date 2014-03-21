@@ -144,6 +144,14 @@ class Reference(Base, EqualityByIDMixin):
         return self.format_name
 
     def to_json(self):
+        return {
+            'format_name': self.format_name,
+            'display_name': self.display_name,
+            'link': self.link,
+            'id': self.id,
+            }
+
+    def to_semi_full_json(self):
         urls = []
         if self.pubmed_id is not None:
             urls.append({'display_name': 'PubMed', 'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(self.pubmed_id)})
@@ -163,7 +171,6 @@ class Reference(Base, EqualityByIDMixin):
             'journal': None if self.journal is None else self.journal.med_abbr,
             'urls': urls
             }
-
             
     @hybrid_property
     def authors(self):

@@ -2,7 +2,7 @@ import logging
 import sys
 
 from mpmath import ceil
-from sqlalchemy.sql.expression import distinct
+from sqlalchemy.sql.expression import distinct, or_
 
 from src.sgd.convert import OutputCreator, create_or_update, create_format_name, break_up_file
 
@@ -11,7 +11,7 @@ __author__ = 'kpaskov'
 
 #--------------------- Convert Bioitems ---------------------
 def create_phenotype_bioitems(old_phenotype_feature, key_to_source):
-    from src.sgd.model.nex.bioitem import Allele as NewAllele, Proteinbioitem as NewProteinbioitem
+    from src.sgd.model.nex.bioitem import Allele as NewAllele, Orphanbioitem as NewOrphanbioitem
     
     allele_reporters = []
     if old_phenotype_feature.experiment is not None:
@@ -23,29 +23,14 @@ def create_phenotype_bioitems(old_phenotype_feature, key_to_source):
         reporter_info = old_phenotype_feature.experiment.reporter
         if reporter_info is not None:
             source = key_to_source['SGD']
-            new_reporter = NewProteinbioitem(reporter_info[0], source, reporter_info[1])
+            new_reporter = NewOrphanbioitem(reporter_info[0], None, source, reporter_info[1])
             allele_reporters.append(new_reporter)
     return allele_reporters
 
-dbxref_type_to_class = {
-                        'DNA accession ID': 'DNA',
-                        'Gene ID': 'DNA',
-                        'HAMAP ID': 'PROTEIN',
-                        'InterPro': 'PROTEIN',
-                        'PANTHER': 'PROTEIN',
-                        'PDB identifier': 'PROTEIN',
-                        'Protein version ID': 'PROTEIN',
-                        'UniPathway ID': 'PATHWAY',
-                        'UniProt/Swiss-Prot ID': 'PROTEIN',
-                        'UniProtKB Keyword': 'PROTEIN',
-                        'UniProtKB Subcellular Location': 'PROTEIN'
-                        }
-
 def create_go_bioitems(old_dbxref, key_to_source):
-    from src.sgd.model.nex.bioitem import Bioitem as NewBioitem
+    from src.sgd.model.nex.bioitem import Orphanbioitem as NewOrphanbioitem
     dbxref_type = old_dbxref.dbxref_type
     if dbxref_type != 'GOID' and dbxref_type != 'EC number' and dbxref_type != 'DBID Primary':
-        class_type = dbxref_type_to_class[dbxref_type]
         source_key = create_format_name(old_dbxref.source)
         source = None if source_key not in key_to_source else key_to_source[source_key]
         if source is None:
@@ -76,12 +61,12 @@ def create_go_bioitems(old_dbxref, key_to_source):
             link = 'http://www.grenoble.prabi.fr/obiwarehouse/unipathway/upa?upid=' + old_dbxref.dbxref_id
         elif dbxref_type == 'UniProtKB Keyword':
             link = 'http://www.uniprot.org/keywords/' + old_dbxref.dbxref_id
-        return [NewBioitem(old_dbxref.dbxref_id, old_dbxref.dbxref_id, class_type, link, source, old_dbxref.dbxref_name)]
+        return [NewOrphanbioitem(old_dbxref.dbxref_id, link, source, old_dbxref.dbxref_name)]
 
     return []
 
-def convert_bioitems(old_session_maker, new_session_maker):
-    from src.sgd.model.nex.bioitem import Allele as NewAllele, Bioitem as NewBioitem
+def convert_orphan(old_session_maker, new_session_maker):
+    from src.sgd.model.nex.bioitem import Allele as NewAllele, Orphanbioitem as NewOrphanbioitem
     from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.phenotype import PhenotypeFeature as OldPhenotypeFeature
     from src.sgd.model.bud.go import GorefDbxref as OldGorefDbxref
@@ -99,7 +84,7 @@ def convert_bioitems(old_session_maker, new_session_maker):
         #-------------Phenotype---------------
         #Grab all current objects
         current_objs = new_session.query(NewAllele).all()
-        current_objs.extend(new_session.query(NewBioitem).filter(NewBioitem.class_type != 'DOMAIN').all())
+        current_objs.extend(new_session.query(NewOrphanbioitem).all())
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs]) 
                   
@@ -381,7 +366,116 @@ def convert_domain(new_session_maker, chunk_size):
     finally:
         new_session.close()
 
+#1.23.14 Maitenance (sgd-dev): :19
+
+# --------------------- Convert Chemical ---------------------
+def create_chemical(expt_property, key_to_source):
+    from src.sgd.model.nex.bioitem import Chemical as NewChemical
+
+    display_name = expt_property.value
+    source = key_to_source['SGD']
+    new_chemical = NewChemical(display_name, source, None, None, expt_property.date_created, expt_property.created_by)
+    return [new_chemical]
+
+def create_chemical_from_cv_term(old_cvterm, key_to_source):
+    from src.sgd.model.nex.bioitem import Chemical as NewChemical
+    source = key_to_source['SGD']
+    new_chemical = NewChemical(old_cvterm.name, source, old_cvterm.dbxref_id,
+                               old_cvterm.definition, old_cvterm.date_created, old_cvterm.created_by)
+    return [new_chemical]
+
+def convert_chemical(old_session_maker, new_session_maker):
+    from src.sgd.model.nex.bioitem import Chemical as NewChemical
+    from src.sgd.model.nex.misc import Source as NewSource
+    from src.sgd.model.bud.phenotype import ExperimentProperty as OldExperimentProperty
+    from src.sgd.model.bud.cv import CVTerm as OldCVTerm
+
+    new_session = None
+    old_session = None
+    log = logging.getLogger('convert.chemical.chemical')
+    output_creator = OutputCreator(log)
+
+    try:
+        new_session = new_session_maker()
+        old_session = old_session_maker()
+
+        #Grab all current objects
+        current_objs = new_session.query(NewChemical).all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+
+        #Values to check
+        values_to_check = ['source_id', 'link', 'display_name', 'chebi_id']
+
+        untouched_obj_ids = set(id_to_current_obj.keys())
+
+        keys_already_seen = set()
+
+        #Grab old objects
+        old_objs = old_session.query(OldExperimentProperty).filter(or_(OldExperimentProperty.type=='Chemical_pending',
+                                                                       OldExperimentProperty.type == 'chebi_ontology')).all()
+
+        #Grab cache
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
+
+        old_cvterms = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no == 3).all()
+        #Convert cv terms
+        for old_obj in old_cvterms:
+            #Convert old objects into new ones
+            newly_created_objs = create_chemical_from_cv_term(old_obj, key_to_source)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                key = newly_created_obj.unique_key()
+                if key not in keys_already_seen:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    keys_already_seen.add(key)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_chemical(old_obj, key_to_source)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                key = newly_created_obj.unique_key()
+                if key not in keys_already_seen:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if key not in key_to_current_obj else key_to_current_obj[key]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    keys_already_seen.add(key)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+
+        #Delete untouched objs
+        for untouched_obj_id  in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
+        old_session.close()
+
 # ---------------------Convert------------------------------
 def convert(old_session_maker, new_session_maker):
-    #convert_bioitems(old_session_maker, new_session_maker)
-    convert_domain(new_session_maker, 5000)
+
+    convert_orphan(old_session_maker, new_session_maker)
+
+    #convert_domain(new_session_maker, 5000)
+
+    #convert_chemical(old_session_maker, new_session_maker)

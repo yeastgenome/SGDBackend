@@ -41,7 +41,6 @@ class Experiment(Base, EqualityByIDMixin):
             'display_name': self.display_name,
             'link': self.link,
             'id': self.id,
-            'category': self.category
             }
 
 class Strain(Base, EqualityByIDMixin):
@@ -72,12 +71,9 @@ class Strain(Base, EqualityByIDMixin):
 
     def to_json(self):
         return {
-            'format_name': self.format_name,
             'display_name': self.display_name,
             'description': self.description,
-            'link': self.link,
             'id': self.id,
-            'is_alternative_reference': self.is_alternative_reference
             }
 
 class Source(Base, EqualityByIDMixin):

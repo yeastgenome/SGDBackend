@@ -34,7 +34,7 @@ def create_evidence(old_phenotype_feature, key_to_reflinks, key_to_phenotype,
     from src.sgd.model.nex.bioconcept import create_phenotype_format_name
 
     reference_ids = [] if ('PHENO_ANNOTATION_NO', old_phenotype_feature.id) not in key_to_reflinks else [x.reference_id for x in key_to_reflinks[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)]]
-    references = [id_to_reference[reference_id] for reference_id in reference_ids]
+    references = [id_to_reference[reference_id] for reference_id in reference_ids if reference_id in id_to_reference]
     bioentity_id = old_phenotype_feature.feature_id
     bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
 
@@ -79,10 +79,10 @@ def create_evidence(old_phenotype_feature, key_to_reflinks, key_to_phenotype,
         strain_key = None if old_experiment.strain == None else old_experiment.strain[0]
         strain = None if strain_key not in key_to_strain else key_to_strain[strain_key]
         
-        from src.sgd.model.nex.condition import Bioitemcondition
+        from src.sgd.model.nex.evidence import Bioitemcondition
         #Get reporter
         if old_experiment.reporter is not None:
-            reporter_key = (create_format_name(old_experiment.reporter[0]), 'PROTEIN')
+            reporter_key = (create_format_name(old_experiment.reporter[0]), 'ORPHAN')
             reporter = None if reporter_key not in key_to_bioitem else key_to_bioitem[reporter_key]
             if reporter is not None:
                 conditions.append(Bioitemcondition(old_experiment.reporter[1], 'Reporter', reporter))
@@ -99,9 +99,9 @@ def create_evidence(old_phenotype_feature, key_to_reflinks, key_to_phenotype,
                 print 'Allele not found: ' + str(allele_key)
             
         #Get chemicals
-        from src.sgd.model.nex.condition import Chemicalcondition
+        from src.sgd.model.nex.evidence import Chemicalcondition
         for (a, b) in old_experiment.chemicals:
-            chemical_key = create_format_name(a.lower())
+            chemical_key = (create_format_name(a.lower()), 'CHEMICAL')
             chemical = None if chemical_key not in key_to_chemical else key_to_chemical[chemical_key]
             amount = None
             chemical_note = None
@@ -113,7 +113,7 @@ def create_evidence(old_phenotype_feature, key_to_reflinks, key_to_phenotype,
             conditions.append(Chemicalcondition(None, chemical_note, chemical, amount))
         
         #Get other conditions
-        from src.sgd.model.nex.condition import Generalcondition
+        from src.sgd.model.nex.evidence import Generalcondition
         for (a, b) in old_experiment.condition:
             conditions.append(Generalcondition(a if b is None else a + ': ' + b))
             
@@ -129,10 +129,9 @@ def create_evidence(old_phenotype_feature, key_to_reflinks, key_to_phenotype,
 def convert_evidence(old_session_maker, new_session_maker, chunk_size):
     from src.sgd.model.nex.evidence import Phenotypeevidence as NewPhenotypeevidence
     from src.sgd.model.nex.reference import Reference as NewReference
-    from src.sgd.model.nex.evelements import Experiment as NewExperiment, Strain as NewStrain, Source as NewSource
-    from src.sgd.model.nex.chemical import Chemical as NewChemical
+    from src.sgd.model.nex.misc import Experiment as NewExperiment, Strain as NewStrain, Source as NewSource
     from src.sgd.model.nex.bioentity import Bioentity as NewBioentity
-    from src.sgd.model.nex.bioitem import Bioitem as NewBioitem
+    from src.sgd.model.nex.bioitem import Bioitem as NewBioitem, Chemical as NewChemical
     from src.sgd.model.nex.bioconcept import Phenotype as NewPhenotype
     from src.sgd.model.bud.reference import Reflink as OldReflink
     from src.sgd.model.bud.phenotype import PhenotypeFeature as OldPhenotypeFeature

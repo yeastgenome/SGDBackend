@@ -15,23 +15,15 @@ __author__ = 'kpaskov'
 #1.23.14 Maitenance (sgd-dev): :27
 
 # --------------------- Convert Locus ---------------------
-def create_locus_type(old_feature_type):
-    bioentity_type = old_feature_type.upper()
-    bioentity_type = bioentity_type.replace (" ", "_")
-    return bioentity_type
 
 def create_locus(old_bioentity, key_to_source, sgdid_to_uniprotid):
     from src.sgd.model.nex.bioentity import Locus
-    
-    locus_type = create_locus_type(old_bioentity.type)
-    if locus_type is None:
-        return []
     
     display_name = old_bioentity.gene_name
     if display_name is None:
         display_name = old_bioentity.name
     
-    format_name = old_bioentity.name.upper()
+    format_name = old_bioentity.name
     
     short_description = None
     headline = None
@@ -51,7 +43,7 @@ def create_locus(old_bioentity, key_to_source, sgdid_to_uniprotid):
     source_key = old_bioentity.source
     source = None if source_key not in key_to_source else key_to_source[source_key]
     bioentity = Locus(old_bioentity.id, display_name, format_name, source, sgdid, uniprotid, old_bioentity.status, 
-                         locus_type, short_description, headline, description, genetic_position, 
+                         old_bioentity.type, short_description, headline, description, genetic_position, old_bioentity.gene_name,
                          old_bioentity.date_created, old_bioentity.created_by)
     return [bioentity]
 
@@ -81,7 +73,7 @@ def convert_locus(old_session_maker, new_session_maker):
                 
         #Values to check
         values_to_check = ['display_name', 'link', 'source_id', 'bioent_status',
-                       'name_description', 'headline', 'description', 'sgdid', 'uniprotid',
+                       'name_description', 'headline', 'description', 'sgdid', 'uniprotid', 'gene_name',
                        'genetic_position', 'locus_type']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
@@ -354,4 +346,4 @@ def convert(old_session_maker, new_session_maker):
 
     convert_protein(old_session_maker, new_session_maker)
 
-    #convert_complex(new_session_maker)
+    convert_complex(new_session_maker)

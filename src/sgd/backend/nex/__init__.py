@@ -64,7 +64,7 @@ class SGDBackend(BackendInterface):
         bioentities = []
         for i in range(0, num_chunks):
             bioentities.extend(DBSession.query(Bioentity).filter(Bioentity.id.in_(bioent_ids[i*500:(i+1)*500])).all())
-        return json.dumps([x.to_json() for x in bioentities])
+        return json.dumps([x.to_full_json() for x in bioentities])
     
     #Locus
     def locus(self, locus_identifier, are_ids=False):
@@ -115,15 +115,15 @@ class SGDBackend(BackendInterface):
     
     #Chemical
     def chemical(self, chemical_identifier, are_ids=False):
-        from src.sgd.model.nex.chemical import Chemical
+        from src.sgd.model.nex.bioitem import Chemical
         if are_ids:
             chemical_id = chemical_identifier
         else:
-            chemical_id = get_obj_id(chemical_identifier, class_type='CHEMICAL')
+            chemical_id = get_obj_id(chemical_identifier, class_type='BIOITEM', subclass_type='CHEMICAL')
         return None if chemical_id is None else json.dumps(DBSession.query(Chemical).filter_by(id=chemical_id).first().to_full_json())
 
     def all_chemicals(self, min_id, max_id):
-        from src.sgd.model.nex.chemical import Chemical
+        from src.sgd.model.nex.bioitem import Chemical
         query = DBSession.query(Chemical)
         if min_id is not None:
             query = query.filter(Chemical.id >= min_id)
@@ -265,7 +265,7 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             phenotype_id = None if phenotype_identifier is None else get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-            chemical_id = None if chemical_identifier is None else get_obj_id(chemical_identifier, class_type='CHEMICAL')
+            chemical_id = None if chemical_identifier is None else get_obj_id(chemical_identifier, class_type='BIOITEM', subclass_type='CHEMICAL')
             reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
         
         return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children))

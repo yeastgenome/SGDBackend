@@ -12,7 +12,7 @@ def make_overview(locus_id):
 # -------------------------------Contig---------------------------------------
 def make_contig(contig_id):
     contig = DBSession.query(Contig).filter(Contig.id == contig_id).first()
-    return contig.to_json()
+    return contig.to_full_json()
     
 # -------------------------------Details---------------------------------------
 def get_sequence_evidence(locus_id=None, contig_id=None):

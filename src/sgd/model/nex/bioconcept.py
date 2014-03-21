@@ -47,6 +47,7 @@ class Bioconcept(Base, EqualityByIDMixin):
             'format_name': self.format_name,
             'display_name': self.display_name,
             'link': self.link,
+            'class_type': self.class_type
             }
       
 class Bioconceptrelation(Relation):
@@ -58,8 +59,8 @@ class Bioconceptrelation(Relation):
     child_id = Column('child_id', Integer, ForeignKey(Bioconcept.id))
 
     #Relationships
-    parent = relationship(Bioconcept, uselist=False, backref="children", primaryjoin="Bioconceptrelation.parent_id==Bioconcept.id")
-    child = relationship(Bioconcept, uselist=False, backref="parents", primaryjoin="Bioconceptrelation.child_id==Bioconcept.id")
+    parent = relationship(Bioconcept, uselist=False, backref=backref("children", passive_deletes=True), primaryjoin="Bioconceptrelation.parent_id==Bioconcept.id")
+    child = relationship(Bioconcept, uselist=False, backref=backref("parents", passive_deletes=True), primaryjoin="Bioconceptrelation.child_id==Bioconcept.id")
     
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
                        'inherit_condition': id == Relation.id}

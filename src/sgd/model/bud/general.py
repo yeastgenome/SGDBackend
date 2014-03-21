@@ -89,4 +89,3 @@ class DbxrefUrl(Base, EqualityByIDMixin):
     dbxref = relationship(Dbxref, uselist=False, backref='dbxref_urls')
     
     
-    

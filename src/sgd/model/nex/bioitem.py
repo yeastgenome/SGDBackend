@@ -5,7 +5,7 @@ from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name
-from src.sgd.model.nex.misc import Source
+from src.sgd.model.nex.misc import Source, Relation
 
 
 __author__ = 'kpaskov'
@@ -28,13 +28,15 @@ class Bioitem(Base, EqualityByIDMixin):
     
     __mapper_args__ = {'polymorphic_on': class_type}
     
-    def __init__(self, display_name, format_name, class_type, link, source, description):
+    def __init__(self, display_name, format_name, class_type, link, source, description, date_created, created_by):
         self.display_name = display_name
         self.format_name = format_name
         self.class_type = class_type
         self.link = link
         self.source_id = source.id
-        self.description = description 
+        self.description = description
+        self.date_created = date_created
+        self.created_by = created_by
         
     def unique_key(self):
         return (self.format_name, self.class_type)
@@ -45,15 +47,27 @@ class Bioitem(Base, EqualityByIDMixin):
             'display_name': self.display_name,
             'link': self.link,
             'id': self.id,
+            'class_type': self.class_type
             }
-        
-class Allele(Bioitem):
-    __mapper_args__ = {'polymorphic_identity': 'ALLELE',
-                       'inherit_condition': id == Bioitem.id}
-    
-    def __init__(self, display_name, source, description):
-        Bioitem.__init__(self, display_name, create_format_name(display_name), 'ALLELE', None, source, description)
-        
+
+class Bioitemrelation(Relation):
+    __tablename__ = 'bioitemrelation'
+
+    id = Column('relation_id', Integer, primary_key=True)
+    parent_id = Column('parent_id', Integer, ForeignKey(Bioitem.id))
+    child_id = Column('child_id', Integer, ForeignKey(Bioitem.id))
+
+    __mapper_args__ = {'polymorphic_identity': 'BIOITEM',
+                       'inherit_condition': id == Relation.id}
+
+    def __init__(self, source, relation_type, parent, child, date_created, created_by):
+        Relation.__init__(self,
+                          child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name,
+                          str(parent.id) + '_' + str(child.id),
+                          'BIOITEM', source, relation_type, date_created, created_by)
+        self.parent_id = parent.id
+        self.child_id = child.id
+
 class Domain(Bioitem):
     __tablename__ = "domainbioitem"
     
@@ -68,7 +82,7 @@ class Domain(Bioitem):
     def __init__(self, display_name, source, description,
                  interpro_id, interpro_description, external_link):
         format_name = create_format_name(display_name)
-        Bioitem.__init__(self, display_name, format_name, 'DOMAIN', '/domain/' + format_name + '/overview', source, description)
+        Bioitem.__init__(self, display_name, format_name, 'DOMAIN', '/domain/' + format_name + '/overview', source, description, None, None)
         self.interpro_id = interpro_id
         self.interpro_description = interpro_description
         self.external_link = external_link
@@ -82,23 +96,37 @@ class Domain(Bioitem):
         obj_json['interpro_id'] = self.interpro_id
         return obj_json
 
-class Proteinbioitem(Bioitem):
-    __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
-                       'inherit_condition': id == Bioitem.id}
-    
-    def __init__(self, display_name, source, description):
-        Bioitem.__init__(self, display_name, create_format_name(display_name), 'PROTEIN', None, source, description)
+class Chemical(Bioitem):
+    __tablename__ = "chemicalbioitem"
 
-class Pathwaybioitem(Bioitem):
-    __mapper_args__ = {'polymorphic_identity': 'PATHWAY',
-                       'inherit_condition': id == Bioitem.id}
-    
-    def __init__(self, display_name, source, description):
-        Bioitem.__init__(self, display_name, create_format_name(display_name), 'PROTEIN', None, source, description)
+    id = Column('bioitem_id', Integer, primary_key=True)
+    chebi_id = Column('chebi_id', String)
 
-class Dnabioitem(Bioitem):
-    __mapper_args__ = {'polymorphic_identity': 'DNA',
+    __mapper_args__ = {'polymorphic_identity': 'CHEMICAL',
                        'inherit_condition': id == Bioitem.id}
-    
+
+    def __init__(self, display_name, source, chebi_id, description, date_created, created_by):
+        format_name = create_format_name(display_name.lower())[:95]
+        Bioitem.__init__(self, display_name, format_name, 'CHEMICAL', '/chemical/' + format_name + '/overview', source, description, date_created, created_by)
+        self.format_name = create_format_name(display_name.lower())[:95]
+        self.chebi_id = chebi_id
+
+    def to_full_json(self):
+        obj_json = self.to_json()
+        obj_json['chebi_id'] = self.chebi_id
+        obj_json['description'] = self.description
+        return obj_json
+
+class Allele(Bioitem):
+    __mapper_args__ = {'polymorphic_identity': 'ALLELE',
+                       'inherit_condition': id == Bioitem.id}
+
     def __init__(self, display_name, source, description):
-        Bioitem.__init__(self, display_name, create_format_name(display_name), 'PROTEIN', None, source, description)
+        Bioitem.__init__(self, display_name, create_format_name(display_name), 'ALLELE', None, source, description, None, None)
+
+class Orphanbioitem(Bioitem):
+    __mapper_args__ = {'polymorphic_identity': 'ORPHAN',
+                       'inherit_condition': id == Bioitem.id}
+
+    def __init__(self, display_name, link, source, description):
+        Bioitem.__init__(self, display_name, create_format_name(display_name), 'ORPHAN', link, source, description, None, None)

@@ -13,8 +13,6 @@ from reference import Reference
 from sequence import Sequence, Contig
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base
-from src.sgd.model.nex.chemical import Chemical
-
 
 __author__ = 'kpaskov'
 
@@ -95,7 +93,7 @@ class Condition(Base, EqualityByIDMixin):
         return (self.format_name, self.class_type, self.evidence_id, self.role)
 
     def to_json(self):
-        return {'role': self.role, 'note': self.note}
+        return {'role': self.role, 'note': self.note, 'class_type': self.class_type}
 
 class Generalcondition(Condition):
     __mapper_args__ = {'polymorphic_identity': 'CONDITION',
@@ -107,33 +105,6 @@ class Generalcondition(Condition):
                            note,
                            'g' + hashlib.md5(note).hexdigest()[:10],
                            'CONDITION', None, note)
-
-class Chemicalcondition(Condition):
-    __tablename__ = 'chemicalcondition'
-
-    id = Column('condition_id', Integer, primary_key=True)
-    chemical_id = Column('chemical_id', Integer, ForeignKey(Chemical.id))
-    amount = Column('amount', String)
-
-    #Relationships
-    chemical = relationship(Chemical, uselist=False)
-
-    __mapper_args__ = {'polymorphic_identity': 'CHEMICAL',
-                       'inherit_condition': id == Condition.id}
-
-    def __init__(self, role, note, chemical, amount):
-        Condition.__init__(self,
-                           chemical.display_name if amount is None else amount + ' of ' + chemical.display_name,
-                           'c' + str(chemical.id) if amount is None else str(chemical.id) + 'a' + hashlib.md5(amount).hexdigest()[:10],
-                           'CHEMICAL', role, note)
-        self.chemical_id = chemical.id
-        self.amount = amount
-
-    def to_json(self):
-        obj_json = Condition.to_json(self)
-        obj_json['chemical'] = self.chemical.to_json()
-        obj_json['amount'] = self.amount
-        return obj_json
 
 class Temperaturecondition(Condition):
     __tablename__ = 'temperaturecondition'
@@ -221,6 +192,28 @@ class Bioitemcondition(Condition):
     def to_json(self):
         obj_json = Condition.to_json(self)
         obj_json['obj'] = self.bioitem.to_json()
+        return obj_json
+
+class Chemicalcondition(Bioitemcondition):
+    __tablename__ = 'chemicalcondition'
+
+    id = Column('condition_id', Integer, primary_key=True)
+    amount = Column('amount', String)
+
+    __mapper_args__ = {'polymorphic_identity': 'CHEMICAL',
+                       'inherit_condition': id == Condition.id}
+
+    def __init__(self, role, note, chemical, amount):
+        Condition.__init__(self,
+                           chemical.display_name if amount is None else amount + ' of ' + chemical.display_name,
+                           'c' + str(chemical.id) if amount is None else str(chemical.id) + 'a' + hashlib.md5(amount).hexdigest()[:10],
+                           'CHEMICAL', role, note)
+        self.bioitem_id = chemical.id
+        self.amount = amount
+
+    def to_json(self):
+        obj_json = Bioitemcondition.to_json(self)
+        obj_json['amount'] = self.amount
         return obj_json
 
 class Goevidence(Evidence):
@@ -378,6 +371,7 @@ class Literatureevidence(Evidence):
     def to_json(self):
         obj_json = Evidence.to_json(self)
         obj_json['bioentity'] = self.bioentity.to_json()
+        obj_json['reference'] = self.reference.to_semi_full_json()
         obj_json['topic'] = self.topic
         return obj_json
         
@@ -420,6 +414,7 @@ class Phenotypeevidence(Evidence):
         obj_json['locus'] = self.bioentity.to_json()
         obj_json['phenotype'] = self.bioconcept.to_json()
         obj_json['mutant_type'] = self.mutant_type
+        obj_json['experiment']['category'] = self.experiment.category
 
         if obj_json['strain'] is not None:
             obj_json['strain']['details'] = self.strain_details

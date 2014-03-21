@@ -5,7 +5,6 @@ import convert_evelements
 import convert_reference
 import convert_bioconcept
 import convert_bioitem
-import convert_chemical
 import convert_literature
 import convert_go
 import convert_qualifier
@@ -18,7 +17,6 @@ import convert_sequence
 import convert_phosphorylation
 import convert_bioentity_in_depth
 import convert_bioconcept_in_depth
-import convert_chemical_in_depth
 import convert_bioitem_in_depth
 import convert_ec_number
 import convert_protein_experiment
@@ -53,14 +51,12 @@ class BudNexConverter(ConverterInterface):
         self.wrapper(convert_bioentity.convert)
         self.wrapper(convert_bioconcept.convert)
         self.wrapper(convert_bioitem.convert)
-        self.wrapper(convert_chemical.convert)
         self.wrapper(convert_qualifier.convert)
 
     def convert_basic_continued(self):
         self.wrapper(convert_bioentity_in_depth.convert)
         self.wrapper(convert_bioconcept_in_depth.convert)
-        self.wrapper(convert_chemical_in_depth.convert)
-        self.wrapper(convert_bioitem_in_depth.convert, no_old_session=True)
+        self.wrapper(convert_bioitem_in_depth.convert)
 
     def convert_reference(self):
         self.wrapper(convert_reference_in_depth.convert)

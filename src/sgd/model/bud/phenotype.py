@@ -1,7 +1,7 @@
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column, ForeignKey, Table
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
@@ -58,10 +58,8 @@ class Experiment(Base, EqualityByIDMixin):
 
     id = Column('experiment_no', Integer, primary_key = True)
     experiment_comment = Column('experiment_comment', String)
-    
-    properties = relationship(ExperimentProperty, secondary= Table('expt_exptprop', Base.metadata, 
-                                                        Column('expt_property_no', Integer, ForeignKey('bud.expt_property.expt_property_no')),
-                                                        Column('experiment_no', Integer, ForeignKey('bud.experiment.experiment_no'))), lazy='joined')
+
+    properties = association_proxy('experiment_experimentproperties', 'experiment_property')
     
     @hybrid_property
     def chemicals(self):
@@ -142,3 +140,13 @@ class Experiment(Base, EqualityByIDMixin):
             if prop.type == 'Details':
                 return_value.append((prop.value, prop.description))
         return return_value
+
+class Experiment_ExperimentProp(Base, EqualityByIDMixin):
+    __tablename__ = 'expt_exptprop'
+
+    id = Column('expt_exptprop_no', Integer, primary_key = True)
+    experiment_property_id = Column('expt_property_no', Integer, ForeignKey(ExperimentProperty.id))
+    experiment_id = Column('experiment_no', Integer, ForeignKey(Experiment.id))
+
+    experiment_property = relationship(ExperimentProperty, uselist=False)
+    experiment = relationship(Experiment, uselist=False, backref='experiment_experimentproperties')

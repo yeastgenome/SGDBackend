@@ -38,7 +38,7 @@ def test_bioentity_list_structure(model, bioent_ids=(25, 26, 27, 28, 29)):
     assert response is not None
     assert len(response) == 5
     for entry in response:
-        check_locus(entry)
+        check_obj(entry)
 
 def test_reference_structure(model, identifier='17112311'):
     response = json.loads(model.reference(reference_identifier=identifier))
