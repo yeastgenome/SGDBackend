@@ -43,7 +43,6 @@ def check_literature_evidence(evidence):
 
     check_obj(evidence['bioentity'])
     assert 'format_name' in evidence['bioentity']
-    assert 'class_type' in evidence['bioentity']
 
 def test_literature_ref_details_structure(model, identifier='769'):
     response = json.loads(model.literature_details(reference_identifier=identifier))

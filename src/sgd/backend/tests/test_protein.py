@@ -1,7 +1,7 @@
 import json
 
 from src.sgd.backend.tests import check_evidence, check_obj, check_url
-from src.sgd.backend.tests.test_basic import check_protein, check_domain
+from src.sgd.backend.tests.test_basic import check_protein
 
 __author__ = 'kpaskov'
 
@@ -21,7 +21,7 @@ def check_protein_domain_evidence(evidence):
     assert 'date_of_run' in evidence
     assert 'evalue' in evidence
 
-    check_domain(evidence['domain'])
+    check_obj(evidence['domain'])
     check_protein(evidence['protein'])
 
 def test_protein_domain_bioent_details_structure(model, identifier='GAL4'):
@@ -64,15 +64,14 @@ def test_binding_site_details_structure(model, identifier='GAL4'):
     assert response is not None
     for entry in response:
         check_evidence(entry)
-        assert 'bioentity' in entry
+        assert 'locus' in entry
         assert 'expert_confidence' in entry
         assert 'total_score' in entry
         assert 'motif_id' in entry
         assert 'img_url' in entry
         
-        check_obj(entry['bioentity'])
-        assert 'format_name' in entry['bioentity']
-        assert 'class_type' in entry['bioentity']
+        check_obj(entry['locus'])
+        assert 'format_name' in entry['locus']
 
 def test_protein_phosphorylation_details_structure(model, identifier='GAL4'):
     response = json.loads(model.protein_phosphorylation_details(identifier))

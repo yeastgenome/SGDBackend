@@ -57,7 +57,7 @@ def create_locus(old_bioentity, key_to_source, sgdid_to_uniprotid):
 
 def convert_locus(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioentity import Locus as NewLocus
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.feature import Feature as OldFeature
 
     new_session = None
@@ -136,7 +136,7 @@ def create_transcript(old_protein, id_to_bioentity, key_to_source):
 
 def convert_transcript(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioentity import Bioentity as NewBioentity, Transcript as NewTranscript
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.sequence import ProteinInfo as OldProteinInfo
 
     new_session = None
@@ -209,7 +209,7 @@ def create_protein(old_protein, id_to_bioentity, key_to_source):
 
 def convert_protein(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioentity import Bioentity as NewBioentity, Protein as NewProtein
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.sequence import ProteinInfo as OldProteinInfo
 
     new_session = None
@@ -287,7 +287,7 @@ def create_complex(row, key_to_source, key_to_go):
 def convert_complex(new_session_maker):
     from src.sgd.model.nex.bioconcept import Go as NewGo
     from src.sgd.model.nex.bioentity import Complex as NewComplex
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
 
     new_session = None
     log = logging.getLogger('convert.bioentity.complex')

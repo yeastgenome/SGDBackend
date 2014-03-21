@@ -82,7 +82,7 @@ def create_go_bioitems(old_dbxref, key_to_source):
 
 def convert_bioitems(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioitem import Allele as NewAllele, Bioitem as NewBioitem
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.phenotype import PhenotypeFeature as OldPhenotypeFeature
     from src.sgd.model.bud.go import GorefDbxref as OldGorefDbxref
     from src.sgd.model.bud.general import Dbxref as OldDbxref
@@ -266,7 +266,7 @@ def create_domain_from_protein_details(key_to_source):
 
 def convert_domain(new_session_maker, chunk_size):
     from src.sgd.model.nex.bioitem import Domain
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
 
     new_session = None
     log = logging.getLogger('convert.protein_domain.domain')

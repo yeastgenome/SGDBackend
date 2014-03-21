@@ -34,7 +34,7 @@ def create_ecnumber_relation(ecnumber, key_to_ecnumber, key_to_source):
     return [NewBioconceptrelation(source, None, parent, ecnumber, 'EC_NUMBER', None, None)]
 
 def convert_ecnumber_relation(new_session_maker):
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioconcept import Bioconceptrelation, ECNumber
 
     new_session = None
@@ -109,7 +109,7 @@ def create_go_relation(gopath, key_to_go, key_to_source):
         return []
 
 def convert_go_relation(old_session_maker, new_session_maker):
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioconcept import Bioconceptrelation, Go
     from src.sgd.model.bud.go import GoPath
 
@@ -192,7 +192,7 @@ def create_go_slim_relation(slim_ids, go_child_id_to_parent_ids, id_to_go, key_t
     return slim_relations
 
 def convert_go_slim_relation(old_session_maker, new_session_maker):
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioconcept import Bioconceptrelation, Go
     from src.sgd.model.bud.go import GoSet
 
@@ -342,7 +342,7 @@ def create_chemical_phenotype_relation(old_phenotype, key_to_phenotype, key_to_s
     return new_relations
 
 def convert_phenotype_relation(old_session_maker, new_session_maker):
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioconcept import Bioconceptrelation, Phenotype
     from src.sgd.model.bud.cv import CVTermRel
     from src.sgd.model.bud.phenotype import Phenotype as OldPhenotype
@@ -458,7 +458,7 @@ def create_go_alias(old_goterm, key_to_go, key_to_source):
         return [NewBioconceptalias(synonym.name, source, None, go, synonym.date_created, synonym.created_by) for synonym in old_goterm.synonyms]
 
 def convert_go_alias(old_session_maker, new_session_maker):
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioconcept import Bioconceptalias, Go
     from src.sgd.model.bud.go import Go as OldGo
 
@@ -550,7 +550,7 @@ def create_phenotype_alias_from_dbxref(cvterm_dbxref, key_to_phenotype, key_to_s
         return []
 
 def convert_phenotype_alias(old_session_maker, new_session_maker):
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioconcept import Bioconceptalias, Phenotype
     from src.sgd.model.bud.cv import CVTermSynonym, CVTermDbxref, CVTerm
 

@@ -28,7 +28,7 @@ def create_chemical_from_cv_term(old_cvterm, key_to_source):
 
 def convert_chemical(old_session_maker, new_session_maker):
     from src.sgd.model.nex.chemical import Chemical as NewChemical
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.phenotype import ExperimentProperty as OldExperimentProperty
     from src.sgd.model.bud.cv import CVTerm as OldCVTerm
 

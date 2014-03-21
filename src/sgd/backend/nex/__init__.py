@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 import uuid
+from math import ceil
 
 from pyramid.response import Response
 from sqlalchemy import func
@@ -10,9 +11,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
-from obj_to_json import alias_to_json, disambig_to_json, locustab_to_json, url_to_json, author_to_json
 from src.sgd.backend.backend_interface import BackendInterface
-from src.sgd.backend.nex.cache import get_all_objs, get_objs, get_obj
 from src.sgd.model import nex
 
 
@@ -31,9 +30,6 @@ class SGDBackend(BackendInterface):
 
         DBSession.configure(bind=engine)
         nex.Base.metadata.bind = engine
-
-        from cache import cache_core
-        cache_core()
         
         self.log = set_up_logging(log_directory, 'nex')
         
@@ -55,21 +51,30 @@ class SGDBackend(BackendInterface):
     #Bioentity
     def all_bioentities(self, min_id, max_id):
         from src.sgd.model.nex.bioentity import Bioentity
-        return json.dumps([value for key, value in get_all_objs(Bioentity).iteritems() if (min_id is None or key >= min_id) and (max_id is None or key < max_id)])
+        query = DBSession.query(Bioentity)
+        if min_id is not None:
+            query = query.filter(Bioentity.id >= min_id)
+        if max_id is not None:
+            query = query.filter(Bioentity.id < max_id)
+        return json.dumps([x.to_json() for x in query.all()])
     
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity
-        return json.dumps(get_objs(Bioentity, bioent_ids).values())
+        num_chunks = int(ceil(1.0*len(bioent_ids)/500))
+        bioentities = []
+        for i in range(0, num_chunks):
+            bioentities.extend(DBSession.query(Bioentity).filter(Bioentity.id.in_(bioent_ids[i*500:(i+1)*500])).all())
+        return json.dumps([x.to_json() for x in bioentities])
     
     #Locus
     def locus(self, locus_identifier, are_ids=False):
-        from src.sgd.model.nex.bioentity import Bioentity
+        from src.sgd.model.nex.bioentity import Locus
 
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(get_obj(Bioentity, locus_id))
+        return None if locus_id is None else json.dumps(DBSession.query(Locus).filter_by(id=locus_id).first().to_full_json())
 
     def locus_alias(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Bioentityalias
@@ -78,8 +83,7 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         if locus_id is not None:
-            aliases = DBSession.query(Bioentityalias).filter(Bioentityalias.bioentity_id == locus_id).all()
-            return json.dumps([alias_to_json(alias) for alias in aliases])
+            return json.dumps([alias.to_json() for alias in DBSession.query(Bioentityalias).filter(Bioentityalias.bioentity_id == locus_id).all()])
         return None
 
     def locustabs(self, locus_identifier, are_ids=False):
@@ -88,7 +92,7 @@ class SGDBackend(BackendInterface):
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(locustab_to_json(DBSession.query(Locustabs).filter(Locustabs.id == locus_id).first()))
+        return None if locus_id is None else json.dumps(DBSession.query(Locustabs).filter(Locustabs.id == locus_id).first().to_json())
     
     def all_locustabs(self, min_id, max_id):
         from src.sgd.model.nex.auxiliary import Locustabs
@@ -97,12 +101,17 @@ class SGDBackend(BackendInterface):
             query = query.filter(Locustabs.id >= min_id)
         if max_id is not None:
             query = query.filter(Locustabs.id < max_id)
-        return json.dumps([locustab_to_json(x) for x in query.all()])
+        return json.dumps([x.to_json() for x in query.all()])
 
     #Bioconcept
     def all_bioconcepts(self, min_id, max_id):
         from src.sgd.model.nex.bioconcept import Bioconcept
-        return json.dumps([value for key, value in get_all_objs(Bioconcept) if (min_id is None or key >= min_id) and (max_id is None or key < max_id)])
+        query = DBSession.query(Bioconcept)
+        if min_id is not None:
+            query = query.filter(Bioconcept.id >= min_id)
+        if max_id is not None:
+            query = query.filter(Bioconcept.id < max_id)
+        return json.dumps([x.to_json() for x in query.all()])
     
     #Chemical
     def chemical(self, chemical_identifier, are_ids=False):
@@ -111,49 +120,48 @@ class SGDBackend(BackendInterface):
             chemical_id = chemical_identifier
         else:
             chemical_id = get_obj_id(chemical_identifier, class_type='CHEMICAL')
-        return None if chemical_id is None else json.dumps(get_obj(Chemical, chemical_id))
+        return None if chemical_id is None else json.dumps(DBSession.query(Chemical).filter_by(id=chemical_id).first().to_full_json())
 
     def all_chemicals(self, min_id, max_id):
         from src.sgd.model.nex.chemical import Chemical
-        return json.dumps([value for key, value in get_all_objs(Chemical) if (min_id is None or key >= min_id) and (max_id is None or key < max_id)])
+        query = DBSession.query(Chemical)
+        if min_id is not None:
+            query = query.filter(Chemical.id >= min_id)
+        if max_id is not None:
+            query = query.filter(Chemical.id < max_id)
+        return json.dumps([x.to_json() for x in query.all()])
 
     #Domain
     def domain(self, domain_identifier, are_ids=False):
-        from src.sgd.model.nex.bioitem import Bioitem
+        from src.sgd.model.nex.bioitem import Domain
         if are_ids:
             domain_id = domain_identifier
         else:
             domain_id = get_obj_id(domain_identifier, class_type='BIOITEM', subclass_type='DOMAIN')
-        return None if domain_id is None else json.dumps(get_obj(Bioitem, domain_id))
+        return None if domain_id is None else json.dumps(DBSession.query(Domain).filter_by(id=domain_id).first().to_full_json())
 
     #ECNumber
     def ec_number(self, ec_number_identifier, are_ids=False):
-        from src.sgd.model.nex.bioconcept import Bioconcept
+        from src.sgd.model.nex.bioconcept import ECNumber
         if are_ids:
             ec_number_id = ec_number_identifier
         else:
             ec_number_id = get_obj_id(ec_number_identifier, class_type='BIOCONCEPT', subclass_type='ECNUMBER')
-        return None if ec_number_id is None else json.dumps(get_obj(Bioconcept, ec_number_id))
+        return None if ec_number_id is None else json.dumps(DBSession.query(ECNumber).filter_by(id=ec_number_id).first().to_full_json())
 
     def ec_number_ontology_graph(self, ec_number_identifier, are_ids=False):
-        from src.sgd.backend.nex import view_ec_number
+        from src.sgd.backend.nex import bioconcept_tools
         if are_ids:
             ec_number_id = ec_number_identifier
         else:
             ec_number_id = get_obj_id(ec_number_identifier, class_type='BIOCONCEPT', subclass_type='ECNUMBER')
-        return None if ec_number_id is None else json.dumps(view_ec_number.make_ontology_graph(ec_number_id))
+        return None if ec_number_id is None else json.dumps(bioconcept_tools.make_ontology_graph(ec_number_id, 'ECNUMBER', lambda x:True, lambda x: None))
 
     def ec_number_details(self, locus_identifier=None, ec_number_identifier=None, with_children=False, are_ids=False):
         import view_ec_number
-        from src.sgd.model.nex.bioconcept import Bioconcept
         if are_ids:
             locus_id = locus_identifier
             ec_number_id = ec_number_identifier
-
-            if ec_number_id is not None:
-                ec_number = get_obj(Bioconcept, ec_number_id)
-                if ec_number is None or ec_number['class_type'] != 'EC_NUMBER':
-                    return None
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             ec_number_id = None if ec_number_identifier is None else get_obj_id(ec_number_identifier, class_type='BIOCONCEPT', subclass_type='ECNUMBER')
@@ -171,8 +179,13 @@ class SGDBackend(BackendInterface):
        
     def all_references(self, min_id, max_id):
         from src.sgd.model.nex.reference import Reference
-        return json.dumps([value for key, value in get_all_objs(Reference).iteritems() if (min_id is None or key >= min_id) and (max_id is None or key < max_id)])
-    
+        query = DBSession.query(Reference)
+        if min_id is not None:
+            query = query.filter(Reference.id >= min_id)
+        if max_id is not None:
+            query = query.filter(Reference.id < max_id)
+        return json.dumps([x.to_json() for x in query.all()])
+
     def all_bibentries(self, min_id, max_id):
         from src.sgd.model.nex.reference import Bibentry
         query = DBSession.query(Bibentry)
@@ -199,7 +212,7 @@ class SGDBackend(BackendInterface):
             query = query.filter(Author.id >= min_id)
         if max_id is not None:
             query = query.filter(Author.id < max_id)
-        return json.dumps([author_to_json(author) for author in query.all()])
+        return json.dumps([author.to_json() for author in query.all()])
 
     def author_references(self, author_identifier, are_ids=False):
         import view_reference
@@ -211,29 +224,22 @@ class SGDBackend(BackendInterface):
         return json.dumps(view_reference.make_references_this_week())
 
     #Phenotype
-    
     def phenotype(self, phenotype_identifier, are_ids=False):
-        from src.sgd.model.nex.bioconcept import Bioconcept
+        from src.sgd.model.nex.bioconcept import Phenotype
 
         if are_ids:
             phenotype_id = phenotype_identifier
         else:
             phenotype_id = get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        if phenotype_id is None:
-            return None
-        return None if phenotype_id is None else json.dumps(get_obj(Bioconcept, phenotype_id))
+        return None if phenotype_id is None else json.dumps(DBSession.query(Phenotype).filter_by(id=phenotype_id).first().to_full_json())
 
     def phenotype_ontology_graph(self, phenotype_identifier, are_ids=False):
-        from src.sgd.model.nex.bioconcept import Bioconcept
-        import view_phenotype
+        import bioconcept_tools
         if are_ids:
             pheno_id = phenotype_identifier
-            phenotype = get_obj(Bioconcept, pheno_id)
-            if phenotype is None or phenotype['class_type'] != 'PHENOTYPE':
-                return None
         else:
             pheno_id = get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return None if pheno_id is None else json.dumps(view_phenotype.make_ontology_graph(pheno_id))
+        return None if pheno_id is None else json.dumps(bioconcept_tools.make_ontology_graph(pheno_id, 'PHENOTYPE', lambda x: x.is_core, lambda x: x.ancestor_type))
 
     def phenotype_ontology(self):
         import view_phenotype
@@ -241,15 +247,9 @@ class SGDBackend(BackendInterface):
         
     def phenotype_overview(self, locus_identifier=None, phenotype_identifier=None, are_ids=False):
         from src.sgd.backend.nex import view_phenotype
-        from src.sgd.model.nex.bioconcept import Bioconcept
         if are_ids:
             locus_id = locus_identifier
             phenotype_id = phenotype_identifier
-
-            if phenotype_id is not None:
-                phenotype = get_obj(Bioconcept, phenotype_id)
-                if phenotype is None or phenotype['class_type'] != 'PHENOTYPE':
-                    return None
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             phenotype_id = None if phenotype_identifier is None else get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
@@ -257,17 +257,11 @@ class SGDBackend(BackendInterface):
     
     def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, reference_identifier=None, with_children=False, are_ids=False):
         from src.sgd.backend.nex import view_phenotype
-        from src.sgd.model.nex.bioconcept import Bioconcept
         if are_ids:
             locus_id = locus_identifier
             phenotype_id = phenotype_identifier
             chemical_id = chemical_identifier
             reference_id = reference_identifier
-
-            if phenotype_id is not None:
-                phenotype = get_obj(Bioconcept, phenotype_id)
-                if phenotype is None or phenotype['class_type'] != 'PHENOTYPE':
-                    return None
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             phenotype_id = None if phenotype_identifier is None else get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
@@ -287,39 +281,34 @@ class SGDBackend(BackendInterface):
             mutant_resources = get_urls('Mutant Strains', bioent_id=locus_id)
             phenotype_resources.sort(key=lambda x: x.display_name)
             mutant_resources.sort(key=lambda x: x.display_name)
-            return json.dumps({'Phenotype Resources': [url_to_json(url) for url in phenotype_resources],
-                               'Mutant Resources': [url_to_json(url) for url in mutant_resources]})
+            return json.dumps({'Phenotype Resources': [url.to_json()  for url in phenotype_resources],
+                               'Mutant Resources': [url.to_json()  for url in mutant_resources]})
         return None
 
     def phenotype_graph(self, locus_identifier, are_ids=False):
-        from src.sgd.backend.nex import view_phenotype
+        from src.sgd.backend.nex import bioconcept_tools
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_phenotype.make_graph(locus_id, 'PHENOTYPE'))
+        return None if locus_id is None else json.dumps(bioconcept_tools.make_graph(locus_id, 'PHENOTYPE', lambda x:None))
 
     # Go
-
     def go(self, go_identifier, are_ids=False):
-        from src.sgd.model.nex.bioconcept import Bioconcept
+        from src.sgd.model.nex.bioconcept import Go
         if are_ids:
             go_id = go_identifier
         else:
             go_id = get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        return None if go_id is None else json.dumps(get_obj(Bioconcept, go_id))
+        return None if go_id is None else json.dumps(DBSession.query(Go).filter_by(id=go_id).first().to_full_json())
 
     def go_ontology_graph(self, go_identifier, are_ids=False):
-        from src.sgd.model.nex.bioconcept import Bioconcept
-        import view_go
+        import bioconcept_tools
         if are_ids:
             go_id = go_identifier
-            go = get_obj(Bioconcept, go_id)
-            if go is None or go['class_type'] != 'GO':
-                return None
         else:
             go_id = get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        return None if go_id is None else json.dumps(view_go.make_ontology_graph(go_id))
+        return None if go_id is None else json.dumps(bioconcept_tools.make_ontology_graph(go_id, 'GO', lambda x: x.count.child_gene_count > 0, lambda x: x.go_aspect))
     
     def go_overview(self, locus_identifier, are_ids=False):
         import view_go
@@ -330,17 +319,11 @@ class SGDBackend(BackendInterface):
         return None if locus_id is None else json.dumps(view_go.make_overview(locus_id))
     
     def go_details(self, locus_identifier=None, go_identifier=None, reference_identifier=None, with_children=False, are_ids=False):
-        from src.sgd.model.nex.bioconcept import Bioconcept
         import view_go
         if are_ids:
             locus_id = locus_identifier
             go_id = go_identifier
             reference_id = reference_identifier
-
-            if go_id is not None:
-                go = get_obj(Bioconcept, go_id)
-                if go is None or go['class_type'] != 'GO':
-                    return None
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             go_id = None if go_identifier is None else get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
@@ -352,26 +335,23 @@ class SGDBackend(BackendInterface):
         return json.dumps(view_go.make_enrichment(bioent_ids))
 
     def go_graph(self, locus_identifier, are_ids=False):
-        from src.sgd.backend.nex import view_phenotype
-        from src.sgd.model.nex.bioconcept import Bioconcept
+        from src.sgd.backend.nex import bioconcept_tools
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_phenotype.make_graph(locus_id, 'GO', biocon_f=lambda x: get_obj(Bioconcept, x)['go_aspect'] == 'biological process'))
+        return None if locus_id is None else json.dumps(bioconcept_tools.make_graph(locus_id, 'GO', lambda x:x.go_aspect))
        
     #Interaction
     def interaction_overview(self, locus_identifier, are_ids=False):
         import view_interaction
-        from src.sgd.model.nex.bioentity import Bioentity
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         if locus_id is None:
             return None
-        locus = get_obj(Bioentity, locus_id)
-        return json.dumps(view_interaction.make_overview(locus)) 
+        return json.dumps(view_interaction.make_overview(locus_id))
     
     def interaction_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
         import view_interaction
@@ -400,7 +380,7 @@ class SGDBackend(BackendInterface):
         if locus_id is not None:
             resources = get_urls('Interaction Resources', bioent_id=locus_id)
             resources.sort(key=lambda x: x.display_name)
-            return json.dumps([url_to_json(url) for url in resources])
+            return json.dumps([url.to_json() for url in resources])
         return None
 
     #Literature
@@ -424,12 +404,8 @@ class SGDBackend(BackendInterface):
     
     def literature_graph(self, locus_identifier, are_ids=False):
         import view_literature
-        from src.sgd.model.nex.bioentity import Bioentity
         if are_ids:
             locus_id = locus_identifier
-            locus = get_obj(Bioentity, locus_id)
-            if locus is None or locus['class_type'] != 'LOCUS':
-                return None
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_literature.make_graph(locus_id))
@@ -437,26 +413,16 @@ class SGDBackend(BackendInterface):
     #Protein
     def protein_overview(self, locus_identifier, are_ids=False):
         import view_protein
-        from src.sgd.model.nex.bioentity import Bioentity
-
         if are_ids:
             locus_id = locus_identifier
-            locus = get_obj(Bioentity, locus_id)
-            if locus is None or locus['class_type'] != 'LOCUS':
-                return None
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_protein.make_overview(locus_id=locus_id))
 
     def sequence_overview(self, locus_identifier, are_ids=False):
         import view_sequence
-        from src.sgd.model.nex.bioentity import Bioentity
-
         if are_ids:
             locus_id = locus_identifier
-            locus = get_obj(Bioentity, locus_id)
-            if locus is None or locus['class_type'] != 'LOCUS':
-                return None
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_sequence.make_overview(locus_id=locus_id))
@@ -487,6 +453,14 @@ class SGDBackend(BackendInterface):
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_protein.make_phosphorylation_details(locus_id=locus_id))
 
+    def protein_experiment_details(self, locus_identifier, are_ids=False):
+        from src.sgd.backend.nex import view_protein
+        if are_ids:
+            locus_id = locus_identifier
+        else:
+            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(view_protein.make_protein_experiment_details(locus_id=locus_id))
+
     def protein_resources(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex.query_tools import get_urls
         if are_ids:
@@ -501,47 +475,39 @@ class SGDBackend(BackendInterface):
             protein_databases = sorted(get_urls('Protein databases/Other', bioent_id=locus_id), key=lambda x: x.display_name)
             localization = sorted(get_urls('Localization Resources', bioent_id=locus_id), key=lambda x: x.display_name)
             domain = sorted(get_urls('Domain', bioent_id=locus_id), key=lambda x: x.display_name)
-            return json.dumps({'Homologs': [url_to_json(url) for url in homologs],
-                               'Protein Databases': [url_to_json(url) for url in protein_databases],
-                               'Localization': [url_to_json(url) for url in localization],
-                               'Domain': [url_to_json(url) for url in domain],
-                               'Other': [url_to_json(url) for url in other]})
+            return json.dumps({'Homologs': [url.to_json()  for url in homologs],
+                               'Protein Databases': [url.to_json()  for url in protein_databases],
+                               'Localization': [url.to_json()  for url in localization],
+                               'Domain': [url.to_json()  for url in domain],
+                               'Other': [url.to_json()  for url in other]})
         return None
 
     #Complex
     def complex(self, complex_identifier, are_ids=False):
-        from src.sgd.model.nex.bioentity import Bioentity
+        from src.sgd.model.nex.bioentity import Complex
         if are_ids:
             complex_id = complex_identifier
         else:
             complex_id = get_obj_id(complex_identifier, class_type='BIOENTITY', subclass_type='COMPLEX')
-        return None if complex_id is None else json.dumps(get_obj(Bioentity, complex_id))
+        return None if complex_id is None else json.dumps(DBSession.query(Complex).filter_by(id=complex_id).first().to_full_json())
 
-    def complex_genes(self, complex_identifier, are_ids=False):
+    def complex_details(self, locus_identifier=None, complex_identifier=None, are_ids=False):
         import view_complex
         if are_ids:
             complex_id = complex_identifier
+            locus_id = locus_identifier
         else:
             complex_id = get_obj_id(complex_identifier, class_type='BIOENTITY', subclass_type='COMPLEX')
-        return None if complex_id is None else json.dumps(view_complex.make_genes(complex_id))
-
-    def complex_details(self, complex_identifier, are_ids=False):
-        import view_complex
-        if are_ids:
-            complex_id = complex_identifier
-        else:
-            complex_id = get_obj_id(complex_identifier, class_type='BIOENTITY', subclass_type='COMPLEX')
-        return None if complex_id is None else json.dumps(view_complex.make_details(complex_id))
+            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return json.dumps(view_complex.make_details(locus_id=locus_id, complex_id=complex_id))
 
     def complex_graph(self, complex_identifier, are_ids=False):
-        import view_phenotype
-        from src.sgd.model.nex.bioconcept import Bioconcept
+        import bioconcept_tools
         if are_ids:
             complex_id = complex_identifier
         else:
             complex_id = get_obj_id(complex_identifier, class_type='BIOENTITY', subclass_type='COMPLEX')
-        return None if complex_id is None else json.dumps(view_phenotype.make_graph(complex_id, 'GO', bioent_type='COMPLEX', biocon_f=lambda x: get_obj(Bioconcept, x)['go_aspect'] == 'biological process'))
-
+        return None if complex_id is None else json.dumps(bioconcept_tools.make_graph(complex_id, 'GO', lambda x: None, bioent_type='COMPLEX'))
 
     #Regulation
     def regulation_overview(self, locus_identifier, are_ids=False):
@@ -577,7 +543,7 @@ class SGDBackend(BackendInterface):
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        target_ids = set([x['bioentity2']['id'] for x in view_regulation.make_details(locus_id=locus_id) if x['bioentity1']['id'] == locus_id])
+        target_ids = set([x['locus2']['id'] for x in view_regulation.make_details(locus_id=locus_id) if x['locus1']['id'] == locus_id])
         if len(target_ids) > 0:
             return json.dumps(view_go.make_enrichment(target_ids))
         else:
@@ -593,12 +559,12 @@ class SGDBackend(BackendInterface):
       
     #Binding
     def binding_site_details(self, locus_identifier=None, are_ids=False):
-        import view_binding
+        import view_sequence
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return json.dumps(view_binding.make_details(locus_id=locus_id))
+        return json.dumps(view_sequence.make_binding_details(locus_id=locus_id))
 
     #Sequence
     def sequence_details(self, locus_identifier=None, contig_identifier=None, are_ids=False):
@@ -627,7 +593,7 @@ class SGDBackend(BackendInterface):
             query = query.filter(Disambig.id >= min_id)
         if max_id is not None:
             query = query.filter(Disambig.id < max_id)
-        return json.dumps([disambig_to_json(x) for x in query.all()])
+        return json.dumps([x.to_json() for x in query.all()])
       
 #Useful methods
 def create_simple_table(objs, f, **kwargs):
@@ -675,3 +641,60 @@ def get_obj_id(identifier, class_type=None, subclass_type=None):
     objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
     obj_id = None if objs_ids is None or len(objs_ids) != 1 else objs_ids[0][0]
     return obj_id
+
+word_to_bioent_id = None
+
+def get_word_to_bioent_id(word):
+    from src.sgd.backend.nex import DBSession
+    from src.sgd.model.nex.bioentity import Locus
+
+    global word_to_bioent_id
+    if word_to_bioent_id is None:
+        word_to_bioent_id = {}
+        for locus in DBSession.query(Locus).all():
+            word_to_bioent_id[locus.format_name.lower()] = locus.id
+            word_to_bioent_id[locus.display_name.lower()] = locus.id
+            word_to_bioent_id[locus.format_name.lower() + 'p'] = locus.id
+            word_to_bioent_id[locus.display_name.lower() + 'p'] = locus.id
+
+    word = word.lower()
+    return None if word not in word_to_bioent_id else word_to_bioent_id[word]
+
+def get_bioent_by_name(bioent_name, to_ignore):
+    from src.sgd.model.nex.bioentity import Bioentity
+    if bioent_name not in to_ignore:
+        try:
+            int(bioent_name)
+        except ValueError:
+            bioent_id = get_word_to_bioent_id(bioent_name)
+            return None if bioent_id is None else DBSession.query(Bioentity).filter_by(id=bioent_id).first()
+    return None
+
+def link_gene_names(text, to_ignore=set()):
+    words = text.split(' ')
+    new_chunks = []
+    chunk_start = 0
+    i = 0
+    for word in words:
+        if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+            bioent_name = word[:-1]
+        else:
+            bioent_name = word
+
+        bioent = get_bioent_by_name(bioent_name.upper(), to_ignore)
+
+        if bioent is not None:
+            new_chunks.append(text[chunk_start: i])
+            chunk_start = i + len(word) + 1
+
+            new_chunk = "<a href='" + bioent.link + "'>" + bioent_name + "</a>"
+            if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+                new_chunk = new_chunk + word[-1]
+            new_chunks.append(new_chunk)
+        i = i + len(word) + 1
+    new_chunks.append(text[chunk_start: i])
+    try:
+        return ' '.join(new_chunks)
+    except:
+        print text
+        return text

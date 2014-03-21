@@ -160,7 +160,7 @@ def create_alias_from_dbxref(old_dbxref_feat, id_to_bioentity, key_to_source):
 
 def convert_alias(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioentity import Bioentity as NewBioentity, Bioentityalias as NewBioentityalias
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.feature import AliasFeature as OldAliasFeature
     from src.sgd.model.bud.general import DbxrefFeat as OldDbxrefFeat
 
@@ -324,7 +324,7 @@ def create_url_from_protein_sequence(locus, key_to_source):
 
 def convert_url(old_session_maker, new_session_maker, chunk_size):
     from src.sgd.model.nex.bioentity import Bioentity as NewBioentity, Bioentityurl as NewBioentityurl
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.general import WebDisplay as OldWebDisplay, FeatUrl as OldFeatUrl, DbxrefFeat as OldDbxrefFeat
     from src.sgd.model.nex.bioentity import Protein
 

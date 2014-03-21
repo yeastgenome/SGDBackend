@@ -21,17 +21,15 @@ def test_regulation_paragraph_structure(model, identifier='GAL4'):
 
 def check_regulation_evidence(evidence):
     check_evidence(evidence)
-    assert 'bioentity1' in evidence
-    assert 'bioentity2' in evidence
+    assert 'locus1' in evidence
+    assert 'locus2' in evidence
     assert 'conditions' in evidence
 
-    check_obj(evidence['bioentity1'])
-    assert 'format_name' in evidence['bioentity1']
-    assert 'class_type' in evidence['bioentity1']
-    check_obj(evidence['bioentity2'])
-    assert 'format_name' in evidence['bioentity2']
-    assert 'class_type' in evidence['bioentity2']
-                
+    check_obj(evidence['locus1'])
+    assert 'format_name' in evidence['locus1']
+    check_obj(evidence['locus2'])
+    assert 'format_name' in evidence['locus2']
+
 def test_regulation_bioent_details_structure(model, identifier='GAL4'):
     response = json.loads(model.regulation_details(locus_identifier=identifier))
     assert response is not None
@@ -84,11 +82,6 @@ def test_regulation_target_enrichment_structure(model, identifier='ADF1'):
         assert 'match_count' in entry
         assert 'pvalue' in entry
         check_obj(entry['go'])
-        assert 'description' in entry['go']
-        assert 'aliases' in entry['go']
-        assert 'count' in entry['go']
-        assert 'class_type' in entry['go']
         assert 'format_name' in entry['go']
         assert 'go_id' in entry['go']
-        assert 'child_count' in entry['go']
-        assert 'go_aspect' in entry['go']
+        assert 'aspect' in entry['go']

@@ -37,6 +37,16 @@ class Sequence(Base, EqualityByIDMixin):
     def unique_key(self):
         return (self.format_name, self.class_type)
 
+    def to_json(self):
+        return {
+            'residues': self.residues,
+            'length': self.length,
+            'id': self.id,
+            'display_name': self.display_name,
+            'format_name': self.format_name,
+            'link': self.link
+        }
+
 class Dnasequence(Sequence):
     __mapper_args__ = {'polymorphic_identity': "DNA",
                        'inherit_condition': id==Sequence.id}
@@ -135,6 +145,51 @@ class Proteinsequence(Sequence):
         self.tyr = residues.count('Y')
         self.val = residues.count('V')
 
+    def to_json(self):
+        seq_json = Sequence.to_json(self)
+        seq_json['pi'] = str(self.pi)
+        seq_json['cai'] = str(self.cai)
+        seq_json['codon_bias'] = str(self.codon_bias)
+        seq_json['fop_score'] = str(self.fop_score)
+        seq_json['gravy_score'] = str(self.gravy_score)
+        seq_json['aromaticity_score'] = str(self.aromaticity_score)
+        seq_json['aliphatic_index'] = str(self.aliphatic_index)
+        seq_json['instability_index'] = str(self.instability_index)
+        seq_json['molecular_weight'] = None if self.molecular_weight is None else str(round(float(str(self.molecular_weight))))
+        seq_json['ala'] = self.ala
+        seq_json['arg'] = self.arg
+        seq_json['asn'] = self.asn
+        seq_json['asp'] = self.asp
+        seq_json['cys'] = self.cys
+        seq_json['gln'] = self.gln
+        seq_json['glu'] = self.glu
+        seq_json['gly'] = self.gly
+        seq_json['his'] = self.his
+        seq_json['ile'] = self.ile
+        seq_json['leu'] = self.leu
+        seq_json['lys'] = self.lys
+        seq_json['met'] = self.met
+        seq_json['phe'] = self.phe
+        seq_json['pro'] = self.pro
+        seq_json['thr'] = self.thr
+        seq_json['ser'] = self.ser
+        seq_json['trp'] = self.trp
+        seq_json['tyr'] = self.tyr
+        seq_json['val'] = self.val
+        seq_json['hydrogen'] = self.hydrogen
+        seq_json['sulfur'] = self.sulfur
+        seq_json['oxygen'] = self.oxygen
+        seq_json['carbon'] = self.carbon
+        seq_json['nitrogen'] = self.nitrogen
+        seq_json['yeast_half_life'] = self.yeast_half_life
+        seq_json['ecoli_half_life'] = self.ecoli_half_life
+        seq_json['mammal_half_life'] = self.mammal_half_life
+        seq_json['no_cys_ext_coeff'] = self.no_cys_ext_coeff
+        seq_json['all_cys_ext_coeff'] = self.all_cys_ext_coeff
+        seq_json['all_half_cys_ext_coeff'] = self.all_half_cys_ext_coeff
+        seq_json['all_pairs_cys_ext_coeff'] = self.all_pairs_cys_ext_coeff
+        return seq_json
+
 class Contig(Sequence):
     __mapper_args__ = {'polymorphic_identity': "CONTIG",
                        'inherit_condition': id==Sequence.id}
@@ -142,3 +197,16 @@ class Contig(Sequence):
     def __init__(self, display_name, residues, strain):
         format_name = strain.format_name + '_' + display_name
         Sequence.__init__(self, display_name, format_name, '/contig/' + format_name + '/overview', 'CONTIG', residues, None, None)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'display_name': self.display_name,
+            'format_name': self.format_name,
+            'link': self.link
+        }
+
+    def to_full_json(self):
+        obj_json = self.to_json()
+        obj_json['residues'] = self.residues
+        return obj_json

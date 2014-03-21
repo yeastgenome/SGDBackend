@@ -31,7 +31,7 @@ def create_chemical_relation(cvtermrel, key_to_chemical, key_to_source):
         return []
     
 def convert_chemical_relation(old_session_maker, new_session_maker):
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.chemical import Chemicalrelation, Chemical
     from src.sgd.model.bud.cv import CVTermRel
 

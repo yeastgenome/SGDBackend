@@ -259,3 +259,7 @@ class BackendInterface:
     def protein_phosphorylation_details(self, locus_identifier):
         return None
 
+    @abstractmethod
+    def protein_experiment_details(self, locus_identifier):
+        return None
+

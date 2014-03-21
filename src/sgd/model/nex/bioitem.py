@@ -1,8 +1,12 @@
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name
+from src.sgd.model.nex.misc import Source
+
 
 __author__ = 'kpaskov'
 
@@ -14,10 +18,13 @@ class Bioitem(Base, EqualityByIDMixin):
     format_name = Column('format_name', String)
     class_type = Column('subclass', String)
     link = Column('obj_url', String)
-    source_id = Column('source_id', Integer)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
     description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    source = relationship(Source, uselist=False)
     
     __mapper_args__ = {'polymorphic_on': class_type}
     
@@ -31,6 +38,14 @@ class Bioitem(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return (self.format_name, self.class_type)
+
+    def to_json(self):
+        return {
+            'format_name': self.format_name,
+            'display_name': self.display_name,
+            'link': self.link,
+            'id': self.id,
+            }
         
 class Allele(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'ALLELE',
@@ -57,7 +72,16 @@ class Domain(Bioitem):
         self.interpro_id = interpro_id
         self.interpro_description = interpro_description
         self.external_link = external_link
-    
+
+    def to_full_json(self):
+        obj_json = self.to_json()
+        obj_json['interpro_description'] = self.interpro_description
+        obj_json['description'] = self.description
+        obj_json['source'] = self.source.to_json()
+        obj_json['external_link'] = self.external_link
+        obj_json['interpro_id'] = self.interpro_id
+        return obj_json
+
 class Proteinbioitem(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'PROTEIN',
                        'inherit_condition': id == Bioitem.id}

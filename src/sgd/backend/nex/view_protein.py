@@ -1,19 +1,14 @@
-from src.sgd.model.nex.bioentity import Bioentity, Protein
-from src.sgd.model.nex.bioitem import Bioitem
-from src.sgd.model.nex.evidence import Domainevidence, Phosphorylationevidence
-from src.sgd.backend.nex import DBSession, create_simple_table, query_limit
-from src.sgd.backend.nex.cache import get_obj
-from src.sgd.backend.nex.obj_to_json import evidence_to_json
+from src.sgd.model.nex.bioentity import Protein
+from src.sgd.model.nex.bioitem import Domain
+from src.sgd.model.nex.evidence import Domainevidence, Phosphorylationevidence, Proteinexperimentevidence
+from src.sgd.backend.nex import DBSession, query_limit
 
 __author__ = 'kpaskov'
 
 # -------------------------------Overview---------------------------------------
 def make_overview(locus_id):
-    proteins = []
-    protein_ids = [x.id for x in DBSession.query(Protein).filter(Protein.locus_id == locus_id).all()]
-    for protein_id in protein_ids:
-        proteins.append(get_obj(Bioentity, protein_id))
-    return proteins
+    proteins = DBSession.query(Protein).filter_by(locus_id=locus_id).all()
+    return [x.to_json() for x in proteins]
 
 # -------------------------------Details---------------------------------------
 def get_protein_domain_evidence(protein_id, domain_id):
@@ -51,21 +46,9 @@ def make_details(locus_id=None, protein_id=None, domain_id=None):
     if domain_evidences is None:
         return {'Error': 'Too much data to display.'}
 
-    domain_evidences = [x for x in domain_evidences if get_obj(Bioitem, x.bioitem_id)['display_name'] != 'seg']
+    domain_evidences = [x for x in domain_evidences if x.bioitem.display_name != 'seg']
 
-    return create_simple_table(domain_evidences, make_evidence_row) 
-
-def make_evidence_row(domain_evidence): 
-    obj_json = evidence_to_json(domain_evidence).copy()
-    obj_json['protein'] = get_obj(Bioentity, domain_evidence.bioentity_id)
-    obj_json['domain'] = get_obj(Bioitem, domain_evidence.bioitem_id)
-    obj_json['start'] = domain_evidence.start
-    obj_json['end'] = domain_evidence.end
-    obj_json['evalue'] = domain_evidence.evalue
-    obj_json['status'] = domain_evidence.status
-    obj_json['date_of_run'] = domain_evidence.date_of_run
-    obj_json['domain']['count'] = len(set([x.bioentity_id for x in get_protein_domain_evidence(protein_id=None, domain_id=domain_evidence.bioitem_id)]))
-    return obj_json
+    return [x.to_json() for x in domain_evidences]
 
 # -------------------------------Details---------------------------------------
 def get_phosphorylation_evidence(protein_id):
@@ -96,35 +79,59 @@ def make_phosphorylation_details(locus_id=None, protein_id=None):
     else:
         phospho_evidences = get_phosphorylation_evidence_for_locus(locus_id=locus_id)
 
-    return create_simple_table(sorted(phospho_evidences, key=lambda x: x.site_index), make_phospho_evidence_row)
+    return [x.to_json() for x in sorted(phospho_evidences, key=lambda x: x.site_index)]
 
-def make_phospho_evidence_row(phospho_evidence):
-    obj_json = evidence_to_json(phospho_evidence).copy()
-    obj_json['protein'] = get_obj(Bioentity, phospho_evidence.bioentity_id)
-    obj_json['site_index'] = phospho_evidence.site_index
-    obj_json['site_residue'] = phospho_evidence.site_residue
-    return obj_json
+# -------------------------------Details---------------------------------------
+def get_protein_experiment_evidence(protein_id):
+    query = DBSession.query(Proteinexperimentevidence)
+    if protein_id is not None:
+        query = query.filter_by(bioentity_id=protein_id)
+
+    if query.count() > query_limit:
+        return None
+    return query.all()
+
+def get_protein_experiment_evidence_for_locus(locus_id):
+    evidences = []
+    protein_ids = [x.id for x in DBSession.query(Protein).filter(Protein.locus_id == locus_id).all()]
+    for protein_id in protein_ids:
+        more_evidences = get_protein_experiment_evidence(protein_id=protein_id)
+        if more_evidences is None or len(evidences) + len(more_evidences) > query_limit:
+            return None
+        evidences.extend(more_evidences)
+    return evidences
+
+def make_protein_experiment_details(locus_id=None, protein_id=None):
+    if locus_id is None and protein_id is None:
+        return {'Error': 'No locus_id or protein_id given.'}
+
+    if protein_id is not None:
+        evidences = get_protein_experiment_evidence(protein_id=None)
+    else:
+        evidences = get_protein_experiment_evidence_for_locus(locus_id=locus_id)
+
+    return [x.to_json() for x in evidences]
 
 # -------------------------------Graph-----------------------------------------
 def create_bioent_node(bioent, is_focus):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'BioentNode' + str(bioent['id']), 'name':bioent['display_name'], 'link': bioent['link'],
+    return {'data':{'id':'BioentNode' + str(bioent.id), 'name':bioent.display_name, 'link': bioent.link,
                     'sub_type':sub_type, 'type': 'BIOENTITY'}}
 
 def create_domain_node(bioitem):
-    return {'data':{'id':'DomainNode' + str(bioitem['id']), 'name':bioitem['display_name'], 'link': bioitem['link'],
-                    'sub_type':None, 'type': 'BIOITEM', 'source': bioitem['source']}}
+    return {'data':{'id':'DomainNode' + str(bioitem.id), 'name':bioitem.display_name, 'link': bioitem.link,
+                    'sub_type':None, 'type': 'BIOITEM', 'source': bioitem.source.display_name}}
 
 def create_edge(bioent_id, domain_id):
     return {'data':{'target': 'BioentNode' + str(bioent_id), 'source': 'DomainNode' + str(domain_id)}}
 
 def make_graph(locus_id):
     domain_ids = set()
-    protein_ids = [x.id for x in DBSession.query(Protein).filter(Protein.locus_id == locus_id).all()]
+    protein_ids = [x.id for x in DBSession.query(Protein).filter_by(locus_id=locus_id).all()]
     for pid in protein_ids:
-        domain_ids.update([x.bioitem_id for x in get_protein_domain_evidence(protein_id=pid, domain_id=None) if x.domain.display_name != 'seg'])
+        domain_ids.update([x.bioitem_id for x in get_protein_domain_evidence(protein_id=pid, domain_id=None) if x.bioitem.display_name != 'seg'])
 
     domain_id_to_bioent_ids = {}
     bioent_id_to_domain_ids = {}
@@ -132,7 +139,7 @@ def make_graph(locus_id):
     all_relevant_edges = set()
     for domain_id in domain_ids:
         domain_domainevidences = get_protein_domain_evidence(protein_id=None, domain_id=domain_id)
-        all_relevant_edges.update([(x.bioentity_id, x.bioitem_id) for x in domain_domainevidences if x.domain.display_name != 'seg'])
+        all_relevant_edges.update([(x.bioentity_id, x.bioitem_id) for x in domain_domainevidences if x.bioitem.display_name != 'seg'])
 
     for edge in all_relevant_edges:
         bioentity_id = edge[0]
@@ -171,8 +178,8 @@ def make_graph(locus_id):
         for pid in protein_ids:
             bioent_to_score[pid] = 0
 
-        nodes = [create_bioent_node(get_obj(Bioentity, x), x in protein_ids) for x in bioent_ids_in_use]
-        nodes.extend([create_domain_node(get_obj(Bioitem, x)) for x in domain_ids_in_use])
+        nodes = [create_bioent_node(x, x.id in protein_ids) for x in DBSession.query(Protein).filter(Protein.id.in_(bioent_ids_in_use)).all()]
+        nodes.extend([create_domain_node(x) for x in DBSession.query(Domain).filter(Domain.id.in_(domain_ids_in_use)).all()])
 
         edges = [create_edge(evidence[0], evidence[1]) for evidence in edges_in_use]
 

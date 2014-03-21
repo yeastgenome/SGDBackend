@@ -45,6 +45,14 @@ class Bioentity(Base, EqualityByIDMixin):
             
     def unique_key(self):
         return (self.format_name, self.class_type)
+
+    def to_json(self):
+        return {
+            'format_name': self.format_name,
+            'display_name': self.display_name,
+            'link': self.link,
+            'id': self.id,
+            }
     
 class Bioentityurl(Url):
     __tablename__ = 'bioentityurl'
@@ -93,8 +101,8 @@ class Bioentityrelation(Relation):
                        'inherit_condition': id == Relation.id}
    
     #Relationships
-    parent = relationship(Bioentity, uselist=False, primaryjoin="Bioentityrelation.parent_id==Bioentity.id")
-    child = relationship(Bioentity, uselist=False, primaryjoin="Bioentityrelation.child_id==Bioentity.id")
+    parent = relationship(Bioentity, backref="children", uselist=False, primaryjoin="Bioentityrelation.parent_id==Bioentity.id")
+    child = relationship(Bioentity, backref="parents", uselist=False, primaryjoin="Bioentityrelation.child_id==Bioentity.id")
 
     def __init__(self, source, relation_type, parent, child, date_created, created_by):
         Relation.__init__(self, parent.format_name + '|' + child.format_name, 
@@ -125,6 +133,15 @@ class Locus(Bioentity):
         self.headline = headline
         self.genetic_position = genetic_position
         self.locus_type = locus_type
+
+    def to_full_json(self):
+        obj_json = self.to_json()
+        obj_json['locus_type'] = self.locus_type
+        obj_json['sgdid'] = self.sgdid
+        obj_json['aliases'] = [x.to_json() for x in self.aliases]
+        obj_json['class_type'] = self.class_type
+        obj_json['description'] = self.description
+        return obj_json
     
 class Protein(Bioentity):
     __tablename__ = "proteinbioentity"
@@ -142,6 +159,11 @@ class Protein(Bioentity):
         Bioentity.__init__(self, bioentity_id, locus.display_name + 'p', locus.format_name + 'P', 
                            'PROTEIN', '/locus/' + locus.sgdid + '/overview', source, None, None, locus.bioent_status, locus.description, date_created, created_by)
         self.locus_id = locus.id
+
+    def to_json(self):
+        obj_json = Bioentity.to_json(self)
+        obj_json['locus'] = self.locus.to_json()
+        return obj_json
 
 class Transcript(Bioentity):
     __tablename__ = "transcriptbioentity"
@@ -179,3 +201,12 @@ class Complex(Bioentity):
         Bioentity.__init__(self, None, go.display_name, format_name, 'COMPLEX', '/complex/' + format_name + '/overview', source, sgdid, None, None, go.description, None, None)
         self.go_id = go.id
         self.cellular_localization = cellular_localization
+
+    def to_full_json(self):
+        obj_json = self.to_json()
+        obj_json['go'] = self.go.to_json()
+        obj_json['cellular_localization'] = self.cellular_localization
+        obj_json['sgdid'] = self.sgdid
+        obj_json['description'] = self.description
+        obj_json['class_type'] = self.class_type
+        return obj_json

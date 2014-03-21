@@ -142,6 +142,28 @@ class Reference(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return self.format_name
+
+    def to_json(self):
+        urls = []
+        if self.pubmed_id is not None:
+            urls.append({'display_name': 'PubMed', 'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(self.pubmed_id)})
+        if self.doi is not None:
+            urls.append({'display_name': 'Full-Text', 'link': 'http://dx.doi.org/' + self.doi})
+        if self.pubmed_central_id is not None:
+            urls.append({'display_name': 'PMC', 'link': 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(self.pubmed_central_id)})
+
+        return {
+            'format_name': self.format_name,
+            'pubmed_id': self.pubmed_id,
+            'display_name': self.display_name,
+            'link': self.link,
+            'id': self.id,
+            'citation': self.citation,
+            'year': self.year,
+            'journal': None if self.journal is None else self.journal.med_abbr,
+            'urls': urls
+            }
+
             
     @hybrid_property
     def authors(self):
@@ -208,6 +230,14 @@ class Author(Base, EqualityByIDMixin):
     def references(self):
         sorted_references = sorted([author_ref.reference for author_ref in self.author_references], key=lambda x: x.date_published, reverse=True)
         return sorted_references
+
+    def to_json(self):
+        return {
+            'format_name': self.format_name,
+            'display_name': self.display_name,
+            'link': self.link,
+            'id': self.id
+        }
     
     
 class AuthorReference(Base, EqualityByIDMixin):
@@ -293,6 +323,10 @@ class Referencerelation(Relation):
     id = Column('relation_id', Integer, primary_key=True)
     parent_id = Column('parent_id', Integer, ForeignKey(Reference.id))
     child_id = Column('child_id', Integer, ForeignKey(Reference.id))
+
+    #Relationships
+    parent = relationship(Reference, backref="children", uselist=False, primaryjoin="Referencerelation.parent_id==Reference.id")
+    child = relationship(Reference, backref="parents", uselist=False, primaryjoin="Referencerelation.child_id==Reference.id")
     
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE',
                        'inherit_condition': id == Relation.id}

@@ -25,9 +25,13 @@ def check_evidence(evidence):
     check_obj(evidence['strain'])
     check_obj(evidence['reference'])
     check_obj(evidence['experiment'])
+
+    assert 'conditions' in evidence
+    for cond in evidence['conditions']:
+        check_condition(cond)
     
 def check_condition(condition):
     assert 'note' in condition
-    assert 'obj' in condition
     assert 'role' in condition
-    check_obj(condition['obj'])
+    if 'obj' in condition:
+        check_obj(condition['obj'])

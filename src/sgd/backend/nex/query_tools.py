@@ -1,5 +1,6 @@
 from math import ceil
 
+from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import or_
 
 from src.sgd.backend.nex import DBSession
@@ -25,20 +26,6 @@ def get_all_bioconcept_children(parent_id):
                 latest_list.extend([x.child_id for x in DBSession.query(Bioconceptrelation).filter(Bioconceptrelation.parent_id.in_(new_parent_ids[i*500:(i+1)*500])).all()])
             new_parent_ids = latest_list
     return all_child_ids
-
-def get_conditions(evidence_ids):
-    from src.sgd.model.nex.condition import Temperaturecondition, Chemicalcondition, Bioentitycondition, Bioconceptcondition, Bioitemcondition, Generalcondition
-    conditions = []
-    num_chunks = int(ceil(1.0*len(evidence_ids)/500))
-    for i in range(num_chunks):
-        this_chunk = evidence_ids[i*500:(i+1)*500]
-        conditions.extend(DBSession.query(Temperaturecondition).filter(Temperaturecondition.evidence_id.in_(this_chunk)).all())
-        conditions.extend(DBSession.query(Chemicalcondition).filter(Chemicalcondition.evidence_id.in_(this_chunk)).all())
-        conditions.extend(DBSession.query(Bioentitycondition).filter(Bioentitycondition.evidence_id.in_(this_chunk)).all())
-        conditions.extend(DBSession.query(Bioconceptcondition).filter(Bioconceptcondition.evidence_id.in_(this_chunk)).all())
-        conditions.extend(DBSession.query(Bioitemcondition).filter(Bioitemcondition.evidence_id.in_(this_chunk)).all())
-        conditions.extend(DBSession.query(Generalcondition).filter(Generalcondition.evidence_id.in_(this_chunk)).all())
-    return conditions
 
 def get_interactions(interaction_type, bioent_id):
     query = DBSession.query(Interaction).filter(
@@ -73,7 +60,7 @@ def get_bioentity_references(class_type=None, bioent_id=None, reference_id=None,
     return query.all()
 
 def get_biofacts(biocon_type, biocon_id=None, bioent_id=None, bioent_ids=None, biocon_ids=None, bioent_type=None):
-    query = DBSession.query(Biofact).filter(Biofact.bioconcept_class_type==biocon_type)
+    query = DBSession.query(Biofact).filter(Biofact.bioconcept_class_type==biocon_type).options(joinedload(Biofact.bioconcept), joinedload(Biofact.bioentity))
     if bioent_type is not None:
         query = query.filter(Biofact.bioentity_class_type == bioent_type)
     if bioent_id is not None:

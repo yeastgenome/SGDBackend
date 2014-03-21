@@ -32,7 +32,7 @@ def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, 
 
 def convert_evidence(new_session_maker, chunk_size):
     from src.sgd.model.nex.evidence import Bindingevidence
-    from src.sgd.model.nex.evelements import Experiment, Source
+    from src.sgd.model.nex.misc import Experiment, Source
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.reference import Reference
 

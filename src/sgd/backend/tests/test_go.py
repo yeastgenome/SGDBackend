@@ -11,11 +11,10 @@ def test_go_structure(model, identifier='GO:0018706'):
     assert 'description' in response
     assert 'aliases' in response
     assert 'count' in response
-    assert 'class_type' in response
     assert 'format_name' in response
     assert 'go_id' in response
     assert 'child_count' in response
-    assert 'go_aspect' in response
+    assert 'aspect' in response
 
 def test_go_ontology_graph_structure(model, identifier='GO:0018706'):
     response = json.loads(model.go_ontology_graph(go_identifier=identifier))
@@ -46,11 +45,10 @@ def test_go_overview_structure(model, identifier='YFL039C'):
     assert 'date_last_reviewed' in response
     for entry in response['go_slim']:
         check_obj(entry)
-        assert 'class_type' in entry
 
 def check_go_evidence(evidence):
     check_evidence(evidence)
-    assert 'bioconcept' in evidence
+    assert 'go' in evidence
     assert 'bioentity' in evidence
     assert 'conditions' in evidence
     assert 'qualifier' in evidence
@@ -58,14 +56,12 @@ def check_go_evidence(evidence):
     assert 'date_created' in evidence
     assert 'method' in evidence
 
-    check_obj(evidence['bioconcept'])
-    assert 'class_type' in evidence['bioconcept']
-    assert 'go_id' in evidence['bioconcept']
-    assert 'aspect' in evidence['bioconcept']
+    check_obj(evidence['go'])
+    assert 'go_id' in evidence['go']
+    assert 'aspect' in evidence['go']
 
     check_obj(evidence['bioentity'])
     assert 'format_name' in evidence['bioentity']
-    assert 'class_type' in evidence['bioentity']
 
     for cond in evidence['conditions']:
         check_condition(cond)

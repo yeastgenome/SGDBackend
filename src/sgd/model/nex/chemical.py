@@ -33,7 +33,20 @@ class Chemical(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return self.format_name
-    
+
+    def to_json(self):
+        return {
+            'format_name': self.format_name,
+            'display_name': self.display_name,
+            'link': self.link,
+            'id': self.id,
+            }
+
+    def to_full_json(self):
+        obj_json = self.to_json()
+        obj_json['chebi_id'] = self.chebi_id
+        obj_json['description'] = self.description
+        return obj_json
     
 class Chemicalalias(Alias):
     __tablename__ = 'chemicalalias'
@@ -65,6 +78,3 @@ class Chemicalrelation(Relation):
                           'CHEMICAL', source, relation_type, date_created, created_by)
         self.parent_id = parent.id
         self.child_id = child.id
-        
-        
-        

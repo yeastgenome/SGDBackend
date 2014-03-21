@@ -15,7 +15,8 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_evelements()
     #pastry_dev_converter.convert_reference()
     #pastry_dev_converter.convert_bioentity()
-    #pastry_dev_converter.convert_bioconcept()
+    from src.sgd.convert.bud2nex import convert_protein_experiment
+    pastry_dev_converter.wrapper(convert_protein_experiment.convert)
     #pastry_dev_converter.convert_bioitem()
     #pastry_dev_converter.convert_chemical()
 
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_literature()
     #pastry_dev_converter.convert_protein_domain()
     #pastry_dev_converter.convert_phosphorylation()
-    pastry_dev_converter.convert_ec_number()
+    #pastry_dev_converter.convert_ec_number()
 
     #pastry_dev_converter.convert_phenotype()
     #pastry_dev_converter.convert_go()

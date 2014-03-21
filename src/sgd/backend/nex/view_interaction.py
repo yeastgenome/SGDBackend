@@ -1,21 +1,18 @@
 from sqlalchemy import or_
 
-from src.sgd.backend.nex import create_simple_table, DBSession, query_limit
+from src.sgd.backend.nex import DBSession, query_limit
 from src.sgd.backend.nex.query_tools import get_interactions, get_interactions_among
-from src.sgd.model.nex.bioconcept import Bioconcept
 from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence
-from src.sgd.backend.nex.cache import get_obj
-from src.sgd.backend.nex.obj_to_json import minimize_json, evidence_to_json
 from src.sgd.backend.nex.venn import calc_venn_measurements
 
 
 __author__ = 'kpaskov'
 
 # -------------------------------Overview---------------------------------------
-def make_overview(bioent):
-    genetic = get_interactions('GENINTERACTION', bioent['id'])
-    physical = get_interactions('PHYSINTERACTION', bioent['id'])
+def make_overview(locus_id):
+    genetic = get_interactions('GENINTERACTION', locus_id)
+    physical = get_interactions('PHYSINTERACTION', locus_id)
             
     inters_to_genetic = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in genetic])
     inters_to_physical = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in physical])
@@ -76,45 +73,19 @@ def make_details(locus_id=None, reference_id=None):
 
     all_interevidences = [x for x in genetic_interevidences]
     all_interevidences.extend(physical_interevidences)
-    tables = create_simple_table(all_interevidences, make_evidence_row)
-        
-    return tables  
 
-def make_evidence_row(interevidence):
-    if interevidence.class_type == 'GENINTERACTION':
-        phenotype_id = interevidence.phenotype_id
-        obj_json = evidence_to_json(interevidence).copy()
-        obj_json['bioentity1'] = minimize_json(get_obj(Bioentity, interevidence.bioentity1_id), include_format_name=True)
-        obj_json['bioentity2'] = minimize_json(get_obj(Bioentity, interevidence.bioentity2_id), include_format_name=True)
-        obj_json['phenotype'] = None if phenotype_id is None else minimize_json(get_obj(Bioconcept, phenotype_id))
-        obj_json['mutant_type'] = interevidence.mutant_type
-        obj_json['interaction_type'] = 'Genetic'
-        obj_json['annotation_type'] = interevidence.annotation_type
-        obj_json['bait_hit'] = interevidence.bait_hit
-        return obj_json
-        
-    elif interevidence.class_type == 'PHYSINTERACTION':
-        obj_json = evidence_to_json(interevidence).copy()
-        obj_json['bioentity1'] = minimize_json(get_obj(Bioentity, interevidence.bioentity1_id), include_format_name=True)
-        obj_json['bioentity2'] = minimize_json(get_obj(Bioentity, interevidence.bioentity2_id), include_format_name=True)
-        obj_json['modification'] = interevidence.modification
-        obj_json['interaction_type'] = 'Physical'
-        obj_json['annotation_type'] = interevidence.annotation_type
-        obj_json['bait_hit'] = interevidence.bait_hit
-        return obj_json
-    else:
-        return None
+    return [x.to_json() for x in all_interevidences]
 
 # -------------------------------Graph---------------------------------------
 def create_node(bioent, is_focus, gen_ev_count, phys_ev_count):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'Node' + str(bioent['id']), 'name':bioent['display_name'], 'link': bioent['link'], 
+    return {'data':{'id':'Node' + str(bioent.id), 'name':bioent.display_name, 'link': bioent.link,
                     'physical': phys_ev_count, 'genetic': gen_ev_count, 'evidence':max(phys_ev_count, gen_ev_count), 
                     'sub_type':sub_type}}
 
-def create_edge(interaction_id, bioent1_id, bioent2_id, total_ev_count, class_type):
+def create_edge(bioent1_id, bioent2_id, total_ev_count, class_type):
     return {'data':{'target': 'Node' + str(bioent1_id), 'source': 'Node' + str(bioent2_id), 
             'evidence':total_ev_count, 'class_type': class_type}}
     
@@ -185,30 +156,30 @@ def make_graph(bioent_id):
     old_min_evidence_count = min_evidence_count
     min_evidence_count = 10
     edges = []
-    nodes = [create_node(get_obj(Bioentity, bioent_id), True, max_gen_count, max_phys_count)]
+    nodes = [create_node(DBSession.query(Bioentity).filter_by(id=bioent_id).first(), True, max_gen_count, max_phys_count)]
     while len(edges) + len(evidence_count_to_physical[min_evidence_count]) + len(evidence_count_to_genetic[min_evidence_count]) + len(evidence_count_to_phys_tangents[min_evidence_count]) + len(evidence_count_to_gen_tangents[min_evidence_count]) < 250 and min_evidence_count > old_min_evidence_count:
         for neighbor_id in evidence_count_to_neighbors[min_evidence_count]:
             physical_count = 0 if neighbor_id not in neighbor_id_to_physevidence_count else neighbor_id_to_physevidence_count[neighbor_id]
             genetic_count = 0 if neighbor_id not in neighbor_id_to_genevidence_count else neighbor_id_to_genevidence_count[neighbor_id]
-            nodes.append(create_node(get_obj(Bioentity, neighbor_id), False, genetic_count, physical_count))
+            nodes.append(create_node(DBSession.query(Bioentity).filter_by(id=neighbor_id).first(), False, genetic_count, physical_count))
         
         for genetic_id in evidence_count_to_genetic[min_evidence_count]:
             genevidence_count = neighbor_id_to_genevidence_count[genetic_id]
-            edges.append(create_edge(len(edges), bioent_id, genetic_id, genevidence_count, 'GENETIC'))
+            edges.append(create_edge(bioent_id, genetic_id, genevidence_count, 'GENETIC'))
                 
         for physical_id in evidence_count_to_physical[min_evidence_count]:
             physevidence_count = neighbor_id_to_physevidence_count[physical_id]
-            edges.append(create_edge(len(edges), bioent_id, physical_id, physevidence_count, 'PHYSICAL'))
+            edges.append(create_edge(bioent_id, physical_id, physevidence_count, 'PHYSICAL'))
         
         for tangent in evidence_count_to_gen_tangents[min_evidence_count]:
             bioent1_id, bioent2_id = tangent
             gen_ev_count = tangent_to_genevidence_count[tangent]
-            edges.append(create_edge(len(edges), bioent1_id, bioent2_id, gen_ev_count, 'GENETIC'))
+            edges.append(create_edge(bioent1_id, bioent2_id, gen_ev_count, 'GENETIC'))
             
         for tangent in evidence_count_to_phys_tangents[min_evidence_count]:
             bioent1_id, bioent2_id = tangent
             phys_ev_count = tangent_to_physevidence_count[tangent]
-            edges.append(create_edge(len(edges), bioent1_id, bioent2_id, phys_ev_count, 'PHYSICAL'))
+            edges.append(create_edge(bioent1_id, bioent2_id, phys_ev_count, 'PHYSICAL'))
             
         min_evidence_count = min_evidence_count - 1
     

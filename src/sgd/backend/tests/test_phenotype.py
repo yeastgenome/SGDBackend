@@ -14,7 +14,6 @@ def test_phenotype_structure(model, identifier='cell_cycle_progression_in_G1_pha
     assert 'qualifier' in response
     assert 'count' in response
     assert 'observable' in response
-    assert 'class_type' in response
     assert 'format_name' in response
     assert 'child_count' in response
 
@@ -42,15 +41,6 @@ def test_phenotype_ontology_structure(model):
     assert 'child_to_parent' in response
     for element in response['elements']:
         check_obj(element)
-        assert 'description' in element
-        assert 'ancestor_type' in element
-        assert 'is_core' in element
-        assert 'qualifier' in element
-        assert 'count' in element
-        assert 'observable' in element
-        assert 'class_type' in element
-        assert 'format_name' in element
-        assert 'child_count' in element
 
 def test_phenotype_bioent_overview_structure(model, identifier='YFL039C'):
     response = json.loads(model.phenotype_overview(locus_identifier=identifier))
@@ -72,41 +62,16 @@ def test_phenotype_biocon_overview_structure(model, identifier='heat_sensitivity
 
 def check_phenotype_evidence(evidence):
     check_evidence(evidence)
-    assert 'bioconcept' in evidence
-    assert 'bioentity' in evidence
-    assert 'condition' in evidence
-    assert 'experiment_type_category' in evidence
-    assert 'chemical' in evidence
+    assert 'phenotype' in evidence
+    assert 'locus' in evidence
+    assert 'conditions' in evidence
+    assert 'category' in evidence['experiment']
     assert 'mutant_type' in evidence
-    assert 'reporter' in evidence
-    assert 'allele' in evidence
 
-    check_obj(evidence['bioconcept'])
-    assert 'description' in evidence['bioconcept']
-    assert 'ancestor_type' in evidence['bioconcept']
-    assert 'is_core' in evidence['bioconcept']
-    assert 'qualifier' in evidence['bioconcept']
-    assert 'count' in evidence['bioconcept']
-    assert 'observable' in evidence['bioconcept']
-    assert 'class_type' in evidence['bioconcept']
-    assert 'format_name' in evidence['bioconcept']
-    assert 'child_count' in evidence['bioconcept']
+    check_obj(evidence['phenotype'])
 
-    check_obj(evidence['bioentity'])
-    assert 'format_name' in evidence['bioentity']
-    assert 'class_type' in evidence['bioentity']
-
-    if evidence['allele'] is not None:
-        check_obj(evidence['allele'])
-        assert 'note' in evidence['allele']
-
-    if evidence['chemical'] is not None:
-        check_obj(evidence['chemical'])
-        assert 'note' in evidence['chemical']
-
-    if evidence['reporter'] is not None:
-        check_obj(evidence['reporter'])
-        assert 'note' in evidence['reporter']
+    check_obj(evidence['locus'])
+    assert 'format_name' in evidence['locus']
 
 def test_phenotype_bioent_details_structure(model, identifier='YFL039C'):
     response = json.loads(model.phenotype_details(locus_identifier=identifier))

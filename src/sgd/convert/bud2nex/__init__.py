@@ -21,6 +21,7 @@ import convert_bioconcept_in_depth
 import convert_chemical_in_depth
 import convert_bioitem_in_depth
 import convert_ec_number
+import convert_protein_experiment
 from src.sgd.model import bud, nex
 from src.sgd.convert import ConverterInterface, config, prepare_schema_connection, check_session_maker, set_up_logging
 
@@ -89,6 +90,7 @@ class BudNexConverter(ConverterInterface):
     def convert_protein(self):
         self.wrapper(convert_protein_domain.convert)
         self.wrapper(convert_binding.convert, no_old_session=True)
+        self.wrapper(convert_protein_experiment.convert)
 
     def convert_regulation(self):
         self.wrapper(convert_regulation.convert, no_old_session=True)

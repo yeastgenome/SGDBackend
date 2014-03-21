@@ -92,7 +92,7 @@ def create_chemical_phenotype(phenotype, key_to_source, observable_to_ancestor):
 
 def convert_phenotype(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioconcept import Phenotype as NewPhenotype
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.phenotype import Phenotype as OldPhenotype
     from src.sgd.model.bud.cv import CVTerm as OldCVTerm, CVTermRel as OldCVTermRel
 
@@ -239,7 +239,7 @@ def create_go(old_go, key_to_source):
 
 def convert_go(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioconcept import Go as NewGo
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.go import Go as OldGo
 
     new_session = None
@@ -308,7 +308,7 @@ def create_ecnumber(old_dbxref, key_to_source):
 
 def convert_ecnumber(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioconcept import ECNumber as NewECNumber
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.general import Dbxref as OldDbxref
 
     new_session = None
@@ -369,8 +369,8 @@ def convert_ecnumber(old_session_maker, new_session_maker):
 # ---------------------Convert------------------------------
 def convert(old_session_maker, new_session_maker):
 
-    convert_phenotype(old_session_maker, new_session_maker)
+    #convert_phenotype(old_session_maker, new_session_maker)
     
-    convert_go(old_session_maker, new_session_maker)
+    #convert_go(old_session_maker, new_session_maker)
     
     convert_ecnumber(old_session_maker, new_session_maker)

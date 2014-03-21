@@ -17,8 +17,7 @@ go_fixes = {'GO:0007243': 'GO:0035556'}
 
 def create_evidence(old_go_feature, gofeat_id_to_gorefs, goref_id_to_dbxrefs, id_to_bioentity, sgdid_to_bioentity, id_to_reference, key_to_source, 
                     key_to_bioconcept, key_to_bioitem, key_to_gpad_info):
-    from src.sgd.model.nex.evidence import Goevidence as NewGoevidence
-    from src.sgd.model.nex.condition import Bioconceptcondition, Bioentitycondition, Bioitemcondition
+    from src.sgd.model.nex.evidence import Goevidence as NewGoevidence, Bioconceptcondition, Bioentitycondition, Bioitemcondition
     evidences = []
 
     go_id = 'GO:' + str(old_go_feature.go.go_go_id).zfill(7)
@@ -109,14 +108,13 @@ def create_evidence(old_go_feature, gofeat_id_to_gorefs, goref_id_to_dbxrefs, id
     return evidences
 
 def convert_evidence(old_session_maker, new_session_maker, chunk_size):
-    from src.sgd.model.nex.evidence import Goevidence as NewGoevidence
+    from src.sgd.model.nex.evidence import Condition, Goevidence as NewGoevidence
     from src.sgd.model.nex.evelements import Source as NewSource, Experiment as NewExperiment
     from src.sgd.model.nex.reference import Reference as NewReference
     from src.sgd.model.nex.bioentity import Bioentity as NewBioentity
     from src.sgd.model.nex.bioconcept import Bioconcept as NewBioconcept
     from src.sgd.model.nex.bioitem import Bioitem as NewBioitem
     from src.sgd.model.nex.chemical import Chemical as NewChemical
-    from src.sgd.model.nex.condition import Condition
     from src.sgd.model.bud.go import GoFeature as OldGoFeature, GoRef as OldGoRef, GorefDbxref as OldGorefDbxref
 
     new_session = None
@@ -244,9 +242,8 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
 
 def create_evidence_from_gpad(gpad, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_source, eco_id_to_experiment, key_to_bioconcept, 
                               chebi_id_to_chemical, sgdid_to_bioentity):
-    from src.sgd.model.nex.evidence import Goevidence as NewGoevidence
-    from src.sgd.model.nex.condition import Bioconceptcondition, Bioentitycondition, Chemicalcondition
-    
+    from src.sgd.model.nex.evidence import Goevidence as NewGoevidence, Bioconceptcondition, Bioentitycondition, Chemicalcondition
+
     if len(gpad) == 1:
         return None
     #db = gpad[0]
