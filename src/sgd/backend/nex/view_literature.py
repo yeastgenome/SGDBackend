@@ -71,7 +71,7 @@ def make_references(bioent_ref_types, bioent_id, only_primary=False):
         primary_ids = set([x.reference for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
         references.intersection_update(primary_ids)
 
-    return sorted([x.to_json() for x in references], key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
+    return sorted([x.to_semi_full_json() for x in references], key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
 
 # -------------------------------Graph---------------------------------------
 def create_litguide_bioent_node(bioent, is_focus):

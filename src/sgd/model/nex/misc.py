@@ -74,6 +74,7 @@ class Strain(Base, EqualityByIDMixin):
             'display_name': self.display_name,
             'description': self.description,
             'id': self.id,
+            'link': self.link
             }
 
 class Source(Base, EqualityByIDMixin):

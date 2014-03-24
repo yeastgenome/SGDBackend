@@ -170,12 +170,12 @@ class SGDBackend(BackendInterface):
 
     #Reference
     def reference(self, reference_identifier, are_ids=False):
-        import view_reference
+        from src.sgd.model.nex.reference import Reference
         if are_ids:
             reference_id = reference_identifier
         else:
             reference_id = get_obj_id(reference_identifier, class_type='REFERENCE')
-        return None if reference_id is None else json.dumps(view_reference.make_overview(reference_id))
+        return None if reference_id is None else json.dumps(DBSession.query(Reference).filter_by(id=reference_id).first().to_full_json())
        
     def all_references(self, min_id, max_id):
         from src.sgd.model.nex.reference import Reference
@@ -202,8 +202,12 @@ class SGDBackend(BackendInterface):
         return json.dumps([{'id': x.id, 'text': x.text} for x in DBSession.query(Bibentry).filter(Bibentry.id.in_(reference_ids)).all()])
 
     def author(self, author_identifier, are_ids=False):
-        import view_reference
-        return json.dumps(view_reference.make_author(author_identifier))
+        from src.sgd.model.nex.reference import Author
+        if are_ids:
+            author_id = author_identifier
+        else:
+            author_id = None if author_identifier is None else get_obj_id(author_identifier, class_type='AUTHOR')
+        return None if author_id is None else json.dumps(DBSession.query(Author).filter_by(id=author_id).first().to_json())
 
     def all_authors(self, min_id, max_id):
         from src.sgd.model.nex.reference import Author
@@ -216,8 +220,11 @@ class SGDBackend(BackendInterface):
 
     def author_references(self, author_identifier, are_ids=False):
         import view_reference
-        author_json = view_reference.make_author(author_identifier)
-        return None if author_json is None else json.dumps(view_reference.make_author_references(author_json['id']))
+        if are_ids:
+            author_id = author_identifier
+        else:
+            author_id = None if author_identifier is None else get_obj_id(author_identifier, class_type='AUTHOR')
+        return None if author_id is None else json.dumps(view_reference.make_author_references(author_id))
 
     def references_this_week(self):
         import view_reference

@@ -1,6 +1,6 @@
 import hashlib
 
-from sqlalchemy import Float
+from sqlalchemy import Float, CLOB, Numeric
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
@@ -10,7 +10,7 @@ from bioentity import Bioentity, Protein, Locus, Complex
 from misc import Source, Strain, Experiment
 from bioitem import Bioitem, Domain
 from reference import Reference
-from sequence import Sequence, Contig
+from bioitem import Contig
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base
 
@@ -658,43 +658,59 @@ class Proteinexperimentevidence(Evidence):
         obj_json['data_value'] = self.data_value
         return obj_json
 
-class Sequenceevidence(Evidence):
-    __tablename__ = "sequenceevidence"
+class DNAsequenceevidence(Evidence):
+    __tablename__ = "dnasequenceevidence"
 
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-    sequence_id = Column('biosequence_id', Integer, ForeignKey(Sequence.id))
+    dna_type = Column('dna_type', String)
+    residues = Column('residues', CLOB)
+    contig_id = Column('contig_id', Integer, ForeignKey(Contig.id))
+    start = Column('start_index', Integer)
+    end = Column('end_index', Integer)
+    strand = Column('strand', String)
 
     #Relationships
     bioentity = relationship(Bioentity, uselist=False)
-    sequence = relationship(Sequence, uselist=False)
+    contig = relationship(Contig, uselist=False)
 
-    __mapper_args__ = {'polymorphic_identity': "SEQUENCE",
+    __mapper_args__ = {'polymorphic_identity': "DNASEQUENCE",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, source, strain, class_type, bioentity, sequence, date_created, created_by):
+    def __init__(self, source, strain, bioentity, dna_type, residues, contig, start, end, strand, date_created, created_by):
+        hash = hashlib.md5(residues).hexdigest()
         Evidence.__init__(self,
-                          bioentity.display_name + ' has ' + sequence.display_name + ' in strain ' + strain.display_name,
-                          bioentity.format_name + '_' + str(sequence.id) + '_' + str(strain.id),
-                          class_type, source, None, strain, None, None,
+                          bioentity.display_name + ' has ' + hash + ' in strain ' + strain.display_name,
+                          bioentity.format_name + '_' + hash + '_' + str(strain.id),
+                          "DNASEQUENCE", source, None, strain, None, None,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
-        self.sequence_id = sequence.id
+        self.dna_type = dna_type
+        self.residues = residues
+        self.contig_id = None if contig is None else contig.id
+        self.start = start
+        self.end = end
+        self.strand = strand
 
     def to_json(self):
         obj_json = Evidence.to_json(self)
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
         obj_json['bioentity'] = self.bioentity.to_json()
-        obj_json['sequence'] = self.sequence.to_json()
-        obj_json['sequence_labels'] = [x.to_json() for x in self.labels]
+        obj_json['residues'] = self.residues
+        obj_json['contig'] = None if self.contig_id is None else self.contig.to_json()
+        obj_json['start'] = self.start
+        obj_json['end'] = self.end
+        obj_json['strand'] = self.strand
+        obj_json['sequence_tags'] = [x.to_json() for x in self.tags]
+        obj_json['dna_type'] = self.dna_type
         return obj_json
 
-class SequenceLabel(Base, EqualityByIDMixin):
-    __tablename__ = 'sequencelabel'
+class DNAsequencetag(Base, EqualityByIDMixin):
+    __tablename__ = 'dnasequencetag'
 
-    id = Column('sequencelabel_id', Integer, primary_key=True)
-    evidence_id = Column('evidence_id', Integer, ForeignKey(Sequenceevidence.id))
+    id = Column('dnasequencetag_id', Integer, primary_key=True)
+    evidence_id = Column('evidence_id', Integer, ForeignKey(DNAsequenceevidence.id))
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     class_type = Column('subclass', String)
@@ -707,7 +723,7 @@ class SequenceLabel(Base, EqualityByIDMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    evidence = relationship(Sequenceevidence, uselist=False, backref='labels')
+    evidence = relationship(DNAsequenceevidence, uselist=False, backref='tags')
 
     def __init__(self, evidence, class_type, relative_start, relative_end, chromosomal_start, chromosomal_end, phase,
                  date_created, created_by):
@@ -735,49 +751,150 @@ class SequenceLabel(Base, EqualityByIDMixin):
             'chromosomal_end': self.chromosomal_end
         }
 
-class GenomicDNAsequenceevidence(Sequenceevidence):
-    __tablename__ = "gendnasequenceevidence"
+class Proteinsequenceevidence(Evidence):
+    __tablename__ = "proteinsequenceevidence"
 
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    contig_id = Column('contig_id', Integer, ForeignKey(Contig.id))
-    start = Column('start_index', Integer)
-    end = Column('end_index', Integer)
-    strand = Column('strand', String)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    protein_type = Column('protein_type', String)
+    residues = Column('residues', CLOB)
+
+    molecular_weight = Column('molecular_weight', Numeric)
+    pi = Column('pi', Numeric)
+    cai = Column('cai', Numeric)
+    n_term_seq = Column('n_term_seq', String)
+    c_term_seq = Column('c_term_seq', String)
+    codon_bias = Column('codon_bias', Numeric)
+    fop_score = Column('fop_score', Numeric)
+    gravy_score = Column('gravy_score', Numeric)
+    aromaticity_score = Column('aromaticity_score', Numeric)
+    aliphatic_index = Column('aliphatic_index', Numeric)
+    instability_index = Column('instability_index', Numeric)
+
+    ala = Column('ala', Integer)
+    arg = Column('arg', Integer)
+    asn = Column('asn', Integer)
+    asp = Column('asp', Integer)
+    cys = Column('cys', Integer)
+    gln = Column('gln', Integer)
+    glu = Column('glu', Integer)
+    gly = Column('gly', Integer)
+    his = Column('his', Integer)
+    ile = Column('ile', Integer)
+    leu = Column('leu', Integer)
+    lys = Column('lys', Integer)
+    met = Column('met', Integer)
+    phe = Column('phe', Integer)
+    pro = Column('pro', Integer)
+    thr = Column('thr', Integer)
+    ser = Column('ser', Integer)
+    trp = Column('trp', Integer)
+    tyr = Column('tyr', Integer)
+    val = Column('val', Integer)
+
+    hydrogen = Column('hydrogen', Integer)
+    sulfur = Column('sulfur', Integer)
+    nitrogen = Column('nitrogen', Integer)
+    oxygen = Column('oxygen', Integer)
+    carbon = Column('carbon', Integer)
+
+    yeast_half_life = Column('yeast_half_life', String)
+    ecoli_half_life = Column('ecoli_half_life', String)
+    mammal_half_life = Column('mammal_half_life', String)
+
+    no_cys_ext_coeff = Column('no_cys_ext_coeff', String)
+    all_cys_ext_coeff = Column('all_cys_ext_coeff', String)
+    all_half_cys_ext_coeff = Column('all_half_cys_ext_coeff', String)
+    all_pairs_cys_ext_coeff = Column('all_pairs_cys_ext_coeff', String)
 
     #Relationships
-    contig = relationship(Contig, uselist=False)
+    bioentity = relationship(Bioentity, uselist=False)
 
-    __mapper_args__ = {'polymorphic_identity': "GENDNASEQUENCE",
-                       'inherit_condition': id==Evidence.id}
-
-    def __init__(self, source, strain, bioentity, sequence, contig, start, end, strand, date_created, created_by):
-        Sequenceevidence.__init__(self, source, strain, 'GENDNASEQUENCE', bioentity, sequence, date_created, created_by)
-        self.contig_id = contig.id
-        self.start = start
-        self.end = end
-        self.strand = strand
-
-    def to_json(self):
-        obj_json = Sequenceevidence.to_json(self)
-        obj_json['contig'] = None if self.contig_id is None else self.contig.to_json()
-        obj_json['start'] = self.start
-        obj_json['end'] = self.end
-        obj_json['strand'] = self.strand
-        return obj_json
-
-class Proteinsequenceevidence(Sequenceevidence):
     __mapper_args__ = {'polymorphic_identity': "PROTEINSEQUENCE",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, source, strain, bioentity, sequence, date_created, created_by):
-        Sequenceevidence.__init__(self, source, strain, 'PROTEINSEQUENCE', bioentity, sequence, date_created, created_by)
+    def __init__(self, source, strain, bioentity, protein_type, residues, date_created, created_by):
+        hash = hashlib.md5(residues).hexdigest()
+        Evidence.__init__(self,
+                          bioentity.display_name + ' has ' + hash + ' in strain ' + strain.display_name,
+                          bioentity.format_name + '_' + hash + '_' + str(strain.id),
+                          "PROTEINSEQUENCE", source, None, strain, None, None,
+                          date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.protein_type = protein_type
+        self.residues = residues
+        self.n_term_seq = residues[0:7]
+        self.c_term_seq = residues[-8:-1]
+        self.ala = residues.count('A')
+        self.arg = residues.count('R')
+        self.asn = residues.count('N')
+        self.asp = residues.count('D')
+        self.cys = residues.count('C')
+        self.gln = residues.count('Q')
+        self.glu = residues.count('E')
+        self.gly = residues.count('G')
+        self.his = residues.count('H')
+        self.ile = residues.count('I')
+        self.leu = residues.count('L')
+        self.lys = residues.count('K')
+        self.met = residues.count('M')
+        self.phe = residues.count('F')
+        self.pro = residues.count('P')
+        self.thr = residues.count('T')
+        self.ser = residues.count('S')
+        self.trp = residues.count('W')
+        self.tyr = residues.count('Y')
+        self.val = residues.count('V')
 
-class CodingDNAsequenceevidence(Sequenceevidence):
-    __mapper_args__ = {'polymorphic_identity': "CODDNASEQUENCE",
-                       'inherit_condition': id==Evidence.id}
-
-    def __init__(self, source, strain, bioentity, sequence, date_created, created_by):
-        Sequenceevidence.__init__(self, source, strain, 'CODDNASEQUENCE', bioentity, sequence, date_created, created_by)
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['strain']['description'] = self.strain.description
+        obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
+        obj_json['bioentity'] = self.bioentity.to_json()
+        obj_json['residues'] = self.residues
+        obj_json['protein_type'] = self.protein_type
+        obj_json['pi'] = str(self.pi)
+        obj_json['cai'] = str(self.cai)
+        obj_json['codon_bias'] = str(self.codon_bias)
+        obj_json['fop_score'] = str(self.fop_score)
+        obj_json['gravy_score'] = str(self.gravy_score)
+        obj_json['aromaticity_score'] = str(self.aromaticity_score)
+        obj_json['aliphatic_index'] = str(self.aliphatic_index)
+        obj_json['instability_index'] = str(self.instability_index)
+        obj_json['molecular_weight'] = None if self.molecular_weight is None else str(round(float(str(self.molecular_weight))))
+        obj_json['ala'] = self.ala
+        obj_json['arg'] = self.arg
+        obj_json['asn'] = self.asn
+        obj_json['asp'] = self.asp
+        obj_json['cys'] = self.cys
+        obj_json['gln'] = self.gln
+        obj_json['glu'] = self.glu
+        obj_json['gly'] = self.gly
+        obj_json['his'] = self.his
+        obj_json['ile'] = self.ile
+        obj_json['leu'] = self.leu
+        obj_json['lys'] = self.lys
+        obj_json['met'] = self.met
+        obj_json['phe'] = self.phe
+        obj_json['pro'] = self.pro
+        obj_json['thr'] = self.thr
+        obj_json['ser'] = self.ser
+        obj_json['trp'] = self.trp
+        obj_json['tyr'] = self.tyr
+        obj_json['val'] = self.val
+        obj_json['hydrogen'] = self.hydrogen
+        obj_json['sulfur'] = self.sulfur
+        obj_json['oxygen'] = self.oxygen
+        obj_json['carbon'] = self.carbon
+        obj_json['nitrogen'] = self.nitrogen
+        obj_json['yeast_half_life'] = self.yeast_half_life
+        obj_json['ecoli_half_life'] = self.ecoli_half_life
+        obj_json['mammal_half_life'] = self.mammal_half_life
+        obj_json['no_cys_ext_coeff'] = self.no_cys_ext_coeff
+        obj_json['all_cys_ext_coeff'] = self.all_cys_ext_coeff
+        obj_json['all_half_cys_ext_coeff'] = self.all_half_cys_ext_coeff
+        obj_json['all_pairs_cys_ext_coeff'] = self.all_pairs_cys_ext_coeff
+        return obj_json
 
 class Phosphorylationevidence(Evidence):
     __tablename__ = "phosphorylationevidence"

@@ -114,7 +114,7 @@ class BioentityReference(Base):
 
     #Relationships
     bioentity = relationship(Bioentity, uselist=False)
-    reference = relationship(Reference, uselist=False)
+    reference = relationship(Reference, uselist=False, backref='bioentity_references')
 
     def __init__(self, class_type, bioentity_id, reference_id):
         self.class_type = class_type

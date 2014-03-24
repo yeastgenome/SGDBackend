@@ -108,8 +108,7 @@ class Reference(Base, EqualityByIDMixin):
     #Relationships  
     book = relationship(Book, uselist=False)
     journal = relationship(Journal, uselist=False)
-    abstract = association_proxy('abstract_obj', 'text')
-    
+
     author_names = association_proxy('author_references', 'author_name')
     related_references = association_proxy('refrels', 'child_ref')
     
@@ -160,17 +159,38 @@ class Reference(Base, EqualityByIDMixin):
         if self.pubmed_central_id is not None:
             urls.append({'display_name': 'PMC', 'link': 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(self.pubmed_central_id)})
 
-        return {
-            'format_name': self.format_name,
-            'pubmed_id': self.pubmed_id,
-            'display_name': self.display_name,
-            'link': self.link,
-            'id': self.id,
-            'citation': self.citation,
-            'year': self.year,
-            'journal': None if self.journal is None else self.journal.med_abbr,
-            'urls': urls
-            }
+        obj_json = self.to_json()
+        obj_json['pubmed_id'] = self.pubmed_id
+        obj_json['citation'] = self.citation
+        obj_json['year'] = self.year
+        obj_json['journal'] = None if self.journal is None else self.journal.med_abbr
+        obj_json['urls'] = urls
+        return obj_json
+
+    def to_full_json(self):
+        obj_json = self.to_semi_full_json()
+        obj_json['abstract'] = None if self.abstract is None else self.abstract.text
+        obj_json['bibentry'] = None if self.bibentry is None else self.bibentry.text
+        obj_json['reftypes'] = [x.reftype.display_name for x in self.ref_reftypes]
+        obj_json['authors'] = [x.author.to_json() for x in self.author_references]
+        obj_json['counts'] = {
+            'interaction': len([x for x in self.bioentity_references if x.class_type == 'PHYSINTERACTION' or x.class_type == 'GENINTERACTION']),
+            'go': len([x for x in self.bioentity_references if x.class_type == 'GO']),
+            'phenotype': len([x for x in self.bioentity_references if x.class_type == 'PHENOTYPE']),
+            'regulation': len([x for x in self.bioentity_references if x.class_type == 'REGULATION'])
+        }
+        obj_json['related_references'] = []
+        for child in self.children:
+            child_json = child.to_json()
+            child_json['abstract'] = None if child.abstract is None else child.abstract.text
+            child_json['reftypes'] = [x.reftype.display_name for x in child.ref_reftypes]
+            obj_json['related_references'].append(child_json)
+        for parent in self.children:
+            parent_json = parent.to_json()
+            parent_json['abstract'] = None if parent.abstract is None else parent.abstract.text
+            parent_json['reftypes'] = [x.reftype.display_name for x in parent.ref_reftypes]
+            obj_json['related_references'].append(parent_json)
+        return obj_json
             
     @hybrid_property
     def authors(self):
@@ -186,6 +206,9 @@ class Bibentry(Base, EqualityByIDMixin):
 
     id = Column('reference_id', Integer, ForeignKey(Reference.id), primary_key = True)
     text = Column('text', CLOB)
+
+    #Relationships
+    reference = relationship(Reference, uselist=False, backref=backref("bibentry", uselist=False, passive_deletes=True))
         
     def __init__(self, reference_id, text):
         self.id = reference_id
@@ -201,7 +224,7 @@ class Abstract(Base, EqualityByIDMixin):
     text = Column('text', CLOB)
     
     #Relationships
-    reference = relationship(Reference, uselist=False, backref=backref("abstract_obj", uselist=False, passive_deletes=True))
+    reference = relationship(Reference, uselist=False, backref=backref("abstract", uselist=False, passive_deletes=True))
         
     def __init__(self, reference_id, text):
         self.id = reference_id
@@ -245,8 +268,7 @@ class Author(Base, EqualityByIDMixin):
             'link': self.link,
             'id': self.id
         }
-    
-    
+
 class AuthorReference(Base, EqualityByIDMixin):
     __tablename__ = 'author_reference'
     
@@ -260,7 +282,7 @@ class AuthorReference(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     
     author = relationship(Author, backref=backref('author_references', passive_deletes=True), uselist=False) 
-    reference = relationship(Reference, backref=backref('author_references', passive_deletes=True), uselist=False)
+    reference = relationship(Reference, backref=backref('author_references', passive_deletes=True, order_by=order), uselist=False)
     author_name = association_proxy('author', 'display_name')
         
     def __init__(self, author_reference_id, source, author, reference, order, author_type, date_created, created_by):

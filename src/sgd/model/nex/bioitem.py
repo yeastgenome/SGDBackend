@@ -1,11 +1,11 @@
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, CLOB
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name
-from src.sgd.model.nex.misc import Source, Relation
+from src.sgd.model.nex.misc import Source, Relation, Strain
 
 
 __author__ = 'kpaskov'
@@ -117,6 +117,35 @@ class Chemical(Bioitem):
         obj_json['description'] = self.description
         return obj_json
 
+class Contig(Bioitem):
+    __tablename__ = "contigbioitem"
+
+    id = Column('bioitem_id', Integer, primary_key=True)
+    residues = Column('residues', CLOB)
+    strain_id = Column('strain_id', ForeignKey(Strain.id))
+
+    #Relationships
+    strain = relationship(Strain, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "CONTIG",
+                       'inherit_condition': id==Bioitem.id}
+
+    def __init__(self, display_name, source, residues, strain):
+        format_name = strain.format_name + '_' + display_name
+        Bioitem.__init__(self, display_name, format_name, 'CONTIG', '/contig/' + format_name + '/overview', source, None, None, None)
+        self.residues = residues
+        self.strain_id = strain.id
+
+    def to_json(self):
+        obj_json = Bioitem.to_json(self)
+        obj_json['strain'] = self.strain.to_json()
+        return obj_json
+
+    def to_full_json(self):
+        obj_json = self.to_json()
+        obj_json['residues'] = self.residues
+        return obj_json
+
 class Allele(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'ALLELE',
                        'inherit_condition': id == Bioitem.id}
@@ -130,3 +159,4 @@ class Orphanbioitem(Bioitem):
 
     def __init__(self, display_name, link, source, description):
         Bioitem.__init__(self, display_name, create_format_name(display_name), 'ORPHAN', link, source, description, None, None)
+
