@@ -1,15 +1,16 @@
 import hashlib
 
+from sqlalchemy import Float, CLOB, Numeric
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
-from bioconcept import Go, Phenotype, ECNumber
-from bioentity import Bioentity, Protein
-from evelements import Source, Strain, Experiment
-from bioitem import Domain
+from bioconcept import Bioconcept, Go, Phenotype, ECNumber
+from bioentity import Bioentity, Protein, Locus, Complex
+from misc import Source, Strain, Experiment
+from bioitem import Bioitem, Domain
 from reference import Reference
-from sequence import Sequence
+from bioitem import Contig
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base
 
@@ -55,6 +56,166 @@ class Evidence(Base, EqualityByIDMixin):
     def unique_key(self):
         return (self.format_name, self.class_type)
 
+    def to_json(self):
+        return {
+            'id':self.id,
+            'class_type': self.class_type,
+            'strain': None if self.strain_id is None else self.strain.to_json(),
+            'source': None if self.source_id is None else self.source.to_json(),
+            'reference': None if self.reference_id is None else self.reference.to_json(),
+            'experiment': None if self.experiment_id is None else self.experiment.to_json(),
+            'conditions': [x.to_json() for x in self.conditions],
+            'note': self.note}
+
+class Condition(Base, EqualityByIDMixin):
+    __tablename__ = 'condition'
+
+    id = Column('condition_id', Integer, primary_key=True)
+    format_name = Column('format_name', String)
+    display_name = Column('display_name', String)
+    class_type = Column('subclass', String)
+    evidence_id = Column('evidence_id', Integer, ForeignKey(Evidence.id))
+    role = Column('role', String)
+    note = Column('note', String)
+
+    evidence = relationship(Evidence, backref=backref('conditions', passive_deletes=True), uselist=False)
+
+    __mapper_args__ = {'polymorphic_on': class_type}
+
+    def __init__(self, display_name, format_name, class_type, role, note):
+        self.format_name = format_name
+        self.display_name = display_name
+        self.class_type = class_type
+        self.role = role
+        self.note = note
+
+    def unique_key(self):
+        return (self.format_name, self.class_type, self.evidence_id, self.role)
+
+    def to_json(self):
+        return {'role': self.role, 'note': self.note, 'class_type': self.class_type}
+
+class Generalcondition(Condition):
+    __mapper_args__ = {'polymorphic_identity': 'CONDITION',
+                       'inherit_condition': id == Condition.id}
+
+    def __init__(self, note):
+        note = "".join(i for i in note if ord(i)<128)
+        Condition.__init__(self,
+                           note,
+                           'g' + hashlib.md5(note).hexdigest()[:10],
+                           'CONDITION', None, note)
+
+class Temperaturecondition(Condition):
+    __tablename__ = 'temperaturecondition'
+
+    id = Column('condition_id', Integer, primary_key=True)
+    temperature = Column('temperature', Float)
+
+    __mapper_args__ = {'polymorphic_identity': 'TEMPERATURE',
+                       'inherit_condition': id == Condition.id}
+
+    def __init__(self, note, temperature):
+        Condition.__init__(self, str(temperature), 't' + str(temperature),
+                           'TEMPERATURE', None, note)
+        self.temperature = temperature
+
+    def to_json(self):
+        obj_json = Condition.to_json(self)
+        obj_json['temperature'] = self.temperature
+        return obj_json
+
+class Bioentitycondition(Condition):
+    __tablename__ = 'bioentitycondition'
+
+    id = Column('condition_id', Integer, primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+
+    #Relationships
+    bioentity = relationship(Bioentity, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
+                       'inherit_condition': id == Condition.id}
+
+    def __init__(self, note, role, bioentity):
+        Condition.__init__(self, role + ' ' + bioentity.display_name,
+                           role + str(bioentity.id),
+                           'BIOENTITY', role, note)
+        self.bioentity_id = bioentity.id
+
+    def to_json(self):
+        obj_json = Condition.to_json(self)
+        obj_json['obj'] = self.bioentity.to_json()
+        return obj_json
+
+class Bioconceptcondition(Condition):
+    __tablename__ = 'bioconceptcondition'
+
+    id = Column('condition_id', Integer, primary_key=True)
+    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
+
+    #Relationships
+    bioconcept = relationship(Bioconcept, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
+                       'inherit_condition': id == Condition.id}
+
+    def __init__(self, note, role, bioconcept):
+        Condition.__init__(self, role + ' ' + bioconcept.display_name,
+                           role + str(bioconcept.id),
+                           'BIOCONCEPT', role, note)
+        self.bioconcept_id = bioconcept.id
+
+    def to_json(self):
+        obj_json = Condition.to_json(self)
+        obj_json['obj'] = self.bioconcept.to_json()
+        return obj_json
+
+class Bioitemcondition(Condition):
+    __tablename__ = 'bioitemcondition'
+
+    id = Column('condition_id', Integer, primary_key=True)
+    bioitem_id = Column('bioitem_id', Integer, ForeignKey(Bioitem.id))
+
+    #Relationships
+    bioitem = relationship(Bioitem, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'BIOITEM',
+                       'inherit_condition': id == Condition.id}
+
+    def __init__(self, note, role, bioitem):
+        Condition.__init__(self, role + ' ' + bioitem.display_name,
+                           role + str(bioitem.id),
+                           'BIOITEM', role, note)
+        self.bioitem_id = bioitem.id
+
+    def to_json(self):
+        obj_json = Condition.to_json(self)
+        obj_json['obj'] = self.bioitem.to_json()
+        return obj_json
+
+class Chemicalcondition(Bioitemcondition):
+    __tablename__ = 'chemicalcondition'
+
+    id = Column('condition_id', Integer, primary_key=True)
+    amount = Column('amount', String)
+
+    __mapper_args__ = {'polymorphic_identity': 'CHEMICAL',
+                       'inherit_condition': id == Condition.id}
+
+    def __init__(self, role, note, chemical, amount):
+        Condition.__init__(self,
+                           chemical.display_name if amount is None else amount + ' of ' + chemical.display_name,
+                           'c' + str(chemical.id) if amount is None else str(chemical.id) + 'a' + hashlib.md5(amount).hexdigest()[:10],
+                           'CHEMICAL', role, note)
+        self.bioitem_id = chemical.id
+        self.amount = amount
+
+    def to_json(self):
+        obj_json = Bioitemcondition.to_json(self)
+        obj_json['amount'] = self.amount
+        return obj_json
+
 class Goevidence(Evidence):
     __tablename__ = "goevidence"
     
@@ -64,8 +225,8 @@ class Goevidence(Evidence):
     qualifier = Column('qualifier', String)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Go.id))
-    
-    #Relationships 
+
+    #Relationships
     bioentity = relationship(Bioentity, uselist=False)
     bioconcept = relationship(Go, uselist=False)
     
@@ -73,12 +234,12 @@ class Goevidence(Evidence):
                        'inherit_condition': id==Evidence.id}
 
     def __init__(self, source, reference, experiment, note,
-                 bioentity, bioconcept, 
+                 bioentity, bioconcept,
                  go_evidence, annotation_type, qualifier, conditions,
                  date_created, created_by):
         Evidence.__init__(self, bioentity.display_name + ' assoc. with ' + bioconcept.display_name + ' with ' + go_evidence + ' by ' + reference.display_name,
                           bioentity.format_name + '_' + str(bioconcept.id) + '_' + go_evidence + '_' + str(reference.id) + ('_'.join(x.format_name for x in conditions)),
-                          'GO', source, reference, None, experiment, 
+                          'GO', source, reference, None, experiment,
                           note, date_created, created_by)
         self.go_evidence = go_evidence
         self.annotation_type = annotation_type
@@ -86,6 +247,16 @@ class Goevidence(Evidence):
         self.bioentity_id = bioentity.id
         self.bioconcept_id = bioconcept.id
         self.conditions = conditions
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['bioentity'] = self.bioentity.to_json()
+        obj_json['go'] = self.bioconcept.to_json()
+        obj_json['code'] = self.go_evidence
+        obj_json['method'] = self.annotation_type
+        obj_json['qualifier'] = self.qualifier
+        obj_json['date_created'] = str(self.date_created)
+        return obj_json
 
 class Geninteractionevidence(Evidence):
     __tablename__ = "geninteractionevidence"
@@ -95,20 +266,22 @@ class Geninteractionevidence(Evidence):
     mutant_type = Column('mutant_type', String)
     annotation_type = Column('annotation_type', String)
     bait_hit = Column('bait_hit', String)
-    bioentity1_id = Column('bioentity1_id', Integer, ForeignKey(Bioentity.id))
-    bioentity2_id = Column('bioentity2_id', Integer, ForeignKey(Bioentity.id))
-       
+    bioentity1_id = Column('bioentity1_id', Integer, ForeignKey(Locus.id))
+    bioentity2_id = Column('bioentity2_id', Integer, ForeignKey(Locus.id))
+
+    #Relationships
+    bioentity1 = relationship(Locus, uselist=False, primaryjoin="Geninteractionevidence.bioentity1_id==Locus.id")
+    bioentity2 = relationship(Locus, uselist=False, primaryjoin="Geninteractionevidence.bioentity2_id==Locus.id")
+    phenotype = relationship(Phenotype, uselist=False)
+
     __mapper_args__ = {'polymorphic_identity': "GENINTERACTION",
                        'inherit_condition': id==Evidence.id}
-    
-    #Relationships
-    phenotype = relationship(Phenotype)
 
     def __init__(self, source, reference, strain, experiment,
                  bioentity1, bioentity2, phenotype, mutant_type, annotation_type, bait_hit, note,
                  date_created, created_by):
         Evidence.__init__(self, bioentity1.display_name + '__' + bioentity2.display_name,
-                          bioentity1.format_name + '_' + bioentity2.format_name + '_' + ('-' if strain is None else str(strain.id)) + '_' + bait_hit + '_' + str(experiment.id) + '_' + str(reference.id), 
+                          bioentity1.format_name + '_' + bioentity2.format_name + '_' + ('-' if strain is None else str(strain.id)) + '_' + bait_hit + '_' + str(experiment.id) + '_' + str(reference.id),
                           'GENINTERACTION', source, reference, strain, experiment, 
                           note, date_created, created_by)
         self.bioentity1_id = bioentity1.id
@@ -118,6 +291,17 @@ class Geninteractionevidence(Evidence):
         self.annotation_type = annotation_type
         self.bait_hit = bait_hit
         self.note = note
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['locus1'] = self.bioentity1.to_json()
+        obj_json['locus2'] = self.bioentity2.to_json()
+        obj_json['phenotype'] = None if self.phenotype_id is None else self.phenotype.to_json()
+        obj_json['mutant_type'] = self.mutant_type
+        obj_json['interaction_type'] = 'Genetic'
+        obj_json['annotation_type'] = self.annotation_type
+        obj_json['bait_hit'] = self.bait_hit
+        return obj_json
         
 class Physinteractionevidence(Evidence):
     __tablename__ = "physinteractionevidence"
@@ -126,18 +310,22 @@ class Physinteractionevidence(Evidence):
     modification = Column('modification', String)
     annotation_type = Column('annotation_type', String)
     bait_hit = Column('bait_hit', String)
-    bioentity1_id = Column('bioentity1_id', Integer, ForeignKey(Bioentity.id))
-    bioentity2_id = Column('bioentity2_id', Integer, ForeignKey(Bioentity.id))
+    bioentity1_id = Column('bioentity1_id', Integer, ForeignKey(Locus.id))
+    bioentity2_id = Column('bioentity2_id', Integer, ForeignKey(Locus.id))
+
+    #Relationships
+    bioentity1 = relationship(Locus, uselist=False, primaryjoin="Physinteractionevidence.bioentity1_id==Locus.id")
+    bioentity2 = relationship(Locus, uselist=False, primaryjoin="Physinteractionevidence.bioentity2_id==Locus.id")
             
     __mapper_args__ = {'polymorphic_identity': "PHYSINTERACTION",
                        'inherit_condition': id==Evidence.id}
     
         
     def __init__(self, source, reference, strain, experiment,
-                 bioentity1, bioentity2, modification, annotation_type, bait_hit, note, 
+                 bioentity1, bioentity2, modification, annotation_type, bait_hit, note,
                  date_created, created_by):
         Evidence.__init__(self, bioentity1.display_name + '__' + bioentity2.display_name,
-                          bioentity1.format_name + '_' + bioentity2.format_name + '_' + ('-' if strain is None else str(strain.id)) + '_' + bait_hit + '_' + str(experiment.id) + '_' + str(reference.id), 
+                          bioentity1.format_name + '_' + bioentity2.format_name + '_' + ('-' if strain is None else str(strain.id)) + '_' + bait_hit + '_' + str(experiment.id) + '_' + str(reference.id),
                           'PHYSINTERACTION', source, reference, strain, experiment,
                           note, date_created, created_by)
         self.bioentity1_id = bioentity1.id
@@ -146,6 +334,16 @@ class Physinteractionevidence(Evidence):
         self.annotation_type = annotation_type
         self.bait_hit = bait_hit
         self.note = note
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['locus1'] = self.bioentity1.to_json()
+        obj_json['locus2'] = self.bioentity2.to_json()
+        obj_json['modification'] = self.modification
+        obj_json['interaction_type'] = 'Physical'
+        obj_json['annotation_type'] = self.annotation_type
+        obj_json['bait_hit'] = self.bait_hit
+        return obj_json
 
 class Literatureevidence(Evidence):
     __tablename__ = "literatureevidence" 
@@ -169,20 +367,27 @@ class Literatureevidence(Evidence):
                           date_created, created_by)
         self.bioentity_id = bioentity.id
         self.topic = topic
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['bioentity'] = self.bioentity.to_json()
+        obj_json['reference'] = self.reference.to_semi_full_json()
+        obj_json['topic'] = self.topic
+        return obj_json
         
 class Phenotypeevidence(Evidence):
     __tablename__ = "phenotypeevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
 
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Phenotype.id))
     mutant_type = Column('mutant_type', String)
     strain_details = Column('strain_details', String)
     experiment_details = Column('experiment_details', String)
         
     #Relationship
-    bioentity = relationship(Bioentity, uselist=False)
+    bioentity = relationship(Locus, uselist=False)
     bioconcept = relationship(Phenotype, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
@@ -203,6 +408,19 @@ class Phenotypeevidence(Evidence):
         self.mutant_type = mutant_type
         self.strain_details = strain_details
         self.experiment_details = experiment_details
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['locus'] = self.bioentity.to_json()
+        obj_json['phenotype'] = self.bioconcept.to_json()
+        obj_json['mutant_type'] = self.mutant_type
+        obj_json['experiment']['category'] = self.experiment.category
+
+        if obj_json['strain'] is not None:
+            obj_json['strain']['details'] = self.strain_details
+        if obj_json['experiment'] is not None:
+            obj_json['experiment']['details'] = self.experiment_details
+        return obj_json
         
 class Domainevidence(Evidence):
     __tablename__ = "domainevidence"
@@ -220,7 +438,8 @@ class Domainevidence(Evidence):
                        'inherit_condition': id==Evidence.id}
     
     #Relationships
-    domain = relationship(Domain, uselist=False)
+    bioentity = relationship(Protein, uselist=False)
+    bioitem = relationship(Domain, uselist=False, backref="domain_evidences")
 
     def __init__(self, source, reference, strain, note,
                  start, end, evalue, status, date_of_run, protein, domain,
@@ -235,15 +454,27 @@ class Domainevidence(Evidence):
         self.date_of_run = date_of_run
         self.bioentity_id = protein.id
         self.bioitem_id = domain.id
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['protein'] = self.bioentity.to_json()
+        obj_json['domain'] = self.bioitem.to_json()
+        obj_json['domain']['count'] = len(set([x.bioentity_id for x in self.bioitem.domain_evidences]))
+        obj_json['start'] = self.start
+        obj_json['end'] = self.end
+        obj_json['evalue'] = self.evalue
+        obj_json['status'] = self.status
+        obj_json['date_of_run'] = self.date_of_run
+        return obj_json
           
 class Qualifierevidence(Evidence):
     __tablename__ = "qualifierevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
     qualifier = Column('qualifier', String)
     
-    bioentity = relationship(Bioentity, uselist=False)
+    bioentity = relationship(Locus, uselist=False)
     
     __mapper_args__ = {'polymorphic_identity': 'QUALIFIER',
                        'inherit_condition': id == Evidence.id}
@@ -256,13 +487,23 @@ class Qualifierevidence(Evidence):
                           'QUALIFIER', source, None, strain, None, None, date_created, created_by)
         self.bioentity_id = bioentity.id
         self.qualifier = qualifier
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['locus'] = self.bioentity.to_json()
+        obj_json['qualifier'] = self.qualifier
+        return obj_json
         
 class Regulationevidence(Evidence):
     __tablename__ = "regulationevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    bioentity1_id = Column('bioentity1_id', Integer, ForeignKey(Bioentity.id))
-    bioentity2_id = Column('bioentity2_id', Integer, ForeignKey(Bioentity.id))
+    bioentity1_id = Column('bioentity1_id', Integer, ForeignKey(Locus.id))
+    bioentity2_id = Column('bioentity2_id', Integer, ForeignKey(Locus.id))
+
+    #Relationships
+    bioentity1 = relationship(Locus, uselist=False, primaryjoin="Regulationevidence.bioentity1_id==Locus.id")
+    bioentity2 = relationship(Locus, uselist=False, primaryjoin="Regulationevidence.bioentity2_id==Locus.id")
        
     __mapper_args__ = {'polymorphic_identity': 'REGULATION',
                        'inherit_condition': id==Evidence.id}
@@ -276,16 +517,25 @@ class Regulationevidence(Evidence):
         self.bioentity1_id = bioentity1.id
         self.bioentity2_id = bioentity2.id
         self.conditions = conditions
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['locus1'] = self.bioentity1.to_json()
+        obj_json['locus2'] = self.bioentity2.to_json()
+        return obj_json
         
 class Bindingevidence(Evidence):
     __tablename__ = "bindingevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     link = Column('obj_url', String)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
     total_score = Column('total_score', String)
     expert_confidence = Column('expert_confidence', String)
     motif_id = Column('motif_id', Integer)
+
+    #Relationships
+    bioentity = relationship(Locus, uselist=False)
        
     __mapper_args__ = {'polymorphic_identity': 'BINDING',
                        'inherit_condition': id==Evidence.id}
@@ -303,13 +553,28 @@ class Bindingevidence(Evidence):
         self.link = "/static/img/yetfasco/" + bioentity.format_name + "_" + str(motif_id) + ".0.png"
         self.motif_id = motif_id
 
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['locus'] = self.bioentity.to_json()
+        obj_json['locus']['description'] = self.bioentity.description
+        obj_json['total_score'] = self.total_score
+        obj_json['expert_confidence'] = self.expert_confidence
+        obj_json['img_url'] = self.link
+        obj_json['motif_id'] = self.motif_id
+        return obj_json
+
 class Complexevidence(Evidence):
     __tablename__ = "complexevidence"
 
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-    complex_id = Column('complex_id', Integer, ForeignKey(Bioentity.id))
-    go_id = Column('go_id', Integer, ForeignKey(Bioentity.id))
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
+    complex_id = Column('complex_id', Integer, ForeignKey(Complex.id))
+    go_id = Column('go_id', Integer, ForeignKey(Go.id))
+
+    #Relationships
+    bioentity = relationship(Locus, uselist=False)
+    complex = relationship(Complex, uselist=False)
+    go = relationship(Go, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': 'COMPLEX',
                        'inherit_condition': id==Evidence.id}
@@ -324,6 +589,13 @@ class Complexevidence(Evidence):
         self.bioentity_id = bioentity.id
         self.complex_id = complex.id
         self.go_id = None if go is None else go.id
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['locus'] = self.bioentity.to_json()
+        obj_json['complex'] = self.complex.to_json()
+        obj_json['go'] = self.go.to_json()
+        return obj_json
 
 class ECNumberevidence(Evidence):
     __tablename__ = "ecnumberevidence"
@@ -348,34 +620,97 @@ class ECNumberevidence(Evidence):
         self.bioentity_id = bioentity.id
         self.bioconcept_id = bioconcept.id
 
-class Sequenceevidence(Evidence):
-    __tablename__ = "sequenceevidence"
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['protein'] = self.bioentity.to_json()
+        obj_json['protein']['locus']['description'] = self.bioentity.description
+        obj_json['ecnumber'] = self.bioconcept.to_json()
+        return obj_json
+
+class Proteinexperimentevidence(Evidence):
+    __tablename__ = "proteinexperimentevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Protein.id))
+    data_type = Column('data_type', String)
+    data_value = Column('data_value', String)
+
+    #Relationships
+    bioentity = relationship(Protein, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "PROTEINEXPERIMENT",
+                       'inherit_condition': id==Evidence.id}
+
+    def __init__(self, source, reference, bioentity, data_type, data_value, date_created, created_by):
+        Evidence.__init__(self,
+                          bioentity.display_name + ' has ' + data_value + ' ' + data_type,
+                          bioentity.format_name,
+                          'PROTEINEXPERIMENT', source, reference, None, None, None,
+                          date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.data_type = data_type
+        self.data_value = data_value
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['protein'] = self.bioentity.to_json()
+        obj_json['data_type'] = self.data_type
+        obj_json['data_value'] = self.data_value
+        return obj_json
+
+class DNAsequenceevidence(Evidence):
+    __tablename__ = "dnasequenceevidence"
 
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-    sequence_id = Column('biosequence_id', Integer, ForeignKey(Sequence.id))
+    dna_type = Column('dna_type', String)
+    residues = Column('residues', CLOB)
+    contig_id = Column('contig_id', Integer, ForeignKey(Contig.id))
+    start = Column('start_index', Integer)
+    end = Column('end_index', Integer)
+    strand = Column('strand', String)
 
     #Relationships
     bioentity = relationship(Bioentity, uselist=False)
-    sequence = relationship(Sequence, uselist=False)
+    contig = relationship(Contig, uselist=False)
 
-    __mapper_args__ = {'polymorphic_identity': "SEQUENCE",
+    __mapper_args__ = {'polymorphic_identity': "DNASEQUENCE",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, source, strain, class_type, bioentity, sequence, date_created, created_by):
+    def __init__(self, source, strain, bioentity, dna_type, residues, contig, start, end, strand, date_created, created_by):
+        hash = hashlib.md5(residues).hexdigest()
         Evidence.__init__(self,
-                          bioentity.display_name + ' has ' + sequence.display_name + ' in strain ' + strain.display_name,
-                          bioentity.format_name + '_' + str(sequence.id) + '_' + str(strain.id),
-                          class_type, source, None, strain, None, None,
+                          bioentity.display_name + ' has ' + hash + ' in strain ' + strain.display_name,
+                          bioentity.format_name + '_' + hash + '_' + str(strain.id),
+                          "DNASEQUENCE", source, None, strain, None, None,
                           date_created, created_by)
         self.bioentity_id = bioentity.id
-        self.sequence_id = sequence.id
+        self.dna_type = dna_type
+        self.residues = residues
+        self.contig_id = None if contig is None else contig.id
+        self.start = start
+        self.end = end
+        self.strand = strand
 
-class SequenceLabel(Base, EqualityByIDMixin):
-    __tablename__ = 'sequencelabel'
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['strain']['description'] = self.strain.description
+        obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
+        obj_json['bioentity'] = self.bioentity.to_json()
+        obj_json['residues'] = self.residues
+        obj_json['contig'] = None if self.contig_id is None else self.contig.to_json()
+        obj_json['start'] = self.start
+        obj_json['end'] = self.end
+        obj_json['strand'] = self.strand
+        obj_json['sequence_tags'] = [x.to_json() for x in self.tags]
+        obj_json['dna_type'] = self.dna_type
+        return obj_json
 
-    id = Column('sequencelabel_id', Integer, primary_key=True)
-    evidence_id = Column('evidence_id', Integer, ForeignKey(Sequenceevidence.id))
+class DNAsequencetag(Base, EqualityByIDMixin):
+    __tablename__ = 'dnasequencetag'
+
+    id = Column('dnasequencetag_id', Integer, primary_key=True)
+    evidence_id = Column('evidence_id', Integer, ForeignKey(DNAsequenceevidence.id))
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     class_type = Column('subclass', String)
@@ -388,7 +723,7 @@ class SequenceLabel(Base, EqualityByIDMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    evidence = relationship(Sequenceevidence, uselist=False, backref='labels')
+    evidence = relationship(DNAsequenceevidence, uselist=False, backref='tags')
 
     def __init__(self, evidence, class_type, relative_start, relative_end, chromosomal_start, chromosomal_end, phase,
                  date_created, created_by):
@@ -407,49 +742,170 @@ class SequenceLabel(Base, EqualityByIDMixin):
     def unique_key(self):
         return (self.evidence_id, self.class_type, self.chromosomal_start, self.chromosomal_end)
 
-class GenomicDNAsequenceevidence(Sequenceevidence):
-    __tablename__ = "gendnasequenceevidence"
+    def to_json(self):
+        return {
+            'display_name': self.display_name,
+            'relative_start': self.relative_start,
+            'relative_end': self.relative_end,
+            'chromosomal_start': self.chromosomal_start,
+            'chromosomal_end': self.chromosomal_end
+        }
+
+class Proteinsequenceevidence(Evidence):
+    __tablename__ = "proteinsequenceevidence"
 
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    contig_id = Column('contig_id', Integer)
-    start = Column('start_index', Integer)
-    end = Column('end_index', Integer)
-    strand = Column('strand', String)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    protein_type = Column('protein_type', String)
+    residues = Column('residues', CLOB)
 
-    __mapper_args__ = {'polymorphic_identity': "GENDNASEQUENCE",
-                       'inherit_condition': id==Evidence.id}
+    molecular_weight = Column('molecular_weight', Numeric)
+    pi = Column('pi', Numeric)
+    cai = Column('cai', Numeric)
+    n_term_seq = Column('n_term_seq', String)
+    c_term_seq = Column('c_term_seq', String)
+    codon_bias = Column('codon_bias', Numeric)
+    fop_score = Column('fop_score', Numeric)
+    gravy_score = Column('gravy_score', Numeric)
+    aromaticity_score = Column('aromaticity_score', Numeric)
+    aliphatic_index = Column('aliphatic_index', Numeric)
+    instability_index = Column('instability_index', Numeric)
 
-    def __init__(self, source, strain, bioentity, sequence, contig, start, end, strand, date_created, created_by):
-        Sequenceevidence.__init__(self, source, strain, 'GENDNASEQUENCE', bioentity, sequence, date_created, created_by)
-        self.contig_id = contig.id
-        self.start = start
-        self.end = end
-        self.strand = strand
+    ala = Column('ala', Integer)
+    arg = Column('arg', Integer)
+    asn = Column('asn', Integer)
+    asp = Column('asp', Integer)
+    cys = Column('cys', Integer)
+    gln = Column('gln', Integer)
+    glu = Column('glu', Integer)
+    gly = Column('gly', Integer)
+    his = Column('his', Integer)
+    ile = Column('ile', Integer)
+    leu = Column('leu', Integer)
+    lys = Column('lys', Integer)
+    met = Column('met', Integer)
+    phe = Column('phe', Integer)
+    pro = Column('pro', Integer)
+    thr = Column('thr', Integer)
+    ser = Column('ser', Integer)
+    trp = Column('trp', Integer)
+    tyr = Column('tyr', Integer)
+    val = Column('val', Integer)
 
-class Proteinsequenceevidence(Sequenceevidence):
+    hydrogen = Column('hydrogen', Integer)
+    sulfur = Column('sulfur', Integer)
+    nitrogen = Column('nitrogen', Integer)
+    oxygen = Column('oxygen', Integer)
+    carbon = Column('carbon', Integer)
+
+    yeast_half_life = Column('yeast_half_life', String)
+    ecoli_half_life = Column('ecoli_half_life', String)
+    mammal_half_life = Column('mammal_half_life', String)
+
+    no_cys_ext_coeff = Column('no_cys_ext_coeff', String)
+    all_cys_ext_coeff = Column('all_cys_ext_coeff', String)
+    all_half_cys_ext_coeff = Column('all_half_cys_ext_coeff', String)
+    all_pairs_cys_ext_coeff = Column('all_pairs_cys_ext_coeff', String)
+
+    #Relationships
+    bioentity = relationship(Bioentity, uselist=False)
+
     __mapper_args__ = {'polymorphic_identity': "PROTEINSEQUENCE",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, source, strain, bioentity, sequence, date_created, created_by):
-        Sequenceevidence.__init__(self, source, strain, 'PROTEINSEQUENCE', bioentity, sequence, date_created, created_by)
+    def __init__(self, source, strain, bioentity, protein_type, residues, date_created, created_by):
+        hash = hashlib.md5(residues).hexdigest()
+        Evidence.__init__(self,
+                          bioentity.display_name + ' has ' + hash + ' in strain ' + strain.display_name,
+                          bioentity.format_name + '_' + hash + '_' + str(strain.id),
+                          "PROTEINSEQUENCE", source, None, strain, None, None,
+                          date_created, created_by)
+        self.bioentity_id = bioentity.id
+        self.protein_type = protein_type
+        self.residues = residues
+        self.n_term_seq = residues[0:7]
+        self.c_term_seq = residues[-8:-1]
+        self.ala = residues.count('A')
+        self.arg = residues.count('R')
+        self.asn = residues.count('N')
+        self.asp = residues.count('D')
+        self.cys = residues.count('C')
+        self.gln = residues.count('Q')
+        self.glu = residues.count('E')
+        self.gly = residues.count('G')
+        self.his = residues.count('H')
+        self.ile = residues.count('I')
+        self.leu = residues.count('L')
+        self.lys = residues.count('K')
+        self.met = residues.count('M')
+        self.phe = residues.count('F')
+        self.pro = residues.count('P')
+        self.thr = residues.count('T')
+        self.ser = residues.count('S')
+        self.trp = residues.count('W')
+        self.tyr = residues.count('Y')
+        self.val = residues.count('V')
 
-class CodingDNAsequenceevidence(Sequenceevidence):
-    __mapper_args__ = {'polymorphic_identity': "CODDNASEQUENCE",
-                       'inherit_condition': id==Evidence.id}
-
-    def __init__(self, source, strain, bioentity, sequence, date_created, created_by):
-        Sequenceevidence.__init__(self, source, strain, 'CODDNASEQUENCE', bioentity, sequence, date_created, created_by)
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['strain']['description'] = self.strain.description
+        obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
+        obj_json['bioentity'] = self.bioentity.to_json()
+        obj_json['residues'] = self.residues
+        obj_json['protein_type'] = self.protein_type
+        obj_json['pi'] = str(self.pi)
+        obj_json['cai'] = str(self.cai)
+        obj_json['codon_bias'] = str(self.codon_bias)
+        obj_json['fop_score'] = str(self.fop_score)
+        obj_json['gravy_score'] = str(self.gravy_score)
+        obj_json['aromaticity_score'] = str(self.aromaticity_score)
+        obj_json['aliphatic_index'] = str(self.aliphatic_index)
+        obj_json['instability_index'] = str(self.instability_index)
+        obj_json['molecular_weight'] = None if self.molecular_weight is None else str(round(float(str(self.molecular_weight))))
+        obj_json['ala'] = self.ala
+        obj_json['arg'] = self.arg
+        obj_json['asn'] = self.asn
+        obj_json['asp'] = self.asp
+        obj_json['cys'] = self.cys
+        obj_json['gln'] = self.gln
+        obj_json['glu'] = self.glu
+        obj_json['gly'] = self.gly
+        obj_json['his'] = self.his
+        obj_json['ile'] = self.ile
+        obj_json['leu'] = self.leu
+        obj_json['lys'] = self.lys
+        obj_json['met'] = self.met
+        obj_json['phe'] = self.phe
+        obj_json['pro'] = self.pro
+        obj_json['thr'] = self.thr
+        obj_json['ser'] = self.ser
+        obj_json['trp'] = self.trp
+        obj_json['tyr'] = self.tyr
+        obj_json['val'] = self.val
+        obj_json['hydrogen'] = self.hydrogen
+        obj_json['sulfur'] = self.sulfur
+        obj_json['oxygen'] = self.oxygen
+        obj_json['carbon'] = self.carbon
+        obj_json['nitrogen'] = self.nitrogen
+        obj_json['yeast_half_life'] = self.yeast_half_life
+        obj_json['ecoli_half_life'] = self.ecoli_half_life
+        obj_json['mammal_half_life'] = self.mammal_half_life
+        obj_json['no_cys_ext_coeff'] = self.no_cys_ext_coeff
+        obj_json['all_cys_ext_coeff'] = self.all_cys_ext_coeff
+        obj_json['all_half_cys_ext_coeff'] = self.all_half_cys_ext_coeff
+        obj_json['all_pairs_cys_ext_coeff'] = self.all_pairs_cys_ext_coeff
+        return obj_json
 
 class Phosphorylationevidence(Evidence):
     __tablename__ = "phosphorylationevidence"
 
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Protein.id))
     site_index = Column('site_index', Integer)
     site_residue = Column('site_residue', String)
 
     #Relationships
-    bioentity = relationship(Bioentity, uselist=False)
+    bioentity = relationship(Protein, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': "PHOSPHORYLATION",
                        'inherit_condition': id==Evidence.id}
@@ -463,3 +919,10 @@ class Phosphorylationevidence(Evidence):
         self.bioentity_id = bioentity.id
         self.site_index = site_index
         self.site_residue = site_residue
+
+    def to_json(self):
+        obj_json = Evidence.to_json(self)
+        obj_json['protein'] = self.bioentity.to_json()
+        obj_json['site_index'] = self.site_index
+        obj_json['site_residue'] = self.site_residue
+        return obj_json

@@ -16,18 +16,16 @@ def test_interaction_overview_structure(model, identifier='YFL039C'):
 
 def check_interaction_evidence(evidence):
     check_evidence(evidence)
-    assert 'bioentity1' in evidence
-    assert 'bioentity2' in evidence
+    assert 'locus1' in evidence
+    assert 'locus2' in evidence
     assert 'bait_hit' in evidence
     assert 'interaction_type' in evidence
     assert 'annotation_type' in evidence
 
-    check_obj(evidence['bioentity1'])
-    assert 'format_name' in evidence['bioentity1']
-    assert 'class_type' in evidence['bioentity1']
-    check_obj(evidence['bioentity2'])
-    assert 'format_name' in evidence['bioentity2']
-    assert 'class_type' in evidence['bioentity2']
+    check_obj(evidence['locus1'])
+    assert 'format_name' in evidence['locus1']
+    check_obj(evidence['locus2'])
+    assert 'format_name' in evidence['locus2']
 
     if evidence['interaction_type'] == 'Genetic':
         assert 'modification' not in evidence
@@ -35,7 +33,6 @@ def check_interaction_evidence(evidence):
         assert 'phenotype' in evidence
         if evidence['phenotype'] is not None:
             check_obj(evidence['phenotype'])
-            assert 'class_type' in evidence['phenotype']
     elif evidence['interaction_type'] == 'Physical':
         assert 'phentoype' not in evidence
         assert 'modification' in evidence

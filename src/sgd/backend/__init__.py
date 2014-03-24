@@ -236,18 +236,18 @@ def prep_views(chosen_backend, config):
                                         complex_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('complex'))
 
-    config.add_route('complex_genes',
-                     '/complex/{identifier}/genes',
-                     view=lambda request: chosen_backend.response_wrapper('complex_genes', request)(
-                                getattr(chosen_backend, 'complex_genes')(
-                                        complex_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('complex_genes'))
-
-    config.add_route('complex_details',
+    config.add_route('complex_complex_details',
                      '/complex/{identifier}/locus_details',
                      view=lambda request: chosen_backend.response_wrapper('complex_details', request)(
                                 getattr(chosen_backend, 'complex_details')(
                                         complex_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('complex_details'))
+
+    config.add_route('complex_bioent_details',
+                     '/locus/{identifier}/complex_details',
+                     view=lambda request: chosen_backend.response_wrapper('complex_details', request)(
+                                getattr(chosen_backend, 'complex_details')(
+                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('complex_details'))
 
     config.add_route('complex_graph',
@@ -420,36 +420,36 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('binding_site_details'))
 
     #EC Number views
-    config.add_route('ec_number',
-                     '/ec_number/{identifier}/overview',
+    config.add_route('ecnumber',
+                     '/ecnumber/{identifier}/overview',
                      view=lambda request: chosen_backend.response_wrapper('ec_number', request)(
                                 getattr(chosen_backend, 'ec_number')(
                                         ec_number_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('ec_number'))
 
-    config.add_route('ec_number_ontology_graph',
-                     '/ec_number/{identifier}/ontology_graph',
+    config.add_route('ecnumber_ontology_graph',
+                     '/ecnumber/{identifier}/ontology_graph',
                      view=lambda request: chosen_backend.response_wrapper('ec_number_ontology_graph', request)(
                                 getattr(chosen_backend, 'ec_number_ontology_graph')(
                                         ec_number_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('ec_number_ontology_graph'))
 
-    config.add_route('ec_number_bioent_details',
-                     '/locus/{identifier}/ec_number_details',
+    config.add_route('ecnumber_bioent_details',
+                     '/locus/{identifier}/ecnumber_details',
                      view=lambda request: chosen_backend.response_wrapper('ec_number_details', request)(
                                 getattr(chosen_backend, 'ec_number_details')(
                                         locus_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('ec_number_details'))
 
-    config.add_route('ec_number_biocon_details',
-                     '/ec_number/{identifier}/locus_details',
+    config.add_route('ecnumber_biocon_details',
+                     '/ecnumber/{identifier}/locus_details',
                      view=lambda request: chosen_backend.response_wrapper('ec_number_details', request)(
                                 getattr(chosen_backend, 'ec_number_details')(
                                         ec_number_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('ec_number_details'))
 
-    config.add_route('ec_number_biocon_details_all',
-                     '/ec_number/{identifier}/locus_details_all',
+    config.add_route('ecnumber_biocon_details_all',
+                     '/ecnumber/{identifier}/locus_details_all',
                      view=lambda request: chosen_backend.response_wrapper('ec_number_details', request)(
                                 getattr(chosen_backend, 'ec_number_details')(
                                         ec_number_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'],
@@ -477,6 +477,13 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'protein_phosphorylation_details')(
                                         locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('protein_phosphorylation_details'))
+
+    config.add_route('protein_experiment_details',
+                     '/locus/{identifier}/protein_experiment_details',
+                     view=lambda request: chosen_backend.response_wrapper('protein_experiment_details', request)(
+                                getattr(chosen_backend, 'protein_experiment_details')(
+                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('protein_experiment_details'))
 
     config.add_route('contig',
                      '/contig/{identifier}/overview',

@@ -22,7 +22,7 @@ def create_evidence(complex, id_to_go, id_to_bioentity, go_id_to_bioent_ids, key
 
 def convert_evidence(new_session_maker):
     from src.sgd.model.nex.evidence import Complexevidence, Goevidence
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioentity import Bioentity, Complex
     from src.sgd.model.nex.bioconcept import Go
 

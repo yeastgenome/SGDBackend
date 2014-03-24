@@ -36,6 +36,23 @@ def test_ec_number_ontology_graph_structure(model, identifier='3.4.25.1'):
 
 def check_ec_number_evidence(evidence):
     check_evidence(evidence)
+    assert 'go' in evidence
+    assert 'bioentity' in evidence
+    assert 'conditions' in evidence
+    assert 'qualifier' in evidence
+    assert 'code' in evidence
+    assert 'date_created' in evidence
+    assert 'method' in evidence
+
+    check_obj(evidence['go'])
+    assert 'go_id' in evidence['go']
+    assert 'aspect' in evidence['go']
+
+    check_obj(evidence['bioentity'])
+    assert 'format_name' in evidence['bioentity']
+
+def check_ec_number_evidence(evidence):
+    check_evidence(evidence)
 
 def test_ec_number_bioent_details_structure(model, identifier='YFL039C'):
     response = json.loads(model.ec_number_details(locus_identifier=identifier))

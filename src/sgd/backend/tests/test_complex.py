@@ -1,7 +1,6 @@
 import json
 
-from src.sgd.backend.tests import check_obj
-from src.sgd.backend.tests.test_go import check_go_evidence
+from src.sgd.backend.tests import check_obj, check_evidence
 
 __author__ = 'kpaskov'
 
@@ -15,24 +14,28 @@ def test_complex_structure(model, identifier='TRAPP_complex'):
     assert 'sgdid' in response
     assert 'description' in response
     check_obj(response['go'])
-    assert 'class_type' in response['go']
-
-def test_complex_genes_structure(model, identifier='TRAPP_complex'):
-    response = json.loads(model.complex_genes(complex_identifier=identifier))
-    assert response is not None
-    for gene in response:
-        check_obj(gene)
-        assert 'locus_type' in gene
-        assert 'class_type' in gene
-        assert 'sgdid' in gene
-        assert 'aliases' in gene
-        assert 'description' in gene
 
 def test_complex_details_structure(model, identifier='TRAPP_complex'):
     response = json.loads(model.complex_details(complex_identifier=identifier))
     assert response is not None
-    for entry in response:
-        check_go_evidence(entry)
+    for evidence in response:
+        check_complex_evidence(evidence)
+
+def check_complex_evidence(evidence):
+    check_evidence(evidence)
+    assert 'locus' in evidence
+    assert 'go' in evidence
+    assert 'complex' in evidence
+
+    check_obj(evidence['go'])
+    assert 'go_id' in evidence['go']
+    assert 'aspect' in evidence['go']
+
+    check_obj(evidence['locus'])
+    assert 'format_name' in evidence['locus']
+
+    check_obj(evidence['complex'])
+    assert 'format_name' in evidence['complex']
 
 def test_complex_graph(model, identifier='TRAPP_complex'):
     response = json.loads(model.complex_graph(complex_identifier=identifier))

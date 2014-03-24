@@ -1,10 +1,8 @@
-from src.sgd.backend.nex import create_simple_table, DBSession, query_limit
+from src.sgd.backend.nex import DBSession, query_limit
 from src.sgd.backend.nex.query_tools import get_bioentity_references
 from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.evidence import Literatureevidence
 from src.sgd.model.nex.reference import Reference
-from src.sgd.backend.nex.cache import get_objs, get_obj
-from src.sgd.backend.nex.obj_to_json import evidence_to_json, minimize_json
 
 __author__ = 'kpaskov'
 
@@ -59,45 +57,35 @@ def make_details(locus_id=None, reference_id=None):
             return {'Error': 'Too much data to display.'}
 
         tables = {}
-        tables['primary'] = sorted(create_simple_table([x for x in evidences if x.topic == 'Primary Literature'], make_evidence_row), key=lambda x: x['bioentity']['display_name'])
-        tables['additional'] = sorted(create_simple_table([x for x in evidences if x.topic == 'Additional Literature'], make_evidence_row), key=lambda x: x['bioentity']['display_name'])
-        tables['reviews'] = sorted(create_simple_table([x for x in evidences if x.topic == 'Reviews'], make_evidence_row), key=lambda x: x['bioentity']['display_name'])
+        tables['primary'] = sorted([x.to_json() for x in evidences if x.topic == 'Primary Literature'], key=lambda x: x['bioentity']['display_name'])
+        tables['additional'] = sorted([x.to_json() for x in evidences if x.topic == 'Additional Literature'], key=lambda x: x['bioentity']['display_name'])
+        tables['reviews'] = sorted([x.to_json() for x in evidences if x.topic == 'Reviews'], key=lambda x: x['bioentity']['display_name'])
         return tables
 
 def make_references(bioent_ref_types, bioent_id, only_primary=False):
-    reference_ids = set()
+    references = set()
     for bioent_ref_type in bioent_ref_types:
-        reference_ids.update([x.reference_id for x in get_bioentity_references(bioent_ref_type, bioent_id=bioent_id)])
+        references.update([x.reference for x in get_bioentity_references(bioent_ref_type, bioent_id=bioent_id)])
 
     if only_primary:
-        primary_ids = set([x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
-        reference_ids.intersection_update(primary_ids)
+        primary_ids = set([x.reference for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
+        references.intersection_update(primary_ids)
 
-    references = get_objs(Reference, reference_ids).values()
-    references.sort(key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
-    return references
-
-def make_evidence_row(litevidence):
-    bioentity_id = litevidence.bioentity_id
-
-    obj_json = evidence_to_json(litevidence).copy()
-    obj_json['bioentity'] = minimize_json(get_obj(Bioentity, bioentity_id), include_format_name=True)
-    obj_json['topic'] = litevidence.topic
-    return obj_json
+    return sorted([x.to_semi_full_json() for x in references], key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
 
 # -------------------------------Graph---------------------------------------
 def create_litguide_bioent_node(bioent, is_focus):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'LocusNode' + str(bioent['id']), 'name':bioent['display_name'], 'link': bioent['link'], 
+    return {'data':{'id':'LocusNode' + str(bioent.id), 'name':bioent.display_name, 'link': bioent.link,
                     'sub_type':sub_type, 'type': 'BIOENT'}}
     
 def create_litguide_ref_node(reference, is_focus):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'RefNode' + str(reference['id']), 'name':reference['display_name'], 'link': reference['link'], 
+    return {'data':{'id':'RefNode' + str(reference.id), 'name':reference.display_name, 'link': reference.link,
                     'sub_type':sub_type, 'type': 'REFERENCE'}}
 
 def create_litguide_edge(bioent_id, reference_id):
@@ -150,14 +138,16 @@ def make_graph(bioent_id):
     
     nodes = {}
     nodes_ive_seen = set()
-    for reference_id in top_references:
-        nodes['Ref' + str(reference_id)] = create_litguide_ref_node(get_obj(Reference, reference_id), False)
-        for neigh_id in reference_id_to_bioent_ids[reference_id]:
+    for reference in DBSession.query(Reference).filter(Reference.id.in_(top_references)).all():
+        reference_id = reference.id
+        nodes['Ref' + str(reference_id)] = create_litguide_ref_node(reference, False)
+        for neigh in DBSession.query(Bioentity).filter(Bioentity.id.in_(reference_id_to_bioent_ids[reference_id])).all():
+            neigh_id = neigh.id
             if neigh_id in nodes_ive_seen:
-                nodes[neigh_id] = create_litguide_bioent_node(get_obj(Bioentity, neigh_id), False)
+                nodes[neigh_id] = create_litguide_bioent_node(neigh, False)
             else:
                 nodes_ive_seen.add(neigh_id)
-    nodes[bioent_id] = create_litguide_bioent_node(get_obj(Bioentity, bioent_id), True)
+    nodes[bioent_id] = create_litguide_bioent_node(DBSession.query(Bioentity).filter_by(id=bioent_id).first(), True)
      
     edges = []           
     for reference_id in top_references:

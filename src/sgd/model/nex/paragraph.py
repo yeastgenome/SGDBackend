@@ -26,6 +26,7 @@ class Paragraph(Base, EqualityByIDMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
     
     #Relationships
+    bioentity = relationship(Bioentity, uselist=False)
     references = association_proxy('paragraph_references', 'reference')
         
     def __init__(self, class_type, source, bioentity, text, date_created, created_by):
@@ -41,6 +42,12 @@ class Paragraph(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return (self.format_name, self.class_type)
+
+    def to_json(self):
+        return {
+                'text': self.text,
+                'references': sorted([x.to_semi_full_json() for x in self.references], key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
+               }
     
 class ParagraphReference(Base, EqualityByIDMixin):
     __tablename__ = 'paragraph_reference'

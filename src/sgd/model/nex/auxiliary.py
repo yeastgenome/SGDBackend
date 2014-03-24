@@ -19,6 +19,10 @@ class Biofact(Base, EqualityByIDMixin):
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
     bioentity_class_type = Column('bioentity_subclass', String)
     bioconcept_class_type = Column('bioconcept_subclass', String)
+
+    #Relationships
+    bioconcept = relationship(Bioconcept, uselist=False)
+    bioentity = relationship(Bioconcept, uselist=False)
     
     def __init__(self, bioentity, bioconcept):
         self.bioentity_id = bioentity.id
@@ -34,7 +38,7 @@ class BioconceptCount(Base, EqualityByIDMixin):
 
     id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key=True)
     child_gene_count = Column('child_gene_count', Integer)
-    genecount = Column('genecount', Integer)
+    gene_count = Column('genecount', Integer)
     class_type = Column('subclass', String)
     
     bioconcept = relationship(Bioconcept, backref=backref("count", uselist=False, lazy="joined"))
@@ -107,7 +111,11 @@ class BioentityReference(Base):
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     class_type = Column('bioentity_subclass', String)
-    
+
+    #Relationships
+    bioentity = relationship(Bioentity, uselist=False)
+    reference = relationship(Reference, uselist=False, backref='bioentity_references')
+
     def __init__(self, class_type, bioentity_id, reference_id):
         self.class_type = class_type
         self.bioentity_id = bioentity_id
@@ -169,6 +177,15 @@ class Disambig(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return (self.disambig_key, self.class_type, self.subclass_type)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'disambig_key': self.disambig_key,
+            'class_type': self.class_type,
+            'subclass_type': self.subclass_type,
+            'identifier': self.identifier,
+           }
     
 class Locustabs(Base, EqualityByIDMixin):
     __tablename__ = 'aux_locustabs'
@@ -203,4 +220,19 @@ class Locustabs(Base, EqualityByIDMixin):
             
     def unique_key(self):
         return self.id
-    
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'summary_tab': self.summary == 1,
+            'history_tab': self.history == 1,
+            'literature_tab': self.literature == 1,
+            'go_tab': self.go == 1,
+            'phenotype_tab': self.phenotype == 1,
+            'interaction_tab': self.interactions == 1,
+            'expression_tab': self.expression == 1,
+            'regulation_tab': self.regulation == 1,
+            'protein_tab': self.protein == 1,
+            'sequence_tab': self.sequence == 1,
+            'wiki_tab': self.wiki == 1
+           }

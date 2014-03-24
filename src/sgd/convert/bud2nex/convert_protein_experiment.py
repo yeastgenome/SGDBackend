@@ -9,37 +9,31 @@ from src.sgd.convert import OutputCreator, create_or_update
 __author__ = 'kpaskov'
 
 # --------------------- Convert Evidence ---------------------
-def create_evidence(old_dbxref, id_to_bioentity, key_to_bioentity, key_to_source, key_to_bioconcept):
-    from src.sgd.model.nex.evidence import ECNumberevidence
-    evidences = []
+def create_evidence(old_protein_detail, id_to_bioentity, key_to_bioentity, id_to_reference, key_to_source, protein_detail_id_to_reference):
+    from src.sgd.model.nex.evidence import Proteinexperimentevidence
 
-    source = key_to_source[old_dbxref.source]
-    bioconcept_key = (old_dbxref.dbxref_id, 'EC_NUMBER')
-    bioconcept = None if bioconcept_key not in key_to_bioconcept else key_to_bioconcept[bioconcept_key]
-    if bioconcept is None:
-        print 'Bioconcept not found: ' + str(bioconcept_key)
+    source = key_to_source['SGD']
+
+    protein_key = (id_to_bioentity[old_protein_detail.info.feature_id].format_name + 'P', 'PROTEIN')
+    protein = None if protein_key not in key_to_bioentity else key_to_bioentity[protein_key]
+    if protein is None:
+        print 'Bioentity not found: ' + str(protein_key)
         return []
 
-    for dbxref_feat in old_dbxref.dbxref_feats:
-        protein_key = (id_to_bioentity[dbxref_feat.feature_id].format_name + 'P', 'PROTEIN')
-        protein = None if protein_key not in key_to_bioentity else key_to_bioentity[protein_key]
-        if protein is None:
-            print 'Bioentity not found: ' + str(protein_key)
-        else:
-            evidences.append(ECNumberevidence(source, protein, bioconcept, old_dbxref.date_created, old_dbxref.created_by))
-
-    return evidences
+    reference = id_to_reference[protein_detail_id_to_reference[old_protein_detail.id]]
+    return [Proteinexperimentevidence(source, reference, protein, old_protein_detail.group, old_protein_detail.value, old_protein_detail.date_created, old_protein_detail.created_by)]
 
 def convert_evidence(old_session_maker, new_session_maker):
-    from src.sgd.model.nex.evidence import ECNumberevidence as NewECNumberevidence
+    from src.sgd.model.nex.evidence import Proteinexperimentevidence as NewProteinexperimentevidence
     from src.sgd.model.nex.bioentity import Locus as NewLocus, Protein as NewProtein
-    from src.sgd.model.nex.misc import Source as NewSource
-    from src.sgd.model.nex.bioconcept import ECNumber as NewECNumber
-    from src.sgd.model.bud.general import Dbxref as OldDbxref
+    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.reference import Reference as NewReference
+    from src.sgd.model.bud.sequence import ProteinDetail as OldProteinDetail
+    from src.sgd.model.bud.reference import Reflink as OldReflink
 
     new_session = None
     old_session = None
-    log = logging.getLogger('convert.ec_number.evidence')
+    log = logging.getLogger('convert.protein_experiment.evidence')
     output_creator = OutputCreator(log)
     
     try:
@@ -52,12 +46,14 @@ def convert_evidence(old_session_maker, new_session_maker):
         #Grab cached dictionaries
         id_to_bioentity = dict([(x.id, x) for x in new_session.query(NewLocus).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(NewProtein).all()])
-        key_to_bioconcept = dict([(x.unique_key(), x) for x in new_session.query(NewECNumber).all()])
+        id_to_reference = dict([(x.id, x) for x in new_session.query(NewReference).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
                 
         #Grab all current objects and old objects
-        current_objs = new_session.query(NewECNumberevidence).all()
-        old_objs = old_session.query(OldDbxref).filter(OldDbxref.dbxref_type == 'EC number').options(joinedload(OldDbxref.dbxref_feats)).all()
+        current_objs = new_session.query(NewProteinexperimentevidence).all()
+        old_objs = old_session.query(OldProteinDetail).filter(OldProteinDetail.group == 'molecules/cell').options(joinedload(OldProteinDetail.info)).all()
+
+        protein_detail_id_to_reference = dict([(x.primary_key, x.reference_id) for x in old_session.query(OldReflink).filter(OldReflink.tab_name == 'PROTEIN_DETAIL').all()])
 
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
@@ -67,7 +63,7 @@ def convert_evidence(old_session_maker, new_session_maker):
 
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_evidence(old_obj, id_to_bioentity, key_to_bioentity, key_to_source, key_to_bioconcept)
+            newly_created_objs = create_evidence(old_obj, id_to_bioentity, key_to_bioentity, id_to_reference, key_to_source, protein_detail_id_to_reference)
                     
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:
@@ -105,7 +101,3 @@ def convert_evidence(old_session_maker, new_session_maker):
 def convert(old_session_maker, new_session_maker):
 
     convert_evidence(old_session_maker, new_session_maker)
-
-    #from src.sgd.model.nex.bioconcept import ECNumber
-    #from src.sgd.model.nex.evidence import ECNumberevidence
-    #convert_biofact(new_session_maker, ECNumberevidence, ECNumber, 'EC_NUMBER', 'convert.ec_number.biofact', 10000)

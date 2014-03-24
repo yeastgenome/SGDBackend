@@ -38,7 +38,7 @@ def test_bioentity_list_structure(model, bioent_ids=(25, 26, 27, 28, 29)):
     assert response is not None
     assert len(response) == 5
     for entry in response:
-        check_locus(entry)
+        check_obj(entry)
 
 def test_reference_structure(model, identifier='17112311'):
     response = json.loads(model.reference(reference_identifier=identifier))
@@ -105,7 +105,12 @@ def test_new_references_structure(model):
 def test_domain_structure(model, identifier='PTHR11937'):
     response = json.loads(model.domain(domain_identifier=identifier))
     assert response is not None
-    check_domain(response)
+    check_obj(response)
+    assert 'interpro_description' in response
+    assert 'description' in response
+    assert 'source' in response
+    assert 'external_link' in response
+    assert 'interpro_id' in response
 
 def test_contig_structure(model, identifier='BY4741_chr08'):
     response = json.loads(model.contig(contig_identifier=identifier))
@@ -129,25 +134,13 @@ def check_reference(reference):
 def check_protein(protein):
     check_obj(protein)
     assert 'format_name' in protein
-    assert 'class_type' in protein
     assert 'locus' in protein
     check_obj(protein['locus'])
     assert 'format_name' in protein['locus']
-    assert 'class_type' in protein['locus']
-
-def check_domain(domain):
-    check_obj(domain)
-    assert 'interpro_description' in domain
-    assert 'description' in domain
-    assert 'source' in domain
-    assert 'link' in domain
-    assert 'external_link' in domain
-    assert 'interpro_id' in domain
 
 def check_locus(locus):
     check_obj(locus)
     assert 'sgdid' in locus
-    assert 'class_type' in locus
     assert 'format_name' in locus
     assert 'description' in locus
     assert 'locus_type' in locus

@@ -40,6 +40,15 @@ class Bioconcept(Base, EqualityByIDMixin):
         
     def unique_key(self):
         return (self.format_name, self.class_type)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'format_name': self.format_name,
+            'display_name': self.display_name,
+            'link': self.link,
+            'class_type': self.class_type
+            }
       
 class Bioconceptrelation(Relation):
     __tablename__ = 'bioconceptrelation'
@@ -48,6 +57,10 @@ class Bioconceptrelation(Relation):
     bioconrel_class_type = Column('subclass', String)
     parent_id = Column('parent_id', Integer, ForeignKey(Bioconcept.id))
     child_id = Column('child_id', Integer, ForeignKey(Bioconcept.id))
+
+    #Relationships
+    parent = relationship(Bioconcept, uselist=False, backref=backref("children", passive_deletes=True), primaryjoin="Bioconceptrelation.parent_id==Bioconcept.id")
+    child = relationship(Bioconcept, uselist=False, backref=backref("parents", passive_deletes=True), primaryjoin="Bioconceptrelation.child_id==Bioconcept.id")
     
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
                        'inherit_condition': id == Relation.id}
@@ -98,7 +111,14 @@ class ECNumber(Bioconcept):
                        'inherit_condition': id==Bioconcept.id}   
      
     def __init__(self, display_name, source, description, date_created, created_by):
-        Bioconcept.__init__(self, display_name, display_name, 'EC_NUMBER', 'http://enzyme.expasy.org/EC/' + display_name, source, None, description, date_created, created_by)
+        Bioconcept.__init__(self, display_name + ('' if description is None else ' (' + description + ')'), display_name, 'EC_NUMBER', '/ec_number/' + display_name + '/overview', source, None, description, date_created, created_by)
+
+    def to_full_json(self):
+        obj_json = self.to_json()
+        obj_json['count'] = None if self.count is None else self.count.gene_count
+        obj_json['child_count'] = None if self.count is None else self.count.child_gene_count
+        obj_json['description'] = self.description
+        return obj_json
 
 class Go(Bioconcept):
     __tablename__ = 'gobioconcept'
@@ -122,6 +142,20 @@ class Go(Bioconcept):
             Bioconcept.__init__(self, display_name, go_id, 'GO', '/go/' + go_id + '/overview', source, sgdid, description, date_created, created_by)
         self.go_id = go_id
         self.go_aspect = go_aspect
+
+    def to_json(self):
+        obj_json = Bioconcept.to_json(self)
+        obj_json['aspect'] = self.go_aspect
+        obj_json['go_id'] = self.go_id
+        return obj_json
+
+    def to_full_json(self):
+        obj_json = self.to_json()
+        obj_json['description'] = self.description
+        obj_json['aliases'] = [x.to_json() for x in self.aliases]
+        obj_json['count'] = self.count.gene_count
+        obj_json['child_count'] = self.count.child_gene_count
+        return obj_json
         
 def create_phenotype_display_name(observable, qualifier):
     if qualifier is None:
@@ -172,5 +206,16 @@ class Phenotype(Bioconcept):
     @hybrid_property  
     def is_core(self):
         return self.is_core_num == 1
+
+    def to_full_json(self):
+        obj_json = self.to_json()
+        obj_json['description'] = self.description
+        obj_json['ancestor_type'] = self.ancestor_type
+        obj_json['is_core'] = self.is_core
+        obj_json['qualifier'] = self.qualifier
+        obj_json['observable'] = self.observable
+        obj_json['count'] = self.count.gene_count
+        obj_json['child_count'] = self.count.child_gene_count
+        return obj_json
 
 

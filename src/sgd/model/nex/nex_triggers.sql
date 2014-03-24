@@ -200,13 +200,13 @@ SELECT bioseq_seq.nextval INTO :new.biosequence_id FROM DUAL;
 END;
 /
 
-DROP TRIGGER SEQLABEL_TRIGGER;
+DROP TRIGGER DNASEQTAG_TRIGGER;
 --/
-CREATE TRIGGER SEQLABEL_TRIGGER
-BEFORE INSERT ON sequencelabel
+CREATE TRIGGER DNASEQTAG_TRIGGER
+BEFORE INSERT ON dnasequencetag
 FOR EACH ROW
 BEGIN
-SELECT seqlabel_seq.nextval INTO :new.sequencelabel_id FROM DUAL;
+SELECT dnaseqtag_seq.nextval INTO :new.dnasequencetag_id FROM DUAL;
 END;
 /
 
