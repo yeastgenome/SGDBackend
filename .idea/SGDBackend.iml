@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="CompassSettings">
+    <option name="compassExecutableFilePath" value="/usr/bin/compass" />
+  </component>
+  <component name="FacetManager">
+    <facet type="buildout-python" name="Buildout Support">
+      <configuration>
+        <option name="script" value="$MODULE_DIR$/bin/py" />
+      </configuration>
+    </facet>
+  </component>
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/data" />
+      <excludeFolder url="file://$MODULE_DIR$/eggs" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="sass-stdlib" level="application" />
+    <orderEntry type="library" name="Buildout Eggs" level="project" />
+  </component>
+  <component name="PyDocumentationSettings">
+    <option name="myDocStringFormat" value="Plain" />
+  </component>
+  <component name="TemplatesService">
+    <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
+  </component>
+</module>
+
