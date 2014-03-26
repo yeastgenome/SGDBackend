@@ -25,25 +25,23 @@ def create_locus(old_bioentity, key_to_source, sgdid_to_uniprotid):
     
     format_name = old_bioentity.name
     
-    short_description = None
+    name_description = None
     headline = None
     description = None
-    genetic_position = None
-    
+
     ann = old_bioentity.annotation
     if ann is not None:
-        short_description = ann.name_description
+        name_description = ann.name_description
         headline = ann.headline
         description = ann.description
-        genetic_position = ann.genetic_position
-        
+
     sgdid = old_bioentity.dbxref_id
     uniprotid = None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid]
         
     source_key = old_bioentity.source
     source = None if source_key not in key_to_source else key_to_source[source_key]
     bioentity = Locus(old_bioentity.id, display_name, format_name, source, sgdid, uniprotid, old_bioentity.status, 
-                         old_bioentity.type, short_description, headline, description, genetic_position, old_bioentity.gene_name,
+                         old_bioentity.type, name_description, headline, description, old_bioentity.gene_name,
                          old_bioentity.date_created, old_bioentity.created_by)
     return [bioentity]
 
@@ -74,7 +72,7 @@ def convert_locus(old_session_maker, new_session_maker):
         #Values to check
         values_to_check = ['display_name', 'link', 'source_id', 'bioent_status',
                        'name_description', 'headline', 'description', 'sgdid', 'uniprotid', 'gene_name',
-                       'genetic_position', 'locus_type']
+                       'locus_type']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         

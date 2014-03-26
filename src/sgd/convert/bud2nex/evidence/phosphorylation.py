@@ -47,7 +47,7 @@ def create_phosphorylation_evidence(row, key_to_source, key_to_bioentity, pubmed
 
 def convert_phosphorylation_evidence(new_session_maker, chunk_size):
     from src.sgd.model.nex.evidence import Phosphorylationevidence
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.reference import Reference
 
@@ -73,7 +73,7 @@ def convert_phosphorylation_evidence(new_session_maker, chunk_size):
         untouched_obj_ids = set(id_to_current_obj.keys())
         already_seen = set()
 
-        old_objs = break_up_file('data/phosphosites.txt')
+        old_objs = break_up_file('src/sgd/convert/data/phosphosites.txt')
 
         pubmed_ids = set()
         for row in old_objs:

@@ -14,8 +14,6 @@ from mpmath import ceil
 from sqlalchemy.orm import joinedload
 
 from src.sgd.convert import OutputCreator, create_format_name, create_or_update
-from src.sgd.convert.bud2nex.convert_auxiliary import convert_bioentity_reference, \
-    convert_biofact
 
 
 __author__ = 'kpaskov'
@@ -242,9 +240,9 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
 def convert(old_session_maker, new_session_maker):
     convert_evidence(old_session_maker, new_session_maker, 1000)
             
-    from src.sgd.model.nex.evidence import Phenotypeevidence
-    from src.sgd.model.nex.bioconcept import Phenotype
-    get_bioentity_ids_f = lambda x: [x.bioentity_id]
-    convert_bioentity_reference(new_session_maker, Phenotypeevidence, 'PHENOTYPE', 'convert.phenotype.bioentity_reference', 10000, get_bioentity_ids_f)
+    #from src.sgd.model.nex.evidence import Phenotypeevidence
+    #from src.sgd.model.nex.bioconcept import Phenotype
+    #get_bioentity_ids_f = lambda x: [x.bioentity_id]
+    #convert_bioentity_reference(new_session_maker, Phenotypeevidence, 'PHENOTYPE', 'convert.phenotype.bioentity_reference', 10000, get_bioentity_ids_f)
 
-    convert_biofact(new_session_maker, Phenotypeevidence, Phenotype, 'PHENOTYPE', 'convert.phenotype.biofact', 10000)
+    #convert_biofact(new_session_maker, Phenotypeevidence, Phenotype, 'PHENOTYPE', 'convert.phenotype.biofact', 10000)

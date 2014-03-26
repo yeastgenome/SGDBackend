@@ -16,8 +16,7 @@ def create_evidence(complex, id_to_go, id_to_bioentity, go_id_to_bioent_ids, key
         go = id_to_go[complex.go_id]
         for bioent_id in go_id_to_bioent_ids[complex.go_id]:
             bioentity = id_to_bioentity[bioent_id]
-            evidences.append(Complexevidence(source, None, None, None, None,
-                 bioentity, complex, go, None, None))
+            evidences.append(Complexevidence(source, bioentity, complex, go, None, None))
     return evidences
 
 def convert_evidence(new_session_maker):

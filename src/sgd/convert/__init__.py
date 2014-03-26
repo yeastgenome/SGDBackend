@@ -245,3 +245,15 @@ def set_up_logging(label):
     log.addHandler(hdlr)
     log.setLevel(logging.DEBUG)
     return log
+
+#http://stackoverflow.com/questions/1145905/sqlalchemy-scan-huge-tables-using-orm
+def page_query(q, chunk_size):
+    offset = 0
+    while True:
+        r = False
+        for elem in q.limit(chunk_size).offset(offset):
+           r = True
+           yield elem
+        offset += chunk_size
+        if not r:
+            break

@@ -164,7 +164,7 @@ class Alias(Base, EqualityByIDMixin):
         self.created_by = created_by
 
     def unique_key(self):
-        return (self.display_name, self.format_name)
+        return (self.class_type, self.display_name, self.format_name, self.category)
 
     def to_json(self):
         return {

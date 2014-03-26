@@ -26,7 +26,7 @@ def create_evidence(old_protein_detail, id_to_bioentity, key_to_bioentity, id_to
 def convert_evidence(old_session_maker, new_session_maker):
     from src.sgd.model.nex.evidence import Proteinexperimentevidence as NewProteinexperimentevidence
     from src.sgd.model.nex.bioentity import Locus as NewLocus, Protein as NewProtein
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.nex.reference import Reference as NewReference
     from src.sgd.model.bud.sequence import ProteinDetail as OldProteinDetail
     from src.sgd.model.bud.reference import Reflink as OldReflink

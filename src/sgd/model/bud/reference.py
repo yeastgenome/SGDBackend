@@ -237,6 +237,8 @@ class Reflink(Base):
     tab_name = Column('tab_name', String)
     primary_key = Column('primary_key', String)
     col_name = Column('col_name', String)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
         
 class RefRelation(Base):
     __tablename__ = 'ref_relationship'
@@ -256,9 +258,7 @@ class Litguide(Base):
     topic = Column('literature_topic', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
-    
-    reference = relationship(Reference)
-    
+
 class LitguideFeat(Base):
     __tablename__ = 'litguide_feat'
     

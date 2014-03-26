@@ -87,10 +87,23 @@ class Annotation(Base, EqualityByIDMixin):
     headline = Column('headline', String)
     name_description = Column('name_description', String)
     genetic_position = Column('genetic_position', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
     
     def __repr__(self):
         data = self.headline, self.qualifier
         return 'Annotation(headline=%s, qualifier=%s)' % data
+
+class FeatureProperty(Base, EqualityByIDMixin):
+    __tablename__ = 'feat_property'
+
+    id = Column('feat_property_no', Integer, primary_key=True)
+    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
+    source = Column('source', String)
+    property_type = Column('property_type', String)
+    property_value = Column('property_value', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
     
     
 

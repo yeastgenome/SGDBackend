@@ -4,7 +4,7 @@ import sys
 from sqlalchemy.orm import joinedload
 
 from src.sgd.convert import create_format_name, OutputCreator, create_or_update
-from src.sgd.convert.bud2nex.convert_auxiliary import convert_disambigs
+from src.sgd.convert.bud2nex.auxiliary import convert_disambigs
 
 
 __author__ = 'kpaskov'
