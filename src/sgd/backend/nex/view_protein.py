@@ -122,7 +122,7 @@ def create_bioent_node(bioent, is_focus):
 
 def create_domain_node(bioitem):
     return {'data':{'id':'DomainNode' + str(bioitem.id), 'name':bioitem.display_name, 'link': bioitem.link,
-                    'sub_type':None, 'type': 'BIOITEM', 'source': bioitem.source.display_name}}
+                    'sub_type':bioitem.source.display_name, 'type': 'BIOITEM', 'source': bioitem.source.display_name}}
 
 def create_edge(bioent_id, domain_id):
     return {'data':{'target': 'BioentNode' + str(bioent_id), 'source': 'DomainNode' + str(domain_id)}}

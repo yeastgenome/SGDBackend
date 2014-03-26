@@ -1,27 +1,18 @@
 import sys
 
-from src.sgd.convert.bud2nex import convert_bioentity, convert_phenotype, convert_reference_in_depth
-import convert_evelements
-import convert_reference
-import convert_bioconcept
-import convert_bioitem
-import convert_literature
-import convert_go
-import convert_qualifier
-import convert_interaction
-import convert_binding
-import convert_protein_domain
-import convert_regulation
-import convert_complex
-import convert_sequence
-import convert_phosphorylation
-import convert_bioentity_in_depth
-import convert_bioconcept_in_depth
-import convert_bioitem_in_depth
-import convert_ec_number
-import convert_protein_experiment
+from src.sgd.convert.bud2nex import bioentity, reference_in_depth
+import evelements
+import reference
+import bioconcept
+import bioitem
+from evidence import go, interaction, domain, regulation, phosphorylation, phenotype, ecnumber, protein_experiment
+import bioentity_in_depth
+import bioconcept_in_depth
+import bioitem_in_depth
+from src.sgd.convert.bud2nex.evidence import bioentityevidence, binding, complex, literature, sequence
 from src.sgd.model import bud, nex
 from src.sgd.convert import ConverterInterface, config, prepare_schema_connection, check_session_maker, set_up_logging
+
 
 __author__ = 'kpaskov'
 
@@ -46,50 +37,50 @@ class BudNexConverter(ConverterInterface):
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
 
     def convert_basic(self):
-        self.wrapper(convert_evelements.convert)
-        self.wrapper(convert_reference.convert)
-        self.wrapper(convert_bioentity.convert)
-        self.wrapper(convert_bioconcept.convert)
-        self.wrapper(convert_bioitem.convert)
-        self.wrapper(convert_qualifier.convert)
+        self.wrapper(evelements.convert)
+        self.wrapper(reference.convert)
+        self.wrapper(bioentity.convert)
+        self.wrapper(bioconcept.convert)
+        self.wrapper(bioitem.convert)
+        self.wrapper(bioentityevidence.convert)
 
     def convert_basic_continued(self):
-        self.wrapper(convert_bioentity_in_depth.convert)
-        self.wrapper(convert_bioconcept_in_depth.convert)
-        self.wrapper(convert_bioitem_in_depth.convert)
+        self.wrapper(bioentity_in_depth.convert)
+        self.wrapper(bioconcept_in_depth.convert)
+        self.wrapper(bioitem_in_depth.convert)
 
     def convert_reference(self):
-        self.wrapper(convert_reference_in_depth.convert)
+        self.wrapper(reference_in_depth.convert)
 
     def convert_phenotype(self):
-        self.wrapper(convert_phenotype.convert)
+        self.wrapper(phenotype.convert)
 
     def convert_literature(self):
-        self.wrapper(convert_literature.convert)
+        self.wrapper(literature.convert)
 
     def convert_go(self):
-        self.wrapper(convert_go.convert)
+        self.wrapper(go.convert)
 
     def convert_ec_number(self):
-        self.wrapper(convert_ec_number.convert)
+        self.wrapper(ecnumber.convert)
 
     def convert_complex(self):
-        self.wrapper(convert_complex.convert, no_old_session=True)
+        self.wrapper(complex.convert, no_old_session=True)
 
     def convert_sequence(self):
-        self.wrapper(convert_sequence.convert)
-        self.wrapper(convert_phosphorylation.convert, no_old_session=True)
+        self.wrapper(sequence.convert)
+        self.wrapper(phosphorylation.convert, no_old_session=True)
 
     def convert_interaction(self):
-        self.wrapper(convert_interaction.convert)
+        self.wrapper(interaction.convert)
 
     def convert_protein(self):
-        self.wrapper(convert_protein_domain.convert)
-        self.wrapper(convert_binding.convert, no_old_session=True)
-        self.wrapper(convert_protein_experiment.convert)
+        self.wrapper(domain.convert)
+        self.wrapper(binding.convert, no_old_session=True)
+        self.wrapper(protein_experiment.convert)
 
     def convert_regulation(self):
-        self.wrapper(convert_regulation.convert, no_old_session=True)
+        self.wrapper(regulation.convert, no_old_session=True)
 
 if __name__ == "__main__":
 
@@ -102,3 +93,4 @@ if __name__ == "__main__":
         getattr(converter, method)()
     else:
         print 'Please enter bud_dbhost, nex_dbhost, and method.'
+

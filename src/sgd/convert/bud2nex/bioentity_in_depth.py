@@ -131,18 +131,22 @@ def convert_bioentitytabs(new_session_maker):
 def create_alias(old_alias, id_to_bioentity, key_to_source):
     from src.sgd.model.nex.bioentity import Bioentityalias
 
+    new_aliases = []
+
     bioentity_id = old_alias.feature_id
     bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
 
     display_name = old_alias.alias_name
     source = key_to_source['SGD']
-    
-    new_alias = Bioentityalias(display_name, None, source, old_alias.alias_type, bioentity,
-                               old_alias.date_created, old_alias.created_by)
-    return [new_alias] 
+
+    new_aliases.append(Bioentityalias(display_name, None, source, old_alias.alias_type, bioentity, 0,
+                               old_alias.date_created, old_alias.created_by))
+    return new_aliases
 
 def create_alias_from_dbxref(old_dbxref_feat, id_to_bioentity, key_to_source):
     from src.sgd.model.nex.bioentity import Bioentityalias
+
+    new_aliases = []
 
     if old_dbxref_feat.dbxref.dbxref_type != 'DBID Primary':
         source = key_to_source[old_dbxref_feat.dbxref.source.replace('/', '-')]
@@ -153,10 +157,9 @@ def create_alias_from_dbxref(old_dbxref_feat, id_to_bioentity, key_to_source):
         if len(old_dbxref_feat.dbxref.urls) > 0:
             link = old_dbxref_feat.dbxref.urls[0].url.replace('_SUBSTITUTE_THIS_', display_name)
 
-        new_alias = Bioentityalias(display_name, link, source, old_dbxref_feat.dbxref.dbxref_type, bioentity,
-                               old_dbxref_feat.dbxref.date_created, old_dbxref_feat.dbxref.created_by)
-        return [new_alias]
-    return []
+        new_aliases.append(Bioentityalias(display_name, link, source, old_dbxref_feat.dbxref.dbxref_type, bioentity, 1,
+                               old_dbxref_feat.dbxref.date_created, old_dbxref_feat.dbxref.created_by))
+    return new_aliases
 
 def convert_alias(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioentity import Bioentity as NewBioentity, Bioentityalias as NewBioentityalias
@@ -170,14 +173,16 @@ def convert_alias(old_session_maker, new_session_maker):
     output_creator = OutputCreator(log)
     
     try:
-        #Grab all current objects
         new_session = new_session_maker()
+        old_session = old_session_maker()
+
+        #Grab all current objects
         current_objs = new_session.query(NewBioentityalias).filter(NewBioentityalias.subclass_type == 'LOCUS').all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         
         #Values to check
-        values_to_check = ['source_id', 'category', 'created_by', 'date_created', 'subclass_type', 'link']
+        values_to_check = ['source_id', 'category', 'created_by', 'date_created', 'subclass_type', 'link', 'is_external_id']
         
         untouched_obj_ids = set(id_to_current_obj.keys())
         already_seen_obj = set()
@@ -186,9 +191,6 @@ def convert_alias(old_session_maker, new_session_maker):
         id_to_bioentity = dict([(x.id, x) for x in new_session.query(NewBioentity).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
 
-        #Grab old objects
-        old_session = old_session_maker()
-        
         #Grab old objects
         old_objs = old_session.query(OldAliasFeature).options(joinedload('alias')).all()
         
@@ -207,6 +209,8 @@ def convert_alias(old_session_maker, new_session_maker):
                         untouched_obj_ids.remove(current_obj_by_id.id)
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                         untouched_obj_ids.remove(current_obj_by_key.id)
+                else:
+                    print newly_created_obj.unique_key()
                 already_seen_obj.add(newly_created_obj.unique_key())
 
         #Commit
@@ -231,10 +235,12 @@ def convert_alias(old_session_maker, new_session_maker):
                         untouched_obj_ids.remove(current_obj_by_id.id)
                     if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
                         untouched_obj_ids.remove(current_obj_by_key.id)
+                else:
+                    print newly_created_obj.unique_key()
                 already_seen_obj.add(newly_created_obj.unique_key())
                         
         #Delete untouched objs
-        for untouched_obj_id  in untouched_obj_ids:
+        for untouched_obj_id in untouched_obj_ids:
             new_session.delete(id_to_current_obj[untouched_obj_id])
             output_creator.removed()
         
@@ -242,6 +248,179 @@ def convert_alias(old_session_maker, new_session_maker):
         output_creator.finished()
         new_session.commit()
         
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
+        old_session.close()
+
+# --------------------- Convert Alias Evidence ---------------------
+def create_alias_evidence(old_alias, id_to_bioentity, key_to_source, key_to_alias, id_to_reference, feat_alias_id_to_reflinks):
+    from src.sgd.model.nex.bioentity import Bioentityalias
+    from src.sgd.model.nex.evidence import Aliasevidence
+
+    new_alias_evidences = []
+
+    bioentity_id = old_alias.feature_id
+    bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
+
+    display_name = old_alias.alias_name
+    source = key_to_source['SGD']
+
+    alias_key = Bioentityalias(display_name, None, source, old_alias.alias_type, bioentity, 0, old_alias.date_created, old_alias.created_by).unique_key()
+    if alias_key not in key_to_alias:
+        print 'Alias not found: ' + str(alias_key)
+        return []
+
+    alias = key_to_alias[alias_key]
+
+    if old_alias.id in feat_alias_id_to_reflinks:
+        reflinks = feat_alias_id_to_reflinks[old_alias.id]
+        for reflink in reflinks:
+            reference_id = reflink.reference_id
+            reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
+            new_alias_evidences.append(Aliasevidence(source, reference, alias, reflink.date_created, reflink.created_by))
+
+    return new_alias_evidences
+
+def create_alias_evidence_from_dbxref(old_dbxref_feat, id_to_bioentity, key_to_source, key_to_alias, id_to_reference, dbxref_feat_id_to_reflinks):
+    from src.sgd.model.nex.bioentity import Bioentityalias
+    from src.sgd.model.nex.evidence import Aliasevidence
+
+    new_alias_evidences = []
+
+    if old_dbxref_feat.dbxref.dbxref_type != 'DBID Primary':
+        source = key_to_source[old_dbxref_feat.dbxref.source.replace('/', '-')]
+        bioentity_id = old_dbxref_feat.feature_id
+        bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
+        display_name = old_dbxref_feat.dbxref.dbxref_id
+        link = None
+        if len(old_dbxref_feat.dbxref.urls) > 0:
+            link = old_dbxref_feat.dbxref.urls[0].url.replace('_SUBSTITUTE_THIS_', display_name)
+
+        alias_key = Bioentityalias(display_name, link, source, old_dbxref_feat.dbxref.dbxref_type, bioentity, 1,
+                               old_dbxref_feat.dbxref.date_created, old_dbxref_feat.dbxref.created_by).unique_key()
+        if alias_key not in key_to_alias:
+            print 'Alias not found: ' + str(alias_key)
+            return []
+
+        alias = key_to_alias[alias_key]
+
+        if old_dbxref_feat.id in dbxref_feat_id_to_reflinks:
+            reflinks = dbxref_feat_id_to_reflinks[old_dbxref_feat.id]
+            for reflink in reflinks:
+                reference_id = reflink.reference_id
+                reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
+                new_alias_evidences.append(Aliasevidence(source, reference, alias, reflink.date_created, reflink.created_by))
+
+    return new_alias_evidences
+
+def convert_alias_evidence(old_session_maker, new_session_maker):
+    from src.sgd.model.nex.bioentity import Bioentity as NewBioentity, Bioentityalias as NewBioentityalias
+    from src.sgd.model.nex.reference import Reference as NewReference
+    from src.sgd.model.nex.misc import Source as NewSource
+    from src.sgd.model.nex.evidence import Aliasevidence as NewAliasevidence
+    from src.sgd.model.bud.feature import AliasFeature as OldAliasFeature
+    from src.sgd.model.bud.general import DbxrefFeat as OldDbxrefFeat
+    from src.sgd.model.bud.reference import Reflink as OldReflink
+
+    new_session = None
+    old_session = None
+    log = logging.getLogger('convert.bioentity_in_depth.bioentity_alias')
+    output_creator = OutputCreator(log)
+
+    try:
+        new_session = new_session_maker()
+        old_session = old_session_maker()
+
+        #Grab all current objects
+        current_objs = new_session.query(NewAliasevidence).all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+
+        #Values to check
+        values_to_check = ['source_id', 'reference_id', 'alias_id', 'created_by', 'date_created']
+
+        untouched_obj_ids = set(id_to_current_obj.keys())
+        already_seen_obj = set()
+
+        #Grab cached dictionaries
+        id_to_bioentity = dict([(x.id, x) for x in new_session.query(NewBioentity).all()])
+        id_to_reference = dict([(x.id, x) for x in new_session.query(NewReference).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
+        key_to_alias = dict([(x.unique_key(), x) for x in new_session.query(NewBioentityalias).all()])
+
+        feat_alias_id_to_reflinks = dict()
+        for reflink in old_session.query(OldReflink).filter_by(tab_name='FEAT_ALIAS').all():
+            if reflink.primary_key in feat_alias_id_to_reflinks:
+                feat_alias_id_to_reflinks[reflink.primary_key].append(reflink)
+            else:
+                feat_alias_id_to_reflinks[reflink.primary_key] = [reflink]
+
+        dbxref_feat_id_to_reflinks = dict()
+        for reflink in old_session.query(OldReflink).filter_by(tab_name='DBXREF_FEAT').all():
+            if reflink.primary_key in dbxref_feat_id_to_reflinks:
+                dbxref_feat_id_to_reflinks[reflink.primary_key].append(reflink)
+            else:
+                dbxref_feat_id_to_reflinks[reflink.primary_key] = [reflink]
+
+        #Grab old objects
+        old_objs = old_session.query(OldAliasFeature).options(joinedload('alias')).all()
+
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_alias_evidence(old_obj, id_to_bioentity, key_to_source, key_to_alias, id_to_reference, feat_alias_id_to_reflinks)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                if newly_created_obj.unique_key() not in already_seen_obj:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+                else:
+                    print newly_created_obj.unique_key()
+                already_seen_obj.add(newly_created_obj.unique_key())
+
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+
+        #Grab old objects
+        old_objs = old_session.query(OldDbxrefFeat).options(joinedload(OldDbxrefFeat.dbxref), joinedload('dbxref.dbxref_urls')).all()
+
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_alias_evidence_from_dbxref(old_obj, id_to_bioentity, key_to_source, key_to_alias, id_to_reference, dbxref_feat_id_to_reflinks)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                if newly_created_obj.unique_key() not in already_seen_obj:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+                else:
+                    print newly_created_obj.unique_key()
+                already_seen_obj.add(newly_created_obj.unique_key())
+
+        #Delete untouched objs
+        for untouched_obj_id in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+
     except Exception:
         log.exception('Unexpected error:' + str(sys.exc_info()[0]))
     finally:
@@ -462,8 +641,10 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
 def convert(old_session_maker, new_session_maker):
 
     #convert_alias(old_session_maker, new_session_maker)
+
+    convert_alias_evidence(old_session_maker, new_session_maker)
     
-    convert_url(old_session_maker, new_session_maker, 1000)
+    #convert_url(old_session_maker, new_session_maker, 1000)
         
     #convert_bioentitytabs(new_session_maker)
 

@@ -126,7 +126,7 @@ def convert_domain_evidence(old_session_maker, new_session_maker):
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.bioitem import Domain
     from src.sgd.model.nex.reference import Reference
-    from src.sgd.model.nex.evelements import Source, Strain
+    from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.model.bud.sequence import ProteinDetail as OldProteinDetail
 
     old_session = None
@@ -223,7 +223,7 @@ def convert_domain_evidence(old_session_maker, new_session_maker):
         pubmed_ids = set([int(row[6].strip()) for row in old_objs])
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).filter(Reference.pubmed_id.in_(pubmed_ids)).all()])
 
-        protein_id_to_length = dict([(x.bioentity_id, x.sequence.length) for x in new_session.query(Proteinsequenceevidence).filter(Proteinsequenceevidence.source_id == 1).options(joinedload('sequence')).all()])
+        protein_id_to_length = dict([(x.bioentity_id, x.residues.length) for x in new_session.query(Proteinsequenceevidence).filter(Proteinsequenceevidence.source_id == 1).all()])
 
         for old_obj in old_objs:
             #Convert old objects into new ones

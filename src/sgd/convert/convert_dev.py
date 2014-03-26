@@ -15,9 +15,9 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_evelements()
     #pastry_dev_converter.convert_reference()
     #pastry_dev_converter.convert_bioentity()
-    from src.sgd.convert.bud2nex import convert_sequence
+    from src.sgd.convert import bud2nex
     #pastry_dev_converter.wrapper(convert_bioconcept.convert)
-    pastry_dev_converter.wrapper(convert_sequence.convert)
+    pastry_dev_converter.wrapper(bud2nex.evidence.phosphorylation.convert, no_old_session=True)
     #pastry_dev_converter.convert_bioitem()
     #pastry_dev_converter.convert_chemical()
 

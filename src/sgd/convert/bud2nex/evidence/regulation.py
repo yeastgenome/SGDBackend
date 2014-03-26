@@ -4,8 +4,6 @@ import sys
 from mpmath import ceil, floor
 
 from src.sgd.convert import OutputCreator, create_or_update, break_up_file, create_format_name
-from src.sgd.convert.bud2nex.convert_auxiliary import convert_bioentity_reference, \
-    convert_interaction
 
 
 __author__ = 'kpaskov'
@@ -15,67 +13,54 @@ __author__ = 'kpaskov'
 #Maitenance (sgd-ng1): 
 
 # --------------------- Convert Evidence ---------------------
-pubmed_to_strain = {#11504737: 'Other',
-                    12006656: 'S288C',
-                    15192094: 'W303',
-                    #15647283: 'Other',
-                    #16415340: 'Other',
-                    16522208: 'W303',
-                    17417638: 'S288C',
-                    18524923: 'CEN.PK',
-                    #21177862: 'Other',
-                    21329885: 'S288C',
-                    22114689: 'S288C',
-                    22189861: 'S288C',
-                    22384390: 'Sigma1278b',
-                    22438580: 'W303',
-                    22498630: 'S288C',
-                    22616008: 'S288C',
-                    20195295: 'S288C'}
-
 def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, key_to_source, key_to_strain):
     from src.sgd.model.nex.evidence import Regulationevidence
     
     #bioent1_gene_name = row[0]
-    bioent1_format_name = row[1].upper().strip()
-    bioent2_format_name = row[3].upper().strip()
+    bioent1_format_name = row[1].strip()
+    bioent2_format_name = row[3].strip()
     experiment_format_name = create_format_name(row[4].strip())
     experiment_eco_id = row[5].strip()
     condition_value = row[6].strip()
-    #unknown_field1 = row[7]
+    strain_key = row[7]
     #unknown_field2 = row[8]
     #unknown_field3 = row[9]
     #unknown_field4 = row[10]
     pubmed_id = int(row[11].strip())
     source_key = row[12].strip()
+
+    strain = None if strain_key is None or strain_key not in key_to_strain else key_to_strain[strain_key]
     
     bioent1_key = (bioent1_format_name, 'LOCUS') 
     bioent1 = None if bioent1_key not in key_to_bioent else key_to_bioent[bioent1_key]
+    if bioent1 is None:
+        print 'Bioentity not found: ' + str(bioent1_key)
+        return []
     
     bioent2_key = (bioent2_format_name, 'LOCUS') 
     bioent2 = None if bioent2_key not in key_to_bioent else key_to_bioent[bioent2_key]
+    if bioent2 is None:
+        print 'Bioentity not found: ' + str(bioent2_key)
+        return []
     
     experiment = None if experiment_format_name not in key_to_experiment else key_to_experiment[experiment_format_name]
     if experiment is None:
         experiment = None if experiment_eco_id not in key_to_experiment else key_to_experiment[experiment_eco_id]
     reference = None if pubmed_id not in pubmed_to_reference else pubmed_to_reference[pubmed_id]
-    strain = None if pubmed_id not in pubmed_to_strain else key_to_strain[pubmed_to_strain[pubmed_id]]
     source = None if source_key not in key_to_source else key_to_source[source_key]
     
     conditions = []
     if condition_value != '""':
-        from src.sgd.model.nex.condition import Generalcondition
+        from src.sgd.model.nex.evidence import Generalcondition
         condition_value = condition_value.replace('??', "\00b5")
         conditions.append(Generalcondition(condition_value))
-
     
-    new_evidence = Regulationevidence(source, reference, strain, experiment, None, 
-                                      bioent1, bioent2, conditions, None, None)
+    new_evidence = Regulationevidence(source, reference, strain, experiment, bioent1, bioent2, conditions, None, None)
     return [new_evidence]
 
 def convert_evidence(new_session_maker, chunk_size):
     from src.sgd.model.nex.evidence import Regulationevidence
-    from src.sgd.model.nex.evelements import Experiment, Source, Strain
+    from src.sgd.model.nex.misc import Experiment, Source, Strain
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.reference import Reference
 
@@ -88,7 +73,7 @@ def convert_evidence(new_session_maker, chunk_size):
          
         #Values to check
         values_to_check = ['experiment_id', 'reference_id', 'strain_id', 'source_id', 
-                       'bioentity1_id', 'bioentity2_id']
+                       'bioentity1_id', 'bioentity2_id', 'conditions_key']
         
         #Grab cached dictionaries
         key_to_experiment = dict([(x.unique_key(), x) for x in new_session.query(Experiment).all()])
@@ -102,7 +87,7 @@ def convert_evidence(new_session_maker, chunk_size):
         num_chunks = ceil(1.0*(max_bioent_id-min_bioent_id)/chunk_size)
         
         old_obj_chunks = [[] for _ in range(num_chunks)]
-        f = open('data/yeastmine_regulation.tsv', 'r')
+        f = open('src/sgd/convert/data/yeastmine_regulation.tsv', 'r')
         for line in f:
             row = line.split('\t')
             bioent1_format_name = row[1].upper().strip()
@@ -180,7 +165,7 @@ def create_paragraph(row, key_to_bioentity, key_to_source):
 def convert_paragraph(new_session_maker):
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.paragraph import Paragraph
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
 
     new_session = None
     log = logging.getLogger('convert.regulation.paragraph')
@@ -203,7 +188,7 @@ def convert_paragraph(new_session_maker):
         
         untouched_obj_ids = set(id_to_current_obj.keys())
 
-        old_objs = break_up_file('data/Reg_Summary_Paragraphs04282013.txt')
+        old_objs = break_up_file('src/sgd/convert/data/Reg_Summary_Paragraphs04282013.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_paragraph(old_obj, key_to_bioentity, key_to_source)
@@ -275,7 +260,7 @@ def create_paragraph_reference(row, key_to_bioentity, key_to_paragraph, pubmed_i
 def convert_paragraph_reference(new_session_maker):
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.paragraph import Paragraph, ParagraphReference
-    from src.sgd.model.nex.evelements import Source
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.reference import Reference
 
     new_session = None
@@ -303,7 +288,7 @@ def convert_paragraph_reference(new_session_maker):
         
         used_unique_keys = set()  
 
-        old_objs = break_up_file('data/Reg_Summary_Paragraphs04282013.txt')
+        old_objs = break_up_file('src/sgd/convert/data/Reg_Summary_Paragraphs04282013.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_paragraph_reference(old_obj, key_to_bioentity, key_to_paragraph, pubmed_id_to_reference, key_to_source)
@@ -341,13 +326,13 @@ def convert_paragraph_reference(new_session_maker):
 def convert(new_session_maker):
     convert_evidence(new_session_maker, 300)
         
-    from src.sgd.model.nex.evidence import Regulationevidence
-    get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
+    #from src.sgd.model.nex.evidence import Regulationevidence
+    #get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
     
-    convert_paragraph(new_session_maker)
+    #convert_paragraph(new_session_maker)
     
-    convert_paragraph_reference(new_session_maker)
+    #convert_paragraph_reference(new_session_maker)
     
-    convert_interaction(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.interaction', 10000, True)
+    #convert_interaction(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.interaction', 10000, True)
     
-    convert_bioentity_reference(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.bioentity_reference', 10000, get_bioent_ids_f)
+    #convert_bioentity_reference(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.bioentity_reference', 10000, get_bioent_ids_f)

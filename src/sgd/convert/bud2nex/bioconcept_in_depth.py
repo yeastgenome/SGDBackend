@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
 from src.sgd.convert import OutputCreator, create_or_update, create_format_name
-from src.sgd.convert.bud2nex.convert_auxiliary import convert_disambigs, \
+from src.sgd.convert.bud2nex.auxiliary import convert_disambigs, \
     convert_biocon_count
 
 

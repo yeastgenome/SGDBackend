@@ -26,8 +26,7 @@ def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, 
     
     experiment = None if experiment_format_name not in key_to_experiment else key_to_experiment[experiment_format_name]
     reference = None if pubmed_id not in pubmed_to_reference else pubmed_to_reference[pubmed_id]
-    new_evidence = Bindingevidence(source, reference, None, experiment, None,
-                                   bioentity, total_score, expert_confidence, motif_id, None, None)
+    new_evidence = Bindingevidence(source, reference, experiment, bioentity, total_score, expert_confidence, motif_id, None, None)
     return [new_evidence]
 
 def convert_evidence(new_session_maker, chunk_size):
@@ -55,7 +54,7 @@ def convert_evidence(new_session_maker, chunk_size):
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         
         #Grab old objects
-        data = break_up_file('data/yetfasco_data.txt', delimeter=';')
+        data = break_up_file('src/sgd/convert/data/yetfasco_data.txt', delimeter=';')
         
         current_objs = new_session.query(Bindingevidence).all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])

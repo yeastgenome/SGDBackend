@@ -79,16 +79,19 @@ class Bioentityalias(Alias):
     id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     subclass_type = Column('subclass', String)
-    
+    is_external_id = Column('is_external_id', Integer)
+
+    #Relationships
     bioentity = relationship(Bioentity, uselist=False, backref=backref('aliases', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY',
                        'inherit_condition': id == Alias.id}
     
-    def __init__(self, display_name, link, source, category, bioentity, date_created, created_by):
-        Alias.__init__(self, display_name, bioentity.format_name, 'BIOENTITY', link, source, category, date_created, created_by)
+    def __init__(self, display_name, link, source, category, bioentity, is_external_id, date_created, created_by):
+        Alias.__init__(self, display_name, str(bioentity.id), 'BIOENTITY', link, source, category, date_created, created_by)
         self.bioentity_id = bioentity.id
         self.subclass_type = bioentity.class_type
+        self.is_external_id = is_external_id
 
 class Bioentityrelation(Relation):
     __tablename__ = 'bioentityrelation'
@@ -119,7 +122,6 @@ class Locus(Bioentity):
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
     name_description = Column('name_description', String)
     headline = Column('headline', String)
-    genetic_position = Column('genetic_position', String)
     locus_type = Column('locus_type', String)
     gene_name = Column('gene_name', String)
         
@@ -127,13 +129,12 @@ class Locus(Bioentity):
                        'inherit_condition': id == Bioentity.id}
     
     def __init__(self, bioentity_id, display_name, format_name, source, sgdid, uniprotid, bioent_status, 
-                 locus_type, short_description, headline, description, genetic_position, gene_name,
+                 locus_type, name_description, headline, description, gene_name,
                  date_created, created_by):
         Bioentity.__init__(self, bioentity_id, display_name, format_name, 'LOCUS', '/cgi-bin/locus.fpl?locus=' + sgdid,
                            source, sgdid, uniprotid, bioent_status, description, date_created, created_by)
-        self.short_description = short_description
+        self.name_description = name_description
         self.headline = headline
-        self.genetic_position = genetic_position
         self.locus_type = locus_type
         self.gene_name = gene_name
 

@@ -14,7 +14,6 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import or_, func
 
 from src.sgd.convert import OutputCreator, create_format_name, create_or_update
-from src.sgd.convert.bud2nex.convert_auxiliary import convert_interaction, convert_bioentity_reference
 
 
 __author__ = 'kpaskov'
@@ -60,13 +59,13 @@ def create_interevidence(old_interaction, key_to_experiment, key_to_phenotype,
         mutant_type = None if old_interaction.id not in inter_id_to_mutant_type else inter_id_to_mutant_type[old_interaction.id]
         phenotype = None if phenotype_key is None else key_to_phenotype[phenotype_key]
         
-        new_genetic_interevidence = NewGeninteractionevidence(source, reference, None, experiment, 
+        new_genetic_interevidence = NewGeninteractionevidence(source, reference, experiment,
                                                             bioentity1, bioentity2, phenotype, mutant_type,
                                                             old_interaction.annotation_type, bait_hit, note,
                                                             old_interaction.date_created, old_interaction.created_by)
         return [new_genetic_interevidence]  
     elif old_interaction.interaction_type == 'physical interactions':
-        new_physical_interevidence = NewPhysinteractionevidence(source, reference, None, experiment, 
+        new_physical_interevidence = NewPhysinteractionevidence(source, reference, experiment,
                                                             bioentity1, bioentity2,
                                                             old_interaction.modification, old_interaction.annotation_type, bait_hit, note,
                                                             old_interaction.date_created, old_interaction.created_by)
@@ -76,7 +75,7 @@ def create_interevidence(old_interaction, key_to_experiment, key_to_phenotype,
 def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
     from src.sgd.model.nex.evidence import Geninteractionevidence as NewGeninteractionevidence, Physinteractionevidence as NewPhysinteractionevidence
     from src.sgd.model.nex.reference import Reference as NewReference
-    from src.sgd.model.nex.evelements import Experiment as NewExperiment, Source as NewSource
+    from src.sgd.model.nex.misc import Experiment as NewExperiment, Source as NewSource
     from src.sgd.model.nex.bioentity import Bioentity as NewBioentity
     from src.sgd.model.nex.bioconcept import Phenotype as NewPhenotype, create_phenotype_format_name
     from src.sgd.model.bud.interaction import Interaction_Feature as OldInteractionFeature, Interaction_Phenotype as OldInteractionPhenotype, Interaction as OldInteraction
@@ -254,16 +253,16 @@ def convert_interevidence(old_session_maker, new_session_maker, chunk_size):
 def convert(old_session_maker, new_session_maker):
     convert_interevidence(old_session_maker, new_session_maker, 200)
     
-    from src.sgd.model.nex.evidence import Physinteractionevidence
-    get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
-    convert_bioentity_reference(new_session_maker, Physinteractionevidence, 'PHYSINTERACTION', 'convert.interaction.physical_bioentity_reference', 10000, get_bioent_ids_f)
+    #from src.sgd.model.nex.evidence import Physinteractionevidence
+    #get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
+    #convert_bioentity_reference(new_session_maker, Physinteractionevidence, 'PHYSINTERACTION', 'convert.interaction.physical_bioentity_reference', 10000, get_bioent_ids_f)
     
-    from src.sgd.model.nex.evidence import Geninteractionevidence
-    get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
-    convert_bioentity_reference(new_session_maker, Geninteractionevidence, 'GENINTERACTION', 'convert.interaction.genetic_bioentity_reference', 10000, get_bioent_ids_f)
+    #from src.sgd.model.nex.evidence import Geninteractionevidence
+    #get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
+    #convert_bioentity_reference(new_session_maker, Geninteractionevidence, 'GENINTERACTION', 'convert.interaction.genetic_bioentity_reference', 10000, get_bioent_ids_f)
           
-    convert_interaction(new_session_maker, Physinteractionevidence, 'PHYSINTERACTION', 'convert.physical_interaction.interaction', 10000, False)
-    convert_interaction(new_session_maker, Geninteractionevidence, 'GENINTERACTION', 'convert.genetic_interaction.interaction', 10000, False)
+    #convert_interaction(new_session_maker, Physinteractionevidence, 'PHYSINTERACTION', 'convert.physical_interaction.interaction', 10000, False)
+    #convert_interaction(new_session_maker, Geninteractionevidence, 'GENINTERACTION', 'convert.genetic_interaction.interaction', 10000, False)
     
 
    
