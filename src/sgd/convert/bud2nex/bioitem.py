@@ -23,45 +23,54 @@ def create_phenotype_bioitems(old_phenotype_feature, key_to_source):
         reporter_info = old_phenotype_feature.experiment.reporter
         if reporter_info is not None:
             source = key_to_source['SGD']
-            new_reporter = NewOrphanbioitem(reporter_info[0], None, source, reporter_info[1])
+            new_reporter = NewOrphanbioitem(reporter_info[0], None, source, reporter_info[1], None)
             allele_reporters.append(new_reporter)
     return allele_reporters
 
 def create_go_bioitems(old_dbxref, key_to_source):
     from src.sgd.model.nex.bioitem import Orphanbioitem as NewOrphanbioitem
     dbxref_type = old_dbxref.dbxref_type
-    if dbxref_type != 'GOID' and dbxref_type != 'EC number' and dbxref_type != 'DBID Primary':
+    if dbxref_type != 'GOID' and dbxref_type != 'EC number' and dbxref_type != 'DBID Primary' and dbxref_type != 'PANTHER' and dbxref_type != 'Prosite':
         source_key = create_format_name(old_dbxref.source)
         source = None if source_key not in key_to_source else key_to_source[source_key]
         if source is None:
             print source_key
             return []
         link = None
+        bioitem_type = None
         if dbxref_type == 'UniProt/Swiss-Prot ID':
             urls = old_dbxref.urls
             if len(urls) == 1:
                 link = urls[0].url.replace('_SUBSTITUTE_THIS_', old_dbxref.dbxref_id)
+            bioitem_type = 'UniProtKB'
         elif dbxref_type == 'UniProtKB Subcellular Location':
             link = "http://www.uniprot.org/locations/" + old_dbxref.dbxref_id
+            bioitem_type = 'UniProtKB-SubCell'
         elif dbxref_type == 'InterPro':
             link = "http://www.ebi.ac.uk/interpro/entry/" + old_dbxref.dbxref_id
+            bioitem_type = 'InterPro'
         elif dbxref_type == 'DNA accession ID':
             link = None
+            bioitem_type = 'EMBL'
         elif dbxref_type == 'Gene ID':
             link = None
-        elif dbxref_type == 'HAMAP ID':
+            bioitem_type = old_dbxref.source
+        elif dbxref_type == 'HAMAP ID' or dbxref_type == 'HAMAP':
             link = None
-        elif dbxref_type == 'PANTHER':
-            link = None
+            bioitem_type = 'HAMAP'
         elif dbxref_type == 'PDB identifier':
             link = None
+            bioitem_type = 'PDB'
         elif dbxref_type == 'Protein version ID':
             link = None
+            bioitem_type = 'protein_id'
         elif dbxref_type == 'UniPathway ID':
             link = 'http://www.grenoble.prabi.fr/obiwarehouse/unipathway/upa?upid=' + old_dbxref.dbxref_id
+            bioitem_type = 'UniPathway'
         elif dbxref_type == 'UniProtKB Keyword':
             link = 'http://www.uniprot.org/keywords/' + old_dbxref.dbxref_id
-        return [NewOrphanbioitem(old_dbxref.dbxref_id, link, source, old_dbxref.dbxref_name)]
+            bioitem_type = 'UniProtKB-KW'
+        return [NewOrphanbioitem(old_dbxref.dbxref_id, link, source, old_dbxref.dbxref_name, bioitem_type)]
 
     return []
 
@@ -89,7 +98,7 @@ def convert_orphan(old_session_maker, new_session_maker):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs]) 
                   
         #Values to check
-        values_to_check = ['description', 'display_name', 'source_id', 'link']
+        values_to_check = ['description', 'display_name', 'source_id', 'link', 'bioitem_type']
                 
         untouched_obj_ids = set(id_to_current_obj.keys())
         
@@ -224,7 +233,7 @@ def create_domain(row, key_to_source):
     interpro_description = None if interpro_description == 'NULL' else interpro_description
     interpro_id = None if interpro_id == 'NULL' else interpro_id
 
-    domain = Domain(display_name, source, description if description is not None else interpro_description, interpro_id, interpro_description, link)
+    domain = Domain(display_name, source, description if description is not None else interpro_description, interpro_id, source_key, interpro_description, link)
     return [domain]
 
 def create_domain_from_tf_file(row, key_to_source):
@@ -239,19 +248,38 @@ def create_domain_from_tf_file(row, key_to_source):
 
     source = key_to_source['JASPAR']
 
-    domain = Domain(display_name, source, description if description is not None else interpro_description, interpro_id, interpro_description, link)
+    domain = Domain(display_name, source, description if description is not None else interpro_description, 'JASPAR', interpro_id, interpro_description, link)
     return [domain]
 
 def create_domain_from_protein_details(key_to_source):
     from src.sgd.model.nex.bioitem import Domain
 
-    transmembrane = Domain('predicted transmembrane domain', key_to_source['TMHMM'], 'predicted transmembrane domain', None, None, None)
-    signal_peptide = Domain('predicted signal peptide', key_to_source['SignalP'], 'predicted signal peptide', None, None, None)
+    transmembrane = Domain('predicted transmembrane domain', key_to_source['TMHMM'], 'predicted transmembrane domain', 'TMHMM', None, None, None)
+    signal_peptide = Domain('predicted signal peptide', key_to_source['SignalP'], 'predicted signal peptide', 'SignalP', None, None, None)
     return [transmembrane, signal_peptide]
 
-def convert_domain(new_session_maker, chunk_size):
+def create_domain_from_dbxref(old_dbxref, key_to_source):
+    from src.sgd.model.nex.bioitem import Domain
+    dbxref_type = old_dbxref.dbxref_type
+    source_key = create_format_name(old_dbxref.source)
+    source = None if source_key not in key_to_source else key_to_source[source_key]
+    if source is None:
+        print source_key
+        return []
+    link = None
+    bioitem_type = None
+    if dbxref_type == 'Prosite ID':
+        bioitem_type = 'Prosite'
+        link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + old_dbxref.dbxref_id
+    elif dbxref_type == 'PANTHER':
+        bioitem_type = 'PANTHER'
+        link = "http://www.pantherdb.org/panther/family.do?clsAccession=" + old_dbxref.dbxref_id
+    return [Domain(old_dbxref.dbxref_id, source, old_dbxref.dbxref_name, bioitem_type, None, None, link)]
+
+def convert_domain(old_session_maker, new_session_maker, chunk_size):
     from src.sgd.model.nex.bioitem import Domain
     from src.sgd.model.nex.misc import Source
+    from src.sgd.model.bud.general import Dbxref as OldDbxref
 
     new_session = None
     log = logging.getLogger('convert.protein_domain.domain')
@@ -265,12 +293,12 @@ def convert_domain(new_session_maker, chunk_size):
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
 
         #Values to check
-        values_to_check = ['display_name', 'description', 'interpro_id', 'interpro_description', 'link', 'source_id', 'external_link']
+        values_to_check = ['display_name', 'description', 'interpro_id', 'interpro_description', 'link', 'source_id', 'external_link', 'bioitem_type']
 
         untouched_obj_ids = set(id_to_current_obj.keys())
 
         #Grab old objects
-        data = break_up_file('data/yeastmine_protein_domains.tsv')
+        data = break_up_file('src/sgd/convert/data/yeastmine_protein_domains.tsv')
 
         #Cache
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
@@ -306,7 +334,7 @@ def convert_domain(new_session_maker, chunk_size):
             min_id = min_id+chunk_size
 
         #Grab JASPAR domains from file
-        old_objs = break_up_file('data/TF_family_class_accession04302013.txt')
+        old_objs = break_up_file('src/sgd/convert/data/TF_family_class_accession04302013.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_domain_from_tf_file(old_obj, key_to_source)
@@ -327,7 +355,7 @@ def convert_domain(new_session_maker, chunk_size):
                             untouched_obj_ids.remove(current_obj_by_key.id)
                         used_unique_keys.add(unique_key)
 
-        output_creator.finished("1/2")
+        output_creator.finished("1/3")
         new_session.commit()
 
         #Protein domains from protein_details
@@ -349,7 +377,32 @@ def convert_domain(new_session_maker, chunk_size):
                         untouched_obj_ids.remove(current_obj_by_key.id)
                     used_unique_keys.add(unique_key)
 
-        output_creator.finished("2/2")
+        output_creator.finished("2/3")
+        new_session.commit()
+
+        #Protein domains from dbxref
+        old_session = old_session_maker()
+        old_objs = old_session.query(OldDbxref).filter(or_(OldDbxref.dbxref_type == 'PANTHER', OldDbxref.dbxref_type == 'Prosite')).all()
+
+        for old_obj in old_objs:
+            #Convert old objects into new ones
+            newly_created_objs = create_domain_from_dbxref(old_obj, key_to_source)
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                unique_key = newly_created_obj.unique_key()
+                if unique_key not in used_unique_keys:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+                    used_unique_keys.add(unique_key)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+                    used_unique_keys.add(unique_key)
+
+        output_creator.finished("3/3")
         new_session.commit()
 
         #Delete untouched objs
@@ -474,8 +527,8 @@ def convert_chemical(old_session_maker, new_session_maker):
 # ---------------------Convert------------------------------
 def convert(old_session_maker, new_session_maker):
 
-    convert_orphan(old_session_maker, new_session_maker)
+    #convert_orphan(old_session_maker, new_session_maker)
 
-    #convert_domain(new_session_maker, 5000)
+    convert_domain(old_session_maker, new_session_maker, 5000)
 
     #convert_chemical(old_session_maker, new_session_maker)

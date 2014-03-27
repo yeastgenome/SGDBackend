@@ -20,6 +20,7 @@ class Bioitem(Base, EqualityByIDMixin):
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     description = Column('description', String)
+    bioitem_type = Column('bioitem_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -28,13 +29,14 @@ class Bioitem(Base, EqualityByIDMixin):
     
     __mapper_args__ = {'polymorphic_on': class_type}
     
-    def __init__(self, display_name, format_name, class_type, link, source, description, date_created, created_by):
+    def __init__(self, display_name, format_name, class_type, link, source, description, bioitem_type, date_created, created_by):
         self.display_name = display_name
         self.format_name = format_name
         self.class_type = class_type
         self.link = link
         self.source_id = source.id
         self.description = description
+        self.bioitem_type = bioitem_type
         self.date_created = date_created
         self.created_by = created_by
         
@@ -47,7 +49,8 @@ class Bioitem(Base, EqualityByIDMixin):
             'display_name': self.display_name,
             'link': self.link,
             'id': self.id,
-            'class_type': self.class_type
+            'class_type': self.class_type,
+            'bioitem_type': self.bioitem_type
             }
 
 class Bioitemrelation(Relation):
@@ -79,10 +82,10 @@ class Domain(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'DOMAIN',
                        'inherit_condition': id == Bioitem.id}
     
-    def __init__(self, display_name, source, description,
+    def __init__(self, display_name, source, description, bioitem_type,
                  interpro_id, interpro_description, external_link):
         format_name = create_format_name(display_name)
-        Bioitem.__init__(self, display_name, format_name, 'DOMAIN', '/domain/' + format_name + '/overview', source, description, None, None)
+        Bioitem.__init__(self, display_name, format_name, 'DOMAIN', '/domain/' + format_name + '/overview', source, description, bioitem_type, None, None)
         self.interpro_id = interpro_id
         self.interpro_description = interpro_description
         self.external_link = external_link
@@ -107,7 +110,7 @@ class Chemical(Bioitem):
 
     def __init__(self, display_name, source, chebi_id, description, date_created, created_by):
         format_name = create_format_name(display_name.lower())[:95]
-        Bioitem.__init__(self, display_name, format_name, 'CHEMICAL', '/chemical/' + format_name + '/overview', source, description, date_created, created_by)
+        Bioitem.__init__(self, display_name, format_name, 'CHEMICAL', '/chemical/' + format_name + '/overview', source, description, None, date_created, created_by)
         self.format_name = create_format_name(display_name.lower())[:95]
         self.chebi_id = chebi_id
 
@@ -132,7 +135,7 @@ class Contig(Bioitem):
 
     def __init__(self, display_name, source, residues, strain):
         format_name = strain.format_name + '_' + display_name
-        Bioitem.__init__(self, display_name, format_name, 'CONTIG', '/contig/' + format_name + '/overview', source, None, None, None)
+        Bioitem.__init__(self, display_name, format_name, 'CONTIG', '/contig/' + format_name + '/overview', source, None, None, None, None)
         self.residues = residues
         self.strain_id = strain.id
 
@@ -151,12 +154,12 @@ class Allele(Bioitem):
                        'inherit_condition': id == Bioitem.id}
 
     def __init__(self, display_name, source, description):
-        Bioitem.__init__(self, display_name, create_format_name(display_name), 'ALLELE', None, source, description, None, None)
+        Bioitem.__init__(self, display_name, create_format_name(display_name), 'ALLELE', None, source, description, None, None, None)
 
 class Orphanbioitem(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'ORPHAN',
                        'inherit_condition': id == Bioitem.id}
 
-    def __init__(self, display_name, link, source, description):
-        Bioitem.__init__(self, display_name, create_format_name(display_name), 'ORPHAN', link, source, description, None, None)
+    def __init__(self, display_name, link, source, description, bioitem_type):
+        Bioitem.__init__(self, display_name, create_format_name(display_name), 'ORPHAN', link, source, description, bioitem_type, None, None)
 

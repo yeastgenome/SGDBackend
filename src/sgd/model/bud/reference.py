@@ -268,6 +268,6 @@ class LitguideFeat(Base):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
-    litguide = relationship(Litguide)
-    feature = relationship(Feature)
+    litguide = relationship(Litguide, uselist=False, backref='litguide_features')
+    feature = relationship(Feature, uselist=False)
     topic = association_proxy('litguide', 'topic')

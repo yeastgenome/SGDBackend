@@ -79,6 +79,13 @@ def create_evidence(old_go_feature, gofeat_id_to_gorefs, goref_id_to_dbxrefs, id
                     conditions.append(Bioentitycondition(None, dbxrefref.support_type, cond_bioent))
                 else:
                     print 'Could not find bioentity: ' + str(sgdid)
+            elif dbxref_type == 'PANTHER' or dbxref_type == 'Prosite':
+                domain_key = (dbxref.dbxref_id, 'DOMAIN')
+                cond_domain = None if domain_key not in key_to_bioitem else key_to_bioitem[domain_key]
+                if cond_domain is not None:
+                    conditions.append(Bioitemcondition(None, dbxrefref.support_type, cond_domain))
+                else:
+                    print 'Could not find bioconcept: ' + str(go_key)
             else:
                 bioitem_key = (dbxref.dbxref_id, 'ORPHAN')
                 bioitem = None if bioitem_key not in key_to_bioitem else key_to_bioitem[bioitem_key]
@@ -267,7 +274,7 @@ def convert_evidence(old_session_maker, new_session_maker, chunk_size):
                 goref_id_to_dbxrefs[old_gorefdbxref.goref_id] = [old_gorefdbxref]
             
         key_to_gpad_info = {}    
-        for x in break_up_file('data/gp_association.559292_sgd'):
+        for x in break_up_file('src/sgd/convert/data/gp_association.559292_sgd'):
             new_data = create_evidence_from_gpad(x, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_source, eco_id_to_experiment, key_to_bioconcept, 
                               chebi_id_to_chemical, sgdid_to_bioentity)
             if new_data is not None:
@@ -431,9 +438,9 @@ def convert_paragraph(old_session_maker, new_session_maker):
 
 # ---------------------Convert------------------------------
 def convert(old_session_maker, new_session_maker):
-    #convert_evidence(old_session_maker, new_session_maker, 100)
+    convert_evidence(old_session_maker, new_session_maker, 100)
 
-    convert_paragraph(old_session_maker, new_session_maker)
+    #convert_paragraph(old_session_maker, new_session_maker)
     
     #from src.sgd.model.nex.bioconcept import Go
     #from src.sgd.model.nex.evidence import Goevidence

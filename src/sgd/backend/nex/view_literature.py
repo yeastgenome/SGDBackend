@@ -1,8 +1,14 @@
+from math import ceil
+
+from sqlalchemy import func
+
 from src.sgd.backend.nex import DBSession, query_limit
 from src.sgd.backend.nex.query_tools import get_bioentity_references
+from src.sgd.model.nex.archive import ArchiveLiteratureevidence
 from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.evidence import Literatureevidence
 from src.sgd.model.nex.reference import Reference
+
 
 __author__ = 'kpaskov'
 
@@ -25,22 +31,37 @@ def make_overview(bioent_id):
     return references
 
 # -------------------------------Details---------------------------------------
-def get_literature_evidence(locus_id, reference_id):
+def get_literature_evidence(locus_id, reference_id, topic):
     query = DBSession.query(Literatureevidence)
     if locus_id is not None:
         query = query.filter_by(bioentity_id=locus_id)
     if reference_id is not None:
         query = query.filter_by(reference_id=reference_id)
+    if topic is not None:
+        query = query.filter(func.lower(Literatureevidence.topic) == topic.lower())
 
     if query.count() > query_limit:
         return None
     return query.all()
 
-def make_details(locus_id=None, reference_id=None):
-    if locus_id is None and reference_id is None:
-        return {'Error': 'No locus_id or reference_id given.'}
+def get_archived_literature_evidence(locus_id, reference_id, topic):
+    query = DBSession.query(ArchiveLiteratureevidence)
+    if locus_id is not None:
+        query = query.filter_by(bioentity_id=locus_id)
+    if reference_id is not None:
+        query = query.filter_by(reference_id=reference_id)
+    if topic is not None:
+        query = query.filter(func.lower(ArchiveLiteratureevidence.topic) == topic.lower())
 
-    if locus_id is not None and reference_id is None:
+    if query.count() > query_limit:
+        return None
+    return query.all()
+
+def make_details(locus_id=None, reference_id=None, topic=None):
+    if locus_id is None and reference_id is None and topic is None:
+        return {'Error': 'No locus_id or reference_id or topic given.'}
+
+    if locus_id is not None:
         references = {}
         references['primary'] = make_references(['PRIMARY_LITERATURE'], locus_id)
         references['additional'] = make_references(['ADDITIONAL_LITERATURE'], locus_id)
@@ -50,8 +71,8 @@ def make_details(locus_id=None, reference_id=None):
         references['interaction'] = make_references(['GENINTERACTION', 'PHYSINTERACTION'], locus_id)
         references['regulation'] = make_references(['REGULATION'], locus_id)
         return references
-    else:
-        evidences = get_literature_evidence(locus_id=locus_id, reference_id=reference_id)
+    elif reference_id is not None:
+        evidences = get_literature_evidence(locus_id=locus_id, reference_id=reference_id, topic=topic)
 
         if evidences is None:
             return {'Error': 'Too much data to display.'}
@@ -61,6 +82,17 @@ def make_details(locus_id=None, reference_id=None):
         tables['additional'] = sorted([x.to_json() for x in evidences if x.topic == 'Additional Literature'], key=lambda x: x['bioentity']['display_name'])
         tables['reviews'] = sorted([x.to_json() for x in evidences if x.topic == 'Reviews'], key=lambda x: x['bioentity']['display_name'])
         return tables
+    elif topic is not None:
+        evidences = get_literature_evidence(locus_id=locus_id, reference_id=reference_id, topic=topic)
+        archived_evidences = get_archived_literature_evidence(locus_id=locus_id, reference_id=reference_id, topic=topic)
+        if evidences is None or archived_evidences is None:
+            return {'Error': 'Too much data to display.'}
+        reference_ids = list(set([x.reference_id for x in evidences]) | set([x.reference_id for x in archived_evidences]))
+        num_chunks = int(ceil(1.0*len(reference_ids)/500))
+        references = []
+        for i in range(0, num_chunks):
+            references.extend(DBSession.query(Reference).filter(Reference.id.in_(reference_ids[i*500:(i+1)*500])))
+        return [x.to_semi_full_json() for x in references]
 
 def make_references(bioent_ref_types, bioent_id, only_primary=False):
     references = set()

@@ -45,7 +45,7 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('author_references'))
 
     config.add_route('references_this_week',
-                     '/new/references',
+                     '/references/this_week',
                      view=lambda request: chosen_backend.response_wrapper('references_this_week', request)(
                                 getattr(chosen_backend, 'references_this_week')()),
                      renderer=chosen_backend.get_renderer('references_this_week'))
@@ -357,6 +357,13 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'literature_details')(
                                         reference_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('literature_details'))
+
+    config.add_route('literature_topic_details',
+                     '/topic/{topic}/literature_details',
+                     view=lambda request: chosen_backend.response_wrapper('literature_details', request)(
+                                getattr(chosen_backend, 'literature_details')(
+                                    topic=None if 'topic' not in request.matchdict else request.matchdict['topic'].replace('_', ' '))),
+                     renderer=chosen_backend.get_renderer('literature_details'))
     
     config.add_route('literature_graph', '/locus/{identifier}/literature_graph', 
                      view=lambda request: chosen_backend.response_wrapper('literature_graph', request)(
@@ -463,6 +470,13 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'sequence_details')(
                                         locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('sequence_details'))
+
+    config.add_route('sequence_neighbor_details',
+                     '/locus/{identifier}/neighbor_sequence_details',
+                     view=lambda request: chosen_backend.response_wrapper('neighbor_sequence_details', request)(
+                                getattr(chosen_backend, 'neighbor_sequence_details')(
+                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('neighbor_sequence_details'))
 
     config.add_route('sequence_contig_details',
                      '/contig/{identifier}/sequence_details',

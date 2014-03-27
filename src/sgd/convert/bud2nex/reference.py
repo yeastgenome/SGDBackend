@@ -39,7 +39,7 @@ def create_journal(old_journal, key_to_source):
 
 def convert_journal(old_session_maker, new_session_maker):
     from src.sgd.model.nex.reference import Journal as NewJournal
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.reference import Journal as OldJournal
 
     old_session = None
@@ -122,7 +122,7 @@ def create_book(old_book, key_to_source):
 
 def convert_book(old_session_maker, new_session_maker):
     from src.sgd.model.nex.reference import Book as NewBook
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.reference import Book as OldBook
 
     old_session = None
@@ -203,22 +203,25 @@ def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
     num_chunks = ceil(1.0*count/chunk_size)
     min_id = 0
     for _ in range(0, num_chunks):
-        chunk_of_pubmed_ids = pubmed_ids[min_id:min_id+chunk_size]
-        url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&db=pmc&id='
-        url = url + '&id='.join([str(x) for x in chunk_of_pubmed_ids])
-        r = requests.get(url)
-        xml = str(r.text)
-        pieces = xml.split('<LinkSet>')
-        j = 0
-        for piece in pieces[1:]:
-            pubmed_id = chunk_of_pubmed_ids[j]
-            linksets = piece.split('<LinkSetDb>')
-            pubmed_id_to_central_id[pubmed_id] = None
-            for linkset in linksets[1:]:
-                if '<LinkName>pubmed_pmc</LinkName>' in linkset:
-                    pubmed_central_id = int(linkset[linkset.index('<Id>')+4:linkset.index('</Id>')])
-                    pubmed_id_to_central_id[pubmed_id] = pubmed_central_id
-            j = j+1
+        try:
+            chunk_of_pubmed_ids = pubmed_ids[min_id:min_id+chunk_size]
+            url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&db=pmc&id='
+            url = url + '&id='.join([str(x) for x in chunk_of_pubmed_ids])
+            r = requests.get(url)
+            xml = str(r.text)
+            pieces = xml.split('<LinkSet>')
+            j = 0
+            for piece in pieces[1:]:
+                pubmed_id = chunk_of_pubmed_ids[j]
+                linksets = piece.split('<LinkSetDb>')
+                pubmed_id_to_central_id[pubmed_id] = None
+                for linkset in linksets[1:]:
+                    if '<LinkName>pubmed_pmc</LinkName>' in linkset:
+                        pubmed_central_id = int(linkset[linkset.index('<Id>')+4:linkset.index('</Id>')])
+                        pubmed_id_to_central_id[pubmed_id] = pubmed_central_id
+                j = j+1
+        except:
+            pass
         min_id = min_id + chunk_size
     return pubmed_id_to_central_id
 
@@ -278,7 +281,7 @@ def create_reference(old_reference, key_to_journal, key_to_book, pubmed_id_to_pu
 
 def convert_reference(old_session_maker, new_session_maker, chunk_size):
     from src.sgd.model.nex.reference import Reference as NewReference, Book as NewBook, Journal as NewJournal
-    from src.sgd.model.nex.evelements import Source as NewSource
+    from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.reference import Reference as OldReference, Ref_URL as OldRefUrl
 
     old_session = None

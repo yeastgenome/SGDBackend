@@ -347,7 +347,7 @@ def convert_coding_evidence(new_session_maker):
         new_session = new_session_maker()
 
         #Values to check
-        values_to_check = []
+        values_to_check = ['residues']
 
         #Grab current objects
         current_objs = new_session.query(DNAsequenceevidence).filter_by(dna_type='CODING').all()
@@ -362,12 +362,12 @@ def convert_coding_evidence(new_session_maker):
         untouched_obj_ids = set(id_to_current_obj.keys())
         already_seen = set()
 
-        for filename, strain in protein_sequence_files:
+        for filename, strain in coding_sequence_files:
             strain = key_to_strain[strain.replace('.', '')]
             convert_strain_coding_evidence(filename, strain, key_to_source, key_to_bioentity, values_to_check, new_session, output_creator, id_to_current_obj, key_to_current_obj, already_seen, untouched_obj_ids)
 
         #Delete untouched objs
-        for untouched_obj_id  in untouched_obj_ids:
+        for untouched_obj_id in untouched_obj_ids:
             new_session.delete(id_to_current_obj[untouched_obj_id])
             output_creator.removed()
 
@@ -381,7 +381,7 @@ def convert_coding_evidence(new_session_maker):
         new_session.close()
 
 # --------------------- DNA Convert Sequence Label ---------------------
-def create_dna_sequence_label(row, parent_id_to_evidence):
+def create_dna_sequence_tag(row, parent_id_to_evidence):
     from src.sgd.model.nex.evidence import DNAsequencetag
     pieces = row.split('\t')
     if len(pieces) == 9:
@@ -409,30 +409,30 @@ def create_dna_sequence_label(row, parent_id_to_evidence):
                 return [DNAsequencetag(evidence, class_type, relative_start, relative_end, chromosomal_start, chromosomal_end, phase, None, None)]
     return []
 
-def get_parent_id_to_dna_evidence(f, strain, key_to_source, key_to_bioentity, sequence_library, key_to_evidence):
+def get_parent_id_to_dna_evidence(f, strain, key_to_source, key_to_bioentity, key_to_bioitem, sequence_library, key_to_evidence):
     parent_id_to_evidence = {}
     for line in f:
         pieces = line.split('\t')
         if len(pieces) == 9:
             info = get_info(pieces[8])
-            evidence = create_dna_evidence(line, strain, key_to_source, key_to_sequence, key_to_bioentity, sequence_library)
+            evidence = create_dna_evidence(line, strain, key_to_source, key_to_bioentity, key_to_bioitem, sequence_library)
             if len(evidence) == 1 and 'ID' in info:
                 parent_id_to_evidence[info['ID']] = key_to_evidence[evidence[0].unique_key()]
     return parent_id_to_evidence
 
-def convert_strain_dna_sequence_label(filename, strain, values_to_check, new_session, output_creator, id_to_current_obj, key_to_current_obj, already_seen, untouched_obj_ids, key_to_source, key_to_bioentity, key_to_evidence):
+def convert_strain_dna_sequence_tag(filename, strain, values_to_check, new_session, output_creator, id_to_current_obj, key_to_current_obj, already_seen, untouched_obj_ids, key_to_source, key_to_bioentity, key_to_bioitem, key_to_evidence):
     f = open(filename, 'r')
     sequence_library = get_dna_sequence_library(f)
     f.close()
 
     f = open(filename, 'r')
-    parent_id_to_evidence = get_parent_id_to_dna_evidence(f, strain, key_to_source, key_to_bioentity, sequence_library, key_to_evidence)
+    parent_id_to_evidence = get_parent_id_to_dna_evidence(f, strain, key_to_source, key_to_bioentity, key_to_bioitem, sequence_library, key_to_evidence)
     f.close()
 
     f = open(filename, 'r')
     for old_obj in f:
         #Convert old objects into new ones
-        newly_created_objs = create_dna_sequence_label(old_obj, parent_id_to_evidence)
+        newly_created_objs = create_dna_sequence_tag(old_obj, parent_id_to_evidence)
 
         if newly_created_objs is not None:
             #Edit or add new objects
@@ -453,10 +453,11 @@ def convert_strain_dna_sequence_label(filename, strain, values_to_check, new_ses
     output_creator.finished()
     new_session.commit()
 
-def convert_dna_sequence_label(new_session_maker):
+def convert_dna_sequence_tag(new_session_maker):
     from src.sgd.model.nex.evidence import DNAsequenceevidence, DNAsequencetag
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.model.nex.bioentity import Bioentity
+    from src.sgd.model.nex.bioitem import Contig
 
     new_session = None
     log = logging.getLogger('convert.sequence.sequencetags')
@@ -471,8 +472,8 @@ def convert_dna_sequence_label(new_session_maker):
         #Grab cached dictionaries
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Bioentity).all()])
+        key_to_bioitem = dict([(x.unique_key(), x) for x in new_session.query(Contig).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in new_session.query(Strain).all()])
-        key_to_evidence = dict([(x.unique_key(), x) for x in new_session.query(DNAsequenceevidence).all()])
 
         #Grab current objects
         current_objs = new_session.query(DNAsequencetag).all()
@@ -483,9 +484,10 @@ def convert_dna_sequence_label(new_session_maker):
         already_seen = set()
 
         for filename, strain in sequence_files:
-            convert_strain_dna_sequence_label(filename, key_to_strain[strain],
+            key_to_evidence = dict([(x.unique_key(), x) for x in new_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter_by(strain_id=key_to_strain[strain].id).all()])
+            convert_strain_dna_sequence_tag(filename, key_to_strain[strain],
                                       values_to_check, new_session, output_creator, id_to_current_obj, key_to_current_obj, already_seen, untouched_obj_ids,
-                                      key_to_source, key_to_bioentity, key_to_evidence)
+                                      key_to_source, key_to_bioentity, key_to_bioitem, key_to_evidence)
 
         #Delete untouched objs
         for untouched_obj_id  in untouched_obj_ids:
@@ -724,8 +726,8 @@ def convert(old_session_maker, new_session_maker):
     #from src.sgd.model.nex.bioitem import Contig
     #convert_disambigs(new_session_maker, Contig, ['id', 'format_name'], 'BIOITEM', 'CONTIG', 'convert.contig.disambigs', 1000)
 
-    convert_dna_evidence(new_session_maker)
-    convert_coding_evidence(new_session_maker)
-    #convert_dna_sequence_label(new_session_maker)
+    #convert_dna_evidence(new_session_maker)
+    #convert_coding_evidence(new_session_maker)
+    convert_dna_sequence_tag(new_session_maker)
 
-    convert_protein_evidence(old_session_maker, new_session_maker)
+    #convert_protein_evidence(old_session_maker, new_session_maker)

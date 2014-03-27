@@ -399,7 +399,7 @@ class SGDBackend(BackendInterface):
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_literature.make_overview(locus_id))
 
-    def literature_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
+    def literature_details(self, locus_identifier=None, reference_identifier=None, topic=None, are_ids=False):
         import view_literature
         if are_ids:
             locus_id = locus_identifier
@@ -407,7 +407,7 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
-        return json.dumps(view_literature.make_details(locus_id=locus_id, reference_id=reference_id))
+        return json.dumps(view_literature.make_details(locus_id=locus_id, reference_id=reference_id, topic=topic))
     
     def literature_graph(self, locus_identifier, are_ids=False):
         import view_literature
@@ -581,15 +581,23 @@ class SGDBackend(BackendInterface):
             contig_id = contig_identifier
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-            contig_id = None if contig_identifier is None else get_obj_id(contig_identifier, class_type='SEQUENCE', subclass_type='CONTIG')
+            contig_id = None if contig_identifier is None else get_obj_id(contig_identifier, class_type='BIOITEM', subclass_type='CONTIG')
         return json.dumps(view_sequence.make_details(locus_id=locus_id, contig_id=contig_id))
+
+    def neighbor_sequence_details(self, locus_identifier=None, are_ids=False):
+        import view_sequence
+        if are_ids:
+            locus_id = locus_identifier
+        else:
+            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return json.dumps(view_sequence.make_neighbor_details(locus_id=locus_id))
 
     def contig(self, contig_identifier, are_ids=False):
         import view_sequence
         if are_ids:
             contig_id = contig_identifier
         else:
-            contig_id = get_obj_id(contig_identifier, class_type='SEQUENCE', subclass_type='CONTIG')
+            contig_id = get_obj_id(contig_identifier, class_type='BIOITEM', subclass_type='CONTIG')
         return None if contig_id is None else json.dumps(view_sequence.make_contig(contig_id))
     
     #Misc

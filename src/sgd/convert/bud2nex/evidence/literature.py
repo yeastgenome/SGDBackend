@@ -1,6 +1,8 @@
 import logging
 import sys
 
+from sqlalchemy.orm import joinedload
+
 from src.sgd.convert import OutputCreator, create_or_update, page_query
 
 
@@ -9,36 +11,40 @@ __author__ = 'kpaskov'
 #1.23.14 Maitenance (sgd-dev): 1:15:15
 
 # --------------------- Convert Literature Evidence ---------------------
-def create_litevidence(old_litevidence, id_to_reference, id_to_bioentity, key_to_source, id_to_litguide):
+def create_litevidence(litguide, id_to_reference, id_to_bioentity, key_to_source):
     from src.sgd.model.nex.evidence import Literatureevidence
     from src.sgd.model.nex.archive import ArchiveLiteratureevidence
 
-    litguide = id_to_litguide[old_litevidence.litguide_id]
-    
     reference_id = litguide.reference_id
     reference = None if reference_id not in id_to_reference else id_to_reference[reference_id]
-
-    bioentity_id = old_litevidence.feature_id
-    bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
-    
     if reference is None:
         print 'Reference not found: ' + str(reference_id)
         return []
-    if bioentity is None:
-        print 'Bioentity not found: ' + str(bioentity_id)
-        return []
-    
     source = key_to_source['SGD']
-    
     topic = litguide.topic
 
-    if topic in {'Additional Literature', 'Primary Literature', 'Omics', 'Reviews'}:
-        new_litevidence = Literatureevidence(source, reference, bioentity, topic,
-                                           old_litevidence.date_created, old_litevidence.created_by)
+    literature_evidences = []
+    if len(litguide.litguide_features) > 0:
+        for litguide_feature in litguide.litguide_features:
+            bioentity_id = litguide_feature.feature_id
+            bioentity = None if bioentity_id not in id_to_bioentity else id_to_bioentity[bioentity_id]
+            if bioentity is None:
+                print 'Bioentity not found: ' + str(bioentity_id)
+            else:
+                if topic in {'Additional Literature', 'Primary Literature', 'Omics', 'Reviews'}:
+                    literature_evidences.append(Literatureevidence(source, reference, bioentity, topic,
+                                                       litguide_feature.date_created, litguide_feature.created_by))
+                else:
+                    literature_evidences.append(ArchiveLiteratureevidence(source, reference, bioentity, topic,
+                                                       litguide_feature.date_created, litguide_feature.created_by))
     else:
-        new_litevidence = ArchiveLiteratureevidence(source, reference, bioentity, topic,
-                                           old_litevidence.date_created, old_litevidence.created_by)
-    return [new_litevidence]
+        if topic in {'Additional Literature', 'Primary Literature', 'Omics', 'Reviews'}:
+            literature_evidences.append(Literatureevidence(source, reference, None, topic,
+                                                       litguide.date_created, litguide.created_by))
+        else:
+            literature_evidences.append(ArchiveLiteratureevidence(source, reference, None, topic,
+                                                       litguide.date_created, litguide.created_by))
+    return literature_evidences
 
 def convert_litevidence(old_session_maker, new_session_maker, chunk_size):
     from src.sgd.model.nex.evidence import Literatureevidence as NewLiteratureevidence
@@ -46,7 +52,7 @@ def convert_litevidence(old_session_maker, new_session_maker, chunk_size):
     from src.sgd.model.nex.reference import Reference as NewReference
     from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.nex.bioentity import Bioentity as NewBioentity
-    from src.sgd.model.bud.reference import LitguideFeat as OldLitguideFeat, LitGuide as OldLitguide
+    from src.sgd.model.bud.reference import Litguide as OldLitguide
 
     old_session = None
     new_session = None
@@ -76,12 +82,10 @@ def convert_litevidence(old_session_maker, new_session_maker, chunk_size):
         id_to_reference = dict([(x.id, x) for x in new_session.query(NewReference).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
 
-        id_to_litguide = dict([(x.id, x) for x in old_session.query(OldLitguide).all()])
-
         count = 0
-        for old_obj in page_query(old_session.query(OldLitguideFeat), chunk_size):
+        for old_obj in page_query(old_session.query(OldLitguide).options(joinedload(OldLitguide.litguide_features)), chunk_size):
             #Convert old objects into new ones
-            newly_created_objs = create_litevidence(old_obj, id_to_reference, id_to_bioentity, key_to_source, id_to_litguide)
+            newly_created_objs = create_litevidence(old_obj, id_to_reference, id_to_bioentity, key_to_source)
                     
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:
@@ -101,7 +105,7 @@ def convert_litevidence(old_session_maker, new_session_maker, chunk_size):
                 new_session.commit()
                             
         #Delete untouched objs
-        for untouched_obj_id  in untouched_obj_ids:
+        for untouched_obj_id in untouched_obj_ids:
             new_session.delete(id_to_current_obj[untouched_obj_id])
             output_creator.removed()
     
