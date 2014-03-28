@@ -59,6 +59,23 @@ def make_details(locus_id=None, contig_id=None):
 
     return tables
 
+def make_neighbor_details(locus_id=None):
+    if locus_id is None:
+        return {'Error': 'No locus_id given.'}
+
+    dnaseqevidences = get_dnasequence_evidence(locus_id=locus_id, contig_id=None)
+
+    if dnaseqevidences is None:
+        return {'Error': 'Too much data to display.'}
+
+    neighbors = {}
+    genomic_dnaseqevidences = [x for x in dnaseqevidences if x.dna_type == 'GENOMIC']
+    for evidence in genomic_dnaseqevidences:
+        neighbor_evidences = DBSession.query(DNAsequenceevidence).filter_by(contig_id=evidence.contig_id).filter(DNAsequenceevidence.start >= evidence.start - 5000).filter(DNAsequenceevidence.end <= evidence.end + 5000).all()
+        neighbors[evidence.strain.format_name] = [x.to_json() for x in sorted(neighbor_evidences, key=lambda x: x.start)]
+
+    return neighbors
+
 # -------------------------------Details---------------------------------------
 def get_binding_evidence(locus_id):
     query = DBSession.query(Bindingevidence)

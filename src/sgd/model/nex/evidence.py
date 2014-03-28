@@ -238,7 +238,7 @@ class Goevidence(Evidence):
         self.bioentity_id = bioentity.id
         self.bioconcept_id = bioconcept.id
         self.conditions = conditions
-        self.conditions_key = ';'.join(x.format_name for x in sorted(conditions, key=lambda x: x.format_name))
+        self.conditions_key = None if len(conditions) == 0 else ';'.join(x.format_name for x in sorted(conditions, key=lambda x: x.format_name))
 
     def unique_key(self):
         return (self.class_type, self.bioentity_id, self.bioconcept_id, self.go_evidence, self.reference_id, self.conditions_key)
@@ -405,7 +405,7 @@ class Literatureevidence(Evidence):
         self.experiment_id = None
         self.note = None
 
-        self.bioentity_id = bioentity.id
+        self.bioentity_id = None if bioentity is None else bioentity.id
         self.topic = topic
 
     def unique_key(self):
@@ -510,7 +510,7 @@ class Phenotypeevidence(Evidence):
         self.strain_details = strain_details
         self.experiment_details = experiment_details
         self.conditions = conditions
-        self.conditions_key = ';'.join(x.format_name for x in sorted(conditions, key=lambda x: x.format_name))
+        self.conditions_key = None if len(conditions) == 0 else ';'.join(x.format_name for x in sorted(conditions, key=lambda x: x.format_name))
 
     def unique_key(self):
         return (self.class_type, self.bioentity_id, self.bioconcept_id, self.strain_id, self.experiment_id, self.reference_id, self.experiment_details, self.mutant_type, self.conditions_key)
@@ -668,7 +668,7 @@ class Regulationevidence(Evidence):
         self.bioentity1_id = bioentity1.id
         self.bioentity2_id = bioentity2.id
         self.conditions = conditions
-        self.conditions_key = ';'.join(x.format_name for x in sorted(conditions, key=lambda x: x.format_name))
+        self.conditions_key = None if len(conditions) == 0 else ';'.join(x.format_name for x in sorted(conditions, key=lambda x: x.format_name))
 
     def unique_key(self):
         return (self.class_type, self.bioentity1_id, self.bioentity2_id, self.experiment_id, self.reference_id, self.conditions_key)
@@ -919,13 +919,14 @@ class DNAsequenceevidence(Evidence):
         self.strand = strand
 
     def unique_key(self):
-        return (self.class_type, self.bioentity_id, self.strain_id)
+        return (self.class_type, self.bioentity_id, self.strain_id, self.dna_type)
 
     def to_json(self):
         obj_json = Evidence.to_json(self)
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
         obj_json['bioentity'] = self.bioentity.to_json()
+        obj_json['bioentity']['locus_type'] = self.bioentity.locus_type
         obj_json['residues'] = self.residues
         obj_json['contig'] = None if self.contig_id is None else self.contig.to_json()
         obj_json['start'] = self.start
@@ -1087,7 +1088,7 @@ class Proteinsequenceevidence(Evidence):
         self.val = residues.count('V')
 
     def unique_key(self):
-        return (self.class_type, self.bioentity_id, self.strain_id)
+        return (self.class_type, self.bioentity_id, self.strain_id, self.protein_type)
 
     def to_json(self):
         obj_json = Evidence.to_json(self)

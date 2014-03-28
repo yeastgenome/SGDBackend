@@ -252,7 +252,7 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def sequence_details(self, locus_identifier):
+    def sequence_details(self, locus_identifier, contig_identifier):
         return None
 
     @abstractmethod

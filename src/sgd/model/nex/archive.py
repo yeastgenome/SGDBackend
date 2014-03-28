@@ -40,7 +40,7 @@ class ArchiveLiteratureevidence(Evidence):
         self.experiment_id = None
         self.note = None
 
-        self.bioentity_id = bioentity.id
+        self.bioentity_id = None if bioentity is None else bioentity.id
         self.topic = topic
 
     def unique_key(self):
