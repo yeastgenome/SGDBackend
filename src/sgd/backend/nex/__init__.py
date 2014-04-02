@@ -49,14 +49,9 @@ class SGDBackend(BackendInterface):
         return f
 
     #Bioentity
-    def all_bioentities(self, min_id, max_id):
+    def all_bioentities(self, chunk_size, offset):
         from src.sgd.model.nex.bioentity import Bioentity
-        query = DBSession.query(Bioentity)
-        if min_id is not None:
-            query = query.filter(Bioentity.id >= min_id)
-        if max_id is not None:
-            query = query.filter(Bioentity.id < max_id)
-        return json.dumps([x.to_json() for x in query.all()])
+        return json.dumps([x.to_json() for x in DBSession.query(Bioentity).limit(chunk_size).offset(offset).all()])
     
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity
@@ -104,15 +99,10 @@ class SGDBackend(BackendInterface):
         return json.dumps([x.to_json() for x in query.all()])
 
     #Bioconcept
-    def all_bioconcepts(self, min_id, max_id):
+    def all_bioconcepts(self, chunk_size, offset):
         from src.sgd.model.nex.bioconcept import Bioconcept
-        query = DBSession.query(Bioconcept)
-        if min_id is not None:
-            query = query.filter(Bioconcept.id >= min_id)
-        if max_id is not None:
-            query = query.filter(Bioconcept.id < max_id)
-        return json.dumps([x.to_json() for x in query.all()])
-    
+        return json.dumps([x.to_json() for x in DBSession.query(Bioconcept).limit(chunk_size).offset(offset).all()])
+
     #Chemical
     def chemical(self, chemical_identifier, are_ids=False):
         from src.sgd.model.nex.bioitem import Chemical
@@ -122,14 +112,9 @@ class SGDBackend(BackendInterface):
             chemical_id = get_obj_id(chemical_identifier, class_type='BIOITEM', subclass_type='CHEMICAL')
         return None if chemical_id is None else json.dumps(DBSession.query(Chemical).filter_by(id=chemical_id).first().to_full_json())
 
-    def all_chemicals(self, min_id, max_id):
-        from src.sgd.model.nex.bioitem import Chemical
-        query = DBSession.query(Chemical)
-        if min_id is not None:
-            query = query.filter(Chemical.id >= min_id)
-        if max_id is not None:
-            query = query.filter(Chemical.id < max_id)
-        return json.dumps([x.to_json() for x in query.all()])
+    def all_bioitems(self, chunk_size, offset):
+        from src.sgd.model.nex.bioitem import Bioitem
+        return json.dumps([x.to_json() for x in DBSession.query(Bioitem).limit(chunk_size).offset(offset).all()])
 
     #Domain
     def domain(self, domain_identifier, are_ids=False):

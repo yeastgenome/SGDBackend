@@ -1,10 +1,14 @@
+import logging
 import sys
 
-from src.sgd.convert import ConverterInterface
+from src.sgd.convert import ConverterInterface, config, prepare_schema_connection, check_session_maker, set_up_logging
 from src.sgd.convert.nex2perf import convert_core
 from src.sgd.convert.nex2perf.convert_data import convert_data
 from src.sgd.backend.nex import SGDBackend
+from src.sgd.convert.transformers import do_conversion, make_backend_starter, Json2Obj, Obj2CorePerfDB, \
+    OutputTransformer
 from src.sgd.model import perf
+
 
 __author__ = 'kpaskov'
 
@@ -33,12 +37,38 @@ class NexPerfConverter(ConverterInterface):
             self.log.exception( "Unexpected error:" + str(sys.exc_info()[0]) )
 
     def convert_basic(self):
-        self.core_wrapper(convert_core.convert_bioentity, 1000)
+        self.convert_bioentity()
+
         self.core_wrapper(convert_core.convert_bioconcept, 10000)
         self.core_wrapper(convert_core.convert_chemical, 1000)
         self.core_wrapper(convert_core.convert_author, None)
         self.core_wrapper(convert_core.convert_disambig, 10000)
         self.core_wrapper(convert_core.convert_ontology, None)
+
+    def convert_bioentity(self):
+        from src.sgd.model.perf.core import Bioentity
+        do_conversion(make_backend_starter(self.backend, 'all_bioentities', 1000),
+                          [Json2Obj(),
+                          Obj2CorePerfDB(self.session_maker, Bioentity),
+                          OutputTransformer(logging.getLogger('convert.nex2perf.bioentity'), 1000)],
+                          delete_untouched=True, commit=True)
+
+    def convert_bioconcept(self):
+        from src.sgd.model.perf.core import Bioconcept
+
+        do_conversion(make_backend_starter(self.backend, 'all_bioconcepts', 1000),
+                          [Json2Obj(),
+                          Obj2CorePerfDB(self.session_maker, Bioconcept),
+                          OutputTransformer(logging.getLogger('convert.nex2perf.bioconcept'), 1000)],
+                          delete_untouched=True, commit=True)
+
+    def convert_bioitem(self):
+        from src.sgd.model.perf.core import Bioitem
+        do_conversion(make_backend_starter(self.backend, 'all_bioitems', 1000),
+                          [Json2Obj(),
+                          Obj2CorePerfDB(self.session_maker, Bioitem),
+                          OutputTransformer(logging.getLogger('convert.nex2perf.bioitem'), 1000)],
+                          delete_untouched=True, commit=True)
 
     def convert_basic_continued(self):
         from src.sgd.model.perf.author_data import AuthorDetails
@@ -176,9 +206,12 @@ class NexPerfConverter(ConverterInterface):
         self.data_wrapper(BioentityDetails, "DOMAIN", 'bioentity_id', lambda x: self.backend.protein_domain_details(locus_identifier=x, are_ids=True), 'protein_domain_details', locus_ids, 1000)
         self.data_wrapper(BioentityDetails, "BINDING", 'bioentity_id', lambda x: self.backend.binding_site_details(locus_identifier=x, are_ids=True), 'binding_site_details', locus_ids, 1000)
 
-if __name__ == "__main__":
-    from src.sgd.convert import config, prepare_schema_connection, check_session_maker, set_up_logging
+    def convert_complex(self):
+        pass
+    def convert_sequence(self):
+        pass
 
+if __name__ == "__main__":
     if len(sys.argv) == 4:
         nex_dbhost = sys.argv[1]
         perf_dbhost = sys.argv[2]

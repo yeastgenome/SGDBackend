@@ -41,7 +41,7 @@ class BioconceptCount(Base, EqualityByIDMixin):
     gene_count = Column('genecount', Integer)
     class_type = Column('subclass', String)
     
-    bioconcept = relationship(Bioconcept, backref=backref("count", uselist=False, lazy="joined"))
+    bioconcept = relationship(Bioconcept, backref=backref("count", uselist=False, passive_deletes=True))
     
     def __init__(self, bioconcept, genecount, child_gene_count):
         self.id = bioconcept.id

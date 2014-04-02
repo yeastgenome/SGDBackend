@@ -1,12 +1,12 @@
 from src.sgd.convert import config
-from src.sgd.convert.bud2nex import BudNexConverter
+from src.sgd.convert.nex2perf import NexPerfConverter
 
 __author__ = 'kpaskov'
 
 if __name__ == "__main__":   
     #Pastry -> Dev_nex
-    pastry_dev_converter = BudNexConverter(config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS,
-                                    config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+    #pastry_dev_converter = BudNexConverter(config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS,
+    #                                config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
 
     #pastry_dev_converter.convert_protein_domain()
     #pastry_dev_converter.convert_daily()
@@ -15,9 +15,9 @@ if __name__ == "__main__":
     #pastry_dev_converter.convert_evelements()
     #pastry_dev_converter.convert_reference()
     #pastry_dev_converter.convert_bioentity()
-    from src.sgd.convert import bud2nex
+    #from src.sgd.convert import bud2nex
     #pastry_dev_converter.wrapper(convert_bioconcept.convert)
-    pastry_dev_converter.wrapper(bud2nex.evidence.sequence.convert)
+    #pastry_dev_converter.wrapper(bud2nex.bioitem.convert)
     #pastry_dev_converter.convert_bioitem()
     #pastry_dev_converter.convert_chemical()
 
@@ -40,8 +40,10 @@ if __name__ == "__main__":
 
 
     #Dev_nex -> Dev_perf
-    #dev_perf_converter = NexPerfConverter(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS,
-    #                                 config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    dev_perf_converter = NexPerfConverter(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS,
+                                     config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    dev_perf_converter.convert_bioitem()
+
     #dev_perf_converter.convert_daily()
     #dev_perf_converter.convert_bioentity()
     #dev_perf_converter.convert_bioconcept()

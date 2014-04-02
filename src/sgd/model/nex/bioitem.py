@@ -4,13 +4,13 @@ from sqlalchemy.schema import Column, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, create_format_name
+from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from src.sgd.model.nex.misc import Source, Relation, Strain
 
 
 __author__ = 'kpaskov'
 
-class Bioitem(Base, EqualityByIDMixin):
+class Bioitem(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'bioitem'
     
     id = Column('bioitem_id', Integer, primary_key=True)
@@ -28,13 +28,15 @@ class Bioitem(Base, EqualityByIDMixin):
     source = relationship(Source, uselist=False)
     
     __mapper_args__ = {'polymorphic_on': class_type}
+    __eq_values__ = ['display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type']
+    __eq_fks__ = ['source']
     
     def __init__(self, display_name, format_name, class_type, link, source, description, bioitem_type, date_created, created_by):
         self.display_name = display_name
         self.format_name = format_name
         self.class_type = class_type
         self.link = link
-        self.source_id = source.id
+        self.source_id = None if source is None else source.id
         self.description = description
         self.bioitem_type = bioitem_type
         self.date_created = date_created
@@ -50,8 +52,19 @@ class Bioitem(Base, EqualityByIDMixin):
             'link': self.link,
             'id': self.id,
             'class_type': self.class_type,
-            'bioitem_type': self.bioitem_type
+            'bioitem_type': self.bioitem_type,
+            'description': self.description,
+            'source': {'id': self.source_id} if self.source is None else self.source.to_json()
             }
+
+    @classmethod
+    def from_json(cls, obj_json):
+        obj = cls(obj_json.get('display_name'), obj_json.get('format_name'),
+                  obj_json.get('class_type'), obj_json.get('link'), None, obj_json.get('description'),
+                  obj_json.get('bioitem_type'), obj_json.get('date_created'), obj_json.get('created_by'))
+        obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
+        obj.id = obj_json.get('id')
+        return obj
 
 class Bioitemrelation(Relation):
     __tablename__ = 'bioitemrelation'
@@ -83,21 +96,30 @@ class Domain(Bioitem):
                        'inherit_condition': id == Bioitem.id}
     
     def __init__(self, display_name, source, description, bioitem_type,
-                 interpro_id, interpro_description, external_link):
+                 interpro_id, interpro_description, external_link, date_created=None, created_by=None):
         format_name = create_format_name(display_name)
         Bioitem.__init__(self, display_name, format_name, 'DOMAIN', '/domain/' + format_name + '/overview', source, description, bioitem_type, None, None)
         self.interpro_id = interpro_id
         self.interpro_description = interpro_description
         self.external_link = external_link
+        self.date_created = date_created
+        self.created_by = created_by
 
-    def to_full_json(self):
-        obj_json = self.to_json()
+    def to_json(self):
+        obj_json = Bioitem.to_json(self)
         obj_json['interpro_description'] = self.interpro_description
-        obj_json['description'] = self.description
-        obj_json['source'] = self.source.to_json()
         obj_json['external_link'] = self.external_link
         obj_json['interpro_id'] = self.interpro_id
         return obj_json
+
+    @classmethod
+    def from_json(cls, obj_json):
+        obj = cls(obj_json.get('display_name'), None, obj_json.get('description'),
+                  obj_json.get('bioitem_type'), obj_json.get('interpro_id'), obj_json.get('interpro_description'),
+                  obj_json.get('external_link'), obj_json.get('date_created'), obj_json.get('created_by'))
+        obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
+        obj.id = obj_json.get('id')
+        return obj
 
 class Chemical(Bioitem):
     __tablename__ = "chemicalbioitem"
@@ -114,11 +136,18 @@ class Chemical(Bioitem):
         self.format_name = create_format_name(display_name.lower())[:95]
         self.chebi_id = chebi_id
 
-    def to_full_json(self):
-        obj_json = self.to_json()
+    def to_json(self):
+        obj_json = Bioitem.to_json(self)
         obj_json['chebi_id'] = self.chebi_id
-        obj_json['description'] = self.description
         return obj_json
+
+    @classmethod
+    def from_json(cls, obj_json):
+        obj = cls(obj_json.get('display_name'), None, obj_json.get('chebi_id'), obj_json.get('description'),
+                  obj_json.get('date_created'), obj_json.get('created_by'))
+        obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
+        obj.id = obj_json.get('id')
+        return obj
 
 class Contig(Bioitem):
     __tablename__ = "contigbioitem"
@@ -134,20 +163,27 @@ class Contig(Bioitem):
                        'inherit_condition': id==Bioitem.id}
 
     def __init__(self, display_name, source, residues, strain):
-        format_name = strain.format_name + '_' + display_name
-        Bioitem.__init__(self, display_name, format_name, 'CONTIG', '/contig/' + format_name + '/overview', source, None, None, None, None)
+        format_name = None if strain is None else strain.format_name + '_' + display_name
+        link = None if strain is None else '/contig/' + format_name + '/overview'
+        Bioitem.__init__(self, display_name, format_name, 'CONTIG', link, source, None, None, None, None)
         self.residues = residues
-        self.strain_id = strain.id
+        self.strain_id = None if strain is None else strain.id
 
     def to_json(self):
         obj_json = Bioitem.to_json(self)
         obj_json['strain'] = self.strain.to_json()
-        return obj_json
-
-    def to_full_json(self):
-        obj_json = self.to_json()
         obj_json['residues'] = self.residues
         return obj_json
+
+    @classmethod
+    def from_json(cls, obj_json):
+        obj = cls(obj_json.get('display_name'), None, obj_json.get('residues'), None)
+        obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
+        obj.source_id = None if 'strain' not in obj_json else obj_json['strain']['id']
+        obj.id = obj_json.get('id')
+        obj.format_name = obj_json.get('format_name')
+        obj.link = obj_json.get('link')
+        return obj
 
 class Allele(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'ALLELE',
@@ -156,10 +192,24 @@ class Allele(Bioitem):
     def __init__(self, display_name, source, description):
         Bioitem.__init__(self, display_name, create_format_name(display_name), 'ALLELE', None, source, description, None, None, None)
 
+    @classmethod
+    def from_json(cls, obj_json):
+        obj = cls(obj_json.get('display_name'), None, obj_json.get('description'))
+        obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
+        obj.id = obj_json.get('id')
+        return obj
+
 class Orphanbioitem(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'ORPHAN',
                        'inherit_condition': id == Bioitem.id}
 
     def __init__(self, display_name, link, source, description, bioitem_type):
         Bioitem.__init__(self, display_name, create_format_name(display_name), 'ORPHAN', link, source, description, bioitem_type, None, None)
+
+    @classmethod
+    def from_json(cls, obj_json):
+        obj = cls(obj_json.get('display_name'), obj_json.get('link'), None, obj_json.get('description'), obj_json.get('bioitem_type'))
+        obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
+        obj.id = obj_json.get('id')
+        return obj
 

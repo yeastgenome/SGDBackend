@@ -98,7 +98,7 @@ class Source(Base, EqualityByIDMixin):
         return self.format_name
 
     def to_json(self):
-        return self.display_name
+        return {'display_name': self.display_name, 'id': self.id}
        
 class Url(Base, EqualityByIDMixin):
     __tablename__ = 'url'
