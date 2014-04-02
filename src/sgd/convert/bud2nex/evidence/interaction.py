@@ -14,13 +14,107 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import or_, func
 
 from src.sgd.convert import OutputCreator, create_format_name, create_or_update
+from src.sgd.convert.transformers import TransformerInterface
 
 
 __author__ = 'kpaskov'
 
 
-
 # --------------------- Convert Genetic Interaction Evidence ---------------------
+class BudObj2InteractionObj(TransformerInterface):
+
+    def __init__(self, old_session_maker, new_session_maker):
+        self.old_session = old_session_maker()
+        self.new_session = new_session_maker()
+
+        from src.sgd.model.nex.misc import Experiment, Source
+        from src.sgd.model.nex.reference import Reference
+        from src.sgd.model.nex.bioentity import Bioentity
+        from src.sgd.model.nex.bioconcept import Phenotype, create_phenotype_format_name
+        from src.sgd.model.bud.interaction import Interaction_Feature as OldInteractionFeature, Interaction_Phenotype as OldInteractionPhenotype
+
+        #Grab cached dictionaries
+        self.key_to_experiment = dict([(x.unique_key(), x) for x in self.new_session.query(Experiment).all()])
+        self.key_to_phenotype = dict([(x.unique_key(), x) for x in self.new_session.query(Phenotype).all()])
+        self.id_to_bioent = dict([(x.id, x) for x in self.new_session.query(Bioentity).all()])
+        self.id_to_reference = dict([(x.id, x) for x in self.new_session.query(Reference).all()])
+        self.key_to_source = dict([(x.unique_key(), x) for x in self.new_session.query(Source).all()])
+
+        #Get interaction_features
+        inter_id_to_feature_ids = {}
+        min_inter_feat_id = self.old_session.query(func.min(OldInteractionFeature.id)).first()[0]
+        max_inter_feat_id = self.old_session.query(func.max(OldInteractionFeature.id)).first()[0]
+        num_inter_feat_chunks = ceil(1.0*(max_inter_feat_id-min_inter_feat_id)/10000)
+        for i in range(num_inter_feat_chunks):
+            inter_min_id = min_inter_feat_id + i*10000
+            inter_max_id = min_inter_feat_id + (i+1)*10000
+            for interaction_feature in self.old_session.query(OldInteractionFeature).filter(OldInteractionFeature.id >= inter_min_id).filter(OldInteractionFeature.id < inter_max_id).all():
+                inter_id = interaction_feature.interaction_id
+                feature_id = interaction_feature.feature_id
+                if inter_id in inter_id_to_feature_ids:
+                    inter_id_to_feature_ids[inter_id] = (inter_id_to_feature_ids[inter_id], (feature_id, interaction_feature.action))
+                else:
+                    inter_id_to_feature_ids[inter_id] = (feature_id, interaction_feature.action)
+
+        #Get interaction_phenotypes
+        inter_id_to_phenotype_key = {}
+        inter_id_to_mutant_type = {}
+        for phenotype_interaction in self.old_session.query(OldInteractionPhenotype).options(joinedload('phenotype')).all():
+            old_phenotype = phenotype_interaction.phenotype
+            phenotype_key = (create_phenotype_format_name(old_phenotype.observable, old_phenotype.qualifier), 'PHENOTYPE')
+            inter_id_to_phenotype_key[phenotype_interaction.interaction_id] = phenotype_key
+            inter_id_to_mutant_type[phenotype_interaction.interaction_id] = old_phenotype.mutant_type
+
+    def convert(self, bud_obj):
+        reference_ids = bud_obj.reference_ids
+        if len(reference_ids) != 1:
+            print 'Too many references'
+            return []
+        reference_id = reference_ids[0]
+        reference = None if reference_id not in self.id_to_reference else self.id_to_reference[reference_id]
+
+        note = bud_obj.interaction_references[0].note
+
+        bioent_ids = inter_id_to_feature_ids[old_interaction.id]
+        if bioent_ids[0][0] < bioent_ids[1][0]:
+            bioent1_id = bioent_ids[0][0]
+            bioent2_id = bioent_ids[1][0]
+            bait_hit = bioent_ids[0][1] + '-' + bioent_ids[1][1]
+        else:
+            bioent1_id = bioent_ids[1][0]
+            bioent2_id = bioent_ids[0][0]
+            bait_hit = bioent_ids[1][1] + '-' + bioent_ids[0][1]
+
+        bioentity1 = None if bioent1_id not in id_to_bioents else id_to_bioents[bioent1_id]
+        bioentity2 = None if bioent2_id not in id_to_bioents else id_to_bioents[bioent2_id]
+
+        experiment_key = create_format_name(old_interaction.experiment_type)
+        experiment = None if experiment_key not in key_to_experiment else key_to_experiment[experiment_key]
+
+        source_key = bud_obj.source
+        source = None if source_key not in key_to_source else key_to_source[source_key]
+
+        if bud_obj.interaction_type == 'genetic interactions':
+            phenotype_key = None if bud_obj.id not in inter_id_to_phenotype_key else inter_id_to_phenotype_key[old_interaction.id]
+            mutant_type = None if bud_obj.id not in inter_id_to_mutant_type else inter_id_to_mutant_type[old_interaction.id]
+            phenotype = None if phenotype_key is None else key_to_phenotype[phenotype_key]
+
+            return Geninteractionevidence(source, reference, experiment,
+                                                                bioentity1, bioentity2, phenotype, mutant_type,
+                                                                bud_obj.annotation_type, bait_hit, note,
+                                                                bud_obj.date_created, bud_obj.created_by)
+            return [new_genetic_interevidence]
+        elif bud_obj.interaction_type == 'physical interactions':
+            return Physinteractionevidence(source, reference, experiment,
+                                                                bioentity1, bioentity2,
+                                                                bud_obj.modification, bud_obj.annotation_type, bait_hit, note,
+                                                                bud_obj.date_created, bud_obj.created_by)
+        return None
+
+    def finished(self, delete_untouched=False, commit=False):
+        self.session.close()
+        return None
+
 def create_interevidence(old_interaction, key_to_experiment, key_to_phenotype,
                          id_to_reference, id_to_bioents, key_to_source, 
                          inter_id_to_feature_ids, inter_id_to_phenotype_key, inter_id_to_mutant_type):

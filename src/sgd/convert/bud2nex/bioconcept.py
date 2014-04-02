@@ -1,7 +1,4 @@
-import logging
-
-from src.sgd.convert.transformers import TransformerInterface, do_conversion, make_db_starter, Obj2NexDB, \
-    OutputTransformer, make_multi_starter, make_mode_db_starter
+from src.sgd.convert.transformers import TransformerInterface, make_db_starter, make_multi_starter, make_mode_db_starter
 
 
 __author__ = 'kpaskov'
@@ -9,6 +6,16 @@ __author__ = 'kpaskov'
 #1.23.14 Maitenance (sgd-dev): 1:04
 
 # --------------------- Convert Phenotype ---------------------
+def make_phenotype_starter(bud_session):
+    from src.sgd.model.bud.cv import CVTerm
+    from src.sgd.model.bud.phenotype import Phenotype, PhenotypeFeature
+
+    chemical_phenotypes = {'chemical compound accumulation', 'chemical compound excretion', 'resistance to chemicals'}
+    return make_multi_starter([make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no == 6), 1000),
+                               make_db_starter(bud_session.query(Phenotype), 1000),
+                               make_mode_db_starter(bud_session.query(PhenotypeFeature).join(PhenotypeFeature.phenotype).filter(Phenotype.observable.in_(chemical_phenotypes)),
+                                                    1000, ['Observable', 'Phenotype'])])
+
 class BudObj2PhenotypeObj(TransformerInterface):
 
     def __init__(self, old_session_maker, new_session_maker):
@@ -134,6 +141,10 @@ def create_phenotype_type(observable):
         return 'cellular'
 
 # --------------------- Convert GO ---------------------
+def make_go_starter(bud_session):
+    from src.sgd.model.bud.go import Go
+    return make_db_starter(bud_session.query(Go), 1000)
+
 class BudObj2GoObj(TransformerInterface):
 
     def __init__(self, new_session_maker):
@@ -158,6 +169,10 @@ class BudObj2GoObj(TransformerInterface):
 abbrev_to_go_aspect = {'C':'cellular component', 'F':'molecular function', 'P':'biological process'}
 
 # --------------------- Convert EC ---------------------
+def make_ecnumber_starter(bud_session):
+    from src.sgd.model.bud.general import Dbxref
+    return make_db_starter(bud_session.query(Dbxref).filter(Dbxref.dbxref_type == 'EC number'), 1000)
+
 class BudObj2ECNumberObj(TransformerInterface):
 
     def __init__(self, new_session_maker):
@@ -177,36 +192,3 @@ class BudObj2ECNumberObj(TransformerInterface):
     def finished(self, delete_untouched=False, commit=False):
         self.new_session.close()
         return None
-
-# ---------------------Convert------------------------------
-# noinspection PyUnresolvedReferences
-def convert(old_session_maker, new_session_maker):
-
-    from src.sgd.model.nex.bioconcept import Phenotype, Go, ECNumber
-    from src.sgd.model.nex.auxiliary import BioconceptCount
-    from src.sgd.model.bud.cv import CVTerm as OldCVTerm
-    from src.sgd.model.bud.phenotype import Phenotype as OldPhenotype, PhenotypeFeature as OldPhenotypeFeature
-    from src.sgd.model.bud.go import Go as OldGo
-    from src.sgd.model.bud.general import Dbxref as OldDbxref
-
-    old_session = old_session_maker()
-
-    do_conversion(make_multi_starter([make_db_starter(old_session.query(OldCVTerm).filter(OldCVTerm.cv_no == 6), 1000),
-                                      make_db_starter(old_session.query(OldPhenotype), 1000),
-                                      make_mode_db_starter(old_session.query(OldPhenotypeFeature).join(OldPhenotypeFeature.phenotype).filter(OldPhenotype.observable.in_({'chemical compound accumulation', 'chemical compound excretion', 'resistance to chemicals'})), 1000, ['Observable', 'Phenotype'])]),
-                  [BudObj2PhenotypeObj(old_session_maker, new_session_maker),
-                  Obj2NexDB(new_session_maker, lambda x: x.query(Phenotype)),
-                  OutputTransformer(logging.getLogger('convert.bud2nex.bioconcept.phenotype'), None)],
-                  delete_untouched=True, commit=True)
-
-    do_conversion(make_db_starter(old_session.query(OldGo), 1000),
-                  [BudObj2GoObj(new_session_maker),
-                  Obj2NexDB(new_session_maker, lambda x: x.query(Go)),
-                  OutputTransformer(logging.getLogger('convert.bud2nex.bioconcept.go'), None)],
-                  delete_untouched=True, commit=True)
-
-    do_conversion(make_db_starter(old_session.query(OldDbxref).filter(OldDbxref.dbxref_type == 'EC number'), 1000),
-                  [BudObj2ECNumberObj(new_session_maker),
-                  Obj2NexDB(new_session_maker, lambda x: x.query(ECNumber)),
-                  OutputTransformer(logging.getLogger('convert.bud2nex.bioconcept.ecnumber'), None)],
-                  delete_untouched=True, commit=True)

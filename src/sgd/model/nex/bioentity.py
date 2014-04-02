@@ -66,6 +66,11 @@ class Bioentity(Base, EqualityByIDMixin, UpdateByJsonMixin):
             'aliases': [x.to_json() for x in self.aliases]
         }
 
+    def to_min_json(self):
+        obj_json = UpdateByJsonMixin.to_min_json(self)
+        obj_json['class_type'] = self.class_type
+        return obj_json
+
     @classmethod
     def from_json(cls, obj_json):
         obj = cls(obj_json.get('id'), obj_json.get('display_name'), obj_json.get('format_name'),

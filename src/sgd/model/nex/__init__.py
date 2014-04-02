@@ -34,5 +34,4 @@ class UpdateByJsonMixin(object):
             'format_name': self.format_name,
             'display_name': self.display_name,
             'link': self.link,
-            'class_type': self.class_type
             }

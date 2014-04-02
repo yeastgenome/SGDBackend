@@ -3,7 +3,9 @@ import sys
 
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert import OutputCreator, read_obo, create_or_update, break_up_file, create_format_name
+from src.sgd.convert import OutputCreator, create_or_update, create_format_name
+from src.sgd.convert.transformers import TransformerInterface, make_multi_starter, make_db_starter, make_file_starter, \
+    make_obo_file_starter
 
 
 __author__ = 'kpaskov'
@@ -14,168 +16,41 @@ __author__ = 'kpaskov'
 #1.23.14 Maitenance (sgd-dev): :06
 
 # --------------------- Convert Experiment ---------------------
-def create_experiment(old_cv_term, key_to_source):
-    from src.sgd.model.nex.evelements import Experiment as NewExperiment
+def make_experiment_starter(bud_session):
+    from src.sgd.model.bud.cv import CVTerm
+    return make_multi_starter([make_obo_file_starter('src/sgd/convert/data/eco.obo'),
+                               make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==7), 1000),
+                               make_file_starter('src/sgd/convert/data/yeastmine_regulation.tsv', row_f=lambda x: (x[4], x[5], x[12])),
+                               make_file_starter('src/sgd/convert/data/yetfasco_data.txt', delimeter=';', row_f=lambda x: (x[9][1:-1], None, 'YeTFaSCo')),
+                               make_file_starter('src/sgd/convert/data/phosphosites.txt', delimeter=';', row_f=lambda x: [(y, None, 'PhosphoGRID') for y in ([] if len(x) <= 3 else x[3].split('|'))])])
 
-    display_name = old_cv_term.name
-    description = old_cv_term.definition
+class BudObj2ExperimentObj(TransformerInterface):
 
-    source = key_to_source['SGD']
-    new_experiment = NewExperiment(display_name, source, description, None,
-                               old_cv_term.date_created, old_cv_term.created_by)
-    return [new_experiment]
+    def __init__(self, session_maker):
+        self.session = session_maker()
 
-def create_experiment_from_reg_row(display_name, eco_id, source_key, key_to_source):
-    from src.sgd.model.nex.evelements import Experiment
+        from src.sgd.model.nex.misc import Source
+        self.key_to_source = dict([(x.unique_key(), x) for x in self.session.query(Source).all()])
 
-    if display_name is None:
-        display_name = eco_id
+    def convert(self, bud_obj):
+        from src.sgd.model.bud.cv import CVTerm
+        from src.sgd.model.nex.misc import Experiment
 
-    source = None if source_key.strip() not in key_to_source else key_to_source[source_key.strip()]
-    new_experiment = Experiment(display_name, source, None, eco_id, None, None)
-    return [new_experiment]
+        if isinstance(bud_obj, CVTerm):
+            return Experiment(bud_obj.name, self.key_to_source['SGD'], bud_obj.definition, None,
+                                       bud_obj.date_created, bud_obj.created_by)
+        elif isinstance(bud_obj, tuple):
+            display_name, eco_id, source_key = bud_obj
+            if display_name is None:
+                display_name = eco_id
+            source = None if source_key.strip() not in self.key_to_source else self.key_to_source[source_key.strip()]
+            return Experiment(display_name, source, None, eco_id, None, None)
+        elif isinstance(bud_obj, dict):
+            return Experiment(bud_obj['name'], self.key_to_source['ECO'], None if 'def' not in bud_obj else bud_obj['def'], bud_obj['id'], None, None)
 
-def create_experiment_from_binding_row(display_name, key_to_source):
-    from src.sgd.model.nex.evelements import Experiment
-
-    source = key_to_source['YeTFaSCo']
-    new_experiment = Experiment(display_name,source, None, None, None, None)
-    return [new_experiment]
-
-def create_experiment_from_eco(eco_term, key_to_source):
-    from src.sgd.model.nex.evelements import Experiment
-    source = key_to_source['ECO']
-    new_experiment = Experiment(eco_term['name'], source, None if 'def' not in eco_term else eco_term['def'], eco_term['id'], None, None)
-    return [new_experiment]
-
-def convert_experiment(old_session_maker, new_session_maker):
-    from src.sgd.model.nex.evelements import Experiment as NewExperiment, Source as NewSource
-    from src.sgd.model.bud.cv import CVTerm as OldCVTerm
-
-    old_session = None
-    new_session = None
-    log = logging.getLogger('convert.evelements.experiment')
-    output_creator = OutputCreator(log)
-
-    try:
-        #Grab all current objects
-        new_session = new_session_maker()
-        current_objs = new_session.query(NewExperiment).all()
-        id_to_current_obj = dict([(x.id, x) for x in current_objs])
-        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
-
-        #Values to check
-        values_to_check = ['display_name', 'link', 'description', 'eco_id', 'source_id']
-
-        untouched_obj_ids = set(id_to_current_obj.keys())
-
-        already_seen_objs = set()
-
-        #Grab old objects
-        old_session = old_session_maker()
-        old_objs = old_session.query(OldCVTerm).filter(OldCVTerm.cv_no==7).all()
-
-        #Cache
-        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
-
-        for old_obj in read_obo('data/eco.obo'):
-            #Convert old objects into new ones
-            newly_created_objs = create_experiment_from_eco(old_obj, key_to_source)
-
-            #Edit or add new objects
-            for newly_created_obj in newly_created_objs:
-                if newly_created_obj.unique_key() not in already_seen_objs:
-                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-
-                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_id.id)
-                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_key.id)
-                    already_seen_objs.add(newly_created_obj.unique_key())
-
-        for old_obj in old_objs:
-            #Convert old objects into new ones
-            newly_created_objs = create_experiment(old_obj, key_to_source)
-
-            #Edit or add new objects
-            for newly_created_obj in newly_created_objs:
-                if newly_created_obj.unique_key() not in already_seen_objs:
-                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-
-                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_id.id)
-                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_key.id)
-                    already_seen_objs.add(newly_created_obj.unique_key())
-
-        #Get experiments from regulation files
-        experiment_names = set()
-
-        rows = break_up_file('data/yeastmine_regulation.tsv')
-        experiment_names.update([(row[4], row[5], row[12]) for row in rows])
-
-        for experiment_name, eco_id, source_key in experiment_names:
-            newly_created_objs = create_experiment_from_reg_row(experiment_name, eco_id, source_key, key_to_source)
-            for newly_created_obj in newly_created_objs:
-                if newly_created_obj.unique_key() not in already_seen_objs:
-                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-
-                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_id.id)
-                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_key.id)
-                    already_seen_objs.add(newly_created_obj.unique_key())
-
-        experiment_names = set()
-        #Add experiments from binding files
-        rows = break_up_file('data/yetfasco_data.txt', delimeter=';')
-        for row in rows:
-            if len(row) < 10:
-                print row
-        experiment_names.update([row[9][1:-1] for row in rows])
-
-        rows = break_up_file('data/phosphosites.txt')
-        for row in rows:
-            if len(row) == 19:
-                experiment_names.update(row[3].split('|'))
-
-        for experiment_name in experiment_names:
-            newly_created_objs = create_experiment_from_binding_row(experiment_name, key_to_source)
-            for newly_created_obj in newly_created_objs:
-                if newly_created_obj.unique_key() not in already_seen_objs:
-                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
-                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-
-                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_id.id)
-                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                        untouched_obj_ids.remove(current_obj_by_key.id)
-                    already_seen_objs.add(newly_created_obj.unique_key())
-
-
-
-        #Delete untouched objs
-        for untouched_obj_id  in untouched_obj_ids:
-            new_session.delete(id_to_current_obj[untouched_obj_id])
-            print 'Removed at end'
-            output_creator.removed()
-
-        #Commit
-        output_creator.finished()
-        new_session.commit()
-
-    except Exception:
-        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
-    finally:
-        new_session.close()
-        old_session.close()
+    def finished(self, delete_untouched=False, commit=False):
+        self.session.close()
+        return None
 
 # --------------------- Convert Experiment Alias ---------------------
 def create_experiment_alias(old_cv_term, key_to_experiment, key_to_source):

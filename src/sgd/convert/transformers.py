@@ -23,10 +23,10 @@ class Json2Obj(TransformerInterface):
     def __init__(self):
         from src.sgd.model.nex.bioentity import Locus, Transcript, Protein, Complex
         from src.sgd.model.nex.bioconcept import Phenotype, Go, ECNumber
-        from src.sgd.model.nex.bioitem import Allele, Domain, Chemical, Orphanbioitem, Contig
+        from src.sgd.model.nex.bioitem import Allele, Domain, Chemical, Orphanbioitem
         self.class_type_to_cls = {'LOCUS': Locus, 'TRANSCRIPT': Transcript, 'PROTEIN':Protein, 'COMPLEX': Complex,
-                                  'PHENOTYPE': Phenotype, 'GO': Go, 'EC_NUMBER': ECNumber,
-                                  'ALLELE': Allele, 'DOMAIN': Domain, 'CHEMICAL': Chemical, 'ORPHAN': Orphanbioitem, 'CONTIG': Contig}
+                                  'PHENOTYPE': Phenotype, 'GO': Go, 'ECNUMBER': ECNumber,
+                                  'ALLELE': Allele, 'DOMAIN': Domain, 'CHEMICAL': Chemical, 'ORPHAN': Orphanbioitem}
 
     def convert(self, obj_json):
         class_type = obj_json['class_type']
@@ -43,15 +43,24 @@ class Obj2Json(TransformerInterface):
 
 class Obj2NexDB(TransformerInterface):
 
-    def __init__(self, session_maker, current_obj_query):
+    def __init__(self, session_maker, current_obj_query, name=None):
         self.session = session_maker()
+        self.name = name
         current_objs = current_obj_query(self.session).all()
         self.key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         self.keys_already_seen = set()
+        self.none_count = 0
+        self.added_count = 0
+        self.updated_count = 0
+        self.no_change_count = 0
+        self.duplicate_count = 0
+        self.error_count = 0
+        self.deleted_count = 0
 
     def convert(self, newly_created_obj):
         try:
             if newly_created_obj is None:
+                self.none_count += 1
                 return 'None'
             key = newly_created_obj.unique_key()
             if key not in self.keys_already_seen:
@@ -60,42 +69,62 @@ class Obj2NexDB(TransformerInterface):
                 newly_created_obj_json = newly_created_obj.to_json()
                 if current_obj is None:
                     self.session.add(newly_created_obj)
+                    self.added_count += 1
                     return 'Added'
                 else:
-                    return 'Updated' if current_obj.update(newly_created_obj_json) else 'No Change'
+                    updated = current_obj.update(newly_created_obj_json)
+                    if updated:
+                        self.updated_count += 1
+                        return 'Updated'
+                    else:
+                        self.no_change_count += 1
+                        return 'No Change'
             else:
+                self.duplicate_count += 1
                 return 'Duplicate'
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.error_count += 1
             return 'Error'
 
     def finished(self, delete_untouched=False, commit=False):
-        delete_info = None
         if delete_untouched:
             keys_to_delete = set(self.key_to_current_obj.keys()).difference(self.keys_already_seen)
             for untouched_key in keys_to_delete:
                 self.session.delete(self.key_to_current_obj[untouched_key])
-            delete_info = 'Deleted: ' + str(len(keys_to_delete))
+            self.deleted_count = len(keys_to_delete)
 
+        message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
+                   'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
+                   'None': self.none_count}
         if commit:
             self.session.commit()
         else:
-            delete_info = 'Changes not committed!' if delete_info is None else delete_info + '\nChanges not committed!'
+            message['Warning'] = 'Changes not committed!'
         self.session.close()
-        return delete_info
+        return message if self.name is None else self.name + ': ' + str(message)
 
 class Obj2CorePerfDB(TransformerInterface):
 
-    def __init__(self, session_maker, cls):
+    def __init__(self, session_maker, cls, name=None):
         self.session = session_maker()
         self.cls = cls
+        self.name = name
         current_objs = self.session.query(cls).all()
         self.id_to_current_obj = dict([(x.id, x) for x in current_objs])
         self.ids_already_seen = set()
+        self.none_count = 0
+        self.added_count = 0
+        self.updated_count = 0
+        self.no_change_count = 0
+        self.duplicate_count = 0
+        self.error_count = 0
+        self.deleted_count = 0
 
     def convert(self, newly_created_obj):
         if newly_created_obj is None:
+            self.none_count += 1
             return 'None'
         try:
             identifier = newly_created_obj.id
@@ -105,30 +134,41 @@ class Obj2CorePerfDB(TransformerInterface):
                 newly_created_obj_json = newly_created_obj.to_json()
                 if current_obj is None:
                     self.session.add(self.cls.from_json(newly_created_obj_json))
+                    self.added_count += 1
                     return 'Added'
                 else:
-                    return 'Updated' if current_obj.update(newly_created_obj_json) else 'No Change'
+                    updated = current_obj.update(newly_created_obj_json)
+                    if updated:
+                        self.updated_count += 1
+                        return 'Updated'
+                    else:
+                        self.no_change_count += 1
+                        return 'No Change'
             else:
+                self.duplicate_count += 1
                 return 'Duplicate'
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.error_count += 1
             return 'Error'
 
     def finished(self, delete_untouched=False, commit=False):
-        delete_info = None
         if delete_untouched:
             ids_to_delete = set(self.id_to_current_obj.keys()).difference(self.ids_already_seen)
             for untouched_id in ids_to_delete:
                 self.session.delete(self.id_to_current_obj[untouched_id])
-            delete_info = 'Deleted: ' + str(len(ids_to_delete))
+            self.deleted_count = len(ids_to_delete)
 
+        message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
+                   'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
+                   'None': self.none_count}
         if commit:
             self.session.commit()
         else:
-            delete_info = 'Changes not committed!' if delete_info is None else delete_info + '\nChanges not committed!'
+            message['Warning'] = 'Changes not committed!'
         self.session.close()
-        return delete_info
+        return message if self.name is None else self.name + ': ' + str(message)
 
 class NullTransformer(TransformerInterface):
 
@@ -191,16 +231,44 @@ def make_multi_starter(starters):
                 yield elem
     return multi_starter
 
-def make_file_starter(filename, delimeter='\t', offset=0):
+def make_file_starter(filename, delimeter='\t', offset=0, row_f=None):
     def file_starter():
         count = 0
         f = open(filename, 'r')
         for line in f:
             if count >= offset:
-                yield line.split(delimeter)
+                pieces = line.split(delimeter)
+                if row_f is None:
+                    yield pieces
+                else:
+                    new_pieces = row_f(pieces)
+                    if isinstance(new_pieces, list):
+                        for element in new_pieces:
+                            yield element
+                    else:
+                        yield new_pieces
             count += 1
         f.close()
     return file_starter
+
+def make_obo_file_starter(filename):
+    def obo_file_starter():
+        f = open(filename, 'r')
+        current_term = None
+        for line in f:
+            line = line.strip()
+            if line == '[Term]':
+                if current_term is not None:
+                    yield current_term
+                current_term = {}
+            elif current_term is not None and ': ' in line:
+                pieces = line.split(': ')
+                if pieces[0] in current_term:
+                    current_term[pieces[0]] = [current_term[pieces[0]], pieces[1]]
+                else:
+                    current_term[pieces[0]] = pieces[1]
+        f.close()
+    return obo_file_starter
 
 def make_backend_starter(backend, method, chunk_size):
     def backend_starter():

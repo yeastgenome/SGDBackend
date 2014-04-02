@@ -60,6 +60,11 @@ class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
             'child_count': None if self.count is None else self.count.child_gene_count
         }
 
+    def to_min_json(self):
+        obj_json = UpdateByJsonMixin.to_min_json(self)
+        obj_json['class_type'] = self.class_type
+        return obj_json
+
     @classmethod
     def from_json(cls, obj_json):
         obj = cls(obj_json.get('id'), obj_json.get('display_name'), obj_json.get('format_name'),
@@ -246,4 +251,22 @@ class Phenotype(Bioconcept):
         obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
         return obj
 
+class BioconceptCount(Base, EqualityByIDMixin):
+    __tablename__ = 'aux_bioconcept_count'
+
+    id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key=True)
+    child_gene_count = Column('child_gene_count', Integer)
+    gene_count = Column('genecount', Integer)
+    class_type = Column('subclass', String)
+
+    bioconcept = relationship(Bioconcept, backref=backref("count", uselist=False, passive_deletes=True))
+
+    def __init__(self, bioconcept, genecount, child_gene_count):
+        self.id = bioconcept.id
+        self.genecount = genecount
+        self.class_type = bioconcept.class_type
+        self.child_gene_count = child_gene_count
+
+    def unique_key(self):
+        return self.id
 

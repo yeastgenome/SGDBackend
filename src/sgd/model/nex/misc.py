@@ -3,32 +3,25 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, create_format_name
+from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 
 
 __author__ = 'kpaskov'
 
-class Experiment(Base, EqualityByIDMixin):
-    __tablename__ = 'experiment'
+class Source(Base, EqualityByIDMixin):
+    __tablename__ = 'source'
 
-    id = Column('experiment_id', Integer, primary_key=True)
+    id = Column('source_id', Integer, primary_key = True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
-    link = Column('obj_url', String)
-    source_id = Column('source_id', Integer)
     description = Column('description', String)
-    eco_id = Column('eco_id', String)
-    category = Column('category', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
-    def __init__(self, display_name, source, description, eco_id, date_created, created_by):
+    def __init__(self, display_name, description, date_created, created_by):
         self.display_name = display_name
         self.format_name = create_format_name(display_name)
-        self.link = None
-        self.source_id = source.id
         self.description = description
-        self.eco_id = eco_id
         self.date_created = date_created
         self.created_by = created_by
 
@@ -36,12 +29,80 @@ class Experiment(Base, EqualityByIDMixin):
         return self.format_name
 
     def to_json(self):
-        return {
-            'format_name': self.format_name,
-            'display_name': self.display_name,
-            'link': self.link,
-            'id': self.id,
-            }
+        return {'display_name': self.display_name, 'id': self.id}
+
+eco_id_to_category = {'ECO:0000000': None,
+                      'ECO:0000046': 'expression',
+                      'ECO:0000048': 'expression',
+                      'ECO:0000049': 'expression',
+                      'ECO:0000055': 'expression',
+                      'ECO:0000066': 'binding',
+                      'ECO:0000096': 'binding',
+                      'ECO:0000104': 'expression',
+                      'ECO:0000106': 'expression',
+                      'ECO:0000108': 'expression',
+                      'ECO:0000110': 'expression',
+                      'ECO:0000112': 'expression',
+                      'ECO:0000116': 'expression',
+                      'ECO:0000126': 'expression',
+                      'ECO:0000136': 'binding',
+                      'ECO:0000226': 'binding',
+                      'ECO:0000229': 'binding',
+                      'ECO:0000230': 'binding',
+                      'ECO:0000231': 'expression',
+                      'ECO:0000295': 'expression'}
+
+class Experiment(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    __tablename__ = 'experiment'
+
+    id = Column('experiment_id', Integer, primary_key=True)
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
+    link = Column('obj_url', String)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    description = Column('description', String)
+    eco_id = Column('eco_id', String)
+    category = Column('category', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    source = relationship(Source, uselist=False)
+
+    __eq_values__ = ['display_name', 'format_name', 'link', 'description', 'eco_id', 'category']
+    __eq_fks__ = ['source']
+
+    def __init__(self, display_name, source, description, eco_id, date_created, created_by):
+        self.display_name = display_name
+        self.format_name = create_format_name(display_name)
+        self.link = None
+        self.source_id = None if source is None else source.id
+        self.description = description
+        self.eco_id = eco_id
+        self.date_created = date_created
+        self.created_by = created_by
+
+        if self.eco_id in eco_id_to_category:
+            self.category = eco_id_to_category[self.eco_id]
+
+    def unique_key(self):
+        return self.format_name
+
+    def to_json(self):
+        obj_json = self.to_min_json()
+        obj_json['description'] = self.description
+        obj_json['eco_id'] = self.eco_id
+        obj_json['category'] = self.category
+        obj_json['source'] = None if self.source_id is None else {'id': self.source_id} if self.source is None else self.source.to_json()
+        return obj_json
+
+    @classmethod
+    def from_json(cls, obj_json):
+        obj = cls(obj_json.get('display_name'), None, obj_json.get('description'), obj_json.get('eco_id'),
+                  obj_json.get('date_created'), obj_json.get('created_by'))
+        obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
+        obj.id = obj_json.get('id')
+        return obj
 
 class Strain(Base, EqualityByIDMixin):
     __tablename__ = 'strain'
@@ -76,29 +137,6 @@ class Strain(Base, EqualityByIDMixin):
             'id': self.id,
             'link': self.link
             }
-
-class Source(Base, EqualityByIDMixin):
-    __tablename__ = 'source'
-
-    id = Column('source_id', Integer, primary_key = True)
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
-    description = Column('description', String)
-    date_created = Column('date_created', Date, server_default=FetchedValue())
-    created_by = Column('created_by', String, server_default=FetchedValue())
-
-    def __init__(self, display_name, description, date_created, created_by):
-        self.display_name = display_name
-        self.format_name = create_format_name(display_name)
-        self.description = description
-        self.date_created = date_created
-        self.created_by = created_by
-
-    def unique_key(self):
-        return self.format_name
-
-    def to_json(self):
-        return {'display_name': self.display_name, 'id': self.id}
        
 class Url(Base, EqualityByIDMixin):
     __tablename__ = 'url'

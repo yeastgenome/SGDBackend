@@ -1,10 +1,7 @@
-import logging
-
 from sqlalchemy.orm import joinedload
 
 from src.sgd.convert import break_up_file
-from src.sgd.convert.transformers import TransformerInterface, make_db_starter, make_file_starter, Obj2NexDB, do_conversion, \
-    OutputTransformer
+from src.sgd.convert.transformers import TransformerInterface, make_db_starter, make_file_starter
 
 
 __author__ = 'kpaskov'
@@ -16,6 +13,10 @@ __author__ = 'kpaskov'
 #1.23.14 Maitenance (sgd-dev): :27
 
 # --------------------- Convert Locus ---------------------
+def make_locus_starter(bud_session):
+    from src.sgd.model.bud.feature import Feature
+    return make_db_starter(bud_session.query(Feature).options(joinedload('annotation')), 1000)
+
 class BudObj2LocusObj(TransformerInterface):
 
     def __init__(self, session_maker):
@@ -115,6 +116,9 @@ class BudObj2ProteinObj(TransformerInterface):
         return None
 
 #--------------------- Convert Complex ---------------------
+def make_complex_starter():
+    return make_file_starter('src/sgd/convert/data/go_complexes.txt', offset=2)
+
 class BudObj2ComplexObj(TransformerInterface):
 
     def __init__(self, session_maker):
@@ -140,38 +144,3 @@ class BudObj2ComplexObj(TransformerInterface):
     def finished(self, delete_untouched=False, commit=False):
         self.session.close()
         return None
-
-# ---------------------Convert------------------------------
-def convert(old_session_maker, new_session_maker):
-
-    from src.sgd.model.nex.bioentity import Locus, Transcript, Protein, Complex
-    from src.sgd.model.bud.feature import Feature
-    from src.sgd.model.bud.sequence import ProteinInfo
-
-    old_session = old_session_maker()
-
-    do_conversion(make_db_starter(old_session.query(Feature).options(joinedload('annotation')), 1000),
-                  [BudObj2LocusObj(new_session_maker),
-                   Obj2NexDB(new_session_maker, lambda x: x.query(Locus)),
-                   OutputTransformer(logging.getLogger('convert.bud2nex.bioentity.locus'), None)],
-                  delete_untouched=True, commit=True)
-
-    do_conversion(make_db_starter(old_session.query(ProteinInfo), 1000),
-                  [BudObj2TranscriptObj(new_session_maker),
-                   Obj2NexDB(new_session_maker, lambda x: x.query(Transcript)),
-                   OutputTransformer(logging.getLogger('convert.bud2nex.bioentity.transcript'), None)],
-                   delete_untouched=True, commit=True)
-
-    do_conversion(make_db_starter(old_session.query(ProteinInfo), 1000),
-                  [BudObj2ProteinObj(new_session_maker),
-                   Obj2NexDB(new_session_maker, lambda x: x.query(Protein)),
-                   OutputTransformer(logging.getLogger('convert.bud2nex.bioentity.protein'), None)],
-                   delete_untouched=True, commit=True)
-
-    do_conversion(make_file_starter('src/sgd/convert/data/go_complexes.txt', offset=2),
-                  [BudObj2ComplexObj(new_session_maker),
-                   Obj2NexDB(new_session_maker, lambda x: x.query(Complex)),
-                   OutputTransformer(logging.getLogger('convert.bud2nex.bioentity.complex'), None)],
-                   delete_untouched=True, commit=True)
-
-    old_session.close()

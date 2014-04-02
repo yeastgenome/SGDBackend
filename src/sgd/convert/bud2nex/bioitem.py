@@ -3,13 +3,19 @@ import logging
 from sqlalchemy.sql.expression import or_
 
 from src.sgd.convert import create_format_name
-from src.sgd.convert.transformers import TransformerInterface, make_multi_starter, do_conversion, make_db_starter, \
-    Obj2NexDB, OutputTransformer, make_file_starter
+from src.sgd.convert.transformers import TransformerInterface, make_multi_starter, make_db_starter, \
+    make_file_starter
 
 
 __author__ = 'kpaskov'
 
 #--------------------- Convert Orphans ---------------------
+def make_orphan_starter(bud_session):
+    from src.sgd.model.bud.phenotype import ExperimentProperty
+    from src.sgd.model.bud.go import GorefDbxref
+    return make_multi_starter([make_db_starter(bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Reporter'), 1000),
+                               make_db_starter(bud_session.query(GorefDbxref), 1000)])
+
 class BudObj2OrphanObj(TransformerInterface):
 
     def __init__(self, session_maker):
@@ -77,6 +83,10 @@ class BudObj2OrphanObj(TransformerInterface):
         return None
 
 #--------------------- Convert Allele ---------------------
+def make_allele_starter(bud_session):
+    from src.sgd.model.bud.phenotype import ExperimentProperty
+    return make_db_starter(bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Allele'), 1000)
+
 class BudObj2AlleleObj(TransformerInterface):
 
     def __init__(self, session_maker):
@@ -97,6 +107,14 @@ class BudObj2AlleleObj(TransformerInterface):
         return None
 
 # --------------------- Convert Domain ---------------------
+def make_domain_starter(bud_session):
+    from src.sgd.model.bud.sequence import ProteinDetail
+    from src.sgd.model.bud.general import Dbxref
+    return make_multi_starter([make_file_starter('src/sgd/convert/data/yeastmine_protein_domains.tsv'),
+                               make_file_starter('src/sgd/convert/data/TF_family_class_accession04302013.txt'),
+                               make_db_starter(bud_session.query(ProteinDetail), 1000),
+                               make_db_starter(bud_session.query(Dbxref).filter(or_(Dbxref.dbxref_type == 'PANTHER', Dbxref.dbxref_type == 'Prosite')), 1000)])
+
 class BudObj2DomainObj(TransformerInterface):
 
     def __init__(self, session_maker):
@@ -212,6 +230,12 @@ class BudObj2DomainObj(TransformerInterface):
 #1.23.14 Maitenance (sgd-dev): :19
 
 # --------------------- Convert Chemical ---------------------
+def make_chemical_starter(bud_session):
+    from src.sgd.model.bud.cv import CVTerm
+    from src.sgd.model.bud.phenotype import ExperimentProperty
+    return make_multi_starter([make_db_starter(bud_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')), 1000),
+                               make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no == 3), 1000)])
+
 class BudObj2ChemicalObj(TransformerInterface):
 
     def __init__(self, session_maker):
@@ -240,7 +264,7 @@ class BudObj2ChemicalObj(TransformerInterface):
         return None
 
 # --------------------- Convert Contig ---------------------
-class BudObj2ChemicalObj(TransformerInterface):
+class BudObj2ContigObj(TransformerInterface):
 
     def __init__(self, session_maker):
         self.session = session_maker()
@@ -331,44 +355,3 @@ def convert_contig(new_session_maker):
         log.exception('Unexpected error:' + str(sys.exc_info()[0]))
     finally:
         new_session.close()
-
-# ---------------------Convert------------------------------
-def convert(old_session_maker, new_session_maker):
-
-    from src.sgd.model.nex.bioitem import Orphanbioitem, Allele, Domain, Chemical
-    from src.sgd.model.bud.phenotype import ExperimentProperty
-    from src.sgd.model.bud.go import GorefDbxref
-    from src.sgd.model.bud.sequence import ProteinDetail
-    from src.sgd.model.bud.general import Dbxref
-    from src.sgd.model.bud.cv import CVTerm
-
-    old_session = old_session_maker()
-
-    do_conversion(make_multi_starter([make_db_starter(old_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Reporter'), 1000),
-                                      make_db_starter(old_session.query(GorefDbxref), 1000)]),
-                  [BudObj2OrphanObj(new_session_maker),
-                   Obj2NexDB(new_session_maker, lambda x: x.query(Orphanbioitem)),
-                   OutputTransformer(logging.getLogger('convert.bud2nex.bioitem.orphan'), None)],
-                  delete_untouched=True, commit=True)
-
-    do_conversion(make_db_starter(old_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Allele'), 1000),
-                  [BudObj2AlleleObj(new_session_maker),
-                   Obj2NexDB(new_session_maker, lambda x: x.query(Allele)),
-                   OutputTransformer(logging.getLogger('convert.bud2nex.bioitem.allele'), None)],
-                  delete_untouched=True, commit=True)
-
-    do_conversion(make_multi_starter([make_file_starter('src/sgd/convert/data/yeastmine_protein_domains.tsv'),
-                                      make_file_starter('src/sgd/convert/data/TF_family_class_accession04302013.txt'),
-                                      make_db_starter(old_session.query(ProteinDetail), 1000),
-                                      make_db_starter(old_session.query(Dbxref).filter(or_(Dbxref.dbxref_type == 'PANTHER', Dbxref.dbxref_type == 'Prosite')), 1000)]),
-                  [BudObj2DomainObj(new_session_maker),
-                   Obj2NexDB(new_session_maker, lambda x: x.query(Domain)),
-                   OutputTransformer(logging.getLogger('convert.bud2nex.bioitem.domain'), None)],
-                  delete_untouched=True, commit=True)
-
-    do_conversion(make_multi_starter([make_db_starter(old_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')), 1000),
-                                      make_db_starter(old_session.query(CVTerm).filter(CVTerm.cv_no == 3), 1000)]),
-                  [BudObj2ChemicalObj(new_session_maker),
-                   Obj2NexDB(new_session_maker, lambda x: x.query(Chemical)),
-                   OutputTransformer(logging.getLogger('convert.bud2nex.bioitem.chemical'), None)],
-                  delete_untouched=True, commit=True)

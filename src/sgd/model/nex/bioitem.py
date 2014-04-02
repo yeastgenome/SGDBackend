@@ -57,6 +57,11 @@ class Bioitem(Base, EqualityByIDMixin, UpdateByJsonMixin):
             'source': {'id': self.source_id} if self.source is None else self.source.to_json()
             }
 
+    def to_min_json(self):
+        obj_json = UpdateByJsonMixin.to_min_json(self)
+        obj_json['class_type'] = self.class_type
+        return obj_json
+
     @classmethod
     def from_json(cls, obj_json):
         obj = cls(obj_json.get('display_name'), obj_json.get('format_name'),
@@ -171,7 +176,7 @@ class Contig(Bioitem):
 
     def to_json(self):
         obj_json = Bioitem.to_json(self)
-        obj_json['strain'] = self.strain.to_json()
+        obj_json['strain'] = None if self.strain_id is None else self.strain.to_json()
         obj_json['residues'] = self.residues
         return obj_json
 

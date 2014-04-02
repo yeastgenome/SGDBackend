@@ -10,7 +10,7 @@ __author__ = 'kpaskov'
 
 #Recorded times:
 #First Load (sgd-ng1): 28:31
-#Maitenance (sgd-ng1): 
+#Maitenance (sgd-ng1):
 
 # --------------------- Convert Evidence ---------------------
 def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, key_to_source, key_to_strain):

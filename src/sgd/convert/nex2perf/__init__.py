@@ -50,7 +50,7 @@ class NexPerfConverter(ConverterInterface):
         do_conversion(make_backend_starter(self.backend, 'all_bioentities', 1000),
                           [Json2Obj(),
                           Obj2CorePerfDB(self.session_maker, Bioentity),
-                          OutputTransformer(logging.getLogger('convert.nex2perf.bioentity'), 1000)],
+                          OutputTransformer(logging.getLogger('convert.nex2perf.bioentity'), 10000)],
                           delete_untouched=True, commit=True)
 
     def convert_bioconcept(self):
@@ -59,7 +59,7 @@ class NexPerfConverter(ConverterInterface):
         do_conversion(make_backend_starter(self.backend, 'all_bioconcepts', 1000),
                           [Json2Obj(),
                           Obj2CorePerfDB(self.session_maker, Bioconcept),
-                          OutputTransformer(logging.getLogger('convert.nex2perf.bioconcept'), 1000)],
+                          OutputTransformer(logging.getLogger('convert.nex2perf.bioconcept'), 10000)],
                           delete_untouched=True, commit=True)
 
     def convert_bioitem(self):
@@ -67,7 +67,7 @@ class NexPerfConverter(ConverterInterface):
         do_conversion(make_backend_starter(self.backend, 'all_bioitems', 1000),
                           [Json2Obj(),
                           Obj2CorePerfDB(self.session_maker, Bioitem),
-                          OutputTransformer(logging.getLogger('convert.nex2perf.bioitem'), 1000)],
+                          OutputTransformer(logging.getLogger('convert.nex2perf.bioitem'), 10000)],
                           delete_untouched=True, commit=True)
 
     def convert_basic_continued(self):
