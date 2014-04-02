@@ -59,7 +59,7 @@ class SGDBackend(BackendInterface):
         bioentities = []
         for i in range(0, num_chunks):
             bioentities.extend(DBSession.query(Bioentity).filter(Bioentity.id.in_(bioent_ids[i*500:(i+1)*500])).all())
-        return json.dumps([x.to_full_json() for x in bioentities])
+        return json.dumps([x.to_json() for x in bioentities])
     
     #Locus
     def locus(self, locus_identifier, are_ids=False):
@@ -69,7 +69,7 @@ class SGDBackend(BackendInterface):
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(DBSession.query(Locus).filter_by(id=locus_id).first().to_full_json())
+        return None if locus_id is None else json.dumps(DBSession.query(Locus).filter_by(id=locus_id).first().to_json())
 
     def locus_alias(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Bioentityalias
@@ -110,7 +110,7 @@ class SGDBackend(BackendInterface):
             chemical_id = chemical_identifier
         else:
             chemical_id = get_obj_id(chemical_identifier, class_type='BIOITEM', subclass_type='CHEMICAL')
-        return None if chemical_id is None else json.dumps(DBSession.query(Chemical).filter_by(id=chemical_id).first().to_full_json())
+        return None if chemical_id is None else json.dumps(DBSession.query(Chemical).filter_by(id=chemical_id).first().to_json())
 
     def all_bioitems(self, chunk_size, offset):
         from src.sgd.model.nex.bioitem import Bioitem
@@ -123,7 +123,7 @@ class SGDBackend(BackendInterface):
             domain_id = domain_identifier
         else:
             domain_id = get_obj_id(domain_identifier, class_type='BIOITEM', subclass_type='DOMAIN')
-        return None if domain_id is None else json.dumps(DBSession.query(Domain).filter_by(id=domain_id).first().to_full_json())
+        return None if domain_id is None else json.dumps(DBSession.query(Domain).filter_by(id=domain_id).first().to_json())
 
     #ECNumber
     def ec_number(self, ec_number_identifier, are_ids=False):
@@ -132,7 +132,7 @@ class SGDBackend(BackendInterface):
             ec_number_id = ec_number_identifier
         else:
             ec_number_id = get_obj_id(ec_number_identifier, class_type='BIOCONCEPT', subclass_type='ECNUMBER')
-        return None if ec_number_id is None else json.dumps(DBSession.query(ECNumber).filter_by(id=ec_number_id).first().to_full_json())
+        return None if ec_number_id is None else json.dumps(DBSession.query(ECNumber).filter_by(id=ec_number_id).first().to_json())
 
     def ec_number_ontology_graph(self, ec_number_identifier, are_ids=False):
         from src.sgd.backend.nex import bioconcept_tools
@@ -223,7 +223,7 @@ class SGDBackend(BackendInterface):
             phenotype_id = phenotype_identifier
         else:
             phenotype_id = get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return None if phenotype_id is None else json.dumps(DBSession.query(Phenotype).filter_by(id=phenotype_id).first().to_full_json())
+        return None if phenotype_id is None else json.dumps(DBSession.query(Phenotype).filter_by(id=phenotype_id).first().to_json())
 
     def phenotype_ontology_graph(self, phenotype_identifier, are_ids=False):
         import bioconcept_tools
@@ -292,7 +292,7 @@ class SGDBackend(BackendInterface):
             go_id = go_identifier
         else:
             go_id = get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        return None if go_id is None else json.dumps(DBSession.query(Go).filter_by(id=go_id).first().to_full_json())
+        return None if go_id is None else json.dumps(DBSession.query(Go).filter_by(id=go_id).first().to_json())
 
     def go_ontology_graph(self, go_identifier, are_ids=False):
         import bioconcept_tools
@@ -481,7 +481,7 @@ class SGDBackend(BackendInterface):
             complex_id = complex_identifier
         else:
             complex_id = get_obj_id(complex_identifier, class_type='BIOENTITY', subclass_type='COMPLEX')
-        return None if complex_id is None else json.dumps(DBSession.query(Complex).filter_by(id=complex_id).first().to_full_json())
+        return None if complex_id is None else json.dumps(DBSession.query(Complex).filter_by(id=complex_id).first().to_json())
 
     def complex_details(self, locus_identifier=None, complex_identifier=None, are_ids=False):
         import view_complex
