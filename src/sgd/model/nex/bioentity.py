@@ -137,9 +137,7 @@ class Bioentityrelation(Relation):
                          primaryjoin="Bioentityrelation.child_id==Bioentity.id")
 
     def __init__(self, source, relation_type, parent, child, date_created, created_by):
-        display_name = child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + \
-                       parent.display_name
-        Relation.__init__(self, parent.format_name + '|' + child.format_name, display_name, 'BIOENTITY', source,
+        Relation.__init__(self, str(parent.id )+ '-' + str(child.id), str(parent.id )+ '-' + str(child.id), 'BIOENTITY', source,
                           relation_type, date_created, created_by)
         self.parent_id = parent.id
         self.child_id = child.id
@@ -293,11 +291,12 @@ class Complex(Bioentity):
 
     def to_json(self):
         obj_json = Bioentity.to_json(self)
-        obj_json['go'] = {'id': self.go_id} if self.go is None else self.go.to_json()
+        obj_json['go'] = {'id': self.go_id} if self.go is None else self.go.to_min_json()
         obj_json['cellular_localization'] = self.cellular_localization
         obj_json['sgdid'] = self.sgdid
         obj_json['description'] = self.description
         obj_json['class_type'] = self.class_type
+        obj_json['subcomplexes'] = [x.child.to_min_json() for x in self.children]
         return obj_json
 
     @classmethod

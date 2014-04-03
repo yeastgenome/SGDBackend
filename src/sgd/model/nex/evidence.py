@@ -245,8 +245,10 @@ class Goevidence(Evidence):
 
     def to_json(self):
         obj_json = Evidence.to_json(self)
-        obj_json['bioentity'] = self.bioentity.to_json()
-        obj_json['go'] = self.bioconcept.to_json()
+        obj_json['bioentity'] = self.bioentity.to_min_json()
+        obj_json['go'] = self.bioconcept.to_min_json()
+        obj_json['go']['go_aspect'] = self.bioconcept.go_aspect
+        obj_json['go']['go_id'] = self.bioconcept.go_aspect
         obj_json['code'] = self.go_evidence
         obj_json['method'] = self.annotation_type
         obj_json['qualifier'] = self.qualifier
@@ -793,9 +795,10 @@ class Complexevidence(Evidence):
 
     def to_json(self):
         obj_json = Evidence.to_json(self)
-        obj_json['locus'] = self.bioentity.to_json()
-        obj_json['complex'] = self.complex.to_json()
-        obj_json['go'] = self.go.to_json()
+        obj_json['locus'] = self.bioentity.to_min_json()
+        obj_json['locus']['description'] = self.bioentity.description
+        obj_json['complex'] = self.complex.to_min_json()
+        obj_json['go'] = self.go.to_min_json()
         return obj_json
 
 class ECNumberevidence(Evidence):
@@ -948,7 +951,7 @@ class DNAsequenceevidence(Evidence):
         obj_json['start'] = self.start
         obj_json['end'] = self.end
         obj_json['strand'] = self.strand
-        obj_json['sequence_tags'] = [x.to_json() for x in self.tags]
+        obj_json['sequence_tags'] = [x.to_json() for x in sorted(self.tags, key=lambda x: x.relative_start)]
         obj_json['dna_type'] = self.dna_type
         return obj_json
 

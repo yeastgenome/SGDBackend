@@ -83,8 +83,8 @@ class Bioconceptrelation(Relation):
     child_id = Column('child_id', Integer, ForeignKey(Bioconcept.id))
 
     #Relationships
-    parent = relationship(Bioconcept, uselist=False, backref=backref("children", passive_deletes=True), primaryjoin="Bioconceptrelation.parent_id==Bioconcept.id")
-    child = relationship(Bioconcept, uselist=False, backref=backref("parents", passive_deletes=True), primaryjoin="Bioconceptrelation.child_id==Bioconcept.id")
+    parent = relationship(Bioconcept, uselist=False, backref=backref("children", passive_deletes=True), foreign_keys=[parent_id])
+    child = relationship(Bioconcept, uselist=False, backref=backref("parents", passive_deletes=True), foreign_keys=[child_id])
     
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
                        'inherit_condition': id == Relation.id}

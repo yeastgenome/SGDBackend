@@ -528,14 +528,14 @@ class SGDBackend(BackendInterface):
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_regulation.make_graph(locus_id, filter))
     
-    def regulation_target_enrichment(self, locus_identifier, are_ids=False):
+    def regulation_target_enrichment(self, locus_identifier, filter=None, are_ids=False):
         from src.sgd.backend.nex import view_regulation
         from src.sgd.backend.nex import view_go
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        target_ids = set([x['locus2']['id'] for x in view_regulation.make_details(locus_id=locus_id) if x['locus1']['id'] == locus_id])
+        target_ids = set([x['locus2']['id'] for x in view_regulation.make_details(locus_id=locus_id, filter=filter) if x['locus1']['id'] == locus_id])
         if len(target_ids) > 0:
             return json.dumps(view_go.make_enrichment(target_ids))
         else:

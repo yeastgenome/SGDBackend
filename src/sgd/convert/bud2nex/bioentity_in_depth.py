@@ -139,7 +139,7 @@ def create_alias(old_alias, id_to_bioentity, key_to_source):
     display_name = old_alias.alias_name
     source = key_to_source['SGD']
 
-    new_aliases.append(Bioentityalias(display_name, None, source, old_alias.alias_type, bioentity, 0,
+    new_aliases.append(Bioentityalias(display_name, None, source, None, bioentity, 0,
                                old_alias.date_created, old_alias.created_by))
     return new_aliases
 
@@ -161,8 +161,19 @@ def create_alias_from_dbxref(old_dbxref_feat, id_to_bioentity, key_to_source):
                                old_dbxref_feat.dbxref.date_created, old_dbxref_feat.dbxref.created_by))
     return new_aliases
 
+def create_alias_from_complex(complex):
+    from src.sgd.model.nex.bioentity import Bioentityalias
+
+    new_aliases = []
+
+    for alias in complex.go.aliases:
+        new_aliases.append(Bioentityalias(alias.display_name, alias.link, alias.source, alias.alias_type, alias.bioentity, 1,
+                               alias.date_created, alias.created_by))
+
+    return new_aliases
+
 def convert_alias(old_session_maker, new_session_maker):
-    from src.sgd.model.nex.bioentity import Bioentity as NewBioentity, Bioentityalias as NewBioentityalias
+    from src.sgd.model.nex.bioentity import Bioentity as NewBioentity, Bioentityalias as NewBioentityalias, Complex
     from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.bud.feature import AliasFeature as OldAliasFeature
     from src.sgd.model.bud.general import DbxrefFeat as OldDbxrefFeat
@@ -177,7 +188,7 @@ def convert_alias(old_session_maker, new_session_maker):
         old_session = old_session_maker()
 
         #Grab all current objects
-        current_objs = new_session.query(NewBioentityalias).filter(NewBioentityalias.subclass_type == 'LOCUS').all()
+        current_objs = new_session.query(NewBioentityalias).all()
         id_to_current_obj = dict([(x.id, x) for x in current_objs])
         key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         
@@ -223,6 +234,28 @@ def convert_alias(old_session_maker, new_session_maker):
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_alias_from_dbxref(old_obj, id_to_bioentity, key_to_source)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                if newly_created_obj.unique_key() not in already_seen_obj:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+                else:
+                    print newly_created_obj.unique_key()
+                already_seen_obj.add(newly_created_obj.unique_key())
+
+        #Grab old objects
+        new_complex = new_session.query(Complex).all()
+
+        for old_obj in new_complex:
+            #Convert old objects into new ones
+            newly_created_objs = create_alias_from_complex(old_obj)
 
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:
@@ -426,6 +459,81 @@ def convert_alias_evidence(old_session_maker, new_session_maker):
     finally:
         new_session.close()
         old_session.close()
+
+# --------------------- Convert Relation ---------------------
+def create_relation_from_complex(complex, key_to_source, go_id_to_complex):
+    from src.sgd.model.nex.bioentity import Bioentityrelation
+
+    new_relations = []
+    for child in complex.go.children:
+        if child.child.id in go_id_to_complex:
+            child = go_id_to_complex[child.child.id]
+            new_relations.append(Bioentityrelation(key_to_source['SGD'], 'is a', complex, child, None, None))
+    return new_relations
+
+def convert_relation(new_session_maker):
+    from src.sgd.model.nex.bioentity import Bioentityrelation, Complex
+    from src.sgd.model.nex.misc import Source as Source
+
+    new_session = None
+    log = logging.getLogger('convert.bioentity_in_depth.relations')
+    output_creator = OutputCreator(log)
+
+    try:
+        new_session = new_session_maker()
+
+        #Grab all current objects
+        current_objs = new_session.query(Bioentityrelation).all()
+        id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+
+        #Values to check
+        values_to_check = ['source_id', 'relation_type', 'parent_id', 'child_id']
+
+        untouched_obj_ids = set(id_to_current_obj.keys())
+        already_seen_obj = set()
+
+        #Grab cached dictionaries
+        complexes = new_session.query(Complex).all()
+        go_id_to_complex = dict([(x.go.id, x) for x in complexes])
+        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
+
+        for old_obj in complexes:
+            #Convert old objects into new ones
+            newly_created_objs = create_relation_from_complex(old_obj, key_to_source, go_id_to_complex)
+
+            #Edit or add new objects
+            for newly_created_obj in newly_created_objs:
+                if newly_created_obj.unique_key() not in already_seen_obj:
+                    current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
+                    current_obj_by_key = None if newly_created_obj.unique_key() not in key_to_current_obj else key_to_current_obj[newly_created_obj.unique_key()]
+                    create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
+
+                    if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_id.id)
+                    if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
+                        untouched_obj_ids.remove(current_obj_by_key.id)
+                else:
+                    print newly_created_obj.unique_key()
+                already_seen_obj.add(newly_created_obj.unique_key())
+
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+
+        #Delete untouched objs
+        for untouched_obj_id in untouched_obj_ids:
+            new_session.delete(id_to_current_obj[untouched_obj_id])
+            output_creator.removed()
+
+        #Commit
+        output_creator.finished()
+        new_session.commit()
+
+    except Exception:
+        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
+    finally:
+        new_session.close()
 
 # --------------------- Convert Url ---------------------
 def create_url(old_feat_url, old_webdisplay, id_to_bioentity, key_to_source):
@@ -640,9 +748,11 @@ def convert_url(old_session_maker, new_session_maker, chunk_size):
 # ---------------------Convert------------------------------
 def convert(old_session_maker, new_session_maker):
 
-    #convert_alias(old_session_maker, new_session_maker)
+    convert_alias(old_session_maker, new_session_maker)
 
-    convert_alias_evidence(old_session_maker, new_session_maker)
+    #convert_relation(new_session_maker)
+
+    #convert_alias_evidence(old_session_maker, new_session_maker)
     
     #convert_url(old_session_maker, new_session_maker, 1000)
         

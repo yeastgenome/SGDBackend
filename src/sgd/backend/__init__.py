@@ -318,10 +318,11 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('regulation_details'))
     
     config.add_route('regulation_target_enrichment', 
-                     '/locus/{identifier}/regulation_target_enrichment', 
+                     '/locus/{identifier}/regulation_target_enrichment/{filter}',
                      view=lambda request: chosen_backend.response_wrapper('regulation_target_enrichment', request)(
                                 getattr(chosen_backend, 'regulation_target_enrichment')(
-                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'],
+                                        filter = None if 'filter' not in request.matchdict else request.matchdict['filter'])),
                      renderer=chosen_backend.get_renderer('regulation_target_enrichment'))
     
     config.add_route('regulation_graph', 
