@@ -1,6 +1,7 @@
-from src.sgd.model.nex.bioentity import Locus, Protein
+from src.sgd.model.nex.bioentity import Locus
 from src.sgd.model.nex.bioitem import Domain
-from src.sgd.model.nex.evidence import Domainevidence, Phosphorylationevidence, Proteinexperimentevidence
+from src.sgd.model.nex.evidence import Domainevidence, Phosphorylationevidence, Proteinexperimentevidence, \
+    Bioentityevidence
 from src.sgd.backend.nex import DBSession, query_limit
 
 __author__ = 'kpaskov'
@@ -39,35 +40,20 @@ def make_details(locus_id=None, domain_id=None):
     return [x.to_json() for x in domain_evidences]
 
 # -------------------------------Details---------------------------------------
-def get_phosphorylation_evidence(protein_id):
+def get_phosphorylation_evidence(locus_id):
     query = DBSession.query(Phosphorylationevidence)
-    if protein_id is not None:
-        query = query.filter_by(bioentity_id=protein_id)
+    if locus_id is not None:
+        query = query.filter_by(bioentity_id=locus_id)
 
     if query.count() > query_limit:
         return None
     return query.all()
 
-def get_phosphorylation_evidence_for_locus(locus_id):
-    phosphoevidences = []
-    protein_ids = [x.id for x in DBSession.query(Protein).filter(Protein.locus_id == locus_id).all()]
-    for protein_id in protein_ids:
-        more_evidences = get_phosphorylation_evidence(protein_id=protein_id)
-        if more_evidences is None or len(phosphoevidences) + len(more_evidences) > query_limit:
-            return None
-        phosphoevidences.extend(more_evidences)
-    return phosphoevidences
+def make_phosphorylation_details(locus_id=None):
+    if locus_id is None:
+        return {'Error': 'No locus_id given.'}
 
-def make_phosphorylation_details(locus_id=None, protein_id=None):
-    if locus_id is None and protein_id is None:
-        return {'Error': 'No locus_id or protein_id given.'}
-
-    if protein_id is not None:
-        phospho_evidences = get_phosphorylation_evidence(protein_id=None)
-    else:
-        phospho_evidences = get_phosphorylation_evidence_for_locus(locus_id=locus_id)
-
-    return [x.to_json() for x in sorted(phospho_evidences, key=lambda x: x.site_index)]
+    return [x.to_json() for x in sorted(get_phosphorylation_evidence(locus_id=locus_id), key=lambda x: x.site_index)]
 
 # -------------------------------Details---------------------------------------
 def get_protein_experiment_evidence(locus_id):
@@ -80,9 +66,24 @@ def get_protein_experiment_evidence(locus_id):
     return query.all()
 
 def make_protein_experiment_details(locus_id=None):
-    if locus_id is None and protein_id is None:
-        return {'Error': 'No locus_id or protein_id given.'}
+    if locus_id is None:
+        return {'Error': 'No locus_id given.'}
     return [x.to_json() for x in get_protein_experiment_evidence(locus_id=locus_id)]
+
+# -------------------------------Details---------------------------------------
+def get_bioentity_evidence(locus_id):
+    query = DBSession.query(Bioentityevidence)
+    if locus_id is not None:
+        query = query.filter_by(bioentity_id=locus_id)
+
+    if query.count() > query_limit:
+        return None
+    return query.all()
+
+def make_bioentity_details(locus_id=None):
+    if locus_id is None:
+        return {'Error': 'No locus_id given.'}
+    return [x.to_json() for x in get_bioentity_evidence(locus_id=locus_id)]
 
 # -------------------------------Graph-----------------------------------------
 def create_bioent_node(bioent, is_focus):

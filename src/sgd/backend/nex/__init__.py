@@ -584,6 +584,14 @@ class SGDBackend(BackendInterface):
         else:
             contig_id = get_obj_id(contig_identifier, class_type='BIOITEM', subclass_type='CONTIG')
         return None if contig_id is None else json.dumps(view_sequence.make_contig(contig_id))
+
+    def bioentity_details(self, locus_identifier=None, are_ids=False):
+        import view_protein
+        if are_ids:
+            locus_id = locus_identifier
+        else:
+            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return json.dumps(view_protein.make_bioentity_details(locus_id=locus_id))
     
     #Misc
     def all_disambigs(self, min_id, max_id):

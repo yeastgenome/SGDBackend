@@ -121,7 +121,7 @@ class Bioentitycondition(Condition):
 
     def to_json(self):
         obj_json = Condition.to_json(self)
-        obj_json['obj'] = self.bioentity.to_json()
+        obj_json['obj'] = self.bioentity.to_min_json()
         return obj_json
 
 class Bioconceptcondition(Condition):
@@ -144,7 +144,7 @@ class Bioconceptcondition(Condition):
 
     def to_json(self):
         obj_json = Condition.to_json(self)
-        obj_json['obj'] = self.bioconcept.to_json()
+        obj_json['obj'] = self.bioconcept.to_min_json()
         return obj_json
 
 class Bioitemcondition(Condition):
@@ -167,7 +167,7 @@ class Bioitemcondition(Condition):
 
     def to_json(self):
         obj_json = Condition.to_json(self)
-        obj_json['obj'] = self.bioitem.to_json()
+        obj_json['obj'] = self.bioitem.to_min_json()
         return obj_json
 
 class Chemicalcondition(Bioitemcondition):
@@ -428,7 +428,7 @@ class Literatureevidence(Evidence):
     def to_json(self):
         obj_json = Evidence.to_json(self)
         obj_json['bioentity'] = self.bioentity.to_json()
-        obj_json['reference'] = self.reference.to_semi_full_json()
+        obj_json['reference'] = self.reference.to_semi_json()
         obj_json['topic'] = self.topic
         return obj_json
 
@@ -473,8 +473,8 @@ class Bioentityevidence(Evidence):
 
     def to_json(self):
         obj_json = Evidence.to_json(self)
-        obj_json['bioentity'] = self.bioentity.to_json()
-        obj_json['reference'] = self.reference.to_semi_full_json()
+        obj_json['bioentity'] = self.bioentity.to_min_json()
+        obj_json['reference'] = None if self.reference_id is None else self.reference.to_semi_json()
         obj_json['info_key'] = self.info_key
         obj_json['info_value'] = self.info_value
         return obj_json
@@ -638,6 +638,7 @@ class Domainevidence(Evidence):
         obj_json['domain'] = self.bioitem.to_min_json()
         obj_json['domain']['count'] = len(set([x.bioentity_id for x in self.bioitem.domain_evidences]))
         obj_json['domain']['description'] = self.bioitem.description
+        obj_json['domain']['source'] = self.bioitem.source.to_min_json()
         obj_json['start'] = self.start
         obj_json['end'] = self.end
         obj_json['evalue'] = self.evalue
@@ -940,7 +941,7 @@ class DNAsequenceevidence(Evidence):
         obj_json = Evidence.to_json(self)
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
-        obj_json['bioentity'] = self.bioentity.to_json()
+        obj_json['bioentity'] = self.bioentity.to_min_json()
         obj_json['bioentity']['locus_type'] = self.bioentity.locus_type
         obj_json['residues'] = self.residues
         obj_json['contig'] = None if self.contig_id is None else self.contig.to_json()
@@ -1109,7 +1110,7 @@ class Proteinsequenceevidence(Evidence):
         obj_json = Evidence.to_json(self)
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
-        obj_json['bioentity'] = self.bioentity.to_json()
+        obj_json['bioentity'] = self.bioentity.to_min_json()
         obj_json['residues'] = self.residues
         obj_json['protein_type'] = self.protein_type
         obj_json['pi'] = str(self.pi)
@@ -1165,7 +1166,7 @@ class Phosphorylationevidence(Evidence):
     experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
     note = Column('note', String)
 
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Protein.id))
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
     site_index = Column('site_index', Integer)
     site_residue = Column('site_residue', String)
 
@@ -1174,17 +1175,18 @@ class Phosphorylationevidence(Evidence):
     reference = relationship(Reference, backref=backref('phosphorylation_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('phosphorylation_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('phosphorylation_evidences', passive_deletes=True), uselist=False)
-    bioentity = relationship(Protein, uselist=False, backref='phosphorylation_evidences')
+    bioentity = relationship(Locus, uselist=False, backref='phosphorylation_evidences')
 
     __mapper_args__ = {'polymorphic_identity': "PHOSPHORYLATION",
                        'inherit_condition': id==Evidence.id}
 
-    def __init__(self, source, reference, experiment, bioentity, site_index, site_residue, date_created, created_by):
+    def __init__(self, source, reference, experiment, bioentity, site_index, site_residue, conditions, date_created, created_by):
         Evidence.__init__(self, 'PHOSPHORYLATION', date_created, created_by)
         self.source_id = source.id
         self.reference_id = None if reference is None else reference.id
         self.strain_id = None
         self.experiment_id = None if experiment is None else experiment.id
+        self.conditions = conditions
         self.note = None
 
         self.bioentity_id = bioentity.id
@@ -1192,11 +1194,11 @@ class Phosphorylationevidence(Evidence):
         self.site_residue = site_residue
 
     def unique_key(self):
-        return (self.class_type, self.bioentity_id, self.site_residue, self.site_index, self.reference_id)
+        return (self.class_type, self.bioentity_id, self.site_residue, self.site_index)
 
     def to_json(self):
         obj_json = Evidence.to_json(self)
-        obj_json['protein'] = self.bioentity.to_json()
+        obj_json['locus'] = self.bioentity.to_min_json()
         obj_json['site_index'] = self.site_index
         obj_json['site_residue'] = self.site_residue
         return obj_json

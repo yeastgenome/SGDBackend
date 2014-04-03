@@ -1,4 +1,3 @@
-from decimal import Decimal
 import logging
 import sys
 
@@ -520,17 +519,18 @@ def create_protein_evidence(strain, id_to_sequence, key_to_source, key_to_bioent
             evidence = Proteinsequenceevidence(source, strain, bioentity, 'PROTEIN', sequence, None, None)
             if strain.id == 1 and bioentity.id in bioentity_id_to_protein_info:
                 protein_info = bioentity_id_to_protein_info[bioentity.id]
-                evidence.molecular_weight = protein_info.molecular_weight
-                evidence.pi = protein_info.pi
-                evidence.cai = protein_info.cai
-                evidence.codon_bias = protein_info.codon_bias
-                evidence.fop_score = protein_info.fop_score
-                evidence.gravy_score = protein_info.gravy_score
-                evidence.aromaticity_score = protein_info.aromaticity_score
+                #evidence.molecular_weight = protein_info.molecular_weight
+                #evidence.pi = protein_info.pi
+                #evidence.cai = protein_info.cai
+                #evidence.codon_bias = protein_info.codon_bias
+                #evidence.fop_score = protein_info.fop_score
+                #evidence.gravy_score = protein_info.gravy_score
+                #evidence.aromaticity_score = protein_info.aromaticity_score
 
                 for detail in protein_info.details:
                     if detail.type == 'Aliphatic index':
-                        evidence.aliphatic_index = Decimal(detail.value)
+                        #evidence.aliphatic_index = Decimal(detail.value)
+                        pass
                     if detail.type == 'Hydrogen':
                         evidence.hydrogen = int(detail.value)
                     if detail.type == 'Sulfur':
@@ -556,7 +556,8 @@ def create_protein_evidence(strain, id_to_sequence, key_to_source, key_to_bioent
                     if detail.type == 'assuming all pairs of Cys residues form cystines':
                         evidence.all_pairs_cys_ext_coeff = detail.value
                     if detail.type == 'Instability index (II)':
-                        evidence.instability_index = Decimal(detail.value)
+                        #evidence.instability_index = Decimal(detail.value)
+                        pass
             proteinevidences.append(evidence)
     return proteinevidences
 

@@ -10,11 +10,11 @@ __author__ = 'kpaskov'
 # --------------------- Convert Phosphorylation Evidence ---------------------
 kinase_reference_id_to_num_annotations = {}
 kinase_references_not_in_db = set()
-def create_phosphorylation_evidence(row, key_to_source, key_to_bioentity, pubmed_id_to_reference):
-    from src.sgd.model.nex.evidence import Phosphorylationevidence
+def create_phosphorylation_evidence(row, key_to_source, key_to_bioentity):
+    from src.sgd.model.nex.evidence import Phosphorylationevidence, Generalcondition, Bioentitycondition
     source = key_to_source['PhosphoGRID']
     if len(row) == 19:
-        bioentity_key = (row[0] + 'P', 'PROTEIN')
+        bioentity_key = (row[0], 'LOCUS')
         bioentity = None if bioentity_key not in key_to_bioentity else key_to_bioentity[bioentity_key]
         if bioentity is None:
             return []
@@ -24,24 +24,22 @@ def create_phosphorylation_evidence(row, key_to_source, key_to_bioentity, pubmed
 
         experiment = None
 
-        pmids_we_dont_have = [x for x in row[4].split('|') if x not in pubmed_id_to_reference]
-        if len(pmids_we_dont_have) > 0:
-            print pmids_we_dont_have
+        conditions = []
 
-        kinase_references = row[12].split('|')
-        for kinase_ref in kinase_references:
-            if kinase_ref in kinase_reference_id_to_num_annotations:
-                kinase_reference_id_to_num_annotations[kinase_ref] = kinase_reference_id_to_num_annotations[kinase_ref] + 1
-            else:
-                kinase_reference_id_to_num_annotations[kinase_ref] = 1
-            if kinase_ref not in pubmed_id_to_reference:
-                kinase_references_not_in_db.add(kinase_ref)
+        site_functions = row[7]
+        if site_functions != '-':
+            for site_function in site_functions.split('|'):
+                conditions.append(Generalcondition(site_function))
 
-        references = filter(None, [None if x not in pubmed_id_to_reference else pubmed_id_to_reference[x] for x in row[4].split('|')])
-        if len(references) > 0:
-            return [Phosphorylationevidence(source, x, experiment, bioentity, site_index, site_residue, None, None) for x in references]
-        else:
-            return [Phosphorylationevidence(source, None, experiment, bioentity, site_index, site_residue, None, None)]
+        kinases = row[9]
+        if kinases != '-':
+            for kinase in kinases.split('|'):
+                bioent_key = (kinase, 'LOCUS')
+                bioent = None if bioent_key not in key_to_bioentity else key_to_bioentity[bioent_key]
+                if bioent is not None:
+                    conditions.append(Bioentitycondition(None, 'Kinase', bioent))
+
+        return [Phosphorylationevidence(source, None, experiment, bioentity, site_index, site_residue, conditions, None, None)]
 
     return []
 
@@ -49,7 +47,6 @@ def convert_phosphorylation_evidence(new_session_maker, chunk_size):
     from src.sgd.model.nex.evidence import Phosphorylationevidence
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioentity import Bioentity
-    from src.sgd.model.nex.reference import Reference
 
     new_session = None
     log = logging.getLogger('convert.phosphorylation.evidence')
@@ -75,16 +72,6 @@ def convert_phosphorylation_evidence(new_session_maker, chunk_size):
 
         old_objs = break_up_file('src/sgd/convert/data/phosphosites.txt')
 
-        pubmed_ids = set()
-        for row in old_objs:
-            if len(row) == 19:
-                try:
-                    pubmed_ids.update([int(x) for x in row[4].split('|')])
-                except:
-                    print row[4]
-
-        pubmed_id_to_reference = dict([(str(x.pubmed_id), x) for x in new_session.query(Reference).filter(Reference.pubmed_id.in_(pubmed_ids)).all()])
-
         num_chunks = int(ceil(1.0*len(old_objs)/chunk_size))
         for i in range(0, num_chunks):
             min_id = i*chunk_size
@@ -92,7 +79,7 @@ def convert_phosphorylation_evidence(new_session_maker, chunk_size):
 
             for old_obj in old_objs[min_id:max_id]:
                 #Convert old objects into new ones
-                newly_created_objs = create_phosphorylation_evidence(old_obj, key_to_source, key_to_bioentity, pubmed_id_to_reference)
+                newly_created_objs = create_phosphorylation_evidence(old_obj, key_to_source, key_to_bioentity)
 
                 if newly_created_objs is not None:
                     #Edit or add new objects
