@@ -139,7 +139,7 @@ def create_alias(old_alias, id_to_bioentity, key_to_source):
     display_name = old_alias.alias_name
     source = key_to_source['SGD']
 
-    new_aliases.append(Bioentityalias(display_name, None, source, None, bioentity, 0,
+    new_aliases.append(Bioentityalias(display_name, None, source, old_alias.alias_type, bioentity, 0,
                                old_alias.date_created, old_alias.created_by))
     return new_aliases
 
@@ -167,7 +167,7 @@ def create_alias_from_complex(complex):
     new_aliases = []
 
     for alias in complex.go.aliases:
-        new_aliases.append(Bioentityalias(alias.display_name, alias.link, alias.source, alias.alias_type, alias.bioentity, 1,
+        new_aliases.append(Bioentityalias(alias.display_name, alias.link, alias.source, None, alias.bioentity, 1,
                                alias.date_created, alias.created_by))
 
     return new_aliases

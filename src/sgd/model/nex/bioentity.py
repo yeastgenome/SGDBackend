@@ -119,6 +119,12 @@ class Bioentityalias(Alias):
         self.subclass_type = bioentity.class_type
         self.is_external_id = is_external_id
 
+    def to_json(self):
+        obj_json = Alias.to_json(self)
+        obj_json['is_external_id'] = self.is_external_id
+        obj_json['subclass_type'] = self.subclass_type
+        return obj_json
+
 class Bioentityrelation(Relation):
     __tablename__ = 'bioentityrelation'
 
