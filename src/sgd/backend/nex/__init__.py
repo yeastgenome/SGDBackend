@@ -502,15 +502,15 @@ class SGDBackend(BackendInterface):
         return None if complex_id is None else json.dumps(bioconcept_tools.make_graph(complex_id, 'GO', lambda x: None, bioent_type='COMPLEX'))
 
     #Regulation
-    def regulation_overview(self, locus_identifier, are_ids=False):
+    def regulation_overview(self, locus_identifier, filter=None, are_ids=False):
         import view_regulation
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_regulation.make_overview(locus_id))
+        return None if locus_id is None else json.dumps(view_regulation.make_overview(locus_id, filter))
 
-    def regulation_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
+    def regulation_details(self, locus_identifier=None, reference_identifier=None, filter=None, are_ids=False):
         import view_regulation
         if are_ids:
             locus_id = locus_identifier
@@ -518,15 +518,15 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
-        return json.dumps(view_regulation.make_details(locus_id=locus_id, reference_id=reference_id))
+        return json.dumps(view_regulation.make_details(locus_id=locus_id, reference_id=reference_id, filter=filter))
             
-    def regulation_graph(self, locus_identifier, are_ids=False):
+    def regulation_graph(self, locus_identifier, filter=None, are_ids=False):
         import view_regulation
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_regulation.make_graph(locus_id))
+        return None if locus_id is None else json.dumps(view_regulation.make_graph(locus_id, filter))
     
     def regulation_target_enrichment(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex import view_regulation

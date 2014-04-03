@@ -12,7 +12,7 @@ from bioitem import Bioitem, Domain
 from reference import Reference
 from bioitem import Contig
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base
+from src.sgd.model.nex import Base, UpdateByJsonMixin
 
 __author__ = 'kpaskov'
 
@@ -36,10 +36,10 @@ class Evidence(Base, EqualityByIDMixin):
         return {
             'id':self.id,
             'class_type': self.class_type,
-            'strain': None if self.strain_id is None else self.strain.to_json(),
-            'source': None if self.source_id is None else self.source.to_json(),
-            'reference': None if self.reference_id is None else self.reference.to_json(),
-            'experiment': None if self.experiment_id is None else self.experiment.to_json(),
+            'strain': None if self.strain_id is None else {'id': self.strain_id} if self.strain is None else self.strain.to_min_json(),
+            'source': None if self.source_id is None else {'id': self.source_id} if self.source is None else self.source.to_min_json(),
+            'reference': None if self.reference_id is None else {'id': self.reference_id} if self.reference is None else self.reference.to_min_json(),
+            'experiment': None if self.experiment_id is None else {'id': self.experiment_id} if self.experiment is None else self.experiment.to_min_json(),
             'conditions': [x.to_json() for x in self.conditions],
             'note': self.note}
 
@@ -253,7 +253,7 @@ class Goevidence(Evidence):
         obj_json['date_created'] = str(self.date_created)
         return obj_json
 
-class Geninteractionevidence(Evidence):
+class Geninteractionevidence(Evidence, UpdateByJsonMixin):
     __tablename__ = "geninteractionevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
@@ -267,34 +267,35 @@ class Geninteractionevidence(Evidence):
     mutant_type = Column('mutant_type', String)
     annotation_type = Column('annotation_type', String)
     bait_hit = Column('bait_hit', String)
-    bioentity1_id = Column('bioentity1_id', Integer, ForeignKey(Locus.id))
-    bioentity2_id = Column('bioentity2_id', Integer, ForeignKey(Locus.id))
+    locus1_id = Column('bioentity1_id', Integer, ForeignKey(Locus.id))
+    locus2_id = Column('bioentity2_id', Integer, ForeignKey(Locus.id))
 
     #Relationships
     source = relationship(Source, backref=backref('geninteraction_evidences', passive_deletes=True), uselist=False)
     reference = relationship(Reference, backref=backref('geninteraction_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('geninteraction_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('geninteraction_evidences', passive_deletes=True), uselist=False)
-    bioentity1 = relationship(Locus, uselist=False, primaryjoin="Geninteractionevidence.bioentity1_id==Locus.id")
-    bioentity2 = relationship(Locus, uselist=False, primaryjoin="Geninteractionevidence.bioentity2_id==Locus.id")
+    locus1 = relationship(Locus, uselist=False, foreign_keys=[locus1_id])
+    locus2 = relationship(Locus, uselist=False, foreign_keys=[locus2_id])
     phenotype = relationship(Phenotype, uselist=False, backref='geninteraction_evidences')
 
-    __mapper_args__ = {'polymorphic_identity': "GENINTERACTION",
-                       'inherit_condition': id==Evidence.id}
+    __mapper_args__ = {'polymorphic_identity': "GENINTERACTION", 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['note', 'mutant_type', 'annotation_type', 'bait_hit']
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus1', 'locus2', 'phenotype']
 
     def __init__(self, source, reference, experiment,
-                 bioentity1, bioentity2, phenotype, mutant_type, annotation_type, bait_hit, note,
+                 locus1, locus2, phenotype, mutant_type, annotation_type, bait_hit, note,
                  date_created, created_by):
         Evidence.__init__(self, 'GENINTERACTION', date_created, created_by)
 
-        self.source_id = source.id
-        self.reference_id = reference.id
+        self.source_id = None if source is None else source.id
+        self.reference_id = None if reference is None else reference.id
         self.strain_id = None
-        self.experiment_id = experiment.id
+        self.experiment_id = None if experiment is None else experiment.id
         self.note = note
 
-        self.bioentity1_id = bioentity1.id
-        self.bioentity2_id = bioentity2.id
+        self.locus1_id = None if locus1 is None else locus1.id
+        self.locus2_id = None if locus2 is None else locus2.id
         self.phenotype_id = None if phenotype is None else phenotype.id
         self.mutant_type = mutant_type
         self.annotation_type = annotation_type
@@ -302,20 +303,33 @@ class Geninteractionevidence(Evidence):
         self.note = note
 
     def unique_key(self):
-        return (self.class_type, self.bioentity1_id, self.bioentity2_id, self.bait_hit, self.experiment_id, self.reference_id)
+        return (self.class_type, self.locus1_id, self.locus2_id, self.bait_hit, self.experiment_id, self.reference_id)
 
     def to_json(self):
         obj_json = Evidence.to_json(self)
-        obj_json['locus1'] = self.bioentity1.to_json()
-        obj_json['locus2'] = self.bioentity2.to_json()
-        obj_json['phenotype'] = None if self.phenotype_id is None else self.phenotype.to_json()
+        obj_json['locus1'] = {'id': self.locus1_id} if self.locus1 is None else self.locus1.to_json()
+        obj_json['locus2'] = {'id': self.locus2_id} if self.locus2 is None else self.locus2.to_json()
+        obj_json['phenotype'] = None if self.phenotype_id is None else {'id': self.phenotype_id} if self.phenotype is None else self.phenotype.to_json()
         obj_json['mutant_type'] = self.mutant_type
         obj_json['interaction_type'] = 'Genetic'
         obj_json['annotation_type'] = self.annotation_type
         obj_json['bait_hit'] = self.bait_hit
         return obj_json
+
+    @classmethod
+    def from_json(cls, obj_json):
+        obj = cls(None, None, None, None, None, None, obj_json.get('mutant_type'), obj_json.get('annotation_type'),
+                  obj_json.get('bait_hit'), obj_json.get('note'), None, obj_json.get('date_created'),
+                  obj_json.get('created_by'))
+        obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
+        obj.reference_id = None if 'reference' not in obj_json else obj_json['reference']['id']
+        obj.experiment_id = None if 'experiment' not in obj_json else obj_json['experiment']['id']
+        obj.locus1_id = None if 'locus1' not in obj_json else obj_json['locus1']['id']
+        obj.locus2_id = None if 'locus2' not in obj_json else obj_json['locus2']['id']
+        obj.phenotype_id = None if 'phenotype' not in obj_json else obj_json['phenotype']['id']
+        return obj
         
-class Physinteractionevidence(Evidence):
+class Physinteractionevidence(Evidence, UpdateByJsonMixin):
     __tablename__ = "physinteractionevidence"
     
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
@@ -336,8 +350,8 @@ class Physinteractionevidence(Evidence):
     reference = relationship(Reference, backref=backref('physinteraction_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('physinteraction_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('physinteraction_evidences', passive_deletes=True), uselist=False)
-    bioentity1 = relationship(Locus, uselist=False, primaryjoin="Physinteractionevidence.bioentity1_id==Locus.id")
-    bioentity2 = relationship(Locus, uselist=False, primaryjoin="Physinteractionevidence.bioentity2_id==Locus.id")
+    bioentity1 = relationship(Locus, uselist=False, foreign_keys=[bioentity1_id])
+    bioentity2 = relationship(Locus, uselist=False, foreign_keys=[bioentity2_id])
             
     __mapper_args__ = {'polymorphic_identity': "PHYSINTERACTION",
                        'inherit_condition': id==Evidence.id}
@@ -583,7 +597,7 @@ class Domainevidence(Evidence):
     evalue = Column('evalue', String)
     status = Column('domain_status', String)
     date_of_run = Column('date_of_run', Date)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Protein.id))
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
     bioitem_id = Column('bioitem_id', Integer, ForeignKey(Domain.id))
        
     __mapper_args__ = {'polymorphic_identity': 'DOMAIN',
@@ -594,7 +608,7 @@ class Domainevidence(Evidence):
     reference = relationship(Reference, backref=backref('domain_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('domain_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('domain_evidences', passive_deletes=True), uselist=False)
-    bioentity = relationship(Protein, uselist=False, backref='domain_evidences')
+    bioentity = relationship(Locus, uselist=False, backref='domain_evidences')
     bioitem = relationship(Domain, uselist=False, backref="domain_evidences")
 
     def __init__(self, source, reference, strain, note,
@@ -620,9 +634,10 @@ class Domainevidence(Evidence):
 
     def to_json(self):
         obj_json = Evidence.to_json(self)
-        obj_json['protein'] = self.bioentity.to_json()
-        obj_json['domain'] = self.bioitem.to_json()
+        obj_json['locus'] = self.bioentity.to_min_json()
+        obj_json['domain'] = self.bioitem.to_min_json()
         obj_json['domain']['count'] = len(set([x.bioentity_id for x in self.bioitem.domain_evidences]))
+        obj_json['domain']['description'] = self.bioitem.description
         obj_json['start'] = self.start
         obj_json['end'] = self.end
         obj_json['evalue'] = self.evalue
@@ -649,8 +664,8 @@ class Regulationevidence(Evidence):
     reference = relationship(Reference, backref=backref('regulation_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('regulation_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('regulation_evidences', passive_deletes=True), uselist=False)
-    bioentity1 = relationship(Locus, uselist=False, primaryjoin="Regulationevidence.bioentity1_id==Locus.id")
-    bioentity2 = relationship(Locus, uselist=False, primaryjoin="Regulationevidence.bioentity2_id==Locus.id")
+    bioentity1 = relationship(Locus, uselist=False, foreign_keys=[bioentity1_id])
+    bioentity2 = relationship(Locus, uselist=False, foreign_keys=[bioentity2_id])
        
     __mapper_args__ = {'polymorphic_identity': 'REGULATION',
                        'inherit_condition': id==Evidence.id}
@@ -837,7 +852,7 @@ class Proteinexperimentevidence(Evidence):
     experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
     note = Column('note', String)
 
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Protein.id))
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
     data_type = Column('data_type', String)
     data_value = Column('data_value', String)
 
@@ -846,7 +861,7 @@ class Proteinexperimentevidence(Evidence):
     reference = relationship(Reference, backref=backref('proteinexperiment_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('proteinexperiment_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('proteinexperiment_evidences', passive_deletes=True), uselist=False)
-    bioentity = relationship(Protein, uselist=False, backref='proteinexperiment_evidences')
+    bioentity = relationship(Locus, uselist=False, backref='proteinexperiment_evidences')
 
     __mapper_args__ = {'polymorphic_identity': "PROTEINEXPERIMENT",
                        'inherit_condition': id==Evidence.id}
@@ -868,7 +883,7 @@ class Proteinexperimentevidence(Evidence):
 
     def to_json(self):
         obj_json = Evidence.to_json(self)
-        obj_json['protein'] = self.bioentity.to_json()
+        obj_json['locus'] = self.bioentity.to_min_json()
         obj_json['data_type'] = self.data_type
         obj_json['data_value'] = self.data_value
         return obj_json
@@ -991,7 +1006,7 @@ class Proteinsequenceevidence(Evidence):
     experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
     note = Column('note', String)
 
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
     protein_type = Column('protein_type', String)
     residues = Column('residues', CLOB)
 
@@ -1048,7 +1063,7 @@ class Proteinsequenceevidence(Evidence):
     reference = relationship(Reference, backref=backref('proteinsequence_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('proteinsequence_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('proteinsequence_evidences', passive_deletes=True), uselist=False)
-    bioentity = relationship(Bioentity, uselist=False, backref='proteinsequence_evidences')
+    bioentity = relationship(Locus, uselist=False, backref='proteinsequence_evidences')
 
     __mapper_args__ = {'polymorphic_identity': "PROTEINSEQUENCE",
                        'inherit_condition': id==Evidence.id}

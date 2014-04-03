@@ -142,7 +142,7 @@ class Reference(Base, EqualityByIDMixin):
     def unique_key(self):
         return self.format_name
 
-    def to_json(self):
+    def to_min_json(self):
         return {
             'format_name': self.format_name,
             'display_name': self.display_name,
@@ -150,7 +150,7 @@ class Reference(Base, EqualityByIDMixin):
             'id': self.id,
             }
 
-    def to_semi_full_json(self):
+    def to_semi_json(self):
         urls = []
         if self.pubmed_id is not None:
             urls.append({'display_name': 'PubMed', 'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(self.pubmed_id)})
@@ -167,8 +167,8 @@ class Reference(Base, EqualityByIDMixin):
         obj_json['urls'] = urls
         return obj_json
 
-    def to_full_json(self):
-        obj_json = self.to_semi_full_json()
+    def to_json(self):
+        obj_json = self.to_semi_json()
         obj_json['abstract'] = None if self.abstract is None else self.abstract.text
         obj_json['bibentry'] = None if self.bibentry is None else self.bibentry.text
         obj_json['reftypes'] = [x.reftype.display_name for x in self.ref_reftypes]
@@ -354,8 +354,8 @@ class Referencerelation(Relation):
     child_id = Column('child_id', Integer, ForeignKey(Reference.id))
 
     #Relationships
-    parent = relationship(Reference, backref="children", uselist=False, primaryjoin="Referencerelation.parent_id==Reference.id")
-    child = relationship(Reference, backref="parents", uselist=False, primaryjoin="Referencerelation.child_id==Reference.id")
+    parent = relationship(Reference, backref="children", uselist=False, foreign_keys=[parent_id])
+    child = relationship(Reference, backref="parents", uselist=False, foreign_keys=[child_id])
     
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE',
                        'inherit_condition': id == Relation.id}

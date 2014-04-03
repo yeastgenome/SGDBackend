@@ -9,23 +9,19 @@ from src.sgd.convert import OutputCreator, create_or_update
 __author__ = 'kpaskov'
 
 # --------------------- Convert Evidence ---------------------
-def create_evidence(old_protein_detail, id_to_bioentity, key_to_bioentity, id_to_reference, key_to_source, protein_detail_id_to_reference):
+def create_evidence(old_protein_detail, id_to_bioentity, id_to_reference, key_to_source, protein_detail_id_to_reference):
     from src.sgd.model.nex.evidence import Proteinexperimentevidence
 
     source = key_to_source['SGD']
 
-    protein_key = (id_to_bioentity[old_protein_detail.info.feature_id].format_name + 'P', 'PROTEIN')
-    protein = None if protein_key not in key_to_bioentity else key_to_bioentity[protein_key]
-    if protein is None:
-        print 'Bioentity not found: ' + str(protein_key)
-        return []
+    locus = id_to_bioentity[old_protein_detail.info.feature_id]
 
     reference = id_to_reference[protein_detail_id_to_reference[old_protein_detail.id]]
-    return [Proteinexperimentevidence(source, reference, protein, old_protein_detail.group, old_protein_detail.value, old_protein_detail.date_created, old_protein_detail.created_by)]
+    return [Proteinexperimentevidence(source, reference, locus, old_protein_detail.group, old_protein_detail.value, old_protein_detail.date_created, old_protein_detail.created_by)]
 
 def convert_evidence(old_session_maker, new_session_maker):
     from src.sgd.model.nex.evidence import Proteinexperimentevidence as NewProteinexperimentevidence
-    from src.sgd.model.nex.bioentity import Locus as NewLocus, Protein as NewProtein
+    from src.sgd.model.nex.bioentity import Locus as NewLocus
     from src.sgd.model.nex.misc import Source as NewSource
     from src.sgd.model.nex.reference import Reference as NewReference
     from src.sgd.model.bud.sequence import ProteinDetail as OldProteinDetail
@@ -45,7 +41,6 @@ def convert_evidence(old_session_maker, new_session_maker):
         
         #Grab cached dictionaries
         id_to_bioentity = dict([(x.id, x) for x in new_session.query(NewLocus).all()])
-        key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(NewProtein).all()])
         id_to_reference = dict([(x.id, x) for x in new_session.query(NewReference).all()])
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(NewSource).all()])
                 
@@ -63,7 +58,7 @@ def convert_evidence(old_session_maker, new_session_maker):
 
         for old_obj in old_objs:
             #Convert old objects into new ones
-            newly_created_objs = create_evidence(old_obj, id_to_bioentity, key_to_bioentity, id_to_reference, key_to_source, protein_detail_id_to_reference)
+            newly_created_objs = create_evidence(old_obj, id_to_bioentity, id_to_reference, key_to_source, protein_detail_id_to_reference)
                     
             #Edit or add new objects
             for newly_created_obj in newly_created_objs:

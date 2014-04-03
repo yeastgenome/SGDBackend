@@ -46,7 +46,7 @@ class Paragraph(Base, EqualityByIDMixin):
     def to_json(self):
         return {
                 'text': self.text,
-                'references': sorted([x.to_semi_full_json() for x in self.references], key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
+                'references': sorted([x.to_semi_json() for x in self.references], key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
                }
     
 class ParagraphReference(Base, EqualityByIDMixin):

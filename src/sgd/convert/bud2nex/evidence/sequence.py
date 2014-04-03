@@ -511,7 +511,7 @@ def create_protein_evidence(strain, id_to_sequence, key_to_source, key_to_bioent
     proteinevidences = []
 
     for bioentity_name, sequence in id_to_sequence.iteritems():
-        bioentity_key = (bioentity_name + 'P', 'PROTEIN')
+        bioentity_key = (bioentity_name, 'LOCUS')
         bioentity = None if bioentity_key not in key_to_bioentity else key_to_bioentity[bioentity_key]
 
         if bioentity is None:
@@ -591,7 +591,7 @@ def convert_strain_protein_evidence(filename, strain, key_to_source, key_to_bioe
 def convert_protein_evidence(old_session_maker, new_session_maker):
     from src.sgd.model.nex.evidence import Proteinsequenceevidence
     from src.sgd.model.nex.misc import Source, Strain
-    from src.sgd.model.nex.bioentity import Protein
+    from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.bud.sequence import ProteinInfo
 
     new_session = None
@@ -617,7 +617,7 @@ def convert_protein_evidence(old_session_maker, new_session_maker):
 
         #Grab cached dictionaries
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
-        key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Protein).all()])
+        key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Locus).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in new_session.query(Strain).all()])
 
         bioentity_id_to_protein_info = dict([(x.feature_id, x) for x in old_session.query(ProteinInfo).options(joinedload(ProteinInfo.details)).all()])
@@ -652,6 +652,6 @@ def convert(old_session_maker, new_session_maker):
 
     #convert_dna_evidence(new_session_maker)
     #convert_coding_evidence(new_session_maker)
-    convert_dna_sequence_tag(new_session_maker)
+    #convert_dna_sequence_tag(new_session_maker)
 
-    #convert_protein_evidence(old_session_maker, new_session_maker)
+    convert_protein_evidence(old_session_maker, new_session_maker)

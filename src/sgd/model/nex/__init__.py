@@ -20,7 +20,7 @@ class UpdateByJsonMixin(object):
 
         for key in self.__eq_fks__:
             current_value = getattr(self, key + '_id')
-            new_value = json_obj[key]['id']
+            new_value = None if key not in json_obj else json_obj[key]['id']
 
             if new_value != current_value:
                 setattr(self, key + '_id', new_value)

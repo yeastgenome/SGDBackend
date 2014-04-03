@@ -1,6 +1,4 @@
 from src.sgd.convert import config, prepare_schema_connection, check_session_maker
-from src.sgd.convert.transformers import do_conversion, Obj2NexDB
-from src.sgd.convert.bud2nex.evelements import BudObj2ExperimentObj, make_experiment_starter
 from src.sgd.model import bud, nex, perf
 from src.sgd.backend.nex import SGDBackend
 
@@ -99,12 +97,40 @@ if __name__ == "__main__":
     #
     # bud_session.close()
 
-    # ------------------------------------------ Evelements ------------------------------------------
-    # Bud -> Nex
-    from src.sgd.model.nex.misc import Experiment
-    do_conversion(make_experiment_starter(bud_session),
-                  [BudObj2ExperimentObj(nex_session_maker),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Experiment), name='convert.bud2nex.experiment')],
-                  delete_untouched=True, commit=True)
+    # # ------------------------------------------ Evelements ------------------------------------------
+    # # Bud -> Nex
+    # from src.sgd.model.nex.misc import Experiment, Strain, Source
+    # do_conversion(make_experiment_starter(bud_session),
+    #               [BudObj2ExperimentObj(nex_session_maker),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Experiment), name='convert.bud2nex.experiment')],
+    #               delete_untouched=True, commit=True)
 
-    bud_session.close()
+    # do_conversion(make_strain_starter(bud_session),
+    #               [BudObj2StrainObj(nex_session_maker),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strain), name='convert.bud2nex.strain')],
+    #               delete_untouched=True, commit=True)
+
+    # do_conversion(make_source_starter(bud_session),
+    #               [BudObj2SourceObj(nex_session_maker),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Source), name='convert.bud2nex.source')],
+    #               delete_untouched=True, commit=True)
+
+    # # ------------------------------------------ Evidence ------------------------------------------
+    # # Bud -> Nex
+    # from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence
+    # do_conversion(make_interaction_evidence_starter(bud_session, 'genetic interactions'),
+    #               [BudObj2InteractionEvidenceObj(nex_session_maker),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Geninteractionevidence), name='convert.bud2nex.evidence.geninteraction'),
+    #                OutputTransformer(1000)],
+    #               delete_untouched=True, commit=False)
+    #
+    # do_conversion(make_interaction_evidence_starter(bud_session, 'physical interactions'),
+    #               [BudObj2InteractionEvidenceObj(nex_session_maker),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Physinteractionevidence), name='convert.bud2nex.evidence.physinteraction'),
+    #                OutputTransformer(1000)],
+    #               delete_untouched=True, commit=False)
+    #
+    # bud_session.close()
+
+    from src.sgd.convert.bud2nex.evidence.sequence import convert
+    convert(bud_session_maker, nex_session_maker)

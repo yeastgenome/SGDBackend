@@ -180,12 +180,10 @@ class NullTransformer(TransformerInterface):
 
 class OutputTransformer(TransformerInterface):
 
-    def __init__(self, log, chunk_size):
-        self.log = log
+    def __init__(self, chunk_size):
         self.chunk_size = chunk_size
         self.output = {}
         self.count = 0
-        self.log.info('Start')
 
     def convert(self, x):
         self.count += 1
@@ -196,7 +194,6 @@ class OutputTransformer(TransformerInterface):
 
         if self.chunk_size is not None and self.count % self.chunk_size == 0:
             print self.output
-            self.log.info(self.output)
         return x
 
     def finished(self, delete_untouched=False, commit=False):
