@@ -62,8 +62,11 @@ def get_regulation_evidence(locus_id, reference_id, between_ids, filter):
                 if evidence.experiment.category == 'binding':
                     binding_interactions.add(interaction_key)
             return [x for x in evidences if (x.bioentity1_id, x.bioentity2_id) in expression_interactions and (x.bioentity1_id, x.bioentity2_id) in binding_interactions]
-        elif filter == 'sgd_only':
+        elif filter == 'sgd_manual_only':
             query = query.filter(and_(Regulationevidence.source_id == 1, Regulationevidence.reference_id != 82383, Regulationevidence.reference_id != 51978))
+            return query.all()
+        elif filter == 'yeastract_only':
+            query = query.filter(Regulationevidence.source_id == 123)
             return query.all()
         else:
             return query.all()
