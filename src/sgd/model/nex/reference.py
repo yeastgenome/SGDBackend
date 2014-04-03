@@ -159,7 +159,7 @@ class Reference(Base, EqualityByIDMixin):
         if self.pubmed_central_id is not None:
             urls.append({'display_name': 'PMC', 'link': 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(self.pubmed_central_id)})
 
-        obj_json = self.to_json()
+        obj_json = self.to_min_json()
         obj_json['pubmed_id'] = self.pubmed_id
         obj_json['citation'] = self.citation
         obj_json['year'] = self.year
