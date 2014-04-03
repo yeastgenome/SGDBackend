@@ -519,13 +519,13 @@ def create_protein_evidence(strain, id_to_sequence, key_to_source, key_to_bioent
             evidence = Proteinsequenceevidence(source, strain, bioentity, 'PROTEIN', sequence, None, None)
             if strain.id == 1 and bioentity.id in bioentity_id_to_protein_info:
                 protein_info = bioentity_id_to_protein_info[bioentity.id]
-                #evidence.molecular_weight = protein_info.molecular_weight
-                #evidence.pi = protein_info.pi
-                #evidence.cai = protein_info.cai
-                #evidence.codon_bias = protein_info.codon_bias
-                #evidence.fop_score = protein_info.fop_score
-                #evidence.gravy_score = protein_info.gravy_score
-                #evidence.aromaticity_score = protein_info.aromaticity_score
+                evidence.molecular_weight = protein_info.molecular_weight
+                evidence.pi = protein_info.pi
+                evidence.cai = protein_info.cai
+                evidence.codon_bias = protein_info.codon_bias
+                evidence.fop_score = protein_info.fop_score
+                evidence.gravy_score = protein_info.gravy_score
+                evidence.aromaticity_score = protein_info.aromaticity_score
 
                 for detail in protein_info.details:
                     if detail.type == 'Aliphatic index':
@@ -605,7 +605,7 @@ def convert_protein_evidence(old_session_maker, new_session_maker):
         old_session = old_session_maker()
 
         #Values to check
-        values_to_check = ['residues', 'strain_id', 'reference_id' 'source_id', 'experiment_id', 'bioentity_id',
+        values_to_check = ['residues', 'strain_id', 'reference_id', 'source_id', 'experiment_id', 'bioentity_id',
                            'protein_type', 'molecular_weight', 'pi', 'cai', 'n_term_seq', 'c_term_seq', 'codon_bias', 'fop_score', 'gravy_score',
                            'aromaticity_score', 'aliphatic_index', 'instability_index', 'ala', 'arg', 'asn', 'asp', 'cys', 'gln', 'glu', 'gly',
                            'his', 'ile', 'leu', 'lys', 'met', 'phe', 'pro', 'thr', 'ser', 'trp', 'tyr', 'val', 'hydrogen', 'sulfur', 'nitrogen', 'oxygen', 'carbon', 'yeast_half_life',
@@ -653,6 +653,6 @@ def convert(old_session_maker, new_session_maker):
 
     #convert_dna_evidence(new_session_maker)
     #convert_coding_evidence(new_session_maker)
-    #convert_dna_sequence_tag(new_session_maker)
+    convert_dna_sequence_tag(new_session_maker)
 
-    convert_protein_evidence(old_session_maker, new_session_maker)
+    #convert_protein_evidence(old_session_maker, new_session_maker)

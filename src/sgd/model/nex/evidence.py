@@ -944,7 +944,7 @@ class DNAsequenceevidence(Evidence):
         obj_json['bioentity'] = self.bioentity.to_min_json()
         obj_json['bioentity']['locus_type'] = self.bioentity.locus_type
         obj_json['residues'] = self.residues
-        obj_json['contig'] = None if self.contig_id is None else self.contig.to_json()
+        obj_json['contig'] = None if self.contig_id is None else self.contig.to_min_json()
         obj_json['start'] = self.start
         obj_json['end'] = self.end
         obj_json['strand'] = self.strand

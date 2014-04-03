@@ -11,18 +11,19 @@ def make_overview(locus_id):
 # -------------------------------Contig---------------------------------------
 def make_contig(contig_id):
     contig = DBSession.query(Contig).filter(Contig.id == contig_id).first()
-    return contig.to_full_json()
+    return contig.to_json()
     
 # -------------------------------Details---------------------------------------
 def get_dnasequence_evidence(locus_id=None, contig_id=None):
     query = DBSession.query(DNAsequenceevidence)
     if contig_id is not None:
-        query = DBSession.query(DNAsequenceevidence).filter_by(contig_id=contig_id)
+        query = query.filter_by(contig_id=contig_id)
     if locus_id is not None:
         query = query.filter_by(bioentity_id=locus_id)
 
     if query.count() > query_limit:
         return None
+
     return query.all()
 
 def get_proteinsequence_evidence(locus_id=None):
@@ -39,7 +40,11 @@ def make_details(locus_id=None, contig_id=None):
         return {'Error': 'No locus_id or contig_id given.'}
 
     dnaseqevidences = get_dnasequence_evidence(locus_id=locus_id, contig_id=contig_id)
-    proteinseqevidences = get_proteinsequence_evidence(locus_id=locus_id)
+
+    if locus_id is not None:
+        proteinseqevidences = get_proteinsequence_evidence(locus_id=locus_id)
+    else:
+        proteinseqevidences = []
 
     if dnaseqevidences is None or proteinseqevidences is None:
         return {'Error': 'Too much data to display.'}

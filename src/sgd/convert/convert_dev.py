@@ -132,5 +132,5 @@ if __name__ == "__main__":
     #
     # bud_session.close()
 
-    from src.sgd.convert.bud2nex.evidence.phosphorylation import convert
-    convert(nex_session_maker)
+    from src.sgd.convert.bud2nex.evidence.sequence import convert
+    convert(bud_session_maker, nex_session_maker)
