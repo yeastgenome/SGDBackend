@@ -1,4 +1,3 @@
-from decimal import Decimal
 import logging
 import sys
 
@@ -511,7 +510,7 @@ def create_protein_evidence(strain, id_to_sequence, key_to_source, key_to_bioent
     proteinevidences = []
 
     for bioentity_name, sequence in id_to_sequence.iteritems():
-        bioentity_key = (bioentity_name + 'P', 'PROTEIN')
+        bioentity_key = (bioentity_name, 'LOCUS')
         bioentity = None if bioentity_key not in key_to_bioentity else key_to_bioentity[bioentity_key]
 
         if bioentity is None:
@@ -530,7 +529,8 @@ def create_protein_evidence(strain, id_to_sequence, key_to_source, key_to_bioent
 
                 for detail in protein_info.details:
                     if detail.type == 'Aliphatic index':
-                        evidence.aliphatic_index = Decimal(detail.value)
+                        #evidence.aliphatic_index = Decimal(detail.value)
+                        pass
                     if detail.type == 'Hydrogen':
                         evidence.hydrogen = int(detail.value)
                     if detail.type == 'Sulfur':
@@ -556,7 +556,8 @@ def create_protein_evidence(strain, id_to_sequence, key_to_source, key_to_bioent
                     if detail.type == 'assuming all pairs of Cys residues form cystines':
                         evidence.all_pairs_cys_ext_coeff = detail.value
                     if detail.type == 'Instability index (II)':
-                        evidence.instability_index = Decimal(detail.value)
+                        #evidence.instability_index = Decimal(detail.value)
+                        pass
             proteinevidences.append(evidence)
     return proteinevidences
 
@@ -591,7 +592,7 @@ def convert_strain_protein_evidence(filename, strain, key_to_source, key_to_bioe
 def convert_protein_evidence(old_session_maker, new_session_maker):
     from src.sgd.model.nex.evidence import Proteinsequenceevidence
     from src.sgd.model.nex.misc import Source, Strain
-    from src.sgd.model.nex.bioentity import Protein
+    from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.bud.sequence import ProteinInfo
 
     new_session = None
@@ -604,7 +605,7 @@ def convert_protein_evidence(old_session_maker, new_session_maker):
         old_session = old_session_maker()
 
         #Values to check
-        values_to_check = ['residues', 'strain_id', 'reference_id' 'source_id', 'experiment_id', 'bioentity_id',
+        values_to_check = ['residues', 'strain_id', 'reference_id', 'source_id', 'experiment_id', 'bioentity_id',
                            'protein_type', 'molecular_weight', 'pi', 'cai', 'n_term_seq', 'c_term_seq', 'codon_bias', 'fop_score', 'gravy_score',
                            'aromaticity_score', 'aliphatic_index', 'instability_index', 'ala', 'arg', 'asn', 'asp', 'cys', 'gln', 'glu', 'gly',
                            'his', 'ile', 'leu', 'lys', 'met', 'phe', 'pro', 'thr', 'ser', 'trp', 'tyr', 'val', 'hydrogen', 'sulfur', 'nitrogen', 'oxygen', 'carbon', 'yeast_half_life',
@@ -617,7 +618,7 @@ def convert_protein_evidence(old_session_maker, new_session_maker):
 
         #Grab cached dictionaries
         key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
-        key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Protein).all()])
+        key_to_bioentity = dict([(x.unique_key(), x) for x in new_session.query(Locus).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in new_session.query(Strain).all()])
 
         bioentity_id_to_protein_info = dict([(x.feature_id, x) for x in old_session.query(ProteinInfo).options(joinedload(ProteinInfo.details)).all()])
@@ -644,85 +645,9 @@ def convert_protein_evidence(old_session_maker, new_session_maker):
         new_session.close()
         old_session.close()
 
-# --------------------- Convert Contig Sequence ---------------------
-def create_contig(sequence_library, strain, source):
-    from src.sgd.model.nex.bioitem import Contig
-    return [Contig(x, source, y, strain) for x, y in sequence_library.iteritems()]
-
-def convert_strain_contig(filename, strain, key_to_source, values_to_check, new_session, output_creator, id_to_current_obj, key_to_current_obj, already_seen, untouched_obj_ids):
-    #Grab old objects
-    f = open(filename, 'r')
-    sequence_library = get_dna_sequence_library(f)
-    f.close()
-
-    source = key_to_source['SGD']
-    newly_created_objs = create_contig(sequence_library, strain, source)
-
-    if newly_created_objs is not None:
-        #Edit or add new objects
-        for newly_created_obj in newly_created_objs:
-            unique_key = newly_created_obj.unique_key()
-            if unique_key not in already_seen:
-                current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
-                create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-
-                if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                    untouched_obj_ids.remove(current_obj_by_id.id)
-                if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                    untouched_obj_ids.remove(current_obj_by_key.id)
-
-                already_seen.add(unique_key)
-
-    output_creator.finished()
-    new_session.commit()
-
-def convert_contig(new_session_maker):
-    from src.sgd.model.nex.bioitem import Contig
-    from src.sgd.model.nex.misc import Strain, Source
-
-    new_session = None
-    log = logging.getLogger('convert.sequence.contig')
-    output_creator = OutputCreator(log)
-
-    try:
-        new_session = new_session_maker()
-
-        #Values to check
-        values_to_check = ['display_name', 'residues', 'link']
-
-        #Grab current objects
-        current_objs = new_session.query(Contig).all()
-        id_to_current_obj = dict([(x.id, x) for x in current_objs])
-        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
-
-        key_to_strain = dict([(x.unique_key(), x) for x in new_session.query(Strain).all()])
-        key_to_source = dict([(x.unique_key(), x) for x in new_session.query(Source).all()])
-
-        untouched_obj_ids = set(id_to_current_obj.keys())
-        already_seen = set()
-
-        for filename, strain in sequence_files:
-            convert_strain_contig(filename, key_to_strain[strain.replace('.', '')], key_to_source, values_to_check, new_session, output_creator, id_to_current_obj, key_to_current_obj, already_seen, untouched_obj_ids)
-
-        #Delete untouched objs
-        for untouched_obj_id in untouched_obj_ids:
-            new_session.delete(id_to_current_obj[untouched_obj_id])
-            output_creator.removed()
-
-        #Commit
-        output_creator.finished()
-        new_session.commit()
-
-    except Exception:
-        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
-    finally:
-        new_session.close()
-
 # ---------------------Convert------------------------------
 def convert(old_session_maker, new_session_maker):
 
-    #convert_contig(new_session_maker)
     #from src.sgd.model.nex.bioitem import Contig
     #convert_disambigs(new_session_maker, Contig, ['id', 'format_name'], 'BIOITEM', 'CONTIG', 'convert.contig.disambigs', 1000)
 

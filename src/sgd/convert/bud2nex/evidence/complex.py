@@ -44,7 +44,7 @@ def convert_evidence(new_session_maker):
         complexes = new_session.query(Complex).all()
 
         go_id_to_bioent_ids = dict([(x.go_id, set()) for x in complexes])
-        for goevidence in new_session.query(Goevidence).filter(Goevidence.bioconcept_id.in_([x.go_id for x in complexes])).filter(Goevidence.qualifier != 'colocalizes with'):
+        for goevidence in new_session.query(Goevidence).filter(Goevidence.bioconcept_id.in_([x.go_id for x in complexes])).filter(Goevidence.qualifier != 'colocalizes with').filter(Goevidence.annotation_type != 'computational'):
             go_id_to_bioent_ids[goevidence.bioconcept_id].add(goevidence.bioentity_id)
         
         current_objs = new_session.query(Complexevidence).filter(Complexevidence.go_id != None).all()

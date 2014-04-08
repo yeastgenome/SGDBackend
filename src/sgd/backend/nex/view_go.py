@@ -12,6 +12,7 @@ __author__ = 'kpaskov'
 
 # -------------------------------Enrichment---------------------------------------
 def make_enrichment(bioent_ids):
+    print len(bioent_ids)
     bioent_ids = list(set(bioent_ids))
     bioent_format_names = []
     num_chunks = int(ceil(1.0*len(bioent_ids)/500))

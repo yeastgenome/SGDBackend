@@ -90,7 +90,7 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def all_chemicals(self, min_id, max_id):
+    def all_bioitems(self, min_id, max_id):
         return None
 
     #Domain

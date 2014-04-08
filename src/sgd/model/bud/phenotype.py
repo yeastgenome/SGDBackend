@@ -27,7 +27,7 @@ class PhenotypeFeature(Base, EqualityByIDMixin):
     created_by = association_proxy('phenotype', 'created_by')
     date_created = association_proxy('phenotype', 'date_created')
 
-    experiment = relationship('Experiment', uselist=False)
+    experiment = relationship('Experiment', uselist=False, backref='phenotypefeature')
     experiment_comment = association_proxy('experiment', 'experiment_comment')
     experiment_properties = association_proxy('experiment', 'properties')
      
@@ -148,5 +148,5 @@ class Experiment_ExperimentProp(Base, EqualityByIDMixin):
     experiment_property_id = Column('expt_property_no', Integer, ForeignKey(ExperimentProperty.id))
     experiment_id = Column('experiment_no', Integer, ForeignKey(Experiment.id))
 
-    experiment_property = relationship(ExperimentProperty, uselist=False)
+    experiment_property = relationship(ExperimentProperty, uselist=False, backref='experiment_experimentproperties')
     experiment = relationship(Experiment, uselist=False, backref='experiment_experimentproperties')

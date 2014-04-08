@@ -44,6 +44,15 @@ class BudNexConverter(ConverterInterface):
         self.wrapper(bioitem.convert)
         self.wrapper(bioentityevidence.convert)
 
+    def convert_bioentity(self):
+        self.wrapper(bioentity.convert)
+
+    def convert_bioconcept(self):
+        self.wrapper(bioconcept.convert)
+
+    def convert_bioitem(self):
+        self.wrapper(bioitem.convert)
+
     def convert_basic_continued(self):
         self.wrapper(bioentity_in_depth.convert)
         self.wrapper(bioconcept_in_depth.convert)

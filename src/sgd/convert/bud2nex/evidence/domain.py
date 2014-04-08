@@ -22,11 +22,11 @@ def create_domain_evidence(row, key_to_bioentity, key_to_domain, key_to_strain, 
     status = None
     date_of_run = None
     
-    bioent_key = (bioent_format_name + 'P', 'PROTEIN')
+    bioent_key = (bioent_format_name, 'LOCUS')
     if bioent_key not in key_to_bioentity:
-        print 'Protein not found. ' + bioent_format_name + 'P'
+        print 'Locus not found: ' + str(bioent_key)
         return []
-    protein = key_to_bioentity[bioent_key]
+    locus = key_to_bioentity[bioent_key]
     
     if source_name == 'HMMSmart':
         source_name = 'SMART'
@@ -55,10 +55,10 @@ def create_domain_evidence(row, key_to_bioentity, key_to_domain, key_to_strain, 
     source = None if source_name not in key_to_source else key_to_source[source_name]
         
     domain_evidence = Domainevidence(source, None, strain, None, 
-                                     int(start), int(end), evalue, status, date_of_run, protein, domain, None, None)
+                                     int(start), int(end), evalue, status, date_of_run, locus, domain, None, None)
     return [domain_evidence]
 
-def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source, protein_id_to_length):
+def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pubmed_id_to_reference, key_to_strain, key_to_source, locus_id_to_length):
     from src.sgd.model.nex.evidence import Domainevidence
     
     bioent_format_name = row[2].strip()
@@ -70,12 +70,12 @@ def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pu
     date_of_run = None
     pubmed_id = int(row[6].strip())
     
-    bioent_key = (bioent_format_name + 'P', 'PROTEIN')
-    protein = None if bioent_key not in key_to_bioentity else key_to_bioentity[bioent_key]
+    bioent_key = (bioent_format_name, 'LOCUS')
+    locus = None if bioent_key not in key_to_bioentity else key_to_bioentity[bioent_key]
     if protein is None:
         print bioent_key
         return []
-    end = protein_id_to_length[protein.id]
+    end = locus_id_to_length[locus.id]
     
     domain_key = (db_identifier, 'DOMAIN')
     domain = None if domain_key not in key_to_domain else key_to_domain[domain_key]
@@ -84,7 +84,7 @@ def create_domain_evidence_from_tf_file(row, key_to_bioentity, key_to_domain, pu
     reference = None if pubmed_id not in pubmed_id_to_reference else pubmed_id_to_reference[pubmed_id]
     
     domain_evidence = Domainevidence(source, reference, strain, None, 
-                                     start, end, evalue, status, date_of_run, protein, domain, None, None)
+                                     start, end, evalue, status, date_of_run, locus, domain, None, None)
     return [domain_evidence]
 
 def create_domain_evidence_from_protein_info(protein_detail, id_to_bioentity, key_to_bioentity, key_to_domain, key_to_source, key_to_strain):
@@ -92,10 +92,7 @@ def create_domain_evidence_from_protein_info(protein_detail, id_to_bioentity, ke
 
     strain = key_to_strain['S288C']
 
-    protein_key = (id_to_bioentity[protein_detail.info.feature_id].format_name + 'P', 'PROTEIN')
-    protein = None if protein_key not in key_to_bioentity else key_to_bioentity[protein_key]
-    if protein is None:
-        print 'Bioentity could not be found: ' + str(protein_key)
+    locus = id_to_bioentity[protein_detail.info.feature_id]
 
     if protein_detail.type == 'transmembrane domain':
         domain_key = ('predicted_transmembrane_domain', 'DOMAIN')
@@ -115,7 +112,7 @@ def create_domain_evidence_from_protein_info(protein_detail, id_to_bioentity, ke
             print 'Min or max coord is none.'
         else:
             domain_evidence = Domainevidence(source, None, strain, None,
-                protein_detail.min_coord, protein_detail.max_coord, None, None, None, protein, domain,
+                protein_detail.min_coord, protein_detail.max_coord, None, None, None, locus, domain,
                 protein_detail.date_created, protein_detail.created_by)
             return [domain_evidence]
 
@@ -162,7 +159,7 @@ def convert_domain_evidence(old_session_maker, new_session_maker):
         untouched_obj_ids = set(id_to_current_obj.keys())
 
         #Grab old objects
-        data = break_up_file('data/yeastmine_protein_domains.tsv')
+        data = break_up_file('src/sgd/convert/data/yeastmine_protein_domains.tsv')
 
         num_chunks = ceil(1.0*len(data)/1000)
 
@@ -218,7 +215,7 @@ def convert_domain_evidence(old_session_maker, new_session_maker):
         new_session.commit()
             
         #Grab JASPAR evidence from file
-        old_objs = break_up_file('data/TF_family_class_accession04302013.txt')
+        old_objs = break_up_file('src/sgd/convert/data/TF_family_class_accession04302013.txt')
 
         pubmed_ids = set([int(row[6].strip()) for row in old_objs])
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in new_session.query(Reference).filter(Reference.pubmed_id.in_(pubmed_ids)).all()])

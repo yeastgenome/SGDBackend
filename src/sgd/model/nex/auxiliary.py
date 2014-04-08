@@ -1,4 +1,4 @@
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 
@@ -32,40 +32,6 @@ class Biofact(Base, EqualityByIDMixin):
 
     def unique_key(self):
         return (self.bioentity_id, self.bioconcept_id, self.bioentity_class_type, self.bioconcept_class_type)
-    
-class BioconceptCount(Base, EqualityByIDMixin):
-    __tablename__ = 'aux_bioconcept_count'
-
-    id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key=True)
-    child_gene_count = Column('child_gene_count', Integer)
-    gene_count = Column('genecount', Integer)
-    class_type = Column('subclass', String)
-    
-    bioconcept = relationship(Bioconcept, backref=backref("count", uselist=False, lazy="joined"))
-    
-    def __init__(self, bioconcept, genecount, child_gene_count):
-        self.id = bioconcept.id
-        self.genecount = genecount
-        self.class_type = bioconcept.class_type
-        self.child_gene_count = child_gene_count
-
-    def unique_key(self):
-        return self.id
-    
-class ChemicalCount(Base, EqualityByIDMixin):
-    __tablename__ = 'aux_chemical_count'
-
-    id = Column('chemical_id', Integer, ForeignKey(Bioconcept.id), primary_key=True)
-    child_gene_count = Column('child_gene_count', Integer)
-    genecount = Column('genecount', Integer)
-        
-    def __init__(self, chemical, genecount, child_gene_count):
-        self.id = chemical.id
-        self.genecount = genecount
-        self.child_gene_count = child_gene_count
-
-    def unique_key(self):
-        return self.id
     
 class Interaction(Base, EqualityByIDMixin):
     __tablename__ = "aux_interaction"

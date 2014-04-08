@@ -24,10 +24,8 @@ class Interaction(Base, EqualityByIDMixin):
     date_created = Column('date_created', Date)
     
     #Relationships
-    interaction_references = relationship('Interaction_Reference', lazy='subquery')
+    interaction_references = relationship('Interaction_Reference')
     reference_ids = association_proxy('interaction_references', 'reference_id')
-    
-    interaction_phenotypes = relationship('Interaction_Phenotype', lazy='subquery')
     
     feature_ids = association_proxy('interaction_features', 'feature_id')
 
@@ -57,8 +55,10 @@ class Interaction_Phenotype(Base, EqualityByIDMixin):
     
     #Relationships
     phenotype = relationship(Phenotype, uselist=False)
+    interaction = relationship(Interaction, uselist=False, backref='interaction_phenotypes')
     qualifier = association_proxy('phenotype', 'qualifier')
     observable = association_proxy('phenotype', 'observable')
+    mutant_type = association_proxy('phenotype', 'mutant_type')
     
 class Interaction_Feature(Base, EqualityByIDMixin):
     __tablename__ = 'feat_interact'
