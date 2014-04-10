@@ -1,4 +1,4 @@
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String
 
@@ -6,7 +6,7 @@ from bioconcept import Bioconcept
 from bioentity import Bioentity
 from reference import Reference
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base
+from src.sgd.model.nex import Base, UpdateByJsonMixin
 
 
 __author__ = 'kpaskov'
@@ -80,7 +80,7 @@ class BioentityReference(Base):
 
     #Relationships
     bioentity = relationship(Bioentity, uselist=False)
-    reference = relationship(Reference, uselist=False, backref='bioentity_references')
+    reference = relationship(Reference, uselist=False, backref=backref('bioentity_references', passive_deletes=True))
 
     def __init__(self, class_type, bioentity_id, reference_id):
         self.class_type = class_type
@@ -126,7 +126,7 @@ class OmicsBioentityReference(BioentityReference, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_identity': 'OMICS_LITERATURE',
                        'inherit_condition': id==BioentityReference.id} 
     
-class Disambig(Base, EqualityByIDMixin):
+class Disambig(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'aux_disambig'
     
     id = Column('aux_disambig_id', Integer, primary_key=True)
@@ -134,71 +134,47 @@ class Disambig(Base, EqualityByIDMixin):
     class_type = Column('class', String)
     subclass_type = Column('subclass', String)
     identifier = Column('obj_id', String)
-    
-    def __init__(self, disambig_key, class_type, subclass_type, identifier):
-        self.disambig_key = disambig_key.replace('/', '-').replace(' ', '_')
-        self.class_type = class_type
-        self.subclass_type = subclass_type
-        self.identifier = identifier
+
+    __eq_values__ = ['id', 'disambig_key', 'class_type', 'subclass_type', 'identifier']
+    __eq_fks__ = []
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.disambig_key = obj_json.get('disambig_key').replace('/', '-').replace(' ', '_')
         
     def unique_key(self):
-        return (self.disambig_key, self.class_type, self.subclass_type)
-
-    def to_json(self):
-        return {
-            'id': self.id,
-            'disambig_key': self.disambig_key,
-            'class_type': self.class_type,
-            'subclass_type': self.subclass_type,
-            'identifier': self.identifier,
-           }
+        return self.disambig_key, self.class_type, self.subclass_type
     
-class Locustabs(Base, EqualityByIDMixin):
+class Locustabs(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'aux_locustabs'
     
     id = Column('bioentity_id', Integer, primary_key=True)
-    summary = Column('summary', Integer)
-    sequence = Column('seq', Integer)
-    history = Column('history', Integer)
-    literature = Column('literature', Integer)
-    go = Column('go', Integer)
-    phenotype = Column('phenotype', Integer)
-    interactions = Column('interactions', Integer)
-    expression = Column('expression', Integer)
-    regulation = Column('regulation', Integer)
-    protein = Column('protein', Integer)
-    wiki = Column('wiki', Integer)
-            
-    def __init__(self, bioentity_id, show_summary, show_sequence, show_history, show_literature, show_go, show_phenotype,
-                 show_interactions, show_expression, show_regulation, show_protein, show_wiki):
-        self.id = bioentity_id
-        self.summary = show_summary
-        self.history = show_history
-        self.literature = show_literature
-        self.go = show_go
-        self.phenotype = show_phenotype
-        self.interactions = show_interactions
-        self.expression = show_expression
-        self.regulation = show_regulation
-        self.protein = show_protein
-        self.sequence = show_sequence
-        self.wiki = show_wiki
-            
+    summary_tab = Column('summary', Integer)
+    sequence_tab = Column('seq', Integer)
+    history_tab = Column('history', Integer)
+    literature_tab = Column('literature', Integer)
+    go_tab = Column('go', Integer)
+    phenotype_tab = Column('phenotype', Integer)
+    interaction_tab = Column('interactions', Integer)
+    expression_tab = Column('expression', Integer)
+    regulation_tab = Column('regulation', Integer)
+    protein_tab = Column('protein', Integer)
+    wiki_tab = Column('wiki', Integer)
+
+    __eq_values__ = ['id', 'summary_tab', 'history_tab', 'literature_tab', 'go_tab', 'phenotype_tab', 'interaction_tab',
+                     'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab']
+    __eq_fks__ = []
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
     def unique_key(self):
         return self.id
 
     def to_json(self):
-        return {
-            'id': self.id,
-            'summary_tab': self.summary == 1,
-            'history_tab': self.history == 1,
-            'literature_tab': self.literature == 1,
-            'go_tab': self.go == 1,
-            'phenotype_tab': self.phenotype == 1,
-            'interaction_tab': self.interactions == 1,
-            'expression_tab': self.expression == 1,
-            'regulation_tab': self.regulation == 1,
-            'protein_tab': self.protein == 1,
-            'sequence_tab': self.sequence == 1,
-            'wiki_tab': self.wiki == 1
-           }
+        obj_json = UpdateByJsonMixin.to_json(self)
+        new_obj_json = {'id': obj_json['id']}
+        for key, value in obj_json.iteritems():
+            if key != 'id':
+                new_obj_json[key] = value == 1
+        return new_obj_json

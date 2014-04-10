@@ -37,7 +37,7 @@ class Interaction_Reference(Base, EqualityByIDMixin):
     __tablename__ = 'interact_ref'
 
     id = Column('interact_ref_no', Integer, primary_key=True)
-    interaction_id = Column('interaction_no', Integer, ForeignKey('bud.interaction.interaction_no'))
+    interaction_id = Column('interaction_no', Integer, ForeignKey('from_bud.interaction.interaction_no'))
     reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
     note = Column('note', String)
     created_by = Column('created_by', String)
@@ -50,8 +50,8 @@ class Interaction_Phenotype(Base, EqualityByIDMixin):
     __tablename__ = 'interact_pheno'
 
     id = Column('interact_pheno_no', Integer, primary_key=True)
-    interaction_id = Column('interaction_no', Integer, ForeignKey('bud.interaction.interaction_no'))
-    phenotype_id = Column('phenotype_no', Integer, ForeignKey('bud.phenotype.phenotype_no'))
+    interaction_id = Column('interaction_no', Integer, ForeignKey('from_bud.interaction.interaction_no'))
+    phenotype_id = Column('phenotype_no', Integer, ForeignKey('from_bud.phenotype.phenotype_no'))
     
     #Relationships
     phenotype = relationship(Phenotype, uselist=False)
@@ -64,8 +64,8 @@ class Interaction_Feature(Base, EqualityByIDMixin):
     __tablename__ = 'feat_interact'
     
     id = Column('feat_interact_no', Integer, primary_key = True)
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
-    interaction_id = Column('interaction_no', Integer, ForeignKey('bud.interaction.interaction_no'))
+    feature_id = Column('feature_no', Integer, ForeignKey('from_bud.feature.feature_no'))
+    interaction_id = Column('interaction_no', Integer, ForeignKey('from_bud.interaction.interaction_no'))
     action = Column('action', String)
         
     feature = relationship('Feature', uselist=False) 

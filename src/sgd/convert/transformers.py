@@ -20,20 +20,16 @@ class TransformerInterface:
 
 class Json2Obj(TransformerInterface):
 
-    def __init__(self):
-        from src.sgd.model.nex.bioentity import Locus, Transcript, Protein, Complex
-        from src.sgd.model.nex.bioconcept import Phenotype, Go, ECNumber
-        from src.sgd.model.nex.bioitem import Allele, Domain, Chemical, Orphanbioitem
-        self.class_type_to_cls = {'LOCUS': Locus, 'TRANSCRIPT': Transcript, 'PROTEIN':Protein, 'COMPLEX': Complex,
-                                  'PHENOTYPE': Phenotype, 'GO': Go, 'ECNUMBER': ECNumber,
-                                  'ALLELE': Allele, 'DOMAIN': Domain, 'CHEMICAL': Chemical, 'ORPHAN': Orphanbioitem}
+    def __init__(self, cls):
+        self.cls = cls
 
     def convert(self, obj_json):
-        class_type = obj_json['class_type']
-        if class_type in self.class_type_to_cls:
-            return self.class_type_to_cls[class_type].from_json(obj_json)
+        if obj_json is None:
+            return None
+        else:
+            return self.cls(obj_json)
 
-    def finished(self, delete_untouched=False, commit=False):
+    def finished(self):
         return None
 
 class Obj2Json(TransformerInterface):
@@ -41,11 +37,17 @@ class Obj2Json(TransformerInterface):
     def convert(self, obj):
         return obj.to_json()
 
+    def finished(self):
+        return None
+
 class Obj2NexDB(TransformerInterface):
 
-    def __init__(self, session_maker, current_obj_query, name=None):
+    def __init__(self, session_maker, current_obj_query, name=None, commit_interval=None, commit=False, delete_untouched=False):
         self.session = session_maker()
         self.name = name
+        self.commit_interval = commit_interval
+        self.commit = commit
+        self.delete_untouched = delete_untouched
         current_objs = current_obj_query(self.session).all()
         self.key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
         self.keys_already_seen = set()
@@ -59,6 +61,9 @@ class Obj2NexDB(TransformerInterface):
 
     def convert(self, newly_created_obj):
         try:
+            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+                self.session.commit()
+
             if newly_created_obj is None:
                 self.none_count += 1
                 return 'None'
@@ -88,8 +93,8 @@ class Obj2NexDB(TransformerInterface):
             self.error_count += 1
             return 'Error'
 
-    def finished(self, delete_untouched=False, commit=False):
-        if delete_untouched:
+    def finished(self):
+        if self.delete_untouched:
             keys_to_delete = set(self.key_to_current_obj.keys()).difference(self.keys_already_seen)
             for untouched_key in keys_to_delete:
                 self.session.delete(self.key_to_current_obj[untouched_key])
@@ -98,7 +103,7 @@ class Obj2NexDB(TransformerInterface):
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
                    'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
                    'None': self.none_count}
-        if commit:
+        if self.commit_interval is not None or self.commit:
             self.session.commit()
         else:
             message['Warning'] = 'Changes not committed!'
@@ -107,10 +112,13 @@ class Obj2NexDB(TransformerInterface):
 
 class Obj2CorePerfDB(TransformerInterface):
 
-    def __init__(self, session_maker, cls, name=None):
+    def __init__(self, session_maker, cls, name=None, commit_interval=True, commit=False, delete_untouched=False):
         self.session = session_maker()
         self.cls = cls
         self.name = name
+        self.commit_interval = commit_interval
+        self.commit = commit
+        self.delete_untouched = delete_untouched
         current_objs = self.session.query(cls).all()
         self.id_to_current_obj = dict([(x.id, x) for x in current_objs])
         self.ids_already_seen = set()
@@ -127,13 +135,16 @@ class Obj2CorePerfDB(TransformerInterface):
             self.none_count += 1
             return 'None'
         try:
+            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+                self.session.commit()
+
             identifier = newly_created_obj.id
             if identifier not in self.ids_already_seen:
                 self.ids_already_seen.add(identifier)
                 current_obj = None if identifier not in self.id_to_current_obj else self.id_to_current_obj[identifier]
                 newly_created_obj_json = newly_created_obj.to_json()
                 if current_obj is None:
-                    self.session.add(self.cls.from_json(newly_created_obj_json))
+                    self.session.add(self.cls(newly_created_obj_json))
                     self.added_count += 1
                     return 'Added'
                 else:
@@ -153,8 +164,8 @@ class Obj2CorePerfDB(TransformerInterface):
             self.error_count += 1
             return 'Error'
 
-    def finished(self, delete_untouched=False, commit=False):
-        if delete_untouched:
+    def finished(self):
+        if self.delete_untouched:
             ids_to_delete = set(self.id_to_current_obj.keys()).difference(self.ids_already_seen)
             for untouched_id in ids_to_delete:
                 self.session.delete(self.id_to_current_obj[untouched_id])
@@ -163,7 +174,7 @@ class Obj2CorePerfDB(TransformerInterface):
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
                    'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
                    'None': self.none_count}
-        if commit:
+        if self.commit_interval is not None or self.commit:
             self.session.commit()
         else:
             message['Warning'] = 'Changes not committed!'
@@ -175,7 +186,7 @@ class NullTransformer(TransformerInterface):
     def convert(self, x):
         return x
 
-    def finished(self, delete_untouched=False, commit=False):
+    def finished(self):
         return None
 
 class OutputTransformer(TransformerInterface):
@@ -196,7 +207,7 @@ class OutputTransformer(TransformerInterface):
             print self.output
         return x
 
-    def finished(self, delete_untouched=False, commit=False):
+    def finished(self):
         return self.output
 
 # ------------------------------------------ Starters ------------------------------------------
@@ -280,13 +291,36 @@ def make_backend_starter(backend, method, chunk_size):
             offset += chunk_size
     return backend_starter
 
+def make_fasta_file_starter(filename):
+    def fasta_file_starter():
+        f = open(filename, 'r')
+        on_sequence = False
+        current_id = None
+        current_sequence = []
+        for line in f:
+            line = line.replace("\r\n","").replace("\n", "")
+            if not on_sequence and line == '##FASTA':
+                on_sequence = True
+            elif line.startswith('>'):
+                if current_id is not None:
+                    yield current_id, ''.join(current_sequence)
+                current_id = line[1:]
+                current_sequence = []
+            elif on_sequence:
+                current_sequence.append(line)
+
+        if current_id is not None:
+            yield current_id, ''.join(current_sequence)
+        f.close()
+    return fasta_file_starter
+
 # ------------------------------------------ Conversion ------------------------------------------
-def do_conversion(starter, converters, delete_untouched=False, commit=False):
+def do_conversion(starter, converters):
     for element in starter():
         reduce(lambda x, y: y.convert(x), converters, element)
 
     for converter in converters:
-        output = converter.finished(delete_untouched=delete_untouched, commit=commit)
+        output = converter.finished()
         if output is not None:
             print output
 

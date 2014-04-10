@@ -83,7 +83,7 @@ def get_bioentity_evidence(locus_id):
 def make_bioentity_details(locus_id=None):
     if locus_id is None:
         return {'Error': 'No locus_id given.'}
-    return [x.to_json() for x in get_bioentity_evidence(locus_id=locus_id)]
+    return [x.to_json() for x in sorted(get_bioentity_evidence(locus_id=locus_id), key=lambda x: x.reference.display_name)]
 
 # -------------------------------Graph-----------------------------------------
 def create_bioent_node(bioent, is_focus):

@@ -14,7 +14,6 @@ class JsonMixins(object):
     def to_json(self):
         return json.loads(self.json)
 
-    @classmethod
-    def from_json(cls, obj_json):
-        obj = cls(obj_json['id'], json.dumps(obj_json))
-        return obj
+    def __init__(self, obj_json):
+        self.id = obj_json['id']
+        self.json = json.dumps(obj_json)

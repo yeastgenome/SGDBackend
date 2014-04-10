@@ -10,8 +10,8 @@ def make_overview(bioent_id, filter=None):
     overview = {}
     #Test getting rid of Venters
     evidence = get_regulation_evidence(locus_id=bioent_id, reference_id=None, between_ids=None, filter=filter)
-    target_count = len(set(x.bioentity2_id for x in evidence if x.bioentity1_id==bioent_id))
-    regulator_count = len(set(x.bioentity1_id for x in evidence if x.bioentity2_id==bioent_id))
+    target_count = len(set(x.locus2_id for x in evidence if x.locus1_id==bioent_id))
+    regulator_count = len(set(x.locus1_id for x in evidence if x.locus2_id==bioent_id))
     #interactions = get_interactions('REGULATION', bioent_id)
     #target_count = len([interaction.bioentity2_id for interaction in interactions if interaction.bioentity1_id==bioent_id])
     #regulator_count = len([interaction.bioentity1_id for interaction in interactions if interaction.bioentity2_id==bioent_id])
@@ -44,9 +44,9 @@ def get_regulation_evidence(locus_id, reference_id, between_ids, filter):
         return query.all()
     else:
         if between_ids is not None:
-            query = query.filter(and_(Regulationevidence.bioentity1_id.in_(between_ids), Regulationevidence.bioentity2_id.in_(between_ids)))
+            query = query.filter(and_(Regulationevidence.locus1_id.in_(between_ids), Regulationevidence.locus2_id.in_(between_ids)))
         if locus_id is not None:
-            query = query.filter(or_(Regulationevidence.bioentity1_id == locus_id, Regulationevidence.bioentity2_id == locus_id))
+            query = query.filter(or_(Regulationevidence.locus1_id == locus_id, Regulationevidence.locus2_id == locus_id))
 
         if filter == 'no_venters':
             query = query.filter(Regulationevidence.reference_id != 82383)
@@ -56,12 +56,12 @@ def get_regulation_evidence(locus_id, reference_id, between_ids, filter):
             expression_interactions = set()
             binding_interactions = set()
             for evidence in evidences:
-                interaction_key = (evidence.bioentity1_id, evidence.bioentity2_id)
+                interaction_key = (evidence.locus1_id, evidence.locus2_id)
                 if evidence.experiment.category == 'expression':
                     expression_interactions.add(interaction_key)
                 if evidence.experiment.category == 'binding':
                     binding_interactions.add(interaction_key)
-            return [x for x in evidences if (x.bioentity1_id, x.bioentity2_id) in expression_interactions and (x.bioentity1_id, x.bioentity2_id) in binding_interactions]
+            return [x for x in evidences if (x.locus1_id, x.locus2_id) in expression_interactions and (x.locus1_id, x.locus2_id) in binding_interactions]
         elif filter == 'sgd_manual_only':
             query = query.filter(and_(Regulationevidence.source_id == 1, Regulationevidence.reference_id != 82383, Regulationevidence.reference_id != 51978))
             return query.all()
@@ -100,16 +100,16 @@ def make_graph(bioent_id, filter=None):
     regulator_id_to_evidence_count = {}
     target_id_to_evidence_count = {}
     for evidence in evidences:
-        if evidence.bioentity2_id == bioent_id:
-            if evidence.bioentity1_id in regulator_id_to_evidence_count:
-                regulator_id_to_evidence_count[evidence.bioentity1_id] = regulator_id_to_evidence_count[evidence.bioentity1_id] + 1
+        if evidence.locus2_id == bioent_id:
+            if evidence.locus1_id in regulator_id_to_evidence_count:
+                regulator_id_to_evidence_count[evidence.locus1_id] = regulator_id_to_evidence_count[evidence.locus1_id] + 1
             else:
-                regulator_id_to_evidence_count[evidence.bioentity1_id] = 1
-        elif evidence.bioentity1_id == bioent_id:
-            if evidence.bioentity2_id in target_id_to_evidence_count:
-                target_id_to_evidence_count[evidence.bioentity2_id] = target_id_to_evidence_count[evidence.bioentity2_id] + 1
+                regulator_id_to_evidence_count[evidence.locus1_id] = 1
+        elif evidence.locus1_id == bioent_id:
+            if evidence.locus2_id in target_id_to_evidence_count:
+                target_id_to_evidence_count[evidence.locus2_id] = target_id_to_evidence_count[evidence.locus2_id] + 1
             else:
-                target_id_to_evidence_count[evidence.bioentity2_id] = 1
+                target_id_to_evidence_count[evidence.locus2_id] = 1
     #neighbor_interactions = get_interactions('REGULATION', bioent_id=bioent_id)
     
     #regulator_id_to_evidence_count = dict([(x.bioentity1_id, x.evidence_count) for x in neighbor_interactions if x.bioentity2_id==bioent_id])
@@ -151,10 +151,10 @@ def make_graph(bioent_id, filter=None):
     evidences = get_regulation_evidence(locus_id=None, reference_id=None, between_ids=usable_neighbor_ids, filter=filter)
     tangent_to_evidence_count = {}
     for evidence in evidences:
-        if (evidence.bioentity1_id, evidence.bioentity2_id) in tangent_to_evidence_count:
-            tangent_to_evidence_count[(evidence.bioentity1_id, evidence.bioentity2_id)] = tangent_to_evidence_count[(evidence.bioentity1_id, evidence.bioentity2_id)] + 1
+        if (evidence.locus1_id, evidence.locus2_id) in tangent_to_evidence_count:
+            tangent_to_evidence_count[(evidence.locus1_id, evidence.locus2_id)] = tangent_to_evidence_count[(evidence.locus1_id, evidence.locus2_id)] + 1
         else:
-            tangent_to_evidence_count[(evidence.bioentity1_id, evidence.bioentity2_id)] = 1
+            tangent_to_evidence_count[(evidence.locus1_id, evidence.locus2_id)] = 1
     #tangent_to_evidence_count = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in get_interactions_among('REGULATION', usable_neighbor_ids, min_evidence_count)])
     
     evidence_count_to_tangents = [set() for _ in range(11)]

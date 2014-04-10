@@ -13,9 +13,8 @@ class Bioentity(Base, EqualityByIDMixin, JsonMixins):
     id = Column('bioentity_id', Integer, primary_key=True)
     json = Column('json', String)
 
-    def __init__(self, bioentity_id, json):
-        self.id = bioentity_id
-        self.json = json
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
 
 class Bioconcept(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'bioconcept'
@@ -23,31 +22,26 @@ class Bioconcept(Base, EqualityByIDMixin, JsonMixins):
     id = Column('bioconcept_id', Integer, primary_key=True)
     json = Column('json', CLOB)
                 
-    def __init__(self, bioconcept_id, json):
-        self.id = bioconcept_id
-        self.json = json
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
         
 class Reference(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'reference'
     
     id = Column('reference_id', Integer, primary_key=True)
     json = Column('json', CLOB)
-    bibentry_json = Column('bibentry_json', CLOB)
-                
-    def __init__(self, reference_id, json, bibentry_json):
-        self.id = reference_id
-        self.json = json
-        self.bibentry_json = bibentry_json
+
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
 
 class Bioitem(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'bioitem'
 
     id = Column('bioitem_id', Integer, primary_key=True)
-    json = Column('json', String)
+    json = Column('json', CLOB)
 
-    def __init__(self, bioitem_id, json):
-        self.id = bioitem_id
-        self.json = json
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
 
 class Author(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'author'
@@ -55,9 +49,8 @@ class Author(Base, EqualityByIDMixin, JsonMixins):
     id = Column('author_id', Integer, primary_key=True)
     json = Column('json', String)
 
-    def __init__(self, author_id, json):
-        self.id = author_id
-        self.json = json
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
 
 class Ontology(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'ontology'
@@ -66,9 +59,8 @@ class Ontology(Base, EqualityByIDMixin, JsonMixins):
     class_type = Column('class', String)
     json = Column('json', CLOB)
 
-    def __init__(self, class_type, json):
-        self.class_type = class_type
-        self.json = json
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
 
 class Disambig(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'disambig'

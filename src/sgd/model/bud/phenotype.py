@@ -14,9 +14,9 @@ class PhenotypeFeature(Base, EqualityByIDMixin):
     __tablename__ = 'pheno_annotation'
 
     id = Column('pheno_annotation_no', Integer, primary_key = True)
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
-    phenotype_id = Column('phenotype_no', Integer, ForeignKey('bud.phenotype.phenotype_no'))
-    experiment_id = Column('experiment_no', Integer, ForeignKey('bud.experiment.experiment_no'))
+    feature_id = Column('feature_no', Integer, ForeignKey('from_bud.feature.feature_no'))
+    phenotype_id = Column('phenotype_no', Integer, ForeignKey('from_bud.phenotype.phenotype_no'))
+    experiment_id = Column('experiment_no', Integer, ForeignKey('from_bud.experiment.experiment_no'))
     
     phenotype = relationship('Phenotype', uselist=False, backref='phenotype_features')
     source = association_proxy('phenotype', 'source')

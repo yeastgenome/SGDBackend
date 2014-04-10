@@ -1,6 +1,6 @@
-from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
@@ -19,29 +19,15 @@ class Source(Base, EqualityByIDMixin, UpdateByJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
     link = None
 
-    __eq_values__ = ['display_name', 'format_name', 'description']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'description', 'date_created', 'created_by']
     __eq_fks__ = []
 
-    def __init__(self, display_name, description, date_created, created_by):
-        self.display_name = display_name
-        self.format_name = create_format_name(display_name)
-        self.description = description
-        self.date_created = date_created
-        self.created_by = created_by
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = create_format_name(self.display_name)
 
     def unique_key(self):
         return self.format_name
-
-    def to_json(self):
-        obj_json = self.to_min_json()
-        obj_json['description'] = self.description
-        return obj_json
-
-    @classmethod
-    def from_json(cls, obj_json):
-        obj = cls(obj_json.get('display_name'), obj_json.get('description'), obj_json.get('date_created'), obj_json.get('created_by'))
-        obj.id = obj_json.get('id')
-        return obj
 
 eco_id_to_category = {'ECO:0000000': None,
                       'ECO:0000046': 'expression',
@@ -81,40 +67,18 @@ class Experiment(Base, EqualityByIDMixin, UpdateByJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['display_name', 'format_name', 'link', 'description', 'eco_id', 'category']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'eco_id', 'category',
+                     'date_created', 'created_by']
     __eq_fks__ = ['source']
 
-    def __init__(self, display_name, source, description, eco_id, date_created, created_by):
-        self.display_name = display_name
-        self.format_name = create_format_name(display_name)
-        self.link = None
-        self.source_id = None if source is None else source.id
-        self.description = description
-        self.eco_id = eco_id
-        self.date_created = date_created
-        self.created_by = created_by
-
-        if self.eco_id in eco_id_to_category:
-            self.category = eco_id_to_category[self.eco_id]
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = create_format_name(obj_json.get('display_name'))
+        if obj_json.get('eco_id') in eco_id_to_category:
+            self.category = eco_id_to_category[obj_json.get('eco_id')]
 
     def unique_key(self):
         return self.format_name
-
-    def to_json(self):
-        obj_json = self.to_min_json()
-        obj_json['description'] = self.description
-        obj_json['eco_id'] = self.eco_id
-        obj_json['category'] = self.category
-        obj_json['source'] = None if self.source_id is None else {'id': self.source_id} if self.source is None else self.source.to_json()
-        return obj_json
-
-    @classmethod
-    def from_json(cls, obj_json):
-        obj = cls(obj_json.get('display_name'), None, obj_json.get('description'), obj_json.get('eco_id'),
-                  obj_json.get('date_created'), obj_json.get('created_by'))
-        obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
-        obj.id = obj_json.get('id')
-        return obj
 
 alternative_reference_strains = {'CEN.PK', 'D273-10B', 'FL100', 'JK9-3d', 'RM11-1a', 'SEY6210', 'SK1', 'Sigma1278b', 'W303', 'X2180-1A', 'Y55'}
 
@@ -134,71 +98,44 @@ class Strain(Base, EqualityByIDMixin, UpdateByJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['display_name', 'format_name', 'link', 'description', 'is_alternative_reference']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'is_alternative_reference',
+                     'date_created', 'created_by']
     __eq_fks__ = ['source']
 
-    def __init__(self, display_name, source, description, date_created, created_by):
-        self.display_name = display_name
-        self.format_name = create_format_name(display_name).replace('.', '')
-        self.link = None
-        self.source_id = None if source is None else source.id
-        self.description = description
-        self.is_alternative_reference = 1 if display_name in alternative_reference_strains else 0
-        self.date_created = date_created
-        self.created_by = created_by
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = create_format_name(obj_json.get('display_name')).replace('.', '')
+        self.is_alternative_reference = 1 if obj_json.get('display_name') in alternative_reference_strains else 0
 
     def unique_key(self):
         return self.format_name
-
-    def to_json(self):
-        obj_json = self.to_min_json()
-        obj_json['description'] = self.description
-        obj_json['source'] = None if self.source_id is None else {'id': self.source_id} if self.source is None else self.source.to_json()
-        obj_json['is_alternative_reference'] = self.is_alternative_reference
-        return obj_json
-
-    @classmethod
-    def from_json(cls, obj_json):
-        obj = cls(obj_json.get('display_name'), None, obj_json.get('description'), obj_json.get('date_created'), obj_json.get('created_by'))
-        obj.source_id = None if 'source' not in obj_json else obj_json['source']['id']
-        obj.id = obj_json.get('id')
-        return obj
        
-class Url(Base, EqualityByIDMixin):
+class Url(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'url'
     id = Column('url_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     class_type = Column('class', String)
     link = Column('obj_url', String)
-    source_id = Column('source_id', Integer)
+    source_id = Column('source_id', ForeignKey(Source.id))
     category = Column('category', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
-    __mapper_args__ = {'polymorphic_on': class_type,
-                       'polymorphic_identity':"URL"}
+    #Relationships
+    source = relationship(Source, uselist=False)
 
-    def __init__(self, display_name, format_name, class_type, link, source, category, date_created, created_by):
-        self.display_name = display_name
-        self.format_name = format_name
-        self.class_type = class_type
-        self.link = link
-        self.source_id = source.id
-        self.category = category
-        self.date_created = date_created
-        self.created_by = created_by
+    __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity': "URL"}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category', 'date_created', 'created_by']
+    __eq_fks__ = ['source']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
 
     def unique_key(self):
-        return (self.link, self.format_name)
+        return self.link, self.format_name
 
-    def to_json(url):
-        return {
-            'display_name': url.display_name,
-            'link': url.link,
-            }
-
-class Alias(Base, EqualityByIDMixin):
+class Alias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'alias'
 
     id = Column('alias_id', Integer, primary_key=True)
@@ -208,63 +145,46 @@ class Alias(Base, EqualityByIDMixin):
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     category = Column('category', String)
-    date_created = Column('date_created', Date)
-    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __mapper_args__ = {'polymorphic_on': class_type,
-                       'polymorphic_identity':"ALIAS"}
+    __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity': "ALIAS"}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category', 'date_created', 'created_by']
+    __eq_fks__ = ['source']
 
-    def __init__(self, display_name, format_name, class_type, link, source, category, date_created, created_by):
-        self.display_name = display_name
-        self.format_name = format_name
-        self.class_type = class_type
-        self.link = link
-        self.source_id = source.id
-        self.category = category
-        self.date_created = date_created
-        self.created_by = created_by
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
 
     def unique_key(self):
-        return (self.class_type, self.display_name, self.format_name, self.category)
+        return self.class_type, self.display_name, self.format_name, self.category
 
-    def to_json(self):
-        return {
-                'id': self.id,
-                'display_name': self.display_name,
-                'link': self.link,
-                'source': self.source.to_json(),
-                'category': self.category
-               }
-
-class Relation(Base, EqualityByIDMixin):
+class Relation(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'relation'
 
     id = Column('relation_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     class_type = Column('class', String)
-    source_id = Column('source_id', Integer, ForeignKey('nex.source.source_id'))
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
     relation_type = Column('relation_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
-    __mapper_args__ = {'polymorphic_on': class_type,
-                       'polymorphic_identity':"RELATION"}
+    #Relationships
+    source = relationship(Source, uselist=False)
 
-    def __init__(self, display_name, format_name, class_type, source, relation_type, date_created, created_by):
-        self.display_name = display_name
-        self.format_name = format_name
-        self.class_type = class_type
-        self.source_id = source.id
-        self.relation_type = relation_type
-        self.date_created = date_created
-        self.created_by = created_by
+    __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity': "RELATION"}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relation_type', 'date_created', 'created_by']
+    __eq_fks__ = ['source', 'parent', 'child']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
 
     def unique_key(self):
-        return (self.format_name, self.class_type, self.relation_type)
+        return self.format_name, self.class_type, self.relation_type
 
 class Experimentrelation(Relation):
     __tablename__ = 'experimentrelation'
@@ -274,18 +194,20 @@ class Experimentrelation(Relation):
     child_id = Column('child_id', Integer, ForeignKey(Experiment.id))
 
     #Relationships
-    parent = relationship(Experiment, uselist=False, backref="children", primaryjoin="Experimentrelation.parent_id==Experiment.id")
-    child = relationship(Experiment, uselist=False, backref="parents", primaryjoin="Experimentrelation.child_id==Experiment.id")
+    parent = relationship(Experiment, backref=backref("children", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
+    child = relationship(Experiment, backref=backref("parents", passive_deletes=True), uselist=False, foreign_keys=[child_id])
 
-    __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT',
-                       'inherit_condition': id == Relation.id}
+    __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT', 'inherit_condition': id == Relation.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relation_type',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'parent', 'child']
 
-    def __init__(self, source, relation_type, parent, child, date_created, created_by):
-        Relation.__init__(self, parent.format_name + '_' + child.format_name,
-                          child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name,
-                          'EXPERIMENT', source, relation_type, date_created, created_by)
-        self.parent_id = parent.id
-        self.child_id = child.id
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        parent = obj_json.get('parent')
+        child = obj_json.get('child')
+        self.format_name = None if parent is None or child is None else str(parent.id) + ' - ' + str(child.id)
+        self.display_name = None if parent is None or child is None else str(parent.id) + ' - ' + str(child.id)
 
 class Experimentalias(Alias):
     __tablename__ = 'experimentalias'
@@ -293,11 +215,15 @@ class Experimentalias(Alias):
     id = Column('alias_id', Integer, primary_key=True)
     experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
 
+    #Relationships
     experiment = relationship(Experiment, uselist=False)
 
-    __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT',
-                       'inherit_condition': id == Alias.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'experiment']
 
-    def __init__(self, display_name, source, category, experiment, date_created, created_by):
-        Alias.__init__(self, display_name, experiment.format_name, 'EXPERIMENT', None, source, category, date_created, created_by)
-        self.experiment_id = experiment.id
+    __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT', 'inherit_condition': id == Alias.id}
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = None if obj_json.get('experiment') is None else str(obj_json.get('experiment').id)

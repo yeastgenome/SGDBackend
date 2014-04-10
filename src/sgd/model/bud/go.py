@@ -1,6 +1,6 @@
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.schema import Column, ForeignKey, Table
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
@@ -20,7 +20,7 @@ class GoSynonym(Base, EqualityByIDMixin):
     name = Column('go_synonym', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
-    
+
 class Go(Base, EqualityByIDMixin):
     __tablename__ = 'go'
 
@@ -31,18 +31,25 @@ class Go(Base, EqualityByIDMixin):
     go_definition = Column('go_definition', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
-    
-    #relationships
-    synonyms = relationship(GoSynonym, secondary= Table('go_gosyn', Base.metadata, 
-                                                        Column('go_no', Integer, ForeignKey('bud.go.go_no')),
-                                                        Column('go_synonym_no', Integer, ForeignKey('bud.go_synonym.go_synonym_no'))))
+
+class GoGoSynonym(Base, EqualityByIDMixin):
+    __tablename__ = 'go_gosyn'
+
+    #Values
+    id = Column('go_gosyn_no', Integer, primary_key=True)
+    go_id = Column('go_no', Integer, ForeignKey(Go.id))
+    gosynonym_id = Column('go_synonym_no', Integer, ForeignKey(GoSynonym.id))
+
+    #Relationships
+    gosynonym = relationship(GoSynonym, uselist=False, backref='go_gosynonyms')
+    go = relationship(Go, uselist=False, backref='go_gosynonyms')
     
 class GoFeature(Base, EqualityByIDMixin):
     __tablename__ = 'go_annotation'
 
     id = Column('go_annotation_no', Integer, primary_key=True)
-    go_id = Column('go_no', Integer, ForeignKey('bud.go.go_no'))
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
+    go_id = Column('go_no', Integer, ForeignKey('from_bud.go.go_no'))
+    feature_id = Column('feature_no', Integer, ForeignKey('from_bud.feature.feature_no'))
     go_evidence = Column('go_evidence', String)
     annotation_type = Column('annotation_type', String)
     source = Column('source', String)
@@ -59,8 +66,8 @@ class GoRef(Base, EqualityByIDMixin):
 
     #Values
     id = Column('go_ref_no', Integer, primary_key = True)
-    reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
-    go_annotation_id = Column('go_annotation_no', Integer, ForeignKey('bud.go_annotation.go_annotation_no'))
+    reference_id = Column('reference_no', Integer, ForeignKey('from_bud.reference.reference_no'))
+    go_annotation_id = Column('go_annotation_no', Integer, ForeignKey('from_bud.go_annotation.go_annotation_no'))
     has_qualifier = Column('has_qualifier', String)
     has_supporting_evidence = Column('has_supporting_evidence', String)
     date_created = Column('date_created', Date)
@@ -77,7 +84,7 @@ class GoQualifier(Base, EqualityByIDMixin):
 
     #Values
     id = Column('go_qualifier_no', Integer, primary_key = True)
-    go_ref_id = Column('go_ref_no', Integer, ForeignKey('bud.go_ref.go_ref_no'))
+    go_ref_id = Column('go_ref_no', Integer, ForeignKey('from_bud.go_ref.go_ref_no'))
     qualifier = Column('qualifier', String)
     
     #Relationships
@@ -88,8 +95,8 @@ class GoPath(Base, EqualityByIDMixin):
 
     #Values
     id = Column('go_path_no', Integer, primary_key = True)
-    ancestor_id = Column('ancestor_go_no', Integer, ForeignKey('bud.go.go_no'))
-    child_id = Column('child_go_no', Integer, ForeignKey('bud.go.go_no'))
+    ancestor_id = Column('ancestor_go_no', Integer, ForeignKey('from_bud.go.go_no'))
+    child_id = Column('child_go_no', Integer, ForeignKey('from_bud.go.go_no'))
     generation = Column('generation', Integer)
     relationship_type = Column('relationship_type', String)
     ancestor_path = Column('ancestor_path', String)
@@ -113,7 +120,7 @@ class GoSet(Base, EqualityByIDMixin):
 
     #Values
     id = Column('go_set_no', Integer, primary_key = True)
-    go_id = Column('go_no', Integer, ForeignKey('bud.go.go_no'))
+    go_id = Column('go_no', Integer, ForeignKey('from_bud.go.go_no'))
     name = Column('go_set_name', String)
     genome_count = Column('genome_count', Integer)
     date_created = Column('date_created', Date)

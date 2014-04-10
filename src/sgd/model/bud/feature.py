@@ -25,8 +25,8 @@ class AliasFeature(Base, EqualityByIDMixin):
     __tablename__ = 'feat_alias'
 
     id = Column('feat_alias_no', Integer, primary_key=True)
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
-    alias_id = Column('alias_no', Integer, ForeignKey('bud.alias.alias_no'))
+    feature_id = Column('feature_no', Integer, ForeignKey('from_bud.feature.feature_no'))
+    alias_id = Column('alias_no', Integer, ForeignKey('from_bud.alias.alias_no'))
     used_for_search = Column('used_for_search', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
@@ -41,7 +41,7 @@ class Feature(Base, EqualityByIDMixin):
 
     #Values
     id = Column('feature_no', Integer, primary_key = True)
-    taxon_id = Column('taxon_id', Integer, ForeignKey('bud.taxonomy.taxon_id'))
+    taxon_id = Column('taxon_id', Integer, ForeignKey('from_bud.taxonomy.taxon_id'))
     dbxref_id = Column('dbxref_id', String)
     name = Column('feature_name', String)
     type = Column('feature_type', String)
@@ -72,15 +72,15 @@ class FeatRel(Base, EqualityByIDMixin):
 
     #Values
     id = Column('feat_relationship_no', Integer, primary_key = True)
-    parent_id = Column('parent_feature_no', Integer, ForeignKey('bud.feature.feature_no'))
-    child_id = Column('child_feature_no', Integer, ForeignKey('bud.feature.feature_no'))
+    parent_id = Column('parent_feature_no', Integer, ForeignKey('from_bud.feature.feature_no'))
+    child_id = Column('child_feature_no', Integer, ForeignKey('from_bud.feature.feature_no'))
     relationship_type = Column('relationship_type', String)
     rank = Column('rank', Integer)
     
 class Annotation(Base, EqualityByIDMixin):
     __tablename__ = 'feat_annotation'
 
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'), primary_key=True)
+    feature_id = Column('feature_no', Integer, ForeignKey('from_bud.feature.feature_no'), primary_key=True)
     qualifier = Column('qualifier', String)
     attribute = Column('feat_attribute', String)
     description = Column('description', String)
@@ -98,7 +98,7 @@ class FeatureProperty(Base, EqualityByIDMixin):
     __tablename__ = 'feat_property'
 
     id = Column('feat_property_no', Integer, primary_key=True)
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
+    feature_id = Column('feature_no', Integer, ForeignKey('from_bud.feature.feature_no'))
     source = Column('source', String)
     property_type = Column('property_type', String)
     property_value = Column('property_value', String)
