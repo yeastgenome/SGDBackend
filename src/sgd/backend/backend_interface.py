@@ -46,10 +46,6 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def author_references(self, author_identifier):
-        return None
-
-    @abstractmethod
     def references_this_week(self):
         return None
     
@@ -65,10 +61,6 @@ class BackendInterface:
     #Locus
     @abstractmethod
     def locus(self, locus_identifier):
-        return None
-
-    @abstractmethod
-    def locus_alias(self, locus_identifier):
         return None
     
     @abstractmethod
@@ -106,10 +98,6 @@ class BackendInterface:
     #ECNumber
     @abstractmethod
     def ec_number(self, ec_number_identifier):
-        return None
-
-    @abstractmethod
-    def ec_number_ontology_graph(self, ec_number_identifier):
         return None
 
     @abstractmethod
@@ -177,9 +165,9 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def phenotype_ontology(self):
+    def observable(self, observable_identifier):
         return None
-    
+
     @abstractmethod
     def phenotype_ontology_graph(self, phenotype_identifier):
         return None

@@ -4,7 +4,8 @@ import sys
 from mpmath import ceil
 from sqlalchemy.sql.expression import func
 
-from src.sgd.convert import OutputCreator, create_or_update
+from src.sgd.convert import is_number
+from src.sgd.convert.transformers import make_db_starter
 
 
 __author__ = 'kpaskov'
@@ -98,96 +99,23 @@ def convert_bioentity_reference(new_session_maker, evidence_class, class_type, l
     log.info('complete')
     
 # --------------------- Convert Disambigs ---------------------
-additional_disambigs = {'GO:0003674': 'molecular_function', 'GO:0005575': 'cellular_component', 'GO:0008150': 'biological_process'}
+def make_disambig_starter(nex_session_maker, cls, fields, class_type, subclass_type):
+    def disambig_starter():
+        nex_session = nex_session_maker()
 
-def is_number(str_value):
-    try:
-        int(str_value)
-        return True
-    except:
-        return False
+        for obj in make_db_starter(nex_session.query(cls), 1000)():
+            for field in fields:
+                field_value = getattr(obj, field)
+                if field == 'doi':
+                    field_value = None if field_value is None else 'doi:' + field_value.lower()
+                if field_value is not None and (field == 'id' or field == 'pubmed_id' or not is_number(field_value)):
+                    yield {'disambig_key': str(field_value),
+                           'class_type': class_type,
+                           'subclass_type': subclass_type,
+                           'identifier': obj.id}
 
-def create_disambigs(obj, fields, class_type, subclass_type):
-    from src.sgd.model.nex.auxiliary import Disambig
-    
-    field_values = set()
-    for field in fields:
-        field_value = getattr(obj, field)
-        if field == 'doi':
-            field_value = None if field_value is None else 'doi:' + field_value.lower()
-        if field_value is not None and (field == 'id' or field == 'pubmed_id' or not is_number(field_value)):
-            field_values.add(field_value)
-    
-    disambigs = []
-    for field_value in field_values:
-        try:
-            disambigs.append(Disambig(str(field_value), class_type, subclass_type, obj.id))
-            if field_value in additional_disambigs:
-                disambigs.append(Disambig(additional_disambigs[field_value], class_type, subclass_type, obj.id))
-        except:
-            pass
-    return disambigs
-
-def convert_disambigs(new_session_maker, cls, fields, class_type, subclass_type, label, chunk_size):
-    from src.sgd.model.nex.auxiliary import Disambig
-
-    new_session = None
-    log = logging.getLogger(label)
-    output_creator = OutputCreator(log)
-    
-    try:   
-        new_session = new_session_maker()
-         
-        #Values to check
-        values_to_check = ['identifier']
-        
-        #Grab all current objects
-        current_objs = new_session.query(Disambig).filter(Disambig.class_type == class_type).filter(Disambig.subclass_type == subclass_type).all()
-        id_to_current_obj = dict([(x.id, x) for x in current_objs])
-        key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
-            
-        untouched_obj_ids = set(id_to_current_obj.keys())
-                
-        min_id = new_session.query(func.min(cls.id)).first()[0]
-        count = new_session.query(func.max(cls.id)).first()[0] - min_id
-        num_chunks = ceil(1.0*count/chunk_size)
-        for i in range(0, num_chunks):
-            old_objs = new_session.query(cls).filter(cls.id >= min_id, cls.id < min_id+chunk_size).all()
-        
-            for old_obj in old_objs:
-                #Convert old objects into new ones
-                newly_created_objs = create_disambigs(old_obj, fields, class_type, subclass_type)
-         
-                if newly_created_objs is not None:
-                    #Edit or add new objects
-                    for newly_created_obj in newly_created_objs:
-                        unique_key = newly_created_obj.unique_key()
-                        current_obj_by_id = None if newly_created_obj.id not in id_to_current_obj else id_to_current_obj[newly_created_obj.id]
-                        current_obj_by_key = None if unique_key not in key_to_current_obj else key_to_current_obj[unique_key]
-                        create_or_update(newly_created_obj, current_obj_by_id, current_obj_by_key, values_to_check, new_session, output_creator)
-                            
-                        if current_obj_by_id is not None and current_obj_by_id.id in untouched_obj_ids:
-                            untouched_obj_ids.remove(current_obj_by_id.id)
-                        if current_obj_by_key is not None and current_obj_by_key.id in untouched_obj_ids:
-                            untouched_obj_ids.remove(current_obj_by_key.id)
-                            
-            output_creator.finished(str(i+1) + "/" + str(int(num_chunks)))
-            new_session.commit()
-            min_id = min_id+chunk_size
-            
-        #Delete untouched objs
-        for untouched_obj_id  in untouched_obj_ids:
-            new_session.delete(id_to_current_obj[untouched_obj_id])
-            output_creator.removed()
-        
-        #Commit
-        output_creator.finished()
-        new_session.commit()
-        
-    except Exception:
-        log.exception('Unexpected error:' + str(sys.exc_info()[0]))
-    finally:
-        new_session.close()
+        nex_session.close()
+    return disambig_starter
 
 # --------------------- Convert Biofact ---------------------
 def create_biofact(evidence, id_to_bioentity, id_to_bioconcept):

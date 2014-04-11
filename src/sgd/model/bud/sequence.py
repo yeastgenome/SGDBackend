@@ -12,7 +12,7 @@ class Sequence(Base, EqualityByIDMixin):
     __tablename__ = 'seq'
 
     id = Column('seq_no', Integer, primary_key = True)
-    feature_id = Column('feature_no', String, ForeignKey('bud.feature.feature_no'))
+    feature_id = Column('feature_no', String, ForeignKey(Feature.id))
     seq_version = Column('seq_version', Date)
     seq_type = Column('seq_type', String)
     source = Column('source', String)
@@ -41,9 +41,9 @@ class Feat_Location(Base, EqualityByIDMixin):
     __tablename__ = 'feat_location'
     
     id = Column('feat_location_no', Integer, primary_key=True)
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
-    sequence_id = Column('seq_no', Integer, ForeignKey('bud.seq.seq_no'))
-    rootseq_id = Column('rootseq_no', Integer, ForeignKey('bud.seq.seq_no'))
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
+    sequence_id = Column('seq_no', Integer, ForeignKey(Sequence.id))
+    rootseq_id = Column('rootseq_no', Integer, ForeignKey(Sequence.id))
     coord_version = Column('coord_version', Date)
     min_coord = Column('min_coord', Integer)
     max_coord = Column('max_coord', Integer)

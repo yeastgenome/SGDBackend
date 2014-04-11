@@ -37,13 +37,6 @@ def prep_views(chosen_backend, config):
                                         author_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('author'))
 
-    config.add_route('author_references',
-                     '/author/{identifier}/references',
-                     view=lambda request: chosen_backend.response_wrapper('author_references', request)(
-                                getattr(chosen_backend, 'author_references')(
-                                        author_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('author_references'))
-
     config.add_route('references_this_week',
                      '/references/this_week',
                      view=lambda request: chosen_backend.response_wrapper('references_this_week', request)(
@@ -65,13 +58,6 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'locus')(
                                         locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('locus'))
-
-    config.add_route('locus_alias',
-                     '/locus/{identifier}/alias',
-                     view=lambda request: chosen_backend.response_wrapper('locus_alias', request)(
-                                getattr(chosen_backend, 'locus_alias')(
-                                        locus_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('locus_alias'))
     
     config.add_route('locustabs', 
                      '/locus/{identifier}/tabs', 
@@ -150,7 +136,14 @@ def prep_views(chosen_backend, config):
                      view=lambda request: chosen_backend.response_wrapper('phenotype', request)(
                                 getattr(chosen_backend, 'phenotype')(
                                         phenotype_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('phenotype'))   
+                     renderer=chosen_backend.get_renderer('phenotype'))
+
+    config.add_route('observable',
+                     '/observable/{identifier}/overview',
+                     view=lambda request: chosen_backend.response_wrapper('observable', request)(
+                                getattr(chosen_backend, 'observable')(
+                                        observable_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
+                     renderer=chosen_backend.get_renderer('observable'))
 
     config.add_route('phenotype_ontology_graph', 
                      '/phenotype/{identifier}/ontology_graph', 
@@ -158,12 +151,6 @@ def prep_views(chosen_backend, config):
                                 getattr(chosen_backend, 'phenotype_ontology_graph')(
                                         phenotype_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('phenotype_ontology_graph'))
-    
-    config.add_route('phenotype_ontology', 
-                     '/phenotype/ontology', 
-                     view=lambda request: chosen_backend.response_wrapper('phenotype_ontology', request)(
-                                getattr(chosen_backend, 'phenotype_ontology')()),
-                     renderer=chosen_backend.get_renderer('phenotype_ontology'))
         
     config.add_route('phenotype_bioent_overview',
                      '/locus/{identifier}/phenotype_overview', 
@@ -438,33 +425,11 @@ def prep_views(chosen_backend, config):
                                         ec_number_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
                      renderer=chosen_backend.get_renderer('ec_number'))
 
-    config.add_route('ecnumber_ontology_graph',
-                     '/ecnumber/{identifier}/ontology_graph',
-                     view=lambda request: chosen_backend.response_wrapper('ec_number_ontology_graph', request)(
-                                getattr(chosen_backend, 'ec_number_ontology_graph')(
-                                        ec_number_identifier=None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('ec_number_ontology_graph'))
-
     config.add_route('ecnumber_bioent_details',
                      '/locus/{identifier}/ecnumber_details',
                      view=lambda request: chosen_backend.response_wrapper('ec_number_details', request)(
                                 getattr(chosen_backend, 'ec_number_details')(
                                         locus_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('ec_number_details'))
-
-    config.add_route('ecnumber_biocon_details',
-                     '/ecnumber/{identifier}/locus_details',
-                     view=lambda request: chosen_backend.response_wrapper('ec_number_details', request)(
-                                getattr(chosen_backend, 'ec_number_details')(
-                                        ec_number_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'])),
-                     renderer=chosen_backend.get_renderer('ec_number_details'))
-
-    config.add_route('ecnumber_biocon_details_all',
-                     '/ecnumber/{identifier}/locus_details_all',
-                     view=lambda request: chosen_backend.response_wrapper('ec_number_details', request)(
-                                getattr(chosen_backend, 'ec_number_details')(
-                                        ec_number_identifier = None if 'identifier' not in request.matchdict else request.matchdict['identifier'],
-                                        with_children = True)),
                      renderer=chosen_backend.get_renderer('ec_number_details'))
 
     #Sequence views
