@@ -193,7 +193,7 @@ class Observable(Bioconcept):
             self.format_name = 'ypo'
             self.link = '/ontology/phenotype/ypo/overview'
         else:
-            self.format_name = create_format_name(self.display_name)
+            self.format_name = create_format_name(self.display_name.lower())
             self.link = '/observable/' + self.format_name + '/overview'
         
 class Phenotype(Bioconcept):
@@ -215,7 +215,7 @@ class Phenotype(Bioconcept):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.display_name = create_phenotype_display_name(obj_json['observable'].display_name, self.qualifier)
-        self.format_name = create_phenotype_format_name(obj_json['observable'].display_name, self.qualifier)
+        self.format_name = create_phenotype_format_name(obj_json['observable'].display_name.lower(), self.qualifier.lower())
         self.link = '/phenotype/' + self.format_name + '/overview'
 
 

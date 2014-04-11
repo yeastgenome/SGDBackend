@@ -146,14 +146,14 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
         }
         obj_json['related_references'] = []
         for child in self.children:
-            child_json = child.to_min_json()
-            child_json['abstract'] = None if child.abstract is None else child.abstract.text
-            child_json['reftypes'] = [x.reftype.to_min_json() for x in child.ref_reftypes]
+            child_json = child.child.to_min_json()
+            child_json['abstract'] = None if child.child.abstract is None else child.child.abstract.text
+            child_json['reftypes'] = [x.reftype.to_min_json() for x in child.child.ref_reftypes]
             obj_json['related_references'].append(child_json)
-        for parent in self.children:
-            parent_json = parent.to_min_json()
-            parent_json['abstract'] = None if parent.abstract is None else parent.abstract.text
-            parent_json['reftypes'] = [x.reftype.to_min_json() for x in parent.ref_reftypes]
+        for parent in self.parents:
+            parent_json = parent.parent.to_min_json()
+            parent_json['abstract'] = None if parent.parent.abstract is None else parent.parent.abstract.text
+            parent_json['reftypes'] = [x.reftype.to_min_json() for x in parent.parent.ref_reftypes]
             obj_json['related_references'].append(parent_json)
         return obj_json
     

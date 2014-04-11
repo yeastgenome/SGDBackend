@@ -1,8 +1,6 @@
 from src.sgd.model import bud, nex, perf
 from src.sgd.backend.nex import SGDBackend
 from src.sgd.convert import prepare_schema_connection, config
-from src.sgd.convert.transformers import do_conversion, Json2Obj, Obj2NexDB, OutputTransformer, Obj2CorePerfDB, \
-    make_backend_starter
 
 __author__ = 'kpaskov'
 
@@ -40,8 +38,6 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Experimentrelation), name='convert.from_bud.experiment_relation', delete_untouched=True, commit=True)])
 
     # # ------------------------------------------ Bioentity ------------------------------------------
-    from src.sgd.model.nex.bioentity import Bioentityurl
-    from src.sgd.convert.from_bud.bioentity import make_bioentity_url_starter
     # # Bud -> Nex
     # do_conversion(make_locus_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Locus),
@@ -63,10 +59,10 @@ if __name__ == "__main__":
     #               [Json2Obj(Bioentityrelation),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityrelation), name='convert.from_bud.bioentity.relation', delete_untouched=True, commit=True)])
     #
-    do_conversion(make_bioentity_url_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Bioentityurl),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityurl), name='convert.from_bud.bioentity.url', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(10000)])
+    # do_conversion(make_bioentity_url_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Bioentityurl),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityurl), name='convert.from_bud.bioentity.url', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(10000)])
     #
     # do_conversion(make_disambig_starter(nex_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS'),
     #               [Json2Obj(Disambig),
@@ -83,12 +79,10 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
 
     # # ------------------------------------------ Bioconcept ------------------------------------------
-    from src.sgd.model.nex.bioconcept import Observable
-    from src.sgd.convert.from_bud.bioconcept import make_observable_starter
-    # Bud -> Nex
-    do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Observable),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Observable), name='convert.from_bud.bioconcept.observable', delete_untouched=True, commit=True)])
+    # # Bud -> Nex
+    # do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Observable),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Observable), name='convert.from_bud.bioconcept.observable', delete_untouched=True, commit=True)])
     #
     # do_conversion(make_phenotype_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Phenotype),
@@ -131,7 +125,6 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
 
     # ------------------------------------------ Bioitem ------------------------------------------
-    from src.sgd.model.perf.core import Bioitem as PerfBioitem
     # # Bud -> Nex
     # do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Orphanbioitem),
@@ -173,11 +166,11 @@ if __name__ == "__main__":
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'CONTIG'), name='convert.from_bud.bioitem.disambig.contig', delete_untouched=True, commit=True)])
     #
-    # Nex -> Perf
-    do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
-                  [Json2Obj(PerfBioitem),
-                   Obj2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(1000)])
+    # # Nex -> Perf
+    # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
+    #               [Json2Obj(PerfBioitem),
+    #                Obj2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True),
+    #                OutputTransformer(1000)])
 
     # # ------------------------------------------ Reference ------------------------------------------
     # # Bud -> Nex
