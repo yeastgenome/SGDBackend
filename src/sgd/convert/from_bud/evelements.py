@@ -76,7 +76,7 @@ def make_experiment_alias_starter(bud_session_maker, nex_session_maker):
                     yield {'display_name': dbxref.dbxref_id,
                            'source': key_to_source['SGD'],
                            'category': 'APOID',
-                           'experiment': key_to_experiment[experiment_key],
+                           'experiment_id': key_to_experiment[experiment_key].id,
                            'date_created': dbxref.date_created,
                            'created_by': dbxref.created_by}
             else:
@@ -105,8 +105,8 @@ def make_experiment_relation_starter(bud_session_maker, nex_session_maker):
                 parent_key = create_format_name(parent_rel.parent.name)
                 if parent_key in key_to_experiment and child_key in key_to_experiment:
                     yield {'source': key_to_source['SGD'],
-                           'parent': key_to_experiment[parent_key],
-                           'child': key_to_experiment[child_key],
+                           'parent_id': key_to_experiment[parent_key].id,
+                           'child_id': key_to_experiment[child_key].id,
                            'date_created': parent_rel.date_created,
                            'created_by': parent_rel.created_by}
                 else:

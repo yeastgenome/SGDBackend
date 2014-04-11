@@ -337,7 +337,7 @@ class Referenceurl(Url):
     
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = obj_json.get('reference_id')
+        self.format_name = str(obj_json.get('reference_id'))
     
 class Referencealias(Alias):
     __tablename__ = 'referencealias'
@@ -356,7 +356,7 @@ class Referencealias(Alias):
     
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = obj_json.get('reference_id')
+        self.format_name =str(obj_json.get('reference_id'))
  
 
 

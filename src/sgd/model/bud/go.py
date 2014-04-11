@@ -48,8 +48,8 @@ class GoFeature(Base, EqualityByIDMixin):
     __tablename__ = 'go_annotation'
 
     id = Column('go_annotation_no', Integer, primary_key=True)
-    go_id = Column('go_no', Integer, ForeignKey('from_bud.go.go_no'))
-    feature_id = Column('feature_no', Integer, ForeignKey('from_bud.feature.feature_no'))
+    go_id = Column('go_no', Integer, ForeignKey(Go.id))
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
     go_evidence = Column('go_evidence', String)
     annotation_type = Column('annotation_type', String)
     source = Column('source', String)
@@ -66,8 +66,8 @@ class GoRef(Base, EqualityByIDMixin):
 
     #Values
     id = Column('go_ref_no', Integer, primary_key = True)
-    reference_id = Column('reference_no', Integer, ForeignKey('from_bud.reference.reference_no'))
-    go_annotation_id = Column('go_annotation_no', Integer, ForeignKey('from_bud.go_annotation.go_annotation_no'))
+    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
+    go_annotation_id = Column('go_annotation_no', Integer, ForeignKey(GoFeature.id))
     has_qualifier = Column('has_qualifier', String)
     has_supporting_evidence = Column('has_supporting_evidence', String)
     date_created = Column('date_created', Date)
@@ -84,7 +84,7 @@ class GoQualifier(Base, EqualityByIDMixin):
 
     #Values
     id = Column('go_qualifier_no', Integer, primary_key = True)
-    go_ref_id = Column('go_ref_no', Integer, ForeignKey('from_bud.go_ref.go_ref_no'))
+    go_ref_id = Column('go_ref_no', Integer, ForeignKey(GoRef.id))
     qualifier = Column('qualifier', String)
     
     #Relationships
@@ -95,14 +95,14 @@ class GoPath(Base, EqualityByIDMixin):
 
     #Values
     id = Column('go_path_no', Integer, primary_key = True)
-    ancestor_id = Column('ancestor_go_no', Integer, ForeignKey('from_bud.go.go_no'))
-    child_id = Column('child_go_no', Integer, ForeignKey('from_bud.go.go_no'))
+    ancestor_id = Column('ancestor_go_no', Integer, ForeignKey(Go.id))
+    child_id = Column('child_go_no', Integer, ForeignKey(Go.id))
     generation = Column('generation', Integer)
     relationship_type = Column('relationship_type', String)
     ancestor_path = Column('ancestor_path', String)
     
-    child = relationship(Go, uselist=False, primaryjoin="GoPath.child_id==Go.id")
-    ancestor = relationship(Go, uselist=False, primaryjoin="GoPath.ancestor_id==Go.id")
+    child = relationship(Go, uselist=False, foreign_keys=[child_id])
+    ancestor = relationship(Go, uselist=False, foreign_keys=[ancestor_id])
    
 class GorefDbxref(Base, EqualityByIDMixin):
     __tablename__ = 'goref_dbxref'
@@ -120,7 +120,7 @@ class GoSet(Base, EqualityByIDMixin):
 
     #Values
     id = Column('go_set_no', Integer, primary_key = True)
-    go_id = Column('go_no', Integer, ForeignKey('from_bud.go.go_no'))
+    go_id = Column('go_no', Integer, ForeignKey(Go.id))
     name = Column('go_set_name', String)
     genome_count = Column('genome_count', Integer)
     date_created = Column('date_created', Date)

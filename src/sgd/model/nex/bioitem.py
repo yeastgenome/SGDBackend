@@ -5,7 +5,7 @@ from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
-from src.sgd.model.nex.misc import Source, Relation, Strain, Url
+from src.sgd.model.nex.misc import Source, Relation, Strain, Url, Alias
 
 
 __author__ = 'kpaskov'
@@ -79,13 +79,13 @@ class Bioitemurl(Url):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = obj_json.get('bioitem_id')
+        self.format_name = str(obj_json.get('bioitem_id'))
 
 class Bioitemalias(Alias):
     __tablename__ = 'bioitemalias'
 
     id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
-    bioentity_id = Column('bioitem_id', Integer, ForeignKey(Bioentity.id))
+    bioitem_id = Column('bioitem_id', Integer, ForeignKey(Bioitem.id))
 
     #Relationships
     bioitem = relationship(Bioitem, uselist=False, backref=backref('aliases', passive_deletes=True))
@@ -98,7 +98,7 @@ class Bioitemalias(Alias):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = obj_json.get('bioitem_id')
+        self.format_name = str(obj_json.get('bioitem_id'))
 
 class Domain(Bioitem):
     __tablename__ = "domainbioitem"

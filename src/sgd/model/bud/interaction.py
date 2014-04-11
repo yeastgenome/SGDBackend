@@ -7,6 +7,7 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.bud import Base
 from phenotype import Phenotype
 from reference import Reference
+from feature import Feature
 
 
 __author__ = 'kpaskov'
@@ -37,7 +38,7 @@ class Interaction_Reference(Base, EqualityByIDMixin):
     __tablename__ = 'interact_ref'
 
     id = Column('interact_ref_no', Integer, primary_key=True)
-    interaction_id = Column('interaction_no', Integer, ForeignKey('from_bud.interaction.interaction_no'))
+    interaction_id = Column('interaction_no', Integer, ForeignKey(Interaction.id))
     reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
     note = Column('note', String)
     created_by = Column('created_by', String)
@@ -50,8 +51,8 @@ class Interaction_Phenotype(Base, EqualityByIDMixin):
     __tablename__ = 'interact_pheno'
 
     id = Column('interact_pheno_no', Integer, primary_key=True)
-    interaction_id = Column('interaction_no', Integer, ForeignKey('from_bud.interaction.interaction_no'))
-    phenotype_id = Column('phenotype_no', Integer, ForeignKey('from_bud.phenotype.phenotype_no'))
+    interaction_id = Column('interaction_no', Integer, ForeignKey(Interaction.id))
+    phenotype_id = Column('phenotype_no', Integer, ForeignKey(Phenotype.id))
     
     #Relationships
     phenotype = relationship(Phenotype, uselist=False)
@@ -64,9 +65,9 @@ class Interaction_Feature(Base, EqualityByIDMixin):
     __tablename__ = 'feat_interact'
     
     id = Column('feat_interact_no', Integer, primary_key = True)
-    feature_id = Column('feature_no', Integer, ForeignKey('from_bud.feature.feature_no'))
-    interaction_id = Column('interaction_no', Integer, ForeignKey('from_bud.interaction.interaction_no'))
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
+    interaction_id = Column('interaction_no', Integer, ForeignKey(Interaction.id))
     action = Column('action', String)
         
-    feature = relationship('Feature', uselist=False) 
+    feature = relationship(Feature, uselist=False)
     interaction = relationship(Interaction, backref='interaction_features', uselist=False)

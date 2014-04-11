@@ -27,7 +27,7 @@ class Bioentity(Base, EqualityByIDMixin, UpdateByJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    source = relationship(Source, uselist=False)
+    source = relationship(Source, uselist=False, lazy='joined')
     
     __mapper_args__ = {'polymorphic_on': class_type}
             
@@ -51,7 +51,7 @@ class Bioentityurl(Url):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = obj_json.get('bioentity_id')
+        self.format_name = str(obj_json.get('bioentity_id'))
 
 class Bioentityalias(Alias):
     __tablename__ = 'bioentityalias'
@@ -71,7 +71,7 @@ class Bioentityalias(Alias):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = obj_json.get('bioentity_id')
+        self.format_name = str(obj_json.get('bioentity_id'))
 
 class Bioentityrelation(Relation):
     __tablename__ = 'bioentityrelation'

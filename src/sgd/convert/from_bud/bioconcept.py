@@ -241,7 +241,7 @@ def make_bioconcept_relation_starter(bud_session_maker, nex_session_maker):
                 print 'GO term not found: ' + str(go_key)
 
         go_child_id_to_parent_ids = {}
-        for go_relation in nex_session.query(Bioconceptrelation).filter(Bioconceptrelation.subclass_type == 'GO'):
+        for go_relation in nex_session.query(Bioconceptrelation).filter(Bioconceptrelation.relation_type == 'is a'):
             if go_relation.child_id in go_child_id_to_parent_ids:
                 go_child_id_to_parent_ids[go_relation.child_id].append(go_relation.parent_id)
             else:

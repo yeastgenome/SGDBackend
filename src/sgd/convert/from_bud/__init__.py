@@ -1,4 +1,5 @@
-from src.sgd.convert.from_bud import bioentity
+import re
+
 import evelements
 import reference
 import bioconcept

@@ -30,6 +30,26 @@ class UpdateByJsonMixin(object):
 
         return anything_changed
 
+    def compare(self, json_obj):
+        anything_changed = False
+        for key in self.__eq_values__:
+            current_value = getattr(self, key)
+            new_value = json_obj[key]
+
+            if key == 'id' or key == 'date_created' or key == 'created_by':
+                pass
+            elif new_value != current_value:
+                anything_changed = True
+
+        for key in self.__eq_fks__:
+            current_value = getattr(self, key + '_id')
+            new_value = None if (key not in json_obj or json_obj[key] is None) else json_obj[key]['id']
+
+            if new_value != current_value:
+                anything_changed = True
+
+        return anything_changed
+
     def to_min_json(self):
         return {
             'id': self.id,

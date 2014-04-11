@@ -265,7 +265,7 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-        bioentity_ids = set([x.id for x in nex_session.query(Bioentity.id).all()])
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Bioentity).all()])
 
         for bud_obj in make_db_starter(bud_session.query(FeatUrl).options(joinedload('url')), 1000)():
             old_url = bud_obj.url
@@ -274,16 +274,17 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
 
             bioentity_id = bud_obj.feature_id
 
-            if url_type == 'query by SGDID':
-                link = link.replace('_SUBSTITUTE_THIS_', str(bioentity.sgdid))
-            elif url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name' or url_type == 'query by ID assigned by database':
-                link = link.replace('_SUBSTITUTE_THIS_', str(bioentity.format_name))
-            else:
-                print "Can't handle this url. " + str(old_url.url_type)
-                yield None
-
             for old_webdisplay in old_url.displays:
-                if bioentity_id in bioentity_ids:
+                if bioentity_id in id_to_bioentity:
+                    bioentity = id_to_bioentity[bioentity_id]
+                    if url_type == 'query by SGDID':
+                        link = link.replace('_SUBSTITUTE_THIS_', str(bioentity.sgdid))
+                    elif url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name' or url_type == 'query by ID assigned by database':
+                        link = link.replace('_SUBSTITUTE_THIS_', str(bioentity.format_name))
+                    else:
+                        print "Can't handle this url. " + str(old_url.url_type)
+                        yield None
+
                     yield {'display_name': old_webdisplay.label_name,
                            'link': link,
                            'source': key_to_source[create_format_name(old_url.source)],
@@ -300,9 +301,10 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
             dbxref_id = bud_obj.dbxref.dbxref_id
 
             bioentity_id = bud_obj.feature_id
-            if bioentity_id in bioentity_ids:
-                for old_url in old_urls:
-                    for old_webdisplay in old_url.displays:
+            for old_url in old_urls:
+                for old_webdisplay in old_url.displays:
+                    if bioentity_id in id_to_bioentity:
+                        bioentity = id_to_bioentity[bioentity_id]
                         url_type = old_url.url_type
                         link = old_url.url
 
@@ -323,9 +325,9 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
                                    'bioentity_id': bioentity_id,
                                    'date_created': old_url.date_created,
                                    'created_by': old_url.created_by}
-            else:
-                print 'Bioentity not found: ' + str(bioentity_id)
-                yield None
+                    else:
+                        print 'Bioentity not found: ' + str(bioentity_id)
+                        yield None
 
         bud_session.close()
         nex_session.close()

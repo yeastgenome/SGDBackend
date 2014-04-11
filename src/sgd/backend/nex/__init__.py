@@ -51,8 +51,8 @@ class SGDBackend(BackendInterface):
     #Bioentity
     def all_bioentities(self, chunk_size, offset):
         from src.sgd.model.nex.bioentity import Bioentity
-        return json.dumps([x.to_json() for x in DBSession.query(Bioentity).limit(chunk_size).offset(offset).all()])
-    
+        return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
+
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity
         num_chunks = int(ceil(1.0*len(bioent_ids)/500))
@@ -69,14 +69,9 @@ class SGDBackend(BackendInterface):
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(DBSession.query(Locustabs).filter(Locustabs.id == locus_id).first().to_json())
 
-    def all_locustabs(self, min_id, max_id):
+    def all_locustabs(self, chunk_size, offset):
         from src.sgd.model.nex.auxiliary import Locustabs
-        query = DBSession.query(Locustabs)
-        if min_id is not None:
-            query = query.filter(Locustabs.id >= min_id)
-        if max_id is not None:
-            query = query.filter(Locustabs.id < max_id)
-        return json.dumps([x.to_json() for x in query.all()])
+        return [x.to_json() for x in DBSession.query(Locustabs).limit(chunk_size).offset(offset).all()]
     
     def locus(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Locus
@@ -98,7 +93,7 @@ class SGDBackend(BackendInterface):
     #Bioconcept
     def all_bioconcepts(self, chunk_size, offset):
         from src.sgd.model.nex.bioconcept import Bioconcept
-        return json.dumps([x.to_json() for x in DBSession.query(Bioconcept).limit(chunk_size).offset(offset).all()])
+        return [x.to_json() for x in DBSession.query(Bioconcept).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
 
     def ec_number(self, ec_number_identifier, are_ids=False):
         from src.sgd.model.nex.bioconcept import ECNumber
@@ -137,7 +132,7 @@ class SGDBackend(BackendInterface):
     #Bioitem
     def all_bioitems(self, chunk_size, offset):
         from src.sgd.model.nex.bioitem import Bioitem
-        return json.dumps([x.to_json() for x in DBSession.query(Bioitem).limit(chunk_size).offset(offset).all()])
+        return [x.to_json() for x in DBSession.query(Bioitem).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
 
     def chemical(self, chemical_identifier, are_ids=False):
         from src.sgd.model.nex.bioitem import Chemical
@@ -176,23 +171,13 @@ class SGDBackend(BackendInterface):
         return json.dumps(view_ec_number.make_details(locus_id=locus_id, ec_number_id=ec_number_id, with_children=with_children))
 
     #Reference
-    def all_references(self, min_id, max_id):
+    def all_references(self, chunk_size, offset):
         from src.sgd.model.nex.reference import Reference
-        query = DBSession.query(Reference)
-        if min_id is not None:
-            query = query.filter(Reference.id >= min_id)
-        if max_id is not None:
-            query = query.filter(Reference.id < max_id)
-        return json.dumps([x.to_json() for x in query.all()])
+        return [x.to_json() for x in DBSession.query(Reference).limit(chunk_size).offset(offset).all()]
 
-    def all_bibentries(self, min_id, max_id):
+    def all_bibentries(self, chunk_size, offset):
         from src.sgd.model.nex.reference import Bibentry
-        query = DBSession.query(Bibentry)
-        if min_id is not None:
-            query = query.filter(Bibentry.id >= min_id)
-        if max_id is not None:
-            query = query.filter(Bibentry.id < max_id)
-        return json.dumps([{'id': x.id, 'text': x.text} for x in query.all()])
+        return [x.to_json() for x in DBSession.query(Bibentry).limit(chunk_size).offset(offset).all()]
 
     def reference_list(self, reference_ids):
         from src.sgd.model.nex.reference import Bibentry
@@ -200,14 +185,9 @@ class SGDBackend(BackendInterface):
             return json.dumps({'Error': 'No locus_id or go_id given.'})
         return json.dumps([{'id': x.id, 'text': x.text} for x in DBSession.query(Bibentry).filter(Bibentry.id.in_(reference_ids)).all()])
 
-    def all_authors(self, min_id, max_id):
+    def all_authors(self, chunk_size, offset):
         from src.sgd.model.nex.reference import Author
-        query = DBSession.query(Author)
-        if min_id is not None:
-            query = query.filter(Author.id >= min_id)
-        if max_id is not None:
-            query = query.filter(Author.id < max_id)
-        return json.dumps([author.to_json() for author in query.all()])
+        return [x.to_json() for x in DBSession.query(Author).limit(chunk_size).offset(offset).all()]
 
     def reference(self, reference_identifier, are_ids=False):
         from src.sgd.model.nex.reference import Reference
@@ -571,14 +551,9 @@ class SGDBackend(BackendInterface):
         return json.dumps(view_protein.make_bioentity_details(locus_id=locus_id))
     
     #Misc
-    def all_disambigs(self, min_id, max_id):
+    def all_disambigs(self, chunk_size, offset):
         from src.sgd.model.nex.auxiliary import Disambig
-        query = DBSession.query(Disambig)
-        if min_id is not None:
-            query = query.filter(Disambig.id >= min_id)
-        if max_id is not None:
-            query = query.filter(Disambig.id < max_id)
-        return json.dumps([x.to_json() for x in query.all()])
+        return [x.to_json() for x in DBSession.query(Disambig).limit(chunk_size).offset(offset).all()]
       
 #Useful methods
 def create_simple_table(objs, f, **kwargs):

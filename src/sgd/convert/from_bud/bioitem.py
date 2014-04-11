@@ -233,7 +233,7 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
 # --------------------- Convert Contig ---------------------
 def make_contig_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain
-    from src.sgd.convert.from_bud.evidence.sequence import sequence_files
+    from src.sgd.convert.from_bud import sequence_files
 
     def contig_starter():
         bud_session = bud_session_maker()

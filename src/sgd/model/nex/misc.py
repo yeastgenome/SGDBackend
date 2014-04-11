@@ -133,7 +133,7 @@ class Url(Base, EqualityByIDMixin, UpdateByJsonMixin):
         UpdateByJsonMixin.__init__(self, obj_json)
 
     def unique_key(self):
-        return self.link, self.format_name
+        return self.class_type, self.category, self.display_name, self.format_name
 
 class Alias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'alias'
@@ -199,15 +199,14 @@ class Experimentrelation(Relation):
 
     __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT', 'inherit_condition': id == Relation.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relation_type',
+                     'parent_id', 'child_id',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source', 'parent', 'child']
+    __eq_fks__ = ['source']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        parent = obj_json.get('parent')
-        child = obj_json.get('child')
-        self.format_name = None if parent is None or child is None else str(parent.id) + ' - ' + str(child.id)
-        self.display_name = None if parent is None or child is None else str(parent.id) + ' - ' + str(child.id)
+        self.format_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
+        self.display_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
 
 class Experimentalias(Alias):
     __tablename__ = 'experimentalias'
@@ -219,11 +218,12 @@ class Experimentalias(Alias):
     experiment = relationship(Experiment, uselist=False)
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category',
+                     'experiment_id',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source', 'experiment']
+    __eq_fks__ = ['source']
 
     __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT', 'inherit_condition': id == Alias.id}
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = None if obj_json.get('experiment') is None else str(obj_json.get('experiment').id)
+        self.format_name = str(obj_json.get('experiment_id'))

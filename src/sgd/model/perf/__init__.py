@@ -6,10 +6,8 @@ Base = None
 
 class JsonMixins(object):
     def update(self, obj_json):
-        if self.to_json() != obj_json:
-            self.json = json.dumps(obj_json)
-            return True
-        return False
+        self.json = json.dumps(obj_json)
+        return True
 
     def to_json(self):
         return json.loads(self.json)

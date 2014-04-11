@@ -1,4 +1,3 @@
-import json
 from abc import abstractmethod, ABCMeta
 import sys
 import traceback
@@ -44,12 +43,12 @@ class Obj2NexDB(TransformerInterface):
 
     def __init__(self, session_maker, current_obj_query, name=None, commit_interval=None, commit=False, delete_untouched=False):
         self.session = session_maker()
+        self.current_obj_query = current_obj_query
         self.name = name
         self.commit_interval = commit_interval
         self.commit = commit
         self.delete_untouched = delete_untouched
-        current_objs = current_obj_query(self.session).all()
-        self.key_to_current_obj = dict([(x.unique_key(), x) for x in current_objs])
+        self.key_to_current_obj_json = dict([(x.unique_key(), x.to_json()) for x in make_db_starter(current_obj_query(self.session), 20000)()])
         self.keys_already_seen = set()
         self.none_count = 0
         self.added_count = 0
@@ -58,6 +57,7 @@ class Obj2NexDB(TransformerInterface):
         self.duplicate_count = 0
         self.error_count = 0
         self.deleted_count = 0
+        print 'Ready'
 
     def convert(self, newly_created_obj):
         try:
@@ -70,20 +70,20 @@ class Obj2NexDB(TransformerInterface):
             key = newly_created_obj.unique_key()
             if key not in self.keys_already_seen:
                 self.keys_already_seen.add(key)
-                current_obj = None if key not in self.key_to_current_obj else self.key_to_current_obj[key]
+                current_obj_json = None if key not in self.key_to_current_obj_json else self.key_to_current_obj_json[key]
                 newly_created_obj_json = newly_created_obj.to_json()
-                if current_obj is None:
+                if current_obj_json is None:
                     self.session.add(newly_created_obj)
                     self.added_count += 1
                     return 'Added'
+                elif newly_created_obj.compare(current_obj_json):
+                    current_obj = self.current_obj_query(self.session).filter_by(id=current_obj_json['id']).first()
+                    current_obj.update(newly_created_obj_json)
+                    self.updated_count += 1
+                    return 'Updated'
                 else:
-                    updated = current_obj.update(newly_created_obj_json)
-                    if updated:
-                        self.updated_count += 1
-                        return 'Updated'
-                    else:
-                        self.no_change_count += 1
-                        return 'No Change'
+                    self.no_change_count += 1
+                    return 'No Change'
             else:
                 self.duplicate_count += 1
                 return 'Duplicate'
@@ -95,9 +95,12 @@ class Obj2NexDB(TransformerInterface):
 
     def finished(self):
         if self.delete_untouched:
-            keys_to_delete = set(self.key_to_current_obj.keys()).difference(self.keys_already_seen)
-            for untouched_key in keys_to_delete:
-                self.session.delete(self.key_to_current_obj[untouched_key])
+            keys_to_delete = set(self.key_to_current_obj_json.keys()).difference(self.keys_already_seen)
+            ids_to_delete = [self.key_to_current_obj_json[key]['id'] for key in keys_to_delete]
+
+            for untouched_id in ids_to_delete:
+                current_obj = self.current_obj_query(self.session).filter_by(id=untouched_id).first()
+                self.session.delete(current_obj)
             self.deleted_count = len(keys_to_delete)
 
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
@@ -119,8 +122,7 @@ class Obj2CorePerfDB(TransformerInterface):
         self.commit_interval = commit_interval
         self.commit = commit
         self.delete_untouched = delete_untouched
-        current_objs = self.session.query(cls).all()
-        self.id_to_current_obj = dict([(x.id, x) for x in current_objs])
+        self.id_to_current_obj = dict([(x.id, x) for x in self.session.query(cls).all()])
         self.ids_already_seen = set()
         self.none_count = 0
         self.added_count = 0
@@ -129,6 +131,7 @@ class Obj2CorePerfDB(TransformerInterface):
         self.duplicate_count = 0
         self.error_count = 0
         self.deleted_count = 0
+        print 'Ready'
 
     def convert(self, newly_created_obj):
         if newly_created_obj is None:
@@ -282,12 +285,12 @@ def make_backend_starter(backend, method, chunk_size):
     def backend_starter():
         offset = 0
         while True:
-            bioentities = json.loads(getattr(backend, method)(chunk_size, offset))
-            if len(bioentities) == 0:
+            objs = getattr(backend, method)(chunk_size, offset)
+            if len(objs) == 0:
                 break
 
-            for bioentity in bioentities:
-                yield bioentity
+            for obj in objs:
+                yield obj
             offset += chunk_size
     return backend_starter
 

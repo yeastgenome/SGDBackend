@@ -73,7 +73,7 @@ class Bioconcepturl(Url):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = obj_json.get('bioconcept_id')
+        self.format_name = str(obj_json.get('bioconcept_id'))
     
 class Bioconceptalias(Alias):
     __tablename__ = 'bioconceptalias'
@@ -92,7 +92,7 @@ class Bioconceptalias(Alias):
     
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = obj_json.get('bioconcept_id')
+        self.format_name = str(obj_json.get('bioconcept_id'))
 
 class BioconceptCount(Base, EqualityByIDMixin):
     __tablename__ = 'aux_bioconcept_count'
