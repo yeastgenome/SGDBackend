@@ -39,7 +39,7 @@ def make_overview(bioent_id):
     gofacts = get_biofacts('GO', bioent_id=bioent_id)
     biocon_ids = [x.bioconcept_id for x in gofacts]
 
-    overview['go_slim'] = sorted([x.parent.to_json() for x in DBSession.query(Bioconceptrelation).filter(Bioconceptrelation.bioconrel_class_type == 'GO_SLIM').filter(Bioconceptrelation.child_id.in_(biocon_ids)).all()], key=lambda y: y['display_name'])
+    overview['go_slim'] = sorted([x.parent.to_json() for x in DBSession.query(Bioconceptrelation).filter(Bioconceptrelation.relation_type == 'GO_SLIM').filter(Bioconceptrelation.child_id.in_(biocon_ids)).all()], key=lambda y: y['display_name'])
 
     paragraph = get_paragraph(bioent_id, 'GO')
     if paragraph is not None:
@@ -82,7 +82,7 @@ condition_format_name_to_display_name = {'activated by':	                'activa
 def get_go_evidence(locus_id, go_id, reference_id, with_children):
     query = DBSession.query(Goevidence)
     if locus_id is not None:
-        query = query.filter_by(bioentity_id=locus_id)
+        query = query.filter_by(locus_id=locus_id)
     if reference_id is not None:
         query = query.filter_by(reference_id=reference_id)
     if go_id is not None:
@@ -91,13 +91,13 @@ def get_go_evidence(locus_id, go_id, reference_id, with_children):
             num_chunks = int(ceil(1.0*len(child_ids)/500))
             evidences = []
             for i in range(num_chunks):
-                subquery = query.filter(Goevidence.bioconcept_id.in_(child_ids[i*500:(i+1)*500]))
+                subquery = query.filter(Goevidence.go_id.in_(child_ids[i*500:(i+1)*500]))
                 if len(evidences) + subquery.count() > query_limit:
                     return None
                 evidences.extend([x for x in subquery.all()])
             return evidences
         else:
-            query = query.filter_by(bioconcept_id=go_id)
+            query = query.filter_by(go_id=go_id)
 
     if query.count() > query_limit:
         return None

@@ -114,6 +114,74 @@ class Locus(Bioentity):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.link = None if obj_json.get('sgdid') is None else '/cgi-bin/locus.fpl?locus=' + obj_json.get('sgdid')
+
+    # def to_json(self, mode=None):
+    #     obj_json = UpdateByJsonMixin.to_json(self)
+    #
+    #     #Phenotype overview
+    #     obj_json['phenotype_overview'] = {'experiment_categories':
+    #                                           {'classical genetics': dict([(key, len([x for x in group])) for key, group in groupby([y for y in self.phenotype_evidences if y.experiment.category == 'classical genetics'], lambda x: x.mutant_type)]),
+    #                                            'large-scale survey': dict([(key, len([x for x in group])) for key, group in groupby([y for y in self.phenotype_evidences if y.experiment.category == 'large-scale survey'], lambda x: x.mutant_type)]),
+    #                                            },
+    #                                       'strains': dict([(key, len([x for x in group])) for key, group in groupby([y for y in self.phenotype_evidences if y.strain_id is not None], lambda x: x.strain.display_name)])}
+    #
+    #     #Go overview
+    #     go_paragraphs = [x.to_json() for x in self.paragraphs if x.class_type == 'GO']
+    #     obj_json['go_overview'] = {'go_slim': list(chain(*[[x.parent.to_json() for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])),
+    #                                'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]}
+    #
+    #     #Interaction
+    #     genetic_bioentities = set([x.locus2_id for x in self.geninteraction_evidences1])
+    #     genetic_bioentities.update([x.locus1_id for x in self.geninteraction_evidences2])
+    #     physical_bioentities = set([x.locus2_id for x in self.physinteraction_evidences1])
+    #     physical_bioentities.update([x.locus1_id for x in self.physinteraction_evidences2 ])
+    #
+    #     A = len(genetic_bioentities)
+    #     B = len(physical_bioentities)
+    #     C = len(genetic_bioentities & physical_bioentities)
+    #     r, s, x = calc_venn_measurements(A, B, C)
+    #
+    #     obj_json['interaction_overview'] = {'gen_circle_size': r, 'phys_circle_size':s, 'circle_distance': x,
+    #                                         'num_gen_interactors': A, 'num_phys_interactors': B, 'num_both_interactors': C}
+    #     #Regulation
+    #     regulation_paragraphs = [x.to_json() for x in self.paragraphs if x.class_type == 'REGULATION']
+    #     obj_json['regulation_overview'] = {'target_count': len(set([x.locus2_id for x in self.regulation_evidences_targets])),
+    #                                         'regulator_count':len(set([x.locus1_id for x in self.regulation_evidences_regulators])),
+    #                                         'paragraph': None if len(regulation_paragraphs) == 0 else regulation_paragraphs[0]}
+    #
+    #     #Literature
+    #     obj_json['literature_overview'] = {'total_count': len(set([x.reference_id for x in self.literature_evidences]))}
+    #     #Sequence
+    #
+    #     #Protein
+    #
+    #     if mode == 'phenotype':
+    #         obj_json['phenotype_evidences'] = [x.to_json() for x in self.phenotype_evidences]
+    #         obj_json['phenotype_resources'] = {'Phenotype Resources': sorted([x.to_json() for x in self.urls if x.category == 'Phenotype Resources'], key=lambda x: x['display_name']),
+    #                                            'Mutant Resources': sorted([x.to_min_json() for x in self.urls if x.category == 'Mutant Strains'], key=lambda x: x['display_name'])}
+    #     elif mode == 'go':
+    #         obj_json['go_evidences'] = [x.to_json() for x in self.go_evidences]
+    #     elif mode == 'regulation':
+    #         obj_json['regulation_evidences'] = [x.to_json() for x in self.regulation_evidences_targets]
+    #         obj_json['regulation_evidences'].extend([x.to_json() for x in self.regulation_evidences_regulators])
+    #     elif mode == 'interaction':
+    #         obj_json['interaction_evidences'] = [x.to_json() for x in self.geninteraction_evidences1]
+    #         obj_json['interaction_evidences'].extend([x.to_json() for x in self.geninteraction_evidences2])
+    #         obj_json['interaction_evidences'].extend([x.to_json() for x in self.physinteraction_evidences1])
+    #         obj_json['interaction_evidences'].extend([x.to_json() for x in self.physinteraction_evidences2])
+    #         obj_json['interaction_graph'] = make_interaction_graph(self)
+    #         obj_json['interaction_resources'] = {'Interaction Resources': sorted([x.to_json() for x in self.urls if x.category == 'Phenotype Resources'], key=lambda x: x['display_name'])}
+    #     elif mode == 'literature':
+    #         obj_json['literature_evidences'] = [x.to_json() for x in self.literature_evidences]
+    #     elif mode == 'protein':
+    #         obj_json['phosphorylation_evidences'] = [x.to_json() for x in self.phosphorylation_evidences]
+    #         obj_json['proteinexperiment_evidences'] = [x.to_json() for x in self.proteinexperiment_evidences]
+    #         obj_json['protein_resources'] = {'Homologs': sorted([x.to_json() for x in self.urls if x.category == 'Protein Information Homologs' or x.category == 'Analyze Sequence S288C vs. other species'], key=lambda x: x['display_name']),
+    #                                         'Protein Databases': sorted([x.to_min_json() for x in self.urls if x.category == 'Protein databases/Other'], key=lambda x: x['display_name']),
+    #                                         'Localization': sorted([x.to_min_json() for x in self.urls if x.category == 'Localization Resources'], key=lambda x: x['display_name']),
+    #                                         'Domain': sorted([x.to_min_json() for x in self.urls if x.category == 'Domain'], key=lambda x: x['display_name']),
+    #                                         'Other': sorted([x.to_min_json() for x in self.urls if x.category == 'Post-translational modifications'], key=lambda x: x['display_name'])}
+    #     return obj_json
     
 class Protein(Bioentity):
     __tablename__ = "proteinbioentity"

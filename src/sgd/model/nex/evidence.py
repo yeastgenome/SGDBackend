@@ -46,8 +46,8 @@ class Condition(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
 class Generalcondition(Condition):
     __mapper_args__ = {'polymorphic_identity': 'CONDITION', 'inherit_condition': id == Condition.id}
-    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note']
-    __eq_fks__ = ['evidence']
+    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note', 'evidence_id']
+    __eq_fks__ = []
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -60,9 +60,9 @@ class Temperaturecondition(Condition):
     temperature = Column('temperature', Float)
 
     __mapper_args__ = {'polymorphic_identity': 'TEMPERATURE', 'inherit_condition': id == Condition.id}
-    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note',
+    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note', 'evidence_id',
                      'temperature']
-    __eq_fks__ = ['evidence']
+    __eq_fks__ = []
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -78,8 +78,8 @@ class Bioentitycondition(Condition):
     bioentity = relationship(Bioentity, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY', 'inherit_condition': id == Condition.id}
-    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note']
-    __eq_fks__ = ['evidence', 'bioentity']
+    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note', 'evidence_id']
+    __eq_fks__ = ['bioentity']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -95,8 +95,8 @@ class Bioconceptcondition(Condition):
     bioconcept = relationship(Bioconcept, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT', 'inherit_condition': id == Condition.id}
-    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note']
-    __eq_fks__ = ['evidence', 'bioconcept']
+    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note', 'evidence_id']
+    __eq_fks__ = ['bioconcept']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -112,8 +112,8 @@ class Bioitemcondition(Condition):
     bioitem = relationship(Bioitem, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': 'BIOITEM', 'inherit_condition': id == Condition.id}
-    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note']
-    __eq_fks__ = ['evidence', 'bioitem']
+    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note', 'evidence_id']
+    __eq_fks__ = ['bioitem']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -126,8 +126,8 @@ class Chemicalcondition(Bioitemcondition):
     concentration = Column('amount', String)
 
     __mapper_args__ = {'polymorphic_identity': 'CHEMICAL', 'inherit_condition': id == Condition.id}
-    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note', 'concentration']
-    __eq_fks__ = ['evidence', 'bioitem']
+    __eq_values__ = ['id', 'class_type', 'format_name', 'role', 'note', 'concentration', 'evidence_id']
+    __eq_fks__ = ['bioitem']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -172,6 +172,13 @@ class Goevidence(Evidence):
     def unique_key(self):
         return self.class_type, self.locus_id, self.go_id, self.go_evidence, self.reference_id, self.conditions_key
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['conditions'] = [x.to_json() for x in self.conditions]
+        obj_json['go']['go_aspect'] = self.go.go_aspect
+        obj_json['go']['go_id'] = self.go.go_id
+        return obj_json
+
 class Geninteractionevidence(Evidence, UpdateByJsonMixin):
     __tablename__ = "geninteractionevidence"
     
@@ -188,19 +195,20 @@ class Geninteractionevidence(Evidence, UpdateByJsonMixin):
     bait_hit = Column('bait_hit', String)
     locus1_id = Column('bioentity1_id', Integer, ForeignKey(Locus.id))
     locus2_id = Column('bioentity2_id', Integer, ForeignKey(Locus.id))
+    interaction_type = 'Genetic'
 
     #Relationships
     source = relationship(Source, backref=backref('geninteraction_evidences', passive_deletes=True), uselist=False)
     reference = relationship(Reference, backref=backref('geninteraction_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('geninteraction_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('geninteraction_evidences', passive_deletes=True), uselist=False)
-    locus1 = relationship(Locus, uselist=False, foreign_keys=[locus1_id])
-    locus2 = relationship(Locus, uselist=False, foreign_keys=[locus2_id])
+    locus1 = relationship(Locus, uselist=False, foreign_keys=[locus1_id], backref=backref('geninteraction_evidences1', passive_deletes=True))
+    locus2 = relationship(Locus, uselist=False, foreign_keys=[locus2_id], backref=backref('geninteraction_evidences2', passive_deletes=True))
     phenotype = relationship(Phenotype, uselist=False, backref='geninteraction_evidences')
 
     __mapper_args__ = {'polymorphic_identity': "GENINTERACTION", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
-                     'mutant_type', 'annotation_type', 'bait_hit',
+                     'mutant_type', 'annotation_type', 'bait_hit', 'interaction_type',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus1', 'locus2', 'phenotype']
 
@@ -225,18 +233,19 @@ class Physinteractionevidence(Evidence, UpdateByJsonMixin):
     bait_hit = Column('bait_hit', String)
     locus1_id = Column('bioentity1_id', Integer, ForeignKey(Locus.id))
     locus2_id = Column('bioentity2_id', Integer, ForeignKey(Locus.id))
+    interaction_type = 'Physical'
 
     #Relationships
     source = relationship(Source, backref=backref('physinteraction_evidences', passive_deletes=True), uselist=False)
     reference = relationship(Reference, backref=backref('physinteraction_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('physinteraction_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('physinteraction_evidences', passive_deletes=True), uselist=False)
-    locus1 = relationship(Locus, uselist=False, foreign_keys=[locus1_id])
-    locus2 = relationship(Locus, uselist=False, foreign_keys=[locus2_id])
+    locus1 = relationship(Locus, uselist=False, foreign_keys=[locus1_id], backref=backref('physinteraction_evidences1', passive_deletes=True))
+    locus2 = relationship(Locus, uselist=False, foreign_keys=[locus2_id], backref=backref('physinteraction_evidences2', passive_deletes=True))
             
     __mapper_args__ = {'polymorphic_identity': "PHYSINTERACTION", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
-                     'modification', 'annotation_type', 'bait_hit',
+                     'modification', 'annotation_type', 'bait_hit', 'interaction_type',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus1', 'locus2']
         
@@ -350,6 +359,11 @@ class Phenotypeevidence(Evidence):
     def unique_key(self):
         return self.class_type, self.locus_id, self.phenotype_id, self.strain_id, self.experiment_id, self.reference_id, self.experiment_details, self.mutant_type, self.conditions_key
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['conditions'] = [x.to_json() for x in self.conditions]
+        return obj_json
+
 class Aliasevidence(Evidence):
     __tablename__ = "aliasevidence"
 
@@ -437,8 +451,8 @@ class Regulationevidence(Evidence):
     reference = relationship(Reference, backref=backref('regulation_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('regulation_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('regulation_evidences', passive_deletes=True), uselist=False)
-    locus1 = relationship(Locus, uselist=False, foreign_keys=[locus1_id])
-    locus2 = relationship(Locus, uselist=False, foreign_keys=[locus2_id])
+    locus1 = relationship(Locus, uselist=False, foreign_keys=[locus1_id], backref=backref('regulation_evidences_targets', passive_deletes=True))
+    locus2 = relationship(Locus, uselist=False, foreign_keys=[locus2_id], backref=backref('regulation_evidences_regulators', passive_deletes=True))
        
     __mapper_args__ = {'polymorphic_identity': 'REGULATION', 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',

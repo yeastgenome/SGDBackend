@@ -24,7 +24,7 @@ class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    source = relationship(Source, uselist=False)
+    source = relationship(Source, uselist=False, lazy='joined')
 
     __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity':"BIOCONCEPT"}
         

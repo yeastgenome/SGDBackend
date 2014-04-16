@@ -25,7 +25,7 @@ class Bioitem(Base, EqualityByIDMixin, UpdateByJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    source = relationship(Source, uselist=False)
+    source = relationship(Source, uselist=False, lazy='joined')
     
     __mapper_args__ = {'polymorphic_on': class_type}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
