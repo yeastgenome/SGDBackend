@@ -1,10 +1,11 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship, backref
 
-from src.sgd.model.nex.bioentity import Bioentity
+from src.sgd.model.nex.bioentity import Locus
 from src.sgd.model.nex.evidence import Evidence
 from src.sgd.model.nex.misc import Strain, Source, Experiment
 from src.sgd.model.nex.reference import Reference
+from src.sgd.model.nex import UpdateByJsonMixin
 
 
 __author__ = 'kpaskov'
@@ -20,35 +21,23 @@ class ArchiveLiteratureevidence(Evidence):
     note = Column('note', String)
 
     topic = Column('topic', String)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
 
     #Relationships
     source = relationship(Source, backref=backref('arch_literature_evidences', passive_deletes=True), uselist=False)
     reference = relationship(Reference, backref=backref('arch_literature_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('arch_literature_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('arch_literature_evidences', passive_deletes=True), uselist=False)
-    bioentity = relationship(Bioentity, uselist=False, backref='arch_literature_evidences')
+    locus = relationship(Locus, uselist=False, backref='arch_literature_evidences')
 
-    __mapper_args__ = {'polymorphic_identity': "ARCH_LITERATURE",
-                       'inherit_condition': id==Evidence.id}
+    __mapper_args__ = {'polymorphic_identity': "ARCH_LITERATURE", 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['id', 'note',
+                     'topic',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus']
 
-    def __init__(self, source, reference, bioentity, topic, date_created, created_by):
-        Evidence.__init__(self, 'ARCH_LITERATURE', date_created, created_by)
-        self.source_id = source.id
-        self.reference_id = reference.id
-        self.strain_id = None
-        self.experiment_id = None
-        self.note = None
-
-        self.bioentity_id = None if bioentity is None else bioentity.id
-        self.topic = topic
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
 
     def unique_key(self):
-        return (self.class_type, self.bioentity_id, self.topic, self.reference_id)
-
-    def to_json(self):
-        obj_json = Evidence.to_json(self)
-        obj_json['bioentity'] = self.bioentity.to_json()
-        obj_json['reference'] = self.reference.to_semi_full_json()
-        obj_json['topic'] = self.topic
-        return obj_json
+        return self.class_type, self.locus_id, self.topic, self.reference_id

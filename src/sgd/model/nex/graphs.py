@@ -1,83 +1,12 @@
-from sqlalchemy import or_
+from itertools import groupby
 
-from src.sgd.backend.nex import DBSession, query_limit
-from src.sgd.backend.nex.query_tools import get_interactions, get_interactions_among
-from src.sgd.model.nex.bioentity import Bioentity
-from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence
-from src.sgd.backend.nex.venn import calc_venn_measurements
-
+from src.sgd.backend.nex import DBSession
 
 __author__ = 'kpaskov'
 
-# -------------------------------Overview---------------------------------------
-def make_overview(locus_id):
-    genetic = get_interactions('GENINTERACTION', locus_id)
-    physical = get_interactions('PHYSINTERACTION', locus_id)
-            
-    inters_to_genetic = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in genetic])
-    inters_to_physical = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in physical])
-               
-    all_inters = set(inters_to_genetic.keys())
-    all_inters.update(inters_to_physical.keys())
-    
-    A = 0
-    B = 0
-    C = 0
-    for inter in all_inters:
-        gen = inter in inters_to_genetic
-        phys = inter in inters_to_physical
-        if gen:
-            A = A+1
-        if phys:
-            B = B+1
-        if gen and phys:
-            C = C+1
-            
-    r, s, x = calc_venn_measurements(A, B, C)
-    
-    return {'gen_circle_size': r, 'phys_circle_size':s, 'circle_distance': x, 
-            'num_gen_interactors': A, 'num_phys_interactors': B, 'num_both_interactors': C}
 
-# -------------------------------Details---------------------------------------
-def get_genetic_interaction_evidence(locus_id, reference_id):
-    query = DBSession.query(Geninteractionevidence)
-    if locus_id is not None:
-        query = query.filter(or_(Geninteractionevidence.locus1_id == locus_id, Geninteractionevidence.locus2_id == locus_id))
-    if reference_id is not None:
-        query = query.filter_by(reference_id=reference_id)
-
-    if query.count() > query_limit:
-        return None
-    return query.all()
-
-def get_physical_interaction_evidence(locus_id, reference_id):
-    query = DBSession.query(Physinteractionevidence)
-    if locus_id is not None:
-        query = query.filter(or_(Physinteractionevidence.locus1_id == locus_id, Physinteractionevidence.locus2_id == locus_id))
-    if reference_id is not None:
-        query = query.filter_by(reference_id=reference_id)
-
-    if query.count() > query_limit:
-        return None
-    return query.all()
-
-def make_details(locus_id=None, reference_id=None):
-    if locus_id is None and reference_id is None:
-        return {'Error': 'No locus_id or reference_id given.'}
-
-    genetic_interevidences = get_genetic_interaction_evidence(locus_id=locus_id, reference_id=reference_id)
-    physical_interevidences = get_physical_interaction_evidence(locus_id=locus_id, reference_id=reference_id)
-
-    if genetic_interevidences is None or physical_interevidences is None:
-        return {'Error': 'Too much data to display.'}
-
-    all_interevidences = [x for x in genetic_interevidences]
-    all_interevidences.extend(physical_interevidences)
-
-    return [x.to_json() for x in all_interevidences]
-
-# -------------------------------Graph---------------------------------------
-def create_node(bioent, is_focus, gen_ev_count, phys_ev_count):
+# ------------------------------- Interaction Graph---------------------------------------
+def create_interaction_node(bioent, is_focus, gen_ev_count, phys_ev_count):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
@@ -85,13 +14,20 @@ def create_node(bioent, is_focus, gen_ev_count, phys_ev_count):
                     'physical': phys_ev_count, 'genetic': gen_ev_count, 'evidence':max(phys_ev_count, gen_ev_count), 
                     'sub_type':sub_type}}
 
-def create_edge(bioent1_id, bioent2_id, total_ev_count, class_type):
+def create_interaction_edge(bioent1_id, bioent2_id, total_ev_count, class_type):
     return {'data':{'target': 'Node' + str(bioent1_id), 'source': 'Node' + str(bioent2_id), 
             'evidence':total_ev_count, 'class_type': class_type}}
-    
-def make_graph(bioent_id):
-    neighbor_id_to_genevidence_count = dict([(x.bioentity1_id if x.bioentity2_id==bioent_id else x.bioentity2_id, x.evidence_count) for x in get_interactions('GENINTERACTION', bioent_id)])
-    neighbor_id_to_physevidence_count = dict([(x.bioentity1_id if x.bioentity2_id==bioent_id else x.bioentity2_id, x.evidence_count) for x in get_interactions('PHYSINTERACTION', bioent_id)])
+
+def make_interaction_graph(locus):
+    from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence
+
+    geninteraction_evidences = locus.geninteraction_evidences1
+    geninteraction_evidences.extend(locus.geninteraction_evidences2)
+    neighbor_id_to_genevidence_count = dict([(key, len([x for x in group])) for key, group in groupby(geninteraction_evidences, lambda x: x.locus2_id if x.locus1_id == locus.id else x.locus1_id)])
+    physinteraction_evidences = locus.physinteraction_evidences1
+    physinteraction_evidences.extend(locus.physinteraction_evidences2)
+    neighbor_id_to_physevidence_count = dict([(key, len([x for x in group])) for key, group in groupby(physinteraction_evidences, lambda x: x.locus2_id if x.locus1_id == locus.id else x.locus1_id)])
+
     all_neighbor_ids = set()
     all_neighbor_ids.update(neighbor_id_to_genevidence_count.keys())
     all_neighbor_ids.update(neighbor_id_to_physevidence_count.keys())
@@ -123,10 +59,12 @@ def make_graph(bioent_id):
     while len(usable_neighbor_ids) + len(evidence_count_to_neighbors[min_evidence_count]) < 100 and min_evidence_count > 1:
         usable_neighbor_ids.update(evidence_count_to_neighbors[min_evidence_count])
         min_evidence_count = min_evidence_count - 1
-      
-    tangent_to_genevidence_count = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in get_interactions_among('GENINTERACTION', usable_neighbor_ids, min_evidence_count)])
-    tangent_to_physevidence_count = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in get_interactions_among('PHYSINTERACTION', usable_neighbor_ids, min_evidence_count)])
-    
+
+    geninteraction_evidences = DBSession.query(Geninteractionevidence).filter(Geninteractionevidence.locus1_id.in_(usable_neighbor_ids)).filter(Geninteractionevidence.locus2_id.in_(usable_neighbor_ids)).all()
+    tangent_to_genevidence_count = dict([(key, len([x for x in group])) for key, group in groupby(geninteraction_evidences, lambda x: (x.locus1_id, x.locus2_id)) if len([x for x in group]) >= min_evidence_count])
+    physinteraction_evidences = DBSession.query(Physinteractionevidence).filter(Physinteractionevidence.locus1_id.in_(usable_neighbor_ids)).filter(Physinteractionevidence.locus2_id.in_(usable_neighbor_ids)).all()
+    tangent_to_physevidence_count = dict([(key, len([x for x in group])) for key, group in groupby(physinteraction_evidences, lambda x: (x.locus1_id, x.locus2_id)) if len([x for x in group]) >= min_evidence_count])
+
     evidence_count_to_phys_tangents = [set() for _ in range(11)]
     evidence_count_to_gen_tangents = [set() for _ in range(11)]
     
@@ -156,30 +94,30 @@ def make_graph(bioent_id):
     old_min_evidence_count = min_evidence_count
     min_evidence_count = 10
     edges = []
-    nodes = [create_node(DBSession.query(Bioentity).filter_by(id=bioent_id).first(), True, max_gen_count, max_phys_count)]
+    nodes = [create_interaction_node(DBSession.query(Bioentity).filter_by(id=bioent_id).first(), True, max_gen_count, max_phys_count)]
     while len(edges) + len(evidence_count_to_physical[min_evidence_count]) + len(evidence_count_to_genetic[min_evidence_count]) + len(evidence_count_to_phys_tangents[min_evidence_count]) + len(evidence_count_to_gen_tangents[min_evidence_count]) < 250 and min_evidence_count > old_min_evidence_count:
         for neighbor_id in evidence_count_to_neighbors[min_evidence_count]:
             physical_count = 0 if neighbor_id not in neighbor_id_to_physevidence_count else neighbor_id_to_physevidence_count[neighbor_id]
             genetic_count = 0 if neighbor_id not in neighbor_id_to_genevidence_count else neighbor_id_to_genevidence_count[neighbor_id]
-            nodes.append(create_node(DBSession.query(Bioentity).filter_by(id=neighbor_id).first(), False, genetic_count, physical_count))
+            nodes.append(create_interaction_node(DBSession.query(Bioentity).filter_by(id=neighbor_id).first(), False, genetic_count, physical_count))
         
         for genetic_id in evidence_count_to_genetic[min_evidence_count]:
             genevidence_count = neighbor_id_to_genevidence_count[genetic_id]
-            edges.append(create_edge(bioent_id, genetic_id, genevidence_count, 'GENETIC'))
+            edges.append(create_interaction_edge(bioent_id, genetic_id, genevidence_count, 'GENETIC'))
                 
         for physical_id in evidence_count_to_physical[min_evidence_count]:
             physevidence_count = neighbor_id_to_physevidence_count[physical_id]
-            edges.append(create_edge(bioent_id, physical_id, physevidence_count, 'PHYSICAL'))
+            edges.append(create_interaction_edge(bioent_id, physical_id, physevidence_count, 'PHYSICAL'))
         
         for tangent in evidence_count_to_gen_tangents[min_evidence_count]:
             bioent1_id, bioent2_id = tangent
             gen_ev_count = tangent_to_genevidence_count[tangent]
-            edges.append(create_edge(bioent1_id, bioent2_id, gen_ev_count, 'GENETIC'))
+            edges.append(create_interaction_edge(bioent1_id, bioent2_id, gen_ev_count, 'GENETIC'))
             
         for tangent in evidence_count_to_phys_tangents[min_evidence_count]:
             bioent1_id, bioent2_id = tangent
             phys_ev_count = tangent_to_physevidence_count[tangent]
-            edges.append(create_edge(bioent1_id, bioent2_id, phys_ev_count, 'PHYSICAL'))
+            edges.append(create_interaction_edge(bioent1_id, bioent2_id, phys_ev_count, 'PHYSICAL'))
             
         min_evidence_count = min_evidence_count - 1
     

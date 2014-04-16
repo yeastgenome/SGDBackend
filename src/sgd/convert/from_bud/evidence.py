@@ -1,6 +1,9 @@
 from sqlalchemy.orm import joinedload
 
+from src.sgd.convert.from_bud import contains_digits, sequence_files, coding_sequence_files, protein_sequence_files
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
+from src.sgd.model.nex import create_format_name
+
 
 __author__ = 'kpaskov'
 
@@ -451,6 +454,10 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
                     if evidence_key in evidence_key_to_gpad_conditions:
                         conditions.extend(evidence_key_to_gpad_conditions[evidence_key])
 
+                    key_to_condition = {}
+                    for condition in conditions:
+                        key_to_condition[condition.unique_key()] = condition
+
                     yield {'source': key_to_source[source_key],
                            'reference': id_to_reference[reference_id],
                            'locus': id_to_bioentity[bioent_id],
@@ -458,7 +465,7 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
                            'go_evidence': go_evidence,
                            'annotation_type': old_go_feature.annotation_type,
                            'qualifier': qualifier,
-                           'conditions': conditions,
+                           'conditions': key_to_condition.values(),
                            'date_created': old_go_ref.date_created,
                            'created_by': old_go_ref.created_by}
 
@@ -713,6 +720,7 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioconcept import Phenotype, create_phenotype_format_name
     from src.sgd.model.nex.bioitem import Bioitem
     from src.sgd.model.bud.phenotype import PhenotypeFeature
+    from src.sgd.model.bud.reference import Reflink
     def phenotype_evidence_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
@@ -729,11 +737,11 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
         for old_reflink in bud_session.query(Reflink).all():
             reflink_key = (old_reflink.col_name, old_reflink.primary_key)
             if reflink_key in key_to_reflinks:
-                self.key_to_reflinks[reflink_key].append(old_reflink)
+                key_to_reflinks[reflink_key].append(old_reflink)
             else:
-                self.key_to_reflinks[reflink_key] = [old_reflink]
+                key_to_reflinks[reflink_key] = [old_reflink]
 
-        for old_phenotype_feature in make_db_starter(bud_session.query(PhenotypeFeature).options(joinedload('experiment'), joinedload('phenotype')), 1000):
+        for old_phenotype_feature in make_db_starter(bud_session.query(PhenotypeFeature).options(joinedload('experiment'), joinedload('phenotype')), 1000)():
             reference_ids = [] if ('PHENO_ANNOTATION_NO', old_phenotype_feature.id) not in key_to_reflinks else [x.reference_id for x in key_to_reflinks[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)]]
             bioentity_id = old_phenotype_feature.feature_id
             experiment_key = create_format_name(old_phenotype_feature.experiment_type)
@@ -886,7 +894,7 @@ def make_protein_experiment_evidence_starter(bud_session_maker, nex_session_make
 
         protein_detail_id_to_reference = dict([(x.primary_key, x.reference_id) for x in bud_session.query(Reflink).filter(Reflink.tab_name == 'PROTEIN_DETAIL').all()])
 
-        for old_protein_detail in make_db_starter(old_session.query(ProteinDetail).filter(ProteinDetail.group == 'molecules/cell').options(joinedload(ProteinDetail.info)), 1000)():
+        for old_protein_detail in make_db_starter(bud_session.query(ProteinDetail).filter(ProteinDetail.group == 'molecules/cell').options(joinedload(ProteinDetail.info)), 1000)():
             reference_id = protein_detail_id_to_reference[old_protein_detail.id]
             bioentity_id = old_protein_detail.info.feature_id
             if reference_id in id_to_reference and bioentity_id in id_to_bioentity:
@@ -926,7 +934,7 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
             bioent2_key = (row[3].strip(), 'LOCUS')
             experiment_format_name = create_format_name(row[4].strip())
             experiment_eco_id = row[5].strip()
-            strain_key = row[7]
+            strain_key = None if row[7] == '""' else row[7]
             pubmed_id = int(row[11].strip())
             source_key = row[12].strip()
 

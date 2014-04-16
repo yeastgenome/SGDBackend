@@ -2,6 +2,9 @@ from abc import abstractmethod, ABCMeta
 import sys
 import traceback
 
+from src.sgd.model.nex import UpdateByJsonMixin
+
+
 __author__ = 'kpaskov'
 
 # ------------------------------------------ Transformers ------------------------------------------
@@ -48,7 +51,7 @@ class Obj2NexDB(TransformerInterface):
         self.commit_interval = commit_interval
         self.commit = commit
         self.delete_untouched = delete_untouched
-        self.key_to_current_obj_json = dict([(x.unique_key(), x.to_json()) for x in make_db_starter(current_obj_query(self.session), 20000)()])
+        self.key_to_current_obj_json = dict([(x.unique_key(), UpdateByJsonMixin.to_json(x)) for x in make_db_starter(current_obj_query(self.session), 20000)()])
         self.keys_already_seen = set()
         self.none_count = 0
         self.added_count = 0
@@ -71,7 +74,7 @@ class Obj2NexDB(TransformerInterface):
             if key not in self.keys_already_seen:
                 self.keys_already_seen.add(key)
                 current_obj_json = None if key not in self.key_to_current_obj_json else self.key_to_current_obj_json[key]
-                newly_created_obj_json = newly_created_obj.to_json()
+                newly_created_obj_json = UpdateByJsonMixin.to_json(newly_created_obj)
                 if current_obj_json is None:
                     self.session.add(newly_created_obj)
                     self.added_count += 1
@@ -113,7 +116,7 @@ class Obj2NexDB(TransformerInterface):
         self.session.close()
         return message if self.name is None else self.name + ': ' + str(message)
 
-class Obj2CorePerfDB(TransformerInterface):
+class Json2CorePerfDB(TransformerInterface):
 
     def __init__(self, session_maker, cls, name=None, commit_interval=True, commit=False, delete_untouched=False):
         self.session = session_maker()
@@ -133,19 +136,18 @@ class Obj2CorePerfDB(TransformerInterface):
         self.deleted_count = 0
         print 'Ready'
 
-    def convert(self, newly_created_obj):
-        if newly_created_obj is None:
+    def convert(self, newly_created_obj_json):
+        if newly_created_obj_json is None:
             self.none_count += 1
             return 'None'
         try:
             if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
                 self.session.commit()
 
-            identifier = newly_created_obj.id
+            identifier = newly_created_obj_json['id']
             if identifier not in self.ids_already_seen:
                 self.ids_already_seen.add(identifier)
                 current_obj = None if identifier not in self.id_to_current_obj else self.id_to_current_obj[identifier]
-                newly_created_obj_json = newly_created_obj.to_json()
                 if current_obj is None:
                     self.session.add(self.cls(newly_created_obj_json))
                     self.added_count += 1
@@ -286,6 +288,7 @@ def make_backend_starter(backend, method, chunk_size):
         offset = 0
         while True:
             objs = getattr(backend, method)(chunk_size, offset)
+            print 'Chunk'
             if len(objs) == 0:
                 break
 

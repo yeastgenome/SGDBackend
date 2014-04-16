@@ -90,7 +90,7 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     citation = Column('citation', String)
     year = Column('year', Integer)
     date_published = Column('date_published', String)
-    date_revised = Column('date_revised', Date)
+    date_revised = Column('date_revised', String)
     issue = Column('issue', String)
     page = Column('page', String)
     volume = Column('volume', String)
@@ -104,7 +104,7 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     #Relationships
     book = relationship(Book, uselist=False)
     journal = relationship(Journal, uselist=False)
-    source = relationship(Source, uselist=False)
+    source = relationship(Source, uselist=False, lazy='joined')
 
     author_names = association_proxy('author_references', 'author_name')
     related_references = association_proxy('refrels', 'child_ref')

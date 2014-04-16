@@ -26,7 +26,7 @@ class Paragraph(Base, EqualityByIDMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
     
     #Relationships
-    bioentity = relationship(Bioentity, uselist=False)
+    bioentity = relationship(Bioentity, uselist=False, backref='paragraphs')
     references = association_proxy('paragraph_references', 'reference')
         
     def __init__(self, class_type, source, bioentity, text, date_created, created_by):

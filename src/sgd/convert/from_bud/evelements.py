@@ -2,6 +2,7 @@ from sqlalchemy.orm import joinedload
 
 from src.sgd.convert.transformers import make_db_starter, make_file_starter, \
     make_obo_file_starter
+from src.sgd.convert import create_format_name
 
 
 __author__ = 'kpaskov'
@@ -15,6 +16,7 @@ __author__ = 'kpaskov'
 def make_experiment_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.bud.cv import CVTerm
+
     def experiment_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
@@ -28,9 +30,11 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
                    'eco_id': bud_obj['id']}
 
         for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==7), 1000)():
+            format_name = create_format_name(bud_obj.name)
             yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
                    'description': bud_obj.definition,
+                   'category': 'large-scale survey' if format_name in large_scale_survey else 'classical genetics' if format_name in classical_genetics else None,
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
 
@@ -56,6 +60,10 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
         bud_session.close()
         nex_session.close()
     return experiment_starter
+
+large_scale_survey = {'large-scale_survey', 'competitive_growth', 'heterozygous_diploid,_large-scale_survey', 'homozygous_diploid,_large-scale_survey', 'systematic_mutation_set', 'heterozygous_diploid,_competitive_growth',
+                      'homozygous_diploid,_competitive_growth', 'heterozygous_diploid,_systematic_mutation_set', 'homozygous_diploid,_systematic_mutation_set'}
+classical_genetics = {'classical_genetics', 'heterozygous_diploid', 'homozygous_diploid'}
 
 # --------------------- Convert Experiment Alias ---------------------
 def make_experiment_alias_starter(bud_session_maker, nex_session_maker):
