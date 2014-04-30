@@ -1,3 +1,5 @@
+from itertools import groupby
+
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
@@ -190,6 +192,58 @@ class Observable(Bioconcept):
         else:
             self.format_name = create_format_name(self.display_name.lower())
             self.link = '/observable/' + self.format_name + '/overview'
+
+    @hybrid_property
+    def count(self):
+        locus_ids = set()
+        for phenotype in self.phenotypes:
+            locus_ids.update([x.locus_id for x in phenotype.phenotype_evidences])
+        return len(locus_ids)
+
+    @hybrid_property
+    def child_count(self):
+        return self.count + sum([x.child.count for x in self.children if x.relation_type == 'is a'])
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['count'] = self.count
+        obj_json['child_count'] = self.child_count
+        return obj_json
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+
+        #Phenotype overview
+        phenotype_evidences = []
+        for phenotype in self.phenotypes:
+            phenotype_evidences.extend(phenotype.phenotype_evidences)
+        classical_groups = dict([(key, len([x for x in group])) for key, group in groupby([y for y in phenotype_evidences if y.experiment.category == 'classical genetics'], lambda x: x.mutant_type)])
+        large_scale_groups = dict([(key, len([x for x in group])) for key, group in groupby([y for y in phenotype_evidences if y.experiment.category == 'large-scale survey'], lambda x: x.mutant_type)])
+        experiment_categories = [['Mutant Type', 'classical genetics', 'large_scale survey']]
+        mutant_types = set(classical_groups.keys())
+        mutant_types.update(large_scale_groups.keys())
+        for mutant_type in mutant_types:
+            experiment_categories.append([mutant_type, 0 if mutant_type not in classical_groups else classical_groups[mutant_type], 0 if mutant_type not in large_scale_groups else large_scale_groups[mutant_type]])
+
+        strain_groups = dict([(key, len([x for x in group])) for key, group in groupby([y for y in phenotype_evidences if y.strain_id is not None], lambda x: x.strain.display_name)])
+        strains = [['Strain', 'Annotations']]
+        for strain, count in strain_groups.iteritems():
+            strains.append([strain, count])
+        obj_json['overview'] = {'experiment_categories': experiment_categories,
+                                          'strains': strains}
+
+        #Phenotypes
+        obj_json['phenotypes'] = []
+        for phenotype in self.phenotypes:
+            phenotype_json = phenotype.to_min_json()
+            phenotype_json['qualifier'] = phenotype.qualifier
+            obj_json['phenotypes'].append(phenotype_json)
+
+        #Counts
+        obj_json['count'] = self.count
+        obj_json['child_count'] = self.child_count
+
+        return obj_json
         
 class Phenotype(Bioconcept):
     __tablename__ = "phenotypebioconcept"
@@ -199,7 +253,7 @@ class Phenotype(Bioconcept):
     qualifier = Column('qualifier', String)
 
     #Relationships
-    observable = relationship(Observable, uselist=False, foreign_keys=[observable_id])
+    observable = relationship(Observable, uselist=False, foreign_keys=[observable_id], lazy='joined', backref="phenotypes")
        
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE", 'inherit_condition': id==Bioconcept.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
@@ -213,5 +267,24 @@ class Phenotype(Bioconcept):
         self.format_name = create_phenotype_format_name(obj_json['observable'].display_name, self.qualifier)
         self.link = '/phenotype/' + self.format_name + '/overview'
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+
+        #Phenotype overview
+        classical_groups = dict([(key, len([x for x in group])) for key, group in groupby([y for y in self.phenotype_evidences if y.experiment.category == 'classical genetics'], lambda x: x.mutant_type)])
+        large_scale_groups = dict([(key, len([x for x in group])) for key, group in groupby([y for y in self.phenotype_evidences if y.experiment.category == 'large-scale survey'], lambda x: x.mutant_type)])
+        experiment_categories = [['Mutant Type', 'classical genetics', 'large_scale survey']]
+        mutant_types = set(classical_groups.keys())
+        mutant_types.update(large_scale_groups.keys())
+        for mutant_type in mutant_types:
+            experiment_categories.append([mutant_type, 0 if mutant_type not in classical_groups else classical_groups[mutant_type], 0 if mutant_type not in large_scale_groups else large_scale_groups[mutant_type]])
+
+        strain_groups = dict([(key, len([x for x in group])) for key, group in groupby([y for y in self.phenotype_evidences if y.strain_id is not None], lambda x: x.strain.display_name)])
+        strains = [['Strain', 'Annotations']]
+        for strain, count in strain_groups.iteritems():
+            strains.append([strain, count])
+        obj_json['overview'] = {'experiment_categories': experiment_categories,
+                                          'strains': strains}
+        return obj_json
 
 

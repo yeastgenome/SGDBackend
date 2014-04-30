@@ -112,10 +112,15 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('phenotype_details'),
                     route_name='phenotype_biocon_details')
 
-    config.add_route('phenotype_biocon_details_all', '/phenotype/{identifier}/locus_details_all')
-    config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_details', request)(getattr(chosen_backend, 'phenotype_details')(phenotype_identifier=request.matchdict['identifier'], with_children=True)),
+    config.add_route('phenotype_obs_details', '/observable/{identifier}/locus_details')
+    config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_details', request)(getattr(chosen_backend, 'phenotype_details')(observable_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('phenotype_details'),
-                    route_name='phenotype_biocon_details_all')
+                    route_name='phenotype_obs_details')
+
+    config.add_route('phenotype_obs_details_all', '/observable/{identifier}/locus_details_all')
+    config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_details', request)(getattr(chosen_backend, 'phenotype_details')(observable_identifier=request.matchdict['identifier'], with_children=True)),
+                    renderer=chosen_backend.get_renderer('phenotype_details'),
+                    route_name='phenotype_obs_details_all')
     
     config.add_route('phenotype_chem_details', '/chemical/{identifier}/phenotype_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_details', request)(getattr(chosen_backend, 'phenotype_details')(chemical_identifier=request.matchdict['identifier'])),
@@ -136,6 +141,11 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_graph', request)(getattr(chosen_backend, 'phenotype_graph')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('phenotype_graph'),
                     route_name='phenotype_graph')
+
+    config.add_route('phenotype_ontology_graph', '/observable/{identifier}/ontology_graph')
+    config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_ontology_graph', request)(getattr(chosen_backend, 'phenotype_ontology_graph')(request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('phenotype_ontology_graph'),
+                    route_name='phenotype_ontology_graph')
 
     #Complex
     config.add_route('complex', '/complex/{identifier}/overview')

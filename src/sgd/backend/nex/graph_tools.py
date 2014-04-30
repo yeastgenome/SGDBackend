@@ -1,7 +1,7 @@
 from src.sgd.backend.nex import DBSession
 from src.sgd.backend.nex.query_tools import get_relations, get_interactions_among
 from src.sgd.model.nex.bioconcept import Bioconceptrelation
-from src.sgd.model.nex.bioconcept import Bioconcept
+from src.sgd.model.nex.bioconcept import Bioconcept, Observable
 from src.sgd.model.nex.bioentity import Locus
 
 __author__ = 'kpaskov'
@@ -10,12 +10,16 @@ __author__ = 'kpaskov'
 def create_node(biocon, is_focus, sub_type):
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'Node' + str(biocon.id), 'name':biocon.display_name + ' (' + str(biocon.count) + ')', 'link': biocon.link, 'sub_type':sub_type}}
+    name = biocon.display_name
+    if biocon.format_name != 'ypo':
+        name = name + ' (' + str(biocon.count) + ')'
+    return {'data':{'id':'Node' + str(biocon.id), 'name': name, 'link': biocon.link, 'sub_type':sub_type}}
 
 def create_edge(biocon1_id, biocon2_id, label):
     return {'data':{'target': 'Node' + str(biocon1_id), 'source': 'Node' + str(biocon2_id), 'name':label}}
 
 def make_ontology_graph(bioconcept_id, class_type, filter_f, subtype_f):
+    full_ontology = None
     all_children = []
     bioconcept = DBSession.query(Bioconcept).filter_by(id=bioconcept_id).first()
     parent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[bioconcept_id]) if x.relation_type != 'GO_SLIM']
@@ -64,7 +68,20 @@ def make_ontology_graph(bioconcept_id, class_type, filter_f, subtype_f):
         nodes.extend([create_node(x.child, False, subtype_f(x.child)) for x in child_relations])
         edges = [create_edge(x.child_id, x.parent_id, x.relation_type) for x in child_relations]
 
-    return {'nodes': list(nodes), 'edges': edges, 'all_children': [x.to_min_json() for x in all_children]}
+        if bioconcept.class_type == 'OBSERVABLE':
+            grandchild_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[x.child_id for x in child_relations])]
+            nodes.extend([create_node(x.child, False, subtype_f(x.child)) for x in grandchild_relations])
+            edges.extend([create_edge(x.child_id, x.parent_id, x.relation_type) for x in grandchild_relations])
+
+            observables = DBSession.query(Observable).all()
+            elements = [x.to_min_json() for x in sorted(observables, key=lambda x: x.display_name)]
+            child_to_parent = dict([(x.child_id, x.parent_id) for y in observables for x in y.children])
+            full_ontology = {'elements': elements, 'child_to_parent': child_to_parent}
+
+    obj_json = {'nodes': list(nodes), 'edges': edges, 'all_children': [x.to_min_json() for x in all_children]}
+    if full_ontology is not None:
+        obj_json['full_ontology'] = full_ontology
+    return obj_json
 
 # -------------------------------Graph-----------------------------------------
 def create_bioent_node(bioent, is_focus, gene_count):

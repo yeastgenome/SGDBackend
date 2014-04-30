@@ -211,38 +211,30 @@ class SGDBackend(BackendInterface):
         return json.dumps(view_reference.make_references_this_week())
 
     #Phenotype
-    def phenotype_ontology_graph(self, phenotype_identifier, are_ids=False):
+    def phenotype_ontology_graph(self, observable_identifier, are_ids=False):
         import graph_tools
         if are_ids:
-            pheno_id = phenotype_identifier
+            observable_id = observable_identifier
         else:
-            pheno_id = get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return None if pheno_id is None else json.dumps(graph_tools.make_ontology_graph(pheno_id, 'PHENOTYPE', lambda x: x.is_core, lambda x: x.ancestor_type))
+            observable_id = get_obj_id(observable_identifier, class_type='BIOCONCEPT', subclass_type='OBSERVABLE')
+        return None if observable_id is None else json.dumps(graph_tools.make_ontology_graph(observable_id, 'OBSERVABLE', lambda x: True, lambda x: x.ancestor_type))
 
-    def phenotype_overview(self, locus_identifier=None, phenotype_identifier=None, are_ids=False):
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, observable_identifier=None, chemical_identifier=None, reference_identifier=None, with_children=False, are_ids=False):
         from src.sgd.backend.nex import view_phenotype
         if are_ids:
             locus_id = locus_identifier
             phenotype_id = phenotype_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-            phenotype_id = None if phenotype_identifier is None else get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return json.dumps(view_phenotype.make_overview(locus_id=locus_id, phenotype_id=phenotype_id))
-    
-    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, reference_identifier=None, with_children=False, are_ids=False):
-        from src.sgd.backend.nex import view_phenotype
-        if are_ids:
-            locus_id = locus_identifier
-            phenotype_id = phenotype_identifier
+            observable_id = observable_identifier
             chemical_id = chemical_identifier
             reference_id = reference_identifier
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             phenotype_id = None if phenotype_identifier is None else get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
+            observable_id = None if observable_identifier is None else get_obj_id(observable_identifier, class_type='BIOCONCEPT', subclass_type='OBSERVABLE')
             chemical_id = None if chemical_identifier is None else get_obj_id(chemical_identifier, class_type='BIOITEM', subclass_type='CHEMICAL')
             reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
         
-        return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children))
+        return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id, observable_id=observable_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children))
 
     def phenotype_resources(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex.query_tools import get_urls
@@ -303,16 +295,6 @@ class SGDBackend(BackendInterface):
         return None if locus_id is None else json.dumps(graph_tools.make_graph(locus_id, Bioconceptinteraction, 'GO', 'LOCUS'))
        
     #Interaction
-    def interaction_overview(self, locus_identifier, are_ids=False):
-        import view_interaction
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is None:
-            return None
-        return json.dumps(view_interaction.make_overview(locus_id))
-    
     def interaction_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
         import view_interaction
         if are_ids:
@@ -344,14 +326,6 @@ class SGDBackend(BackendInterface):
         return None
 
     #Literature
-    def literature_overview(self, locus_identifier, are_ids=False):
-        import view_literature
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_literature.make_overview(locus_id))
-
     def literature_details(self, locus_identifier=None, reference_identifier=None, topic=None, are_ids=False):
         import view_literature
         if are_ids:
@@ -371,22 +345,6 @@ class SGDBackend(BackendInterface):
         return None if locus_id is None else json.dumps(view_literature.make_graph(locus_id))
 
     #Protein
-    def protein_overview(self, locus_identifier, are_ids=False):
-        import view_protein
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_protein.make_overview(locus_id=locus_id))
-
-    def sequence_overview(self, locus_identifier, are_ids=False):
-        import view_sequence
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_sequence.make_overview(locus_id=locus_id))
-
     def protein_domain_details(self, locus_identifier=None, domain_identifier=None, are_ids=False):
         import view_protein
         if are_ids:
@@ -470,15 +428,7 @@ class SGDBackend(BackendInterface):
                                'interaction_graph': graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'PHYSINTERACTION')})
 
     #Regulation
-    def regulation_overview(self, locus_identifier, filter=None, are_ids=False):
-        import view_regulation
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_regulation.make_overview(locus_id, filter))
-
-    def regulation_details(self, locus_identifier=None, reference_identifier=None, filter=None, are_ids=False):
+    def regulation_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
         import view_regulation
         if are_ids:
             locus_id = locus_identifier
@@ -486,24 +436,24 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             reference_id = None if reference_identifier is None else get_obj_id(reference_identifier, class_type='REFERENCE')
-        return json.dumps(view_regulation.make_details(locus_id=locus_id, reference_id=reference_id, filter=filter))
+        return json.dumps(view_regulation.make_details(locus_id=locus_id, reference_id=reference_id))
             
-    def regulation_graph(self, locus_identifier, filter=None, are_ids=False):
+    def regulation_graph(self, locus_identifier, are_ids=False):
         import view_regulation
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_regulation.make_graph(locus_id, filter))
+        return None if locus_id is None else json.dumps(view_regulation.make_graph(locus_id))
     
-    def regulation_target_enrichment(self, locus_identifier, filter=None, are_ids=False):
+    def regulation_target_enrichment(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex import view_regulation
         from src.sgd.backend.nex import view_go
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        target_ids = set([x['locus2']['id'] for x in view_regulation.make_details(locus_id=locus_id, filter=filter) if x['locus1']['id'] == locus_id])
+        target_ids = set([x['locus2']['id'] for x in view_regulation.make_details(locus_id=locus_id) if x['locus1']['id'] == locus_id])
         if len(target_ids) > 0:
             return json.dumps(view_go.make_enrichment(target_ids))
         else:

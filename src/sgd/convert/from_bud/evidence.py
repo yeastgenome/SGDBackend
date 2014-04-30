@@ -470,6 +470,8 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
                            'properties': key_to_condition.values(),
                            'date_created': old_go_ref.date_created,
                            'created_by': old_go_ref.created_by}
+                else:
+                    print 'Could not find bioentity or bioconcept or reference: ' + str(bioent_id) + ' ' + str(go_key) + ' ' + str(reference_id)
 
         bud_session.close()
         nex_session.close()
@@ -640,8 +642,6 @@ def make_literature_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.reference import Reference
-    from src.sgd.model.nex.evidence import Regulationevidence, Physinteractionevidence, Geninteractionevidence, \
-        Phenotypeevidence, Goevidence
     from src.sgd.model.bud.reference import Litguide
     def literature_evidence_starter():
         bud_session = bud_session_maker()
@@ -665,51 +665,6 @@ def make_literature_evidence_starter(bud_session_maker, nex_session_maker):
                            'created_by': litguide_feature.created_by}
                 else:
                     print 'Bioentity or reference not found: ' + str(bioentity_id) + ' ' + str(reference_id)
-
-        for evidence in make_db_starter(nex_session.query(Goevidence).all(), 1000):
-            yield {'source': key_to_source['SGD'],
-                    'reference': id_to_reference[evidence.reference_id],
-                    'locus': id_to_bioentity[evidence.locus_id],
-                    'topic': 'GO'}
-
-        for evidence in make_db_starter(nex_session.query(Phenotypeevidence).all(), 1000):
-            yield {'source': key_to_source['SGD'],
-                    'reference': id_to_reference[evidence.reference_id],
-                    'locus': id_to_bioentity[evidence.locus_id],
-                    'topic': 'Phenotype'}
-
-        for evidence in make_db_starter(nex_session.query(Regulationevidence).all(), 1000):
-            yield {'source': key_to_source['SGD'],
-                    'reference': id_to_reference[evidence.reference_id],
-                    'locus': id_to_bioentity[evidence.locus1_id],
-                    'topic': 'Regulation'}
-
-            yield {'source': key_to_source['SGD'],
-                    'reference': id_to_reference[evidence.reference_id],
-                    'locus': id_to_bioentity[evidence.locus2_id],
-                    'topic': 'Regulation'}
-
-        for evidence in make_db_starter(nex_session.query(Physinteractionevidence).all(), 1000):
-            yield {'source': key_to_source['SGD'],
-                    'reference': id_to_reference[evidence.reference_id],
-                    'locus': id_to_bioentity[evidence.locus1_id],
-                    'topic': 'Interaction'}
-
-            yield {'source': key_to_source['SGD'],
-                    'reference': id_to_reference[evidence.reference_id],
-                    'locus': id_to_bioentity[evidence.locus2_id],
-                    'topic': 'Interaction'}
-
-        for evidence in make_db_starter(nex_session.query(Geninteractionevidence).all(), 1000):
-            yield {'source': key_to_source['SGD'],
-                    'reference': id_to_reference[evidence.reference_id],
-                    'locus': id_to_bioentity[evidence.locus1_id],
-                    'topic': 'Interaction'}
-
-            yield {'source': key_to_source['SGD'],
-                    'reference': id_to_reference[evidence.reference_id],
-                    'locus': id_to_bioentity[evidence.locus2_id],
-                    'topic': 'Interaction'}
 
         bud_session.close()
         nex_session.close()

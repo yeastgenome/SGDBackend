@@ -74,7 +74,7 @@ def make_protein_experiment_details(locus_id=None):
 def get_bioentity_evidence(locus_id):
     query = DBSession.query(Bioentityevidence)
     if locus_id is not None:
-        query = query.filter_by(locus_id=locus_id)
+        query = query.filter_by(bioentity_id=locus_id)
 
     if query.count() > query_limit:
         return None
@@ -104,7 +104,7 @@ def make_graph(locus_id):
     domain_ids = set()
     protein_ids = [x.id for x in DBSession.query(Locus).filter_by(id=locus_id).all()]
     for pid in protein_ids:
-        domain_ids.update([x.domain_id for x in get_protein_domain_evidence(locus_id=pid, domain_id=None) if x.domain_id.display_name != 'seg'])
+        domain_ids.update([x.domain_id for x in get_protein_domain_evidence(locus_id=pid, domain_id=None) if x.domain.display_name != 'seg'])
 
     domain_id_to_bioent_ids = {}
     bioent_id_to_domain_ids = {}
@@ -112,7 +112,7 @@ def make_graph(locus_id):
     all_relevant_edges = set()
     for domain_id in domain_ids:
         domain_domainevidences = get_protein_domain_evidence(locus_id=None, domain_id=domain_id)
-        all_relevant_edges.update([(x.locus_id, x.domain_id) for x in domain_domainevidences if x.bioitem.display_name != 'seg'])
+        all_relevant_edges.update([(x.locus_id, x.domain_id) for x in domain_domainevidences if x.domain.display_name != 'seg'])
 
     for edge in all_relevant_edges:
         bioentity_id = edge[0]

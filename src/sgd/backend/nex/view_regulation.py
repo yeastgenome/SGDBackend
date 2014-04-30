@@ -5,21 +5,6 @@ from src.sgd.backend.nex.query_tools import get_paragraph
 from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.evidence import Regulationevidence
 
-# -------------------------------Overview---------------------------------------
-def make_overview(bioent_id, filter=None):
-    overview = {}
-    #Test getting rid of Venters
-    evidence = get_regulation_evidence(locus_id=bioent_id, reference_id=None, between_ids=None, filter=filter)
-    target_count = len(set(x.locus2_id for x in evidence if x.locus1_id==bioent_id))
-    regulator_count = len(set(x.locus1_id for x in evidence if x.locus2_id==bioent_id))
-    #interactions = get_interactions('REGULATION', bioent_id)
-    #target_count = len([interaction.bioentity2_id for interaction in interactions if interaction.bioentity1_id==bioent_id])
-    #regulator_count = len([interaction.bioentity1_id for interaction in interactions if interaction.bioentity2_id==bioent_id])
-    
-    overview['target_count'] = target_count
-    overview['regulator_count'] = regulator_count
-    return overview
-
 # -------------------------------Paragraph---------------------------------------
 def make_paragraph(bioent_id):
     paragraph = get_paragraph(bioent_id, 'REGULATION')
@@ -34,49 +19,24 @@ def make_paragraph(bioent_id):
     return paragraph_json
 
 # -------------------------------Evidence Table---------------------------------------
-def get_regulation_evidence(locus_id, reference_id, between_ids, filter):
+def get_regulation_evidence(locus_id, reference_id, between_ids):
     query = DBSession.query(Regulationevidence)
     if reference_id is not None:
         query = query.filter_by(reference_id=reference_id)
+    if between_ids is not None:
+        query = query.filter(and_(Regulationevidence.locus1_id.in_(between_ids), Regulationevidence.locus2_id.in_(between_ids)))
+    if locus_id is not None:
+        query = query.filter(or_(Regulationevidence.locus1_id == locus_id, Regulationevidence.locus2_id == locus_id))
 
-        if query.count() > query_limit:
-            return None
-        return query.all()
-    else:
-        if between_ids is not None:
-            query = query.filter(and_(Regulationevidence.locus1_id.in_(between_ids), Regulationevidence.locus2_id.in_(between_ids)))
-        if locus_id is not None:
-            query = query.filter(or_(Regulationevidence.locus1_id == locus_id, Regulationevidence.locus2_id == locus_id))
+    if query.count() > query_limit:
+        return None
+    return query.all()
 
-        if filter == 'no_venters':
-            query = query.filter(Regulationevidence.reference_id != 82383)
-            return query.all()
-        elif filter == 'two_types':
-            evidences = query.all()
-            expression_interactions = set()
-            binding_interactions = set()
-            for evidence in evidences:
-                interaction_key = (evidence.locus1_id, evidence.locus2_id)
-                if evidence.experiment.category == 'expression':
-                    expression_interactions.add(interaction_key)
-                if evidence.experiment.category == 'binding':
-                    binding_interactions.add(interaction_key)
-            return [x for x in evidences if (x.locus1_id, x.locus2_id) in expression_interactions and (x.locus1_id, x.locus2_id) in binding_interactions]
-        elif filter == 'sgd_manual_only':
-            query = query.filter(and_(Regulationevidence.source_id == 1, Regulationevidence.reference_id != 82383, Regulationevidence.reference_id != 51978))
-            return query.all()
-        elif filter == 'yeastract_only':
-            query = query.filter(Regulationevidence.source_id == 123)
-            return query.all()
-        else:
-            return query.all()
-
-
-def make_details(locus_id=None, reference_id=None, filter=None):
+def make_details(locus_id=None, reference_id=None):
     if locus_id is None and reference_id is None:
         return {'Error': 'No locus_id or reference_id given.'}
 
-    regevidences = get_regulation_evidence(locus_id=locus_id, reference_id=reference_id, between_ids=None, filter=filter)
+    regevidences = get_regulation_evidence(locus_id=locus_id, reference_id=reference_id, between_ids=None)
 
     if regevidences is None:
         return {'Error': 'Too much data to display.'}
@@ -94,9 +54,9 @@ def create_node(bioent, is_focus, targ_ev_count, reg_ev_count, class_type):
 def create_edge(bioent1_id, bioent2_id, total_ev_count, class_type):
     return {'data':{'source': 'Node' + str(bioent1_id), 'target': 'Node' + str(bioent2_id), 'evidence': total_ev_count, 'class_type': class_type}}
     
-def make_graph(bioent_id, filter=None):
+def make_graph(bioent_id):
     #Test getting rid of Venters
-    evidences = get_regulation_evidence(locus_id=bioent_id, reference_id=None, between_ids=None, filter=filter)
+    evidences = get_regulation_evidence(locus_id=bioent_id, reference_id=None, between_ids=None)
     regulator_id_to_evidence_count = {}
     target_id_to_evidence_count = {}
     for evidence in evidences:
@@ -148,7 +108,7 @@ def make_graph(bioent_id, filter=None):
         min_evidence_count = min_evidence_count - 1
 
     #Test getting rid of Venters
-    evidences = get_regulation_evidence(locus_id=None, reference_id=None, between_ids=usable_neighbor_ids, filter=filter)
+    evidences = get_regulation_evidence(locus_id=None, reference_id=None, between_ids=usable_neighbor_ids)
     tangent_to_evidence_count = {}
     for evidence in evidences:
         if (evidence.locus1_id, evidence.locus2_id) in tangent_to_evidence_count:

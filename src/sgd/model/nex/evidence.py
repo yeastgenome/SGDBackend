@@ -367,6 +367,7 @@ class Phenotypeevidence(Evidence):
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['properties'] = [x.to_json() for x in self.properties]
+        obj_json['experiment']['category'] = self.experiment.category
         return obj_json
 
 class Aliasevidence(Evidence):
@@ -441,6 +442,7 @@ class Domainevidence(Evidence):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['domain']['description'] = self.domain.description
         obj_json['domain']['count'] = self.domain.count
+        obj_json['domain']['source'] = self.source.to_min_json()
         return obj_json
         
 class Regulationevidence(Evidence):
@@ -478,6 +480,11 @@ class Regulationevidence(Evidence):
 
     def unique_key(self):
         return self.class_type, self.locus1_id, self.locus2_id, self.experiment_id, self.reference_id, self.property_key
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['properties'] = [x.to_json() for x in self.properties]
+        return obj_json
         
 class Bindingevidence(Evidence):
     __tablename__ = "bindingevidence"
@@ -657,6 +664,8 @@ class DNAsequenceevidence(Evidence):
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['locus']['locus_type'] = self.locus.locus_type
+        obj_json['strain']['description'] = self.strain.description
+        obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
         return obj_json
 
     def unique_key(self):
@@ -802,6 +811,21 @@ class Proteinsequenceevidence(Evidence):
     def unique_key(self):
         return self.class_type, self.locus_id, self.strain_id, self.protein_type
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['molecular_weight'] = str(self.molecular_weight)
+        obj_json['pi'] = str(self.pi)
+        obj_json['cai'] = str(self.cai)
+        obj_json['codon_bias'] = str(self.codon_bias)
+        obj_json['fop_score'] = str(self.fop_score)
+        obj_json['gravy_score'] = str(self.gravy_score)
+        obj_json['aromaticity_score'] = str(self.aromaticity_score)
+        obj_json['aliphatic_index'] = str(self.aliphatic_index)
+        obj_json['instability_index'] = str(self.instability_index)
+        obj_json['strain']['description'] = self.strain.description
+        obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
+        return obj_json
+
 class Phosphorylationevidence(Evidence):
     __tablename__ = "phosphorylationevidence"
 
@@ -835,3 +859,8 @@ class Phosphorylationevidence(Evidence):
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.site_residue, self.site_index
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['properties'] = [x.to_json() for x in self.properties]
+        return obj_json

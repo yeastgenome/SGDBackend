@@ -308,8 +308,8 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Evidence ------------------------------------------
     # Bud -> Nex
-    from src.sgd.model.nex.evidence import Evidence, Literatureevidence
-    from src.sgd.convert.from_bud.evidence import make_literature_evidence_starter
+    from src.sgd.model.nex.evidence import Evidence, Goevidence
+    from src.sgd.convert.from_bud.evidence import make_go_evidence_starter
     # do_conversion(make_alias_evidence_starter(bud_session_maker, nex_session_maker),
     #                [Json2Obj(Aliasevidence),
     #                 Obj2NexDB(nex_session_maker, lambda x: x.query(Aliasevidence), name='convert.from_bud.evidence.alias', delete_untouched=True, commit=True)])
@@ -341,11 +341,11 @@ if __name__ == "__main__":
     #                 Obj2NexDB(nex_session_maker, lambda x: x.query(ECNumberevidence), name='convert.from_bud.evidence.ecnumber', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, ECNumberevidence, Evidence, 'ECNUMBER')
     #
-    # do_conversion(make_go_evidence_starter(bud_session_maker, nex_session_maker),
-    #                [Json2Obj(Goevidence),
-    #                 Obj2NexDB(nex_session_maker, lambda x: x.query(Goevidence), name='convert.from_bud.evidence.go', delete_untouched=True, commit_interval=1000),
-    #                 OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Goevidence, Evidence, 'GO')
+    do_conversion(make_go_evidence_starter(bud_session_maker, nex_session_maker),
+                   [Json2Obj(Goevidence),
+                    Obj2NexDB(nex_session_maker, lambda x: x.query(Goevidence), name='convert.from_bud.evidence.go', delete_untouched=True, commit_interval=1000),
+                    OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Goevidence, Evidence, 'GO')
     #
     # do_conversion(make_interaction_evidence_starter(bud_session_maker, nex_session_maker, 'genetic interactions'),
     #               [Json2Obj(Geninteractionevidence),
@@ -359,11 +359,11 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Physinteractionevidence, Evidence, 'PHYSINTERACTION')
     #
-    do_conversion(make_literature_evidence_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Literatureevidence),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Literatureevidence), name='convert.from_bud.evidence.literature', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Literatureevidence, Evidence, 'LITERATURE')
+    # do_conversion(make_literature_evidence_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Literatureevidence),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Literatureevidence), name='convert.from_bud.evidence.literature', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Literatureevidence, Evidence, 'LITERATURE')
     #
     # do_conversion(make_archive_literature_evidence_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(ArchiveLiteratureevidence),
@@ -406,14 +406,14 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Proteinsequenceevidence), name='convert.from_bud.evidence.proteinsequence', delete_untouched=True),
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, ProteinSequenceevidence, Evidence, 'PROTEINSEQUENCE')
-
-    # from src.sgd.model.nex.evidence import Condition, Bioentitycondition, Bioconceptcondition, Bioitemcondition, Chemicalcondition, Temperaturecondition, Generalcondition
-    # clean_up_orphans(nex_session_maker, Bioentitycondition, Condition, 'BIOENTITY')
-    # clean_up_orphans(nex_session_maker, Bioconceptcondition, Condition, 'BIOCONCEPT')
-    # clean_up_orphans(nex_session_maker, Bioitemcondition, Condition, 'BIOITEM')
-    # clean_up_orphans(nex_session_maker, Chemicalcondition, Condition, 'CHEMICAL')
-    # clean_up_orphans(nex_session_maker, Temperaturecondition, Condition, 'TEMPERATURE')
-    # clean_up_orphans(nex_session_maker, Generalcondition, Condition, 'CONDITION')
+    #
+    # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty, Temperatureproperty, Generalproperty
+    # clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')
+    # clean_up_orphans(nex_session_maker, Bioconceptproperty, Property, 'BIOCONCEPT')
+    # clean_up_orphans(nex_session_maker, Bioitemproperty, Property, 'BIOITEM')
+    # clean_up_orphans(nex_session_maker, Chemicalproperty, Property, 'CHEMICAL')
+    # clean_up_orphans(nex_session_maker, Temperatureproperty, Property, 'TEMPERATURE')
+    # clean_up_orphans(nex_session_maker, Generalproperty, Property, 'CONDITION')
 
     # # ------------------------------------------ Auxilliary ------------------------------------------
     # from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Referenceinteraction

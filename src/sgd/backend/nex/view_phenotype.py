@@ -1,8 +1,8 @@
 from math import ceil
 
 from src.sgd.backend.nex import DBSession, query_limit
-from src.sgd.backend.nex.query_tools import get_all_bioconcept_children, get_relations
-from src.sgd.model.nex.bioconcept import Bioconceptrelation, Phenotype
+from src.sgd.backend.nex.query_tools import get_all_bioconcept_children
+from src.sgd.model.nex.bioconcept import Phenotype
 from src.sgd.model.nex.evidence import Phenotypeevidence, Chemicalproperty
 
 __author__ = 'kpaskov'
@@ -98,12 +98,3 @@ def make_details(locus_id=None, phenotype_id=None, observable_id=None, chemical_
         return {'Error': 'Too much data to display.'}
 
     return [x.to_json() for x in phenoevidences]
-
-# -------------------------------Ontology---------------------------------------
-def make_ontology():
-    relations = get_relations(Bioconceptrelation, 'PHENOTYPE')
-    id_to_phenotype = dict([(x.id, x.to_json()) for x in DBSession.query(Phenotype).all() if x.is_core])
-    child_to_parent = dict([(x.child_id, x.parent_id) for x in relations if x.parent_id in id_to_phenotype and x.child_id in id_to_phenotype])
-
-    return {'elements': sorted(id_to_phenotype.values(), key=lambda x: x['display_name']), 'child_to_parent': child_to_parent}
-

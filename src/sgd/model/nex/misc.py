@@ -161,6 +161,18 @@ class Alias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def unique_key(self):
         return self.class_type, self.display_name, self.format_name, self.category
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['evidences'] = [x.to_json() for x in self.alias_evidences]
+        if self.category in {'PDB identifier', 'UniParc ID', 'UniProt/Swiss-Prot ID', 'UniProt/TrEMBL ID',
+            'UniProtKB Subcellular Location', 'Protein version ID', 'EC number', 'InterPro', 'RefSeq protein version ID',
+            'RefSeq nucleotide version ID', 'TPA protein version ID', 'DNA version ID', 'NCBI protein GI', 'TPA Accession',
+            'PDB ID', 'RefSeq Accession', 'TC number', 'PANTHER'}:
+            obj_json['protein'] = True
+        else:
+            obj_json['protein'] = False
+        return obj_json
+
 class Relation(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'relation'
 
