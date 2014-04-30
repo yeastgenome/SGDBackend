@@ -75,7 +75,8 @@ class SGDBackend(BackendInterface):
     
     def locus(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Locus
-
+        from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
+            Physinteractionevidence
         if are_ids:
             locus_id = locus_identifier
         else:
@@ -84,7 +85,7 @@ class SGDBackend(BackendInterface):
 
     def complex(self, complex_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Complex
-
+        from src.sgd.model.nex.evidence import Complexevidence
         if are_ids:
             complex_id = complex_identifier
         else:
