@@ -1,6 +1,7 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from misc import Url, Alias, Relation, Source
 from src.sgd.model import EqualityByIDMixin
@@ -94,26 +95,6 @@ class Bioconceptalias(Alias):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json.get('bioconcept_id'))
 
-class BioconceptCount(Base, EqualityByIDMixin):
-    __tablename__ = 'aux_bioconcept_count'
-
-    id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key=True)
-    child_gene_count = Column('child_gene_count', Integer)
-    gene_count = Column('genecount', Integer)
-    class_type = Column('subclass', String)
-
-    #Relationships
-    bioconcept = relationship(Bioconcept, backref=backref("count", uselist=False, passive_deletes=True))
-
-    __eq_values__ = ['id', 'child_gene_count', 'gene_count', 'class_type']
-    __eq_fks__ = ['bioconcept']
-
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-
-    def unique_key(self):
-        return self.id
-
 class ECNumber(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "EC_NUMBER", 'inherit_condition': id==Bioconcept.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
@@ -156,6 +137,20 @@ class Go(Bioconcept):
         elif self.go_id is not None:
             self.link = '/go/' + self.go_id + '/overview'
             self.format_name = self.go_id
+
+    @hybrid_property
+    def count(self):
+        return len(set([x.locus_id for x in self.go_evidences]))
+
+    @hybrid_property
+    def child_count(self):
+        return self.count + sum([x.child.count for x in self.children if x.relation_type == 'is a'])
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['count'] = self.count
+        obj_json['child_count'] = self.child_count
+        return obj_json
         
 def create_phenotype_display_name(observable, qualifier):
     if qualifier is None:
@@ -215,7 +210,7 @@ class Phenotype(Bioconcept):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.display_name = create_phenotype_display_name(obj_json['observable'].display_name, self.qualifier)
-        self.format_name = create_phenotype_format_name(obj_json['observable'].display_name.lower(), self.qualifier.lower())
+        self.format_name = create_phenotype_format_name(obj_json['observable'].display_name, self.qualifier)
         self.link = '/phenotype/' + self.format_name + '/overview'
 
 

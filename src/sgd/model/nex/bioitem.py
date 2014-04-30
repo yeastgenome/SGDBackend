@@ -2,6 +2,7 @@ from sqlalchemy import ForeignKey, CLOB
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, FetchedValue
 from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
@@ -117,6 +118,15 @@ class Domain(Bioitem):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = None if obj_json.get('display_name') is None else create_format_name(obj_json.get('display_name'))
         self.link = None if self.format_name is None else '/domain/' + self.format_name + '/overview'
+
+    @hybrid_property
+    def count(self):
+        return len(set([x.locus_id for x in self.domain_evidences]))
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['urls'] = [x.to_min_json() for x in self.urls]
+        return obj_json
 
 class Chemical(Bioitem):
     __tablename__ = "chemicalbioitem"

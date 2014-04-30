@@ -139,10 +139,10 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
         obj_json['reftypes'] = [x.reftype.to_min_json() for x in self.ref_reftypes]
         obj_json['authors'] = [x.author.to_min_json() for x in self.author_references]
         obj_json['counts'] = {
-            'interaction': len([x for x in self.bioentity_references if x.class_type == 'PHYSINTERACTION' or x.class_type == 'GENINTERACTION']),
-            'go': len([x for x in self.bioentity_references if x.class_type == 'GO']),
-            'phenotype': len([x for x in self.bioentity_references if x.class_type == 'PHENOTYPE']),
-            'regulation': len([x for x in self.bioentity_references if x.class_type == 'REGULATION'])
+            'interaction': len([x for x in self.reference_interactions if x.interaction_type == 'PHYSINTERACTION' or x.interaction_type == 'GENINTERACTION']),
+            'go': len([x for x in self.reference_interactions if x.interaction_type == 'GO']),
+            'phenotype': len([x for x in self.reference_interactions if x.interaction_type == 'PHENOTYPE']),
+            'regulation': len([x for x in self.reference_interactions if x.interaction_type == 'REGULATION'])
         }
         obj_json['related_references'] = []
         for child in self.children:
@@ -220,7 +220,7 @@ class Author(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['references'] = [author_ref.reference.to_min_json() for author_ref in sorted(self.author_references, key=lambda x: x.reference.date_published, reverse=True)]
+        obj_json['references'] = [author_ref.reference.to_semi_json() for author_ref in sorted(self.author_references, key=lambda x: x.reference.date_published, reverse=True)]
         return obj_json
 
 class AuthorReference(Base, EqualityByIDMixin, UpdateByJsonMixin):

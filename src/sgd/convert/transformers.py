@@ -60,7 +60,6 @@ class Obj2NexDB(TransformerInterface):
         self.duplicate_count = 0
         self.error_count = 0
         self.deleted_count = 0
-        print 'Ready'
 
     def convert(self, newly_created_obj):
         try:
@@ -134,7 +133,6 @@ class Json2CorePerfDB(TransformerInterface):
         self.duplicate_count = 0
         self.error_count = 0
         self.deleted_count = 0
-        print 'Ready'
 
     def convert(self, newly_created_obj_json):
         if newly_created_obj_json is None:
@@ -288,7 +286,6 @@ def make_backend_starter(backend, method, chunk_size):
         offset = 0
         while True:
             objs = getattr(backend, method)(chunk_size, offset)
-            print 'Chunk'
             if len(objs) == 0:
                 break
 

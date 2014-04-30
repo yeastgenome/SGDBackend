@@ -3,7 +3,7 @@ from math import ceil
 from src.sgd.backend.nex import DBSession, query_limit
 from src.sgd.backend.nex.query_tools import get_all_bioconcept_children, get_relations
 from src.sgd.model.nex.bioconcept import Bioconceptrelation, Phenotype
-from src.sgd.model.nex.evidence import Phenotypeevidence, Chemicalcondition
+from src.sgd.model.nex.evidence import Phenotypeevidence, Chemicalproperty
 
 __author__ = 'kpaskov'
 
@@ -74,7 +74,7 @@ def get_phenotype_evidence(locus_id, phenotype_id, observable_id, chemical_id, r
             phenotype_ids = set([x.id for x in DBSession.query(Phenotype.id).filter_by(observable_id=observable_id).all()])
         query = query.filter(Phenotypeevidence.phenotype_id.in_(phenotype_ids))
     if chemical_id is not None:
-        chemical_evidence_ids = list(set([x.evidence_id for x in DBSession.query(Chemicalcondition).filter_by(bioitem_id=chemical_id).all()]))
+        chemical_evidence_ids = list(set([x.evidence_id for x in DBSession.query(Chemicalproperty).filter_by(bioitem_id=chemical_id).all()]))
         num_chunks = int(ceil(1.0*len(chemical_evidence_ids)/500))
         evidences = []
         for i in range(num_chunks):

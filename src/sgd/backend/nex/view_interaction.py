@@ -1,42 +1,13 @@
 from sqlalchemy import or_
 
 from src.sgd.backend.nex import DBSession, query_limit
-from src.sgd.backend.nex.query_tools import get_interactions, get_interactions_among
+from src.sgd.backend.nex.graph_tools import get_interactions_among
 from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence
-from src.sgd.backend.nex.venn import calc_venn_measurements
+from src.sgd.model.nex.auxiliary import Bioentityinteraction
 
 
 __author__ = 'kpaskov'
-
-# -------------------------------Overview---------------------------------------
-def make_overview(locus_id):
-    genetic = get_interactions('GENINTERACTION', locus_id)
-    physical = get_interactions('PHYSINTERACTION', locus_id)
-            
-    inters_to_genetic = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in genetic])
-    inters_to_physical = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in physical])
-               
-    all_inters = set(inters_to_genetic.keys())
-    all_inters.update(inters_to_physical.keys())
-    
-    A = 0
-    B = 0
-    C = 0
-    for inter in all_inters:
-        gen = inter in inters_to_genetic
-        phys = inter in inters_to_physical
-        if gen:
-            A = A+1
-        if phys:
-            B = B+1
-        if gen and phys:
-            C = C+1
-            
-    r, s, x = calc_venn_measurements(A, B, C)
-    
-    return {'gen_circle_size': r, 'phys_circle_size':s, 'circle_distance': x, 
-            'num_gen_interactors': A, 'num_phys_interactors': B, 'num_both_interactors': C}
 
 # -------------------------------Details---------------------------------------
 def get_genetic_interaction_evidence(locus_id, reference_id):
@@ -90,8 +61,8 @@ def create_edge(bioent1_id, bioent2_id, total_ev_count, class_type):
             'evidence':total_ev_count, 'class_type': class_type}}
     
 def make_graph(bioent_id):
-    neighbor_id_to_genevidence_count = dict([(x.bioentity1_id if x.bioentity2_id==bioent_id else x.bioentity2_id, x.evidence_count) for x in get_interactions('GENINTERACTION', bioent_id)])
-    neighbor_id_to_physevidence_count = dict([(x.bioentity1_id if x.bioentity2_id==bioent_id else x.bioentity2_id, x.evidence_count) for x in get_interactions('PHYSINTERACTION', bioent_id)])
+    neighbor_id_to_genevidence_count = dict([(x.interactor_id, x.evidence_count) for x in DBSession.query(Bioentityinteraction).filter_by(interaction_type='GENINTERACTION').filter_by(bioentity_id=bioent_id).all()])
+    neighbor_id_to_physevidence_count = dict([(x.interactor_id, x.evidence_count) for x in DBSession.query(Bioentityinteraction).filter_by(interaction_type='PHYSINTERACTION').filter_by(bioentity_id=bioent_id).all()])
     all_neighbor_ids = set()
     all_neighbor_ids.update(neighbor_id_to_genevidence_count.keys())
     all_neighbor_ids.update(neighbor_id_to_physevidence_count.keys())
@@ -124,8 +95,8 @@ def make_graph(bioent_id):
         usable_neighbor_ids.update(evidence_count_to_neighbors[min_evidence_count])
         min_evidence_count = min_evidence_count - 1
       
-    tangent_to_genevidence_count = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in get_interactions_among('GENINTERACTION', usable_neighbor_ids, min_evidence_count)])
-    tangent_to_physevidence_count = dict([((x.bioentity1_id, x.bioentity2_id), x.evidence_count) for x in get_interactions_among('PHYSINTERACTION', usable_neighbor_ids, min_evidence_count)])
+    tangent_to_genevidence_count = dict([((x.bioentity_id, x.interactor_id), x.evidence_count) for x in get_interactions_among(usable_neighbor_ids, Bioentityinteraction, 'GENINTERACTION')])
+    tangent_to_physevidence_count = dict([((x.bioentity_id, x.interactor_id), x.evidence_count) for x in get_interactions_among(usable_neighbor_ids, Bioentityinteraction, 'PHYSINTERACTION')])
     
     evidence_count_to_phys_tangents = [set() for _ in range(11)]
     evidence_count_to_gen_tangents = [set() for _ in range(11)]

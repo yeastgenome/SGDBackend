@@ -146,23 +146,13 @@ END;
 
 
 /* Auxilliary */
-DROP TRIGGER AUX_BIOENT_REF_TRIGGER;
+DROP TRIGGER AUX_INTERACTION_TRIGGER;
 --/
-CREATE TRIGGER AUX_BIOENT_REF_TRIGGER
-BEFORE INSERT ON aux_bioentity_reference
+CREATE TRIGGER AUX_INTERACTION_TRIGGER
+BEFORE INSERT ON aux_interaction
 FOR EACH ROW
 BEGIN
-SELECT aux_bioentity_reference_seq.nextval INTO :new.aux_bioentity_reference_id FROM DUAL;
-END;
-/
-
-DROP TRIGGER AUX_BIOFACT_TRIGGER;
---/
-CREATE TRIGGER AUX_BIOFACT_TRIGGER
-BEFORE INSERT ON aux_biofact
-FOR EACH ROW
-BEGIN
-SELECT aux_biofact_seq.nextval INTO :new.aux_biofact_id FROM DUAL;
+SELECT aux_interaction_seq.nextval INTO :new.aux_interaction_id FROM DUAL;
 END;
 /
 

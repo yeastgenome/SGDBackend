@@ -123,6 +123,7 @@ class SGDBackend(BackendInterface):
 
     def go(self, go_identifier, are_ids=False):
         from src.sgd.model.nex.bioconcept import Go
+
         if are_ids:
             go_id = go_identifier
         else:
@@ -159,7 +160,7 @@ class SGDBackend(BackendInterface):
         return None if contig_id is None else json.dumps(view_sequence.make_contig(contig_id))
 
     #EC number
-    def ec_number_details(self, locus_identifier=None, ec_number_identifier=None, with_children=False, are_ids=False):
+    def ec_number_details(self, locus_identifier=None, ec_number_identifier=None, are_ids=False):
         import view_ec_number
         if are_ids:
             locus_id = locus_identifier
@@ -168,7 +169,7 @@ class SGDBackend(BackendInterface):
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
             ec_number_id = None if ec_number_identifier is None else get_obj_id(ec_number_identifier, class_type='BIOCONCEPT', subclass_type='ECNUMBER')
 
-        return json.dumps(view_ec_number.make_details(locus_id=locus_id, ec_number_id=ec_number_id, with_children=with_children))
+        return json.dumps(view_ec_number.make_details(locus_id=locus_id, ec_number_id=ec_number_id))
 
     #Reference
     def all_references(self, chunk_size, offset):
@@ -211,12 +212,12 @@ class SGDBackend(BackendInterface):
 
     #Phenotype
     def phenotype_ontology_graph(self, phenotype_identifier, are_ids=False):
-        import bioconcept_tools
+        import graph_tools
         if are_ids:
             pheno_id = phenotype_identifier
         else:
             pheno_id = get_obj_id(phenotype_identifier, class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-        return None if pheno_id is None else json.dumps(bioconcept_tools.make_ontology_graph(pheno_id, 'PHENOTYPE', lambda x: x.is_core, lambda x: x.ancestor_type))
+        return None if pheno_id is None else json.dumps(graph_tools.make_ontology_graph(pheno_id, 'PHENOTYPE', lambda x: x.is_core, lambda x: x.ancestor_type))
 
     def phenotype_overview(self, locus_identifier=None, phenotype_identifier=None, are_ids=False):
         from src.sgd.backend.nex import view_phenotype
@@ -259,29 +260,22 @@ class SGDBackend(BackendInterface):
         return None
 
     def phenotype_graph(self, locus_identifier, are_ids=False):
-        from src.sgd.backend.nex import bioconcept_tools
+        from src.sgd.backend.nex import graph_tools
+        from src.sgd.model.nex.auxiliary import Bioconceptinteraction
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(bioconcept_tools.make_graph(locus_id, 'PHENOTYPE', lambda x:None))
+        return None if locus_id is None else json.dumps(graph_tools.make_graph(locus_id, Bioconceptinteraction, 'PHENOTYPE', 'LOCUS'))
 
     # Go
     def go_ontology_graph(self, go_identifier, are_ids=False):
-        import bioconcept_tools
+        import graph_tools
         if are_ids:
             go_id = go_identifier
         else:
             go_id = get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        return None if go_id is None else json.dumps(bioconcept_tools.make_ontology_graph(go_id, 'GO', lambda x: x.count.child_gene_count > 0, lambda x: x.go_aspect))
-    
-    def go_overview(self, locus_identifier, are_ids=False):
-        import view_go
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_go.make_overview(locus_id))
+        return None if go_id is None else json.dumps(graph_tools.make_ontology_graph(go_id, 'GO', lambda x: True, lambda x: x.go_aspect))
     
     def go_details(self, locus_identifier=None, go_identifier=None, reference_identifier=None, with_children=False, are_ids=False):
         import view_go
@@ -300,12 +294,13 @@ class SGDBackend(BackendInterface):
         return json.dumps(view_go.make_enrichment(bioent_ids))
 
     def go_graph(self, locus_identifier, are_ids=False):
-        from src.sgd.backend.nex import bioconcept_tools
+        from src.sgd.backend.nex import graph_tools
+        from src.sgd.model.nex.auxiliary import Bioconceptinteraction
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(bioconcept_tools.make_graph(locus_id, 'GO', lambda x:x.go_aspect))
+        return None if locus_id is None else json.dumps(graph_tools.make_graph(locus_id, Bioconceptinteraction, 'GO', 'LOCUS'))
        
     #Interaction
     def interaction_overview(self, locus_identifier, are_ids=False):
@@ -459,12 +454,20 @@ class SGDBackend(BackendInterface):
         return json.dumps(view_complex.make_details(locus_id=locus_id, complex_id=complex_id))
 
     def complex_graph(self, complex_identifier, are_ids=False):
-        import bioconcept_tools
+        import graph_tools
+        from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioentityinteraction
+        from src.sgd.model.nex.bioentity import Complex
+
         if are_ids:
             complex_id = complex_identifier
         else:
             complex_id = get_obj_id(complex_identifier, class_type='BIOENTITY', subclass_type='COMPLEX')
-        return None if complex_id is None else json.dumps(bioconcept_tools.make_graph(complex_id, 'GO', lambda x: None, bioent_type='COMPLEX'))
+        if complex_id is None:
+            return None
+        else:
+            locus_ids = set([x.locus_id for x in DBSession.query(Complex).filter_by(id=complex_id).first().child_genes])
+            return json.dumps({'go_graph': graph_tools.make_graph(complex_id, Bioconceptinteraction, 'GO', 'COMPLEX'),
+                               'interaction_graph': graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'PHYSINTERACTION')})
 
     #Regulation
     def regulation_overview(self, locus_identifier, filter=None, are_ids=False):

@@ -9,7 +9,7 @@ def get_complex_evidence(locus_id, complex_id):
     if complex_id is not None:
         query = query.filter_by(complex_id=complex_id)
     if locus_id is not None:
-        query = query.filter_by(bioentity_id=locus_id)
+        query = query.filter_by(locus_id=locus_id)
 
     if query.count() > query_limit:
         return None

@@ -82,15 +82,16 @@ def make_observable_starter(bud_session_maker, nex_session_maker):
                 new_observable = bud_obj.phenotype.observable.replace('chemical compound', chemical)
                 description = 'The excretion from the cell of ' + chemical + '.'
             else:
-                yield None
+                new_observable = None
 
-            ancestor_type = None if old_observable not in observable_to_ancestor else observable_to_ancestor[old_observable]
-            yield {'source': source,
-                       'description': description,
-                       'display_name': new_observable,
-                       'ancestor_type': ancestor_type,
-                       'date_created': bud_obj.date_created,
-                       'created_by': bud_obj.created_by}
+            if new_observable is not None:
+                ancestor_type = None if old_observable not in observable_to_ancestor else observable_to_ancestor[old_observable]
+                yield {'source': source,
+                           'description': description,
+                           'display_name': new_observable,
+                           'ancestor_type': ancestor_type,
+                           'date_created': bud_obj.date_created,
+                           'created_by': bud_obj.created_by}
         bud_session.close()
         nex_session.close()
     return observable_starter
@@ -111,7 +112,7 @@ def make_phenotype_starter(bud_session_maker, nex_session_maker):
         key_to_observable = dict([(x.unique_key(), x) for x in nex_session.query(Observable).all()])
 
         for bud_obj in make_db_starter(bud_session.query(Phenotype), 1000)():
-            observable_key = (create_format_name(bud_obj.observable), 'OBSERVABLE')
+            observable_key = (create_format_name(bud_obj.observable).lower(), 'OBSERVABLE')
             if observable_key in key_to_observable:
                 yield {'source': key_to_source['SGD'],
                        'observable': key_to_observable[observable_key],
@@ -141,16 +142,17 @@ def make_phenotype_starter(bud_session_maker, nex_session_maker):
                 new_observable = bud_obj.phenotype.observable.replace('chemical compound', chemical)
                 description = 'The excretion from the cell of ' + chemical + '.'
             else:
-                yield None
+                new_observable = None
 
-            observable_key = (new_observable, 'OBSERVABLE')
-            if observable_key in key_to_observable:
-                yield {'source': key_to_source['SGD'],
-                       'observable': observable_key[key_to_observable],
-                       'qualifier': bud_obj.phenotype.qualifier,
-                       'description': description,
-                       'date_created': bud_obj.date_created,
-                       'created_by': bud_obj.created_by}
+            if new_observable is not None:
+                observable_key = (create_format_name(new_observable).lower(), 'OBSERVABLE')
+                if observable_key in key_to_observable:
+                    yield {'source': key_to_source['SGD'],
+                           'observable': key_to_observable[observable_key],
+                           'qualifier': bud_obj.phenotype.qualifier,
+                           'description': description,
+                           'date_created': bud_obj.date_created,
+                           'created_by': bud_obj.created_by}
         bud_session.close()
         nex_session.close()
     return phenotype_starter
@@ -345,7 +347,10 @@ def make_bioconcept_alias_starter(bud_session_maker, nex_session_maker):
 
         #Phenotype aliases
         for cvtermsynonym in make_db_starter(bud_session.query(CVTermSynonym).join(CVTerm).filter(CVTerm.cv_no == 6), 1000)():
-            phenotype_key = (create_format_name(cvtermsynonym.cvterm.name.lower()), 'OBSERVABLE')
+            observable = cvtermsynonym.cvterm.name.lower()
+            if observable == 'observable':
+                observable = 'ypo'
+            phenotype_key = (create_format_name(observable), 'OBSERVABLE')
 
             if phenotype_key in key_to_bioconcept:
                 yield {'display_name': cvtermsynonym.synonym,
@@ -358,7 +363,10 @@ def make_bioconcept_alias_starter(bud_session_maker, nex_session_maker):
                 yield None
 
         for cvterm_dbxref in make_db_starter(bud_session.query(CVTermDbxref).join(CVTerm).filter(CVTerm.cv_no == 6).options(joinedload('dbxref')), 1000)():
-            phenotype_key = (create_format_name(cvterm_dbxref.cvterm.name.lower()), 'OBSERVABLE')
+            observable = cvterm_dbxref.cvterm.name.lower()
+            if observable == 'observable':
+                observable = 'ypo'
+            phenotype_key = (create_format_name(observable), 'OBSERVABLE')
 
             if phenotype_key in key_to_bioconcept:
                 yield {'display_name': cvterm_dbxref.dbxref.dbxref_id,

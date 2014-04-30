@@ -114,10 +114,6 @@ class BackendInterface:
         return None
     
     @abstractmethod
-    def go_overview(self, locus_identifier):
-        return None
-    
-    @abstractmethod
     def go_details(self, locus_identifier=None, go_identifier=None, reference_identifier=None, with_children=False):
         return None
     

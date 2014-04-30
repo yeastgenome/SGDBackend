@@ -4,127 +4,83 @@ from sqlalchemy.types import Integer, String
 
 from bioconcept import Bioconcept
 from bioentity import Bioentity
+from bioitem import Bioitem
 from reference import Reference
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateByJsonMixin
 
 
 __author__ = 'kpaskov'
-
-class Biofact(Base, EqualityByIDMixin):
-    __tablename__ = 'aux_biofact'
-
-    id = Column('aux_biofact_id', Integer, primary_key=True)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-    bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
-    bioentity_class_type = Column('bioentity_subclass', String)
-    bioconcept_class_type = Column('bioconcept_subclass', String)
-
-    #Relationships
-    bioconcept = relationship(Bioconcept, uselist=False)
-    bioentity = relationship(Bioconcept, uselist=False)
     
-    def __init__(self, bioentity, bioconcept):
-        self.bioentity_id = bioentity.id
-        self.bioconcept_id = bioconcept.id
-        self.bioentity_class_type = bioentity.class_type
-        self.bioconcept_class_type = bioconcept.class_type
-
-    def unique_key(self):
-        return (self.bioentity_id, self.bioconcept_id, self.bioentity_class_type, self.bioconcept_class_type)
-    
-class Interaction(Base, EqualityByIDMixin):
+class Interaction(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = "aux_interaction"
     
-    id = Column('aux_interaction_id', Integer, primary_key = True)
-    class_type = Column('bioentity_subclass', String)
+    id = Column('aux_interaction_id', Integer, primary_key=True)
     format_name = Column('format_name', String)
-    display_name = Column('display_name', String)
-    bioentity1_id = Column('bioentity1_id', Integer)
-    bioentity2_id = Column('bioentity2_id', Integer)
+    class_type = Column('class', String)
+    interaction_type = Column('interaction_type', String)
     evidence_count = Column('evidence_count', Integer)
-    
-    __mapper_args__ = {'polymorphic_on': class_type,
-                       'polymorphic_identity':"INTERACTION"}
-    
-    def __init__(self, interaction_id, class_type, display_name, format_name, bioentity1_id, bioentity2_id):
-        self.id = interaction_id
-        self.class_type = class_type
-        self.display_name = display_name
-        self.format_name = format_name
-        self.bioentity1_id = bioentity1_id
-        self.bioentity2_id = bioentity2_id
-        
-    def unique_key(self):
-        return (self.format_name, self.class_type)
-    
-class Geninteraction(Interaction, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'GENINTERACTION',
-                       'inherit_condition': id==Interaction.id}
-
-class Physinteraction(Interaction, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'PHYSINTERACTION',
-                       'inherit_condition': id==Interaction.id}
-    
-class Reginteraction(Interaction, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'REGULATION',
-                       'inherit_condition': id==Interaction.id}
-
-class BioentityReference(Base):
-    __tablename__ = 'aux_bioentity_reference'
-    
-    id = Column('aux_bioentity_reference_id', Integer, primary_key=True)
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
-    class_type = Column('bioentity_subclass', String)
 
     #Relationships
-    bioentity = relationship(Bioentity, uselist=False)
-    reference = relationship(Reference, uselist=False, backref=backref('bioentity_references', passive_deletes=True))
+    bioentity = relationship(Bioentity, uselist=False, backref=backref('interactions', passive_deletes=True))
 
-    def __init__(self, class_type, bioentity_id, reference_id):
-        self.class_type = class_type
-        self.bioentity_id = bioentity_id
-        self.reference_id = reference_id
+    __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity':"INTERACTION"}
+    __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count']
+    __eq_fks__ = ['bioentity', 'interactor']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = str(obj_json.get('interactor').id)
         
     def unique_key(self):
-        return (self.bioentity_id, self.reference_id, self.class_type)
+        return self.bioentity_id, self.class_type, self.interaction_type, self.format_name
     
-class GeninteractionBioentityReference(BioentityReference, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'GENINTERACTION',
-                       'inherit_condition': id==BioentityReference.id}
-    
-class PhysinteractionBioentityReference(BioentityReference, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'PHYSINTERACTION',
-                       'inherit_condition': id==BioentityReference.id}
-    
-class GoBioentityReference(BioentityReference, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'GO',
-                       'inherit_condition': id==BioentityReference.id}
+class Bioentityinteraction(Interaction, EqualityByIDMixin):
+    __tablename__ = "aux_bioentityinteraction"
 
-class PhenotypeBioentityReference(BioentityReference, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'PHENOTYPE',
-                       'inherit_condition': id==BioentityReference.id}
-    
-class RegulationBioentityReference(BioentityReference, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'REGULATION',
-                       'inherit_condition': id==BioentityReference.id}   
-    
-class PrimaryBioentityReference(BioentityReference, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'PRIMARY_LITERATURE',
-                       'inherit_condition': id==BioentityReference.id} 
-    
-class AdditionalBioentityReference(BioentityReference, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'ADDITIONAL_LITERATURE',
-                       'inherit_condition': id==BioentityReference.id} 
+    id = Column('aux_interaction_id', Integer, primary_key=True)
+    interactor_id = Column('interactor_id', Integer, ForeignKey(Bioentity.id))
+    direction = Column('direction', String)
 
-class ReviewBioentityReference(BioentityReference, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'REVIEW_LITERATURE',
-                       'inherit_condition': id==BioentityReference.id} 
+    #Relationships
+    interactor = relationship(Bioentity, uselist=False)
 
-class OmicsBioentityReference(BioentityReference, EqualityByIDMixin):
-    __mapper_args__ = {'polymorphic_identity': 'OMICS_LITERATURE',
-                       'inherit_condition': id==BioentityReference.id} 
+    __mapper_args__ = {'polymorphic_identity': 'BIOENTITY', 'inherit_condition': id==Interaction.id}
+    __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count', 'direction']
+
+class Bioconceptinteraction(Interaction, EqualityByIDMixin):
+    __tablename__ = "aux_bioconceptinteraction"
+
+    id = Column('aux_interaction_id', Integer, primary_key=True)
+    interactor_id = Column('interactor_id', Integer, ForeignKey(Bioconcept.id))
+
+    #Relationships
+    interactor = relationship(Bioconcept, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT', 'inherit_condition': id==Interaction.id}
+
+class Bioiteminteraction(Interaction, EqualityByIDMixin):
+    __tablename__ = "aux_bioiteminteraction"
+
+    id = Column('aux_interaction_id', Integer, primary_key=True)
+    interactor_id = Column('interactor_id', Integer, ForeignKey(Bioitem.id))
+
+    #Relationships
+    interactor = relationship(Bioitem, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'BIOITEM', 'inherit_condition': id==Interaction.id}
+
+class Referenceinteraction(Interaction, EqualityByIDMixin):
+    __tablename__ = "aux_referenceinteraction"
+
+    id = Column('aux_interaction_id', Integer, primary_key=True)
+    interactor_id = Column('interactor_id', Integer, ForeignKey(Reference.id))
+
+    #Relationships
+    interactor = relationship(Reference, uselist=False, backref='reference_interactions')
+
+    __mapper_args__ = {'polymorphic_identity': 'REFERENCE', 'inherit_condition': id==Interaction.id}
     
 class Disambig(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'aux_disambig'

@@ -12,4 +12,4 @@ def make_author_references(author_id):
 # -------------------------------This Week---------------------------------------
 def make_references_this_week():
     a_week_ago = date.today() - timedelta(days=7)
-    return [x.to_semi_full_json() for x in sorted(DBSession.query(Reference).filter(Reference.date_created > a_week_ago).all(), key=lambda x: x.date_created, reverse=True)]
+    return [x.to_semi_json() for x in sorted(DBSession.query(Reference).filter(Reference.date_created > a_week_ago).all(), key=lambda x: x.date_created, reverse=True)]

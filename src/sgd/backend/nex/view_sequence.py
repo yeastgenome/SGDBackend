@@ -80,7 +80,7 @@ def make_neighbor_details(locus_id=None):
 def get_binding_evidence(locus_id):
     query = DBSession.query(Bindingevidence)
     if locus_id is not None:
-        query = query.filter_by(bioentity_id=locus_id)
+        query = query.filter_by(locus_id=locus_id)
 
     if query.count() > query_limit:
         return None

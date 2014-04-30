@@ -1,7 +1,7 @@
 from math import ceil
 
-from src.sgd.backend.nex.query_tools import get_biofacts, get_paragraph, get_all_bioconcept_children
-from src.sgd.model.nex.bioconcept import Bioconceptrelation, Go
+from src.sgd.backend.nex.query_tools import get_all_bioconcept_children
+from src.sgd.model.nex.bioconcept import Go
 from src.sgd.model.nex.bioentity import Locus
 from src.sgd.model.nex.evidence import Goevidence
 from src.sgd.backend.nex import DBSession, query_limit, get_obj_id
@@ -31,21 +31,6 @@ def make_enrichment(bioent_ids):
         else:
             print 'Go term not found: ' + str(enrichment_result[0])
     return json_format
-
-# -------------------------------Overview---------------------------------------
-def make_overview(bioent_id):
-    overview = {}
-
-    gofacts = get_biofacts('GO', bioent_id=bioent_id)
-    biocon_ids = [x.bioconcept_id for x in gofacts]
-
-    overview['go_slim'] = sorted([x.parent.to_json() for x in DBSession.query(Bioconceptrelation).filter(Bioconceptrelation.relation_type == 'GO_SLIM').filter(Bioconceptrelation.child_id.in_(biocon_ids)).all()], key=lambda y: y['display_name'])
-
-    paragraph = get_paragraph(bioent_id, 'GO')
-    if paragraph is not None:
-        overview['date_last_reviewed'] = paragraph.text
-
-    return overview
 
 # -------------------------------Details---------------------------------------
 #This is a hack - we need to figure out what we're doing with these relationships, but right now it's unclear.

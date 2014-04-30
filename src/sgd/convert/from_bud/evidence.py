@@ -1,6 +1,7 @@
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert.from_bud import contains_digits, sequence_files, coding_sequence_files, protein_sequence_files
+from src.sgd.convert.from_bud import contains_digits, sequence_files, coding_sequence_files, protein_sequence_files, \
+    get_dna_sequence_library, get_sequence, get_sequence_library_fsa
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
 from src.sgd.model.nex import create_format_name
 
@@ -244,11 +245,12 @@ def make_complex_evidence_starter(bud_session_maker, nex_session_maker):
 
         for complex in make_db_starter(nex_session.query(Complex), 1000)():
             for evidence in complex.go.go_evidences:
-                yield {
-                    'source': key_to_source['GO'],
-                    'locus': evidence.locus,
-                    'complex': complex,
-                    'go': evidence.go}
+                if evidence.annotation_type != 'computational' and evidence.qualifier != 'colocalizes_with':
+                    yield {
+                        'source': key_to_source['GO'],
+                        'locus': evidence.locus,
+                        'complex': complex,
+                        'go': evidence.go}
 
         bud_session.close()
         nex_session.close()
@@ -465,7 +467,7 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
                            'go_evidence': go_evidence,
                            'annotation_type': old_go_feature.annotation_type,
                            'qualifier': qualifier,
-                           'conditions': key_to_condition.values(),
+                           'properties': key_to_condition.values(),
                            'date_created': old_go_ref.date_created,
                            'created_by': old_go_ref.created_by}
 
@@ -474,7 +476,7 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
     return go_evidence_starter
 
 def make_go_conditions(old_dbxrefs, sgdid_to_bioentity, key_to_bioconcept, key_to_bioitem):
-    from src.sgd.model.nex.evidence import Bioconceptcondition, Bioentitycondition, Bioitemcondition
+    from src.sgd.model.nex.evidence import Bioconceptproperty, Bioentityproperty, Bioitemproperty
     conditions = []
     for dbxrefref in old_dbxrefs:
         dbxref = dbxrefref.dbxref
@@ -482,38 +484,38 @@ def make_go_conditions(old_dbxrefs, sgdid_to_bioentity, key_to_bioconcept, key_t
         if dbxref_type == 'GOID':
             go_key = ('GO:' + str(int(dbxref.dbxref_id)).zfill(7), 'GO')
             if go_key in key_to_bioconcept:
-                conditions.append(Bioconceptcondition({'role': dbxrefref.support_type, 'bioconcept': key_to_bioconcept[go_key]}))
+                conditions.append(Bioconceptproperty({'role': dbxrefref.support_type, 'bioconcept': key_to_bioconcept[go_key]}))
             else:
                 print 'Could not find bioconcept: ' + str(go_key)
         elif dbxref_type == 'EC number':
             ec_key = (dbxref.dbxref_id, 'EC_NUMBER')
             if ec_key in key_to_bioconcept:
-                conditions.append(Bioconceptcondition({'role': dbxrefref.support_type, 'bioconcept': key_to_bioconcept[ec_key]}))
+                conditions.append(Bioconceptproperty({'role': dbxrefref.support_type, 'bioconcept': key_to_bioconcept[ec_key]}))
             else:
                 print 'Could not find bioconcept: ' + str(ec_key)
         elif dbxref_type == 'DBID Primary':
             sgdid = dbxref.dbxref_id
             if sgdid in sgdid_to_bioentity:
-                conditions.append(Bioentitycondition({'role': dbxrefref.support_type, 'bioentity': sgdid_to_bioentity[sgdid]}))
+                conditions.append(Bioentityproperty({'role': dbxrefref.support_type, 'bioentity': sgdid_to_bioentity[sgdid]}))
             else:
                 print 'Could not find bioentity: ' + str(sgdid)
         elif dbxref_type == 'PANTHER' or dbxref_type == 'Prosite':
             domain_key = (dbxref.dbxref_id, 'DOMAIN')
             if domain_key in key_to_bioitem:
-                conditions.append(Bioitemcondition({'role': dbxrefref.support_type, 'bioitem': key_to_bioitem[domain_key]}))
+                conditions.append(Bioitemproperty({'role': dbxrefref.support_type, 'bioitem': key_to_bioitem[domain_key]}))
             else:
                 print 'Could not find bioconcept: ' + str(domain_key)
         else:
             bioitem_key = (dbxref.dbxref_id, 'ORPHAN')
             if bioitem_key in key_to_bioitem:
-                conditions.append(Bioitemcondition({'role': dbxrefref.support_type, 'bioitem': key_to_bioitem[bioitem_key]}))
+                conditions.append(Bioitemproperty({'role': dbxrefref.support_type, 'bioitem': key_to_bioitem[bioitem_key]}))
             else:
                 print 'Could not find bioitem: ' + str(bioitem_key)
     return conditions
 
 def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept,
                               chebi_id_to_chemical, sgdid_to_bioentity):
-    from src.sgd.model.nex.evidence import Bioconceptcondition, Bioentitycondition, Chemicalcondition
+    from src.sgd.model.nex.evidence import Bioconceptproperty, Bioentityproperty, Chemicalproperty
 
     if len(gpad) > 1 and gpad[9] == 'SGD':
         go_key = ('GO:' + str(int(gpad[3][3:])).zfill(7), 'GO')
@@ -540,26 +542,26 @@ def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_referenc
                         if value.startswith('GO:'):
                             go_key = ('GO:' + str(int(value[3:])).zfill(7), 'GO')
                             if go_key in key_to_bioconcept:
-                                conditions.append(Bioconceptcondition({'role': role, 'bioconcept': key_to_bioconcept[go_key]}))
+                                conditions.append(Bioconceptproperty({'role': role, 'bioconcept': key_to_bioconcept[go_key]}))
                             else:
                                 print 'Could not find bioconcept: ' + str(go_key)
                         elif value.startswith('CHEBI:'):
                             chebi_id = value
                             if chebi_id in chebi_id_to_chemical:
-                                conditions.append(Chemicalcondition({'role': role, 'bioitem': chebi_id_to_chemical[chebi_id]}))
+                                conditions.append(Chemicalproperty({'role': role, 'bioitem': chebi_id_to_chemical[chebi_id]}))
                             else:
                                 print 'Could not find chemical: ' + str(chebi_id)
                         elif value.startswith('SGD:'):
                             sgdid = value[4:]
                             if sgdid in sgdid_to_bioentity:
-                                conditions.append(Bioentitycondition({'role': role, 'bioentity': sgdid_to_bioentity[sgdid]}))
+                                conditions.append(Bioentityproperty({'role': role, 'bioentity': sgdid_to_bioentity[sgdid]}))
                             else:
                                 print 'Could not find bioentity: ' + str(sgdid)
 
                         elif value.startswith('UniProtKB:'):
                             uniprotid = value[10:]
                             if uniprotid in uniprot_id_to_bioentity:
-                                conditions.append(Bioentitycondition({'role': role, 'bioentity': uniprot_id_to_bioentity[uniprotid]}))
+                                conditions.append(Bioentityproperty({'role': role, 'bioentity': uniprot_id_to_bioentity[uniprotid]}))
                             else:
                                 print 'Could not find bioentity: ' + str(uniprotid)
 
@@ -638,6 +640,8 @@ def make_literature_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.reference import Reference
+    from src.sgd.model.nex.evidence import Regulationevidence, Physinteractionevidence, Geninteractionevidence, \
+        Phenotypeevidence, Goevidence
     from src.sgd.model.bud.reference import Litguide
     def literature_evidence_starter():
         bud_session = bud_session_maker()
@@ -661,6 +665,51 @@ def make_literature_evidence_starter(bud_session_maker, nex_session_maker):
                            'created_by': litguide_feature.created_by}
                 else:
                     print 'Bioentity or reference not found: ' + str(bioentity_id) + ' ' + str(reference_id)
+
+        for evidence in make_db_starter(nex_session.query(Goevidence).all(), 1000):
+            yield {'source': key_to_source['SGD'],
+                    'reference': id_to_reference[evidence.reference_id],
+                    'locus': id_to_bioentity[evidence.locus_id],
+                    'topic': 'GO'}
+
+        for evidence in make_db_starter(nex_session.query(Phenotypeevidence).all(), 1000):
+            yield {'source': key_to_source['SGD'],
+                    'reference': id_to_reference[evidence.reference_id],
+                    'locus': id_to_bioentity[evidence.locus_id],
+                    'topic': 'Phenotype'}
+
+        for evidence in make_db_starter(nex_session.query(Regulationevidence).all(), 1000):
+            yield {'source': key_to_source['SGD'],
+                    'reference': id_to_reference[evidence.reference_id],
+                    'locus': id_to_bioentity[evidence.locus1_id],
+                    'topic': 'Regulation'}
+
+            yield {'source': key_to_source['SGD'],
+                    'reference': id_to_reference[evidence.reference_id],
+                    'locus': id_to_bioentity[evidence.locus2_id],
+                    'topic': 'Regulation'}
+
+        for evidence in make_db_starter(nex_session.query(Physinteractionevidence).all(), 1000):
+            yield {'source': key_to_source['SGD'],
+                    'reference': id_to_reference[evidence.reference_id],
+                    'locus': id_to_bioentity[evidence.locus1_id],
+                    'topic': 'Interaction'}
+
+            yield {'source': key_to_source['SGD'],
+                    'reference': id_to_reference[evidence.reference_id],
+                    'locus': id_to_bioentity[evidence.locus2_id],
+                    'topic': 'Interaction'}
+
+        for evidence in make_db_starter(nex_session.query(Geninteractionevidence).all(), 1000):
+            yield {'source': key_to_source['SGD'],
+                    'reference': id_to_reference[evidence.reference_id],
+                    'locus': id_to_bioentity[evidence.locus1_id],
+                    'topic': 'Interaction'}
+
+            yield {'source': key_to_source['SGD'],
+                    'reference': id_to_reference[evidence.reference_id],
+                    'locus': id_to_bioentity[evidence.locus2_id],
+                    'topic': 'Interaction'}
 
         bud_session.close()
         nex_session.close()
@@ -789,7 +838,7 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
                            'mutant_type': mutant_type,
                            'strain_details': strain_details,
                            'experiment_details': experiment_details,
-                           'conditions': conditions,
+                           'properties': conditions,
                            'date_created': old_phenotype_feature.date_created,
                            'created_by': old_phenotype_feature.created_by}
 
@@ -798,12 +847,13 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
     return phenotype_evidence_starter
 
 def make_phenotype_conditions(old_experiment, key_to_bioitem):
+    from src.sgd.model.nex.evidence import Bioitemproperty, Chemicalproperty, Generalproperty
     conditions = []
     #Get reporter
     if old_experiment.reporter is not None:
         reporter_key = (create_format_name(old_experiment.reporter[0]), 'ORPHAN')
         if reporter_key in key_to_bioitem:
-            conditions.append({'note': old_experiment.reporter[1], 'role': 'Reporter', 'bioitem': key_to_bioitem[reporter_key]})
+            conditions.append(Bioitemproperty({'note': old_experiment.reporter[1], 'role': 'Reporter', 'bioitem': key_to_bioitem[reporter_key]}))
         else:
             print 'Reporter not found: ' + str(reporter_key)
 
@@ -811,7 +861,7 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem):
     if old_experiment.allele is not None:
         allele_key = (create_format_name(old_experiment.allele[0]), 'ALLELE')
         if allele_key in key_to_bioitem:
-            conditions.append({'note': old_experiment.allele[1], 'role': 'Allele', 'bioitem': key_to_bioitem[allele_key]})
+            conditions.append(Bioitemproperty({'note': old_experiment.allele[1], 'role': 'Allele', 'bioitem': key_to_bioitem[allele_key]}))
         else:
             print 'Allele not found: ' + str(allele_key)
 
@@ -825,17 +875,17 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem):
                 amount = b
             else:
                 chemical_note = b
-            conditions.append({'note': chemical_note, 'concentration': amount, 'bioitem': key_to_bioitem[chemical_key]})
+            conditions.append(Chemicalproperty({'note': chemical_note, 'concentration': amount, 'bioitem': key_to_bioitem[chemical_key]}))
 
     #Get other conditions
     for (a, b) in old_experiment.condition:
-        conditions.append({'note': a if b is None else a + ': ' + b})
+        conditions.append(Generalproperty({'note': a if b is None else a + ': ' + b}))
     return conditions
 
 def make_phosphorylation_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioentity import Bioentity
-    from src.sgd.model.nex.evidence import Generalcondition, Bioentitycondition
+    from src.sgd.model.nex.evidence import Generalproperty, Bioentityproperty
     def phosphorylation_evidence_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
@@ -852,14 +902,14 @@ def make_phosphorylation_evidence_starter(bud_session_maker, nex_session_maker):
                 site_functions = row[7]
                 if site_functions != '-':
                     for site_function in site_functions.split('|'):
-                        conditions.append(Generalcondition({'note': site_function.capitalize()}))
+                        conditions.append(Generalproperty({'note': site_function.capitalize()}))
 
                 kinases = row[9]
                 if kinases != '-':
                     for kinase in kinases.split('|'):
                         bioent_key = (kinase, 'LOCUS')
                         if bioent_key in key_to_bioentity:
-                            conditions.append(Bioentitycondition({'role': 'Kinase', 'bioentity': key_to_bioentity[bioent_key]}))
+                            conditions.append(Bioentityproperty({'role': 'Kinase', 'bioentity': key_to_bioentity[bioent_key]}))
                         else:
                             print 'Bioentity not found: ' + str(bioent_key)
 
@@ -868,7 +918,7 @@ def make_phosphorylation_evidence_starter(bud_session_maker, nex_session_maker):
                            'locus': key_to_bioentity[bioentity_key],
                            'site_index': int(row[2][1:]),
                            'site_residue': row[2][0],
-                           'conditions': conditions}
+                           'properties': conditions}
                 else:
                     print 'Bioentity not found: ' + str(bioentity_key)
 
@@ -938,23 +988,26 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
             pubmed_id = int(row[11].strip())
             source_key = row[12].strip()
 
-            if bioent1_key in key_to_bioentity and bioent2_key in key_to_bioentity and strain_key in key_to_strain and \
+            if strain_key == 'CEN.PK':
+                strain_key = 'CEN_PK'
+
+            if bioent1_key in key_to_bioentity and bioent2_key in key_to_bioentity and (strain_key is None or strain_key in key_to_strain) and \
                             pubmed_id in pubmed_to_reference and source_key in key_to_source and \
                 (experiment_format_name in key_to_experiment or experiment_eco_id in key_to_experiment):
                 conditions = []
                 condition_value = row[6].strip()
                 if condition_value != '""':
-                    from src.sgd.model.nex.evidence import Generalcondition
+                    from src.sgd.model.nex.evidence import Generalproperty
                     condition_value = condition_value.replace('??', "\00b5")
-                    conditions.append(Generalcondition({'note': condition_value}))
+                    conditions.append(Generalproperty({'note': condition_value}))
 
                 yield {'source': key_to_source[source_key],
                        'reference': pubmed_to_reference[pubmed_id],
-                       'strain': key_to_strain[strain_key],
+                       'strain': None if strain_key is None else key_to_strain[strain_key],
                        'experiment': key_to_experiment[experiment_format_name] if experiment_format_name in key_to_experiment else key_to_experiment[experiment_eco_id],
                        'locus1': key_to_bioentity[bioent1_key],
                        'locus2': key_to_bioentity[bioent2_key],
-                       'conditions': conditions}
+                       'properties': conditions}
             else:
                 print 'Bioentity or strain or reference or source or experiment not found: ' + str(bioent1_key) + ' ' + \
                       str(bioent2_key) + ' ' + experiment_eco_id + ' ' + experiment_format_name + ' ' + str(strain_key) + ' ' + str(pubmed_id) + ' ' + str(source_key)
