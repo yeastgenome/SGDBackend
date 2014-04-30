@@ -84,6 +84,7 @@ class SGDBackend(BackendInterface):
 
     def complex(self, complex_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Complex
+
         if are_ids:
             complex_id = complex_identifier
         else:
