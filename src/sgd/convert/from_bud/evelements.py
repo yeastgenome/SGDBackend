@@ -127,19 +127,25 @@ def make_experiment_relation_starter(bud_session_maker, nex_session_maker):
 # --------------------- Convert Strain ---------------------
 def make_strain_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
+    from src.sgd.model.nex.paragraph import Paragraph
     from src.sgd.model.bud.cv import CVTerm
     def strain_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+        key_to_paragraph = dict([(x.unique_key(), x) for x in nex_session.query(Paragraph).all()])
 
         for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==10), 1000)():
-            yield {'display_name': bud_obj.name,
+            strain = {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
                    'description': bud_obj.definition,
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
+            paragraph_key = bud_obj.name
+            if paragraph_key in key_to_paragraph:
+                strain['paragraph'] = key_to_paragraph[paragraph_key]
+            yield strain
 
         other_strains = [('AWRI1631', 'Haploid derivative of South African commercial wine strain N96.'),
                                    ('AWRI796', 'South African red wine strain.'),
@@ -170,9 +176,13 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
                                    ('ZTW1', 'Chinese corn mash bioethanol isolate.')]
 
         for strain, description in other_strains:
-            yield {'display_name': strain,
+            strain = {'display_name': strain,
                    'source': key_to_source['SGD'],
                    'description': description}
+            paragraph_key = strain
+            if paragraph_key in key_to_paragraph:
+                strain['paragraph'] = key_to_paragraph[paragraph_key]
+            yield strain
 
         bud_session.close()
         nex_session.close()

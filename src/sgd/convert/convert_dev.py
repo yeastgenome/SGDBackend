@@ -16,9 +16,11 @@ if __name__ == "__main__":
 
     # # ------------------------------------------ Evelements ------------------------------------------
     # # Bud -> Nex
-    # from src.sgd.model.nex.misc import Source, Strain, Experiment, Experimentalias, Experimentrelation, Alias, Relation
-    # from src.sgd.convert.from_bud.evelements import make_source_starter, make_strain_starter, make_experiment_starter, \
-    #     make_experiment_alias_starter, make_experiment_relation_starter
+    from src.sgd.model.nex.misc import Source, Strain, Experiment, Experimentalias, Experimentrelation, Alias, Relation
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.evelements import make_source_starter, make_strain_starter, make_experiment_starter, \
+        make_experiment_alias_starter, make_experiment_relation_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     # do_conversion(make_source_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Source),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Source), name='convert.from_bud.source', delete_untouched=True, commit=True)])
@@ -40,6 +42,11 @@ if __name__ == "__main__":
     #               [Json2Obj(Experimentrelation),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Experimentrelation), name='convert.from_bud.experiment_relation', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Experimentrelation, Relation, 'EXPERIMENT')
+
+    do_conversion(make_disambig_starter(nex_session_maker, Strain, ['id', 'format_name'], 'STRAIN', None),
+                  [Json2Obj(Disambig),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'STRAIN'), name='convert.from_bud.strain.disambig', delete_untouched=True, commit=True)])
+
 
     # # ------------------------------------------ Bioentity ------------------------------------------
     # # Bud -> Nex
@@ -428,7 +435,7 @@ if __name__ == "__main__":
 
     # # ------------------------------------------ Paragraph ------------------------------------------
     # from src.sgd.model.nex.paragraph import Paragraph, ParagraphReference
-    #  from src.sgd.convert.from_bud.paragraph import make_paragraph_reference_starter, make_paragraph_starter
+    # from src.sgd.convert.from_bud.paragraph import make_paragraph_reference_starter, make_paragraph_starter
     # do_conversion(make_paragraph_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Paragraph),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Paragraph), name='convert.from_bud.paragraph', delete_untouched=True, commit=True),
@@ -440,7 +447,7 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
 
     # # ------------------------------------------ Auxilliary ------------------------------------------
-    from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Referenceinteraction
+    # from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Referenceinteraction
     # from src.sgd.convert.from_bud.auxiliary import make_bioentity_interaction_starter, \
     #     make_bioconcept_interaction_starter, make_reference_interaction_starter
     #
@@ -448,16 +455,16 @@ if __name__ == "__main__":
     #               [Json2Obj(Bioentityinteraction),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction), name='convert.from_bud.auxilliary.bioentity_interaction', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
+    # clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
     #
     # do_conversion(make_bioconcept_interaction_starter(nex_session_maker),
     #               [Json2Obj(Bioconceptinteraction),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptinteraction), name='convert.from_bud.auxilliary.bioconcept_interaction', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Bioconceptinteraction, Interaction, 'BIOCONCEPT')
+    # clean_up_orphans(nex_session_maker, Bioconceptinteraction, Interaction, 'BIOCONCEPT')
     #
     # do_conversion(make_reference_interaction_starter(nex_session_maker),
     #               [Json2Obj(Referenceinteraction),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceinteraction), name='convert.from_bud.auxilliary.reference_interaction', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Referenceinteraction, Interaction, 'REFERENCE')
+    # clean_up_orphans(nex_session_maker, Referenceinteraction, Interaction, 'REFERENCE')

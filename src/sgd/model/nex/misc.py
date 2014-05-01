@@ -1,10 +1,9 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String, Date, CLOB
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
-
 
 __author__ = 'kpaskov'
 

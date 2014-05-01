@@ -76,7 +76,7 @@ class SGDBackend(BackendInterface):
     def locus(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence
+            Physinteractionevidence, DNAsequenceevidence
         from src.sgd.model.nex.paragraph import Paragraph
         if are_ids:
             locus_id = locus_identifier
@@ -145,6 +145,14 @@ class SGDBackend(BackendInterface):
         else:
             chemical_id = get_obj_id(chemical_identifier, class_type='BIOITEM', subclass_type='CHEMICAL')
         return None if chemical_id is None else json.dumps(DBSession.query(Chemical).filter_by(id=chemical_id).first().to_json())
+
+    def strain(self, strain_identifier, are_ids=False):
+        from src.sgd.model.nex.misc import Strain
+        if are_ids:
+            strain_id = strain_identifier
+        else:
+            strain_id = get_obj_id(strain_identifier, class_type='STRAIN')
+        return None if strain_id is None else json.dumps(DBSession.query(Strain).filter_by(id=strain_id).first().to_json())
 
     def domain(self, domain_identifier, are_ids=False):
         from src.sgd.model.nex.bioitem import Domain

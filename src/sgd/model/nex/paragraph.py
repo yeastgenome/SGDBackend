@@ -36,8 +36,9 @@ class Paragraph(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = obj_json['bioentity'].format_name
-        self.display_name = obj_json['class_type'] + ' ' + obj_json['bioentity'].display_name
+        if 'bioentity' in obj_json:
+            self.format_name = obj_json['bioentity'].format_name
+            self.display_name = obj_json['class_type'] + ' ' + obj_json['bioentity'].display_name
         
     def unique_key(self):
         return self.format_name, self.class_type

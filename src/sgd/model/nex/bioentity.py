@@ -165,6 +165,9 @@ class Locus(Bioentity):
         #Literature
         obj_json['literature_overview'] = {'total_count': len(set([x.reference_id for x in self.literature_evidences]))}
 
+        #Sequence
+        obj_json['sequence_overview'] = [x.strain.to_min_json() for x in self.dnasequence_evidences]
+
         #Aliases
         obj_json['aliases'] = [x.to_json() for x in self.aliases]
 

@@ -12,6 +12,11 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('chemical', request)(getattr(chosen_backend, 'chemical')(chemical_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('chemical'),
                     route_name='chemical')
+
+    config.add_route('strain', '/strain/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('strain', request)(getattr(chosen_backend, 'strain')(strain_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('strain'),
+                    route_name='strain')
     
     #Reference views
     config.add_route('reference', '/reference/{identifier}/overview')
