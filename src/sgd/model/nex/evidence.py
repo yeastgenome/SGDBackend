@@ -177,6 +177,10 @@ class Goevidence(Evidence):
         obj_json['properties'] = [x.to_json() for x in self.properties]
         obj_json['go']['go_aspect'] = self.go.go_aspect
         obj_json['go']['go_id'] = self.go.go_id
+        if self.go_evidence == 'IEA':
+            go_paragraphs = [x for x in self.locus.paragraphs if x.class_type == 'GO']
+            if len(go_paragraphs) == 1:
+                obj_json['date_created'] = go_paragraphs[0].text
         return obj_json
 
 class Geninteractionevidence(Evidence, UpdateByJsonMixin):
@@ -458,6 +462,9 @@ class Regulationevidence(Evidence):
     locus1_id = Column('bioentity1_id', Integer, ForeignKey(Locus.id))
     locus2_id = Column('bioentity2_id', Integer, ForeignKey(Locus.id))
     property_key = Column('conditions_key', String)
+    direction = Column('direction', String)
+    fdr = Column('fdr', String)
+    pvalue = Column('pvalue', String)
 
     #Relationships
     source = relationship(Source, backref=backref('regulation_evidences', passive_deletes=True), uselist=False)
@@ -469,8 +476,8 @@ class Regulationevidence(Evidence):
        
     __mapper_args__ = {'polymorphic_identity': 'REGULATION', 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
-                     'property_key',
-                     'date_created', 'created_by', ]
+                     'property_key', 'direction', 'fdr', 'pvalue',
+                     'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus1', 'locus2']
 
     def __init__(self, obj_json):
@@ -717,17 +724,17 @@ class Proteinsequenceevidence(Evidence):
     protein_type = Column('protein_type', String)
     residues = Column('residues', CLOB)
 
-    molecular_weight = Column('molecular_weight', Numeric)
-    pi = Column('pi', Numeric)
-    cai = Column('cai', Numeric)
+    molecular_weight = Column('molecular_weight', String)
+    pi = Column('pi', String)
+    cai = Column('cai', String)
     n_term_seq = Column('n_term_seq', String)
     c_term_seq = Column('c_term_seq', String)
-    codon_bias = Column('codon_bias', Numeric)
-    fop_score = Column('fop_score', Numeric)
-    gravy_score = Column('gravy_score', Numeric)
-    aromaticity_score = Column('aromaticity_score', Numeric)
-    aliphatic_index = Column('aliphatic_index', Numeric)
-    instability_index = Column('instability_index', Numeric)
+    codon_bias = Column('codon_bias', String)
+    fop_score = Column('fop_score', String)
+    gravy_score = Column('gravy_score', String)
+    aromaticity_score = Column('aromaticity_score', String)
+    aliphatic_index = Column('aliphatic_index', String)
+    instability_index = Column('instability_index', String)
 
     ala = Column('ala', Integer)
     arg = Column('arg', Integer)
@@ -813,15 +820,6 @@ class Proteinsequenceevidence(Evidence):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['molecular_weight'] = str(self.molecular_weight)
-        obj_json['pi'] = str(self.pi)
-        obj_json['cai'] = str(self.cai)
-        obj_json['codon_bias'] = str(self.codon_bias)
-        obj_json['fop_score'] = str(self.fop_score)
-        obj_json['gravy_score'] = str(self.gravy_score)
-        obj_json['aromaticity_score'] = str(self.aromaticity_score)
-        obj_json['aliphatic_index'] = str(self.aliphatic_index)
-        obj_json['instability_index'] = str(self.instability_index)
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
         return obj_json

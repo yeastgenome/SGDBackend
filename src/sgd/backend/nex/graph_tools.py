@@ -3,6 +3,8 @@ from src.sgd.backend.nex.query_tools import get_relations, get_interactions_amon
 from src.sgd.model.nex.bioconcept import Bioconceptrelation
 from src.sgd.model.nex.bioconcept import Bioconcept, Observable
 from src.sgd.model.nex.bioentity import Locus
+from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Bioiteminteraction, Referenceinteraction
+from math import ceil
 
 __author__ = 'kpaskov'
 
@@ -98,7 +100,8 @@ def create_interaction_edge(interaction):
     return {'data':{'target': 'BIOENTITY' + str(interaction.bioentity_id), 'source': 'INTERACTOR' + str(interaction.interactor_id)}}
 
 def make_graph(bioent_id, interaction_cls, interaction_type, bioentity_type):
-    interactor_ids = set([x.interactor_id for x in DBSession.query(interaction_cls).filter_by(interaction_type=interaction_type).filter_by(bioentity_id=bioent_id).all()])
+    interactions = DBSession.query(interaction_cls).filter_by(bioentity_id=bioent_id).filter_by(interaction_type=interaction_type).all()
+    interactor_ids = set([x.interactor_id for x in interactions])
 
     interactor_ids_to_bioent_ids = {}
     bioent_ids_to_interactor_ids = {}
@@ -157,10 +160,10 @@ def make_graph(bioent_id, interaction_cls, interaction_type, bioentity_type):
 
 # -------------------------------Interaction Graph---------------------------------------
 def create_interaction_graph_node(x):
-    return {'data':{'id':'Node' + str(x.id), 'name':x.display_name, 'link': x.link}}
+    return {'data':{'id':'BIOENTITY' + str(x.id), 'name':x.display_name, 'link': x.link}}
 
 def create_interaction_graph_edge(x):
-    return {'data':{'target': 'Node' + str(x.bioentity_id), 'source': 'Node' + str(x.interactor_id)}}
+    return {'data':{'target': 'BIOENTITY' + str(x.bioentity_id), 'source': 'BIOENTITY' + str(x.interactor_id)}}
 
 def make_interaction_graph(locus_ids, interaction_cls, interaction_type):
     edges = [create_interaction_graph_edge(x) for x in get_interactions_among(locus_ids, interaction_cls, interaction_type)]

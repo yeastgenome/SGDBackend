@@ -77,6 +77,7 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
             Physinteractionevidence
+        from src.sgd.model.nex.paragraph import Paragraph
         if are_ids:
             locus_id = locus_identifier
         else:
@@ -261,6 +262,39 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(graph_tools.make_graph(locus_id, Bioconceptinteraction, 'PHENOTYPE', 'LOCUS'))
+
+    def locus_graph(self, locus_identifier, are_ids=False):
+        from src.sgd.backend.nex import graph_tools, view_interaction, view_regulation, view_literature
+        from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioentityinteraction
+        if are_ids:
+            locus_id = locus_identifier
+        else:
+            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        if locus_id is None:
+            return None
+        else:
+            phenotype_graph = graph_tools.make_graph(locus_id, Bioconceptinteraction, 'PHENOTYPE', 'LOCUS')
+            go_graph = graph_tools.make_graph(locus_id, Bioconceptinteraction, 'GO', 'LOCUS')
+
+            new_graph_nodes = {}
+            new_graph_nodes.update([(x['data']['id'], x) for x in phenotype_graph['nodes']])
+            new_graph_nodes.update([(x['data']['id'], x) for x in go_graph['nodes']])
+
+            locus_ids = set()
+            for node_id in new_graph_nodes.keys():
+                if node_id.startswith('BIOENTITY'):
+                    locus_ids.add(int(node_id[9:]))
+
+            physinteraction_graph = graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'PHYSINTERACTION')
+            geninteraction_graph = graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'GENINTERACTION')
+
+            new_graph_edges = {}
+            new_graph_edges.update([((x['data']['source'], x['data']['target']), x) for x in phenotype_graph['edges']])
+            new_graph_edges.update([((x['data']['source'], x['data']['target']), x) for x in go_graph['edges']])
+            new_graph_edges.update([((x['data']['source'], x['data']['target']), x) for x in physinteraction_graph['edges']])
+            new_graph_edges.update([((x['data']['source'], x['data']['target']), x) for x in geninteraction_graph['edges']])
+
+        return None if locus_id is None else json.dumps({'nodes': new_graph_nodes.values(), 'edges': new_graph_edges.values()})
 
     # Go
     def go_ontology_graph(self, go_identifier, are_ids=False):

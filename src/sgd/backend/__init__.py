@@ -147,6 +147,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('phenotype_ontology_graph'),
                     route_name='phenotype_ontology_graph')
 
+    config.add_route('locus_graph', '/locus/{identifier}/locus_graph')
+    config.add_view(lambda request: chosen_backend.response_wrapper('locus_graph', request)(getattr(chosen_backend, 'locus_graph')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('locus_graph'),
+                    route_name='locus_graph')
+
     #Complex
     config.add_route('complex', '/complex/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('complex', request)(getattr(chosen_backend, 'complex')(complex_identifier=request.matchdict['identifier'])),

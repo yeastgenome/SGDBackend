@@ -1,7 +1,6 @@
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert.from_bud import contains_digits, sequence_files, coding_sequence_files, protein_sequence_files, \
-    get_dna_sequence_library, get_sequence, get_sequence_library_fsa
+from src.sgd.convert.from_bud import contains_digits, get_dna_sequence_library, get_sequence, get_sequence_library_fsa
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
 from src.sgd.model.nex import create_format_name
 
@@ -430,6 +429,12 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
 
         for old_go_feature in make_db_starter(bud_session.query(GoFeature).options(joinedload(GoFeature.go_refs)), 1000)():
             go_key = ('GO:' + str(old_go_feature.go.go_go_id).zfill(7), 'GO')
+            if go_key[0] == 'GO:0008150':
+                go_key = ('biological_process', 'GO')
+            elif go_key[0] == 'GO:0003674':
+                go_key = ('molecular_function', 'GO')
+            elif go_key[0] == 'GO:0005575':
+                go_key = ('cellular_component', 'GO')
             bioent_id = old_go_feature.feature_id
             source_key = old_go_feature.source
 
@@ -852,19 +857,21 @@ def make_phosphorylation_evidence_starter(bud_session_maker, nex_session_maker):
             if len(row) == 19:
                 bioentity_key = (row[0], 'LOCUS')
 
-                conditions = []
+                conditions = {}
 
                 site_functions = row[7]
                 if site_functions != '-':
                     for site_function in site_functions.split('|'):
-                        conditions.append(Generalproperty({'note': site_function.capitalize()}))
+                        condition = Generalproperty({'note': site_function.capitalize()})
+                        conditions[condition.unique_key()] = condition
 
                 kinases = row[9]
                 if kinases != '-':
                     for kinase in kinases.split('|'):
                         bioent_key = (kinase, 'LOCUS')
                         if bioent_key in key_to_bioentity:
-                            conditions.append(Bioentityproperty({'role': 'Kinase', 'bioentity': key_to_bioentity[bioent_key]}))
+                            condition = Bioentityproperty({'role': 'Kinase', 'bioentity': key_to_bioentity[bioent_key]})
+                            conditions[condition.unique_key()] = condition
                         else:
                             print 'Bioentity not found: ' + str(bioent_key)
 
@@ -873,13 +880,49 @@ def make_phosphorylation_evidence_starter(bud_session_maker, nex_session_maker):
                            'locus': key_to_bioentity[bioentity_key],
                            'site_index': int(row[2][1:]),
                            'site_residue': row[2][0],
-                           'properties': conditions}
+                           'properties': conditions.values()}
                 else:
                     print 'Bioentity not found: ' + str(bioentity_key)
 
         bud_session.close()
         nex_session.close()
     return phosphorylation_evidence_starter
+
+def get_phosphorylation_pubmed_ids():
+    pubmed_ids = set()
+    for row in make_file_starter('src/sgd/convert/data/phosphosites.txt')():
+        if len(row) >= 16:
+            site_evidence_pubmed_ids = row[4]
+            site_conditions_pubmed_ids = row[6]
+            site_functions_pubmed_ids = row[8]
+            kinase_evidence_pubmed_ids = row[12]
+            phosphotases_evidence_pubmed_ids = row[16]
+
+            if site_evidence_pubmed_ids != '-':
+                pubmed_ids.update(get_pubmed_ids(site_evidence_pubmed_ids))
+            if site_conditions_pubmed_ids != '-':
+                pubmed_ids.update(get_pubmed_ids(site_conditions_pubmed_ids))
+            if site_functions_pubmed_ids != '-':
+                pubmed_ids.update(get_pubmed_ids(site_functions_pubmed_ids))
+            if kinase_evidence_pubmed_ids != '-':
+                pubmed_ids.update(get_pubmed_ids(kinase_evidence_pubmed_ids))
+            if phosphotases_evidence_pubmed_ids != '-':
+                pubmed_ids.update(get_pubmed_ids(phosphotases_evidence_pubmed_ids))
+    print sorted(pubmed_ids)
+
+def get_pubmed_ids(entry):
+    first_round = [x.strip() for x in entry.split('|')]
+    second_round = []
+    for pmid in first_round:
+        if len(pmid) == 6  or len(pmid) == 7 or len(pmid) == 8:
+            second_round.append(pmid)
+        elif len(pmid) == 16:
+            second_round.append(pmid[0:8])
+            second_round.append(pmid[8:16])
+        else:
+            print pmid
+    return second_round
+
 
 # --------------------- Convert Protein Experiment Evidence ---------------------
 def make_protein_experiment_evidence_starter(bud_session_maker, nex_session_maker):
@@ -940,11 +983,14 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
             experiment_format_name = create_format_name(row[4].strip())
             experiment_eco_id = row[5].strip()
             strain_key = None if row[7] == '""' else row[7]
+            direction = None if row[8] == '""' else row[8]
+            pvalue = None if row[9] == '""' else row[9]
+            fdr = None if row[10] == '""' else row[10]
             pubmed_id = int(row[11].strip())
             source_key = row[12].strip()
 
             if strain_key == 'CEN.PK':
-                strain_key = 'CEN_PK'
+                strain_key = 'CENPK'
 
             if bioent1_key in key_to_bioentity and bioent2_key in key_to_bioentity and (strain_key is None or strain_key in key_to_strain) and \
                             pubmed_id in pubmed_to_reference and source_key in key_to_source and \
@@ -962,6 +1008,9 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
                        'experiment': key_to_experiment[experiment_format_name] if experiment_format_name in key_to_experiment else key_to_experiment[experiment_eco_id],
                        'locus1': key_to_bioentity[bioent1_key],
                        'locus2': key_to_bioentity[bioent2_key],
+                       'direction': direction,
+                       'pvalue': pvalue,
+                       'fdr': fdr,
                        'properties': conditions}
             else:
                 print 'Bioentity or strain or reference or source or experiment not found: ' + str(bioent1_key) + ' ' + \
@@ -972,7 +1021,7 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
     return regulation_evidence_starter
 
 # --------------------- Convert DNA Sequence Evidence ---------------------
-def make_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker):
+def make_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, strain_key, sequence_filename, coding_sequence_filename):
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.bioitem import Contig
@@ -980,17 +1029,19 @@ def make_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker):
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
+        sequence_class_types = {'gene', 'ARS', 'tRNA', 'ncRNA', 'mRNA', 'snoRNA', 'rRNA'}
+
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Locus).all()])
         key_to_bioitem = dict([(x.unique_key(), x) for x in nex_session.query(Contig).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
 
-        for filename, strain_key in sequence_files:
-            f = open(filename, 'r')
+        if sequence_filename is not None:
+            f = open(sequence_filename, 'r')
             sequence_library = get_dna_sequence_library(f)
             f.close()
 
-            f = open(filename, 'r')
+            f = open(sequence_filename, 'r')
             for row in f:
                 pieces = row.split('\t')
                 if len(pieces) == 9:
@@ -1004,33 +1055,34 @@ def make_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker):
 
                     if 'Name' in info and class_type in sequence_class_types:
                         bioentity_key = (info['Name'], 'LOCUS')
-                        contig_key = (strain.format_name + '_' + parent_id, 'CONTIG')
+                        if bioentity_key[0].endswith('_mRNA'):
+                            bioentity_key = (bioentity_key[0][:-5], 'LOCUS')
+                        contig_key = (strain_key + '_' + parent_id, 'CONTIG')
 
                         if bioentity_key in key_to_bioentity and contig_key in key_to_bioitem:
                             yield {'source': key_to_source['SGD'],
-                                   'strain': key_to_strain[strain_key],
-                                   'locus': key_to_bioentity[bioentity_key],
-                                   'dna_type': 'GENOMIC',
-                                   'residues': residues,
-                                   'contig': key_to_bioitem[contig_key],
-                                   'start': start,
-                                   'end': end,
-                                   'strand': strand}
+                                    'strain': key_to_strain[strain_key],
+                                    'locus': key_to_bioentity[bioentity_key],
+                                    'dna_type': 'GENOMIC',
+                                    'residues': residues,
+                                    'contig': key_to_bioitem[contig_key],
+                                    'start': start,
+                                    'end': end,
+                                    'strand': strand}
                         else:
                             print 'Bioentity or contig not found: ' + str(bioentity_key) + ' ' + str(contig_key)
-
             f.close()
 
-        for filename, strain_key in coding_sequence_files:
-            f = open(filename, 'r')
+        if coding_sequence_filename is not None:
+            f = open(coding_sequence_filename, 'r')
             for bioentity_name, residues in get_sequence_library_fsa(f).iteritems():
                 bioentity_key = (bioentity_name, 'LOCUS')
                 if bioentity_key in key_to_bioentity:
                     yield {'source': key_to_source['SGD'],
-                           'strain': key_to_strain[strain_key],
-                           'locus': key_to_bioentity[bioentity_key],
-                           'dna_type': 'CODING',
-                           'residues': residues}
+                            'strain': key_to_strain[strain_key],
+                            'locus': key_to_bioentity[bioentity_key],
+                            'dna_type': 'CODING',
+                            'residues': residues}
                 else:
                     print 'Bioentity not found: ' + str(bioentity_key)
 
@@ -1049,56 +1101,54 @@ def get_info(data):
     return info
 
 # --------------------- Convert Protein Sequence Evidence ---------------------
-def make_protein_sequence_evidence_starter(bud_session_maker, nex_session_maker):
+def make_protein_sequence_evidence_starter(nex_session_maker, strain_key, protein_sequence_filename, protparam_data):
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.bud.sequence import ProteinInfo
     def protein_sequence_evidence_starter():
-        bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Locus).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
-        bioentity_id_to_protein_info = dict([(x.feature_id, x) for x in bud_session.query(ProteinInfo).options(joinedload(ProteinInfo.details)).all()])
 
-        for filename, strain_key in protein_sequence_files:
-            f = open(filename, 'r')
-            for bioentity_name, residues in get_sequence_library_fsa(f).iteritems():
-                bioentity_key = (bioentity_name, 'LOCUS')
+        f = open(protein_sequence_filename, 'r')
+        for bioentity_name, residues in get_sequence_library_fsa(f).iteritems():
+            bioentity_key = (bioentity_name, 'LOCUS')
 
-                if bioentity_key in key_to_bioentity:
-                    bioentity = key_to_bioentity[bioentity_key]
-                    protein_info = None if strain_key != 'S288C' or bioentity.id not in bioentity_id_to_protein_info else bioentity_id_to_protein_info[bioentity.id]
-                    protein_details = None if protein_info is None else dict([(x.type, x.value) for x in protein_info.details])
-                    yield {'source': key_to_source['SGD'],
+            if bioentity_key in key_to_bioentity:
+                bioentity = key_to_bioentity[bioentity_key]
+
+                basic_info = {'source': key_to_source['SGD'],
                            'strain': key_to_strain[strain_key],
                            'locus': bioentity,
                            'protein_type': 'PROTEIN',
-                           'residues': residues,
-                           'molecular_weight': None if protein_info is None else protein_info.molecular_weight,
-                           'pi': None if protein_info is None else protein_info.pi,
-                           'cai': None if protein_info is None else protein_info.cai,
-                           'codon_bias': None if protein_info is None else protein_info.codon_bias,
-                           'fop_score': None if protein_info is None else protein_info.fop_score,
-                           'gravy_score': None if protein_info is None else protein_info.gravy_score,
-                           'aromaticity_score': None if protein_info is None else protein_info.aromaticity_score,
-                           'aliphatic_index': None if protein_details is None else Decimal(protein_details['Aliphatic index']),
-                           'hydrogen': None if protein_details is None else int(protein_details['Hydrogen']),
-                           'sulfur': None if protein_details is None else int(protein_details['Sulfur']),
-                           'nitrogen': None if protein_details is None else int(protein_details['Nitrogen']),
-                           'oxygen': None if protein_details is None else int(protein_details['Oxygen']),
-                           'carbon': None if protein_details is None else int(protein_details['Carbon']),
-                           'yeast_half_life': None if protein_details is None else protein_details['yeast (in vivo)'],
-                           'ecoli_half_life': None if protein_details is None else protein_details['Escherichia coli (in vivo)'],
-                           'mammal_half_life': None if protein_details is None else protein_details['mammalian reticulocytes (in vitro)'],
-                           'no_cys_ext_coeff': None if protein_details is None else protein_details['assuming NO Cys residues appear as half cystines'],
-                           'all_cys_ext_coeff': None if protein_details is None else protein_details['assuming all Cys residues are reduced'],
-                           'all_half_cys_ext_coeff': None if protein_details is None else protein_details['assuming ALL Cys residues appear as half cystines'],
-                           'all_pairs_cys_ext_coeff': None if protein_details is None else protein_details['assuming all pairs of Cys residues form cystines'],
-                           'instability_index': None if protein_details is None else Decimal(protein_details['Instability index (II)']),
-                           }
-            f.close()
-        bud_session.close()
+                           'residues': residues}
+
+                protparam_key = bioentity_name if strain_key == 'S288C' else bioentity_name + '_' + (strain_key if strain_key != 'CENPK' else 'CEN.PK113-7D')
+                if protparam_key in protparam_data:
+                    ppdata = protparam_data[protparam_key]
+                    basic_info['molecular_weight'] = ppdata[1]
+                    basic_info['pi'] = ppdata[2]
+                    basic_info['gravy_score'] = ppdata[6]
+                    basic_info['aromaticity_score'] = ppdata[7]
+                    basic_info['cai'] = ppdata[8]
+                    basic_info['codon_bias'] = ppdata[9]
+                    basic_info['fop_score'] = ppdata[10]
+                    basic_info['carbon'] = int(ppdata[31])
+                    basic_info['hydrogen'] = int(ppdata[32])
+                    basic_info['nitrogen'] = int(ppdata[33])
+                    basic_info['oxygen'] = int(ppdata[34])
+                    basic_info['sulfur'] = int(ppdata[35])
+                    basic_info['instability_index'] = ppdata[36]
+                    basic_info['all_cys_ext_coeff'] = ppdata[37]
+                    basic_info['no_cys_ext_coeff'] = ppdata[38]
+                    basic_info['aliphatic_index'] = ppdata[39].strip()
+                else:
+                    print 'Protparam not found: ' + str(protparam_key)
+
+                yield basic_info
+
+        f.close()
         nex_session.close()
     return protein_sequence_evidence_starter
