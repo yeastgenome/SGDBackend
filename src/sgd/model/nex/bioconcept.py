@@ -1,5 +1,3 @@
-from itertools import groupby
-
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
@@ -217,15 +215,32 @@ class Observable(Bioconcept):
         phenotype_evidences = []
         for phenotype in self.phenotypes:
             phenotype_evidences.extend(phenotype.phenotype_evidences)
-        classical_groups = dict([(key, len([x for x in group])) for key, group in groupby([y for y in phenotype_evidences if y.experiment.category == 'classical genetics'], lambda x: x.mutant_type)])
-        large_scale_groups = dict([(key, len([x for x in group])) for key, group in groupby([y for y in phenotype_evidences if y.experiment.category == 'large-scale survey'], lambda x: x.mutant_type)])
+
+            classical_groups = dict()
+        large_scale_groups = dict()
+        strain_groups = dict()
+        for evidence in phenotype_evidences:
+            if evidence.experiment.category == 'classical genetics':
+                if evidence.mutant_type in classical_groups:
+                    classical_groups[evidence.mutant_type] += 1
+                else:
+                    classical_groups[evidence.mutant_type] = 1
+            elif evidence.experiment.category == 'large-scale survey':
+                if evidence.mutant_type in large_scale_groups:
+                    large_scale_groups[evidence.mutant_type] += 1
+                else:
+                    large_scale_groups[evidence.mutant_type] = 1
+
+            if evidence.strain.display_name in strain_groups:
+                strain_groups[evidence.strain.display_name] += 1
+            else:
+                strain_groups[evidence.strain.display_name] = 1
         experiment_categories = [['Mutant Type', 'classical genetics', 'large_scale survey']]
         mutant_types = set(classical_groups.keys())
         mutant_types.update(large_scale_groups.keys())
         for mutant_type in mutant_types:
             experiment_categories.append([mutant_type, 0 if mutant_type not in classical_groups else classical_groups[mutant_type], 0 if mutant_type not in large_scale_groups else large_scale_groups[mutant_type]])
 
-        strain_groups = dict([(key, len([x for x in group])) for key, group in groupby([y for y in phenotype_evidences if y.strain_id is not None], lambda x: x.strain.display_name)])
         strains = [['Strain', 'Annotations']]
         for strain, count in strain_groups.iteritems():
             strains.append([strain, count])

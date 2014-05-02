@@ -357,14 +357,18 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
 
             if bioent_key in key_to_bioentity and domain_key in key_to_domain and pubmed_id in pubmed_id_to_reference:
                 bioentity = key_to_bioentity[bioent_key]
-                yield {'source': key_to_source['JASPAR'],
-                       'reference': pubmed_id_to_reference[pubmed_id],
-                       'strain': key_to_strain['S288C'],
-                       'start': 1,
-                       'end': bioentity_id_to_protein_length[bioentity.id],
-                       'status': 'T',
-                       'locus': bioentity,
-                       'domain': key_to_domain[domain_key]}
+                if bioentity.id in bioentity_id_to_protein_length:
+                    yield {'source': key_to_source['JASPAR'],
+                           'reference': pubmed_id_to_reference[pubmed_id],
+                           'strain': key_to_strain['S288C'],
+                           'start': 1,
+                           'end': bioentity_id_to_protein_length[bioentity.id],
+                           'status': 'T',
+                           'locus': bioentity,
+                           'domain': key_to_domain[domain_key]}
+                else:
+                    print 'Protein length not found: ' + str(bioent_key)
+                    yield None
             else:
                 print 'Bioentity or domain or reference not found: ' + str(bioent_key) + ' ' + str(domain_key) + ' ' + str(pubmed_id)
                 yield None

@@ -140,7 +140,7 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
             yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
                    'description': bud_obj.definition,
-                   'status': 'Reference' if bud_obj.name == 'S288C' else 'Alternative Reference' if bud_obj.name in alternative_reference_strains else 'Other',
+                   'status': 'Reference' if bud_obj.name == 'S288C' else ('Alternative Reference' if bud_obj.name in alternative_reference_strains else 'Other'),
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
 
@@ -199,7 +199,7 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
             yield {'display_name': strain,
                    'source': key_to_source['SGD'],
                    'description': description,
-                   'status': 'Reference' if bud_obj.name == 'S288C' else 'Alternative Reference' if bud_obj.name in alternative_reference_strains else 'Other'}
+                   'status': 'Reference' if bud_obj.name == 'S288C' else ('Alternative Reference' if strain in alternative_reference_strains else 'Other')}
 
         bud_session.close()
         nex_session.close()

@@ -8,7 +8,6 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from src.sgd.model.nex.misc import Source, Relation, Strain, Url, Alias
 
-
 __author__ = 'kpaskov'
 
 class Bioitem(Base, EqualityByIDMixin, UpdateByJsonMixin):
@@ -165,6 +164,20 @@ class Contig(Bioitem):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = None if obj_json.get('strain') is None or obj_json.get('display_name') is None else obj_json.get('strain').format_name + '_' + obj_json.get('display_name')
         self.link = None if self.format_name is None else '/contig/' + self.format_name + '/overview'
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        overview = {}
+        for evidence in self.dnasequence_evidences:
+            if evidence.locus.locus_type in overview:
+                overview[evidence.locus.locus_type] += 1
+            else:
+                overview[evidence.locus.locus_type] = 1
+        overview = [[key, value] for key, value in overview.iteritems()]
+        overview.insert(0, ['Feature Type', 'Count'])
+        obj_json['overview'] = overview
+
+        return obj_json
 
 class Allele(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'ALLELE', 'inherit_condition': id == Bioitem.id}
