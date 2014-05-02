@@ -79,3 +79,113 @@ def clean_up_orphans(nex_session_maker, child_cls, parent_cls, class_type):
     query.delete(synchronize_session=False)
     nex_session.commit()
     nex_session.close()
+
+word_to_bioent_id = None
+
+def get_word_to_bioent_id(word, nex_session):
+    from src.sgd.model.nex.bioentity import Locus
+
+    global word_to_bioent_id
+    if word_to_bioent_id is None:
+        word_to_bioent_id = {}
+        for locus in nex_session.query(Locus).all():
+            word_to_bioent_id[locus.format_name.lower()] = locus.id
+            word_to_bioent_id[locus.display_name.lower()] = locus.id
+            word_to_bioent_id[locus.format_name.lower() + 'p'] = locus.id
+            word_to_bioent_id[locus.display_name.lower() + 'p'] = locus.id
+
+    word = word.lower()
+    return None if word not in word_to_bioent_id else word_to_bioent_id[word]
+
+def get_bioent_by_name(bioent_name, to_ignore, nex_session):
+    from src.sgd.model.nex.bioentity import Bioentity
+    if bioent_name not in to_ignore:
+        try:
+            int(bioent_name)
+        except ValueError:
+            bioent_id = get_word_to_bioent_id(bioent_name, nex_session)
+            return None if bioent_id is None else nex_session.query(Bioentity).filter_by(id=bioent_id).first()
+    return None
+
+def link_gene_names(text, to_ignore, nex_session):
+    words = text.split(' ')
+    new_chunks = []
+    chunk_start = 0
+    i = 0
+    for word in words:
+        if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+            bioent_name = word[:-1]
+        else:
+            bioent_name = word
+
+        bioent = get_bioent_by_name(bioent_name.upper(), to_ignore, nex_session)
+
+        if bioent is not None:
+            new_chunks.append(text[chunk_start: i])
+            chunk_start = i + len(word) + 1
+
+            new_chunk = "<a href='" + bioent.link + "'>" + bioent_name + "</a>"
+            if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+                new_chunk = new_chunk + word[-1]
+            new_chunks.append(new_chunk)
+        i = i + len(word) + 1
+    new_chunks.append(text[chunk_start: i])
+    try:
+        return ' '.join(new_chunks)
+    except:
+        print text
+        return text
+
+word_to_strain_id = None
+
+def get_word_to_strain_id(word, nex_session):
+    from src.sgd.model.nex.misc import Strain
+
+    global word_to_strain_id
+    if word_to_strain_id is None:
+        word_to_strain_id = {}
+        for strain in nex_session.query(Strain).all():
+            if strain.link is not None:
+                word_to_strain_id[strain.display_name.lower()] = strain.id
+
+    word = word.lower()
+    return None if word not in word_to_strain_id else word_to_strain_id[word]
+
+def get_strain_by_name(strain_name, to_ignore, nex_session):
+    from src.sgd.model.nex.misc import Strain
+    if strain_name not in to_ignore:
+        try:
+            int(strain_name)
+        except ValueError:
+            strain_id = get_word_to_strain_id(strain_name, nex_session)
+            return None if strain_id is None else nex_session.query(Strain).filter_by(id=strain_id).first()
+    return None
+
+def link_strain_names(text, to_ignore, nex_session):
+    words = text.split(' ')
+    new_chunks = []
+    chunk_start = 0
+    i = 0
+    for word in words:
+        if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+            strain_name = word[:-1]
+        else:
+            strain_name = word
+
+        strain = get_strain_by_name(strain_name.upper(), to_ignore, nex_session)
+
+        if strain is not None:
+            new_chunks.append(text[chunk_start: i])
+            chunk_start = i + len(word) + 1
+
+            new_chunk = "<a href='" + strain.link + "'>" + strain_name + "</a>"
+            if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+                new_chunk = new_chunk + word[-1]
+            new_chunks.append(new_chunk)
+        i = i + len(word) + 1
+    new_chunks.append(text[chunk_start: i])
+    try:
+        return ' '.join(new_chunks)
+    except:
+        print text
+        return text

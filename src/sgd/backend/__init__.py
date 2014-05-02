@@ -219,11 +219,6 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('regulation_graph', request)(getattr(chosen_backend, 'regulation_graph')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('regulation_graph'),
                     route_name='regulation_graph')
-    
-    config.add_route('regulation_paragraph', '/locus/{identifier}/regulation_paragraph')
-    config.add_view(lambda request: chosen_backend.response_wrapper('regulation_paragraph', request)(getattr(chosen_backend, 'regulation_paragraph')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('regulation_paragraph'),
-                    route_name='regulation_paragraph')
 
     #Literature views
     config.add_route('literature_bioent_details', '/locus/{identifier}/literature_details')
@@ -287,6 +282,11 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('ec_number_details', request)(getattr(chosen_backend, 'ec_number_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('ec_number_details'),
                     route_name='ecnumber_bioent_details')
+
+    config.add_route('ecnumber_biocon_details', '/ecnumber/{identifier}/locus_details')
+    config.add_view(lambda request: chosen_backend.response_wrapper('ec_number_details', request)(getattr(chosen_backend, 'ec_number_details')(ec_number_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('ec_number_details'),
+                    route_name='ecnumber_biocon_details')
 
     #Sequence views
     config.add_route('sequence_bioent_details', '/locus/{identifier}/sequence_details')

@@ -7,7 +7,6 @@ from misc import Url, Alias, Relation, Source
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 
-
 __author__ = 'kpaskov'
 
 class Book(Base, EqualityByIDMixin, UpdateByJsonMixin):
@@ -134,25 +133,33 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['abstract'] = None if self.abstract is None else self.abstract.text
+        obj_json['abstract'] = None if len(self.paragraphs) == 0 else self.paragraphs[0].to_json(linkit=True)
         obj_json['bibentry'] = None if self.bibentry is None else self.bibentry.text
         obj_json['reftypes'] = [x.reftype.to_min_json() for x in self.ref_reftypes]
         obj_json['authors'] = [x.author.to_min_json() for x in self.author_references]
+        interaction_locus_ids = set()
+        interaction_locus_ids.update([x.locus1_id for x in self.physinteraction_evidences])
+        interaction_locus_ids.update([x.locus2_id for x in self.physinteraction_evidences])
+        interaction_locus_ids.update([x.locus1_id for x in self.geninteraction_evidences])
+        interaction_locus_ids.update([x.locus2_id for x in self.geninteraction_evidences])
+        regulation_locus_ids = set()
+        regulation_locus_ids.update([x.locus1_id for x in self.regulation_evidences])
+        regulation_locus_ids.update([x.locus2_id for x in self.regulation_evidences])
         obj_json['counts'] = {
-            'interaction': len([x for x in self.reference_interactions if x.interaction_type == 'PHYSINTERACTION' or x.interaction_type == 'GENINTERACTION']),
-            'go': len([x for x in self.reference_interactions if x.interaction_type == 'GO']),
-            'phenotype': len([x for x in self.reference_interactions if x.interaction_type == 'PHENOTYPE']),
-            'regulation': len([x for x in self.reference_interactions if x.interaction_type == 'REGULATION'])
+            'interaction': len(interaction_locus_ids),
+            'go': len(set([x.locus_id for x in self.go_evidences])),
+            'phenotype': len(set([x.locus_id for x in self.phenotype_evidences])),
+            'regulation': len(regulation_locus_ids)
         }
         obj_json['related_references'] = []
         for child in self.children:
-            child_json = child.child.to_min_json()
-            child_json['abstract'] = None if child.child.abstract is None else child.child.abstract.text
+            child_json = child.child.to_semi_json()
+            child_json['abstract'] = None if len(child.child.paragraphs) == 0 else child.child.paragraphs[0].to_json(linkit=True)
             child_json['reftypes'] = [x.reftype.to_min_json() for x in child.child.ref_reftypes]
             obj_json['related_references'].append(child_json)
         for parent in self.parents:
-            parent_json = parent.parent.to_min_json()
-            parent_json['abstract'] = None if parent.parent.abstract is None else parent.parent.abstract.text
+            parent_json = parent.parent.to_semi_json()
+            parent_json['abstract'] = None if len(parent.parent.paragraphs) == 0 else parent.parent.paragraphs[0].to_json(linkit=True)
             parent_json['reftypes'] = [x.reftype.to_min_json() for x in parent.parent.ref_reftypes]
             obj_json['related_references'].append(parent_json)
         return obj_json
@@ -165,24 +172,6 @@ class Bibentry(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     #Relationships
     reference = relationship(Reference, uselist=False, backref=backref("bibentry", uselist=False, passive_deletes=True))
-
-    __eq_values__ = ['id', 'text']
-    __eq_fks__ = []
-        
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-        
-    def unique_key(self):
-        return self.id
-    
-class Abstract(Base, EqualityByIDMixin, UpdateByJsonMixin):
-    __tablename__ = 'abstract'
-
-    id = Column('reference_id', Integer, ForeignKey(Reference.id), primary_key = True)
-    text = Column('text', CLOB)
-    
-    #Relationships
-    reference = relationship(Reference, uselist=False, backref=backref("abstract", uselist=False, passive_deletes=True))
 
     __eq_values__ = ['id', 'text']
     __eq_fks__ = []

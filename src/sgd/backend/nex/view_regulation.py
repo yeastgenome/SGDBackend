@@ -1,22 +1,9 @@
 from sqlalchemy import or_, and_
 
-from src.sgd.backend.nex import DBSession, query_limit, link_gene_names
-from src.sgd.backend.nex.query_tools import get_paragraph
+from src.sgd.backend.nex import DBSession, query_limit
 from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.evidence import Regulationevidence
 
-# -------------------------------Paragraph---------------------------------------
-def make_paragraph(bioent_id):
-    paragraph = get_paragraph(bioent_id, 'REGULATION')
-
-    if paragraph is None:
-        return None
-
-    paragraph_json = paragraph.to_json()
-    bioentity = paragraph.bioentity
-    to_ignore = {bioentity.format_name, bioentity.display_name, bioentity.format_name + 'P', bioentity.display_name + 'P'}
-    paragraph_json['text'] = link_gene_names(paragraph.text, to_ignore=to_ignore)
-    return paragraph_json
 
 # -------------------------------Evidence Table---------------------------------------
 def get_regulation_evidence(locus_id, reference_id, between_ids):

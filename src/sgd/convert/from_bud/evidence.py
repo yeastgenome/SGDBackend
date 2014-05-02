@@ -261,7 +261,7 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioitem import Domain
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.model.nex.reference import Reference
-    from src.sgd.model.bud.sequence import ProteinDetail
+    from src.sgd.model.bud.sequence import ProteinDetail, ProteinInfo
     def domain_evidence_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
@@ -348,19 +348,22 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
                     print 'Bioentity or domain not found: ' + str(bioentity_id) + ' ' + str(domain_key)
                     yield None
 
+        bioentity_id_to_protein_length = dict([(x.feature_id, x.length) for x in bud_session.query(ProteinInfo).all()])
+
         for row in make_file_starter('src/sgd/convert/data/TF_family_class_accession04302013.txt')():
             bioent_key = (row[2].strip(), 'LOCUS')
             domain_key = (row[0], 'DOMAIN')
             pubmed_id = int(row[6].strip())
 
             if bioent_key in key_to_bioentity and domain_key in key_to_domain and pubmed_id in pubmed_id_to_reference:
+                bioentity = key_to_bioentity[bioent_key]
                 yield {'source': key_to_source['JASPAR'],
                        'reference': pubmed_id_to_reference[pubmed_id],
                        'strain': key_to_strain['S288C'],
                        'start': 1,
-                       'end': None,
+                       'end': bioentity_id_to_protein_length[bioentity.id],
                        'status': 'T',
-                       'locus': key_to_bioentity[bioent_key],
+                       'locus': bioentity,
                        'domain': key_to_domain[domain_key]}
             else:
                 print 'Bioentity or domain or reference not found: ' + str(bioent_key) + ' ' + str(domain_key) + ' ' + str(pubmed_id)
@@ -1057,6 +1060,10 @@ def make_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, str
                         bioentity_key = (info['Name'], 'LOCUS')
                         if bioentity_key[0].endswith('_mRNA'):
                             bioentity_key = (bioentity_key[0][:-5], 'LOCUS')
+                        elif bioentity_key[0] == 'tS(GCU)L':
+                            bioentity_key = ('tX(XXX)L', 'LOCUS')
+                        elif bioentity_key[0] == 'tT(XXX)Q2':
+                            bioentity_key = ('tT(UAG)Q2', 'LOCUS')
                         contig_key = (strain_key + '_' + parent_id, 'CONTIG')
 
                         if bioentity_key in key_to_bioentity and contig_key in key_to_bioitem:
@@ -1077,6 +1084,11 @@ def make_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, str
             f = open(coding_sequence_filename, 'r')
             for bioentity_name, residues in get_sequence_library_fsa(f).iteritems():
                 bioentity_key = (bioentity_name, 'LOCUS')
+                if bioentity_key[0] == 'tS(GCU)L':
+                    bioentity_key = ('tX(XXX)L', 'LOCUS')
+                elif bioentity_key[0] == 'tT(XXX)Q2':
+                    bioentity_key = ('tT(UAG)Q2', 'LOCUS')
+
                 if bioentity_key in key_to_bioentity:
                     yield {'source': key_to_source['SGD'],
                             'strain': key_to_strain[strain_key],
@@ -1115,6 +1127,10 @@ def make_protein_sequence_evidence_starter(nex_session_maker, strain_key, protei
         f = open(protein_sequence_filename, 'r')
         for bioentity_name, residues in get_sequence_library_fsa(f).iteritems():
             bioentity_key = (bioentity_name, 'LOCUS')
+            if bioentity_key[0] == 'tS(GCU)L':
+                bioentity_key = ('tX(XXX)L', 'LOCUS')
+            elif bioentity_key[0] == 'tT(XXX)Q2':
+                bioentity_key = ('tT(UAG)Q2', 'LOCUS')
 
             if bioentity_key in key_to_bioentity:
                 bioentity = key_to_bioentity[bioentity_key]

@@ -79,8 +79,6 @@ class Experiment(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def unique_key(self):
         return self.format_name
 
-alternative_reference_strains = {'CEN.PK', 'D273-10B', 'FL100', 'JK9-3d', 'RM11-1a', 'SEY6210', 'SK1', 'Sigma1278b', 'W303', 'X2180-1A', 'Y55'}
-
 class Strain(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'strain'
 
@@ -90,24 +88,30 @@ class Strain(Base, EqualityByIDMixin, UpdateByJsonMixin):
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     description = Column('description', String)
-    is_alternative_reference = Column('is_alternative_reference', Integer)
+    status = Column('status', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'is_alternative_reference',
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'status',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = create_format_name(obj_json.get('display_name')).replace('.', '')
-        self.is_alternative_reference = 1 if obj_json.get('display_name') in alternative_reference_strains else 0
+        self.link = '/strain/' + self.format_name + '/overview'
 
     def unique_key(self):
         return self.format_name
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['paragraph'] = None if len(self.paragraphs) != 1 else self.paragraphs[0].to_json(linkit=True)
+        obj_json['urls'] = [x.to_min_json() for x in self.urls]
+        return obj_json
        
 class Url(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'url'
@@ -238,3 +242,21 @@ class Experimentalias(Alias):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json.get('experiment_id'))
+
+class Strainurl(Url):
+    __tablename__ = 'strainurl'
+
+    id = Column('url_id', Integer, primary_key=True)
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+
+    #Relationships
+    strain = relationship(Strain, backref=backref('urls', passive_deletes=True), uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'STRAIN', 'inherit_condition': id == Url.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'strain']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = obj_json['strain'].format_name

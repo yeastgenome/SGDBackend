@@ -140,7 +140,7 @@ class Locus(Bioentity):
 
         #Go overview
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.class_type == 'GO']
-        obj_json['go_overview'] = {'go_slim': list(chain(*[[x.parent.to_json() for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])),
+        obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name']),
                                    'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]}
 
         #Interaction
@@ -157,16 +157,18 @@ class Locus(Bioentity):
         obj_json['interaction_overview'] = {'gen_circle_size': r, 'phys_circle_size':s, 'circle_distance': x,
                                             'num_gen_interactors': A, 'num_phys_interactors': B, 'num_both_interactors': C}
         #Regulation
-        regulation_paragraphs = [x.to_json() for x in self.paragraphs if x.class_type == 'REGULATION']
+        regulation_paragraphs = [x.to_json(linkit=True) for x in self.paragraphs if x.category == 'REGULATION']
+
         obj_json['regulation_overview'] = {'target_count': len(set([x.locus2_id for x in self.regulation_evidences_targets])),
                                             'regulator_count':len(set([x.locus1_id for x in self.regulation_evidences_regulators])),
                                             'paragraph': None if len(regulation_paragraphs) == 0 else regulation_paragraphs[0]}
+
 
         #Literature
         obj_json['literature_overview'] = {'total_count': len(set([x.reference_id for x in self.literature_evidences]))}
 
         #Sequence
-        obj_json['sequence_overview'] = [x.strain.to_min_json() for x in self.dnasequence_evidences]
+        obj_json['sequence_overview'] = sorted(dict([(x.strain.id, x.strain.to_min_json()) for x in self.dnasequence_evidences]).values(), key=lambda x: x['display_name'])
 
         #Aliases
         obj_json['aliases'] = [x.to_json() for x in self.aliases]

@@ -600,6 +600,11 @@ class ECNumberevidence(Evidence):
     def unique_key(self):
         return self.class_type, self.locus_id, self.ecnumber_id
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['locus']['description'] = self.locus.description
+        return obj_json
+
 class Proteinexperimentevidence(Evidence):
     __tablename__ = "proteinexperimentevidence"
 
@@ -672,7 +677,7 @@ class DNAsequenceevidence(Evidence):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['locus']['locus_type'] = self.locus.locus_type
         obj_json['strain']['description'] = self.strain.description
-        obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
+        obj_json['strain']['status'] = self.strain.status
         return obj_json
 
     def unique_key(self):
@@ -695,7 +700,7 @@ class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    evidence = relationship(DNAsequenceevidence, uselist=False, backref='tags')
+    evidence = relationship(DNAsequenceevidence, uselist=False, backref=backref('tags', passive_deletes=True))
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relative_start', 'relative_end',
                      'chromosomal_start', 'chromosomal_end', 'phase',
@@ -821,7 +826,7 @@ class Proteinsequenceevidence(Evidence):
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['strain']['description'] = self.strain.description
-        obj_json['strain']['is_alternative_reference'] = self.strain.is_alternative_reference
+        obj_json['strain']['status'] = self.strain.status
         return obj_json
 
 class Phosphorylationevidence(Evidence):

@@ -106,7 +106,7 @@ class ECNumber(Bioconcept):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         if self.display_name is not None:
-            self.link = '/ec_number/' + self.display_name + '/overview'
+            self.link = '/ecnumber/' + self.display_name + '/overview'
         self.format_name = self.display_name
 
 class Go(Bioconcept):

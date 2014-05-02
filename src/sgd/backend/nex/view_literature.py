@@ -48,18 +48,6 @@ def make_details(locus_id=None, reference_id=None, topic=None):
         return {'Error': 'Too much data to display.'}
 
     if locus_id is not None:
-        evidences.extend(dict([(x.reference_id, Literatureevidence({'reference': x.reference, 'locus': x.locus, 'topic': 'GO', 'source_id': 1})) for x in DBSession.query(Goevidence).filter_by(locus_id=locus_id).all()]).values())
-        evidences.extend(dict([(x.reference_id, Literatureevidence({'reference': x.reference, 'locus': x.locus, 'topic': 'Phenotype', 'source_id': 1})) for x in DBSession.query(Phenotypeevidence).filter_by(locus_id=locus_id).all()]).values())
-
-        regulation_evidences = dict([(x.reference_id, Literatureevidence({'reference': x.reference, 'locus': x.locus1, 'topic': 'Regulation', 'source_id': 1})) for x in DBSession.query(Regulationevidence).filter_by(locus1_id=locus_id).all()])
-        regulation_evidences.update([(x.reference_id, Literatureevidence({'reference': x.reference, 'locus': x.locus2, 'topic': 'Regulation', 'source_id': 1})) for x in DBSession.query(Regulationevidence).filter_by(locus2_id=locus_id).all()])
-        evidences.extend(regulation_evidences.values())
-
-        interaction_evidences = dict([(x.reference_id, Literatureevidence({'reference': x.reference, 'locus': x.locus1, 'topic': 'Interaction', 'source_id': 1})) for x in DBSession.query(Physinteractionevidence).filter_by(locus1_id=locus_id).all()])
-        interaction_evidences.update([(x.reference_id, Literatureevidence({'reference': x.reference, 'locus': x.locus2, 'topic': 'Interaction', 'source_id': 1})) for x in DBSession.query(Physinteractionevidence).filter_by(locus2_id=locus_id).all()])
-        interaction_evidences.update([(x.reference_id, Literatureevidence({'reference': x.reference, 'locus': x.locus1, 'topic': 'Interaction', 'source_id': 1})) for x in DBSession.query(Geninteractionevidence).filter_by(locus1_id=locus_id).all()])
-        interaction_evidences.update([(x.reference_id, Literatureevidence({'reference': x.reference, 'locus': x.locus2, 'topic': 'Interaction', 'source_id': 1})) for x in DBSession.query(Geninteractionevidence).filter_by(locus2_id=locus_id).all()])
-        evidences.extend(interaction_evidences.values())
         return [x.to_json() for x in sorted(evidences, key=lambda x: (x.reference.year, x.reference.pubmed_id), reverse=True)]
     elif reference_id is not None:
         return [x.to_json() for x in sorted(evidences, key=lambda x: x.locus.display_name)]
@@ -86,12 +74,12 @@ def create_litguide_edge(bioent_id, reference_id):
 def make_graph(bioent_id):
     
     #Get primary genes for each paper in bioentevidences
-    reference_ids = [x.reference_id for x in DBSession.query(Referenceinteraction).filter_by(interaction_type='PRIMARY_LITERATURE').filter_by(locus_id==bioent_id).all()]
+    reference_ids = [x.interactor_id for x in DBSession.query(Referenceinteraction).filter_by(interaction_type='PRIMARY').filter_by(bioentity_id=bioent_id).all()]
 
     reference_id_to_bioent_ids = {}
-    for bioent_ref in DBSession.query(Referenceinteraction).filter_by(interaction_type='PRIMARY_LITERATURE').filter(reference_id.in_(reference_ids)).all():
+    for bioent_ref in DBSession.query(Referenceinteraction).filter_by(interaction_type='PRIMARY').filter(Referenceinteraction.interactor_id.in_(reference_ids)).all():
         bioentity_id = bioent_ref.bioentity_id
-        reference_id = bioent_ref.interator_id
+        reference_id = bioent_ref.interactor_id
         if reference_id in reference_id_to_bioent_ids:
             reference_id_to_bioent_ids[reference_id].add(bioentity_id)
         else:

@@ -125,68 +125,126 @@ def make_experiment_relation_starter(bud_session_maker, nex_session_maker):
     return experiment_relation_starter
 
 # --------------------- Convert Strain ---------------------
+alternative_reference_strains = {'CEN.PK', 'D273-10B', 'FL100', 'JK9-3d', 'RM11-1a', 'SEY6210', 'SK1', 'Sigma1278b', 'W303', 'X2180-1A', 'Y55'}
+
 def make_strain_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.paragraph import Paragraph
     from src.sgd.model.bud.cv import CVTerm
     def strain_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-        key_to_paragraph = dict([(x.unique_key(), x) for x in nex_session.query(Paragraph).all()])
 
         for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==10), 1000)():
-            strain = {'display_name': bud_obj.name,
+            yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
                    'description': bud_obj.definition,
+                   'status': 'Reference' if bud_obj.name == 'S288C' else 'Alternative Reference' if bud_obj.name in alternative_reference_strains else 'Other',
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
-            paragraph_key = bud_obj.name
-            if paragraph_key in key_to_paragraph:
-                strain['paragraph'] = key_to_paragraph[paragraph_key]
-            yield strain
 
-        other_strains = [('AWRI1631', 'Haploid derivative of South African commercial wine strain N96.'),
+        other_strains = [('10560-6B', 'Sigma1278b-derivative laboratory strain.'),
+                                   ('AWRI1631', 'Haploid derivative of South African commercial wine strain N96.'),
                                    ('AWRI796', 'South African red wine strain.'),
+                                   ('BC187', 'Derivative of California wine barrel isolate.'),
                                    ('BY4741', 'S288C-derivative laboratory strain.'),
                                    ('BY4742', 'S288C-derivative laboratory strain.'),
                                    ('CBS7960', 'Brazilian bioethanol factory isolate.'),
                                    ('CLIB215', 'New Zealand bakery isolate.'),
                                    ('CLIB324', 'Vietnamese bakery isolate.'),
                                    ('CLIB382', 'Irish beer isolate.'),
+                                   ('D273', 'Laboratory strain.'),
+                                   ('DBVPG6044', 'West African isolate.'),
                                    ('EC1118', 'Commercial wine strain.'),
                                    ('EC9-8', 'Haploid derivative of Israeli canyon isolate.'),
+                                   ('FL100', 'Laboratory strain.'),
                                    ('FostersB', 'Commercial ale strain.'),
                                    ('FostersO', 'Commercial ale strain.'),
+                                   ('FY1679', 'S288C-derivative laboratory strain.'),
                                    ('JAY291', 'Haploid derivative of Brazilian industrial bioethanol strain PE-2.'),
+                                   ('JK9', 'Laboratory strain.'),
+                                   ('K11', 'Sake strain.'),
+                                   ('K6001', ''),
                                    ('Kyokai7', 'Japanese sake yeast.'),
+                                   ('L1528', 'Chilean wine strain.'),
                                    ('LalvinQA23', 'Portuguese Vinho Verde white wine strain.'),
                                    ('M22', 'Italian vineyard isolate.'),
                                    ('PW5', 'Nigerian Raphia palm wine isolate.'),
+                                   ('QA23', ''),
+                                   ('RedStar', 'Commercial baking strain.'),
+                                   ('RM11-1A', 'Haploid derivative of California vineyard isolate.'),
+                                   ('SEY', 'Laboratory strain.'),
+                                   ('SK1', 'Laboratory strain.'),
                                    ('T7', 'Missouri oak tree exudate isolate.'),
                                    ('T73', 'Spanish red wine strain.'),
                                    ('UC5', 'Japanese sake yeast.'),
+                                   ('UWOPSS', 'Environmental isolate.'),
                                    ('VIN13', 'South African white wine strain.'),
                                    ('VL3', 'French white wine strain.'),
+                                   ('W303', 'Laboratory strain.'),
+                                   ('X2180', 'S288C-derivative laboratory strain.'),
                                    ('Y10', 'Philippine coconut isolate.'),
+                                   ('Y55', 'Laboratory strain.'),
                                    ('YJM269', 'Austrian Blauer Portugieser wine grape isolate.'),
+                                   ('YJM339', 'Clinical isolate.'),
                                    ('YJM789', 'Haploid derivative of opportunistic human pathogen.'),
+                                   ('YPH499', 'S288C-congenic laboratory strain.'),
+                                   ('YPS128', 'Pennsylvania woodland isolate.'),
                                    ('YPS163', 'Pennsylvania woodland isolate.'),
+                                   ('YS9', 'Singapore baking strain.'),
                                    ('ZTW1', 'Chinese corn mash bioethanol isolate.')]
 
         for strain, description in other_strains:
-            strain = {'display_name': strain,
+            yield {'display_name': strain,
                    'source': key_to_source['SGD'],
-                   'description': description}
-            paragraph_key = strain
-            if paragraph_key in key_to_paragraph:
-                strain['paragraph'] = key_to_paragraph[paragraph_key]
-            yield strain
+                   'description': description,
+                   'status': 'Reference' if bud_obj.name == 'S288C' else 'Alternative Reference' if bud_obj.name in alternative_reference_strains else 'Other'}
 
         bud_session.close()
         nex_session.close()
     return strain_starter
+
+# --------------------- Convert Strain Url ---------------------
+wiki_strains = set(['S288C', 'BY4743', 'FY4', 'DBY12020', 'DBY12021', 'FY1679', 'AB972', 'A364A', 'XJ24-24a', 'DC5', 'X2180-1A',
+                'YNN216', 'YPH499', 'YPH500', 'YPH501', 'Sigma1278b', 'SK1', 'CEN.PK', 'W303', 'W303-1A',
+                'W303-1B', 'W303-K6001', 'DY1457', 'D273-10B', 'FL100', 'SEY6210/SEY6211', 'SEY6210', 'SEY6211',
+                'JK9-3d', 'RM11-1a', 'Y55'])
+sequence_download_strains = set(['AWRI1631', 'AWRI796', 'BY4741', 'BY4742', 'CBS7960', 'CEN.PK', 'CLIB215', 'CLIB324',
+                                'CLIB382', 'EC1118', 'EC9-8', 'FL100', 'FostersB', 'FostersO', 'JAY291', 'Kyokai7',
+                                'LalvinQA23', 'M22', 'PW5', 'RM11-1a', 'Sigma1278b', 'T7', 'T73', 'UC5', 'VIN13', 'VL3',
+                                'W303', 'Y10', 'YJM269', 'YJM789', 'YPS163', 'ZTW1'])
+def make_strain_url_starter(nex_session_maker):
+    from src.sgd.model.nex.misc import Source, Strain
+    def strain_url_starter():
+        nex_session = nex_session_maker()
+
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+        key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
+
+        for strain in key_to_strain.values():
+            if strain.display_name in wiki_strains:
+                yield {'display_name': 'Wiki',
+                               'link': 'http://wiki.yeastgenome.org/index.php/Commonly_used_strains#' + strain.display_name,
+                               'source': key_to_source['SGD'],
+                               'category': 'wiki',
+                               'strain': strain}
+
+            if strain.display_name in sequence_download_strains:
+                yield {'display_name': 'Download Sequence',
+                               'link': 'http://downloads.yeastgenome.org/sequence/strains/' + strain.display_name,
+                               'source': key_to_source['SGD'],
+                               'category': 'download',
+                               'strain': strain}
+
+        yield {'display_name': 'Download Sequence',
+                               'link': 'http://www.yeastgenome.org/download-data/sequence',
+                               'source': key_to_source['SGD'],
+                               'category': 'download',
+                               'strain': key_to_strain['S288C']}
+
+        nex_session.close()
+    return strain_url_starter
 
 # --------------------- Convert Source ---------------------
 def make_source_starter(bud_session_maker, nex_session_maker):

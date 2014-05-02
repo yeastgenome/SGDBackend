@@ -197,10 +197,6 @@ class BackendInterface:
     @abstractmethod
     def regulation_graph(self, locus_identifier):
         return None
-
-    @abstractmethod
-    def regulation_paragraph(self, locus_identifier):
-        return None
     
     @abstractmethod
     def regulation_target_enrichment(self, locus_identifier):

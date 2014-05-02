@@ -192,26 +192,6 @@ def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
         min_id = min_id + chunk_size
     return pubmed_id_to_central_id
 
-# --------------------- Convert Abstract ---------------------
-def make_abstract_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.bud.reference import Abstract
-    from src.sgd.model.nex.reference import Reference
-    def abstract_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        reference_ids = set([x.id for x in nex_session.query(Reference.id).all()])
-
-        for old_abstract in make_db_starter(bud_session.query(Abstract), 1000)():
-            reference_id = old_abstract.reference_id
-            if reference_id in reference_ids:
-                yield {'id': reference_id,
-                       'text': old_abstract.text}
-
-        bud_session.close()
-        nex_session.close()
-    return abstract_starter
-
 # -------------------- Convert Bibentry ---------------------
 def make_bibentry_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.reference import Reference, Book, Journal, Author, Reftype

@@ -55,6 +55,9 @@ class SGDBackend(BackendInterface):
 
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity
+        from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
+            Physinteractionevidence, DNAsequenceevidence
+        from src.sgd.model.nex.paragraph import Bioentityparagraph
         num_chunks = int(ceil(1.0*len(bioent_ids)/500))
         bioentities = []
         for i in range(0, num_chunks):
@@ -77,7 +80,7 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
             Physinteractionevidence, DNAsequenceevidence
-        from src.sgd.model.nex.paragraph import Paragraph
+        from src.sgd.model.nex.paragraph import Bioentityparagraph
         if are_ids:
             locus_id = locus_identifier
         else:
@@ -148,6 +151,7 @@ class SGDBackend(BackendInterface):
 
     def strain(self, strain_identifier, are_ids=False):
         from src.sgd.model.nex.misc import Strain
+        from src.sgd.model.nex.paragraph import Strainparagraph
         if are_ids:
             strain_id = strain_identifier
         else:
@@ -193,6 +197,9 @@ class SGDBackend(BackendInterface):
 
     def reference_list(self, reference_ids):
         from src.sgd.model.nex.reference import Bibentry
+        from src.sgd.model.nex.paragraph import Referenceparagraph
+        from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Physinteractionevidence, \
+            Geninteractionevidence, Regulationevidence, Literatureevidence
         if reference_ids is None:
             return json.dumps({'Error': 'No locus_id or go_id given.'})
         return json.dumps([{'id': x.id, 'text': x.text} for x in DBSession.query(Bibentry).filter(Bibentry.id.in_(reference_ids)).all()])
@@ -203,6 +210,9 @@ class SGDBackend(BackendInterface):
 
     def reference(self, reference_identifier, are_ids=False):
         from src.sgd.model.nex.reference import Reference
+        from src.sgd.model.nex.paragraph import Referenceparagraph
+        from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Physinteractionevidence, \
+            Geninteractionevidence, Regulationevidence, Literatureevidence
         if are_ids:
             reference_id = reference_identifier
         else:
@@ -598,60 +608,3 @@ def get_obj_id(identifier, class_type=None, subclass_type=None):
     objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
     obj_id = None if objs_ids is None or len(objs_ids) != 1 else objs_ids[0][0]
     return obj_id
-
-word_to_bioent_id = None
-
-def get_word_to_bioent_id(word):
-    from src.sgd.backend.nex import DBSession
-    from src.sgd.model.nex.bioentity import Locus
-
-    global word_to_bioent_id
-    if word_to_bioent_id is None:
-        word_to_bioent_id = {}
-        for locus in DBSession.query(Locus).all():
-            word_to_bioent_id[locus.format_name.lower()] = locus.id
-            word_to_bioent_id[locus.display_name.lower()] = locus.id
-            word_to_bioent_id[locus.format_name.lower() + 'p'] = locus.id
-            word_to_bioent_id[locus.display_name.lower() + 'p'] = locus.id
-
-    word = word.lower()
-    return None if word not in word_to_bioent_id else word_to_bioent_id[word]
-
-def get_bioent_by_name(bioent_name, to_ignore):
-    from src.sgd.model.nex.bioentity import Bioentity
-    if bioent_name not in to_ignore:
-        try:
-            int(bioent_name)
-        except ValueError:
-            bioent_id = get_word_to_bioent_id(bioent_name)
-            return None if bioent_id is None else DBSession.query(Bioentity).filter_by(id=bioent_id).first()
-    return None
-
-def link_gene_names(text, to_ignore=set()):
-    words = text.split(' ')
-    new_chunks = []
-    chunk_start = 0
-    i = 0
-    for word in words:
-        if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
-            bioent_name = word[:-1]
-        else:
-            bioent_name = word
-
-        bioent = get_bioent_by_name(bioent_name.upper(), to_ignore)
-
-        if bioent is not None:
-            new_chunks.append(text[chunk_start: i])
-            chunk_start = i + len(word) + 1
-
-            new_chunk = "<a href='" + bioent.link + "'>" + bioent_name + "</a>"
-            if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
-                new_chunk = new_chunk + word[-1]
-            new_chunks.append(new_chunk)
-        i = i + len(word) + 1
-    new_chunks.append(text[chunk_start: i])
-    try:
-        return ' '.join(new_chunks)
-    except:
-        print text
-        return text

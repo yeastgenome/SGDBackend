@@ -3,72 +3,116 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date, CLOB
 
-from bioentity import Bioentity
+from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.reference import Reference
-from src.sgd.model.nex.misc import Source
+from src.sgd.model.nex.misc import Source, Strain
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateByJsonMixin
-
 
 __author__ = 'kpaskov'
 
 class Paragraph(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'paragraph'
-    
+
     id = Column('paragraph_id', Integer, primary_key=True)
-    class_type = Column('subclass', String)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     format_name = Column('format_name', String)
-    display_name = Column('display_name', String)
-    link = Column('obj_url', String)
-    source_id = Column('source_id', ForeignKey(Source.id))
+    class_type = Column('class', String)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    category = Column('category', String)
     text = Column('text', CLOB)
+    html = Column('html', CLOB)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
-    
+    display_name = None
+    link = None
+
     #Relationships
-    bioentity = relationship(Bioentity, uselist=False, backref='paragraphs')
-    references = association_proxy('paragraph_references', 'reference')
     source = relationship(Source, uselist=False, lazy='joined')
 
-    __eq_values__ = ['id', 'class_type', 'format_name', 'display_name', 'link', 'text', 'date_created', 'created_by']
-    __eq_fks__ = ['bioentity', 'source']
+    __mapper_args__ = {'polymorphic_on': class_type}
+    __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by']
+    __eq_fks__ = ['source']
 
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-        if 'bioentity' in obj_json:
-            self.format_name = obj_json['bioentity'].format_name
-            self.display_name = obj_json['class_type'] + ' ' + obj_json['bioentity'].display_name
-        
     def unique_key(self):
-        return self.format_name, self.class_type
+        return self.format_name, self.class_type, self.category
 
-    def to_json(self):
+    def to_json(self, linkit=False):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['references'] = sorted([x.to_semi_json() for x in self.references], key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
+        obj_json['references'] = sorted([x.reference.to_semi_json() for x in self.paragraph_references], key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
+        if linkit:
+            obj_json['text'] = obj_json['html']
+        del obj_json['html']
         return obj_json
     
 class ParagraphReference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'paragraph_reference'
     
     id = Column('paragraph_reference_id', Integer, primary_key=True)
-    source_id = Column('source_id', ForeignKey(Source.id))
     paragraph_id = Column('paragraph_id', Integer, ForeignKey(Paragraph.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
-    class_type = Column('subclass', String)
-    date_created = Column('date_created', Date, server_default=FetchedValue())
-    created_by = Column('created_by', String, server_default=FetchedValue())
     
     #Relationships
     paragraph = relationship(Paragraph, uselist=False, backref='paragraph_references')
     reference = relationship(Reference, uselist=False)
-    source = relationship(Source, uselist=False, lazy='joined')
 
-    __eq_values__ = ['id', 'class_type', 'date_created', 'created_by']
-    __eq_fks__ = ['source', 'paragraph', 'reference']
+    __eq_values__ = ['id', 'paragraph_id', 'reference_id']
+    __eq_fks__ = []
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         
     def unique_key(self):
         return self.paragraph_id, self.reference_id
+
+class Bioentityparagraph(Paragraph):
+    __tablename__ = 'bioentityparagraph'
+
+    id = Column('paragraph_id', Integer, ForeignKey(Paragraph.id), primary_key=True)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+
+    #Relationships
+    bioentity = relationship(Bioentity, uselist=False, backref='paragraphs')
+
+    __mapper_args__ = {'polymorphic_identity': "BIOENTITY", 'inherit_condition': id==Paragraph.id}
+    __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by']
+    __eq_fks__ = ['source', 'bioentity']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = obj_json['bioentity'].format_name
+
+class Strainparagraph(Paragraph):
+    __tablename__ = 'strainparagraph'
+
+    id = Column('paragraph_id', Integer, ForeignKey(Paragraph.id), primary_key=True)
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+
+    #Relationships
+    strain = relationship(Strain, uselist=False, backref='paragraphs')
+
+    __mapper_args__ = {'polymorphic_identity': "STRAIN", 'inherit_condition': id==Paragraph.id}
+    __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by']
+    __eq_fks__ = ['source', 'strain']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = obj_json['strain'].format_name
+
+class Referenceparagraph(Paragraph):
+    __tablename__ = 'referenceparagraph'
+
+    id = Column('paragraph_id', Integer, ForeignKey(Paragraph.id), primary_key=True)
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+
+    #Relationships
+    reference = relationship(Reference, uselist=False, backref='paragraphs')
+
+    __mapper_args__ = {'polymorphic_identity': "REFERENCE", 'inherit_condition': id==Paragraph.id}
+    __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by']
+    __eq_fks__ = ['source', 'reference']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = obj_json['reference'].format_name
+
+

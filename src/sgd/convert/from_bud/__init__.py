@@ -12,7 +12,7 @@ _digits = re.compile('\d')
 def contains_digits(d):
     return bool(_digits.search(d))
 
-sequence_files = [("src/sgd/convert/data/strains/saccharomyces_cerevisiae_R64-1-1_20110208.gff", "src/sgd/convert/data/strains/orf_coding_all_R64-1-1_20110203.fasta", 'S288C'),
+sequence_files = [("src/sgd/convert/data/strains/saccharomyces_cerevisiae.gff", "src/sgd/convert/data/strains/orf_coding_all_R64-1-1_20110203.fasta", 'S288C'),
                       ("src/sgd/convert/data/strains/CEN.PK113-7D_AEHG00000000.gff", "src/sgd/convert/data/strains/CEN.PK113-7D_AEHG00000000_cds.fsa.txt", 'CENPK'),
                       ("src/sgd/convert/data/strains/W303_ALAV00000000.gff", "src/sgd/convert/data/strains/W303_ALAV00000000_cds.fsa.txt", 'W303'),
                       ("src/sgd/convert/data/strains/AWRI1631_ABSV01000000.gff", "src/sgd/convert/data/strains/AWRI1631_ABSV01000000_cds.fsa.txt", 'AWRI1631'),
