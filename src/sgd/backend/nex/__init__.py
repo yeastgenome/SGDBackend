@@ -51,6 +51,10 @@ class SGDBackend(BackendInterface):
     #Bioentity
     def all_bioentities(self, chunk_size, offset):
         from src.sgd.model.nex.bioentity import Bioentity
+        from src.sgd.model.nex.bioentity import Locus
+        from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
+            Physinteractionevidence, DNAsequenceevidence
+        from src.sgd.model.nex.paragraph import Bioentityparagraph
         return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
 
     def bioentity_list(self, bioent_ids):

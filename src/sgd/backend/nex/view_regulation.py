@@ -1,4 +1,5 @@
 from sqlalchemy import or_, and_
+from sqlalchemy.orm import joinedload
 
 from src.sgd.backend.nex import DBSession, query_limit
 from src.sgd.model.nex.bioentity import Bioentity
@@ -7,7 +8,7 @@ from src.sgd.model.nex.evidence import Regulationevidence
 
 # -------------------------------Evidence Table---------------------------------------
 def get_regulation_evidence(locus_id, reference_id, between_ids):
-    query = DBSession.query(Regulationevidence)
+    query = DBSession.query(Regulationevidence).options(joinedload('reference'), joinedload('strain'), joinedload('experiment'), joinedload('locus1'), joinedload('locus2'))
     if reference_id is not None:
         query = query.filter_by(reference_id=reference_id)
     if between_ids is not None:

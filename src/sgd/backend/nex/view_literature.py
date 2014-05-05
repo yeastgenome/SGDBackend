@@ -1,5 +1,5 @@
 from sqlalchemy import func
-
+from sqlalchemy.orm import joinedload
 from src.sgd.model.nex.evidence import Literatureevidence, Goevidence, Regulationevidence, Phenotypeevidence, \
     Physinteractionevidence, Geninteractionevidence
 from src.sgd.backend.nex import DBSession, query_limit
@@ -13,7 +13,7 @@ __author__ = 'kpaskov'
 
 # -------------------------------Details---------------------------------------
 def get_literature_evidence(locus_id, reference_id, topic):
-    query = DBSession.query(Literatureevidence)
+    query = DBSession.query(Literatureevidence).options(joinedload('locus'), joinedload('reference'))
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
     if reference_id is not None:

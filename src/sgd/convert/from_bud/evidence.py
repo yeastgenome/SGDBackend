@@ -1036,8 +1036,6 @@ def make_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, str
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
-        sequence_class_types = {'gene', 'ARS', 'tRNA', 'ncRNA', 'mRNA', 'snoRNA', 'rRNA'}
-
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Locus).all()])
         key_to_bioitem = dict([(x.unique_key(), x) for x in nex_session.query(Contig).all()])
@@ -1060,7 +1058,7 @@ def make_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, str
                     class_type = pieces[2]
                     residues = get_sequence(row, sequence_library)
 
-                    if 'Name' in info and class_type in sequence_class_types:
+                    if 'Name' in info:
                         bioentity_key = (info['Name'], 'LOCUS')
                         if bioentity_key[0].endswith('_mRNA'):
                             bioentity_key = (bioentity_key[0][:-5], 'LOCUS')

@@ -5,13 +5,13 @@ from src.sgd.backend.nex.graph_tools import get_interactions_among
 from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence
 from src.sgd.model.nex.auxiliary import Bioentityinteraction
-
+from sqlalchemy.orm import joinedload
 
 __author__ = 'kpaskov'
 
 # -------------------------------Details---------------------------------------
 def get_genetic_interaction_evidence(locus_id, reference_id):
-    query = DBSession.query(Geninteractionevidence)
+    query = DBSession.query(Geninteractionevidence).options(joinedload('locus1'), joinedload('locus2'), joinedload('reference'), joinedload('experiment'))
     if locus_id is not None:
         query = query.filter(or_(Geninteractionevidence.locus1_id == locus_id, Geninteractionevidence.locus2_id == locus_id))
     if reference_id is not None:
@@ -22,7 +22,7 @@ def get_genetic_interaction_evidence(locus_id, reference_id):
     return query.all()
 
 def get_physical_interaction_evidence(locus_id, reference_id):
-    query = DBSession.query(Physinteractionevidence)
+    query = DBSession.query(Physinteractionevidence).options(joinedload('locus1'), joinedload('locus2'), joinedload('reference'), joinedload('experiment'))
     if locus_id is not None:
         query = query.filter(or_(Physinteractionevidence.locus1_id == locus_id, Physinteractionevidence.locus2_id == locus_id))
     if reference_id is not None:

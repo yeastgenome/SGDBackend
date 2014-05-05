@@ -6,11 +6,6 @@ from src.sgd.backend.nex import DBSession, query_limit
 
 __author__ = 'kpaskov'
 
-# -------------------------------Overview---------------------------------------
-def make_overview(locus_id):
-    locus = DBSession.query(Locus).filter_by(id=locus_id).first()
-    return locus.to_json()
-
 # -------------------------------Details---------------------------------------
 def get_protein_domain_evidence(locus_id, domain_id):
     query = DBSession.query(Domainevidence)

@@ -6,7 +6,7 @@ from src.sgd.model.nex.bioentity import Locus
 from src.sgd.model.nex.evidence import Goevidence
 from src.sgd.backend.nex import DBSession, query_limit, get_obj_id
 from src.sgd.go_enrichment import query_batter
-
+from sqlalchemy.orm import joinedload
 
 __author__ = 'kpaskov'
 
@@ -65,7 +65,7 @@ condition_format_name_to_display_name = {'activated by':	                'activa
                                         'stabilizes':	                    'stabilizes'}
 
 def get_go_evidence(locus_id, go_id, reference_id, with_children):
-    query = DBSession.query(Goevidence)
+    query = DBSession.query(Goevidence).options(joinedload('locus'), joinedload('go'), joinedload('reference'))
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
     if reference_id is not None:

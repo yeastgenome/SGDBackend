@@ -4,61 +4,13 @@ from src.sgd.backend.nex import DBSession, query_limit
 from src.sgd.backend.nex.query_tools import get_all_bioconcept_children
 from src.sgd.model.nex.bioconcept import Phenotype
 from src.sgd.model.nex.evidence import Phenotypeevidence, Chemicalproperty
+from sqlalchemy.orm import joinedload
 
 __author__ = 'kpaskov'
 
-# -------------------------------Overview---------------------------------------
-def get_experiment_ancestry(experiment_id, child_experiment_id_to_parent_id):
-    ancestry = [experiment_id]
-    last_entry = experiment_id
-    while last_entry in child_experiment_id_to_parent_id:
-        last_entry = child_experiment_id_to_parent_id[last_entry]
-        ancestry.append(last_entry)
-    return ancestry
-
-def make_overview(locus_id=None, phenotype_id=None, observable_id=None):
-    phenoevidences = get_phenotype_evidence(locus_id=locus_id, phenotype_id=phenotype_id, observable_id=observable_id, chemical_id=None, reference_id=None, with_children=None)
-
-    mutant_type_set = set()
-    classical_mutant_to_phenotypes = {}
-    large_scale_mutant_to_phenotypes = {}
-
-    strain_to_phenotypes = {}
-
-    for phenoevidence in phenoevidences:
-        mutant_type = phenoevidence.mutant_type
-        strain = phenoevidence.strain
-        if phenoevidence.experiment.category == 'classical genetics':
-            if mutant_type in classical_mutant_to_phenotypes:
-                classical_mutant_to_phenotypes[mutant_type].add(phenoevidence.id)
-            else:
-                classical_mutant_to_phenotypes[mutant_type] = {phenoevidence.id}
-        elif phenoevidence.experiment.category == 'large-scale survey':
-            if mutant_type in large_scale_mutant_to_phenotypes:
-                large_scale_mutant_to_phenotypes[mutant_type].add(phenoevidence.id)
-            else:
-                large_scale_mutant_to_phenotypes[mutant_type] = {phenoevidence.id}
-        mutant_type_set.add(mutant_type)
-
-        if strain is not None:
-            if strain.display_name in strain_to_phenotypes:
-                strain_to_phenotypes[strain.display_name].add(phenoevidence.id)
-            else:
-                strain_to_phenotypes[strain.display_name] = {phenoevidence.id}
-
-    mutant_list = list(mutant_type_set)
-    mutant_to_count = dict([(x, (0 if x not in classical_mutant_to_phenotypes else len(classical_mutant_to_phenotypes[x]),
-                                 0 if x not in large_scale_mutant_to_phenotypes else len(large_scale_mutant_to_phenotypes[x]))) for x in mutant_list])
-
-    strain_to_count = dict([(x, len(y)) for x, y in strain_to_phenotypes.iteritems()])
-    strain_list = sorted(strain_to_count.keys(), key=lambda x: strain_to_count[x], reverse=True)
-
-
-    return {'experiment_types': ['classical genetics', 'large-scale survey'], 'mutant_to_count': mutant_to_count, 'mutant_types': mutant_list, 'strain_to_count':strain_to_count, 'strain_list': strain_list}
-
 # -------------------------------Details---------------------------------------
 def get_phenotype_evidence(locus_id, phenotype_id, observable_id, chemical_id, reference_id, with_children):
-    query = DBSession.query(Phenotypeevidence)
+    query = DBSession.query(Phenotypeevidence).options(joinedload('locus'), joinedload('strain'), joinedload('phenotype'), joinedload('experiment'), joinedload('reference'))
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
     if reference_id is not None:

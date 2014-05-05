@@ -1,3 +1,4 @@
+from sqlalchemy.orm import joinedload
 from src.sgd.model.nex.evidence import DNAsequenceevidence, Proteinsequenceevidence, Bindingevidence
 from src.sgd.model.nex.bioitem import Contig
 from src.sgd.backend.nex import DBSession, query_limit
@@ -15,7 +16,7 @@ def make_contig(contig_id):
     
 # -------------------------------Details---------------------------------------
 def get_dnasequence_evidence(locus_id=None, contig_id=None):
-    query = DBSession.query(DNAsequenceevidence)
+    query = DBSession.query(DNAsequenceevidence).options(joinedload('locus'), joinedload('strain'))
     if contig_id is not None:
         query = query.filter_by(contig_id=contig_id)
     if locus_id is not None:
@@ -27,7 +28,7 @@ def get_dnasequence_evidence(locus_id=None, contig_id=None):
     return query.all()
 
 def get_proteinsequence_evidence(locus_id=None):
-    query = DBSession.query(Proteinsequenceevidence)
+    query = DBSession.query(Proteinsequenceevidence).options(joinedload('locus'), joinedload('strain'))
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
 
@@ -71,7 +72,7 @@ def make_neighbor_details(locus_id=None):
     neighbors = {}
     genomic_dnaseqevidences = [x for x in dnaseqevidences if x.dna_type == 'GENOMIC']
     for evidence in genomic_dnaseqevidences:
-        neighbor_evidences = DBSession.query(DNAsequenceevidence).filter_by(contig_id=evidence.contig_id).filter(DNAsequenceevidence.start >= evidence.start - 5000).filter(DNAsequenceevidence.end <= evidence.end + 5000).all()
+        neighbor_evidences = DBSession.query(DNAsequenceevidence).filter_by(contig_id=evidence.contig_id).filter(DNAsequenceevidence.start >= evidence.start - 5000).filter(DNAsequenceevidence.end <= evidence.end + 5000).options(joinedload('locus'), joinedload('strain')).all()
         neighbors[evidence.strain.format_name] = [x.to_json() for x in sorted(neighbor_evidences, key=lambda x: x.start)]
 
     return neighbors
