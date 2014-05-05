@@ -144,6 +144,11 @@ class Chemical(Bioitem):
         self.format_name = None if obj_json.get('display_name') is None else create_format_name(obj_json.get('display_name'))[:95]
         self.link = None if self.format_name is None else '/chemical/' + self.format_name + '/overview'
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['urls'] = [x.to_min_json() for x in self.urls]
+        return obj_json
+
 class Contig(Bioitem):
     __tablename__ = "contigbioitem"
 

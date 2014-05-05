@@ -790,16 +790,17 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
                 if old_experiment.strain != None:
                     strain_key = old_experiment.strain[0]
 
+            if strain_key == 'CEN.PK':
+                strain_key = 'CENPK'
+
             for reference_id in reference_ids:
-                if reference_id == 16262:
-                    print 'Here'
                 if reference_id in id_to_reference and bioentity_id in id_to_bioentity and \
-                                experiment_key in key_to_experiment and strain_key in key_to_strain and \
+                                experiment_key in key_to_experiment and (strain_key is None or strain_key in key_to_strain) and \
                                 source_key in key_to_source and phenotype_key in key_to_phenotype:
                     mutant_type = old_phenotype_feature.mutant_type
                     yield {'source': key_to_source[source_key],
                            'reference': id_to_reference[reference_id],
-                           'strain': key_to_strain[strain_key],
+                           'strain': None if strain_key is None else key_to_strain[strain_key],
                            'experiment': key_to_experiment[experiment_key],
                            'note': note,
                            'locus': id_to_bioentity[bioentity_id],
@@ -810,7 +811,9 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
                            'properties': conditions,
                            'date_created': old_phenotype_feature.date_created,
                            'created_by': old_phenotype_feature.created_by}
-
+                else:
+                    print 'Reference or bioentity or experiment or strain or source or phenotype not found: ' + str(reference_id) + ' ' + \
+                          str(bioentity_id) + ' ' + str(experiment_key) + ' ' + str(strain_key) + ' ' + str(source_key) + ' ' + str(phenotype_key)
         bud_session.close()
         nex_session.close()
     return phenotype_evidence_starter
