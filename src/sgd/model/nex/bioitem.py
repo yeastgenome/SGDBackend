@@ -189,7 +189,7 @@ class Allele(Bioitem):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = None if obj_json.get('display_name') is None else obj_json.get('display_name')
+        self.format_name = None if obj_json.get('display_name') is None else create_format_name(obj_json.get('display_name'))
 
 class Orphanbioitem(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'ORPHAN', 'inherit_condition': id == Bioitem.id}

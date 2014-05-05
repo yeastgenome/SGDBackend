@@ -181,26 +181,26 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
         make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
-    #
-    # do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Orphanbioitem),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Orphanbioitem), name='convert.from_bud.bioitem.orphan', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Orphanbioitem, Bioitem, 'ORPHAN')
-    #
-    # do_conversion(make_allele_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Allele),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Allele), name='convert.from_bud.bioitem.allele', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Allele, Bioitem, 'ALLELE')
-    #
-    # do_conversion(make_domain_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Domain),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Domain), name='convert.from_bud.bioitem.domain', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Domain, Bioitem, 'DOMAIN')
-    #
-    # do_conversion(make_chemical_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Chemical),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Chemical), name='convert.from_bud.bioitem.chemical', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL')
+
+    do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Orphanbioitem),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Orphanbioitem), name='convert.from_bud.bioitem.orphan', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Orphanbioitem, Bioitem, 'ORPHAN')
+
+    do_conversion(make_allele_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Allele),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Allele), name='convert.from_bud.bioitem.allele', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Allele, Bioitem, 'ALLELE')
+
+    do_conversion(make_domain_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Domain),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Domain), name='convert.from_bud.bioitem.domain', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Domain, Bioitem, 'DOMAIN')
+
+    do_conversion(make_chemical_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Chemical),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Chemical), name='convert.from_bud.bioitem.chemical', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL')
     #
     # do_conversion(make_contig_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Contig),
@@ -255,10 +255,10 @@ if __name__ == "__main__":
     #               [Json2Obj(Book),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Book), name='convert.from_bud.book', delete_untouched=True, commit=True)])
     #
-    do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Reference),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit=True),
-                   OutputTransformer(1000)])
+    # do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Reference),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit=True),
+    #                OutputTransformer(1000)])
     #
     # do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bibentry),
@@ -319,10 +319,10 @@ if __name__ == "__main__":
     # ------------------------------------------ Evidence ------------------------------------------
     # Bud -> Nex
     from src.sgd.model.nex.evidence import Evidence, Goevidence, DNAsequenceevidence, Regulationevidence, \
-        Proteinsequenceevidence, Phosphorylationevidence, Domainevidence, Literatureevidence
+        Proteinsequenceevidence, Phosphorylationevidence, Domainevidence, Literatureevidence, Phenotypeevidence
     from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_dna_sequence_evidence_starter, \
         make_regulation_evidence_starter, make_protein_sequence_evidence_starter, make_phosphorylation_evidence_starter, \
-        make_domain_evidence_starter, make_literature_evidence_starter
+        make_domain_evidence_starter, make_literature_evidence_starter, make_phenotype_evidence_starter
     # do_conversion(make_alias_evidence_starter(bud_session_maker, nex_session_maker),
     #                [Json2Obj(Aliasevidence),
     #                 Obj2NexDB(nex_session_maker, lambda x: x.query(Aliasevidence), name='convert.from_bud.evidence.alias', delete_untouched=True, commit=True)])
@@ -384,11 +384,11 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, ArchiveLiteratureevidence, Evidence, 'ARCH_LITERATURE')
     #
-    # do_conversion(make_phenotype_evidence_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Phenotypeevidence),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Phenotypeevidence), name='convert.from_bud.evidence.phenotype', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Phenotypeevidence, Evidence, 'PHENOTYPE')
+    do_conversion(make_phenotype_evidence_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Phenotypeevidence),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Phenotypeevidence), name='convert.from_bud.evidence.phenotype', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Phenotypeevidence, Evidence, 'PHENOTYPE')
     #
     # do_conversion(make_phosphorylation_evidence_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Phosphorylationevidence),
