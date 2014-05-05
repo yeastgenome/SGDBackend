@@ -168,6 +168,7 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
             parent_json['reftypes'] = [x.reftype.to_min_json() for x in parent.parent.ref_reftypes]
             obj_json['related_references'].append(parent_json)
         obj_json['urls'] = [x.to_json() for x in self.urls]
+        obj_json['journal']['med_abbr'] = self.journal.med_abbr
         return obj_json
     
 class Bibentry(Base, EqualityByIDMixin, UpdateByJsonMixin):
