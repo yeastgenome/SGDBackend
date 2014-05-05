@@ -164,6 +164,8 @@ class Contig(Bioitem):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = None if obj_json.get('strain') is None or obj_json.get('display_name') is None else obj_json.get('strain').format_name + '_' + obj_json.get('display_name')
         self.link = None if self.format_name is None else '/contig/' + self.format_name + '/overview'
+        if self.display_name.startswith('chr'):
+            self.display_name = 'Chromosome ' + self.display_name[3:]
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
