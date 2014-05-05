@@ -111,7 +111,7 @@ class SGDBackend(BackendInterface):
 
     def phenotype(self, phenotype_identifier, are_ids=False):
         from src.sgd.model.nex.bioconcept import Phenotype
-
+        from src.sgd.model.nex.evidence import Phenotypeevidence
         if are_ids:
             phenotype_id = phenotype_identifier
         else:
@@ -120,7 +120,7 @@ class SGDBackend(BackendInterface):
 
     def observable(self, observable_identifier, are_ids=False):
         from src.sgd.model.nex.bioconcept import Observable
-
+        from src.sgd.model.nex.evidence import Phenotypeevidence
         if are_ids:
             observable_id = observable_identifier
         else:
@@ -129,7 +129,7 @@ class SGDBackend(BackendInterface):
 
     def go(self, go_identifier, are_ids=False):
         from src.sgd.model.nex.bioconcept import Go
-
+        from src.sgd.model.nex.evidence import Goevidence
         if are_ids:
             go_id = go_identifier
         else:
@@ -275,6 +275,8 @@ class SGDBackend(BackendInterface):
     def phenotype_graph(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex import graph_tools
         from src.sgd.model.nex.auxiliary import Bioconceptinteraction
+        from src.sgd.model.evidence import Phenotypeevidence
+
         if are_ids:
             locus_id = locus_identifier
         else:
