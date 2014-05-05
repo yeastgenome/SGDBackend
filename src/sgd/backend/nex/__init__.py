@@ -232,8 +232,10 @@ class SGDBackend(BackendInterface):
         return None if author_id is None else json.dumps(DBSession.query(Author).filter_by(id=author_id).first().to_json())
 
     def references_this_week(self):
-        import view_reference
-        return json.dumps(view_reference.make_references_this_week())
+        from datetime import date, timedelta
+        from src.sgd.model.nex.reference import Reference
+        a_week_ago = date.today() - timedelta(days=8)
+        return json.dumps([x.to_semi_json() for x in sorted(DBSession.query(Reference).filter(Reference.date_created > a_week_ago).all(), key=lambda x: x.date_created, reverse=True)])
 
     #Phenotype
     def phenotype_ontology_graph(self, observable_identifier, are_ids=False):

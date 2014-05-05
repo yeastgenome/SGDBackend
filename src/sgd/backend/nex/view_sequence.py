@@ -16,7 +16,7 @@ def make_contig(contig_id):
     
 # -------------------------------Details---------------------------------------
 def get_dnasequence_evidence(locus_id=None, contig_id=None):
-    query = DBSession.query(DNAsequenceevidence).options(joinedload('locus'), joinedload('strain'))
+    query = DBSession.query(DNAsequenceevidence).options(joinedload('locus'), joinedload('strain'), joinedload('contig'))
     if contig_id is not None:
         query = query.filter_by(contig_id=contig_id)
     if locus_id is not None:
