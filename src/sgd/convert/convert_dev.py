@@ -202,10 +202,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Chemical), name='convert.from_bud.bioitem.chemical', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL')
     #
-    do_conversion(make_contig_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Contig),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Contig), name='convert.from_bud.bioitem.contig', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG')
+    # do_conversion(make_contig_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Contig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Contig), name='convert.from_bud.bioitem.contig', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG')
     #
     # do_conversion(make_bioitem_relation_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioitemrelation),
@@ -236,16 +236,16 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Reference ------------------------------------------
     # Bud -> Nex
-    # from src.sgd.model.nex.reference import Reference, Journal, Book, Author, Referencealias, Referenceurl, \
-    #     Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype
-    # from src.sgd.model.nex.misc import Alias, Relation, Url
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.model.perf.core import Reference as PerfReference, Author as PerfAuthor
-    # from src.sgd.convert.from_bud.reference import make_reference_starter, make_journal_starter, make_book_starter,\
-    #     make_bibentry_starter, make_reftype_starter, make_reference_alias_starter, \
-    #     make_author_reference_starter, make_author_starter, make_ref_reftype_starter, make_reference_relation_starter, \
-    #     make_reference_url_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    from src.sgd.model.nex.reference import Reference, Journal, Book, Author, Referencealias, Referenceurl, \
+        Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype
+    from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.model.perf.core import Reference as PerfReference, Author as PerfAuthor
+    from src.sgd.convert.from_bud.reference import make_reference_starter, make_journal_starter, make_book_starter,\
+        make_bibentry_starter, make_reftype_starter, make_reference_alias_starter, \
+        make_author_reference_starter, make_author_starter, make_ref_reftype_starter, make_reference_relation_starter, \
+        make_reference_url_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_journal_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Journal),
@@ -255,10 +255,10 @@ if __name__ == "__main__":
     #               [Json2Obj(Book),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Book), name='convert.from_bud.book', delete_untouched=True, commit=True)])
     #
-    # do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Reference),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
+    do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Reference),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit=True),
+                   OutputTransformer(1000)])
     #
     # do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bibentry),

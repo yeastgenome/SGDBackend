@@ -242,7 +242,7 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
 
-        for filename, strain in sequence_files:
+        for filename, coding_sequence_filename, strain in sequence_files:
             for sequence_id, residues in make_fasta_file_starter(filename)():
                 yield {'display_name': sequence_id,
                        'source': key_to_source['SGD'],

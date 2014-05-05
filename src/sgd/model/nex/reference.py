@@ -84,7 +84,7 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     
     ref_status = Column('ref_status', String)
     pubmed_id = Column('pubmed_id', Integer)
-    pubmed_central_id = Column('pubmed_central_id', Integer)
+    pubmed_central_id = Column('pubmed_central_id', String)
     fulltext_status = Column('fulltext_status', String)
     citation = Column('citation', String)
     year = Column('year', Integer)
@@ -121,6 +121,11 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
         
     def unique_key(self):
         return self.format_name
+
+    def to_min_json(self):
+        obj_json = UpdateByJsonMixin.to_min_json(self)
+        obj_json['pubmed_id'] = self.pubmed_id
+        return obj_json
 
     def to_semi_json(self):
         obj_json = self.to_min_json()
@@ -162,6 +167,7 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
             parent_json['abstract'] = None if len(parent.parent.paragraphs) == 0 else parent.parent.paragraphs[0].to_json(linkit=True)
             parent_json['reftypes'] = [x.reftype.to_min_json() for x in parent.parent.ref_reftypes]
             obj_json['related_references'].append(parent_json)
+        obj_json['urls'] = [x.to_json() for x in self.urls]
         return obj_json
     
 class Bibentry(Base, EqualityByIDMixin, UpdateByJsonMixin):
