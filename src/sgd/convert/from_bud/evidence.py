@@ -791,6 +791,8 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
                     strain_key = old_experiment.strain[0]
 
             for reference_id in reference_ids:
+                if reference_id == 16262:
+                    print 'Here'
                 if reference_id in id_to_reference and bioentity_id in id_to_bioentity and \
                                 experiment_key in key_to_experiment and strain_key in key_to_strain and \
                                 source_key in key_to_source and phenotype_key in key_to_phenotype:

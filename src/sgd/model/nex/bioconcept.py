@@ -235,7 +235,7 @@ class Observable(Bioconcept):
                 strain_groups[evidence.strain.display_name] += 1
             else:
                 strain_groups[evidence.strain.display_name] = 1
-        experiment_categories = [['Mutant Type', 'classical genetics', 'large_scale survey']]
+        experiment_categories = [['Mutant Type', 'classical genetics', 'large-scale survey']]
         mutant_types = set(classical_groups.keys())
         mutant_types.update(large_scale_groups.keys())
         for mutant_type in mutant_types:
@@ -305,7 +305,7 @@ class Phenotype(Bioconcept):
                 strain_groups[evidence.strain.display_name] += 1
             else:
                 strain_groups[evidence.strain.display_name] = 1
-        experiment_categories = [['Mutant Type', 'classical genetics', 'large_scale survey']]
+        experiment_categories = [['Mutant Type', 'classical genetics', 'large-scale survey']]
         mutant_types = set(classical_groups.keys())
         mutant_types.update(large_scale_groups.keys())
         for mutant_type in mutant_types:
