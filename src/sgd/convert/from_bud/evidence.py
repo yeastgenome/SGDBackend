@@ -839,7 +839,7 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem):
 
     #Get chemicals
     for (a, b) in old_experiment.chemicals:
-        chemical_key = (create_format_name(a.lower()), 'CHEMICAL')
+        chemical_key = (create_format_name(a)[:95], 'CHEMICAL')
         if chemical_key in key_to_bioitem:
             chemical_note = None
             amount = None
@@ -848,6 +848,8 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem):
             else:
                 chemical_note = b
             conditions.append(Chemicalproperty({'note': chemical_note, 'concentration': amount, 'bioitem': key_to_bioitem[chemical_key]}))
+        else:
+            print 'Chemical not found: ' + str(chemical_key)
 
     #Get other conditions
     for (a, b) in old_experiment.condition:

@@ -202,7 +202,7 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
             bioentity_id = bud_obj.feature_id
             if bioentity_id in bioentity_ids:
                 link = None
-                if len(bud_obj.dbxref.urls) == 1:
+                if len(bud_obj.dbxref.urls) > 0:
                     link = bud_obj.dbxref.urls[0].url.replace('_SUBSTITUTE_THIS_', display_name)
 
                 yield {'display_name': display_name,

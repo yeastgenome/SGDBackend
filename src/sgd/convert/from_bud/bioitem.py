@@ -212,17 +212,17 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')), 1000)():
-            yield {'display_name': bud_obj.value,
-                   'source': key_to_source['SGD'],
-                   'date_created': bud_obj.date_created,
-                   'created_by': bud_obj.created_by}
-
         for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no == 3), 1000)():
             yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
                    'chebi_id': bud_obj.dbxref_id,
                    'description': bud_obj.definition,
+                   'date_created': bud_obj.date_created,
+                   'created_by': bud_obj.created_by}
+
+        for bud_obj in make_db_starter(bud_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')), 1000)():
+            yield {'display_name': bud_obj.value,
+                   'source': key_to_source['SGD'],
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
 

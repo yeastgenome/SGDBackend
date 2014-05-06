@@ -84,10 +84,10 @@ if __name__ == "__main__":
     #               [Json2Obj(Locustabs),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locustabs), name='convert.from_bud.bioentity.locustabs', delete_untouched=True, commit=True)])
     #
-    # do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Bioentityalias),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityalias), name='convert.from_bud.bioentity.alias', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Bioentityalias, Alias, 'BIOENTITY')
+    do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bioentityalias),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityalias), name='convert.from_bud.bioentity.alias', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Bioentityalias, Alias, 'BIOENTITY')
     #
     # do_conversion(make_bioentity_relation_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioentityrelation),
@@ -109,9 +109,9 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'COMPLEX'), name='convert.from_bud.bioentity.disambig.complex', delete_untouched=True, commit=True)])
     #
     # # Nex -> Perf
-    do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(1000)])
+    # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True),
+    #                OutputTransformer(1000)])
 
     # ------------------------------------------ Bioconcept ------------------------------------------
     # Bud -> Nex
