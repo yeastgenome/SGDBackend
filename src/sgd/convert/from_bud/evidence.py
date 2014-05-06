@@ -1080,16 +1080,6 @@ def make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_f
                                         'dna_type': 'GENOMIC',
                                         'residues': residues,
                                         'contig': key_to_bioitem[contig_key],
-                                        'start': end,
-                                        'end': start,
-                                        'strand': strand}
-                            else:
-                                yield {'source': key_to_source['SGD'],
-                                        'strain': key_to_strain[strain_key],
-                                        'locus': key_to_bioentity[bioentity_key],
-                                        'dna_type': 'GENOMIC',
-                                        'residues': residues,
-                                        'contig': key_to_bioitem[contig_key],
                                         'start': start,
                                         'end': end,
                                         'strand': strand}
@@ -1189,8 +1179,8 @@ def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filena
                             yield {
                                 'evidence_id': evidence.id,
                                 'class_type': class_type,
-                                'relative_start': evidence.start - end + 1,
-                                'relative_end': evidence.start - start + 1,
+                                'relative_start': evidence.end - end + 1,
+                                'relative_end': evidence.end - start + 1,
                                 'chromosomal_start': end,
                                 'chromosomal_end': start,
                                 'phase': phase
