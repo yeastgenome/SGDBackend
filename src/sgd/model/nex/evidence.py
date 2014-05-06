@@ -678,7 +678,7 @@ class DNAsequenceevidence(Evidence):
         obj_json['locus']['locus_type'] = self.locus.locus_type
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['status'] = self.strain.status
-        obj_json['tags'] = [x.to_json() for x in self.tags]
+        obj_json['tags'] = [x.to_json() for x in sorted(self.tags, key=lambda x:x.relative_start)]
         return obj_json
 
     def unique_key(self):

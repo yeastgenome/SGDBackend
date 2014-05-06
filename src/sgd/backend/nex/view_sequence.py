@@ -73,7 +73,7 @@ def make_neighbor_details(locus_id=None):
     genomic_dnaseqevidences = [x for x in dnaseqevidences if x.dna_type == 'GENOMIC']
     for evidence in genomic_dnaseqevidences:
         neighbor_evidences = DBSession.query(DNAsequenceevidence).filter_by(contig_id=evidence.contig_id).filter(DNAsequenceevidence.start >= evidence.start - 5000).filter(DNAsequenceevidence.end <= evidence.end + 5000).options(joinedload('locus'), joinedload('strain')).all()
-        neighbors[evidence.strain.format_name] = [x.to_json() for x in sorted(neighbor_evidences, key=lambda x: x.start)]
+        neighbors[evidence.strain.format_name] = [x.to_json() for x in sorted(neighbor_evidences, key=lambda x: x.start if x.strand == '+' else x.end)]
 
     return neighbors
 
