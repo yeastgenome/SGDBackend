@@ -1,5 +1,9 @@
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
+from src.sgd.backend.nex.view_go import get_go_evidence
+from src.sgd.backend.nex.view_interaction import get_genetic_interaction_evidence, get_physical_interaction_evidence
+from src.sgd.backend.nex.view_phenotype import get_phenotype_evidence
+from src.sgd.backend.nex.view_regulation import get_regulation_evidence
 from src.sgd.model.nex.evidence import Literatureevidence, Goevidence, Regulationevidence, Phenotypeevidence, \
     Physinteractionevidence, Geninteractionevidence
 from src.sgd.backend.nex import DBSession, query_limit
@@ -48,7 +52,21 @@ def make_details(locus_id=None, reference_id=None, topic=None):
         return {'Error': 'Too much data to display.'}
 
     if locus_id is not None:
-        return [x.to_json() for x in sorted(evidences, key=lambda x: (x.reference.year, x.reference.pubmed_id), reverse=True)]
+        primary_ids = set([x.reference_id for x in evidences if x.topic == 'Primary Literature'])
+        evidences.sort(key=lambda x: (x.reference.year, x.reference.pubmed_id), reverse=True)
+        go_references = sorted(set([x.reference for x in get_go_evidence(locus_id=locus_id, go_id=None, reference_id=None, with_children=False) if x.reference_id in primary_ids]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
+        phenotype_references = sorted(set([x.reference for x in get_phenotype_evidence(locus_id=locus_id, phenotype_id=None, observable_id=None, reference_id=None, chemical_id=None, with_children=False) if x.reference_id in primary_ids]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
+        regulation_references = sorted(set([x.reference for x in get_regulation_evidence(locus_id=locus_id, reference_id=None, between_ids=None)]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
+        interaction_references = set([x.reference for x in get_genetic_interaction_evidence(locus_id=locus_id, reference_id=None)])
+        interaction_references.update([x.reference for x in get_physical_interaction_evidence(locus_id=locus_id, reference_id=None)])
+
+        return {'primary': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Primary Literature'])],
+                'additional': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Additional Literature'])],
+                'review': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Reviews'])],
+                'go': [x.to_semi_json() for x in go_references],
+                'phenotype': [x.to_semi_json() for x in phenotype_references],
+                'regulation': [x.to_semi_json() for x in regulation_references],
+                'interaction': [x.to_semi_json() for x in sorted(interaction_references, key=lambda x: (x.year, x.pubmed_id), reverse=True)]}
     elif reference_id is not None:
         return [x.to_json() for x in sorted(evidences, key=lambda x: x.locus.display_name)]
     return [x.to_json() for x in evidences]
