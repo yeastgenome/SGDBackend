@@ -28,10 +28,6 @@ class BackendInterface:
     @abstractmethod
     def all_references(self, min_id, max_id):
         return None
-    
-    @abstractmethod
-    def all_bibentries(self, min_id, max_id):
-        return None
 
     @abstractmethod
     def all_authors(self, min_id, max_id):
@@ -134,10 +130,6 @@ class BackendInterface:
     def interaction_graph(self, locus_identifier):
         return None
     
-    @abstractmethod
-    def interaction_resources(self, locus_identifier):
-        return None
-    
     #Literature
     @abstractmethod
     def literature_details(self, locus_identifier=None, reference_identifier=None):
@@ -165,10 +157,6 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def phenotype_resources(self, locus_identifier):
-        return None
-
-    @abstractmethod
     def phenotype_graph(self, locus_identifier):
         return None
 
@@ -183,10 +171,6 @@ class BackendInterface:
 
     @abstractmethod
     def protein_domain_graph(self, locus_identifier):
-        return None
-
-    @abstractmethod
-    def protein_resources(self, locus_identifier):
         return None
     
     #Regulation

@@ -162,6 +162,11 @@ class SGDBackend(BackendInterface):
             strain_id = get_obj_id(strain_identifier, class_type='STRAIN')
         return None if strain_id is None else json.dumps(DBSession.query(Strain).filter_by(id=strain_id).first().to_json())
 
+    def all_strains(self, chunk_size, offset):
+        from src.sgd.model.nex.misc import Strain
+        from src.sgd.model.nex.paragraph import Strainparagraph
+        return [x.to_json() for x in DBSession.query(Strain).limit(chunk_size).offset(offset).all()]
+
     def domain(self, domain_identifier, are_ids=False):
         from src.sgd.model.nex.bioitem import Domain
         if are_ids:
@@ -193,14 +198,13 @@ class SGDBackend(BackendInterface):
     #Reference
     def all_references(self, chunk_size, offset):
         from src.sgd.model.nex.reference import Reference
+        from src.sgd.model.nex.paragraph import Referenceparagraph
+        from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Physinteractionevidence, \
+            Geninteractionevidence, Regulationevidence, Literatureevidence
         return [x.to_json() for x in DBSession.query(Reference).limit(chunk_size).offset(offset).all()]
 
-    def all_bibentries(self, chunk_size, offset):
-        from src.sgd.model.nex.reference import Bibentry
-        return [x.to_json() for x in DBSession.query(Bibentry).limit(chunk_size).offset(offset).all()]
-
     def reference_list(self, reference_ids):
-        from src.sgd.model.nex.reference import Bibentry
+        from src.sgd.model.nex.reference import Reference
         from src.sgd.model.nex.paragraph import Referenceparagraph
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Physinteractionevidence, \
             Geninteractionevidence, Regulationevidence, Literatureevidence
@@ -263,25 +267,10 @@ class SGDBackend(BackendInterface):
         
         return json.dumps(view_phenotype.make_details(locus_id=locus_id, phenotype_id=phenotype_id, observable_id=observable_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children))
 
-    def phenotype_resources(self, locus_identifier, are_ids=False):
-        from src.sgd.backend.nex.query_tools import get_urls
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is not None:
-            phenotype_resources = get_urls('Phenotype Resources', bioent_id=locus_id)
-            mutant_resources = get_urls('Mutant Strains', bioent_id=locus_id)
-            phenotype_resources.sort(key=lambda x: x.display_name)
-            mutant_resources.sort(key=lambda x: x.display_name)
-            return json.dumps({'Phenotype Resources': [url.to_json()  for url in phenotype_resources],
-                               'Mutant Resources': [url.to_json()  for url in mutant_resources]})
-        return None
-
     def phenotype_graph(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex import graph_tools
         from src.sgd.model.nex.auxiliary import Bioconceptinteraction
-        from src.sgd.model.evidence import Phenotypeevidence
+        from src.sgd.model.nex.evidence import Phenotypeevidence
 
         if are_ids:
             locus_id = locus_identifier
@@ -374,18 +363,6 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_interaction.make_graph(locus_id))
-        
-    def interaction_resources(self, locus_identifier, are_ids=False):
-        from src.sgd.backend.nex.query_tools import get_urls
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is not None:
-            resources = get_urls('Interaction Resources', bioent_id=locus_id)
-            resources.sort(key=lambda x: x.display_name)
-            return json.dumps([url.to_json() for url in resources])
-        return None
 
     #Literature
     def literature_details(self, locus_identifier=None, reference_identifier=None, topic=None, are_ids=False):
@@ -440,27 +417,6 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(view_protein.make_protein_experiment_details(locus_id=locus_id))
-
-    def protein_resources(self, locus_identifier, are_ids=False):
-        from src.sgd.backend.nex.query_tools import get_urls
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        if locus_id is not None:
-            other = sorted(get_urls('Post-translational modifications', bioent_id=locus_id), key=lambda x: x.display_name)
-            homologs = get_urls('Protein Information Homologs', bioent_id=locus_id)
-            homologs.extend(get_urls('Analyze Sequence S288C vs. other species', bioent_id=locus_id))
-            homologs.sort(key=lambda x: x.display_name)
-            protein_databases = sorted(get_urls('Protein databases/Other', bioent_id=locus_id), key=lambda x: x.display_name)
-            localization = sorted(get_urls('Localization Resources', bioent_id=locus_id), key=lambda x: x.display_name)
-            domain = sorted(get_urls('Domain', bioent_id=locus_id), key=lambda x: x.display_name)
-            return json.dumps({'Homologs': [url.to_json()  for url in homologs],
-                               'Protein Databases': [url.to_json()  for url in protein_databases],
-                               'Localization': [url.to_json()  for url in localization],
-                               'Domain': [url.to_json()  for url in domain],
-                               'Other': [url.to_json()  for url in other]})
-        return None
 
     #Complex
     def complex_details(self, locus_identifier=None, complex_identifier=None, are_ids=False):

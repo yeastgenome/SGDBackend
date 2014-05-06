@@ -188,6 +188,9 @@ class Locus(Bioentity):
         #Aliases
         obj_json['aliases'] = [x.to_json() for x in self.aliases]
 
+        #Urls
+        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
+
         return obj_json
 
 class Complex(Bioentity):

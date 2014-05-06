@@ -62,7 +62,16 @@ class Ontology(Base, EqualityByIDMixin, JsonMixins):
     def __init__(self, obj_json):
         JsonMixins.__init__(self, obj_json)
 
-class Disambig(Base, EqualityByIDMixin, JsonMixins):
+class Strain(Base, EqualityByIDMixin, JsonMixins):
+    __tablename__ = 'strain'
+
+    id = Column('strain_id', Integer, primary_key=True)
+    json = Column('json', CLOB)
+
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
+
+class Disambig(Base, EqualityByIDMixin):
     __tablename__ = 'disambig'
     
     id = Column('disambig_id', Integer, primary_key=True)
@@ -71,13 +80,31 @@ class Disambig(Base, EqualityByIDMixin, JsonMixins):
     subclass_type = Column('subclass', String)
     obj_id = Column('obj_id', Integer)
                 
-    def __init__(self, disambig_id, disambig_key, class_type, subclass_type, obj_id):
-        self.id = disambig_id
-        self.disambig_key = disambig_key
-        self.class_type = class_type
-        self.subclass_type = subclass_type
-        self.obj_id = obj_id
+    def __init__(self, obj_json):
+        self.disambig_key = obj_json['disambig_key']
+        self.class_type = obj_json['class_type']
+        self.subclass_type = obj_json['subclass_type']
+        self.obj_id = obj_json['identifier']
 
-    @classmethod
-    def from_json(cls, obj_json):
-        return cls(obj_json['id'], obj_json['disambig_key'], obj_json['class_type'], obj_json['subclass_type'], obj_json['identifier'])
+    def update(self, obj_json):
+        changed = False
+        if obj_json['disambig_key'] != self.id:
+            self.disambig_key = obj_json['disambig_key']
+            changed = True
+        if obj_json['class_type'] != self.id:
+            self.class_type = obj_json['class_type']
+            changed = True
+        if obj_json['subclass_type'] != self.id:
+            self.subclass_type = obj_json['subclass_type']
+            changed = True
+        if obj_json['obj_id'] != self.id:
+            self.obj_id = obj_json['obj_id']
+            changed = True
+        return changed
+
+    def to_json(self):
+        return {'id': (self.class_type, self.subclass_type, self.obj_id),
+                'disambig_key': self.disambig_key,
+                'class_type': self.class_type,
+                'subclass_type': self.subclass_type,
+                'identifier': self.obj_id}

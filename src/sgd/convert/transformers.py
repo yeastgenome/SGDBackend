@@ -117,7 +117,7 @@ class Obj2NexDB(TransformerInterface):
 
 class Json2CorePerfDB(TransformerInterface):
 
-    def __init__(self, session_maker, cls, name=None, commit_interval=True, commit=False, delete_untouched=False):
+    def __init__(self, session_maker, cls, name=None, commit_interval=None, commit=False, delete_untouched=False):
         self.session = session_maker()
         self.cls = cls
         self.name = name

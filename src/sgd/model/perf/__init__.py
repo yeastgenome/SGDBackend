@@ -15,3 +15,5 @@ class JsonMixins(object):
     def __init__(self, obj_json):
         self.id = obj_json['id']
         self.json = json.dumps(obj_json)
+
+

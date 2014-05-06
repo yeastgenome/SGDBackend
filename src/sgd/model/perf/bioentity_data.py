@@ -8,19 +8,6 @@ from src.sgd.model import EqualityByIDMixin
 
 __author__ = 'kpaskov'
 
-class BioentityOverview(Base, EqualityByIDMixin):
-        __tablename__ = 'bioentity_overview'
-
-        id = Column('bioentity_overview_id', Integer, primary_key=True)
-        bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-        class_type = Column('class', String)
-        json = Column('json', String)
-
-        def __init__(self, bioentity_id, class_type, json):
-            self.bioentity_id = bioentity_id
-            self.class_type = class_type
-            self.json = json
-
 class BioentityGraph(Base, EqualityByIDMixin):
         __tablename__ = 'bioentity_graph'
 
@@ -34,18 +21,34 @@ class BioentityGraph(Base, EqualityByIDMixin):
             self.class_type = class_type
             self.json = json
 
-class BioentityResources(Base, EqualityByIDMixin):
-        __tablename__ = 'bioentity_resources'
+        def __init__(self, obj_json):
+            self.bioentity_id = obj_json['id']
+            self.class_type = obj_json['class_type']
+            self.json = obj_json['json']
+            self.obj_id = obj_json['identifier']
 
-        id = Column('bioentity_resources_id', Integer, primary_key=True)
-        bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-        class_type = Column('class', String)
-        json = Column('json', String)
+        def update(self, obj_json):
+            changed = False
+            if obj_json['disambig_key'] != self.id:
+                self.disambig_key = obj_json['disambig_key']
+                changed = True
+            if obj_json['class_type'] != self.id:
+                self.class_type = obj_json['class_type']
+                changed = True
+            if obj_json['subclass_type'] != self.id:
+                self.subclass_type = obj_json['subclass_type']
+                changed = True
+            if obj_json['obj_id'] != self.id:
+                self.obj_id = obj_json['obj_id']
+                changed = True
+            return changed
 
-        def __init__(self, bioentity_id, class_type, json):
-            self.bioentity_id = bioentity_id
-            self.class_type = class_type
-            self.json = json
+        def to_json(self):
+            return {'id': (self.class_type, self.subclass_type, self.obj_id),
+                    'disambig_key': self.disambig_key,
+                    'class_type': self.class_type,
+                    'subclass_type': self.subclass_type,
+                    'identifier': self.obj_id}
 
 class BioentityEnrichment(Base, EqualityByIDMixin):
         __tablename__ = 'bioentity_enrichment'

@@ -678,6 +678,7 @@ class DNAsequenceevidence(Evidence):
         obj_json['locus']['locus_type'] = self.locus.locus_type
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['status'] = self.strain.status
+        obj_json['tags'] = [x.to_json() for x in self.tags]
         return obj_json
 
     def unique_key(self):
@@ -703,14 +704,15 @@ class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     evidence = relationship(DNAsequenceevidence, uselist=False, backref=backref('tags', passive_deletes=True))
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relative_start', 'relative_end',
-                     'chromosomal_start', 'chromosomal_end', 'phase',
+                     'chromosomal_start', 'chromosomal_end', 'phase', 'evidence_id',
                      'date_created', 'created_by', ]
-    __eq_fks__ = ['evidence']
+    __eq_fks__ = []
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = self.display_name
-        self.class_type = self.display_name.upper()
+        self.format_name = self.class_type
+        self.display_name = self.class_type
+        self.class_type = self.class_type.upper()
 
     def unique_key(self):
         return self.evidence_id, self.class_type, self.chromosomal_start, self.chromosomal_end
