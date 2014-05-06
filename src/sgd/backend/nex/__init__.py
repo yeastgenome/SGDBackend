@@ -66,7 +66,7 @@ class SGDBackend(BackendInterface):
         bioentities = []
         for i in range(0, num_chunks):
             bioentities.extend(DBSession.query(Bioentity).filter(Bioentity.id.in_(bioent_ids[i*500:(i+1)*500])).all())
-        return json.dumps([x.to_json() for x in bioentities])
+        return json.dumps([x.to_semi_json() for x in bioentities])
 
     def locustabs(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.auxiliary import Locustabs
@@ -476,14 +476,6 @@ class SGDBackend(BackendInterface):
             return json.dumps(view_go.make_enrichment(target_ids))
         else:
             return '[]'
-
-    def regulation_paragraph(self, locus_identifier, are_ids=False):
-        from src.sgd.backend.nex import view_regulation
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_regulation.make_paragraph(locus_id))
       
     #Binding
     def binding_site_details(self, locus_identifier=None, are_ids=False):
