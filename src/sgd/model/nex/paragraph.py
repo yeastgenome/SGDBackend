@@ -1,5 +1,5 @@
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date, CLOB
 
@@ -52,8 +52,8 @@ class ParagraphReference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     
     #Relationships
-    paragraph = relationship(Paragraph, uselist=False, backref='paragraph_references')
-    reference = relationship(Reference, uselist=False)
+    paragraph = relationship(Paragraph, uselist=False, backref=backref('paragraph_references', passive_deletes=True))
+    reference = relationship(Reference, uselist=False, backref=backref('paragraph_references', passive_deletes=True))
 
     __eq_values__ = ['id', 'paragraph_id', 'reference_id']
     __eq_fks__ = []
@@ -71,7 +71,7 @@ class Bioentityparagraph(Paragraph):
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
 
     #Relationships
-    bioentity = relationship(Bioentity, uselist=False, backref='paragraphs')
+    bioentity = relationship(Bioentity, uselist=False, backref=backref('paragraphs', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "BIOENTITY", 'inherit_condition': id==Paragraph.id}
     __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by']
@@ -88,7 +88,7 @@ class Strainparagraph(Paragraph):
     strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
 
     #Relationships
-    strain = relationship(Strain, uselist=False, backref='paragraphs')
+    strain = relationship(Strain, uselist=False, backref=backref('paragraphs', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "STRAIN", 'inherit_condition': id==Paragraph.id}
     __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by']
@@ -105,7 +105,7 @@ class Referenceparagraph(Paragraph):
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
 
     #Relationships
-    reference = relationship(Reference, uselist=False, backref='paragraphs')
+    reference = relationship(Reference, uselist=False, backref=backref('paragraphs', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "REFERENCE", 'inherit_condition': id==Paragraph.id}
     __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by']

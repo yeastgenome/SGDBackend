@@ -231,10 +231,11 @@ class Observable(Bioconcept):
                 else:
                     large_scale_groups[evidence.mutant_type] = 1
 
-            if evidence.strain.display_name in strain_groups:
-                strain_groups[evidence.strain.display_name] += 1
-            else:
-                strain_groups[evidence.strain.display_name] = 1
+            if evidence.strain is not None:
+                if evidence.strain.display_name in strain_groups:
+                    strain_groups[evidence.strain.display_name] += 1
+                else:
+                    strain_groups[evidence.strain.display_name] = 1
         experiment_categories = [['Mutant Type', 'classical genetics', 'large-scale survey']]
         mutant_types = set(classical_groups.keys())
         mutant_types.update(large_scale_groups.keys())
@@ -300,11 +301,11 @@ class Phenotype(Bioconcept):
                     large_scale_groups[evidence.mutant_type] += 1
                 else:
                     large_scale_groups[evidence.mutant_type] = 1
-
-            if evidence.strain.display_name in strain_groups:
-                strain_groups[evidence.strain.display_name] += 1
-            else:
-                strain_groups[evidence.strain.display_name] = 1
+            if evidence.strain is not None:
+                if evidence.strain.display_name in strain_groups:
+                    strain_groups[evidence.strain.display_name] += 1
+                else:
+                    strain_groups[evidence.strain.display_name] = 1
         experiment_categories = [['Mutant Type', 'classical genetics', 'large-scale survey']]
         mutant_types = set(classical_groups.keys())
         mutant_types.update(large_scale_groups.keys())

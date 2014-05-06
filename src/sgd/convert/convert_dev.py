@@ -384,11 +384,11 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, ArchiveLiteratureevidence, Evidence, 'ARCH_LITERATURE')
     #
-    do_conversion(make_phenotype_evidence_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Phenotypeevidence),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Phenotypeevidence), name='convert.from_bud.evidence.phenotype', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Phenotypeevidence, Evidence, 'PHENOTYPE')
+    # do_conversion(make_phenotype_evidence_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Phenotypeevidence),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Phenotypeevidence), name='convert.from_bud.evidence.phenotype', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Phenotypeevidence, Evidence, 'PHENOTYPE')
     #
     # do_conversion(make_phosphorylation_evidence_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Phosphorylationevidence),
@@ -449,11 +449,11 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Bioentityparagraph, Paragraph, 'BIOENTITY')
     #
-    # do_conversion(make_strain_paragraph_starter(nex_session_maker),
-    #               [Json2Obj(Strainparagraph),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strainparagraph), name='convert.from_bud.paragraph.strain', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Strainparagraph, Paragraph, 'STRAIN')
+    do_conversion(make_strain_paragraph_starter(nex_session_maker),
+                  [Json2Obj(Strainparagraph),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Strainparagraph), name='convert.from_bud.paragraph.strain', delete_untouched=True, commit=True),
+                   OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Strainparagraph, Paragraph, 'STRAIN')
     #
     # do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Referenceparagraph),

@@ -26,13 +26,13 @@ strain_paragraphs = {'S288C': ('S288C is a widely used laboratory strain, design
               'EC9-8': ("EC9-8 is a haploid cadmium-resistant derivative of a yeast isolated from the valley bottom of Evolution Canyon at Lower Nahal Oren, Israel.", [21483812]),
               'FL100': ("FL100 is a commonly used laboratory strain.  FL100 has a duplication of 80 kb of chromosome III on the left arm chromosome I, and has lost ~45 kb from right end of chromosome I.", [9605505]),
               'Kyokai7': ("Kyokai No. 7 (K7) is the most extensively used sake yeast, and was first isolated from a sake brewery in Nagano Prefecture, Japan, in 1946.  K7 has two large inversions on chromosomes V and XIV, both flanked by transposable elements and inverted repeats, two CNV reductions on chromosomes I and VII and a mosaic-like pattern and non-random distribution of variation compared with S288C. There are 48 ORFs in K7 that are absent in S288C, and 49 ORFs in S288C that are missing from K7.", [21900213]),
-              'QA23': ("QA23 is a cold-tolerant Portuguese wine strain from the Vinho Verde region. QA23 has low nutrient and oxygen requirements, and exhibits high beta-glucosidase activity, a combination that makes beautiful Sauvignon blancs. QA23 has 110 ORFs that are not present in S288C.", [21304888]),
+              'LalvinQA23': ("QA23 is a cold-tolerant Portuguese wine strain from the Vinho Verde region. QA23 has low nutrient and oxygen requirements, and exhibits high beta-glucosidase activity, a combination that makes beautiful Sauvignon blancs. QA23 has 110 ORFs that are not present in S288C.", [21304888]),
               'PW5': ("PW5 was isolated from fermented sap of a Raphia palm tree in Aba, Abia state, Nigeria in 2002. PW5 shares with YJM269 and CEN.PK113-7D some genes that are absent from S288C.", [22448915]),
               'T7': ("T7 was isolated from oak tree exudate in Missouri's Babler State Park. ", []),
               'T73': ("T73 is from a Mourvedre (aka Monastrell) red wine made in Alicante, Spain, in 1987. T73 has low nitrogen requirements, high alcohol tolerance and low volatile acidity production, making it ideal for fermenting robust structured reds grown in hot climates.", []),
               'UC5': ("UC5 came from Sene sake in Kurashi, Japan, sometime before 1974.", []),
               'VL3': ("VL3 was isolated in Bordeaux, France, and is most suited to the production of premium aromatic white wines with high thiol content (citrus and tropical fruit characters). VL3 has a whole-chromosome amplification of chromosome VIII, as well as 54 ORFs that are missing from S288C.", [21304888]),
-              'K6001': ("W303-derivative K6001 is a key model organism for research into aging, and shares >85% of its genome with S288C, differing at >8000 nucleotide positions, causing changes to the sequences of 799 proteins. These differences are distributed non-randomly throughout the genome, with chromosome XVI being almost identical between the two strains, and chromosome XI the most divergent. Some of the non-S288C regions in W303 are also present in Sigma1278b.", [22977733]),
+              'W303': ("W303-derivative K6001 is a key model organism for research into aging, and shares >85% of its genome with S288C, differing at >8000 nucleotide positions, causing changes to the sequences of 799 proteins. These differences are distributed non-randomly throughout the genome, with chromosome XVI being almost identical between the two strains, and chromosome XI the most divergent. Some of the non-S288C regions in W303 are also present in Sigma1278b.", [22977733]),
               'Y10': ("Y10 was isolated from a coconut in the Philippines, sometime before 1973.", []),
               'YJM269': ("YJM269 came from red Blauer Portugieser grapes in Austria in 1954. YJM269 shares with CEN.PK113-7D some genes that are absent from S288C, including the ENA6 sodium pump, and others that are also found in PW5.", [22448915]),
               'BY4741': ("BY4741 is an S288C-deriviative strain that was used for the systematic deletion collection. Variation between these BY4741 and S288C is miniscule.", []),
@@ -107,7 +107,7 @@ def make_strain_paragraph_starter(nex_session_maker):
         for strain_key, paragraph in strain_paragraphs.iteritems():
             if strain_key in key_to_strain:
                 text = paragraph[0]
-                html = link_gene_names(text, set(), nex_session)
+                html = link_gene_names(text, {'HO'}, nex_session)
                 html = link_strain_names(html, {key_to_strain[strain_key].display_name}, nex_session)
                 yield {
                     'source': key_to_source['SGD'],
