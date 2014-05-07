@@ -32,16 +32,6 @@ SELECT bioentity_enrichment_seq.nextval INTO :new.bioentity_enrichment_id FROM D
 END;
 /
 
-DROP TRIGGER BIOENTITY_PARAGRAPH_TRIGGER;
---/
-CREATE TRIGGER BIOENTITY_PARAGRAPH_TRIGGER
-BEFORE INSERT ON bioentity_paragraph
-FOR EACH ROW
-BEGIN
-SELECT bioentity_paragraph_seq.nextval INTO :new.bioentity_paragraph_id FROM DUAL;
-END;
-/
-
 DROP TRIGGER BIOENTITY_DETAILS_TRIGGER;
 --/
 CREATE TRIGGER BIOENTITY_DETAILS_TRIGGER

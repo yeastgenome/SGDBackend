@@ -88,16 +88,16 @@ class Disambig(Base, EqualityByIDMixin):
 
     def update(self, obj_json):
         changed = False
-        if obj_json['disambig_key'] != self.id:
+        if obj_json['disambig_key'] != self.disambig_key:
             self.disambig_key = obj_json['disambig_key']
             changed = True
-        if obj_json['class_type'] != self.id:
+        if obj_json['class_type'] != self.class_type:
             self.class_type = obj_json['class_type']
             changed = True
-        if obj_json['subclass_type'] != self.id:
+        if obj_json['subclass_type'] != self.subclass_type:
             self.subclass_type = obj_json['subclass_type']
             changed = True
-        if obj_json['obj_id'] != self.id:
+        if obj_json['obj_id'] != self.obj_id:
             self.obj_id = obj_json['obj_id']
             changed = True
         return changed

@@ -301,8 +301,6 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
                 source_key = 'SUPERFAMILY'
             elif source_key == 'Seg' or source_key == 'Coil':
                 source_key = '-'
-            else:
-                source_key = None
 
             bioent_key = (row[1].strip(), 'LOCUS')
             domain_key = (create_format_name(row[3].strip()), 'DOMAIN')
@@ -997,16 +995,19 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
             experiment_format_name = create_format_name(row[4].strip())
             experiment_eco_id = row[5].strip()
             strain_key = None if row[7] == '""' else row[7]
-            direction = None if row[8] == '""' else row[8]
-            pvalue = None if row[9] == '""' else row[9]
-            fdr = None if row[10] == '""' else row[10]
-            pubmed_id = int(row[11].strip())
-            source_key = row[12].strip()
+            #direction = None if row[8] == '""' else row[8]
+            #pvalue = None if row[9] == '""' else row[9]
+            #fdr = None if row[10] == '""' else row[10]
+            #pubmed_id = int(row[11].strip())
+            #source_key = row[12].strip()
+            pubmed_id = int(row[9].strip())
+            source_key = row[10].strip()
 
             if strain_key == 'CEN.PK':
                 strain_key = 'CENPK'
 
-            if bioent1_key in key_to_bioentity and bioent2_key in key_to_bioentity and (strain_key is None or strain_key in key_to_strain) and \
+            #(strain_key is None or strain_key in key_to_strain) and \
+            if bioent1_key in key_to_bioentity and bioent2_key in key_to_bioentity and \
                             pubmed_id in pubmed_to_reference and source_key in key_to_source and \
                 (experiment_format_name in key_to_experiment or experiment_eco_id in key_to_experiment):
                 conditions = []
@@ -1018,13 +1019,13 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
 
                 yield {'source': key_to_source[source_key],
                        'reference': pubmed_to_reference[pubmed_id],
-                       'strain': None if strain_key is None else key_to_strain[strain_key],
+                       'strain': None if strain_key is None or strain_key not in key_to_strain else key_to_strain[strain_key],
                        'experiment': key_to_experiment[experiment_format_name] if experiment_format_name in key_to_experiment else key_to_experiment[experiment_eco_id],
                        'locus1': key_to_bioentity[bioent1_key],
                        'locus2': key_to_bioentity[bioent2_key],
-                       'direction': direction,
-                       'pvalue': pvalue,
-                       'fdr': fdr,
+                       #'direction': direction,
+                       #'pvalue': pvalue,
+                       #'fdr': fdr,
                        'properties': conditions}
             else:
                 print 'Bioentity or strain or reference or source or experiment not found: ' + str(bioent1_key) + ' ' + \
@@ -1075,8 +1076,7 @@ def make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_f
                         contig_key = (strain_key + '_' + parent_id, 'CONTIG')
 
                         if bioentity_key in key_to_bioentity and contig_key in key_to_bioitem:
-                            if strand == '-':
-                                yield {'source': key_to_source['SGD'],
+                            yield {'source': key_to_source['SGD'],
                                         'strain': key_to_strain[strain_key],
                                         'locus': key_to_bioentity[bioentity_key],
                                         'dna_type': 'GENOMIC',
