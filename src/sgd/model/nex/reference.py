@@ -99,6 +99,7 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     doi = Column('doi', String)
     created_by = Column('created_by', String, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
+    class_type = 'REFERENCE'
     
     #Relationships  
     book = relationship(Book, uselist=False)

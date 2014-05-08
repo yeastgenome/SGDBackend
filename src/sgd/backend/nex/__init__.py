@@ -269,7 +269,7 @@ class SGDBackend(BackendInterface):
 
     def phenotype_graph(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex import graph_tools
-        from src.sgd.model.nex.auxiliary import Bioconceptinteraction
+        from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioiteminteraction
         from src.sgd.model.nex.evidence import Phenotypeevidence
 
         if are_ids:
@@ -280,7 +280,7 @@ class SGDBackend(BackendInterface):
 
     def locus_graph(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex import graph_tools, view_interaction, view_regulation, view_literature
-        from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioentityinteraction
+        from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioiteminteraction, Bioentityinteraction
         if are_ids:
             locus_id = locus_identifier
         else:
@@ -290,26 +290,66 @@ class SGDBackend(BackendInterface):
         else:
             phenotype_graph = graph_tools.make_graph(locus_id, Bioconceptinteraction, 'PHENOTYPE', 'LOCUS')
             go_graph = graph_tools.make_graph(locus_id, Bioconceptinteraction, 'GO', 'LOCUS')
+            domain_graph = graph_tools.make_graph(locus_id, Bioiteminteraction, 'DOMAIN', 'LOCUS')
+            literature_graph = view_literature.make_graph(locus_id)
+            regulation_graph = view_regulation.make_graph(locus_id)
+            interaction_graph = view_interaction.make_graph(locus_id)
 
             new_graph_nodes = {}
             new_graph_nodes.update([(x['data']['id'], x) for x in phenotype_graph['nodes']])
             new_graph_nodes.update([(x['data']['id'], x) for x in go_graph['nodes']])
+            new_graph_nodes.update([(x['data']['id'], x) for x in domain_graph['nodes']])
+            new_graph_nodes.update([(x['data']['id'], x) for x in literature_graph['nodes']])
+            new_graph_nodes.update([(x['data']['id'], x) for x in regulation_graph['nodes']])
+            new_graph_nodes.update([(x['data']['id'], x) for x in interaction_graph['nodes']])
+
+            id_to_score = dict([(x, 0) for x in new_graph_nodes.keys()])
+            id_to_bioents = dict([(x, set()) for x in new_graph_nodes.keys()])
+            central_id = 'BIOENTITY' + str(locus_id)
+            for edge in phenotype_graph['edges']:
+                id_to_score[edge['data']['target']] += 1
+                id_to_bioents[edge['data']['source']].add(edge['data']['target'])
+            for edge in go_graph['edges']:
+                id_to_score[edge['data']['target']] += 1
+                id_to_bioents[edge['data']['source']].add(edge['data']['target'])
+            for edge in domain_graph['edges']:
+                id_to_score[edge['data']['target']] += 1
+                id_to_bioents[edge['data']['source']].add(edge['data']['target'])
+            for edge in literature_graph['edges']:
+                id_to_score[edge['data']['target']] += 1
+                id_to_bioents[edge['data']['source']].add(edge['data']['target'])
+
+            to_be_used = {}
+            for id, score in id_to_score.iteritems():
+                new_graph_nodes[id]['data']['score'] = score
+                if score >= 3:
+                    to_be_used[id] = new_graph_nodes[id]
+            for id, bioents in id_to_bioents.iteritems():
+                if len(bioents) > 0:
+                    score = max([id_to_score[x] if x != central_id else 0 for x in bioents])
+                    new_graph_nodes[id]['data']['score'] = score
+                    if score >= 3:
+                        to_be_used[id] = new_graph_nodes[id]
 
             locus_ids = set()
             for node_id in new_graph_nodes.keys():
                 if node_id.startswith('BIOENTITY'):
                     locus_ids.add(int(node_id[9:]))
 
-            physinteraction_graph = graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'PHYSINTERACTION')
-            geninteraction_graph = graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'GENINTERACTION')
+            physinteraction_graph = graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'PHYSINTERACTION', min_evidence_count=3)
+            geninteraction_graph = graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'GENINTERACTION', min_evidence_count=3)
+            regulation_graph = graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'REGULATION', min_evidence_count=3)
 
-            new_graph_edges = {}
-            new_graph_edges.update([((x['data']['source'], x['data']['target']), x) for x in phenotype_graph['edges']])
-            new_graph_edges.update([((x['data']['source'], x['data']['target']), x) for x in go_graph['edges']])
-            new_graph_edges.update([((x['data']['source'], x['data']['target']), x) for x in physinteraction_graph['edges']])
-            new_graph_edges.update([((x['data']['source'], x['data']['target']), x) for x in geninteraction_graph['edges']])
+            new_graph_edges = []
+            new_graph_edges.extend([x for x in phenotype_graph['edges'] if x['data']['target'] in to_be_used and x['data']['source'] in to_be_used])
+            new_graph_edges.extend([x for x in go_graph['edges'] if x['data']['target'] in to_be_used and x['data']['source'] in to_be_used])
+            new_graph_edges.extend([x for x in domain_graph['edges'] if x['data']['target'] in to_be_used and x['data']['source'] in to_be_used])
+            new_graph_edges.extend([x for x in literature_graph['edges'] if x['data']['target'] in to_be_used and x['data']['source'] in to_be_used])
+            new_graph_edges.extend([x for x in physinteraction_graph['edges'] if x['data']['target'] in to_be_used and x['data']['source'] in to_be_used])
+            new_graph_edges.extend([x for x in geninteraction_graph['edges'] if x['data']['target'] in to_be_used and x['data']['source'] in to_be_used])
+            new_graph_edges.extend([x for x in regulation_graph['edges'] if x['data']['target'] in to_be_used and x['data']['source'] in to_be_used])
 
-        return None if locus_id is None else json.dumps({'nodes': new_graph_nodes.values(), 'edges': new_graph_edges.values()})
+        return None if locus_id is None else json.dumps({'nodes': to_be_used.values(), 'edges': new_graph_edges})
 
     # Go
     def go_ontology_graph(self, go_identifier, are_ids=False):
@@ -395,12 +435,13 @@ class SGDBackend(BackendInterface):
         return None if locus_id is None and domain_id is None else json.dumps(view_protein.make_details(locus_id=locus_id, domain_id=domain_id))
 
     def protein_domain_graph(self, locus_identifier, are_ids=False):
-        import view_protein
+        import graph_tools
+        from src.sgd.model.nex.auxiliary import Bioiteminteraction
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return None if locus_id is None else json.dumps(view_protein.make_graph(locus_id=locus_id))
+        return None if locus_id is None else json.dumps(graph_tools.make_graph(locus_id, Bioiteminteraction, 'DOMAIN', 'LOCUS'))
 
     def protein_phosphorylation_details(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex import view_protein

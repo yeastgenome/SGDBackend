@@ -1015,6 +1015,8 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
                 if condition_value != '""':
                     from src.sgd.model.nex.evidence import Generalproperty
                     condition_value = condition_value.replace('??', "\00b5")
+                    if condition_value.startswith('"') and condition_value.endswith('"'):
+                        condition_value = condition_value[1:-1]
                     conditions.append(Generalproperty({'note': condition_value}))
 
                 yield {'source': key_to_source[source_key],

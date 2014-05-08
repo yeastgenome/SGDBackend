@@ -76,18 +76,18 @@ def create_litguide_bioent_node(bioent, is_focus):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'LocusNode' + str(bioent.id), 'name':bioent.display_name, 'link': bioent.link,
-                    'sub_type':sub_type, 'type': 'BIOENT'}}
+    return {'data':{'id': 'BIOENTITY' + str(bioent.id), 'name':bioent.display_name, 'link': bioent.link,
+                    'sub_type':sub_type, 'type': 'BIOENTITY'}}
     
 def create_litguide_ref_node(reference, is_focus):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'RefNode' + str(reference.id), 'name':reference.display_name, 'link': reference.link,
+    return {'data':{'id':'INTERACTOR_REFERENCE' + str(reference.id), 'name':reference.display_name, 'link': reference.link,
                     'sub_type':sub_type, 'type': 'REFERENCE'}}
 
 def create_litguide_edge(bioent_id, reference_id):
-    return {'data':{'target': 'LocusNode' + str(bioent_id), 'source': 'RefNode' + str(reference_id)}}
+    return {'data':{'target': 'BIOENTITY' + str(bioent_id), 'source': 'INTERACTOR_REFERENCE' + str(reference_id)}}
 
 def make_graph(bioent_id):
     

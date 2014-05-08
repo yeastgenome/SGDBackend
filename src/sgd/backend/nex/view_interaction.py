@@ -52,12 +52,12 @@ def create_node(bioent, is_focus, gen_ev_count, phys_ev_count):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'Node' + str(bioent.id), 'name':bioent.display_name, 'link': bioent.link,
+    return {'data':{'id':'BIOENTITY' + str(bioent.id), 'name':bioent.display_name, 'link': bioent.link,
                     'physical': phys_ev_count, 'genetic': gen_ev_count, 'evidence':max(phys_ev_count, gen_ev_count), 
-                    'sub_type':sub_type}}
+                    'sub_type':sub_type, 'type': 'BIOENTITY'}}
 
 def create_edge(bioent1_id, bioent2_id, total_ev_count, class_type):
-    return {'data':{'target': 'Node' + str(bioent1_id), 'source': 'Node' + str(bioent2_id), 
+    return {'data':{'target': 'BIOENTITY' + str(bioent1_id), 'source': 'BIOENTITY' + str(bioent2_id),
             'evidence':total_ev_count, 'class_type': class_type}}
     
 def make_graph(bioent_id):

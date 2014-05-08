@@ -486,7 +486,7 @@ class Regulationevidence(Evidence):
         self.property_key = None if len(self.properties) == 0 else ';'.join(x.format_name for x in sorted(self.properties, key=lambda x: x.format_name))
 
     def unique_key(self):
-        return self.class_type, self.locus1_id, self.locus2_id, self.experiment_id, self.reference_id, self.property_key
+        return self.class_type, self.locus1_id, self.locus2_id, self.experiment_id, self.reference_id, self.strain_id, self.property_key
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)

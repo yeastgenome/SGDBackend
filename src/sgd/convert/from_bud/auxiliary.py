@@ -4,8 +4,9 @@ from src.sgd.convert import is_number
 from src.sgd.convert.transformers import make_db_starter
 from src.sgd.model.nex.bioentity import Locus, Complex
 from src.sgd.model.nex.bioconcept import Bioconcept, Go
+from src.sgd.model.nex.bioitem import Bioitem
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence, Regulationevidence, Goevidence, \
-    Phenotypeevidence, Literatureevidence
+    Phenotypeevidence, Literatureevidence, Domainevidence
 
 __author__ = 'kpaskov'
     
@@ -119,6 +120,23 @@ def make_bioconcept_interaction_starter(nex_session_maker):
 
         nex_session.close()
     return bioconcept_interaction_starter
+
+# --------------------- Convert Bioiteminteraction ---------------------
+def make_bioitem_interaction_starter(nex_session_maker):
+    def bioitem_interaction_starter():
+        nex_session = nex_session_maker()
+
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+        id_to_bioitem = dict([(x.id, x) for x in nex_session.query(Bioitem).all()])
+
+        #Domain
+        for row in nex_session.query(Domainevidence.locus_id, Domainevidence.domain_id, func.count(Domainevidence.id)).group_by(Domainevidence.locus_id, Domainevidence.domain_id).all():
+            domain = id_to_bioitem[row[1]]
+            locus = id_to_bioentity[row[0]]
+            yield {'interaction_type': 'DOMAIN', 'evidence_count': row[2], 'bioentity': locus, 'interactor': domain}
+
+        nex_session.close()
+    return bioitem_interaction_starter
 
 # --------------------- Convert Reference Interactions ---------------------
 def make_reference_interaction_starter(nex_session_maker):
