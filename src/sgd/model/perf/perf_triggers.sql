@@ -1,0 +1,89 @@
+/* Disambig */
+
+DROP TRIGGER DISAMBIG_TRIGGER;
+--/
+CREATE TRIGGER DISAMBIG_TRIGGER
+BEFORE INSERT ON disambig
+FOR EACH ROW
+BEGIN
+SELECT disambig_seq.nextval INTO :new.disambig_id FROM DUAL;
+END;
+/
+
+/* Bioentity */
+
+DROP TRIGGER BIOENTITY_GRAPH_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_GRAPH_TRIGGER
+BEFORE INSERT ON bioentity_graph
+FOR EACH ROW
+BEGIN
+SELECT bioentity_graph_seq.nextval INTO :new.bioentity_graph_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_ENRICHMENT_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_ENRICHMENT_TRIGGER
+BEFORE INSERT ON bioentity_enrichment
+FOR EACH ROW
+BEGIN
+SELECT bioentity_enrichment_seq.nextval INTO :new.bioentity_enrichment_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOENTITY_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER BIOENTITY_DETAILS_TRIGGER
+BEFORE INSERT ON bioentity_details
+FOR EACH ROW
+BEGIN
+SELECT bioentity_details_seq.nextval INTO :new.bioentity_details_id FROM DUAL;
+END;
+/
+
+/* Bioconcept */
+
+DROP TRIGGER BIOCONCEPT_GRAPH_TRIGGER;
+--/
+CREATE TRIGGER BIOCONCEPT_GRAPH_TRIGGER
+BEFORE INSERT ON bioconcept_graph
+FOR EACH ROW
+BEGIN
+SELECT bioconcept_graph_seq.nextval INTO :new.bioconcept_graph_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BIOCONCEPT_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER BIOCONCEPT_DETAILS_TRIGGER
+BEFORE INSERT ON bioconcept_details
+FOR EACH ROW
+BEGIN
+SELECT bioconcept_details_seq.nextval INTO :new.bioconcept_details_id FROM DUAL;
+END;
+/
+
+/* Reference */
+DROP TRIGGER REFERENCE_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER REFERENCE_DETAILS_TRIGGER
+BEFORE INSERT ON reference_details
+FOR EACH ROW
+BEGIN
+SELECT reference_details_seq.nextval INTO :new.reference_details_id FROM DUAL;
+END;
+/
+
+/* BIOITEM */
+DROP TRIGGER BIOITEM_DETAILS_TRIGGER;
+--/
+CREATE TRIGGER BIOITEM_DETAILS_TRIGGER
+BEFORE INSERT ON bioitem_details
+FOR EACH ROW
+BEGIN
+SELECT bioitem_details_seq.nextval INTO :new.bioitem_details_id FROM DUAL;
+END;
+/
+
+
