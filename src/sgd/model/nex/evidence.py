@@ -155,8 +155,8 @@ class Goevidence(Evidence):
     reference = relationship(Reference, backref=backref('go_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('go_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('go_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref='go_evidences')
-    go = relationship(Go, uselist=False, backref='go_evidences')
+    locus = relationship(Locus, uselist=False, backref=backref('go_evidences', passive_deletes=True))
+    go = relationship(Go, uselist=False, backref=backref('go_evidences', passive_deletes=True))
     
     __mapper_args__ = {'polymorphic_identity': "GO", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -208,7 +208,7 @@ class Geninteractionevidence(Evidence, UpdateByJsonMixin):
     experiment = relationship(Experiment, backref=backref('geninteraction_evidences', passive_deletes=True), uselist=False)
     locus1 = relationship(Locus, uselist=False, foreign_keys=[locus1_id], backref=backref('geninteraction_evidences1', passive_deletes=True))
     locus2 = relationship(Locus, uselist=False, foreign_keys=[locus2_id], backref=backref('geninteraction_evidences2', passive_deletes=True))
-    phenotype = relationship(Phenotype, uselist=False, backref='geninteraction_evidences')
+    phenotype = relationship(Phenotype, uselist=False, backref=backref('geninteraction_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "GENINTERACTION", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -277,7 +277,7 @@ class Literatureevidence(Evidence):
     reference = relationship(Reference, backref=backref('literature_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('literature_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('literature_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref='literature_evidences')
+    locus = relationship(Locus, uselist=False, backref=backref('literature_evidences', passive_deletes=True))
     
     __mapper_args__ = {'polymorphic_identity': "LITERATURE", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -315,7 +315,7 @@ class Bioentityevidence(Evidence):
     reference = relationship(Reference, backref=backref('bioentity_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('bioentity_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('bioentity_evidences', passive_deletes=True), uselist=False)
-    bioentity = relationship(Bioentity, uselist=False, backref='bioentity_evidences')
+    bioentity = relationship(Bioentity, uselist=False, backref=backref('bioentity_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "BIOENTITY", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -351,8 +351,8 @@ class Phenotypeevidence(Evidence):
     reference = relationship(Reference, backref=backref('phenotype_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('phenotype_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('phenotype_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref='phenotype_evidences')
-    phenotype = relationship(Phenotype, uselist=False, backref='phenotype_evidences')
+    locus = relationship(Locus, uselist=False, backref=backref('phenotype_evidences', passive_deletes=True))
+    phenotype = relationship(Phenotype, uselist=False, backref=backref('phenotype_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -391,7 +391,7 @@ class Aliasevidence(Evidence):
     reference = relationship(Reference, backref=backref('alias_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('alias_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('alias_evidences', passive_deletes=True), uselist=False)
-    alias = relationship(Alias, uselist=False, backref='alias_evidences')
+    alias = relationship(Alias, uselist=False, backref=backref('alias_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "ALIAS", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -433,8 +433,8 @@ class Domainevidence(Evidence):
     reference = relationship(Reference, backref=backref('domain_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('domain_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('domain_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref='domain_evidences')
-    domain = relationship(Domain, uselist=False, backref="domain_evidences")
+    locus = relationship(Locus, uselist=False, backref=backref('domain_evidences', passive_deletes=True))
+    domain = relationship(Domain, uselist=False, backref=backref('domain_evidences', passive_deletes=True))
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -514,7 +514,7 @@ class Bindingevidence(Evidence):
     reference = relationship(Reference, backref=backref('binding_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('binding_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('binding_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref='binding_evidences')
+    locus = relationship(Locus, uselist=False, backref=backref('binding_evidences', passive_deletes=True))
        
     __mapper_args__ = {'polymorphic_identity': 'BINDING', 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -586,8 +586,8 @@ class ECNumberevidence(Evidence):
     reference = relationship(Reference, backref=backref('ecnumber_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('ecnumber_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('ecnumber_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref='ecnumber_evidences')
-    ecnumber = relationship(ECNumber, uselist=False, backref='ecnumber_evidences')
+    locus = relationship(Locus, uselist=False, backref=backref('ecnumber_evidences', passive_deletes=True))
+    ecnumber = relationship(ECNumber, uselist=False, backref=backref('ecnumber_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "ECNUMBER", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -624,7 +624,7 @@ class Proteinexperimentevidence(Evidence):
     reference = relationship(Reference, backref=backref('proteinexperiment_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('proteinexperiment_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('proteinexperiment_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref='proteinexperiment_evidences')
+    locus = relationship(Locus, uselist=False, backref=backref('proteinexperiment_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "PROTEINEXPERIMENT", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -661,8 +661,8 @@ class DNAsequenceevidence(Evidence):
     reference = relationship(Reference, backref=backref('dnasequence_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('dnasequence_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('dnasequence_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref='dnasequence_evidences')
-    contig = relationship(Contig, uselist=False, backref='dnasequence_evidences')
+    locus = relationship(Locus, uselist=False, backref=backref('dnasequence_evidences', passive_deletes=True))
+    contig = relationship(Contig, uselist=False, backref=backref('dnasequence_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "DNASEQUENCE", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -784,7 +784,7 @@ class Proteinsequenceevidence(Evidence):
     reference = relationship(Reference, backref=backref('proteinsequence_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('proteinsequence_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('proteinsequence_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref='proteinsequence_evidences')
+    locus = relationship(Locus, uselist=False, backref=backref('proteinsequence_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "PROTEINSEQUENCE", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
@@ -850,7 +850,7 @@ class Phosphorylationevidence(Evidence):
     reference = relationship(Reference, backref=backref('phosphorylation_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('phosphorylation_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('phosphorylation_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref='phosphorylation_evidences')
+    locus = relationship(Locus, uselist=False, backref=backref('phosphorylation_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "PHOSPHORYLATION", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',

@@ -17,12 +17,12 @@ if __name__ == "__main__":
 
     # # ------------------------------------------ Evelements ------------------------------------------
     # Bud -> Nex
-    from src.sgd.model.nex.misc import Source, Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl
-    from src.sgd.model.nex.auxiliary import Disambig
-    from src.sgd.model.perf.core import Strain as PerfStrain
-    from src.sgd.convert.from_bud.evelements import make_source_starter, make_strain_starter, make_experiment_starter, \
-        make_experiment_alias_starter, make_experiment_relation_starter, make_strain_url_starter
-    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    # from src.sgd.model.nex.misc import Source, Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl
+    # from src.sgd.model.nex.auxiliary import Disambig
+    # from src.sgd.model.perf.core import Strain as PerfStrain
+    # from src.sgd.convert.from_bud.evelements import make_source_starter, make_strain_starter, make_experiment_starter, \
+    #     make_experiment_alias_starter, make_experiment_relation_starter, make_strain_url_starter
+    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     # do_conversion(make_source_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Source),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Source), name='convert.from_bud.source', delete_untouched=True, commit=True)])
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # do_conversion(make_strain_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Strain),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strain), name='convert.from_bud.strain', delete_untouched=True, commit=True)])
-
+    #
     # do_conversion(make_strain_url_starter(nex_session_maker),
     #               [Json2Obj(Strainurl),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strainurl), name='convert.from_bud.strain.url', delete_untouched=True, commit_interval=1000),
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     # do_conversion(make_disambig_starter(nex_session_maker, Strain, ['id', 'format_name'], 'STRAIN', None),
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'STRAIN'), name='convert.from_bud.strain.disambig', delete_untouched=True, commit=True)])
-
+    #
     # # Nex -> Perf
     # do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True),
@@ -70,49 +70,49 @@ if __name__ == "__main__":
         make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     from src.sgd.model.nex.paragraph import Bioentityparagraph
-    #
-    # do_conversion(make_locus_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Locus),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locus), name='convert.from_bud.bioentity.locus', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS')
-    #
-    # do_conversion(make_complex_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Complex),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Complex), name='convert.from_bud.bioentity.complex', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS')
-    #
-    # do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Locustabs),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locustabs), name='convert.from_bud.bioentity.locustabs', delete_untouched=True, commit=True)])
-    #
-    # do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Bioentityalias),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityalias), name='convert.from_bud.bioentity.alias', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Bioentityalias, Alias, 'BIOENTITY')
-    #
-    # do_conversion(make_bioentity_relation_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Bioentityrelation),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityrelation), name='convert.from_bud.bioentity.relation', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Bioentityrelation, Relation, 'BIOENTITY')
-    #
-    # do_conversion(make_bioentity_url_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Bioentityurl),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityurl), name='convert.from_bud.bioentity.url', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(10000)])
-    # clean_up_orphans(nex_session_maker, Bioentityurl, Url, 'BIOENTITY')
-    #
-    # do_conversion(make_disambig_starter(nex_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS'),
-    #               [Json2Obj(Disambig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'LOCUS'), name='convert.from_bud.bioentity.disambig.locus', delete_untouched=True, commit=True)])
-    #
-    # do_conversion(make_disambig_starter(nex_session_maker, Complex, ['id', 'format_name'], 'BIOENTITY', 'COMPLEX'),
-    #               [Json2Obj(Disambig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'COMPLEX'), name='convert.from_bud.bioentity.disambig.complex', delete_untouched=True, commit=True)])
-    #
-    # # Nex -> Perf
-    # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True),
-    #                OutputTransformer(1000)])
+
+    do_conversion(make_locus_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Locus),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Locus), name='convert.from_bud.bioentity.locus', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS')
+
+    do_conversion(make_complex_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Complex),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Complex), name='convert.from_bud.bioentity.complex', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS')
+
+    do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Locustabs),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Locustabs), name='convert.from_bud.bioentity.locustabs', delete_untouched=True, commit=True)])
+
+    do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bioentityalias),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityalias), name='convert.from_bud.bioentity.alias', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Bioentityalias, Alias, 'BIOENTITY')
+
+    do_conversion(make_bioentity_relation_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bioentityrelation),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityrelation), name='convert.from_bud.bioentity.relation', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Bioentityrelation, Relation, 'BIOENTITY')
+
+    do_conversion(make_bioentity_url_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bioentityurl),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityurl), name='convert.from_bud.bioentity.url', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(10000)])
+    clean_up_orphans(nex_session_maker, Bioentityurl, Url, 'BIOENTITY')
+
+    do_conversion(make_disambig_starter(nex_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS'),
+                  [Json2Obj(Disambig),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'LOCUS'), name='convert.from_bud.bioentity.disambig.locus', delete_untouched=True, commit=True)])
+
+    do_conversion(make_disambig_starter(nex_session_maker, Complex, ['id', 'format_name'], 'BIOENTITY', 'COMPLEX'),
+                  [Json2Obj(Disambig),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'COMPLEX'), name='convert.from_bud.bioentity.disambig.complex', delete_untouched=True, commit=True)])
+
+    # Nex -> Perf
+    do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True),
+                   OutputTransformer(1000)])
 
     # ------------------------------------------ Bioconcept ------------------------------------------
     # Bud -> Nex
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     #
     # do_conversion(make_domain_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Domain),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Domain), name='convert.from_bud.bioitem.domain', delete_untouched=True, commit=True)])
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Domain), name='convert.from_bud.bioitem.domain', delete_untouched=False, commit=False)])
     # clean_up_orphans(nex_session_maker, Domain, Bioitem, 'DOMAIN')
     #
     # do_conversion(make_chemical_starter(bud_session_maker, nex_session_maker),
@@ -502,11 +502,11 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Referenceinteraction, Interaction, 'REFERENCE')
 
-    do_conversion(make_bioitem_interaction_starter(nex_session_maker),
-                  [Json2Obj(Bioiteminteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioiteminteraction), name='convert.from_bud.auxilliary.bioitem_interaction', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
+    # do_conversion(make_bioitem_interaction_starter(nex_session_maker),
+    #               [Json2Obj(Bioiteminteraction),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioiteminteraction), name='convert.from_bud.auxilliary.bioitem_interaction', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
 
     # # ------------------------------------------ Perf ------------------------------------------
     from src.sgd.model.perf.core import Disambig as PerfDisambig
@@ -539,7 +539,7 @@ if __name__ == "__main__":
     # do_conversion(make_individual_locus_backend_starter(nex_backend, 'go_details', 'GO', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', name='convert.from_backend.go_details', commit_interval=1000, delete_untouched=True),
     #                 OutputTransformer(1000)])
-
+    #
     # do_conversion(make_individual_locus_backend_starter(nex_backend, 'interaction_details', 'INTERACTION', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'INTERACTION', name='convert.from_backend.interaction_details', commit_interval=1000, delete_untouched=True),
     #                 OutputTransformer(1000)])

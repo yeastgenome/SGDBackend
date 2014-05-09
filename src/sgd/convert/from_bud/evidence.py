@@ -1050,12 +1050,18 @@ def make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_f
         key_to_bioitem = dict([(x.unique_key(), x) for x in nex_session.query(Contig).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
 
-        if sequence_filename is not None:
-            f = open(sequence_filename, 'r')
+        sequence_filenames = []
+        if isinstance(sequence_filename, list):
+            sequence_filenames = sequence_filename
+        elif sequence_filename is not None:
+            sequence_filenames.append(sequence_filename)
+
+        for seq_file in sequence_filenames:
+            f = open(seq_file, 'r')
             sequence_library = get_dna_sequence_library(f)
             f.close()
 
-            f = open(sequence_filename, 'r')
+            f = open(seq_file, 'r')
             for row in f:
                 pieces = row.split('\t')
                 if len(pieces) == 9:
@@ -1067,8 +1073,8 @@ def make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_f
                     class_type = pieces[2]
                     residues = get_sequence(row, sequence_library)
 
-                    if 'Name' in info:
-                        bioentity_key = (info['Name'], 'LOCUS')
+                    if 'Name' in info and 'Parent' not in info:
+                        bioentity_key = (info['Name'].replace('%28', "(").replace('%29', ")"), 'LOCUS')
                         if bioentity_key[0].endswith('_mRNA'):
                             bioentity_key = (bioentity_key[0][:-5], 'LOCUS')
                         elif bioentity_key[0] == 'tS(GCU)L':
@@ -1087,10 +1093,19 @@ def make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_f
                                         'start': start,
                                         'end': end,
                                         'strand': strand}
+                        else:
+                            print 'Bioentity or contig not found: ' + str(bioentity_key) + ' ' + str(contig_key)
+                            yield None
             f.close()
 
-        if coding_sequence_filename is not None:
-            f = open(coding_sequence_filename, 'r')
+        coding_sequence_filenames = []
+        if isinstance(coding_sequence_filename, list):
+            coding_sequence_filenames = coding_sequence_filename
+        elif coding_sequence_filename is not None:
+            coding_sequence_filenames.append(coding_sequence_filename)
+
+        for coding_seq_file in coding_sequence_filenames:
+            f = open(coding_seq_file, 'r')
             for bioentity_name, residues in get_sequence_library_fsa(f).iteritems():
                 bioentity_key = (bioentity_name, 'LOCUS')
                 if bioentity_key[0] == 'tS(GCU)L':

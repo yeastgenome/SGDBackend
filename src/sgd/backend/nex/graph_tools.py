@@ -207,96 +207,121 @@ def get_interactions_among(locus_ids, interaction_cls, interaction_type, min_evi
     return pair_to_edge.values()
 
 # -------------------------------LSP Graph---------------------------------------
-def make_lsp_graph(locus_id, node_max=150, edge_max=1000, bioent_max=150, interactor_max=150):
-    interactor_ids = set([x.interactor_id for x in DBSession.query(Bioconceptinteraction).filter_by(bioentity_id=locus_id).all()])
-    interactor_ids.update([x.interactor_id for x in DBSession.query(Bioiteminteraction).filter_by(bioentity_id=locus_id).all()])
-    interactor_ids.update([x.interactor_id for x in DBSession.query(Referenceinteraction).filter_by(bioentity_id=locus_id).all()])
+def make_lsp_graph(locus_id, node_max=100, edge_max=250):
 
-    interactor_ids_to_bioent_ids = {}
-    bioent_ids_to_interactor_ids = {}
+    interactor_id_to_count = {}
 
     all_relevant_interactions = []
-    if len(interactor_ids) > 0:
-        all_relevant_interactions = DBSession.query(Bioconceptinteraction).filter(Bioconceptinteraction.interactor_id.in_(interactor_ids)).options(joinedload('bioentity'), joinedload('interactor')).all()
-        all_relevant_interactions.extend(DBSession.query(Bioiteminteraction).filter(Bioiteminteraction.interactor_id.in_(interactor_ids)).options(joinedload('bioentity'), joinedload('interactor')).all())
-        all_relevant_interactions.extend(DBSession.query(Referenceinteraction).filter(Referenceinteraction.interactor_id.in_(interactor_ids)).options(joinedload('bioentity'), joinedload('interactor')).all())
 
+    bioconcept_interactor_ids = set([x.interactor_id for x in DBSession.query(Bioconceptinteraction).filter_by(bioentity_id=locus_id).all()])
+    if len(bioconcept_interactor_ids) > 0:
+        all_relevant_interactions.extend(DBSession.query(Bioconceptinteraction).filter(Bioconceptinteraction.interactor_id.in_(bioconcept_interactor_ids)).options(joinedload('interactor')).all())
+    bioitem_interactor_ids = set([x.interactor_id for x in DBSession.query(Bioiteminteraction).filter_by(bioentity_id=locus_id).all()])
+    if len(bioitem_interactor_ids) > 0:
+        all_relevant_interactions.extend(DBSession.query(Bioiteminteraction).filter(Bioiteminteraction.interactor_id.in_(bioitem_interactor_ids)).options(joinedload('interactor')).all())
+
+    relation_to_score = {}
+    id_to_bioentity = {}
     for interaction in all_relevant_interactions:
         bioentity_id = interaction.bioentity_id
-        interactor_id = interaction.interactor_id
 
-        if interaction.bioentity.class_type == 'LOCUS':
-            if interactor_id in interactor_ids_to_bioent_ids:
-                interactor_ids_to_bioent_ids[interactor_id].add(bioentity_id)
+        id_to_bioentity[bioentity_id] = interaction.bioentity
+        if bioentity_id != locus_id:
+            key = (min(locus_id, bioentity_id), max(locus_id, bioentity_id), interaction.interaction_type)
+            if interaction.interaction_type + str(interaction.interactor_id) not in interactor_id_to_count:
+                interactor_id_to_count[interaction.interaction_type + str(interaction.interactor_id)] = interaction.interactor.count
+            count = interactor_id_to_count[interaction.interaction_type + str(interaction.interactor_id)]
+            if key in relation_to_score:
+                relation_to_score[key] += 100.0/count
             else:
-                interactor_ids_to_bioent_ids[interactor_id] = {bioentity_id}
+                relation_to_score[key] = 100.0/count
 
-            if bioentity_id in bioent_ids_to_interactor_ids:
-                bioent_ids_to_interactor_ids[bioentity_id].add(interactor_id)
+    for interaction in DBSession.query(Bioentityinteraction).filter_by(bioentity_id=locus_id).options(joinedload('interactor')).all():
+        id_to_bioentity[interaction.interactor_id] = interaction.interactor
+        key = (min(locus_id, interaction.interactor_id), max(locus_id, interaction.interactor_id), interaction.interaction_type)
+        relation_to_score[key] = interaction.evidence_count
+
+    bioent_id_to_score = dict([(x, 0) for x in id_to_bioentity.keys()])
+    max_score = 1
+    for relation_tuple, score in relation_to_score.iteritems():
+        bioentity_id, interactor_id, interaction_type = relation_tuple
+        other_id = bioentity_id if bioentity_id != locus_id else interactor_id
+        if score > interaction_type_to_score[interaction_type]:
+            if other_id in bioent_id_to_score:
+                bioent_id_to_score[other_id] += 1
+                if bioent_id_to_score[other_id] > max_score:
+                    max_score = bioent_id_to_score[other_id]
             else:
-                bioent_ids_to_interactor_ids[bioentity_id] = {interactor_id}
+                bioent_id_to_score[other_id] = 1
 
-    bioent_id_to_num_interactions_with_central = dict([(x, 0) for x in bioent_ids_to_interactor_ids])
-    #for x in DBSession.query(Bioentityinteraction).filter_by(bioentity_id=locus_id).all():
-    #    if x.interactor_id in bioent_id_to_num_interactions_with_central:
-    #        bioent_id_to_num_interactions_with_central[x.interactor_id] += 1
-    #    else:
-    #        bioent_id_to_num_interactions_with_central[x.interactor_id] = 1
-    #        bioent_ids_to_interactor_ids[x.interactor_id] = 0
+    bioent_ids_in_use = []
+    min_score = max_score
+    while len(bioent_ids_in_use) + len([x for x, y in bioent_id_to_score.iteritems() if y >= min_score]) < node_max:
+        bioent_ids_in_use.extend([x for x, y in bioent_id_to_score.iteritems() if y == min_score])
+        min_score -= 1
 
-    bioent_ids_in_use = bioent_ids_to_interactor_ids.keys()
+    if locus_id in bioent_ids_in_use:
+        bioent_ids_in_use.remove(locus_id)
 
+    #Bioconcepts
+    bioconcept_to_bioent_ids = {}
+    for interaction in DBSession.query(Bioconceptinteraction).filter(Bioconceptinteraction.bioentity_id.in_(bioent_ids_in_use)).options(joinedload('interactor')).all():
+        if (interaction.interactor_id, interaction.interaction_type) in bioconcept_to_bioent_ids:
+            bioconcept_to_bioent_ids[(interaction.interactor_id, interaction.interaction_type)].add(interaction.bioentity_id)
+        else:
+            bioconcept_to_bioent_ids[(interaction.interactor_id, interaction.interaction_type)] = set([interaction.bioentity_id])
+        if interaction.interaction_type + str(interaction.interactor_id) not in interactor_id_to_count:
+            interactor_id_to_count[interaction.interaction_type + str(interaction.interactor_id)] = interaction.interactor.count
+
+    for bioconcept_tuple, bioent_ids in bioconcept_to_bioent_ids.iteritems():
+        bioconcept_id, interaction_type = bioconcept_tuple
+        count = interactor_id_to_count[interaction_type + str(bioconcept_id)]
+        for bioent_id1 in bioent_ids:
+            for bioent_id2 in bioent_ids:
+                if bioent_id1 < bioent_id2:
+                    key = (min(bioent_id1, bioent_id2), max(bioent_id1, bioent_id2), interaction_type)
+                    if key in relation_to_score:
+                        relation_to_score[key] += 100.0/count
+                    else:
+                        relation_to_score[key] = 100.0/count
+
+    #Bioitems
+    bioitem_to_bioent_ids = {}
+    for interaction in DBSession.query(Bioiteminteraction).filter(Bioiteminteraction.bioentity_id.in_(bioent_ids_in_use)).options(joinedload('interactor')).all():
+        if (interaction.interactor_id, interaction.interaction_type) in bioitem_to_bioent_ids:
+            bioitem_to_bioent_ids[(interaction.interactor_id, interaction.interaction_type)].add(interaction.bioentity_id)
+        else:
+            bioitem_to_bioent_ids[(interaction.interactor_id, interaction.interaction_type)] = set([interaction.bioentity_id])
+        if interaction.interaction_type + str(interaction.interactor_id) not in interactor_id_to_count:
+            interactor_id_to_count[interaction.interaction_type + str(interaction.interactor_id)] = interaction.interactor.count
+
+    for bioitem_tuple, bioent_ids in bioitem_to_bioent_ids.iteritems():
+        bioitem_id, interaction_type = bioitem_tuple
+        count = interactor_id_to_count[interaction_type + str(bioitem_id)]
+        for bioent_id1 in bioent_ids:
+            for bioent_id2 in bioent_ids:
+                if bioent_id1 < bioent_id2:
+                    key = (min(bioent_id1, bioent_id2), max(bioent_id1, bioent_id2), interaction_type)
+                    if key in relation_to_score:
+                        relation_to_score[key] += 100.0/count
+                    else:
+                        relation_to_score[key] = 100.0/count
+
+    #Bioentities
+    for interaction in DBSession.query(Bioentityinteraction).filter(Bioentityinteraction.bioentity_id.in_(bioent_ids_in_use)).filter(Bioentityinteraction.interactor_id.in_(bioent_ids_in_use)).all():
+        key = (min(interaction.bioentity_id, interaction.interactor_id), max(interaction.bioentity_id, interaction.interactor_id), interaction.interaction_type)
+        relation_to_score[key] = interaction.evidence_count
+
+    bioent_ids_in_use.append(locus_id)
     print len(bioent_ids_in_use)
-    num_chunks = int(ceil(1.0*len(bioent_ids_in_use)/500))
-    bioentity_interactions = []
-    #for i in range(0, num_chunks):
-    #    bioentity_interactions.extend(DBSession.query(Bioentityinteraction).filter(Bioentityinteraction.bioentity_id.in_(bioent_ids_in_use[500*i:500*(i+1)])).filter(Bioentityinteraction.interactor_id.in_(bioent_ids_in_use[500*i:500*(i+1)])).filter(Bioentityinteraction.bioentity_id >= Bioentityinteraction.interactor_id).options(joinedload('bioentity'), joinedload('interactor')).all())
 
-    cutoff = 1
+    nodes = [create_bioent_node(id_to_bioentity[x], x==locus_id, max_score if x==locus_id else bioent_id_to_score[x]) for x in bioent_ids_in_use]
+    edges = []
+    for relation_tuple, score in relation_to_score.iteritems():
+        bioentity_id, interactor_id, interaction_type = relation_tuple
+        if score >= interaction_type_to_score[interaction_type] and bioentity_id in bioent_ids_in_use and interactor_id in bioent_ids_in_use:
+            edges.append({'data':{'target': 'BIOENTITY' + str(bioentity_id), 'source': 'BIOENTITY' + str(interactor_id), 'type': interaction_type}})
 
-    interactor_ids_in_use = set(interactor_ids_to_bioent_ids.keys())
-    interactions_in_use = [x for x in all_relevant_interactions]
-    interactions_in_use.extend(bioentity_interactions)
+    return {'nodes': nodes, 'edges': edges, 'max_cutoff': max_score, 'min_cutoff':min_score}
 
-    while len(bioent_ids_in_use) + len(interactor_ids_in_use) > node_max or len(interactions_in_use) > edge_max or len(bioent_ids_in_use) > bioent_max or len(interactor_ids_in_use) > interactor_max:
-        cutoff = cutoff + 1
-        new_bioent_ids_in_use = set()
-        for bioent_id, interactor_ids in bioent_ids_to_interactor_ids.iteritems():
-            if len(interactor_ids) + bioent_id_to_num_interactions_with_central[bioent_id] > cutoff:
-                new_bioent_ids_in_use.add(bioent_id)
-        bioent_ids_in_use = new_bioent_ids_in_use
-
-        new_interactor_ids_in_use = set()
-        for interactor_id, bioent_ids in interactor_ids_to_bioent_ids.iteritems():
-            if len(bioent_ids & bioent_ids_in_use) > 1:
-                new_interactor_ids_in_use.add(interactor_id)
-        interactor_ids_in_use = new_interactor_ids_in_use
-
-        new_interactions_in_use = []
-        for interaction in all_relevant_interactions:
-            if interaction.bioentity_id in bioent_ids_in_use and x.interactor_id in interactor_ids_in_use:
-                new_interactions_in_use.append(interaction)
-        for interaction in bioentity_interactions:
-            if interaction.bioentity_id in bioent_ids_in_use and x.interactor_id in bioent_ids_in_use:
-                new_interactions_in_use.append(interaction)
-        interactions_in_use = new_interactions_in_use
-        print len(bioent_ids_in_use)
-        print len(interactor_ids_in_use)
-        print len(interactions_in_use)
-
-    if len(bioent_ids_in_use) > 0 and len(interactor_ids_in_use) > 0:
-        edges = [create_interaction_edge(interaction, interaction.interaction_type) for interaction in interactions_in_use]
-
-        bioent_to_score = dict({(x, len(y&interactor_ids_in_use)+bioent_id_to_num_interactions_with_central[x]) for x, y in bioent_ids_to_interactor_ids.iteritems()})
-        bioent_to_score[locus_id] = 0
-
-        id_to_nodes = dict([(x.bioentity_id, create_bioent_node(x.bioentity, x.bioentity_id==bioent_id, bioent_to_score[x.bioentity_id])) for x in interactions_in_use])
-        id_to_nodes.update([(x.interactor_id, create_interactor_node(x.interactor, max(bioent_to_score[y] for y in interactor_ids_to_bioent_ids[x.interactor_id]))) for x in interactions_in_use if x.class_type != 'BIOENTITY'])
-        id_to_nodes.update([(x.interactor_id, create_bioent_node(x.bioentity, x.bioentity_id==bioent_id, bioent_to_score[x.bioentity_id])) for x in interactions_in_use if x.class_type == 'BIOENTITY'])
-
-        max_cutoff = max(bioent_to_score.values())
-        id_to_nodes[locus_id]['data']['gene_count'] = max_cutoff
-
-        return {'nodes': id_to_nodes.values(), 'edges': edges, 'max_cutoff': max_cutoff, 'min_cutoff':cutoff if len(bioent_ids_in_use) == 1 else min([bioent_to_score[x] for x in bioent_ids_in_use if x != bioent_id])}
-    else:
-        return {'nodes':[], 'edges':[], 'max_cutoff':0, 'min_cutoff':0}
+interaction_type_to_score = {'DOMAIN': 3, 'PHENOTYPE': 3, 'GO': 3, 'PHYSINTERACTION': 3, 'GENINTERACTION': 3, 'REGULATION': 1000}
