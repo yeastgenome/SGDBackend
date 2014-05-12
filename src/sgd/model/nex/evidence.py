@@ -465,6 +465,7 @@ class Regulationevidence(Evidence):
     direction = Column('direction', String)
     fdr = Column('fdr', String)
     pvalue = Column('pvalue', String)
+    construct = Column('construct', String)
 
     #Relationships
     source = relationship(Source, backref=backref('regulation_evidences', passive_deletes=True), uselist=False)
@@ -476,7 +477,7 @@ class Regulationevidence(Evidence):
        
     __mapper_args__ = {'polymorphic_identity': 'REGULATION', 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
-                     'property_key', 'direction', 'fdr', 'pvalue',
+                     'property_key', 'direction', 'fdr', 'pvalue', 'construct',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus1', 'locus2']
 

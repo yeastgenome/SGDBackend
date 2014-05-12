@@ -989,25 +989,66 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
 
-        for row in make_file_starter('src/sgd/convert/data/yeastmine_regulation.tsv')():
+        header = True
+        for row in make_file_starter('src/sgd/convert/data/2014-05-02_reg_data/Venters_Macisaac_Hu05-06-2014')():
+            if not header:
+                header = False
+                bioent1_key = (row[1].strip(), 'LOCUS')
+                bioent2_key = (row[3].strip(), 'LOCUS')
+                experiment_format_name = create_format_name(row[4].strip())
+                experiment_eco_id = row[5].strip()
+                direction = None if row[7] == '' else row[7]
+                pvalue = None if row[8] == '' else row[8]
+                fdr = None if row[9] == '' else row[9]
+                pubmed_id = int(row[10].strip())
+                source_key = row[11].strip()
+                strain_key = None if row[12].strip() == '' else row[12].strip()
+                strain_background = None if row[13].strip() == '' else row[13].strip()
+
+                if strain_key == 'CEN.PK':
+                    strain_key = 'CENPK'
+
+                if bioent1_key in key_to_bioentity and bioent2_key in key_to_bioentity and (strain_key is None or strain_key in key_to_strain) and \
+                                pubmed_id in pubmed_to_reference and source_key in key_to_source and \
+                    (experiment_format_name in key_to_experiment or experiment_eco_id in key_to_experiment):
+                    conditions = []
+                    condition_value = row[6].strip()
+                    if condition_value != '""':
+                        from src.sgd.model.nex.evidence import Generalproperty
+                        condition_value = condition_value.replace('??', "\00b5")
+                        if condition_value.startswith('"') and condition_value.endswith('"'):
+                            condition_value = condition_value[1:-1]
+                        conditions.append(Generalproperty({'note': condition_value}))
+
+                    yield {'source': key_to_source[source_key],
+                           'reference': pubmed_to_reference[pubmed_id],
+                           'strain': None if strain_key is None or strain_key not in key_to_strain else key_to_strain[strain_key],
+                           'experiment': key_to_experiment[experiment_format_name] if experiment_format_name in key_to_experiment else key_to_experiment[experiment_eco_id],
+                           'locus1': key_to_bioentity[bioent1_key],
+                           'locus2': key_to_bioentity[bioent2_key],
+                           'direction': direction,
+                           'pvalue': pvalue,
+                           'fdr': fdr,
+                           'construct': strain_background,
+                           'properties': conditions}
+                else:
+                    print 'Bioentity or strain or reference or source or experiment not found: ' + str(bioent1_key) + ' ' + \
+                          str(bioent2_key) + ' ' + experiment_eco_id + ' ' + experiment_format_name + ' ' + str(strain_key) + ' ' + str(pubmed_id) + ' ' + str(source_key)
+
+        for row in make_file_starter('src/sgd/convert/data/2014-05-02_reg_data/SGD_data05-05-2014')():
             bioent1_key = (row[1].strip(), 'LOCUS')
             bioent2_key = (row[3].strip(), 'LOCUS')
             experiment_format_name = create_format_name(row[4].strip())
             experiment_eco_id = row[5].strip()
-            strain_key = None if row[7] == '""' else row[7]
-            #direction = None if row[8] == '""' else row[8]
-            #pvalue = None if row[9] == '""' else row[9]
-            #fdr = None if row[10] == '""' else row[10]
-            #pubmed_id = int(row[11].strip())
-            #source_key = row[12].strip()
-            pubmed_id = int(row[9].strip())
-            source_key = row[10].strip()
+            direction = None if row[7] == '' else row[7]
+            pubmed_id = int(row[8].strip())
+            source_key = row[9].strip()
+            strain_key = None if row[10].strip() == '' else row[10].strip()
 
             if strain_key == 'CEN.PK':
                 strain_key = 'CENPK'
 
-            #(strain_key is None or strain_key in key_to_strain) and \
-            if bioent1_key in key_to_bioentity and bioent2_key in key_to_bioentity and \
+            if bioent1_key in key_to_bioentity and bioent2_key in key_to_bioentity and (strain_key is None or strain_key in key_to_strain) and \
                             pubmed_id in pubmed_to_reference and source_key in key_to_source and \
                 (experiment_format_name in key_to_experiment or experiment_eco_id in key_to_experiment):
                 conditions = []
@@ -1025,13 +1066,49 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
                        'experiment': key_to_experiment[experiment_format_name] if experiment_format_name in key_to_experiment else key_to_experiment[experiment_eco_id],
                        'locus1': key_to_bioentity[bioent1_key],
                        'locus2': key_to_bioentity[bioent2_key],
-                       #'direction': direction,
-                       #'pvalue': pvalue,
-                       #'fdr': fdr,
+                       'direction': direction,
                        'properties': conditions}
             else:
                 print 'Bioentity or strain or reference or source or experiment not found: ' + str(bioent1_key) + ' ' + \
                       str(bioent2_key) + ' ' + experiment_eco_id + ' ' + experiment_format_name + ' ' + str(strain_key) + ' ' + str(pubmed_id) + ' ' + str(source_key)
+
+        for row in make_file_starter('src/sgd/convert/data/2014-05-02_reg_data/YEASTRACT_reg_data2014-05-05')():
+            if len(row) >= 10:
+                bioent1_key = (row[1].strip(), 'LOCUS')
+                bioent2_key = (row[3].strip(), 'LOCUS')
+                experiment_format_name = create_format_name(row[4].strip())
+                experiment_eco_id = row[5].strip()
+                direction = None if row[7] == '' else row[7]
+                pubmed_id = int(row[8].strip())
+                source_key = row[9].strip()
+                strain_key = None if row[10].strip() == '' else row[10].strip()
+
+                if strain_key == 'CEN.PK':
+                    strain_key = 'CENPK'
+
+                if bioent1_key in key_to_bioentity and bioent2_key in key_to_bioentity and (strain_key is None or strain_key in key_to_strain) and \
+                                pubmed_id in pubmed_to_reference and source_key in key_to_source and \
+                    (experiment_format_name in key_to_experiment or experiment_eco_id in key_to_experiment):
+                    conditions = []
+                    condition_value = row[6].strip()
+                    if condition_value != '""':
+                        from src.sgd.model.nex.evidence import Generalproperty
+                        condition_value = condition_value.replace('??', "\00b5")
+                        if condition_value.startswith('"') and condition_value.endswith('"'):
+                            condition_value = condition_value[1:-1]
+                        conditions.append(Generalproperty({'note': condition_value}))
+
+                    yield {'source': key_to_source[source_key],
+                           'reference': pubmed_to_reference[pubmed_id],
+                           'strain': None if strain_key is None or strain_key not in key_to_strain else key_to_strain[strain_key],
+                           'experiment': key_to_experiment[experiment_format_name] if experiment_format_name in key_to_experiment else key_to_experiment[experiment_eco_id],
+                           'locus1': key_to_bioentity[bioent1_key],
+                           'locus2': key_to_bioentity[bioent2_key],
+                           'direction': direction,
+                           'properties': conditions}
+                else:
+                    print 'Bioentity or strain or reference or source or experiment not found: ' + str(bioent1_key) + ' ' + \
+                          str(bioent2_key) + ' ' + experiment_eco_id + ' ' + experiment_format_name + ' ' + str(strain_key) + ' ' + str(pubmed_id) + ' ' + str(source_key)
 
         bud_session.close()
         nex_session.close()
@@ -1074,7 +1151,7 @@ def make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_f
                     residues = get_sequence(row, sequence_library)
 
                     if 'Name' in info and 'Parent' not in info:
-                        bioentity_key = (info['Name'].replace('%28', "(").replace('%29', ")"), 'LOCUS')
+                        bioentity_key = (info['Name'].strip().replace('%28', "(").replace('%29', ")"), 'LOCUS')
                         if bioentity_key[0].endswith('_mRNA'):
                             bioentity_key = (bioentity_key[0][:-5], 'LOCUS')
                         elif bioentity_key[0] == 'tS(GCU)L':
@@ -1135,10 +1212,9 @@ def get_info(data):
             info[pieces[0]] = pieces[1]
     return info
 
-def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filename):
-    from src.sgd.model.nex.misc import Source, Strain
+def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filenames):
+    from src.sgd.model.nex.misc import Strain
     from src.sgd.model.nex.bioentity import Locus
-    from src.sgd.model.nex.bioitem import Contig
     from src.sgd.model.nex.evidence import DNAsequenceevidence
     def dna_sequence_tag_starter():
         nex_session = nex_session_maker()
@@ -1148,31 +1224,32 @@ def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filena
 
         bioentity_id_to_parent_id = {}
         parent_id_to_rows = {}
-        f = open(sequence_filename, 'r')
-        for row in f:
-            pieces = row.split('\t')
-            if len(pieces) == 9:
-                info = get_info(pieces[8])
+        for sequence_filename in sequence_filenames:
+            f = open(sequence_filename, 'r')
+            for row in f:
+                pieces = row.split('\t')
+                if len(pieces) == 9:
+                    info = get_info(pieces[8])
 
-                if 'ID' in info and 'Name' in info:
-                    bioentity_key = (info['Name'].strip(), 'LOCUS')
-                    if bioentity_key[0].endswith('_mRNA'):
-                        bioentity_key = (bioentity_key[0][:-5], 'LOCUS')
-                    elif bioentity_key[0] == 'tS(GCU)L':
-                        bioentity_key = ('tX(XXX)L', 'LOCUS')
-                    elif bioentity_key[0] == 'tT(XXX)Q2':
-                        bioentity_key = ('tT(UAG)Q2', 'LOCUS')
+                    if 'ID' in info and 'Name' in info:
+                        bioentity_key = (info['Name'].strip().replace('%28', "(").replace('%29', ")"), 'LOCUS')
+                        if bioentity_key[0].endswith('_mRNA'):
+                            bioentity_key = (bioentity_key[0][:-5], 'LOCUS')
+                        elif bioentity_key[0] == 'tS(GCU)L':
+                            bioentity_key = ('tX(XXX)L', 'LOCUS')
+                        elif bioentity_key[0] == 'tT(XXX)Q2':
+                            bioentity_key = ('tT(UAG)Q2', 'LOCUS')
 
-                    if bioentity_key in key_to_bioentity:
-                        bioentity_id_to_parent_id[key_to_bioentity[bioentity_key].id] = info['ID'].strip()
+                        if bioentity_key in key_to_bioentity:
+                            bioentity_id_to_parent_id[key_to_bioentity[bioentity_key].id] = info['ID'].strip()
 
-                if 'Parent' in info:
-                    parent_id = info['Parent'].strip()
-                    if parent_id in parent_id_to_rows:
-                        parent_id_to_rows[parent_id].append(pieces)
-                    else:
-                        parent_id_to_rows[parent_id] = [pieces]
-        f.close()
+                    if 'Parent' in info:
+                        parent_id = info['Parent'].strip()
+                        if parent_id in parent_id_to_rows:
+                            parent_id_to_rows[parent_id].append(pieces)
+                        else:
+                            parent_id_to_rows[parent_id] = [pieces]
+            f.close()
 
         strain = key_to_strain[strain_key]
         for evidence in make_db_starter(nex_session.query(DNAsequenceevidence).filter_by(strain_id=strain.id).filter_by(dna_type='GENOMIC'), 1000)():

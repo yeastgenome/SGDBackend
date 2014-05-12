@@ -11,6 +11,24 @@ class Bioentity(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'bioentity'
     
     id = Column('bioentity_id', Integer, primary_key=True)
+    json = Column('json', CLOB)
+
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
+
+class Locustab(Base, EqualityByIDMixin, JsonMixins):
+    __tablename__ = 'locustab'
+
+    id = Column('bioentity_id', Integer, primary_key=True)
+    json = Column('json', String)
+
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
+
+class Locusentry(Base, EqualityByIDMixin, JsonMixins):
+    __tablename__ = 'locusentry'
+
+    id = Column('bioentity_id', Integer, primary_key=True)
     json = Column('json', String)
 
     def __init__(self, obj_json):
@@ -28,6 +46,15 @@ class Bioconcept(Base, EqualityByIDMixin, JsonMixins):
 class Reference(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'reference'
     
+    id = Column('reference_id', Integer, primary_key=True)
+    json = Column('json', CLOB)
+
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
+
+class Bibentry(Base, EqualityByIDMixin, JsonMixins):
+    __tablename__ = 'bibentry'
+
     id = Column('reference_id', Integer, primary_key=True)
     json = Column('json', CLOB)
 

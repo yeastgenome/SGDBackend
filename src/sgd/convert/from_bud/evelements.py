@@ -38,11 +38,33 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
 
-        for row in make_file_starter('src/sgd/convert/data/yeastmine_regulation.tsv')():
-            source_key = row[12].strip()
-            yield {'display_name': row[4],
-                   'source': None if source_key not in key_to_source else key_to_source[source_key],
-                   'eco_id': row[5]}
+        for row in make_file_starter('src/sgd/convert/data/2014-05-02_reg_data/Venters_Macisaac_Hu05-06-2014')():
+            source_key = row[11].strip()
+            if source_key in key_to_source:
+                yield {'display_name': row[4] if row[4] != '' else row[5],
+                       'source': None if source_key not in key_to_source else key_to_source[source_key],
+                       'eco_id': row[5]}
+            else:
+                print 'Source not found: ' + str(source_key)
+
+        for row in make_file_starter('src/sgd/convert/data/2014-05-02_reg_data/SGD_data05-05-2014')():
+            source_key = row[9].strip()
+            if source_key in key_to_source:
+                yield {'display_name': row[4] if row[4] != '' else row[5],
+                       'source': None if source_key not in key_to_source else key_to_source[source_key],
+                       'eco_id': row[5]}
+            else:
+                print 'Source not found: ' + str(source_key)
+
+        for row in make_file_starter('src/sgd/convert/data/2014-05-02_reg_data/YEASTRACT_reg_data2014-05-05')():
+            if len(row) >= 10:
+                if source_key in key_to_source:
+                    source_key = row[9].strip()
+                    yield {'display_name': row[4] if row[4] != '' else row[5],
+                           'source': None if source_key not in key_to_source else key_to_source[source_key],
+                           'eco_id': row[5]}
+                else:
+                    print 'Source not found: ' + str(source_key)
 
         for row in make_file_starter('src/sgd/convert/data/yetfasco_data.txt', delimeter=';')():
             yield {'display_name': row[9][1:-1],

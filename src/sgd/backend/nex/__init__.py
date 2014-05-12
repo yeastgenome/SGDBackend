@@ -79,6 +79,10 @@ class SGDBackend(BackendInterface):
     def all_locustabs(self, chunk_size, offset):
         from src.sgd.model.nex.auxiliary import Locustabs
         return [x.to_json() for x in DBSession.query(Locustabs).limit(chunk_size).offset(offset).all()]
+
+    def all_locusentries(self, chunk_size, offset):
+        from src.sgd.model.nex.bioentity import Locus
+        return [x.to_semi_json() for x in DBSession.query(Locus).limit(chunk_size).offset(offset).all()]
     
     def locus(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Locus
@@ -203,11 +207,12 @@ class SGDBackend(BackendInterface):
             Geninteractionevidence, Regulationevidence, Literatureevidence
         return [x.to_json() for x in DBSession.query(Reference).limit(chunk_size).offset(offset).all()]
 
+    def all_bibentries(self, chunk_size, offset):
+        from src.sgd.model.nex.reference import Bibentry
+        return [{'id': x.id, 'text': x.text} for x in DBSession.query(Bibentry).limit(chunk_size).offset(offset).all()]
+
     def reference_list(self, reference_ids):
-        from src.sgd.model.nex.reference import Reference
-        from src.sgd.model.nex.paragraph import Referenceparagraph
-        from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Physinteractionevidence, \
-            Geninteractionevidence, Regulationevidence, Literatureevidence
+        from src.sgd.model.nex.reference import Bibentry
         if reference_ids is None:
             return json.dumps({'Error': 'No locus_id or go_id given.'})
         return json.dumps([{'id': x.id, 'text': x.text} for x in DBSession.query(Bibentry).filter(Bibentry.id.in_(reference_ids)).all()])
