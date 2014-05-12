@@ -62,14 +62,14 @@ if __name__ == "__main__":
 
     # # ------------------------------------------ Bioentity ------------------------------------------
     # # Bud -> Nex
-    from src.sgd.model.nex.bioentity import Bioentity, Locus, Complex, Bioentityalias, Bioentityrelation, Bioentityurl
-    from src.sgd.model.nex.misc import Alias, Relation, Url
-    from src.sgd.model.nex.auxiliary import Locustabs, Disambig
-    from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
-    from src.sgd.convert.from_bud.bioentity import make_locus_starter, make_complex_starter, make_bioentity_tab_starter, \
-        make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter
-    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
-
+    # from src.sgd.model.nex.bioentity import Bioentity, Locus, Complex, Bioentityalias, Bioentityrelation, Bioentityurl
+    # from src.sgd.model.nex.misc import Alias, Relation, Url
+    # from src.sgd.model.nex.auxiliary import Locustabs, Disambig
+    # from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
+    # from src.sgd.convert.from_bud.bioentity import make_locus_starter, make_complex_starter, make_bioentity_tab_starter, \
+    #     make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter
+    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    #
     # do_conversion(make_locus_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Locus),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locus), name='convert.from_bud.bioentity.locus', delete_untouched=True, commit=True)])
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     # do_conversion(make_disambig_starter(nex_session_maker, Complex, ['id', 'format_name'], 'BIOENTITY', 'COMPLEX'),
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'COMPLEX'), name='convert.from_bud.bioentity.disambig.complex', delete_untouched=True, commit=True)])
-    #
+
     # # Nex -> Perf
     # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True),
@@ -586,6 +586,6 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', name='convert.from_backend.phenotype_graph', commit_interval=1000, delete_untouched=True),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'go_graph', 'GO', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'GO', name='convert.from_backend.go_graph', commit_interval=1000, delete_untouched=True),
-    #                 OutputTransformer(1000)])
+    do_conversion(make_individual_locus_backend_starter(nex_backend, 'go_graph', 'GO', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'GO', name='convert.from_backend.go_graph', commit_interval=1000, delete_untouched=True),
+                    OutputTransformer(1000)])

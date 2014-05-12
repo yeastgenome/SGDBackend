@@ -2,7 +2,7 @@ from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, CLOB, String
 
 from src.sgd.model.perf import Base
-from core import Chemical
+from core import Bioitem
 from src.sgd.model import EqualityByIDMixin
 
 
@@ -12,7 +12,7 @@ class BioitemDetails(Base, EqualityByIDMixin):
     __tablename__ = 'bioitem_details'
 
     id = Column('bioitem_details_id', Integer, primary_key=True)
-    chemical_id = Column('bioitem_id', Integer, ForeignKey(Chemical.id))
+    chemical_id = Column('bioitem_id', Integer, ForeignKey(Bioitem.id))
     class_type = Column('class', String)
     json = Column('json', CLOB)
 

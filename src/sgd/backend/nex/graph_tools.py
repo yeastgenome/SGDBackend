@@ -119,6 +119,8 @@ def make_graph(bioent_id, interaction_cls, interaction_type, bioentity_type, nod
     interactions = DBSession.query(interaction_cls).filter_by(bioentity_id=bioent_id).filter_by(interaction_type=interaction_type).all()
     interactor_ids = set([x.interactor_id for x in interactions])
 
+    id_to_bioentity = {}
+    id_to_interactor = {}
     interactor_ids_to_bioent_ids = {}
     bioent_ids_to_interactor_ids = {}
 
@@ -129,6 +131,8 @@ def make_graph(bioent_id, interaction_cls, interaction_type, bioentity_type, nod
     for interaction in all_relevant_interactions:
         bioentity_id = interaction.bioentity_id
         interactor_id = interaction.interactor_id
+        id_to_bioentity[bioentity_id] = interaction.bioentity
+        id_to_interactor[interactor_id] = interaction.interactor
 
         if interaction.bioentity.class_type == bioentity_type:
             if interactor_id in interactor_ids_to_bioent_ids:
@@ -163,11 +167,11 @@ def make_graph(bioent_id, interaction_cls, interaction_type, bioentity_type, nod
     if bioent_count > 0 and interactor_count > 0:
         edges = [create_interaction_edge(interaction, interaction_type) for interaction in interactions_in_use]
 
-        bioent_to_score = dict({(x, len(y&interactor_ids_in_use)) for x, y in bioent_ids_to_interactor_ids.iteritems()})
+        bioent_to_score = dict({(x, len(bioent_ids_to_interactor_ids[x]&interactor_ids_in_use)) for x in bioent_ids_in_use})
         bioent_to_score[bioent_id] = 0
 
-        id_to_nodes = dict([(x.bioentity_id, create_bioent_node(x.bioentity, x.bioentity_id==bioent_id, bioent_to_score[x.bioentity_id])) for x in interactions_in_use])
-        id_to_nodes.update([(x.interactor_id, create_interactor_node(x.interactor, max(bioent_to_score[y] for y in interactor_ids_to_bioent_ids[x.interactor_id]))) for x in interactions_in_use])
+        id_to_nodes = dict([(x, create_bioent_node(id_to_bioentity[x], x==bioent_id, bioent_to_score[x])) for x in bioent_ids_in_use])
+        id_to_nodes.update([(x, create_interactor_node(id_to_interactor[x], max(bioent_to_score[y] for y in interactor_ids_to_bioent_ids[x]&bioent_ids_in_use))) for x in interactor_ids_in_use])
 
         max_cutoff = max(bioent_to_score.values())
         id_to_nodes[bioent_id]['data']['gene_count'] = max_cutoff
