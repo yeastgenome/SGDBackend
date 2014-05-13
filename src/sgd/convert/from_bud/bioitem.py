@@ -264,24 +264,28 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
     return chemical_starter
 
 # --------------------- Convert Contig ---------------------
-def make_contig_starter(bud_session_maker, nex_session_maker):
+def make_contig_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.convert.from_bud import sequence_files
 
     def contig_starter():
-        bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
 
-        for filename, coding_sequence_filename, strain in sequence_files:
-            for sequence_id, residues in make_fasta_file_starter(filename)():
-                yield {'display_name': sequence_id,
-                       'source': key_to_source['SGD'],
-                       'strain': key_to_strain[strain.replace('.', '')],
-                       'residues': residues}
-        bud_session.close()
+        for sequence_filename, coding_sequence_filename, strain in sequence_files:
+            filenames = []
+            if isinstance(sequence_filename, list):
+                filenames = sequence_filename
+            elif sequence_filename is not None:
+                filenames.append(sequence_filename)
+            for filename in filenames:
+                for sequence_id, residues in make_fasta_file_starter(filename)():
+                    yield {'display_name': sequence_id,
+                           'source': key_to_source['SGD'],
+                           'strain': key_to_strain[strain.replace('.', '')],
+                           'residues': residues}
         nex_session.close()
     return contig_starter
 

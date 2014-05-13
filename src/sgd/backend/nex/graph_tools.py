@@ -195,10 +195,13 @@ def make_interaction_graph(locus_ids, interaction_cls, interaction_type, min_evi
 
 def get_interactions_among(locus_ids, interaction_cls, interaction_type, min_evidence_count=0):
 
-    query = DBSession.query(interaction_cls).filter_by(interaction_type=interaction_type).filter(interaction_cls.bioentity_id.in_(locus_ids)).filter(interaction_cls.interactor_id.in_(locus_ids))
-    if min_evidence_count > 0:
-        query = query.filter(interaction_cls.evidence_count >= min_evidence_count)
-    interactions = query.all()
+    if len(locus_ids) > 0:
+        query = DBSession.query(interaction_cls).filter_by(interaction_type=interaction_type).filter(interaction_cls.bioentity_id.in_(locus_ids)).filter(interaction_cls.interactor_id.in_(locus_ids))
+        if min_evidence_count > 0:
+            query = query.filter(interaction_cls.evidence_count >= min_evidence_count)
+        interactions = query.all()
+    else:
+        interactions = []
 
     pair_to_edge = {}
     for interaction in interactions:

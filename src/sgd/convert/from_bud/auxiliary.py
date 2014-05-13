@@ -95,6 +95,20 @@ def make_bioconcept_interaction_starter(nex_session_maker):
         id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
         id_to_bioconcept = dict([(x.id, x) for x in nex_session.query(Bioconcept).all()])
 
+        bad_interactors = set([x.id for x in nex_session.query(Bioconcept).filter(Bioconcept.format_name.in_({'vegetative_growth',
+                                                                                                                'haploinsufficient',
+                                                                                                                'viable',
+                                                                                                                'heat_sensitivity',
+                                                                                                                'toxin_resistance',
+                                                                                                                'chronological_lifespan',
+                                                                                                                'competitive_fitness',
+                                                                                                                'desiccation_resistance',
+                                                                                                                'resistance_to_cycloheximide',
+                                                                                                                'resistance_to_methyl_methanesulfonate',
+                                                                                                                'resistance_to_sirolimus',
+                                                                                                                'vacuolar_morphology',
+                                                                                                                'inviable'})).all()])
+
         #Complex
         id_to_complex = dict([(x.id, x) for x in nex_session.query(Complex).all()])
         complex_to_gene_ids = dict([(x.id, set([y.locus_id for y in x.complex_evidences])) for x in id_to_complex.values()])
@@ -109,14 +123,15 @@ def make_bioconcept_interaction_starter(nex_session_maker):
         for row in nex_session.query(Goevidence.locus_id, Goevidence.go_id, func.count(Goevidence.id)).group_by(Goevidence.locus_id, Goevidence.go_id).all():
             go = id_to_bioconcept[row[1]]
             locus = id_to_bioentity[row[0]]
-            if go.go_aspect == 'biological process':
+            if go.go_aspect == 'biological process' and go.id not in bad_interactors:
                 yield {'interaction_type': 'GO', 'evidence_count': row[2], 'bioentity': locus, 'interactor': go}
 
         #Phenotype
         for row in nex_session.query(Phenotypeevidence.locus_id, Phenotypeevidence.phenotype_id, func.count(Phenotypeevidence.id)).group_by(Phenotypeevidence.locus_id, Phenotypeevidence.phenotype_id).all():
             observable = id_to_bioconcept[row[1]].observable
             locus = id_to_bioentity[row[0]]
-            yield {'interaction_type': 'PHENOTYPE', 'evidence_count': row[2], 'bioentity': locus, 'interactor': observable}
+            if observable.id not in bad_interactors:
+                yield {'interaction_type': 'PHENOTYPE', 'evidence_count': row[2], 'bioentity': locus, 'interactor': observable}
 
         nex_session.close()
     return bioconcept_interaction_starter
@@ -129,11 +144,14 @@ def make_bioitem_interaction_starter(nex_session_maker):
         id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
         id_to_bioitem = dict([(x.id, x) for x in nex_session.query(Bioitem).all()])
 
+        bad_interactors = set([x.id for x in nex_session.query(Bioitem).filter(Bioitem.format_name.in_({'seg', 'coil', 'predicted_signal_peptide', 'predicted_transmembrane_domain'})).all()])
+
         #Domain
         for row in nex_session.query(Domainevidence.locus_id, Domainevidence.domain_id, func.count(Domainevidence.id)).group_by(Domainevidence.locus_id, Domainevidence.domain_id).all():
             domain = id_to_bioitem[row[1]]
             locus = id_to_bioentity[row[0]]
-            yield {'interaction_type': 'DOMAIN', 'evidence_count': row[2], 'bioentity': locus, 'interactor': domain}
+            if domain.id not in bad_interactors:
+                yield {'interaction_type': 'DOMAIN', 'evidence_count': row[2], 'bioentity': locus, 'interactor': domain}
 
         nex_session.close()
     return bioitem_interaction_starter

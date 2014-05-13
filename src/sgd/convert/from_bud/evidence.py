@@ -75,12 +75,11 @@ def make_alias_evidence_starter(bud_session_maker, nex_session_maker):
     return alias_evidence_starter
 
 # --------------------- Binding Evidence ---------------------
-def make_binding_evidence_starter(bud_session_maker, nex_session_maker):
+def make_binding_evidence_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Experiment, Source
     from src.sgd.model.nex.reference import Reference
     from src.sgd.model.nex.bioentity import Bioentity
     def binding_evidence_starter():
-        bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_experiment = dict([(x.unique_key(), x) for x in nex_session.query(Experiment).all()])
@@ -103,7 +102,6 @@ def make_binding_evidence_starter(bud_session_maker, nex_session_maker):
                            'expert_confidence': expert_confidence,
                            'motif_id': int(row[3][1:-1])}
 
-        bud_session.close()
         nex_session.close()
     return binding_evidence_starter
 
@@ -232,12 +230,11 @@ def make_bioentity_evidence_starter(bud_session_maker, nex_session_maker):
     return bioentity_evidence_starter
 
 # --------------------- Convert Complex Evidence ---------------------
-def make_complex_evidence_starter(bud_session_maker, nex_session_maker):
+def make_complex_evidence_starter(nex_session_maker):
     from src.sgd.model.nex.bioentity import Complex
     from src.sgd.model.nex.misc import Source
 
     def complex_evidence_starter():
-        bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
@@ -250,8 +247,6 @@ def make_complex_evidence_starter(bud_session_maker, nex_session_maker):
                         'locus': evidence.locus,
                         'complex': complex,
                         'go': evidence.go}
-
-        bud_session.close()
         nex_session.close()
     return complex_evidence_starter
 
@@ -854,12 +849,11 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem):
         conditions.append(Generalproperty({'note': a if b is None else a + ': ' + b}))
     return conditions
 
-def make_phosphorylation_evidence_starter(bud_session_maker, nex_session_maker):
+def make_phosphorylation_evidence_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.evidence import Generalproperty, Bioentityproperty
     def phosphorylation_evidence_starter():
-        bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
@@ -896,7 +890,6 @@ def make_phosphorylation_evidence_starter(bud_session_maker, nex_session_maker):
                 else:
                     print 'Bioentity not found: ' + str(bioentity_key)
 
-        bud_session.close()
         nex_session.close()
     return phosphorylation_evidence_starter
 
@@ -974,13 +967,12 @@ def make_protein_experiment_evidence_starter(bud_session_maker, nex_session_make
     return protein_experiment_evidence_starter
 
 # --------------------- Regulation Evidence ---------------------
-def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
+def make_regulation_evidence_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Source, Experiment, Strain
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.reference import Reference
 
     def regulation_evidence_starter():
-        bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_experiment = dict([(x.unique_key(), x) for x in nex_session.query(Experiment).all()])
@@ -1004,6 +996,7 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
                 source_key = row[11].strip()
                 strain_key = None if row[12].strip() == '' else row[12].strip()
                 strain_background = None if row[13].strip() == '' else row[13].strip()
+
 
                 if strain_key == 'CEN.PK':
                     strain_key = 'CENPK'
@@ -1110,7 +1103,6 @@ def make_regulation_evidence_starter(bud_session_maker, nex_session_maker):
                     print 'Bioentity or strain or reference or source or experiment not found: ' + str(bioent1_key) + ' ' + \
                           str(bioent2_key) + ' ' + experiment_eco_id + ' ' + experiment_format_name + ' ' + str(strain_key) + ' ' + str(pubmed_id) + ' ' + str(source_key)
 
-        bud_session.close()
         nex_session.close()
     return regulation_evidence_starter
 
@@ -1158,6 +1150,9 @@ def make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_f
                             bioentity_key = ('tX(XXX)L', 'LOCUS')
                         elif bioentity_key[0] == 'tT(XXX)Q2':
                             bioentity_key = ('tT(UAG)Q2', 'LOCUS')
+
+                        if sequence_filename == "src/sgd/convert/data/strains/scerevisiae_2-micron.gff":
+                            print bioentity_key
                         contig_key = (strain_key + '_' + parent_id, 'CONTIG')
 
                         if bioentity_key in key_to_bioentity and contig_key in key_to_bioitem:
@@ -1239,6 +1234,10 @@ def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filena
                             bioentity_key = ('tX(XXX)L', 'LOCUS')
                         elif bioentity_key[0] == 'tT(XXX)Q2':
                             bioentity_key = ('tT(UAG)Q2', 'LOCUS')
+                        elif bioentity_key[0] == '15S':
+                            bioentity_key = ('15S_rRNA', 'LOCUS')
+                        elif bioentity_key[0] == '21S':
+                            bioentity_key = ('21S_rRNA', 'LOCUS')
 
                         if bioentity_key in key_to_bioentity:
                             bioentity_id_to_parent_id[key_to_bioentity[bioentity_key].id] = info['ID'].strip()

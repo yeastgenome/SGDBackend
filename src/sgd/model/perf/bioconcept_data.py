@@ -16,10 +16,20 @@ class BioconceptGraph(Base, EqualityByIDMixin):
     class_type = Column('class', String)
     json = Column('json', CLOB)
 
-    def __init__(self, bioconcept_id, class_type, json):
-        self.bioconcept_id = bioconcept_id
-        self.class_type = class_type
-        self.json = json
+    def __init__(self, obj_json):
+        self.bioconcept_id = obj_json['bioconcept_id']
+        self.class_type = obj_json['class_type']
+        self.json = obj_json['json']
+
+    def update(self, obj_json):
+        self.json = obj_json['json']
+        return True
+
+    def to_json(self):
+        return {'id': (self.class_type, self.bioconcept_id),
+                    'bioconcept_id': self.bioconcept_id,
+                    'class_type': self.disambig_key,
+                    'json': self.json}
 
 class BioconceptDetails(Base, EqualityByIDMixin):
     __tablename__ = 'bioconcept_details'
@@ -29,8 +39,18 @@ class BioconceptDetails(Base, EqualityByIDMixin):
     class_type = Column('class', String)
     json = Column('json', CLOB)
 
-    def __init__(self, bioconcept_id, class_type, json):
-        self.bioconcept_id = bioconcept_id
-        self.class_type = class_type
-        self.json = json
+    def __init__(self, obj_json):
+        self.bioconcept_id = obj_json['bioconcept_id']
+        self.class_type = obj_json['class_type']
+        self.json = obj_json['json']
+
+    def update(self, obj_json):
+        self.json = obj_json['json']
+        return True
+
+    def to_json(self):
+        return {'id': (self.class_type, self.bioconcept_id),
+                    'bioconcept_id': self.bioconcept_id,
+                    'class_type': self.disambig_key,
+                    'json': self.json}
 

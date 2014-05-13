@@ -261,22 +261,28 @@ class PerfBackend(BackendInterface):
             bioitem_id = get_obj_id(str(chemical_identifier).lower(), class_type='BIOITEM', subclass_type='CHEMICAL')
         return get_obj(Bioitem, 'json', bioitem_id)
 
-    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, chemical_identifier=None, reference_identifier=None, with_children=False, are_ids=False):
+    def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, observable_identifier=None, chemical_identifier=None, reference_identifier=None, with_children=False, are_ids=False):
         if locus_identifier is not None:
             if are_ids:
                 bioent_id = locus_identifier
             else:
                 bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
             return get_bioentity_details(bioent_id, 'PHENOTYPE')
+        elif observable_identifier is not None:
+            if are_ids:
+                biocon_id = observable_identifier
+            else:
+                biocon_id = get_obj_id(str(observable_identifier).lower(), class_type='BIOCONCEPT', subclass_type='OBSERVABLE')
+            if with_children:
+                return get_bioconcept_details(biocon_id, 'LOCUS_ALL_CHILDREN')
+            else:
+                return get_bioconcept_details(biocon_id, 'LOCUS')
         elif phenotype_identifier is not None:
             if are_ids:
                 biocon_id = phenotype_identifier
             else:
                 biocon_id = get_obj_id(str(phenotype_identifier).lower(), class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-            if with_children:
-                return get_bioconcept_details(biocon_id, 'LOCUS_ALL_CHILDREN')
-            else:
-                return get_bioconcept_details(biocon_id, 'LOCUS')
+            return get_bioconcept_details(biocon_id, 'LOCUS')
         elif reference_identifier is not None:
             if are_ids:
                 ref_id = reference_identifier
@@ -301,7 +307,7 @@ class PerfBackend(BackendInterface):
         if are_ids:
             biocon_id = phenotype_identifier
         else:
-            biocon_id = get_obj_id(str(phenotype_identifier).lower(), class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
+            biocon_id = get_obj_id(str(phenotype_identifier).lower(), class_type='BIOCONCEPT', subclass_type='OBSERVABLE')
         return get_bioconcept_graph(biocon_id, 'ONTOLOGY')
     
     #Protein

@@ -249,6 +249,7 @@ class SGDBackend(BackendInterface):
     #Phenotype
     def phenotype_ontology_graph(self, observable_identifier, are_ids=False):
         import graph_tools
+        from src.sgd.model.nex.evidence import Phenotypeevidence
         if are_ids:
             observable_id = observable_identifier
         else:
@@ -377,6 +378,7 @@ class SGDBackend(BackendInterface):
     def protein_domain_graph(self, locus_identifier, are_ids=False):
         import graph_tools
         from src.sgd.model.nex.auxiliary import Bioiteminteraction
+        from src.sgd.model.nex.bioitem import Domain
         if are_ids:
             locus_id = locus_identifier
         else:

@@ -207,7 +207,7 @@ def make_bibentry_starter(bud_session_maker, nex_session_maker):
         id_to_author = dict([(x.id, x) for x in nex_session.query(Author).all()])
         id_to_reftype = dict([(x.id, x) for x in nex_session.query(Reftype).all()])
 
-        for reference in make_db_starter(nex_session.query(Reference).options(joinedload('abstract'), joinedload('author_references'), joinedload('ref_reftypes')), 1000)():
+        for reference in make_db_starter(nex_session.query(Reference).options(joinedload('author_references'), joinedload('ref_reftypes')), 1000)():
             entries = []
 
             add_entry(entries, reference, lambda x: x.pubmed_id, 'PMID')
@@ -228,8 +228,8 @@ def make_bibentry_starter(bud_session_maker, nex_session_maker):
                 reftype = id_to_reftype[ref_reftype.reftype_id]
                 add_entry(entries, reftype, lambda x: x.display_name, 'PT')
 
-            if reference.abstract is not None:
-                add_entry(entries, reference, lambda x: x.abstract.text, 'AB')
+            if len(reference.paragraphs) > 0:
+                add_entry(entries, reference, lambda x: reference.paragraphs[0].to_json(), 'AB')
 
             if reference.journal_id is not None:
                 journal = id_to_journal[reference.journal_id]
