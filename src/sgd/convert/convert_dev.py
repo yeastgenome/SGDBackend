@@ -16,8 +16,8 @@ if __name__ == "__main__":
 
     nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
-    # # ------------------------------------------ Evelements ------------------------------------------
-    # # Bud -> Nex
+    # ------------------------------------------ Evelements ------------------------------------------
+    # Bud -> Nex
     # from src.sgd.model.nex.misc import Source, Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl
     # from src.sgd.model.nex.auxiliary import Disambig
     # from src.sgd.model.perf.core import Strain as PerfStrain
@@ -624,11 +624,11 @@ if __name__ == "__main__":
     # do_conversion(make_individual_go_backend_starter(nex_backend, 'go_details', 'LOCUS', go_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'LOCUS', name='convert.from_backend.go_details', attr_name='bioconcept_id', commit_interval=1000, delete_untouched=True),
     #                 OutputTransformer(1000)])
-
-    do_conversion(make_individual_observable_backend_starter(nex_backend, 'phenotype_details', 'LOCUS', observable_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'LOCUS', name='convert.from_backend.phenotype_details', attr_name='bioconcept_id', commit_interval=1000, delete_untouched=True),
-                    OutputTransformer(1000)])
-
-    # do_conversion(make_individual_phenotype_backend_starter(nex_backend, 'phenotype_details', 'LOCUS', phenotype_ids),
+    #
+    # do_conversion(make_individual_observable_backend_starter(nex_backend, 'phenotype_details', 'LOCUS', observable_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'LOCUS', name='convert.from_backend.phenotype_details', attr_name='bioconcept_id', commit_interval=1000, delete_untouched=True),
     #                 OutputTransformer(1000)])
+
+    do_conversion(make_individual_phenotype_backend_starter(nex_backend, 'phenotype_details', 'LOCUS', phenotype_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'LOCUS', name='convert.from_backend.phenotype_details', attr_name='bioconcept_id', commit_interval=1000, delete_untouched=True),
+                    OutputTransformer(1000)])

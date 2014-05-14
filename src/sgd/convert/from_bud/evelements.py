@@ -38,7 +38,7 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
 
-        for row in make_file_starter('src/sgd/convert/data/2014-05-02_reg_data/Venters_Macisaac_Hu05-06-2014')():
+        for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/Venters_Macisaac_Hu05-12-2014_regulator_lines')():
             source_key = row[11].strip()
             if source_key in key_to_source:
                 yield {'display_name': row[4] if row[4] != '' else row[5],
@@ -47,8 +47,8 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
             else:
                 print 'Source not found: ' + str(source_key)
 
-        for row in make_file_starter('src/sgd/convert/data/2014-05-02_reg_data/SGD_data05-05-2014')():
-            source_key = row[9].strip()
+        for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/SGD_data_05_13_2014')():
+            source_key = row[11].strip()
             if source_key in key_to_source:
                 yield {'display_name': row[4] if row[4] != '' else row[5],
                        'source': None if source_key not in key_to_source else key_to_source[source_key],
@@ -56,10 +56,10 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
             else:
                 print 'Source not found: ' + str(source_key)
 
-        for row in make_file_starter('src/sgd/convert/data/2014-05-02_reg_data/YEASTRACT_reg_data2014-05-05')():
+        for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/Madhani_manual_data.txt')():
             if len(row) >= 10:
                 if source_key in key_to_source:
-                    source_key = row[9].strip()
+                    source_key = row[11].strip()
                     yield {'display_name': row[4] if row[4] != '' else row[5],
                            'source': None if source_key not in key_to_source else key_to_source[source_key],
                            'eco_id': row[5]}
