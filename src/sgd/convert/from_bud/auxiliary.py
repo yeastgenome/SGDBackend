@@ -7,6 +7,7 @@ from src.sgd.model.nex.bioconcept import Bioconcept, Go
 from src.sgd.model.nex.bioitem import Bioitem
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence, Regulationevidence, Goevidence, \
     Phenotypeevidence, Literatureevidence, Domainevidence
+import math
 
 __author__ = 'kpaskov'
     
@@ -84,8 +85,32 @@ def make_bioentity_interaction_starter(nex_session_maker):
             yield {'interaction_type': 'REGULATION', 'evidence_count': evidence_count, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'forward'}
             yield {'interaction_type': 'REGULATION', 'evidence_count': evidence_count, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'backward'}
 
+        #Expression
+
         nex_session.close()
     return bioentity_interaction_starter
+
+def average(x):
+    assert len(x) > 0
+    return float(sum(x)) / len(x)
+
+def pearson_def(x, y):
+    assert len(x) == len(y)
+    n = len(x)
+    assert n > 0
+    avg_x = average(x)
+    avg_y = average(y)
+    diffprod = 0
+    xdiff2 = 0
+    ydiff2 = 0
+    for idx in range(n):
+        xdiff = x[idx] - avg_x
+        ydiff = y[idx] - avg_y
+        diffprod += xdiff * ydiff
+        xdiff2 += xdiff * xdiff
+        ydiff2 += ydiff * ydiff
+
+    return diffprod / math.sqrt(xdiff2 * ydiff2)
 
 # --------------------- Convert Bioconceptinteractions ---------------------
 def make_bioconcept_interaction_starter(nex_session_maker):

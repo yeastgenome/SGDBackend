@@ -1,9 +1,10 @@
+from decimal import Decimal
 import hashlib
 
 from sqlalchemy import Float, CLOB, Numeric
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String, Date, Numeric
 
 from bioconcept import Bioconcept, Go, Phenotype, ECNumber
 from bioentity import Bioentity, Locus, Complex
@@ -492,6 +493,70 @@ class Regulationevidence(Evidence):
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['properties'] = [x.to_json() for x in self.properties]
+        return obj_json
+
+class Expressionevidence(Evidence):
+    __tablename__ = "expressionevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
+    note = Column('note', String)
+
+    description = Column('description', CLOB)
+    geo_id = Column('geo_id', String)
+    pcl_filename = Column('pcl_filename', String)
+    short_description = Column('short_description', String)
+    tags = Column('tags', String)
+    condition = Column('condition', String)
+
+    #Relationships
+    source = relationship(Source, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
+    reference = relationship(Reference, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
+    strain = relationship(Strain, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
+    experiment = relationship(Experiment, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'EXPRESSION', 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['id', 'note',
+                     'description', 'geo_id', 'pcl_filename', 'short_description', 'tags', 'condition',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+    def unique_key(self):
+        return self.class_type, self.geo_id, self.condition
+
+class Expressiondata(Base, UpdateByJsonMixin):
+    __tablename__ = "expressiondata"
+
+    id = Column('expressiondata_id', Integer, primary_key=True)
+    evidence_id = Column('evidence_id', Integer, ForeignKey(Expressionevidence.id))
+    locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
+    value = Column('value', Numeric(7, 3))
+    class_type = 'EXPRESSION_DATA'
+
+    #Relationships
+    evidence = relationship(Expressionevidence, backref=backref('data', passive_deletes=True), uselist=False)
+    locus = relationship(Locus, backref=backref('expression_data', passive_deletes=True), uselist=False)
+
+    __eq_values__ = ['id', 'value', 'evidence_id', 'locus_id']
+    __eq_fks__ = []
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+    def unique_key(self):
+        return self.evidence_id, self.locus_id
+
+    def to_json(self):
+        obj_json = self.evidence.to_json()
+        obj_json['value'] = float(self.value)
+        obj_json['hist_value'] = float(self.value.quantize(Decimal('1.0')))
+        obj_json['locus'] = self.locus.to_min_json()
         return obj_json
         
 class Bindingevidence(Evidence):

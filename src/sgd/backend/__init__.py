@@ -96,6 +96,12 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('go_ontology_graph'),
                     route_name='go_ontology_graph')
 
+    #Expression views
+    config.add_route('expression_details', '/locus/{identifier}/expression_details')
+    config.add_view(lambda request: chosen_backend.response_wrapper('expression_details', request)(getattr(chosen_backend, 'expression_details')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('expression_details'),
+                    route_name='expression_details')
+
     #Phenotype views
     config.add_route('phenotype', '/phenotype/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('phenotype', request)(getattr(chosen_backend, 'phenotype')(phenotype_identifier=request.matchdict['identifier'])),

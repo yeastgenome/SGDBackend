@@ -1,9 +1,10 @@
+from decimal import Decimal
 from sqlalchemy.orm import joinedload
 
 from src.sgd.convert.from_bud import contains_digits, get_dna_sequence_library, get_sequence, get_sequence_library_fsa
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
 from src.sgd.model.nex import create_format_name
-
+import os
 
 __author__ = 'kpaskov'
 
@@ -1030,7 +1031,7 @@ def make_regulation_evidence_starter(nex_session_maker):
                           str(bioent2_key) + ' ' + experiment_eco_id + ' ' + experiment_format_name + ' ' + str(strain_key) + ' ' + str(pubmed_id) + ' ' + str(source_key)
 
         header = True
-        for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/SGD_data_05_13_2014')():
+        for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/SGD_data_05_14_2014')():
             if header:
                 header = False
             else:
@@ -1078,6 +1079,54 @@ def make_regulation_evidence_starter(nex_session_maker):
 
         header = False
         for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/Madhani_manual_data.txt')():
+            if header:
+                header = False
+            else:
+                if len(row) >= 10:
+                    bioent1_key = (row[1].strip(), 'LOCUS')
+                    bioent2_key = (row[3].strip(), 'LOCUS')
+                    experiment_format_name = create_format_name(row[4].strip())
+                    experiment_eco_id = row[5].strip()
+                    direction = None if row[7] == '' else row[7]
+                    pvalue = None if row[8] == '' else row[8]
+                    fdr = None if row[9] == '' else row[9]
+                    pubmed_id = int(row[10].strip())
+                    source_key = row[11].strip()
+                    strain_key = None if row[12].strip() == '' else row[12].strip()
+                    strain_background = None if row[13].strip() == '' else row[13].strip()
+
+                    if strain_key == 'CEN.PK':
+                        strain_key = 'CENPK'
+
+                    if bioent1_key in key_to_bioentity and bioent2_key in key_to_bioentity and (strain_key is None or strain_key in key_to_strain) and \
+                                    pubmed_id in pubmed_to_reference and source_key in key_to_source and \
+                        (experiment_format_name in key_to_experiment or experiment_eco_id in key_to_experiment):
+                        conditions = []
+                        condition_value = row[6].strip()
+                        if condition_value != '""':
+                            from src.sgd.model.nex.evidence import Generalproperty
+                            condition_value = condition_value.replace('??', "\00b5")
+                            if condition_value.startswith('"') and condition_value.endswith('"'):
+                                condition_value = condition_value[1:-1]
+                            conditions.append(Generalproperty({'note': condition_value}))
+
+                        yield {'source': key_to_source[source_key],
+                               'reference': pubmed_to_reference[pubmed_id],
+                               'strain': None if strain_key is None or strain_key not in key_to_strain else key_to_strain[strain_key],
+                               'experiment': key_to_experiment[experiment_format_name] if experiment_format_name in key_to_experiment else key_to_experiment[experiment_eco_id],
+                               'locus1': key_to_bioentity[bioent1_key],
+                               'locus2': key_to_bioentity[bioent2_key],
+                               'direction': direction,
+                               'pvalue': pvalue,
+                               'fdr': fdr,
+                               'construct': strain_background,
+                               'properties': conditions}
+                    else:
+                        print 'Bioentity or strain or reference or source or experiment not found: ' + str(bioent1_key) + ' ' + \
+                              str(bioent2_key) + ' ' + experiment_eco_id + ' ' + experiment_format_name + ' ' + str(strain_key) + ' ' + str(pubmed_id) + ' ' + str(source_key)
+
+        header = False
+        for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/Pimentel_PMID22616008.txt')():
             if header:
                 header = False
             else:
@@ -1309,7 +1358,6 @@ def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filena
 def make_protein_sequence_evidence_starter(nex_session_maker, strain_key, protein_sequence_filename, protparam_data):
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.model.nex.bioentity import Locus
-    from src.sgd.model.bud.sequence import ProteinInfo
     def protein_sequence_evidence_starter():
         nex_session = nex_session_maker()
 
@@ -1361,3 +1409,120 @@ def make_protein_sequence_evidence_starter(nex_session_maker, strain_key, protei
         f.close()
         nex_session.close()
     return protein_sequence_evidence_starter
+
+# --------------------- Convert Expression Evidence ---------------------
+def make_expression_evidence_starter(nex_session_maker, expression_dir):
+    from src.sgd.model.nex.misc import Source
+    from src.sgd.model.nex.reference import Reference
+    def expression_evidence_starter():
+        nex_session = nex_session_maker()
+
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+        pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
+
+        for path in os.listdir(expression_dir):
+            if os.path.isdir(expression_dir + '/' + path):
+                full_description = None
+                geo_id = None
+                pcl_filename = None
+                short_description = None
+                tags = None
+                pubmed_id = None
+
+                state = 'BEGIN'
+
+                for row in make_file_starter(expression_dir + '/' + path + '/README')():
+                    if row[0].startswith('Full Description'):
+                        state = 'FULL_DESCRIPTION:'
+                        full_description = row[0][18:].strip()
+                    elif row[0].startswith('PMID:'):
+                        pubmed_id = int(row[0][6:].strip())
+                    elif row[0].startswith('GEO ID:'):
+                        geo_id = row[0][8:].strip()
+                    elif row[0].startswith('PCL filename'):
+                        state = 'OTHER'
+                    elif state == 'FULL_DESCRIPTION':
+                        full_description = full_description + row[0].strip()
+                    elif state == 'OTHER':
+                        pcl_filename = row[0].strip()
+                        short_description = row[1].strip()
+                        tags = row[3].strip()
+
+                if geo_id is not None and pubmed_id in pubmed_id_to_reference:
+                    for file in os.listdir(expression_dir + '/' + path):
+                        if file != 'README':
+                            f = open(expression_dir + '/' + path + '/' + file, 'r')
+                            pieces = f.next().split('\t')
+                            f.close()
+                            for piece in pieces[3:]:
+                                yield {
+                                    'description': full_description,
+                                    'geo_id': geo_id,
+                                    'pcl_filename': pcl_filename,
+                                    'short_description': short_description,
+                                    'tags': tags,
+                                    'condition': piece.strip(),
+                                    'reference': pubmed_id_to_reference[pubmed_id],
+                                    'source': key_to_source['SGD']
+                                }
+                else:
+                    print 'Geo ID or reference not found ' + str(pubmed_id)
+                    yield None
+
+        nex_session.close()
+    return expression_evidence_starter
+
+def make_expression_data_starter(nex_session_maker, expression_dir):
+    from src.sgd.model.nex.evidence import Expressionevidence
+    from src.sgd.model.nex.bioentity import Locus
+    def expression_evidence_starter():
+        nex_session = nex_session_maker()
+
+        key_to_evidence = dict([(x.unique_key(), x) for x in nex_session.query(Expressionevidence).all()])
+        locuses = nex_session.query(Locus).all()
+        key_to_locus = dict([(x.format_name, x) for x in locuses])
+        key_to_locus.update([(x.display_name, x) for x in locuses])
+        key_to_locus.update([('SGD:' + x.sgdid, x) for x in locuses])
+
+        count = 0
+        for path in os.listdir(expression_dir):
+            count += 1
+            if os.path.isdir(expression_dir + '/' + path):
+                geo_id = None
+                for row in make_file_starter(expression_dir + '/' + path + '/README')():
+                    if row[0].startswith('GEO ID:'):
+                        geo_id = row[0][8:].strip()
+
+                if geo_id is not None:
+                    for file in os.listdir(expression_dir + '/' + path):
+                        if file != 'README':
+                            evidences = None
+
+                            for row in make_file_starter(expression_dir + '/' + path + '/' + file)():
+                                if evidences is None:
+                                    evidences = []
+                                    for condition in row[3:]:
+                                        evidence_key = ('EXPRESSION', geo_id, condition.strip())
+                                        if evidence_key in key_to_evidence:
+                                            evidences.append(key_to_evidence[evidence_key])
+                                        else:
+                                            print 'Evidence not found: ' + str(evidence_key)
+                                            evidences.append(None)
+                                elif row[0] != 'EWEIGHT':
+                                    locus_key = row[0]
+                                    if locus_key in key_to_locus and evidences[i] is not None:
+                                        for i in range(0, len(evidences)):
+                                            yield {
+                                                'locus_id': key_to_locus[locus_key].id,
+                                                'evidence_id': evidences[i].id,
+                                                'value': Decimal(row[i+3])
+                                            }
+                                    else:
+                                        print 'Locus not found: ' + str(locus_key)
+                else:
+                    print 'Geo ID not found.'
+                    yield None
+            print count
+
+        nex_session.close()
+    return expression_evidence_starter

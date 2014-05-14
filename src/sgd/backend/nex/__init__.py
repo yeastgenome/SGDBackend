@@ -292,6 +292,17 @@ class SGDBackend(BackendInterface):
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(graph_tools.make_lsp_graph(locus_id))
 
+    #Expression
+    def expression_details(self, locus_identifier=None, are_ids=False):
+        from src.sgd.backend.nex import view_expression
+        if are_ids:
+            locus_id = locus_identifier
+        else:
+            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+
+        return json.dumps(view_expression.make_details(locus_id=locus_id))
+
+
     # Go
     def go_ontology_graph(self, go_identifier, are_ids=False):
         import graph_tools
