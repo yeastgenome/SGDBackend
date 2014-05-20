@@ -3,10 +3,11 @@ from sqlalchemy.sql.expression import func
 from src.sgd.convert import is_number
 from src.sgd.convert.transformers import make_db_starter
 from src.sgd.model.nex.bioentity import Locus, Complex
-from src.sgd.model.nex.bioconcept import Bioconcept, Go
-from src.sgd.model.nex.bioitem import Bioitem
+from src.sgd.model.nex.bioconcept import Bioconcept, Go, Observable
+from src.sgd.model.nex.bioitem import Bioitem, Domain
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence, Regulationevidence, Goevidence, \
     Phenotypeevidence, Literatureevidence, Domainevidence
+from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioiteminteraction
 import math
 
 __author__ = 'kpaskov'
@@ -31,7 +32,7 @@ def make_disambig_starter(nex_session_maker, cls, fields, class_type, subclass_t
     return disambig_starter
 
 # --------------------- Convert Bioentityinteractions ---------------------
-def make_bioentity_interaction_starter(nex_session_maker):
+def make_bioentity_geninteraction_interaction_starter(nex_session_maker):
     def bioentity_interaction_starter():
         nex_session = nex_session_maker()
 
@@ -53,6 +54,15 @@ def make_bioentity_interaction_starter(nex_session_maker):
             yield {'interaction_type': 'GENINTERACTION', 'evidence_count': evidence_count, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'undirected'}
             yield {'interaction_type': 'GENINTERACTION', 'evidence_count': evidence_count, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'undirected'}
 
+        nex_session.close()
+    return bioentity_interaction_starter
+
+def make_bioentity_physinteraction_interaction_starter(nex_session_maker):
+    def bioentity_interaction_starter():
+        nex_session = nex_session_maker()
+
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+
         #Physinteraction
         bioentity_pair_to_evidence_count = {}
         for evidence in make_db_starter(nex_session.query(Physinteractionevidence), 1000)():
@@ -68,6 +78,15 @@ def make_bioentity_interaction_starter(nex_session_maker):
             bioentity2 = id_to_bioentity[bioentity2_id]
             yield {'interaction_type': 'PHYSINTERACTION', 'evidence_count': evidence_count, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'undirected'}
             yield {'interaction_type': 'PHYSINTERACTION', 'evidence_count': evidence_count, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'undirected'}
+
+        nex_session.close()
+    return bioentity_interaction_starter
+
+def make_bioentity_regulation_interaction_starter(nex_session_maker):
+    def bioentity_interaction_starter():
+        nex_session = nex_session_maker()
+
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
 
         #Regulation
         bioentity_pair_to_evidence_count = {}
@@ -85,7 +104,143 @@ def make_bioentity_interaction_starter(nex_session_maker):
             yield {'interaction_type': 'REGULATION', 'evidence_count': evidence_count, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'forward'}
             yield {'interaction_type': 'REGULATION', 'evidence_count': evidence_count, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'backward'}
 
-        #Expression
+        nex_session.close()
+    return bioentity_interaction_starter
+
+def make_bioentity_go_interaction_starter(nex_session_maker):
+    def bioentity_interaction_starter():
+        nex_session = nex_session_maker()
+
+        id_to_bioconcept = dict([(x.id, x) for x in nex_session.query(Go).all()])
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+
+        biocon_id_to_bioent_ids = dict([(x, set()) for x in id_to_bioconcept.keys()])
+
+        for interaction in make_db_starter(nex_session.query(Bioconceptinteraction).filter_by(interaction_type='GO'), 1000)():
+            bioentity_id = interaction.bioentity_id
+            if bioentity_id in id_to_bioentity:
+                biocon_id_to_bioent_ids[interaction.interactor_id].add(bioentity_id)
+
+        pair_to_score = dict()
+
+        for biocon_id, bioent_ids in biocon_id_to_bioent_ids.iteritems():
+            for bioent1_id in bioent_ids:
+                for bioent2_id in bioent_ids:
+                    if bioent1_id < bioent2_id:
+                        key = (bioent1_id, bioent2_id)
+                        if key in pair_to_score:
+                            pair_to_score[key] += 100.0/len(bioent_ids)
+                        else:
+                            pair_to_score[key] = 100.0/len(bioent_ids)
+
+        for pair, score in pair_to_score.iteritems():
+            score = round(score)
+            if score > 0:
+                bioent1_id, bioent2_id = pair
+                bioent1 = id_to_bioentity[bioent1_id]
+                bioent2 = id_to_bioentity[bioent2_id]
+                yield {'interaction_type': 'GOINTERACTION',
+                               'evidence_count': score,
+                               'bioentity': bioent1,
+                               'interactor': bioent2,
+                               'direction': 'undirected'}
+                yield {'interaction_type': 'GOINTERACTION',
+                               'evidence_count': score,
+                               'bioentity': bioent2,
+                               'interactor': bioent1,
+                               'direction': 'undirected'}
+
+        nex_session.close()
+    return bioentity_interaction_starter
+
+def make_bioentity_phenotype_interaction_starter(nex_session_maker):
+    def bioentity_interaction_starter():
+        nex_session = nex_session_maker()
+
+        id_to_bioconcept = dict([(x.id, x) for x in nex_session.query(Observable).all()])
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+
+        biocon_id_to_bioent_ids = dict([(x, set()) for x in id_to_bioconcept.keys()])
+
+        for interaction in make_db_starter(nex_session.query(Bioconceptinteraction).filter_by(interaction_type='PHENOTYPE'), 1000)():
+            bioentity_id = interaction.bioentity_id
+            if bioentity_id in id_to_bioentity:
+                biocon_id_to_bioent_ids[interaction.interactor_id].add(bioentity_id)
+
+        pair_to_score = dict()
+
+        for biocon_id, bioent_ids in biocon_id_to_bioent_ids.iteritems():
+            for bioent1_id in bioent_ids:
+                for bioent2_id in bioent_ids:
+                    if bioent1_id < bioent2_id:
+                        key = (bioent1_id, bioent2_id)
+                        if key in pair_to_score:
+                            pair_to_score[key] += 100.0/len(bioent_ids)
+                        else:
+                            pair_to_score[key] = 100.0/len(bioent_ids)
+
+        for pair, score in pair_to_score.iteritems():
+            score = round(score) - 1
+            if score > 0:
+                bioent1_id, bioent2_id = pair
+                bioent1 = id_to_bioentity[bioent1_id]
+                bioent2 = id_to_bioentity[bioent2_id]
+                yield {'interaction_type': 'PHENOTYPEINTERACTION',
+                               'evidence_count': score,
+                               'bioentity': bioent1,
+                               'interactor': bioent2,
+                               'direction': 'undirected'}
+                yield {'interaction_type': 'PHENOTYPEINTERACTION',
+                               'evidence_count': score,
+                               'bioentity': bioent2,
+                               'interactor': bioent1,
+                               'direction': 'undirected'}
+
+        nex_session.close()
+    return bioentity_interaction_starter
+
+def make_bioentity_domain_interaction_starter(nex_session_maker):
+    def bioentity_interaction_starter():
+        nex_session = nex_session_maker()
+
+        id_to_bioconcept = dict([(x.id, x) for x in nex_session.query(Domain).all()])
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+
+        biocon_id_to_bioent_ids = dict([(x, set()) for x in id_to_bioconcept.keys()])
+
+        for interaction in make_db_starter(nex_session.query(Bioiteminteraction).filter_by(interaction_type='DOMAIN'), 1000)():
+            bioentity_id = interaction.bioentity_id
+            if bioentity_id in id_to_bioentity:
+                biocon_id_to_bioent_ids[interaction.interactor_id].add(bioentity_id)
+
+        pair_to_score = dict()
+
+        for biocon_id, bioent_ids in biocon_id_to_bioent_ids.iteritems():
+            for bioent1_id in bioent_ids:
+                for bioent2_id in bioent_ids:
+                    if bioent1_id < bioent2_id:
+                        key = (bioent1_id, bioent2_id)
+                        if key in pair_to_score:
+                            pair_to_score[key] += 100.0/len(bioent_ids)
+                        else:
+                            pair_to_score[key] = 100.0/len(bioent_ids)
+
+        for pair, score in pair_to_score.iteritems():
+            score = round(score)
+            if score > 0:
+                bioent1_id, bioent2_id = pair
+                bioent1 = id_to_bioentity[bioent1_id]
+                bioent2 = id_to_bioentity[bioent2_id]
+                yield {'interaction_type': 'DOMAININTERACTION',
+                               'evidence_count': score,
+                               'bioentity': bioent1,
+                               'interactor': bioent2,
+                               'direction': 'undirected'}
+                yield {'interaction_type': 'DOMAININTERACTION',
+                               'evidence_count': score,
+                               'bioentity': bioent2,
+                               'interactor': bioent1,
+                               'direction': 'undirected'}
 
         nex_session.close()
     return bioentity_interaction_starter

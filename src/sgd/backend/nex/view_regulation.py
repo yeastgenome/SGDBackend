@@ -4,11 +4,11 @@ from sqlalchemy.orm import joinedload
 from src.sgd.backend.nex import DBSession, query_limit
 from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.evidence import Regulationevidence
-
+import json
 
 # -------------------------------Evidence Table---------------------------------------
 def get_regulation_evidence(locus_id, reference_id, between_ids):
-    query = DBSession.query(Regulationevidence).options(joinedload('reference'), joinedload('strain'), joinedload('experiment'), joinedload('locus1'), joinedload('locus2'))
+    query = DBSession.query(Regulationevidence)
     if reference_id is not None:
         query = query.filter_by(reference_id=reference_id)
     if between_ids is not None:
@@ -29,7 +29,7 @@ def make_details(locus_id=None, reference_id=None):
     if regevidences is None:
         return {'Error': 'Too much data to display.'}
 
-    return [x.to_json() for x in regevidences]
+    return '[' + ', '.join([x.json for x in regevidences if x.json is not None]) + ']'
 
 # -------------------------------Graph---------------------------------------
 def create_node(bioent, is_focus, targ_ev_count, reg_ev_count, class_type):

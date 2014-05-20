@@ -3,6 +3,7 @@ from math import ceil
 from src.sgd.backend.nex import DBSession, query_limit
 from src.sgd.model.nex.evidence import Expressiondata
 from sqlalchemy.orm import joinedload
+import json
 
 __author__ = 'kpaskov'
 
@@ -25,4 +26,4 @@ def make_details(locus_id=None):
     if expressionevidences is None:
         return {'Error': 'Too much data to display.'}
 
-    return [x.to_json() for x in expressionevidences]
+    return '[' + ', '.join([x.json for x in expressionevidences if x.json is not None]) + ']'

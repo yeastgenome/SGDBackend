@@ -1,5 +1,7 @@
 __author__ = 'kpaskov'
 
+import json
+
 def create_format_name(display_name):
     format_name = display_name.replace(' ', '_')
     format_name = format_name.replace('/', '-')
@@ -12,9 +14,9 @@ class UpdateByJsonMixin(object):
         anything_changed = False
         for key in self.__eq_values__:
             current_value = getattr(self, key)
-            new_value = json_obj[key]
+            new_value = None if key not in json_obj else json_obj[key]
 
-            if key == 'id' or key == 'date_created' or key == 'created_by':
+            if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                 pass
             elif new_value != current_value:
                 setattr(self, key, new_value)
@@ -36,7 +38,7 @@ class UpdateByJsonMixin(object):
             current_value = getattr(self, key)
             new_value = json_obj[key]
 
-            if key == 'id' or key == 'date_created' or key == 'created_by':
+            if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                 pass
             elif new_value != current_value:
                 anything_changed = True
@@ -61,7 +63,9 @@ class UpdateByJsonMixin(object):
     def to_json(self):
         obj_json = {}
         for key in self.__eq_values__:
-            if key == 'date_created' or key == 'date_revised':
+            if key == 'json':
+                pass
+            elif key == 'date_created' or key == 'date_revised':
                 obj_json[key] = str(getattr(self, key))
             else:
                 obj_json[key] = getattr(self, key)

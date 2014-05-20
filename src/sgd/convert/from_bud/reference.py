@@ -198,6 +198,7 @@ def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
 # -------------------- Convert Bibentry ---------------------
 def make_bibentry_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.reference import Reference, Book, Journal, Author, Reftype
+    from src.sgd.model.nex.paragraph import Referenceparagraph
     def bibentry_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()

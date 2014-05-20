@@ -6,7 +6,7 @@ from src.sgd.model.nex.evidence import Evidence
 from src.sgd.model.nex.misc import Strain, Source, Experiment
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex import UpdateByJsonMixin
-
+import json
 
 __author__ = 'kpaskov'
 
@@ -38,6 +38,7 @@ class ArchiveLiteratureevidence(Evidence):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.topic, self.reference_id

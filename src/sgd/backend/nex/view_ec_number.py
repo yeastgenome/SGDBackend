@@ -1,5 +1,6 @@
 from src.sgd.backend.nex import DBSession, query_limit
 from src.sgd.model.nex.evidence import ECNumberevidence
+import json
 
 __author__ = 'kpaskov'
 
@@ -24,4 +25,4 @@ def make_details(locus_id=None, ec_number_id=None):
     if ecevidences is None:
         return {'Error': 'Too much data to display.'}
             
-    return [x.to_json() for x in ecevidences]
+    return '[' + ', '.join([x.json for x in ecevidences if x.json is not None]) + ']'

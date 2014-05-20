@@ -2,6 +2,7 @@ from sqlalchemy.orm import joinedload
 from src.sgd.model.nex.evidence import DNAsequenceevidence, Proteinsequenceevidence, Bindingevidence
 from src.sgd.model.nex.bioitem import Contig
 from src.sgd.backend.nex import DBSession, query_limit
+import json
 
 __author__ = 'kpaskov'
 
@@ -54,9 +55,9 @@ def make_details(locus_id=None, contig_id=None):
     coding_dnaseqevidences = [x for x in dnaseqevidences if x.dna_type == 'CODING']
 
     tables = {}
-    tables['genomic_dna'] = sorted([x.to_json() for x in genomic_dnaseqevidences], key=lambda x: x['strain']['display_name'] if x['strain']['display_name'] != 'S288C' else 'AAA')
-    tables['coding_dna'] = sorted([x.to_json() for x in coding_dnaseqevidences], key=lambda x: x['strain']['display_name'] if x['strain']['display_name'] != 'S288C' else 'AAA')
-    tables['protein'] = sorted([x.to_json() for x in proteinseqevidences], key=lambda x: x['strain']['display_name'] if x['strain']['display_name'] != 'S288C' else 'AAA')
+    tables['genomic_dna'] = [x.to_json() for x in sorted(genomic_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.json is not None]
+    tables['coding_dna'] = [x.json() for x in sorted(coding_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.json is not None]
+    tables['protein'] = [x.json() for x in sorted(proteinseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.json is not None]
 
     return tables
 
@@ -96,4 +97,4 @@ def make_binding_details(locus_id=None):
     if binding_site_evidences is None:
         return {'Error': 'Too much data to display.'}
 
-    return [x.to_json() for x in binding_site_evidences]
+    return '[' + ', '.join([x.json for x in binding_site_evidences if x.json is not None]) + ']'

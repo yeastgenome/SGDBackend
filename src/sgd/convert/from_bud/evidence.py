@@ -270,10 +270,10 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
         for row in make_file_starter('src/sgd/convert/data/yeastmine_protein_domains.tsv')():
-            source_key = row[13].strip()
-            start = row[10].strip()
-            end = row[11].strip()
-            evalue = row[12].strip()
+            source_key = row[10].strip()
+            start = row[7].strip()
+            end = row[8].strip()
+            evalue = row[9].strip()
             status = None
             date_of_run = None
 
@@ -512,7 +512,7 @@ def make_go_conditions(old_dbxrefs, sgdid_to_bioentity, key_to_bioconcept, key_t
             if domain_key in key_to_bioitem:
                 conditions.append(Bioitemproperty({'role': dbxrefref.support_type, 'bioitem': key_to_bioitem[domain_key]}))
             else:
-                print 'Could not find bioconcept: ' + str(domain_key)
+                print 'Could not find bioitem: ' + str(domain_key)
         else:
             bioitem_key = (dbxref.dbxref_id, 'ORPHAN')
             if bioitem_key in key_to_bioitem:
@@ -983,7 +983,7 @@ def make_regulation_evidence_starter(nex_session_maker):
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
 
         header = False
-        for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/Venters_Macisaac_Hu05-12-2014_regulator_lines')():
+        for row in make_file_starter('src/sgd/convert/data/2014-05-15_reg_data/Venters_Macisaac_Hu05-12-2014_regulator_lines')():
             if header:
                 header = False
             else:
@@ -1031,7 +1031,7 @@ def make_regulation_evidence_starter(nex_session_maker):
                           str(bioent2_key) + ' ' + experiment_eco_id + ' ' + experiment_format_name + ' ' + str(strain_key) + ' ' + str(pubmed_id) + ' ' + str(source_key)
 
         header = True
-        for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/SGD_data_05_14_2014')():
+        for row in make_file_starter('src/sgd/convert/data/2014-05-15_reg_data/SGD_data_05_14_2014')():
             if header:
                 header = False
             else:
@@ -1078,15 +1078,15 @@ def make_regulation_evidence_starter(nex_session_maker):
                           str(bioent2_key) + ' ' + experiment_eco_id + ' ' + experiment_format_name + ' ' + str(strain_key) + ' ' + str(pubmed_id) + ' ' + str(source_key)
 
         header = False
-        for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/Madhani_manual_data.txt')():
+        for row in make_file_starter('src/sgd/convert/data/2014-05-15_reg_data/Madhani_fixed')():
             if header:
                 header = False
             else:
                 if len(row) >= 10:
                     bioent1_key = (row[1].strip(), 'LOCUS')
                     bioent2_key = (row[3].strip(), 'LOCUS')
-                    experiment_format_name = create_format_name(row[4].strip())
-                    experiment_eco_id = row[5].strip()
+                    experiment_format_name = create_format_name(row[5].strip())
+                    experiment_eco_id = row[4].strip()
                     direction = None if row[7] == '' else row[7]
                     pvalue = None if row[8] == '' else row[8]
                     fdr = None if row[9] == '' else row[9]
@@ -1126,7 +1126,7 @@ def make_regulation_evidence_starter(nex_session_maker):
                               str(bioent2_key) + ' ' + experiment_eco_id + ' ' + experiment_format_name + ' ' + str(strain_key) + ' ' + str(pubmed_id) + ' ' + str(source_key)
 
         header = False
-        for row in make_file_starter('src/sgd/convert/data/regulation_data_05_14/Pimentel_PMID22616008.txt')():
+        for row in make_file_starter('src/sgd/convert/data/2014-05-15_reg_data/Pimentel_PMID22616008.txt')():
             if header:
                 header = False
             else:
@@ -1510,13 +1510,14 @@ def make_expression_data_starter(nex_session_maker, expression_dir):
                                             evidences.append(None)
                                 elif row[0] != 'EWEIGHT':
                                     locus_key = row[0]
-                                    if locus_key in key_to_locus and evidences[i] is not None:
+                                    if locus_key in key_to_locus:
                                         for i in range(0, len(evidences)):
-                                            yield {
-                                                'locus_id': key_to_locus[locus_key].id,
-                                                'evidence_id': evidences[i].id,
-                                                'value': Decimal(row[i+3])
-                                            }
+                                            if evidences[i] is not None:
+                                                yield {
+                                                    'locus_id': key_to_locus[locus_key].id,
+                                                    'evidence_id': evidences[i].id,
+                                                    'value': Decimal(row[i+3])
+                                                }
                                     else:
                                         print 'Locus not found: ' + str(locus_key)
                 else:
