@@ -373,9 +373,9 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
     top_bioconcept_info = []
     top_bioitem_info = []
     if len(top_bioconcepts) > 0:
-        top_bioconcept_info.extend([x.to_min_json() for x in DBSession.query(Bioconcept).filter(Bioconcept.id.in_([x[1] for x in top_bioconcepts])).all()])
+        top_bioconcept_info.extend([get_class_too(x) for x in DBSession.query(Bioconcept).filter(Bioconcept.id.in_([x[1] for x in top_bioconcepts])).all()])
     if len(top_bioitems) > 0:
-        top_bioitem_info.extend([x.to_min_json() for x in DBSession.query(Bioitem).filter(Bioitem.id.in_([x[1] for x in top_bioitems])).all()])
+        top_bioitem_info.extend([get_class_too(x) for x in DBSession.query(Bioitem).filter(Bioitem.id.in_([x[1] for x in top_bioitems])).all()])
 
     for interactor_id in top_bioconcepts:
         for bioent_id in interactor_to_bioent_ids[interactor_id]:
@@ -386,5 +386,9 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
             if bioent_id in id_to_nodes:
                 id_to_nodes[bioent_id]['BIOITEM' + str(interactor_id[1])] = True
 
-
     return {'nodes': id_to_nodes.values(), 'edges': edges, 'top_bioconcepts': top_bioconcept_info, 'top_bioitems': top_bioitem_info}
+
+def get_class_too(x):
+    obj_json = x.to_min_json()
+    obj_json['class_type'] = x.class_type
+    return obj_json
