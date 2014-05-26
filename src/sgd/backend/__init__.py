@@ -102,6 +102,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('expression_details'),
                     route_name='expression_details')
 
+    config.add_route('expression_graph', '/locus/{identifier}/expression_graph')
+    config.add_view(lambda request: chosen_backend.response_wrapper('expression_graph', request)(getattr(chosen_backend, 'expression_graph')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('expression_graph'),
+                    route_name='expression_graph')
+
     #Phenotype views
     config.add_route('phenotype', '/phenotype/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('phenotype', request)(getattr(chosen_backend, 'phenotype')(phenotype_identifier=request.matchdict['identifier'])),

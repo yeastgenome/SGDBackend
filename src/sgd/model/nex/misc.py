@@ -89,13 +89,14 @@ class Strain(Base, EqualityByIDMixin, UpdateByJsonMixin):
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     description = Column('description', String)
     status = Column('status', String)
+    genotype = Column('genotype', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'status',
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'status', 'genotype',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 
@@ -137,6 +138,11 @@ class Url(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     def unique_key(self):
         return self.class_type, self.category, self.display_name, self.format_name
+
+    def to_min_json(self):
+        obj_json = UpdateByJsonMixin.to_min_json(self)
+        obj_json['category'] = self.category
+        return obj_json
 
 class Alias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'alias'

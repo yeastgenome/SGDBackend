@@ -302,6 +302,14 @@ class SGDBackend(BackendInterface):
 
         return view_expression.make_details(locus_id=locus_id)
 
+    def expression_graph(self, locus_identifier, are_ids=False):
+        import view_expression
+        if are_ids:
+            locus_id = locus_identifier
+        else:
+            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else json.dumps(view_expression.make_graph(locus_id))
+
     # Go
     def go_ontology_graph(self, go_identifier, are_ids=False):
         import graph_tools

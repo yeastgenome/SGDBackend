@@ -2,6 +2,7 @@ from src.sgd.backend.nex import DBSession
 from src.sgd.backend.nex.query_tools import get_relations, get_interactions_among
 from src.sgd.model.nex.bioconcept import Bioconceptrelation
 from src.sgd.model.nex.bioconcept import Bioconcept, Observable
+from src.sgd.model.nex.bioitem import Bioitem
 from src.sgd.model.nex.bioentity import Locus
 from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Bioiteminteraction, Referenceinteraction
 from sqlalchemy.orm import joinedload
@@ -230,8 +231,8 @@ def create_lsp_edge(bioent1_id, bioent2_id, interaction_type, count):
 def make_lsp_graph(locus_id, node_max=100, edge_max=250):
 
     #Get interactors
-    bioconcept_ids = [x.interactor_id for x in DBSession.query(Bioconceptinteraction).filter_by(bioentity_id=locus_id).all()]
-    bioitem_ids = [x.interactor_id for x in DBSession.query(Bioiteminteraction).filter_by(bioentity_id=locus_id).all()]
+    bioconcept_ids = [(x.interaction_type, x.interactor_id) for x in DBSession.query(Bioconceptinteraction).filter_by(bioentity_id=locus_id).all()]
+    bioitem_ids = [(x.interaction_type, x.interactor_id) for x in DBSession.query(Bioiteminteraction).filter_by(bioentity_id=locus_id).all()]
 
     print len(bioconcept_ids) + len(bioitem_ids)
 
@@ -241,7 +242,7 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
     #Get next level
     num_chunks = int(ceil(1.0*len(bioconcept_ids)/500))
     for i in range(0, num_chunks):
-        for interaction in DBSession.query(Bioconceptinteraction).filter(Bioconceptinteraction.interactor_id.in_(bioconcept_ids[i*500:(i+1)*500])).all():
+        for interaction in DBSession.query(Bioconceptinteraction).filter(Bioconceptinteraction.interactor_id.in_([x[1] for x in bioconcept_ids[i*500:(i+1)*500]])).all():
             key = (interaction.interaction_type, interaction.interactor_id)
             bioentity_id = interaction.bioentity_id
             if key in interactor_to_bioent_ids:
@@ -255,7 +256,7 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
 
     num_chunks = int(ceil(1.0*len(bioitem_ids)/500))
     for i in range(0, num_chunks):
-        for interaction in DBSession.query(Bioiteminteraction).filter(Bioiteminteraction.interactor_id.in_(bioitem_ids[i*500:(i+1)*500])).all():
+        for interaction in DBSession.query(Bioiteminteraction).filter(Bioiteminteraction.interactor_id.in_([x[1] for x in bioitem_ids[i*500:(i+1)*500]])).all():
             key = (interaction.interaction_type, interaction.interactor_id)
             bioentity_id = interaction.bioentity_id
             if key in interactor_to_bioent_ids:
@@ -272,43 +273,6 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
     while len(bioent_ids_in_use) + len([x for x, y in bioent_id_to_interactor_ids.iteritems() if len(y) == min_cutoff]) < node_max:
         bioent_ids_in_use.update([x for x, y in bioent_id_to_interactor_ids.iteritems() if len(y) == min_cutoff])
         min_cutoff -= 1
-
-    #Pick out interactors to highlight
-    interactor_ids_in_use = set()
-    for bioent_id in bioent_ids_in_use:
-        interactor_ids_in_use.update(bioent_id_to_interactor_ids[bioent_id])
-
-    interactor_id_to_score = dict()
-    for interactor_id, bioent_ids in interactor_to_bioent_ids.iteritems():
-        score = 1.0*(len(bioent_ids & bioent_ids_in_use)-1)/len(bioent_ids)
-        interactor_id_to_score[interactor_id] = score
-
-    interactor_ids_in_use = set([x[0] for x in sorted(interactor_id_to_score.iteritems(), key=lambda x: x[1], reverse=True)[0:15]])
-
-    #Add interactors between bioentities
-    # for interaction in DBSession.query(Bioconceptinteraction).filter(Bioconceptinteraction.bioentity_id.in_(bioent_ids_in_use)).all():
-    #     key = (interaction.interaction_type, interaction.interactor_id)
-    #     bioentity_id = interaction.bioentity_id
-    #     if key in interactor_to_bioent_ids:
-    #         interactor_to_bioent_ids[key].add(bioentity_id)
-    #     else:
-    #         interactor_to_bioent_ids[key] = set([bioentity_id])
-    #     if bioentity_id in bioent_id_to_interactor_ids:
-    #         bioent_id_to_interactor_ids[bioentity_id].add(key)
-    #     else:
-    #         bioent_id_to_interactor_ids[bioentity_id] = set([key])
-    #
-    # for interaction in DBSession.query(Bioiteminteraction).filter(Bioiteminteraction.bioentity_id.in_(bioent_ids_in_use)).all():
-    #     key = (interaction.interaction_type, interaction.interactor_id)
-    #     bioentity_id = interaction.bioentity_id
-    #     if key in interactor_to_bioent_ids:
-    #         interactor_to_bioent_ids[key].add(bioentity_id)
-    #     else:
-    #         interactor_to_bioent_ids[key] = set([bioentity_id])
-    #     if bioentity_id in bioent_id_to_interactor_ids:
-    #         bioent_id_to_interactor_ids[bioentity_id].add(key)
-    #     else:
-    #         bioent_id_to_interactor_ids[bioentity_id] = set([key])
 
     #Pick out cutoff
     pair_to_score = dict()
@@ -377,5 +341,41 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
         for interaction_type, count in interaction_type_to_count.iteritems():
             edges.append(create_lsp_edge(bioent1_id, bioent2_id, interaction_type, min(count, 5)))
 
+    #Pick out interactors to highlight
+    interactor_ids_in_use = set()
+    for bioent_id in new_bioent_ids_in_use:
+        interactor_ids_in_use.update(bioent_id_to_interactor_ids[bioent_id])
 
-    return {'nodes': id_to_nodes.values(), 'edges': edges}
+    interactor_id_to_score = dict()
+    for interactor_id, bioent_ids in interactor_to_bioent_ids.iteritems():
+        score = 1.0*len(bioent_ids & new_bioent_ids_in_use)/len(bioent_ids)
+        interactor_id_to_score[interactor_id] = score
+
+    top_interactors = [x for x in sorted(interactor_ids_in_use, key=lambda x: interactor_id_to_score[x], reverse=True)][:20]
+
+    top_bioitems = []
+    top_bioconcepts = []
+    for interactor_id in top_interactors:
+        if interactor_id in bioconcept_ids:
+            top_bioconcepts.append(interactor_id)
+        elif interactor_id in bioitem_ids:
+            top_bioitems.append(interactor_id)
+
+    top_bioconcept_info = []
+    top_bioitem_info = []
+    if len(top_bioconcepts) > 0:
+        top_bioconcept_info.extend([x.to_min_json() for x in DBSession.query(Bioconcept).filter(Bioconcept.id.in_([x[1] for x in top_bioconcepts])).all()])
+    if len(top_bioitems) > 0:
+        top_bioitem_info.extend([x.to_min_json() for x in DBSession.query(Bioitem).filter(Bioitem.id.in_([x[1] for x in top_bioitems])).all()])
+
+    for interactor_id in top_bioconcepts:
+        for bioent_id in interactor_to_bioent_ids[interactor_id]:
+            if bioent_id in id_to_nodes:
+                id_to_nodes[bioent_id]['BIOCONCEPT' + str(interactor_id[1])] = True
+    for interactor_id in top_bioitems:
+        for bioent_id in interactor_to_bioent_ids[interactor_id]:
+            if bioent_id in id_to_nodes:
+                id_to_nodes[bioent_id]['BIOITEM' + str(interactor_id[1])] = True
+
+
+    return {'nodes': id_to_nodes.values(), 'edges': edges, 'top_bioconcepts': top_bioconcept_info, 'top_bioitems': top_bioconcept_info}

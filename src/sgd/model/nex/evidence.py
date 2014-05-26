@@ -520,6 +520,7 @@ class Regulationevidence(Evidence):
     fdr = Column('fdr', String)
     pvalue = Column('pvalue', String)
     construct = Column('construct', String)
+    assay = Column('assay', String)
 
     #Relationships
     source = relationship(Source, backref=backref('regulation_evidences', passive_deletes=True), uselist=False)
@@ -531,7 +532,7 @@ class Regulationevidence(Evidence):
        
     __mapper_args__ = {'polymorphic_identity': 'REGULATION', 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note', 'json',
-                     'property_key', 'direction', 'fdr', 'pvalue', 'construct',
+                     'property_key', 'direction', 'fdr', 'pvalue', 'construct', 'assay',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus1', 'locus2']
 
@@ -572,6 +573,8 @@ class Expressionevidence(Evidence):
     short_description = Column('short_description', String)
     tags = Column('tags', String)
     condition = Column('condition', String)
+    channel_count = Column('channel_count', Integer)
+    file_order = Column('file_order', Integer)
 
     #Relationships
     source = relationship(Source, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
@@ -580,8 +583,8 @@ class Expressionevidence(Evidence):
     experiment = relationship(Experiment, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': 'EXPRESSION', 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note', 'json',
-                     'description', 'geo_id', 'pcl_filename', 'short_description', 'tags', 'condition',
+    __eq_values__ = ['id', 'note',
+                     'description', 'geo_id', 'pcl_filename', 'short_description', 'tags', 'condition', 'channel_count', 'file_order',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment']
 
@@ -590,7 +593,7 @@ class Expressionevidence(Evidence):
         self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
-        return self.class_type, self.geo_id, self.condition
+        return self.class_type, self.geo_id, self.pcl_filename, self.condition
 
 class Expressiondata(Base, UpdateByJsonMixin):
     __tablename__ = "expressiondata"

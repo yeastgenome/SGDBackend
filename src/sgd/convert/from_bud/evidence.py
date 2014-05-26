@@ -1008,12 +1008,17 @@ def make_regulation_evidence_starter(nex_session_maker):
                     (experiment_format_name in key_to_experiment or experiment_eco_id in key_to_experiment):
                     conditions = []
                     condition_value = row[6].strip()
-                    if condition_value != '""':
+                    construct = None
+                    assay = None
+                    if condition_value != '':
                         from src.sgd.model.nex.evidence import Generalproperty
                         condition_value = condition_value.replace('??', "\00b5")
                         if condition_value.startswith('"') and condition_value.endswith('"'):
                             condition_value = condition_value[1:-1]
-                        conditions.append(Generalproperty({'note': condition_value}))
+                        condition_values = condition_value.split(';')
+                        conditions.append(Generalproperty({'note': condition_values[0] + '; ' + condition_values[3]}))
+                        construct = condition_values[2]
+                        assay = condition_values[1]
 
                     yield {'source': key_to_source[source_key],
                            'reference': pubmed_to_reference[pubmed_id],
@@ -1024,7 +1029,8 @@ def make_regulation_evidence_starter(nex_session_maker):
                            'direction': direction,
                            'pvalue': pvalue,
                            'fdr': fdr,
-                           'construct': strain_background,
+                           'construct': strain_background if strain_background is not None else construct,
+                           'assay': assay,
                            'properties': conditions}
                 else:
                     print 'Bioentity or strain or reference or source or experiment not found: ' + str(bioent1_key) + ' ' + \
@@ -1420,6 +1426,8 @@ def make_expression_evidence_starter(nex_session_maker, expression_dir):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
+        filename_to_channel_count = dict([(x[0], x[1].strip()) for x in make_file_starter(expression_dir + '/channel_count.txt')()])
+
         for path in os.listdir(expression_dir):
             if os.path.isdir(expression_dir + '/' + path):
                 full_description = None
@@ -1454,6 +1462,8 @@ def make_expression_evidence_starter(nex_session_maker, expression_dir):
                             f = open(expression_dir + '/' + path + '/' + file, 'r')
                             pieces = f.next().split('\t')
                             f.close()
+
+                            i = 0
                             for piece in pieces[3:]:
                                 yield {
                                     'description': full_description,
@@ -1461,10 +1471,13 @@ def make_expression_evidence_starter(nex_session_maker, expression_dir):
                                     'pcl_filename': pcl_filename,
                                     'short_description': short_description,
                                     'tags': tags,
-                                    'condition': piece.strip(),
+                                    'condition': piece.strip().decode('ascii','ignore'),
                                     'reference': pubmed_id_to_reference[pubmed_id],
-                                    'source': key_to_source['SGD']
+                                    'source': key_to_source['SGD'],
+                                    'channel_count': 1 if pcl_filename not in filename_to_channel_count else filename_to_channel_count[pcl_filename],
+                                    'file_order': i
                                 }
+                                i += 1
                 else:
                     print 'Geo ID or reference not found ' + str(pubmed_id)
                     yield None
@@ -1472,58 +1485,44 @@ def make_expression_evidence_starter(nex_session_maker, expression_dir):
         nex_session.close()
     return expression_evidence_starter
 
-def make_expression_data_starter(nex_session_maker, expression_dir):
+def make_expression_data_starter(nex_session_maker, expression_dir, geo_id, pcl_filename):
     from src.sgd.model.nex.evidence import Expressionevidence
     from src.sgd.model.nex.bioentity import Locus
     def expression_evidence_starter():
         nex_session = nex_session_maker()
 
-        key_to_evidence = dict([(x.unique_key(), x) for x in nex_session.query(Expressionevidence).all()])
+        key_to_evidence = dict([(x.unique_key(), x) for x in nex_session.query(Expressionevidence).filter_by(geo_id=geo_id).all()])
         locuses = nex_session.query(Locus).all()
         key_to_locus = dict([(x.format_name, x) for x in locuses])
         key_to_locus.update([(x.display_name, x) for x in locuses])
         key_to_locus.update([('SGD:' + x.sgdid, x) for x in locuses])
 
-        count = 0
-        for path in os.listdir(expression_dir):
-            count += 1
-            if os.path.isdir(expression_dir + '/' + path):
-                geo_id = None
-                for row in make_file_starter(expression_dir + '/' + path + '/README')():
-                    if row[0].startswith('GEO ID:'):
-                        geo_id = row[0][8:].strip()
+        for file in os.listdir(expression_dir):
+            if file != 'README':
+                evidences = None
 
-                if geo_id is not None:
-                    for file in os.listdir(expression_dir + '/' + path):
-                        if file != 'README':
-                            evidences = None
-
-                            for row in make_file_starter(expression_dir + '/' + path + '/' + file)():
-                                if evidences is None:
-                                    evidences = []
-                                    for condition in row[3:]:
-                                        evidence_key = ('EXPRESSION', geo_id, condition.strip())
-                                        if evidence_key in key_to_evidence:
-                                            evidences.append(key_to_evidence[evidence_key])
-                                        else:
-                                            print 'Evidence not found: ' + str(evidence_key)
-                                            evidences.append(None)
-                                elif row[0] != 'EWEIGHT':
-                                    locus_key = row[0]
-                                    if locus_key in key_to_locus:
-                                        for i in range(0, len(evidences)):
-                                            if evidences[i] is not None:
-                                                yield {
-                                                    'locus_id': key_to_locus[locus_key].id,
-                                                    'evidence_id': evidences[i].id,
-                                                    'value': Decimal(row[i+3])
-                                                }
-                                    else:
-                                        print 'Locus not found: ' + str(locus_key)
-                else:
-                    print 'Geo ID not found.'
-                    yield None
-            print count
+                for row in make_file_starter(expression_dir + '/' + file)():
+                    if evidences is None:
+                        evidences = []
+                        for condition in row[3:]:
+                            evidence_key = ('EXPRESSION', geo_id, pcl_filename, condition.strip())
+                            if evidence_key in key_to_evidence:
+                                evidences.append(key_to_evidence[evidence_key])
+                            else:
+                                print 'Evidence not found: ' + str(evidence_key)
+                                evidences.append(None)
+                    elif row[0] != 'EWEIGHT':
+                        locus_key = row[0]
+                        if locus_key in key_to_locus:
+                            for i in range(0, len(evidences)):
+                                if evidences[i] is not None:
+                                    yield {
+                                        'locus_id': key_to_locus[locus_key].id,
+                                        'evidence_id': evidences[i].id,
+                                        'value': Decimal(row[i+3])
+                                    }
+                        else:
+                            print 'Locus not found: ' + str(locus_key)
 
         nex_session.close()
     return expression_evidence_starter

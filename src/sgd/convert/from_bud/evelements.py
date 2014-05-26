@@ -159,6 +159,38 @@ def make_experiment_relation_starter(bud_session_maker, nex_session_maker):
 # --------------------- Convert Strain ---------------------
 alternative_reference_strains = {'CEN.PK', 'D273-10B', 'FL100', 'JK9-3d', 'RM11-1a', 'SEY6210', 'SK1', 'Sigma1278b', 'W303', 'X2180-1A', 'Y55'}
 
+strain_to_genotype = {'S288C': '<i>MAT&alpha; SUC2 gal2 mal2 mel flo1 flo8-1 hap1 ho bio1 bio6</i>',
+                      'BY4743': '<i>MAT</i>a<i>/&alpha; his3&Delta;1/his3&Delta;1 leu2&Delta;0/leu2&Delta;0 LYS2/lys2&Delta;0 met15&Delta;0/MET15 ura3&Delta;0/ura3&Delta;0</i>',
+                      'FY4': '<i>MAT</i>a',
+                      'DBY12020': '<i>MAT<b>a</b>(P<sub>GAL10</sub>+gal1)&Delta;::loxP, leu2&Delta;0::P<sub>ACT1</sub>-GEV-NatMX, gal4&Delta;::LEU2, HAP1<sup>+</sup></i>',
+                      'DBY12021': '<i>MAT<b>&alpha;</b>(P<sub>GAL10</sub>+gal1)&Delta;::loxP, leu2&Delta;0::P<sub>ACT1</sub>-GEV-NatMX, gal4&Delta;::LEU2, HAP1<sup>+</sup></i>',
+                      'FY1679': '<i>MAT</i>a<i>/&alpha; ura3-52/ura3-52 trp1&Delta;63/TRP1 leu2&Delta;1/LEU2 his3&Delta;200/HIS3 GAL2/GAL</i>',
+                      'AB972': '<i>MAT&alpha; X2180-1B trp1<sub>0</sub> [rho<sup>0</sup>]</i>',
+                      'A364A': '<i>MAT</i>a<i> ade1 ade2 ura1 his7 lys2 tyr1 gal1 SUC mal cup BIO</i>',
+                      'XJ24-24a': '<i>MAT</i>a<i> ho HMa HM&alpha; ade6 arg4-17 trp1-1 tyr7-1 MAL2</i>',
+                      'DC5': '<i>MAT</i>a<i> leu2-3,112 his3-11,15 can1-11</i>',
+                      'X2180-1A': '<i>MAT</i>a<i> SUC2 mal mel gal2 CUP1</i>',
+                      'YNN216': '<i>MAT</i>a<i>/&alpha; ura3-52/ura3-52 lys2-801<sup>amber</sup>/lys2-801<sup>amber</sup> ade2-101<sup>ochre</sup>/ade2-101<sup>ochre</sup></i>',
+                      'YPH499': '<i>MAT</i>a<i> ura3-52 lys2-801_amber ade2-101_ochre trp1-&Delta;63 his3-&Delta;200 leu2-&Delta;1</i>',
+                      'YPH500': '<i>MAT&alpha; ura3-52 lys2-801_amber ade2-101_ochre trp1-&Delta;63 his3-&Delta;200 leu2-&Delta;1</i>',
+                      'YPH501': '<i>MAT</i>a<i>/MAT&alpha; ura3-52/ura3-52 lys2-801_amber/lys2-801_amber ade2-101_ochre/ade2-101_ochre trp1-&Delta;63/trp1-&Delta;63 his3-&Delta;200/his3-&Delta;200 leu2-&Delta;1/leu2-&Delta;1</i>',
+                      'SK1': '<i>MAT</i>a<i>/&alpha; HO gal2 cup<sup>S</sup> can1<sup>R</sup> BIO</i>',
+                      'CENPK': '<i>MAT</i>a<i>/&alpha; ura3-52/ura3-52 trp1-289/trp1-289 leu2-3_112/leu2-3_112 his3 &Delta;1/his3 &Delta;1 MAL2-8C/MAL2-8C SUC2/SUC2</i>',
+                      'W303': '<i>MAT</i>a<i>/MAT&alpha; {leu2-3,112 trp1-1 can1-100 ura3-1 ade2-1 his3-11,15} [phi<sup>+</sup>]</i>',
+                      'W303-1A': '<i>MAT</i>a<i> {leu2-3,112 trp1-1 can1-100 ura3-1 ade2-1 his3-11,15}</i>',
+                      'W303-1B': '<i>MAT&alpha; {leu2-3,112 trp1-1 can1-100 ura3-1 ade2-1 his3-11,15}</i>',
+                      'W303-K6001': '<i>MAT</i>a<i>; {ade2-1, trp1-1, can1-100, leu2-3,112, his3-11,15, GAL, psi+, ho::HO::CDC6 (at HO), cdc6::hisG, ura3::URA3 GAL-ubiR-CDC6 (at URA3)}</i>',
+                      'DY1457': '<i>MAT</i>a<i>; {ade6 can1-100(oc) his3-11,15 leu2-3,112 trp1-1 ura3-52}</i>',
+                      'D273-10B': '<i>MAT&alpha; mal</i>',
+                      'FL100': '<i>MAT</i>a',
+                      'SEY6210/SEY6211': '<i>MAT</i>a<i>/MAT&alpha; leu2-3,112/leu2-3,112 ura3-52/ura3-52 his3-&Delta;200/his3-&Delta;200 trp1-&Delta;901/trp1-&Delta;901 ade2/ADE2 suc2-&Delta;9/suc2-&Delta;9 GAL/GAL LYS2/lys2-801</i>',
+                      'SEY6210': '<i>MAT&alpha; leu2-3,112 ura3-52 his3-&Delta;200 trp1-&Delta;901 suc2-&Delta;9 lys2-801; GAL</i>',
+                      'SEY6211': '<i>MAT</i>a<i> leu2-3,112 ura3-52 his3-&Delta;200 trp1-&Delta;901 ade2-101 suc2-&Delta;9; GAL</i>',
+                      'JK9-3d': 'JK9-3da <i>MAT</i>a<i> leu2-3,112 ura3-52 rme1 trp1 his4</i><br>JK9-3d&alpha; has the same genotype as JK9-3da with the exception of the MAT locus<br>JK9-3da/&alpha; is homozygous for all markers except mating type',
+                      'RM11-1a': '<i>MAT</i>a<i> leu2&Delta;0 ura3-&Delta;0 HO::kanMX</i>',
+                      'Y55': '<i>MAT</i>a<i>/MATalpha HO/HO</i>'
+}
+
 def make_strain_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.bud.cv import CVTerm
@@ -173,6 +205,7 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
                    'source': key_to_source['SGD'],
                    'description': bud_obj.definition,
                    'status': 'Reference' if bud_obj.name == 'S288C' else ('Alternative Reference' if bud_obj.name in alternative_reference_strains else 'Other'),
+                   'genotype': None if bud_obj.name not in strain_to_genotype else strain_to_genotype[bud_obj.name],
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
 
@@ -229,6 +262,7 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
             yield {'display_name': strain,
                    'source': key_to_source['SGD'],
                    'description': description,
+                   'genotype': None if strain not in strain_to_genotype else strain_to_genotype[strain],
                    'status': 'Reference' if bud_obj.name == 'S288C' else ('Alternative Reference' if strain in alternative_reference_strains else 'Other')}
 
         bud_session.close()
@@ -244,6 +278,29 @@ sequence_download_strains = set(['AWRI1631', 'AWRI796', 'BY4741', 'BY4742', 'CBS
                                 'CLIB382', 'EC1118', 'EC9-8', 'FL100', 'FostersB', 'FostersO', 'JAY291', 'Kyokai7',
                                 'LalvinQA23', 'M22', 'PW5', 'RM11-1a', 'Sigma1278b', 'T7', 'T73', 'UC5', 'VIN13', 'VL3',
                                 'W303', 'Y10', 'YJM269', 'YJM789', 'YPS163', 'ZTW1'])
+
+
+strain_to_source = {'S288C': ('ATCC:204508', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=204508&Template=yeastGeneticStock'),
+                    'BY4743': ('Thermo Scientific:YSC1050', 'http://www.thermoscientificbio.com/search/?term=YSC1050'),
+                    'FY1679': ('EUROSCARF:10000D', 'http://web.uni-frankfurt.de/fb15/mikro/euroscarf/data/fy1679.html'),
+                    'AB972': ('ATCC:204511', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=204511&Template=yeastGeneticStock'),
+                    'A364A': ('ATCC:208526', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=208526&Template=yeastGeneticStock'),
+                    'X2180-1A': ('ATCC:204504', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=204504&Template=yeastGeneticStock'),
+                    'YPH499': ('ATCC:204679', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=204679&Template=yeastGeneticStock'),
+                    'YPH500': ('ATCC:204680', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=204680&Template=yeastGeneticStock'),
+                    'YPH501': ('ATCC:204681', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=204681&Template=yeastGeneticStock'),
+                    'SK1': ('ATCC:204722', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=204722&Template=yeastGeneticStock'),
+                    'CENPK': ('EUROSCARF:30000D', 'http://web.uni-frankfurt.de/fb15/mikro/euroscarf/data/cen.html'),
+                    'W303': ('Thermo Scientific:YSC1058', 'http://www.thermoscientificbio.com/search/?term=YSC1058'),
+                    'W303-1A': ('Thermo Scientific:YSC1058', 'http://www.thermoscientificbio.com/search/?term=YSC1058'),
+                    'W303-1B': ('Thermo Scientific:YSC1058', 'http://www.thermoscientificbio.com/search/?term=YSC1058'),
+                    'D273-10B': ('ATCC:24657', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=24657&Template=fungiYeast'),
+                    'FL100': ('ATCC:28383', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=28383&Template=fungiYeast'),
+                    'SEY6210/SEY6211': ('ATCC:201392', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=201392&Template=fungiYeast'),
+                    'SEY6210': ('ATCC:96099', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=96099&Template=fungiYeast'),
+                    'SEY6211': ('ATCC:96100', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=96100&Template=fungiYeast'),
+}
+
 def make_strain_url_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain
     def strain_url_starter():
@@ -265,6 +322,13 @@ def make_strain_url_starter(nex_session_maker):
                                'link': 'http://downloads.yeastgenome.org/sequence/strains/' + strain.display_name,
                                'source': key_to_source['SGD'],
                                'category': 'download',
+                               'strain': strain}
+
+            if strain.format_name in strain_to_source:
+                yield {'display_name': strain_to_source[strain.format_name][0],
+                               'link': strain_to_source[strain.format_name][1],
+                               'source': key_to_source['SGD'],
+                               'category': 'source',
                                'strain': strain}
 
         yield {'display_name': 'Download Sequence',
