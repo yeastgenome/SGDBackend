@@ -286,13 +286,22 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
     for interaction in interactions:
         if interaction.bioentity_id < interaction.interactor_id:
             key = (interaction.bioentity_id, interaction.interactor_id)
-            score = interaction.evidence_count-2
+            if interaction.interaction_type == 'EXPRESSION':
+                score = max(0, interaction.evidence_count - 95)
+            else:
+                score = interaction.evidence_count-2
         elif interaction.bioentity_id > interaction.interactor_id:
             key = (interaction.interactor_id, interaction.bioentity_id)
-            score = interaction.evidence_count-2
+            if interaction.interaction_type == 'EXPRESSION':
+                score = max(0, interaction.evidence_count - 95)
+            else:
+                score = interaction.evidence_count-2
         else:
             key = (interaction.bioentity_id, interaction.interactor_id)
-            score = 1.0*(interaction.evidence_count-2)/2
+            if interaction.interaction_type == 'EXPRESSION':
+                score = max(0, (interaction.evidence_count-95)/2)
+            else:
+                score = 1.0*(interaction.evidence_count-2)/2
         if key in pair_to_score:
             pair_to_score[key] += score
         else:
@@ -378,4 +387,4 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
                 id_to_nodes[bioent_id]['BIOITEM' + str(interactor_id[1])] = True
 
 
-    return {'nodes': id_to_nodes.values(), 'edges': edges, 'top_bioconcepts': top_bioconcept_info, 'top_bioitems': top_bioconcept_info}
+    return {'nodes': id_to_nodes.values(), 'edges': edges, 'top_bioconcepts': top_bioconcept_info, 'top_bioitems': top_bioitem_info}

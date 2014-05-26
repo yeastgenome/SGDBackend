@@ -80,9 +80,13 @@ class Obj2NexDB(TransformerInterface):
                     return 'Added'
                 elif newly_created_obj.compare(current_obj_json):
                     current_obj = self.current_obj_query(self.session).filter_by(id=current_obj_json['id']).first()
-                    current_obj.update(newly_created_obj_json)
-                    self.updated_count += 1
-                    return 'Updated'
+                    if current_obj is not None:
+                        current_obj.update(newly_created_obj_json)
+                        self.updated_count += 1
+                        return 'Updated'
+                    else:
+                        self.error_count += 1
+                        return 'Error'
                 else:
                     self.no_change_count += 1
                     return 'No Change'

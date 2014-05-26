@@ -128,7 +128,6 @@ if __name__ == "__main__":
     # from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation
     # from src.sgd.model.nex.misc import Alias, Relation
     # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.model.perf.core import Bioconcept as PerfBioconcept
     # from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
     #     make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter
     # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
@@ -181,7 +180,8 @@ if __name__ == "__main__":
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'GO'), name='convert.from_bud.bioconcept.disambig.go', delete_untouched=True, commit=True)])
 
-    # Nex -> Perf
+    # # Nex -> Perf
+    # from src.sgd.model.perf.core import Bioconcept as PerfBioconcept
     # do_conversion(make_backend_starter(nex_backend, 'all_bioconcepts', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioconcept, name='convert.from_backend.bioconcept', delete_untouched=True, commit=True),
     #                OutputTransformer(1000)])
@@ -192,7 +192,6 @@ if __name__ == "__main__":
     #     Bioitemalias, Contig
     # from src.sgd.model.nex.misc import Alias, Relation, Url
     # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.model.perf.core import Bioitem as PerfBioitem
     # from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
     #     make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter
     # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
@@ -244,10 +243,11 @@ if __name__ == "__main__":
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'CONTIG'), name='convert.from_bud.bioitem.disambig.contig', delete_untouched=True, commit=True)])
 
-    # # Nex -> Perf
-    # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True),
-    #                OutputTransformer(1000)])
+    # Nex -> Perf
+    from src.sgd.model.perf.core import Bioitem as PerfBioitem
+    do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True),
+                   OutputTransformer(1000)])
 
     # # ------------------------------------------ Reference ------------------------------------------
     # # Bud -> Nex
@@ -549,11 +549,6 @@ if __name__ == "__main__":
     #                BigObj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'), name='convert.from_bud.auxilliary.bioentity_interaction_expression', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
 
-    # do_conversion(make_bioentity_domain_interaction_starter(nex_session_maker),
-    #               [Json2Obj(Bioentityinteraction),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(with_polymorphic(Interaction, [Bioentityinteraction])).filter_by(interaction_type='DOMAININTERACTION'), name='convert.from_bud.auxilliary.bioentity_interaction', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
-
     # clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
     #
     # do_conversion(make_bioconcept_interaction_starter(nex_session_maker),
@@ -579,9 +574,9 @@ if __name__ == "__main__":
     from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph
     from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
     from src.sgd.model.perf.reference_data import ReferenceDetails
-    do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
-                   [Json2CorePerfDB(perf_session_maker, PerfDisambig, name='convert.from_backend.disambig', commit_interval=1000, delete_untouched=True),
-                    OutputTransformer(1000)])
+    # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
+    #                [Json2CorePerfDB(perf_session_maker, PerfDisambig, name='convert.from_backend.disambig', commit_interval=1000, delete_untouched=True),
+    #                 OutputTransformer(1000)])
 
     from src.sgd.model.nex.bioentity import Locus, Complex
     from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
