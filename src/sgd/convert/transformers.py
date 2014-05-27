@@ -106,8 +106,11 @@ class Obj2NexDB(TransformerInterface):
 
             for untouched_id in ids_to_delete:
                 current_obj = self.current_obj_query(self.session).filter_by(id=untouched_id).first()
-                self.session.delete(current_obj)
-            self.deleted_count = len(keys_to_delete)
+                if current_obj is not None:
+                    self.session.delete(current_obj)
+                    self.deleted_count += 1
+                else:
+                    self.error_count += 1
 
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
                    'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,

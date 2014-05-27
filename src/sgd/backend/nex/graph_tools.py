@@ -357,7 +357,11 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
 
     interactor_id_to_score = dict()
     for interactor_id, bioent_ids in interactor_to_bioent_ids.iteritems():
-        score = 1.0*len(bioent_ids & new_bioent_ids_in_use)/len(bioent_ids)
+        overlap = len(bioent_ids & new_bioent_ids_in_use)
+        if overlap > 1:
+            score = 1.0*overlap/len(bioent_ids)
+        else:
+            score = 0
         interactor_id_to_score[interactor_id] = score
 
     top_interactors = [x for x in sorted(interactor_ids_in_use, key=lambda x: interactor_id_to_score[x], reverse=True)][:20]
@@ -365,10 +369,11 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
     top_bioitems = []
     top_bioconcepts = []
     for interactor_id in top_interactors:
-        if interactor_id in bioconcept_ids:
-            top_bioconcepts.append(interactor_id)
-        elif interactor_id in bioitem_ids:
-            top_bioitems.append(interactor_id)
+        if interactor_id_to_score[interactor_id] > 0:
+            if interactor_id in bioconcept_ids:
+                top_bioconcepts.append(interactor_id)
+            elif interactor_id in bioitem_ids:
+                top_bioitems.append(interactor_id)
 
     top_bioconcept_info = []
     top_bioitem_info = []
@@ -380,11 +385,11 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
     for interactor_id in top_bioconcepts:
         for bioent_id in interactor_to_bioent_ids[interactor_id]:
             if bioent_id in id_to_nodes:
-                id_to_nodes[bioent_id]['BIOCONCEPT' + str(interactor_id[1])] = True
+                id_to_nodes[bioent_id]['data']['BIOCONCEPT' + str(interactor_id[1])] = True
     for interactor_id in top_bioitems:
         for bioent_id in interactor_to_bioent_ids[interactor_id]:
             if bioent_id in id_to_nodes:
-                id_to_nodes[bioent_id]['BIOITEM' + str(interactor_id[1])] = True
+                id_to_nodes[bioent_id]['data']['BIOITEM' + str(interactor_id[1])] = True
 
     return {'nodes': id_to_nodes.values(), 'edges': edges, 'top_bioconcepts': top_bioconcept_info, 'top_bioitems': top_bioitem_info}
 
