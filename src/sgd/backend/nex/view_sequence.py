@@ -22,7 +22,6 @@ def get_dnasequence_evidence(locus_id=None, contig_id=None):
         query = query.filter_by(contig_id=contig_id)
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
-
     if query.count() > query_limit:
         return None
 
@@ -55,9 +54,9 @@ def make_details(locus_id=None, contig_id=None):
     coding_dnaseqevidences = [x for x in dnaseqevidences if x.dna_type == 'CODING']
 
     tables = {}
-    tables['genomic_dna'] = [x.to_json() for x in sorted(genomic_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.json is not None]
-    tables['coding_dna'] = [x.json() for x in sorted(coding_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.json is not None]
-    tables['protein'] = [x.json() for x in sorted(proteinseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.json is not None]
+    tables['genomic_dna'] = [x.to_json() for x in sorted(genomic_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA')]
+    tables['coding_dna'] = [x.to_json() for x in sorted(coding_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA')]
+    tables['protein'] = [x.to_json() for x in sorted(proteinseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA')]
 
     return tables
 

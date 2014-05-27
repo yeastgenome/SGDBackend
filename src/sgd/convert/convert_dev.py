@@ -551,11 +551,11 @@ if __name__ == "__main__":
 
     # clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
     #
-    # do_conversion(make_bioconcept_interaction_starter(nex_session_maker),
-    #               [Json2Obj(Bioconceptinteraction),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptinteraction), name='convert.from_bud.auxilliary.bioconcept_interaction', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Bioconceptinteraction, Interaction, 'BIOCONCEPT')
+    do_conversion(make_bioconcept_interaction_starter(nex_session_maker),
+                  [Json2Obj(Bioconceptinteraction),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptinteraction), name='convert.from_bud.auxilliary.bioconcept_interaction', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Bioconceptinteraction, Interaction, 'BIOCONCEPT')
     #
     # do_conversion(make_reference_interaction_starter(nex_session_maker),
     #               [Json2Obj(Referenceinteraction),
@@ -582,13 +582,13 @@ if __name__ == "__main__":
     from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
     from src.sgd.model.nex.reference import Reference
     nex_session = nex_session_maker()
-    locus_ids = [x.id for x in nex_session.query(Locus).all()]
-    # ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
+    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    #ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     # complex_ids = [x.id for x in nex_session.query(Complex).all()]
-    # go_ids = [x.id for x in nex_session.query(Go).all()]
+    #go_ids = [x.id for x in nex_session.query(Go).all()]
     # observable_ids = [x.id for x in nex_session.query(Observable).all()]
     # phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]
-    #reference_ids = [x.id for x in nex_session.query(Reference).all()]
+    reference_ids = [x.id for x in nex_session.query(Reference).all()]
     nex_session.close()
 
     # do_conversion(make_data_backend_starter(nex_backend, 'bioentity_details', locus_ids),
@@ -603,9 +603,9 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    do_conversion(make_data_backend_starter(nex_backend, 'ec_number_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EC_NUMBER', locus_ids, name='convert.from_backend.ec_number_details', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_data_backend_starter(nex_backend, 'ec_number_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EC_NUMBER', locus_ids, name='convert.from_backend.ec_number_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
     #
     # do_conversion(make_data_backend_starter(nex_backend, 'ec_number_details', ecnumber_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'LOCUS', ecnumber_ids, name='convert.from_backend.ec_number_details', commit_interval=1000),

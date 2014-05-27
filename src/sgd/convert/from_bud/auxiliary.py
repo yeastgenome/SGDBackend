@@ -185,7 +185,7 @@ def make_bioconcept_interaction_starter(nex_session_maker):
                     yield {'interaction_type': 'GO', 'evidence_count': overlap, 'bioentity': id_to_complex[complex_id], 'interactor': go}
 
         #Go
-        for row in nex_session.query(Goevidence.locus_id, Goevidence.go_id, func.count(Goevidence.id)).group_by(Goevidence.locus_id, Goevidence.go_id).all():
+        for row in nex_session.query(Goevidence.locus_id, Goevidence.go_id, func.count(Goevidence.id)).filter(Goevidence.annotation_type != 'computational').group_by(Goevidence.locus_id, Goevidence.go_id).all():
             go = id_to_bioconcept[row[1]]
             locus = id_to_bioentity[row[0]]
             if go.go_aspect == 'biological process' and go.id not in bad_interactors:
