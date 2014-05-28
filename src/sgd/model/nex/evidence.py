@@ -95,6 +95,13 @@ class Bioentityproperty(Property):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json['bioentity'].id)
+        self.obj = obj_json['bioentity'].to_min_json()
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if self.obj is not None:
+            obj_json['bioentity'] = self.obj
+        return obj_json
 
 class Bioconceptproperty(Property):
     __tablename__ = 'bioconceptcondition'
@@ -112,6 +119,13 @@ class Bioconceptproperty(Property):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json['bioconcept'].id)
+        self.obj = obj_json['bioconcept'].to_min_json()
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if self.obj is not None:
+            obj_json['bioconcept'] = self.obj
+        return obj_json
 
 class Bioitemproperty(Property):
     __tablename__ = 'bioitemcondition'
@@ -129,6 +143,13 @@ class Bioitemproperty(Property):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json['bioitem'].id)
+        self.obj = obj_json['bioitem'].to_min_json()
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if self.obj is not None:
+            obj_json['bioitem'] = self.obj
+        return obj_json
 
 class Chemicalproperty(Bioitemproperty):
     __tablename__ = 'chemicalcondition'
@@ -143,6 +164,13 @@ class Chemicalproperty(Bioitemproperty):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json['bioitem'].id)
+        self.obj = obj_json['bioitem'].to_min_json()
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if self.obj is not None:
+            obj_json['bioitem'] = self.obj
+        return obj_json
 
 class Goevidence(Evidence):
     __tablename__ = "goevidence"
@@ -180,6 +208,8 @@ class Goevidence(Evidence):
         self.properties = obj_json['properties']
         self.property_key = None if len(self.properties) == 0 else ';'.join(x.format_name for x in sorted(self.properties, key=lambda x: x.format_name))
         self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
+        if len(self.json) > 4000:
+            self.json = None
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.go_id, self.go_evidence, self.reference_id, self.property_key

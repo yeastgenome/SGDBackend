@@ -4,7 +4,7 @@ from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
 from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj, OutputTransformer, make_file_starter, \
     make_backend_starter, Json2CorePerfDB, make_individual_locus_backend_starter, Json2DataPerfDB, make_individual_complex_backend_starter, \
     make_individual_go_backend_starter, make_individual_phenotype_backend_starter, make_individual_observable_backend_starter, Evidence2NexDB, make_data_backend_starter, \
-    BigObj2NexDB
+    BigObj2NexDB, Json2DisambigPerfDB
 from sqlalchemy.orm import with_polymorphic
 import os
 __author__ = 'kpaskov'
@@ -468,7 +468,7 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Expressionevidence, Evidence, 'EXPRESSION')
     #
-    # for path in os.listdir('src/sgd/convert/data/microarray_05_14')[30:]:
+    # for path in os.listdir('src/sgd/convert/data/microarray_05_14')[50:]:
     #     if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
     #         geo_id = None
     #         pcl_filename = None
@@ -551,11 +551,11 @@ if __name__ == "__main__":
 
     # clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
     #
-    do_conversion(make_bioconcept_interaction_starter(nex_session_maker),
-                  [Json2Obj(Bioconceptinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptinteraction), name='convert.from_bud.auxilliary.bioconcept_interaction', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Bioconceptinteraction, Interaction, 'BIOCONCEPT')
+    # do_conversion(make_bioconcept_interaction_starter(nex_session_maker),
+    #               [Json2Obj(Bioconceptinteraction),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptinteraction), name='convert.from_bud.auxilliary.bioconcept_interaction', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Bioconceptinteraction, Interaction, 'BIOCONCEPT')
     #
     # do_conversion(make_reference_interaction_starter(nex_session_maker),
     #               [Json2Obj(Referenceinteraction),
@@ -570,51 +570,57 @@ if __name__ == "__main__":
     # clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
 
     # # ------------------------------------------ Perf ------------------------------------------
-    from src.sgd.model.perf.core import Disambig as PerfDisambig
     from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph
     from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
     from src.sgd.model.perf.reference_data import ReferenceDetails
     # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
-    #                [Json2CorePerfDB(perf_session_maker, PerfDisambig, name='convert.from_backend.disambig', commit_interval=1000, delete_untouched=True),
+    #                [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000),
     #                 OutputTransformer(1000)])
 
     from src.sgd.model.nex.bioentity import Locus, Complex
     from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
     from src.sgd.model.nex.reference import Reference
     nex_session = nex_session_maker()
-    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     # complex_ids = [x.id for x in nex_session.query(Complex).all()]
     #go_ids = [x.id for x in nex_session.query(Go).all()]
     # observable_ids = [x.id for x in nex_session.query(Observable).all()]
     # phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]
-    reference_ids = [x.id for x in nex_session.query(Reference).all()]
+    #reference_ids = [x.id for x in nex_session.query(Reference).all()]
     nex_session.close()
 
+    # Done
     # do_conversion(make_data_backend_starter(nex_backend, 'bioentity_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'BIOENTITY', locus_ids, name='convert.from_backend.bioentity_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
+    # Done
     # do_conversion(make_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
+    # Done
     # do_conversion(make_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
+    # Done
     # do_conversion(make_data_backend_starter(nex_backend, 'ec_number_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EC_NUMBER', locus_ids, name='convert.from_backend.ec_number_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
+    # Done
     # do_conversion(make_data_backend_starter(nex_backend, 'ec_number_details', ecnumber_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'LOCUS', ecnumber_ids, name='convert.from_backend.ec_number_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_data_backend_starter(nex_backend, 'go_details', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000),
-    #                 OutputTransformer(1000)])
+    # In Progress
+    do_conversion(make_data_backend_starter(nex_backend, 'go_details', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000),
+                    OutputTransformer(1000)])
 
+    # In Progress
     # do_conversion(make_data_backend_starter(nex_backend, 'go_details', go_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'LOCUS', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
@@ -623,52 +629,65 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'GO', reference_ids, name='convert.from_backend.go_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'interaction_details', 'INTERACTION', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'INTERACTION', name='convert.from_backend.interaction_details', commit_interval=1000, delete_untouched=True),
+    # In Progress
+    # do_conversion(make_data_backend_starter(nex_backend, 'interaction_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
+    # In Progress
     # do_conversion(make_data_backend_starter(nex_backend, 'literature_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'LITERATURE', locus_ids, name='convert.from_backend.literature_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
+    # Done
     # do_conversion(make_data_backend_starter(nex_backend, 'protein_domain_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_DOMAIN', locus_ids, name='convert.from_backend.protein_domain_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
-    #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'protein_phosphorylation_details', 'PROTEIN_PHOSPHORYLATION', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_PHOSPHORYLATION', name='convert.from_backend.protein_phosphorylation_details', commit_interval=1000, delete_untouched=True),
+    # Done
+    # do_conversion(make_data_backend_starter(nex_backend, 'protein_phosphorylation_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_PHOSPHORYLATION', locus_ids, name='convert.from_backend.protein_phosphorylation_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'protein_experiment_details', 'PROTEIN_EXPERIMENT', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_EXPERIMENT', name='convert.from_backend.protein_experiment_details', commit_interval=1000, delete_untouched=True),
+    # Done
+    # do_conversion(make_data_backend_starter(nex_backend, 'protein_experiment_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_EXPERIMENT', locus_ids, name='convert.from_backend.protein_experiment_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
+
+    # Done
+    # do_conversion(make_data_backend_starter(nex_backend, 'phenotype_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'phenotype_details', 'PHENOTYPE', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PHENOTYPE', name='convert.from_backend.phenotype_details', commit_interval=1000, delete_untouched=True),
+    # Done
+    # do_conversion(make_data_backend_starter(nex_backend, 'regulation_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'REGULATION', locus_ids, name='convert.from_backend.regulation_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'regulation_details', 'REGULATION', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'REGULATION', name='convert.from_backend.regulation_details', commit_interval=1000, delete_untouched=True),
+    # In Progress
+    # do_conversion(make_data_backend_starter(nex_backend, 'regulation_details', reference_ids),
+    #                [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'REGULATION', reference_ids, name='convert.from_backend.regulation_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'binding_site_details', 'BINDING_SITE', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'BINDING_SITE', name='convert.from_backend.binding_site_details', commit_interval=1000, delete_untouched=True),
+    # Done
+    # do_conversion(make_data_backend_starter(nex_backend, 'binding_site_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'BINDING_SITE', locus_ids, name='convert.from_backend.binding_site_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'phenotype_graph', 'PHENOTYPE', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', name='convert.from_backend.phenotype_graph', commit_interval=1000, delete_untouched=True),
+    # In Progress
+    # do_conversion(make_data_backend_starter(nex_backend, 'phenotype_graph', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_graph', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'go_graph', 'GO', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'GO', name='convert.from_backend.go_graph', commit_interval=1000, delete_untouched=True),
+    # do_conversion(make_data_backend_starter(nex_backend, 'go_graph', 'GO', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'GO', locus_ids, name='convert.from_backend.go_graph', commit_interval=1000, delete_untouched=True),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'protein_domain_graph', 'PROTEIN_DOMAIN', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PROTEIN_DOMAIN', name='convert.from_backend.protein_domain_graph', commit_interval=1000, delete_untouched=True),
+    # do_conversion(make_data_backend_starter(nex_backend, 'protein_domain_graph', 'PROTEIN_DOMAIN', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PROTEIN_DOMAIN', locus_ids, name='convert.from_backend.protein_domain_graph', commit_interval=1000, delete_untouched=True),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_individual_locus_backend_starter(nex_backend, 'literature_graph', 'LITERATURE', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'LITERATURE', name='convert.from_backend.literature_graph', commit_interval=1000, delete_untouched=True),
+    # do_conversion(make_data_backend_starter(nex_backend, 'literature_graph', 'LITERATURE', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'LITERATURE', locus_ids, name='convert.from_backend.literature_graph', commit_interval=1000, delete_untouched=True),
     #                 OutputTransformer(1000)])
     #
     # do_conversion(make_individual_locus_backend_starter(nex_backend, 'regulation_graph', 'REGULATION', locus_ids),

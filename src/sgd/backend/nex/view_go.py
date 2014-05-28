@@ -98,7 +98,7 @@ def make_details(locus_id=None, go_id=None, reference_id=None, with_children=Fal
     if goevidences is None:
         return {'Error': 'Too much data to display.'}
 
-    return '[' + ', '.join([x.json for x in goevidences if x.json is not None]) + ']'
+    return '[' + ', '.join([x.json if x.json is not None else x.to_json() for x in goevidences]) + ']'
 
 def fix_display_name(condition):
     if 'role' in condition and condition['role'] in condition_format_name_to_display_name:

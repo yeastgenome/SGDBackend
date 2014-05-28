@@ -340,6 +340,71 @@ class Json2CorePerfDB(TransformerInterface):
         self.session.close()
         return message if self.name is None else self.name + ': ' + str(message)
 
+class Json2DisambigPerfDB(TransformerInterface):
+
+    def __init__(self, session_maker, commit_interval=None, commit=False):
+        from src.sgd.model.perf.core import Disambig
+        self.name='convert.from_backend.disambig'
+        self.session = session_maker()
+        self.commit_interval = commit_interval
+        self.commit = commit
+        self.id_to_current_obj = dict([((x.class_type, x.subclass_type, x.disambig_key), x.obj_id) for x in self.session.query(Disambig).all()])
+        self.none_count = 0
+        self.added_count = 0
+        self.updated_count = 0
+        self.no_change_count = 0
+        self.duplicate_count = 0
+        self.error_count = 0
+        self.deleted_count = 0
+
+    def convert(self, newly_created_obj_json):
+        from src.sgd.model.perf.core import Disambig
+        if newly_created_obj_json is None:
+            self.none_count += 1
+            return 'None'
+        try:
+            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+                self.session.commit()
+
+            key = (newly_created_obj_json['class_type'], newly_created_obj_json['subclass_type'], newly_created_obj_json['disambig_key'])
+            identifier = newly_created_obj_json['identifier']
+            if key in self.id_to_current_obj:
+                if identifier == self.id_to_current_obj[key]:
+                    self.no_change_count += 1
+                    return 'No Change'
+                else:
+                    to_update = self.session.query(Disambig).filter_by(class_type=key[0], subclass_type=key[1], disambig_key=key[2]).first()
+                    to_update.obj_id = identifier
+                    self.updated_count += 1
+                    return 'Updated'
+                del self.id_to_current_obj[key]
+            else:
+                self.session.add(Disambig(newly_created_obj_json))
+                self.added_count += 1
+                return 'Added'
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.error_count += 1
+            return 'Error'
+
+    def finished(self):
+        from src.sgd.model.perf.core import Disambig
+        for untouched_key in self.id_to_current_obj.keys():
+            to_delete = self.session.query(Disambig).filter_by(class_type=untouched_key[0], subclass_type=untouched_key[1], disambig_key=untouched_key[2]).first()
+            self.session.delete(to_delete)
+        self.deleted_count = len(self.id_to_current_obj)
+
+        message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
+                   'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
+                   'None': self.none_count}
+        if self.commit_interval is not None or self.commit:
+            self.session.commit()
+        else:
+            message['Warning'] = 'Changes not committed!'
+        self.session.close()
+        return message if self.name is None else self.name + ': ' + str(message)
+
 class Json2DataPerfDB(TransformerInterface):
 
     def __init__(self, session_maker, cls, class_type, obj_ids, name=None, commit_interval=None, commit=False):
@@ -356,9 +421,12 @@ class Json2DataPerfDB(TransformerInterface):
         to_be_deleted = list(current_ids - obj_ids)
 
         for obj_id in to_be_added:
-            self.session.add(self.cls(obj_id, class_type, None))
+            new_obj = self.cls(obj_id, class_type, None)
+            self.session.add(new_obj)
+            self.id_to_obj[obj_id] = new_obj
         for obj_id in to_be_deleted:
             self.session.delete(self.id_to_obj[obj_id])
+            del self.id_to_obj[obj_id]
 
         if self.commit_interval is not None or self.commit:
             self.session.commit()
