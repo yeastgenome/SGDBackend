@@ -329,11 +329,6 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('contig', request)(getattr(chosen_backend, 'contig')(contig_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('contig'),
                     route_name='contig')
-
-    config.add_route('bioentity_details', '/locus/{identifier}/bioentity_details')
-    config.add_view(lambda request: chosen_backend.response_wrapper('bioentity_details', request)(getattr(chosen_backend, 'bioentity_details')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('bioentity_details'),
-                    route_name='bioentity_details')
     
 def prepare_backend(backend_type):
     configurator = Configurator()

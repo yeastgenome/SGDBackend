@@ -99,7 +99,7 @@ class Bioentityproperty(Property):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        if self.obj is not None:
+        if hasattr(self, 'obj') and self.obj is not None:
             obj_json['bioentity'] = self.obj
         return obj_json
 
@@ -123,7 +123,7 @@ class Bioconceptproperty(Property):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        if self.obj is not None:
+        if hasattr(self, 'obj') and self.obj is not None:
             obj_json['bioconcept'] = self.obj
         return obj_json
 
@@ -147,7 +147,7 @@ class Bioitemproperty(Property):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        if self.obj is not None:
+        if hasattr(self, 'obj') and self.obj is not None:
             obj_json['bioitem'] = self.obj
         return obj_json
 
@@ -168,7 +168,7 @@ class Chemicalproperty(Bioitemproperty):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        if self.obj is not None:
+        if hasattr(self, 'obj') and self.obj is not None:
             obj_json['bioitem'] = self.obj
         return obj_json
 

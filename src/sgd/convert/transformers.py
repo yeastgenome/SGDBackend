@@ -371,13 +371,14 @@ class Json2DisambigPerfDB(TransformerInterface):
             if key in self.id_to_current_obj:
                 if identifier == self.id_to_current_obj[key]:
                     self.no_change_count += 1
+                    del self.id_to_current_obj[key]
                     return 'No Change'
                 else:
                     to_update = self.session.query(Disambig).filter_by(class_type=key[0], subclass_type=key[1], disambig_key=key[2]).first()
                     to_update.obj_id = identifier
                     self.updated_count += 1
+                    del self.id_to_current_obj[key]
                     return 'Updated'
-                del self.id_to_current_obj[key]
             else:
                 self.session.add(Disambig(newly_created_obj_json))
                 self.added_count += 1

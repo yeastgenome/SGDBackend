@@ -53,14 +53,14 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.bioentity import Bioentity
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence
+            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
 
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence
+            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         num_chunks = int(ceil(1.0*len(bioent_ids)/500))
         bioentities = []
@@ -87,7 +87,7 @@ class SGDBackend(BackendInterface):
     def locus(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence
+            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         if are_ids:
             locus_id = locus_identifier
@@ -505,14 +505,6 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return json.dumps(view_sequence.make_neighbor_details(locus_id=locus_id))
-
-    def bioentity_details(self, locus_identifier=None, are_ids=False):
-        import view_protein
-        if are_ids:
-            locus_id = locus_identifier
-        else:
-            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return view_protein.make_bioentity_details(locus_id=locus_id)
     
     #Misc
     def all_disambigs(self, chunk_size, offset):

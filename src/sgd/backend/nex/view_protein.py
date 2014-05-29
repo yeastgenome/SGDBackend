@@ -66,18 +66,3 @@ def make_protein_experiment_details(locus_id=None):
     if locus_id is None:
         return {'Error': 'No locus_id given.'}
     return '[' + ', '.join([x.json for x in get_protein_experiment_evidence(locus_id=locus_id) if x.json is not None]) + ']'
-
-# -------------------------------Details---------------------------------------
-def get_bioentity_evidence(locus_id):
-    query = DBSession.query(Bioentityevidence).options(joinedload('reference'))
-    if locus_id is not None:
-        query = query.filter_by(bioentity_id=locus_id)
-
-    if query.count() > query_limit:
-        return None
-    return query.all()
-
-def make_bioentity_details(locus_id=None):
-    if locus_id is None:
-        return {'Error': 'No locus_id given.'}
-    return '[' + ', '.join([x.json for x in sorted(get_bioentity_evidence(locus_id=locus_id), key=lambda x: x.reference.display_name) if x.json is not None]) + ']'

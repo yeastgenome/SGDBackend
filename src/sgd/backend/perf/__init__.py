@@ -454,15 +454,6 @@ class PerfBackend(BackendInterface):
             return get_bioentity_details(bioent_id, 'NEIGHBOR_SEQUENCE')
         return None
 
-    def bioentity_details(self, locus_identifier, are_ids=False):
-        if locus_identifier is not None:
-            if are_ids:
-                bioent_id = locus_identifier
-            else:
-                bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-            return get_bioentity_details(bioent_id, 'BIOENTITY')
-        return None
-
     #Misc
     def all_disambigs(self, chunk_size, offset):
         from src.sgd.model.perf.core import Disambig

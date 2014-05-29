@@ -187,6 +187,7 @@ class Locus(Bioentity):
                                             'regulator_count':len(set([x.locus1_id for x in self.regulation_evidences_regulators])),
                                             'paragraph': None if len(regulation_paragraphs) == 0 else regulation_paragraphs[0]}
 
+        obj_json['description_references'] = [x.reference.to_min_json() for x in self.bioentity_evidences if x.info_key == 'Description']
 
         #Literature
         reference_ids = set([x.reference_id for x in self.literature_evidences])
