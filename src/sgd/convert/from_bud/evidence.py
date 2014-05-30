@@ -94,14 +94,16 @@ def make_binding_evidence_starter(nex_session_maker):
                 bioent_key = (row[2][1:-1].upper(), 'LOCUS')
                 experiment_key = create_format_name(row[9][1:-1])
                 pubmed_id = int(row[10][1:-1])
-                if bioent_key in key_to_bioentity and experiment_key in key_to_experiment and pubmed_id in pubmed_to_reference:
+                if bioent_key in key_to_bioentity and experiment_key in key_to_experiment:
                     yield {'source': key_to_source['YeTFaSCo'],
-                           'reference': pubmed_to_reference[pubmed_id],
+                           'reference': None if pubmed_id not in pubmed_to_reference else pubmed_to_reference[pubmed_id],
                            'experiment': key_to_experiment[experiment_key],
                            'locus': key_to_bioentity[bioent_key],
                            'total_score': row[6][1:-1],
                            'expert_confidence': expert_confidence,
                            'motif_id': int(row[3][1:-1])}
+                else:
+                    print 'Bioentity or experiment' + str(bioent_key) + ' ' + str(experiment_key)
 
         nex_session.close()
     return binding_evidence_starter

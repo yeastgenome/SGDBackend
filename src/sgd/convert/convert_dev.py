@@ -112,7 +112,7 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'COMPLEX'), name='convert.from_bud.bioentity.disambig.complex', delete_untouched=True, commit=True)])
 
     # # Nex -> Perf
-    # from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
+    from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
     # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True),
     #                OutputTransformer(1000)])
@@ -121,9 +121,9 @@ if __name__ == "__main__":
     #               [Json2CorePerfDB(perf_session_maker, PerfLocustab, name='convert.from_backend.all_locustabs', commit_interval=1000, delete_untouched=True),
     #                OutputTransformer(1000)])
     #
-    # do_conversion(make_backend_starter(nex_backend, 'all_locusentries', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfLocusentry, name='convert.from_backend.all_locusentries', commit_interval=1000, delete_untouched=True),
-    #                OutputTransformer(1000)])
+    do_conversion(make_backend_starter(nex_backend, 'all_locusentries', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfLocusentry, name='convert.from_backend.all_locusentries', commit_interval=1000, delete_untouched=True),
+                   OutputTransformer(1000)])
 
     # # ------------------------------------------ Bioconcept ------------------------------------------
     # # Bud -> Nex
@@ -246,10 +246,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'CONTIG'), name='convert.from_bud.bioitem.disambig.contig', delete_untouched=True, commit=True)])
 
     # # Nex -> Perf
-    from src.sgd.model.perf.core import Bioitem as PerfBioitem
-    do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(1000)])
+    # from src.sgd.model.perf.core import Bioitem as PerfBioitem
+    # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True),
+    #                OutputTransformer(1000)])
 
     # # ------------------------------------------ Reference ------------------------------------------
     # # Bud -> Nex
@@ -585,10 +585,10 @@ if __name__ == "__main__":
     from src.sgd.model.nex.bioitem import Chemical, Contig, Domain
     from src.sgd.model.nex.reference import Reference
     nex_session = nex_session_maker()
-    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     #complex_ids = [x.id for x in nex_session.query(Complex).all()]
-    go_ids = [x.id for x in nex_session.query(Go).all()]
+    #go_ids = [x.id for x in nex_session.query(Go).all()]
     #domain_ids = [x.id for x in nex_session.query(Domain).all()]
     #observable_ids = [x.id for x in nex_session.query(Observable).all()]
     #phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]

@@ -27,7 +27,7 @@ class Bioitem(Base, EqualityByIDMixin, UpdateByJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False, lazy='joined')
     
-    __mapper_args__ = {'polymorphic_on': class_type, 'with_polymorphic':'*'}
+    __mapper_args__ = {'polymorphic_on': class_type}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']

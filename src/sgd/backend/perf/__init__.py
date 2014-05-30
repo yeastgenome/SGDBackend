@@ -56,8 +56,9 @@ class PerfBackend(BackendInterface):
         return get_all(Bioentity, 'json', chunk_size, offset)
     
     def bioentity_list(self, bioent_ids):
-        from src.sgd.model.perf.core import Bioentity
-        return get_list(Bioentity, 'json', bioent_ids)
+        from src.sgd.model.perf.core import Locusentry
+        print len(bioent_ids)
+        return get_list(Locusentry, 'json', bioent_ids)
     
     #Locus
     def locus(self, locus_identifier):
