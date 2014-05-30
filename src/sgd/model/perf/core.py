@@ -74,7 +74,7 @@ class Author(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'author'
 
     id = Column('author_id', Integer, primary_key=True)
-    json = Column('json', String)
+    json = Column('json', CLOB)
 
     def __init__(self, obj_json):
         JsonMixins.__init__(self, obj_json)

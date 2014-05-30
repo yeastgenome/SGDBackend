@@ -293,7 +293,7 @@ class PerfBackend(BackendInterface):
             if are_ids:
                 chem_id = chemical_identifier
             else:
-                chem_id = get_obj_id(str(chemical_identifier).lower(), class_type='CHEMICAL')
+                chem_id = get_obj_id(str(chemical_identifier).lower(), class_type='BIOITEM', subclass_type='CHEMICAL')
             return get_bioitem_details(chem_id, 'PHENOTYPE')
 
     def phenotype_graph(self, locus_identifier, are_ids=False):
@@ -319,7 +319,7 @@ class PerfBackend(BackendInterface):
             bioitem_id = get_obj_id(str(domain_identifier).lower(), class_type='BIOITEM', subclass_type='DOMAIN')
         return get_obj(Bioitem, 'json', bioitem_id)
 
-    def protein_domain_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
+    def protein_domain_details(self, locus_identifier=None, reference_identifier=None, domain_identifier=None, are_ids=False):
         if locus_identifier is not None:
             if are_ids:
                 bioent_id = locus_identifier
@@ -332,6 +332,12 @@ class PerfBackend(BackendInterface):
             else:
                 ref_id = get_obj_id(str(reference_identifier).upper(), class_type='REFERENCE')
             return get_reference_details(ref_id, 'PROTEIN_DOMAIN')
+        elif domain_identifier is not None:
+            if are_ids:
+                domain_id = domain_identifier
+            else:
+                domain_id = get_obj_id(str(domain_identifier).upper(), class_type='BIOITEM', subclass_type='DOMAIN')
+            return get_bioitem_details(domain_id, 'LOCUS')
 
     def protein_domain_graph(self, locus_identifier, are_ids=False):
         if are_ids:
@@ -404,7 +410,7 @@ class PerfBackend(BackendInterface):
                 ref_id = ec_number_identifier
             else:
                 ref_id = get_obj_id(str(ec_number_identifier).upper(), class_type='BIOCONCEPT', subclass_type='ECNUMBER')
-            return get_bioconcept_details(ref_id, 'EC_NUMBER')
+            return get_bioconcept_details(ref_id, 'LOCUS')
 
     # Sequence
     def contig(self, contig_identifier, are_ids=False):

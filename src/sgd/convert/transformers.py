@@ -578,10 +578,58 @@ def make_backend_starter(backend, method, chunk_size):
             offset += chunk_size
     return backend_starter
 
-def make_data_backend_starter(backend, method, obj_ids):
+def make_locus_data_backend_starter(backend, method, obj_ids):
     def individual_backend_starter():
         for obj_id in obj_ids:
             yield (obj_id, getattr(backend, method)(locus_identifier=obj_id, are_ids=True))
+    return individual_backend_starter
+
+def make_reference_data_backend_starter(backend, method, obj_ids):
+    def individual_backend_starter():
+        for obj_id in obj_ids:
+            yield (obj_id, getattr(backend, method)(reference_identifier=obj_id, are_ids=True))
+    return individual_backend_starter
+
+def make_ecnumber_data_backend_starter(backend, method, obj_ids):
+    def individual_backend_starter():
+        for obj_id in obj_ids:
+            yield (obj_id, getattr(backend, method)(ec_number_identifier=obj_id, are_ids=True))
+    return individual_backend_starter
+
+def make_domain_data_backend_starter(backend, method, obj_ids):
+    def individual_backend_starter():
+        for obj_id in obj_ids:
+            yield (obj_id, getattr(backend, method)(domain_identifier=obj_id, are_ids=True))
+    return individual_backend_starter
+
+def make_go_data_backend_starter(backend, method, obj_ids):
+    def individual_backend_starter():
+        for obj_id in obj_ids:
+            yield (obj_id, getattr(backend, method)(go_identifier=obj_id, are_ids=True))
+    return individual_backend_starter
+
+def make_phenotype_data_backend_starter(backend, method, obj_ids):
+    def individual_backend_starter():
+        for obj_id in obj_ids:
+            yield (obj_id, getattr(backend, method)(phenotype_identifier=obj_id, are_ids=True))
+    return individual_backend_starter
+
+def make_observable_data_backend_starter(backend, method, obj_ids):
+    def individual_backend_starter():
+        for obj_id in obj_ids:
+            yield (obj_id, getattr(backend, method)(observable_identifier=obj_id, are_ids=True))
+    return individual_backend_starter
+
+def make_chemical_data_backend_starter(backend, method, obj_ids):
+    def individual_backend_starter():
+        for obj_id in obj_ids:
+            yield (obj_id, getattr(backend, method)(chemical_identifier=obj_id, are_ids=True))
+    return individual_backend_starter
+
+def make_contig_data_backend_starter(backend, method, obj_ids):
+    def individual_backend_starter():
+        for obj_id in obj_ids:
+            yield (obj_id, getattr(backend, method)(contig_identifier=obj_id, are_ids=True))
     return individual_backend_starter
 
 def make_individual_locus_backend_starter(backend, method, class_type, obj_ids):
