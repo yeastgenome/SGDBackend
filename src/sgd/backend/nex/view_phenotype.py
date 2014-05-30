@@ -5,12 +5,13 @@ from src.sgd.backend.nex.query_tools import get_all_bioconcept_children
 from src.sgd.model.nex.bioconcept import Phenotype
 from src.sgd.model.nex.evidence import Phenotypeevidence, Chemicalproperty
 from sqlalchemy.orm import joinedload
+import json
 
 __author__ = 'kpaskov'
 
 # -------------------------------Details---------------------------------------
 def get_phenotype_evidence(locus_id, phenotype_id, observable_id, chemical_id, reference_id, with_children):
-    query = DBSession.query(Phenotypeevidence).options(joinedload('locus'), joinedload('strain'), joinedload('phenotype'), joinedload('experiment'), joinedload('reference'))
+    query = DBSession.query(Phenotypeevidence)
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
     if reference_id is not None:
@@ -49,4 +50,4 @@ def make_details(locus_id=None, phenotype_id=None, observable_id=None, chemical_
     if phenoevidences is None:
         return {'Error': 'Too much data to display.'}
 
-    return [x.to_json() for x in phenoevidences]
+    return '[' + ', '.join([x.json for x in phenoevidences if x.json is not None]) + ']'

@@ -179,17 +179,6 @@ END;
 /
 
 /* Sequence */
-
-DROP TRIGGER SEQ_TRIGGER;
---/
-CREATE TRIGGER SEQ_TRIGGER
-BEFORE INSERT ON biosequence
-FOR EACH ROW
-BEGIN
-SELECT bioseq_seq.nextval INTO :new.biosequence_id FROM DUAL;
-END;
-/
-
 DROP TRIGGER DNASEQTAG_TRIGGER;
 --/
 CREATE TRIGGER DNASEQTAG_TRIGGER
@@ -200,6 +189,16 @@ SELECT dnaseqtag_seq.nextval INTO :new.dnasequencetag_id FROM DUAL;
 END;
 /
 
+/* Expression */
+DROP TRIGGER EXPDATA_TRIGGER;
+--/
+CREATE TRIGGER EXPDATA_TRIGGER
+BEFORE INSERT ON expressiondata
+FOR EACH ROW
+BEGIN
+SELECT expdata_seq.nextval INTO :new.expressiondata_id FROM DUAL;
+END;
+/
 
 
 

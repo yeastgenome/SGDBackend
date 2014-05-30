@@ -6,12 +6,13 @@ from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence
 from src.sgd.model.nex.auxiliary import Bioentityinteraction
 from sqlalchemy.orm import joinedload
+import json
 
 __author__ = 'kpaskov'
 
 # -------------------------------Details---------------------------------------
 def get_genetic_interaction_evidence(locus_id, reference_id):
-    query = DBSession.query(Geninteractionevidence).options(joinedload('locus1'), joinedload('locus2'), joinedload('reference'), joinedload('experiment'))
+    query = DBSession.query(Geninteractionevidence)
     if locus_id is not None:
         query = query.filter(or_(Geninteractionevidence.locus1_id == locus_id, Geninteractionevidence.locus2_id == locus_id))
     if reference_id is not None:
@@ -22,7 +23,7 @@ def get_genetic_interaction_evidence(locus_id, reference_id):
     return query.all()
 
 def get_physical_interaction_evidence(locus_id, reference_id):
-    query = DBSession.query(Physinteractionevidence).options(joinedload('locus1'), joinedload('locus2'), joinedload('reference'), joinedload('experiment'))
+    query = DBSession.query(Physinteractionevidence)
     if locus_id is not None:
         query = query.filter(or_(Physinteractionevidence.locus1_id == locus_id, Physinteractionevidence.locus2_id == locus_id))
     if reference_id is not None:
@@ -45,7 +46,7 @@ def make_details(locus_id=None, reference_id=None):
     all_interevidences = [x for x in genetic_interevidences]
     all_interevidences.extend(physical_interevidences)
 
-    return [x.to_json() for x in all_interevidences]
+    return '[' + ', '.join([x.json for x in all_interevidences if x.json is not None]) + ']'
 
 # -------------------------------Graph---------------------------------------
 def create_node(bioent, is_focus, gen_ev_count, phys_ev_count):

@@ -60,12 +60,11 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
     return locus_starter
 
 #--------------------- Convert Complex ---------------------
-def make_complex_starter(bud_session_maker, nex_session_maker):
+def make_complex_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioconcept import Go
 
     def complex_starter():
-        bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
@@ -83,7 +82,6 @@ def make_complex_starter(bud_session_maker, nex_session_maker):
                             'go': go,
                             'cellular_localization': row[3]}
 
-        bud_session.close()
         nex_session.close()
     return complex_starter
 

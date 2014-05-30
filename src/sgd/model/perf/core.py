@@ -74,16 +74,6 @@ class Author(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'author'
 
     id = Column('author_id', Integer, primary_key=True)
-    json = Column('json', String)
-
-    def __init__(self, obj_json):
-        JsonMixins.__init__(self, obj_json)
-
-class Ontology(Base, EqualityByIDMixin, JsonMixins):
-    __tablename__ = 'ontology'
-
-    id = Column('ontology_id', Integer, primary_key=True)
-    class_type = Column('class', String)
     json = Column('json', CLOB)
 
     def __init__(self, obj_json):
@@ -115,22 +105,13 @@ class Disambig(Base, EqualityByIDMixin):
 
     def update(self, obj_json):
         changed = False
-        if obj_json['disambig_key'] != self.disambig_key:
-            self.disambig_key = obj_json['disambig_key']
-            changed = True
-        if obj_json['class_type'] != self.class_type:
-            self.class_type = obj_json['class_type']
-            changed = True
-        if obj_json['subclass_type'] != self.subclass_type:
-            self.subclass_type = obj_json['subclass_type']
-            changed = True
-        if obj_json['obj_id'] != self.obj_id:
-            self.obj_id = obj_json['obj_id']
+        if obj_json['identifier'] != self.obj_id:
+            self.obj_id = obj_json['identifier']
             changed = True
         return changed
 
     def to_json(self):
-        return {'id': (self.class_type, self.subclass_type, self.obj_id),
+        return {'id': (self.class_type, self.subclass_type, self.disambig_key),
                 'disambig_key': self.disambig_key,
                 'class_type': self.class_type,
                 'subclass_type': self.subclass_type,

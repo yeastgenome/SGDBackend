@@ -1,9 +1,10 @@
+from decimal import Decimal
 import hashlib
 
 from sqlalchemy import Float, CLOB, Numeric
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String, Date, Numeric
 
 from bioconcept import Bioconcept, Go, Phenotype, ECNumber
 from bioentity import Bioentity, Locus, Complex
@@ -13,6 +14,7 @@ from reference import Reference
 from bioitem import Contig
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateByJsonMixin
+import json
 
 __author__ = 'kpaskov'
 
@@ -23,6 +25,15 @@ class Evidence(Base, EqualityByIDMixin, UpdateByJsonMixin):
     class_type = Column('subclass', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
+    json = Column('json', String)
+
+    def to_json(self, aux_obj_json=None):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+        return obj_json
 
     __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity':"EVIDENCE"}
 
@@ -84,6 +95,13 @@ class Bioentityproperty(Property):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json['bioentity'].id)
+        self.obj = obj_json['bioentity'].to_min_json()
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if hasattr(self, 'obj') and self.obj is not None:
+            obj_json['bioentity'] = self.obj
+        return obj_json
 
 class Bioconceptproperty(Property):
     __tablename__ = 'bioconceptcondition'
@@ -101,6 +119,13 @@ class Bioconceptproperty(Property):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json['bioconcept'].id)
+        self.obj = obj_json['bioconcept'].to_min_json()
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if hasattr(self, 'obj') and self.obj is not None:
+            obj_json['bioconcept'] = self.obj
+        return obj_json
 
 class Bioitemproperty(Property):
     __tablename__ = 'bioitemcondition'
@@ -118,6 +143,13 @@ class Bioitemproperty(Property):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json['bioitem'].id)
+        self.obj = obj_json['bioitem'].to_min_json()
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if hasattr(self, 'obj') and self.obj is not None:
+            obj_json['bioitem'] = self.obj
+        return obj_json
 
 class Chemicalproperty(Bioitemproperty):
     __tablename__ = 'chemicalcondition'
@@ -132,6 +164,13 @@ class Chemicalproperty(Bioitemproperty):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json['bioitem'].id)
+        self.obj = obj_json['bioitem'].to_min_json()
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if hasattr(self, 'obj') and self.obj is not None:
+            obj_json['bioitem'] = self.obj
+        return obj_json
 
 class Goevidence(Evidence):
     __tablename__ = "goevidence"
@@ -159,7 +198,7 @@ class Goevidence(Evidence):
     go = relationship(Go, uselist=False, backref=backref('go_evidences', passive_deletes=True))
     
     __mapper_args__ = {'polymorphic_identity': "GO", 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'go_evidence', 'annotation_type', 'qualifier', 'property_key',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'go']
@@ -168,17 +207,32 @@ class Goevidence(Evidence):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.properties = obj_json['properties']
         self.property_key = None if len(self.properties) == 0 else ';'.join(x.format_name for x in sorted(self.properties, key=lambda x: x.format_name))
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
+        if len(self.json) > 4000:
+            self.json = None
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.go_id, self.go_evidence, self.reference_id, self.property_key
 
-    def to_json(self):
+    def to_json(self, aux_obj_json=None):
+        from src.sgd.model.nex.paragraph import Bioentityparagraph
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['properties'] = [x.to_json() for x in self.properties]
-        obj_json['go']['go_aspect'] = self.go.go_aspect
-        obj_json['go']['go_id'] = self.go.go_id
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+            properties = aux_obj_json['properties']
+            go = aux_obj_json['go']
+            locus = aux_obj_json['locus']
+        else:
+            properties = self.properties
+            go = self.go
+            locus = self.locus
+        obj_json['properties'] = [x.to_json() for x in properties]
+        obj_json['go']['go_aspect'] = go.go_aspect
+        obj_json['go']['go_id'] = go.go_id
         if self.go_evidence == 'IEA':
-            go_paragraphs = [x for x in self.locus.paragraphs if x.class_type == 'GO']
+            go_paragraphs = [x for x in locus.paragraphs if x.class_type == 'GO']
             if len(go_paragraphs) == 1:
                 obj_json['date_created'] = go_paragraphs[0].text
         return obj_json
@@ -211,13 +265,14 @@ class Geninteractionevidence(Evidence, UpdateByJsonMixin):
     phenotype = relationship(Phenotype, uselist=False, backref=backref('geninteraction_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "GENINTERACTION", 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'mutant_type', 'annotation_type', 'bait_hit', 'interaction_type',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus1', 'locus2', 'phenotype']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus1_id, self.locus2_id, self.bait_hit, self.experiment_id, self.reference_id
@@ -248,13 +303,14 @@ class Physinteractionevidence(Evidence, UpdateByJsonMixin):
     locus2 = relationship(Locus, uselist=False, foreign_keys=[locus2_id], backref=backref('physinteraction_evidences2', passive_deletes=True))
             
     __mapper_args__ = {'polymorphic_identity': "PHYSINTERACTION", 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'modification', 'annotation_type', 'bait_hit', 'interaction_type',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus1', 'locus2']
         
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus1_id, self.locus2_id, self.bait_hit, self.experiment_id, self.reference_id
@@ -280,20 +336,28 @@ class Literatureevidence(Evidence):
     locus = relationship(Locus, uselist=False, backref=backref('literature_evidences', passive_deletes=True))
     
     __mapper_args__ = {'polymorphic_identity': "LITERATURE", 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'topic',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.topic, self.reference_id
 
-    def to_json(self):
+    def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['reference'] = self.reference.to_semi_json()
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+            reference = aux_obj_json['reference']
+        else:
+            reference = self.reference
+        obj_json['reference'] = reference.to_semi_json()
         return obj_json
 
 class Bioentityevidence(Evidence):
@@ -318,13 +382,14 @@ class Bioentityevidence(Evidence):
     bioentity = relationship(Bioentity, uselist=False, backref=backref('bioentity_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "BIOENTITY", 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'info_key', 'info_value',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'bioentity']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.bioentity_id, self.info_key, self.reference_id, self.strain_id
@@ -355,7 +420,7 @@ class Phenotypeevidence(Evidence):
     phenotype = relationship(Phenotype, uselist=False, backref=backref('phenotype_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE", 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'mutant_type', 'strain_details', 'experiment_details', 'property_key',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'phenotype']
@@ -364,14 +429,24 @@ class Phenotypeevidence(Evidence):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.properties = obj_json['properties']
         self.property_key = None if len(self.properties) == 0 else ';'.join(x.format_name for x in sorted(self.properties, key=lambda x: x.format_name))
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.phenotype_id, self.strain_id, self.experiment_id, self.reference_id, self.experiment_details, self.mutant_type, self.property_key
 
-    def to_json(self):
+    def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['properties'] = [x.to_json() for x in self.properties]
-        obj_json['experiment']['category'] = self.experiment.category
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+            experiment = aux_obj_json['experiment']
+            properties = aux_obj_json['properties']
+        else:
+            experiment = self.experiment
+            properties = self.properties
+        obj_json['properties'] = [x.to_json() for x in properties]
+        obj_json['experiment']['category'] = experiment.category
         return obj_json
 
 class Aliasevidence(Evidence):
@@ -394,12 +469,13 @@ class Aliasevidence(Evidence):
     alias = relationship(Alias, uselist=False, backref=backref('alias_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "ALIAS", 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'alias']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.alias_id, self.reference_id
@@ -423,7 +499,7 @@ class Domainevidence(Evidence):
     domain_id = Column('bioitem_id', Integer, ForeignKey(Domain.id))
        
     __mapper_args__ = {'polymorphic_identity': 'DOMAIN', 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'start', 'end', 'evalue', 'status', 'date_of_run',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'domain']
@@ -438,15 +514,23 @@ class Domainevidence(Evidence):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.domain_id, self.start, self.end
 
-    def to_json(self):
+    def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['domain']['description'] = self.domain.description
-        obj_json['domain']['count'] = self.domain.count
-        obj_json['domain']['source'] = self.source.to_min_json()
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+            domain = aux_obj_json['domain']
+        else:
+            domain = self.domain
+        obj_json['domain']['description'] = domain.description
+        obj_json['domain']['count'] = domain.count
+        obj_json['domain']['source'] = domain.source.to_min_json()
         return obj_json
         
 class Regulationevidence(Evidence):
@@ -466,6 +550,7 @@ class Regulationevidence(Evidence):
     fdr = Column('fdr', String)
     pvalue = Column('pvalue', String)
     construct = Column('construct', String)
+    assay = Column('assay', String)
 
     #Relationships
     source = relationship(Source, backref=backref('regulation_evidences', passive_deletes=True), uselist=False)
@@ -476,8 +561,8 @@ class Regulationevidence(Evidence):
     locus2 = relationship(Locus, uselist=False, foreign_keys=[locus2_id], backref=backref('regulation_evidences_regulators', passive_deletes=True))
        
     __mapper_args__ = {'polymorphic_identity': 'REGULATION', 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
-                     'property_key', 'direction', 'fdr', 'pvalue', 'construct',
+    __eq_values__ = ['id', 'note', 'json',
+                     'property_key', 'direction', 'fdr', 'pvalue', 'construct', 'assay',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus1', 'locus2']
 
@@ -485,13 +570,88 @@ class Regulationevidence(Evidence):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.properties = obj_json['properties']
         self.property_key = None if len(self.properties) == 0 else ';'.join(x.format_name for x in sorted(self.properties, key=lambda x: x.format_name))
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus1_id, self.locus2_id, self.experiment_id, self.reference_id, self.strain_id, self.property_key
 
-    def to_json(self):
+    def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['properties'] = [x.to_json() for x in self.properties]
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+            properties = aux_obj_json['properties']
+        else:
+            experiment = self.experiment
+        obj_json['properties'] = [x.to_json() for x in properties]
+        return obj_json
+
+class Expressionevidence(Evidence):
+    __tablename__ = "expressionevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
+    note = Column('note', String)
+
+    description = Column('description', CLOB)
+    geo_id = Column('geo_id', String)
+    pcl_filename = Column('pcl_filename', String)
+    short_description = Column('short_description', String)
+    tags = Column('tags', String)
+    condition = Column('condition', String)
+    channel_count = Column('channel_count', Integer)
+    file_order = Column('file_order', Integer)
+
+    #Relationships
+    source = relationship(Source, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
+    reference = relationship(Reference, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
+    strain = relationship(Strain, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
+    experiment = relationship(Experiment, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'EXPRESSION', 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['id', 'note',
+                     'description', 'geo_id', 'pcl_filename', 'short_description', 'tags', 'condition', 'channel_count', 'file_order',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
+
+    def unique_key(self):
+        return self.class_type, self.geo_id, self.pcl_filename, self.condition
+
+class Expressiondata(Base, UpdateByJsonMixin):
+    __tablename__ = "expressiondata"
+
+    id = Column('expressiondata_id', Integer, primary_key=True)
+    evidence_id = Column('evidence_id', Integer, ForeignKey(Expressionevidence.id))
+    locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
+    value = Column('value', Numeric(7, 3))
+    class_type = 'EXPRESSION_DATA'
+
+    #Relationships
+    evidence = relationship(Expressionevidence, backref=backref('data', passive_deletes=True), uselist=False)
+    locus = relationship(Locus, backref=backref('expression_data', passive_deletes=True), uselist=False)
+
+    __eq_values__ = ['id', 'value', 'evidence_id', 'locus_id']
+    __eq_fks__ = []
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+    def unique_key(self):
+        return self.evidence_id, self.locus_id
+
+    def to_json(self):
+        obj_json = self.evidence.to_json()
+        obj_json['value'] = float(self.value)
+        obj_json['hist_value'] = float(self.value.quantize(Decimal('1.0')))
+        obj_json['locus'] = self.locus.to_min_json()
         return obj_json
         
 class Bindingevidence(Evidence):
@@ -518,7 +678,7 @@ class Bindingevidence(Evidence):
     locus = relationship(Locus, uselist=False, backref=backref('binding_evidences', passive_deletes=True))
        
     __mapper_args__ = {'polymorphic_identity': 'BINDING', 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'link', 'total_score', 'expert_confidence', 'motif_id',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus']
@@ -526,6 +686,7 @@ class Bindingevidence(Evidence):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.link = "/static/img/yetfasco/" + obj_json['locus'].format_name + "_" + str(self.motif_id) + ".0.png"
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.motif_id
@@ -554,20 +715,29 @@ class Complexevidence(Evidence):
     go = relationship(Go, uselist=False, backref=backref('complex_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': 'COMPLEX', 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'complex', 'go']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.complex_id, self.go_id
 
-    def to_json(self):
+    def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['locus']['description'] = self.locus.description
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+            locus = aux_obj_json['locus']
+        else:
+            locus = self.locus
+        obj_json['locus']['description'] = locus.description
         return obj_json
+
 
 class ECNumberevidence(Evidence):
     __tablename__ = "ecnumberevidence"
@@ -591,19 +761,27 @@ class ECNumberevidence(Evidence):
     ecnumber = relationship(ECNumber, uselist=False, backref=backref('ecnumber_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "ECNUMBER", 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'ecnumber']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.ecnumber_id
 
-    def to_json(self):
+    def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['locus']['description'] = self.locus.description
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+            locus = aux_obj_json['locus']
+        else:
+            locus = self.locus
+        obj_json['locus']['description'] = locus.description
         return obj_json
 
 class Proteinexperimentevidence(Evidence):
@@ -628,13 +806,14 @@ class Proteinexperimentevidence(Evidence):
     locus = relationship(Locus, uselist=False, backref=backref('proteinexperiment_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "PROTEINEXPERIMENT", 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'data_value', 'data_unit',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.experiment_id
@@ -826,7 +1005,7 @@ class Proteinsequenceevidence(Evidence):
     def unique_key(self):
         return self.class_type, self.locus_id, self.strain_id, self.protein_type
 
-    def to_json(self):
+    def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['status'] = self.strain.status
@@ -854,7 +1033,7 @@ class Phosphorylationevidence(Evidence):
     locus = relationship(Locus, uselist=False, backref=backref('phosphorylation_evidences', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "PHOSPHORYLATION", 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note',
+    __eq_values__ = ['id', 'note', 'json',
                      'site_index', 'site_residue',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus']
@@ -862,11 +1041,20 @@ class Phosphorylationevidence(Evidence):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.properties = obj_json['properties']
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.site_residue, self.site_index
 
-    def to_json(self):
+    def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['properties'] = [x.to_json() for x in self.properties]
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+            properties = aux_obj_json['properties']
+        else:
+            properties = self.properties
+        obj_json['properties'] = [x.to_json() for x in properties]
         return obj_json
+

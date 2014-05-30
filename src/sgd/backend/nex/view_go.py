@@ -7,6 +7,7 @@ from src.sgd.model.nex.evidence import Goevidence
 from src.sgd.backend.nex import DBSession, query_limit, get_obj_id
 from src.sgd.go_enrichment import query_batter
 from sqlalchemy.orm import joinedload
+import json
 
 __author__ = 'kpaskov'
 
@@ -65,7 +66,7 @@ condition_format_name_to_display_name = {'activated by':	                'activa
                                         'stabilizes':	                    'stabilizes'}
 
 def get_go_evidence(locus_id, go_id, reference_id, with_children):
-    query = DBSession.query(Goevidence).options(joinedload('locus'), joinedload('go'), joinedload('reference'))
+    query = DBSession.query(Goevidence)
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
     if reference_id is not None:
@@ -96,8 +97,8 @@ def make_details(locus_id=None, go_id=None, reference_id=None, with_children=Fal
 
     if goevidences is None:
         return {'Error': 'Too much data to display.'}
-    
-    return [x.to_json() for x in goevidences]
+
+    return '[' + ', '.join([x.json if x.json is not None else json.dumps(x.to_json()) for x in goevidences]) + ']'
 
 def fix_display_name(condition):
     if 'role' in condition and condition['role'] in condition_format_name_to_display_name:

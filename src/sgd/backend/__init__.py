@@ -96,6 +96,17 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('go_ontology_graph'),
                     route_name='go_ontology_graph')
 
+    #Expression views
+    config.add_route('expression_details', '/locus/{identifier}/expression_details')
+    config.add_view(lambda request: chosen_backend.response_wrapper('expression_details', request)(getattr(chosen_backend, 'expression_details')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('expression_details'),
+                    route_name='expression_details')
+
+    config.add_route('expression_graph', '/locus/{identifier}/expression_graph')
+    config.add_view(lambda request: chosen_backend.response_wrapper('expression_graph', request)(getattr(chosen_backend, 'expression_graph')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('expression_graph'),
+                    route_name='expression_graph')
+
     #Phenotype views
     config.add_route('phenotype', '/phenotype/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('phenotype', request)(getattr(chosen_backend, 'phenotype')(phenotype_identifier=request.matchdict['identifier'])),
@@ -318,11 +329,6 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('contig', request)(getattr(chosen_backend, 'contig')(contig_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('contig'),
                     route_name='contig')
-
-    config.add_route('bioentity_details', '/locus/{identifier}/bioentity_details')
-    config.add_view(lambda request: chosen_backend.response_wrapper('bioentity_details', request)(getattr(chosen_backend, 'bioentity_details')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('bioentity_details'),
-                    route_name='bioentity_details')
     
 def prepare_backend(backend_type):
     configurator = Configurator()

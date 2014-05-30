@@ -11,7 +11,7 @@ from src.sgd.model.nex.archive import ArchiveLiteratureevidence
 from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.auxiliary import Referenceinteraction
-
+import json
 
 __author__ = 'kpaskov'
 
@@ -60,16 +60,16 @@ def make_details(locus_id=None, reference_id=None, topic=None):
         interaction_references = set([x.reference for x in get_genetic_interaction_evidence(locus_id=locus_id, reference_id=None)])
         interaction_references.update([x.reference for x in get_physical_interaction_evidence(locus_id=locus_id, reference_id=None)])
 
-        return {'primary': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Primary Literature'])],
+        return json.dumps({'primary': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Primary Literature'])],
                 'additional': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Additional Literature'])],
                 'review': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Reviews'])],
                 'go': [x.to_semi_json() for x in go_references],
                 'phenotype': [x.to_semi_json() for x in phenotype_references],
                 'regulation': [x.to_semi_json() for x in regulation_references],
-                'interaction': [x.to_semi_json() for x in sorted(interaction_references, key=lambda x: (x.year, x.pubmed_id), reverse=True)]}
+                'interaction': [x.to_semi_json() for x in sorted(interaction_references, key=lambda x: (x.year, x.pubmed_id), reverse=True)]})
     elif reference_id is not None:
-        return [x.to_json() for x in sorted(evidences, key=lambda x: x.locus.display_name)]
-    return [x.to_json() for x in evidences]
+        return '[' + ', '.join([x.json for x in sorted(evidences, key=lambda x: x.locus.display_name) if x.json is not None]) + ']'
+    return '[' + ', '.join([x.json for x in evidences if x.json is not None]) + ']'
 
 # -------------------------------Graph---------------------------------------
 def create_litguide_bioent_node(bioent, is_focus):
