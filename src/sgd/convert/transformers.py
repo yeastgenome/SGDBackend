@@ -344,11 +344,12 @@ class Json2DisambigPerfDB(TransformerInterface):
 
     def __init__(self, session_maker, commit_interval=None, commit=False):
         from src.sgd.model.perf.core import Disambig
-        self.name='convert.from_backend.disambig'
+        self.name = 'convert.from_backend.disambig'
         self.session = session_maker()
         self.commit_interval = commit_interval
         self.commit = commit
         self.id_to_current_obj = dict([((x.class_type, x.subclass_type, x.disambig_key), x.obj_id) for x in self.session.query(Disambig).all()])
+        self.already_seen = set()
         self.none_count = 0
         self.added_count = 0
         self.updated_count = 0
@@ -371,13 +372,13 @@ class Json2DisambigPerfDB(TransformerInterface):
             if key in self.id_to_current_obj:
                 if identifier == self.id_to_current_obj[key]:
                     self.no_change_count += 1
-                    del self.id_to_current_obj[key]
+                    self.already_seen.add(key)
                     return 'No Change'
                 else:
                     to_update = self.session.query(Disambig).filter_by(class_type=key[0], subclass_type=key[1], disambig_key=key[2]).first()
                     to_update.obj_id = identifier
                     self.updated_count += 1
-                    del self.id_to_current_obj[key]
+                    self.already_seen.add(key)
                     return 'Updated'
             else:
                 self.session.add(Disambig(newly_created_obj_json))
@@ -391,7 +392,7 @@ class Json2DisambigPerfDB(TransformerInterface):
 
     def finished(self):
         from src.sgd.model.perf.core import Disambig
-        for untouched_key in self.id_to_current_obj.keys():
+        for untouched_key in self.already_seen:
             to_delete = self.session.query(Disambig).filter_by(class_type=untouched_key[0], subclass_type=untouched_key[1], disambig_key=untouched_key[2]).first()
             self.session.delete(to_delete)
         self.deleted_count = len(self.id_to_current_obj)

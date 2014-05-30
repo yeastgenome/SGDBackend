@@ -576,9 +576,9 @@ if __name__ == "__main__":
     from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
     from src.sgd.model.perf.bioitem_data import BioitemDetails
     from src.sgd.model.perf.reference_data import ReferenceDetails
-    # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
-    #                [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000),
-    #                 OutputTransformer(1000)])
+    do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
+                   [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000),
+                    OutputTransformer(1000)])
 
     from src.sgd.model.nex.bioentity import Locus, Complex
     from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
@@ -627,7 +627,7 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # In Progress
+    # Done
     # do_conversion(make_go_data_backend_starter(nex_backend, 'go_details', go_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
@@ -652,7 +652,7 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_DOMAIN', locus_ids, name='convert.from_backend.protein_domain_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # In Progress
+    # Done
     # do_conversion(make_domain_data_backend_starter(nex_backend, 'protein_domain_details', domain_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'PROTEIN_DOMAIN_LOCUS', domain_ids, name='convert.from_backend.protein_domain_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
@@ -672,7 +672,7 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # In Progress
+    # Done
     # do_conversion(make_phenotype_data_backend_starter(nex_backend, 'phenotype_details', phenotype_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'PHENOTYPE_LOCUS', phenotype_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
@@ -687,7 +687,7 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'PHENOTYPE', chemical_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # In Progress
+    # Done
     # do_conversion(make_observable_data_backend_starter(nex_backend, 'phenotype_details', observable_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'OBSERVABLE_LOCUS', observable_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
@@ -738,11 +738,11 @@ if __name__ == "__main__":
     #                 OutputTransformer(1000)])
     #
     # In Progress
-    do_conversion(make_go_data_backend_starter(nex_backend, 'go_ontology_graph', go_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'GO_ONTOLOGY', go_ids, name='convert.from_backend.go_ontology_graph', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_go_data_backend_starter(nex_backend, 'go_ontology_graph', go_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'GO_ONTOLOGY', go_ids, name='convert.from_backend.go_ontology_graph', commit_interval=1000),
+    #                 OutputTransformer(1000)])
     #
-    # In Progress
+    # Done
     # do_conversion(make_observable_data_backend_starter(nex_backend, 'phenotype_ontology_graph', observable_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'PHENOTYPE_ONTOLOGY', observable_ids, name='convert.from_backend.phenotype_ontology_graph', commit_interval=1000),
     #                 OutputTransformer(1000)])

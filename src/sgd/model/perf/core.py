@@ -79,16 +79,6 @@ class Author(Base, EqualityByIDMixin, JsonMixins):
     def __init__(self, obj_json):
         JsonMixins.__init__(self, obj_json)
 
-class Ontology(Base, EqualityByIDMixin, JsonMixins):
-    __tablename__ = 'ontology'
-
-    id = Column('ontology_id', Integer, primary_key=True)
-    class_type = Column('class', String)
-    json = Column('json', CLOB)
-
-    def __init__(self, obj_json):
-        JsonMixins.__init__(self, obj_json)
-
 class Strain(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'strain'
 

@@ -210,7 +210,8 @@ class PerfBackend(BackendInterface):
             if are_ids:
                 biocon_id = go_identifier
             else:
-                biocon_id = get_obj_id(str(go_identifier).upper() if str(go_identifier).upper().startswith('GO') else str(go_identifier).lower(), class_type='BIOCONCEPT', subclass_type='GO')
+                biocon_id = get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
+            print biocon_id
             if with_children:
                 return get_bioconcept_details(biocon_id, 'GO_LOCUS_ALL_CHILDREN')
             else:
@@ -234,7 +235,7 @@ class PerfBackend(BackendInterface):
             biocon_id = go_identifier
         else:
             biocon_id = get_obj_id(str(go_identifier).upper() if str(go_identifier).upper().startswith('GO') else str(go_identifier).lower(), class_type='BIOCONCEPT', subclass_type='GO')
-        return get_bioconcept_graph(biocon_id, 'ONTOLOGY')
+        return get_bioconcept_graph(biocon_id, 'GO_ONTOLOGY')
 
     #Phenotype
     def phenotype(self, phenotype_identifier, are_ids=False):
@@ -308,7 +309,7 @@ class PerfBackend(BackendInterface):
             biocon_id = phenotype_identifier
         else:
             biocon_id = get_obj_id(str(phenotype_identifier).lower(), class_type='BIOCONCEPT', subclass_type='OBSERVABLE')
-        return get_bioconcept_graph(biocon_id, 'ONTOLOGY')
+        return get_bioconcept_graph(biocon_id, 'PHENOTYPE_ONTOLOGY')
     
     #Protein
     def domain(self, domain_identifier, are_ids=False):
@@ -477,19 +478,19 @@ class PerfBackend(BackendInterface):
 #Get obj/obj_id
 def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=False):
     from src.sgd.model.perf.core import Disambig
-    
     if identifier is None:
         return None
-    query = DBSession.query(Disambig).filter(func.lower(Disambig.disambig_key)==func.lower(str(identifier)))
+
+    query = DBSession.query(Disambig).filter(func.lower(Disambig.disambig_key) == func.lower(str(identifier)))
     if class_type is not None:
-        query = query.filter(Disambig.class_type==class_type)
+        query = query.filter(class_type == Disambig.class_type)
     if subclass_type is not None:
-        query = query.filter(Disambig.subclass_type==subclass_type)
+        query = query.filter(subclass_type == Disambig.subclass_type)
     disambigs = query.all()
-    
+
     if print_query:
         print query
-        
+
     if len(disambigs) > 0:
         return [(disambig.obj_id, disambig.class_type, disambig.subclass_type) for disambig in disambigs]
     return None
@@ -513,13 +514,6 @@ def get_obj(cls, col_name, obj_id):
     if obj_id is not None:
         biocon = DBSession.query(cls).filter(cls.id == obj_id).first()
         return None if biocon is None else getattr(biocon, col_name)
-    return None
-
-def get_ontology(class_type):
-    from src.sgd.model.perf.core import Ontology
-    if class_type is not None:
-        ontology = DBSession.query(Ontology).filter(Ontology.class_type == class_type).first()
-        return None if ontology is None else ontology.json
     return None
 
 #Get bioentity data
