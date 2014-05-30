@@ -212,9 +212,9 @@ class PerfBackend(BackendInterface):
             else:
                 biocon_id = get_obj_id(str(go_identifier).upper() if str(go_identifier).upper().startswith('GO') else str(go_identifier).lower(), class_type='BIOCONCEPT', subclass_type='GO')
             if with_children:
-                return get_bioconcept_details(biocon_id, 'LOCUS_ALL_CHILDREN')
+                return get_bioconcept_details(biocon_id, 'GO_LOCUS_ALL_CHILDREN')
             else:
-                return get_bioconcept_details(biocon_id, 'LOCUS')
+                return get_bioconcept_details(biocon_id, 'GO_LOCUS')
         elif reference_identifier is not None:
             if are_ids:
                 ref_id = reference_identifier
@@ -274,15 +274,15 @@ class PerfBackend(BackendInterface):
             else:
                 biocon_id = get_obj_id(str(observable_identifier).lower(), class_type='BIOCONCEPT', subclass_type='OBSERVABLE')
             if with_children:
-                return get_bioconcept_details(biocon_id, 'LOCUS_ALL_CHILDREN')
+                return get_bioconcept_details(biocon_id, 'OBSERVABLE_LOCUS_ALL_CHILDREN')
             else:
-                return get_bioconcept_details(biocon_id, 'LOCUS')
+                return get_bioconcept_details(biocon_id, 'OBSERVABLE_LOCUS')
         elif phenotype_identifier is not None:
             if are_ids:
                 biocon_id = phenotype_identifier
             else:
                 biocon_id = get_obj_id(str(phenotype_identifier).lower(), class_type='BIOCONCEPT', subclass_type='PHENOTYPE')
-            return get_bioconcept_details(biocon_id, 'LOCUS')
+            return get_bioconcept_details(biocon_id, 'PHENOTYPE_LOCUS')
         elif reference_identifier is not None:
             if are_ids:
                 ref_id = reference_identifier
@@ -337,7 +337,7 @@ class PerfBackend(BackendInterface):
                 domain_id = domain_identifier
             else:
                 domain_id = get_obj_id(str(domain_identifier).upper(), class_type='BIOITEM', subclass_type='DOMAIN')
-            return get_bioitem_details(domain_id, 'LOCUS')
+            return get_bioitem_details(domain_id, 'PROTEIN_DOMAIN_LOCUS')
 
     def protein_domain_graph(self, locus_identifier, are_ids=False):
         if are_ids:
@@ -372,7 +372,7 @@ class PerfBackend(BackendInterface):
             bioent_id = locus_identifier
         else:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-        return get_bioentity_enrichment(bioent_id, 'REGULATION_TARGET')
+        return get_bioentity_enrichment(bioent_id, 'REGULATION')
     
     #Binding
     def binding_site_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
@@ -410,7 +410,7 @@ class PerfBackend(BackendInterface):
                 ref_id = ec_number_identifier
             else:
                 ref_id = get_obj_id(str(ec_number_identifier).upper(), class_type='BIOCONCEPT', subclass_type='ECNUMBER')
-            return get_bioconcept_details(ref_id, 'LOCUS')
+            return get_bioconcept_details(ref_id, 'EC_NUMBER_LOCUS')
 
     # Sequence
     def contig(self, contig_identifier, are_ids=False):
