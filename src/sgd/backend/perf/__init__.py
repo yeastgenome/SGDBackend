@@ -106,8 +106,8 @@ class PerfBackend(BackendInterface):
         return get_all(Reference, 'json', chunk_size, offset)
     
     def reference_list(self, reference_ids):
-        from src.sgd.model.perf.core import Reference
-        return get_list(Reference, 'bibentry_json', reference_ids)
+        from src.sgd.model.perf.core import Bibentry
+        return get_list(Bibentry, 'json', reference_ids)
 
     def references_this_week(self):
         return None

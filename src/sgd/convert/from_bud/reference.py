@@ -81,7 +81,7 @@ def make_reference_starter(bud_session_maker, nex_session_maker):
         reference_id_to_doi = dict([(x.reference_id, x.url.url[18:]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'DOI full text'])
         reference_id_to_pmcid = dict([(x.reference_id, x.url.url.replace('http://www.ncbi.nlm.nih.gov/pmc/articles/', '')[:-1]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'PMC full text'])
 
-        for old_reference in make_db_starter(bud_session.query(Reference).options(joinedload('book'), joinedload('journal')), 1000)():
+        for old_reference in make_db_starter(bud_session.query(Reference).order_by(Reference.id.desc()).options(joinedload('book'), joinedload('journal')), 1000)():
             citation = create_citation(old_reference.citation)
             display_name = create_display_name(citation)
 

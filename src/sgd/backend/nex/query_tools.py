@@ -4,6 +4,7 @@ from src.sgd.backend.nex import DBSession
 from src.sgd.model.nex.bioentity import Bioentityurl
 from src.sgd.model.nex.paragraph import Paragraph
 from src.sgd.model.nex.auxiliary import Interaction
+from sqlalchemy.orm import joinedload
 
 
 __author__ = 'kpaskov'
@@ -50,7 +51,7 @@ def get_urls(category, bioent_id=None):
 
 #Used for ontology graphs
 def get_relations(cls, subclass_type, parent_ids=None, child_ids=None):
-    query = DBSession.query(cls)
+    query = DBSession.query(cls).options(joinedload('child'), joinedload('parent'))
     if subclass_type is not None:
         query = query.filter(cls.relation_type==subclass_type)
     if (parent_ids is not None and len(parent_ids) == 0) or (child_ids is not None and len(child_ids) == 0):

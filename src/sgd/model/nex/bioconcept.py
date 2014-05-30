@@ -27,7 +27,7 @@ class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False, lazy='joined')
 
-    __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity':"BIOCONCEPT"}
+    __mapper_args__ = {'polymorphic_on': class_type, 'with_polymorphic':'*'}
         
     def unique_key(self):
         return self.format_name, self.class_type

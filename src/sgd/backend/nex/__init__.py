@@ -55,7 +55,7 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
             Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
-        return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
+        return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').order_by(Bioentity.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity
@@ -78,11 +78,11 @@ class SGDBackend(BackendInterface):
 
     def all_locustabs(self, chunk_size, offset):
         from src.sgd.model.nex.auxiliary import Locustabs
-        return [x.to_json() for x in DBSession.query(Locustabs).limit(chunk_size).offset(offset).all()]
+        return [x.to_json() for x in DBSession.query(Locustabs).order_by(Locustabs.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def all_locusentries(self, chunk_size, offset):
         from src.sgd.model.nex.bioentity import Locus
-        return [x.to_semi_json() for x in DBSession.query(Locus).limit(chunk_size).offset(offset).all()]
+        return [x.to_semi_json() for x in DBSession.query(Locus).order_by(Locus.id.desc()).limit(chunk_size).offset(offset).all()]
     
     def locus(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Locus
@@ -107,7 +107,7 @@ class SGDBackend(BackendInterface):
     #Bioconcept
     def all_bioconcepts(self, chunk_size, offset):
         from src.sgd.model.nex.bioconcept import Bioconcept
-        return [x.to_json() for x in DBSession.query(Bioconcept).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
+        return [x.to_json() for x in DBSession.query(Bioconcept).with_polymorphic('*').order_by(Bioconcept.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def ec_number(self, ec_number_identifier, are_ids=False):
         from src.sgd.model.nex.bioconcept import ECNumber
@@ -147,7 +147,7 @@ class SGDBackend(BackendInterface):
     #Bioitem
     def all_bioitems(self, chunk_size, offset):
         from src.sgd.model.nex.bioitem import Bioitem
-        return [x.to_json() for x in DBSession.query(Bioitem).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
+        return [x.to_json() for x in DBSession.query(Bioitem).with_polymorphic('*').order_by(Bioitem.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def chemical(self, chemical_identifier, are_ids=False):
         from src.sgd.model.nex.bioitem import Chemical
@@ -169,7 +169,7 @@ class SGDBackend(BackendInterface):
     def all_strains(self, chunk_size, offset):
         from src.sgd.model.nex.misc import Strain
         from src.sgd.model.nex.paragraph import Strainparagraph
-        return [x.to_json() for x in DBSession.query(Strain).limit(chunk_size).offset(offset).all()]
+        return [x.to_json() for x in DBSession.query(Strain).order_by(Strain.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def domain(self, domain_identifier, are_ids=False):
         from src.sgd.model.nex.bioitem import Domain
@@ -205,11 +205,11 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.paragraph import Referenceparagraph
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Physinteractionevidence, \
             Geninteractionevidence, Regulationevidence, Literatureevidence
-        return [x.to_json() for x in DBSession.query(Reference).limit(chunk_size).offset(offset).all()]
+        return [x.to_json() for x in DBSession.query(Reference).order_by(Reference.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def all_bibentries(self, chunk_size, offset):
         from src.sgd.model.nex.reference import Bibentry
-        return [{'id': x.id, 'text': x.text} for x in DBSession.query(Bibentry).limit(chunk_size).offset(offset).all()]
+        return [{'id': x.id, 'text': x.text} for x in DBSession.query(Bibentry).order_by(Bibentry.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def reference_list(self, reference_ids):
         from src.sgd.model.nex.reference import Bibentry
@@ -219,7 +219,7 @@ class SGDBackend(BackendInterface):
 
     def all_authors(self, chunk_size, offset):
         from src.sgd.model.nex.reference import Author
-        return [x.to_json() for x in DBSession.query(Author).limit(chunk_size).offset(offset).all()]
+        return [x.to_json() for x in DBSession.query(Author).order_by(Author.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def reference(self, reference_identifier, are_ids=False):
         from src.sgd.model.nex.reference import Reference
@@ -509,7 +509,7 @@ class SGDBackend(BackendInterface):
     #Misc
     def all_disambigs(self, chunk_size, offset):
         from src.sgd.model.nex.auxiliary import Disambig
-        return [x.to_json() for x in DBSession.query(Disambig).limit(chunk_size).offset(offset).all()]
+        return [x.to_json() for x in DBSession.query(Disambig).order_by(Disambig.id.desc()).limit(chunk_size).offset(offset).all()]
       
 #Useful methods
 def create_simple_table(objs, f, **kwargs):
