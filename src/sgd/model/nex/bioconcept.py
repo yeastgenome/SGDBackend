@@ -107,6 +107,11 @@ class ECNumber(Bioconcept):
             self.link = '/ecnumber/' + self.display_name + '/overview'
         self.format_name = self.display_name
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
+        return obj_json
+
 class Go(Bioconcept):
     __tablename__ = 'gobioconcept'
     
@@ -150,6 +155,8 @@ class Go(Bioconcept):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['count'] = self.count
         obj_json['child_count'] = self.child_count
+
+        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
         return obj_json
         
 def create_phenotype_display_name(observable, qualifier):

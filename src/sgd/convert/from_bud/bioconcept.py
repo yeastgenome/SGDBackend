@@ -382,3 +382,44 @@ def make_bioconcept_alias_starter(bud_session_maker, nex_session_maker):
         bud_session.close()
         nex_session.close()
     return bioconcept_alias_starter
+
+# --------------------- Convert Bioitem URL ---------------------
+def make_bioconcept_url_starter(nex_session_maker):
+    from src.sgd.model.nex.misc import Source
+    from src.sgd.model.nex.bioconcept import Go, ECNumber
+
+    def bioconcept_url_starter():
+        nex_session = nex_session_maker()
+
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+
+        for goterm in make_db_starter(nex_session.query(Go), 1000)():
+            go_id = goterm.go_id
+
+            yield {'display_name': go_id,
+                       'link': 'http://amigo.geneontology.org/amigo/term/' + go_id + '#display-sentences-tab',
+                       'source': key_to_source['GO'],
+                       'category': 'GO',
+                       'bioconcept_id': goterm.id}
+
+            yield {'display_name': 'See annotations in AmiGO',
+                       'link': 'http://amigo.geneontology.org/amigo/term/' + go_id,
+                       'source': key_to_source['GO'],
+                       'category': 'Amigo',
+                       'bioconcept_id': goterm.id}
+
+        for ecnumber in make_db_starter(nex_session.query(ECNumber), 1000)():
+            yield {'display_name': 'ExPASy',
+                       'link': 'http://enzyme.expasy.org/EC/' + ecnumber.format_name,
+                       'source': key_to_source['ExPASy'],
+                       'category': 'ExPASy',
+                       'bioconcept_id': ecnumber.id}
+
+            yield {'display_name': 'BRENDA',
+                       'link': 'http://www.brenda-enzymes.org/php/result_flat.php4?ecno=' + ecnumber.format_name,
+                       'source': key_to_source['-'],
+                       'category': 'BRENDA',
+                       'bioconcept_id': ecnumber.id}
+
+        nex_session.close()
+    return bioconcept_url_starter

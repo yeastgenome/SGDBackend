@@ -272,6 +272,7 @@ class Geninteractionevidence(Evidence, UpdateByJsonMixin):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.interaction_type = 'Genetic'
         self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
@@ -310,6 +311,7 @@ class Physinteractionevidence(Evidence, UpdateByJsonMixin):
         
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
+        self.interaction_type = 'Physical'
         self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):

@@ -193,7 +193,7 @@ if __name__ == "__main__":
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioitemrelation), name='convert.from_bud.bioitem.relation', delete_untouched=True, commit=True)])
     clean_up_orphans(nex_session_maker, Bioitemrelation, Relation, 'BIOITEM')
 
-    do_conversion(make_bioitem_url_starter(bud_session_maker, nex_session_maker),
+    do_conversion(make_bioitem_url_starter(nex_session_maker),
                   [Json2Obj(Bioitemurl),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioitemurl), name='convert.from_bud.bioitem.url', delete_untouched=True, commit=True)])
     clean_up_orphans(nex_session_maker, Bioitemurl, Url, 'BIOITEM')

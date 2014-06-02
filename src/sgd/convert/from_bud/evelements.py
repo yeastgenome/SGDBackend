@@ -191,6 +191,9 @@ strain_to_genotype = {'S288C': '<i>MAT&alpha; SUC2 gal2 mal2 mel flo1 flo8-1 hap
                       'Y55': '<i>MAT</i>a<i>/MATalpha HO/HO</i>'
 }
 
+strain_to_description = {'S288C': 'Reference Genome',
+                        'Other': 'Strain background is designated "Other" when the genetic background of the strain used in an experiment supporting a particular annotation is either not traceable or is not one of the twelve most commonly used backgrounds that are recorded in SGD curation.'}
+
 def make_strain_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.bud.cv import CVTerm
@@ -203,8 +206,8 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
         for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==10), 1000)():
             yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
-                   'description': 'Reference Genome' if bud_obj.name == 'S288C' else bud_obj.definition,
-                   'status': 'Reference' if bud_obj.name == 'S288C' else ('Alternative Reference' if bud_obj.name in alternative_reference_strains else 'Other'),
+                   'description': bud_obj.definition if bud_obj.name not in strain_to_description else strain_to_description[bud_obj.name],
+                   'status': 'Reference' if bud_obj.name == 'S288C' else ('Alternative Reference' if bud_obj.name in alternative_reference_strains else (None if bud_obj.name == 'Other' else 'Other')),
                    'genotype': None if bud_obj.name not in strain_to_genotype else strain_to_genotype[bud_obj.name],
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}

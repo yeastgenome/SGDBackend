@@ -319,12 +319,11 @@ def make_bioitem_relation_starter(bud_session_maker, nex_session_maker):
     return bioitem_relation_starter
 
 # --------------------- Convert Bioitem URL ---------------------
-def make_bioitem_url_starter(bud_session_maker, nex_session_maker):
+def make_bioitem_url_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioitem import Domain, Chemical
 
     def bioitem_url_starter():
-        bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
@@ -383,6 +382,5 @@ def make_bioitem_url_starter(bud_session_maker, nex_session_maker):
                        'category': 'External',
                        'bioitem_id': chemical.id}
 
-        bud_session.close()
         nex_session.close()
     return bioitem_url_starter

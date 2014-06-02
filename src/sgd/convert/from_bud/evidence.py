@@ -1285,6 +1285,32 @@ def get_info(data):
             info[pieces[0]] = pieces[1]
     return info
 
+extra_child_to_parent = {'TEL01L-TR': 'TEL01L',
+                         'TEL01L-XC': 'TEL01L',
+                         'TEL01L-XR': 'TEL01L',
+                         'YAL068W-A': 'TEL01L',
+                         'YAL069W': 'TEL01L',
+                         'TEL01R-TR': 'TEL01R',
+                         'TEL01R-XC': 'TEL01R',
+                         'TEL02L-XC': 'TEL02L',
+                         'TEL02L-XR': 'TEL02L',
+                         'TEL02L-YP': 'TEL02L',
+                         'YBL111C': 'TEL02L',
+                         'YBL112C': 'TEL02L',
+                         'YBL113C': 'TEL02L',
+                         'YBL113W-A': 'TEL02L',
+                         'TEL02R-TR': 'TEL02R',
+                         'TEL02R-XC': 'TEL02R',
+                         'TEL02R-XR': 'TEL02R',
+                         'TEL03L-TR': 'TEL03L',
+                         'TEL03L-XC': 'TEL03L',
+                         'TEL03L-XR': 'TEL03L',
+                         'TEL03R-TR': 'TEL03R',
+                         'TEL03R-XC': 'TEL03R',
+                         'TEL03R-XR': 'TEL03R',
+                         'YCR108C': 'TEL03R',
+                         }
+
 def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filenames):
     from src.sgd.model.nex.misc import Strain
     from src.sgd.model.nex.bioentity import Locus
@@ -1303,9 +1329,12 @@ def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filena
                 pieces = row.split('\t')
                 if len(pieces) == 9:
                     info = get_info(pieces[8])
+                    name = None
+                    if 'Name' in info:
+                        name = info['Name'].strip().replace('%28', "(").replace('%29', ")")
 
-                    if 'ID' in info and 'Name' in info:
-                        bioentity_key = (info['Name'].strip().replace('%28', "(").replace('%29', ")"), 'LOCUS')
+                    if 'ID' in info and name is not None:
+                        bioentity_key = (name, 'LOCUS')
                         if bioentity_key[0].endswith('_mRNA'):
                             bioentity_key = (bioentity_key[0][:-5], 'LOCUS')
                         elif bioentity_key[0] == 'tS(GCU)L':
@@ -1322,6 +1351,13 @@ def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filena
 
                     if 'Parent' in info:
                         parent_id = info['Parent'].strip()
+                        if parent_id in parent_id_to_rows:
+                            parent_id_to_rows[parent_id].append(pieces)
+                        else:
+                            parent_id_to_rows[parent_id] = [pieces]
+                    elif name is not None and name in extra_child_to_parent:
+                        print name
+                        parent_id = extra_child_to_parent[name]
                         if parent_id in parent_id_to_rows:
                             parent_id_to_rows[parent_id].append(pieces)
                         else:
