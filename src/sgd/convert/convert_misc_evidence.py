@@ -43,12 +43,12 @@ if __name__ == "__main__":
     #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Domainevidence), name='convert.from_bud.evidence.domain', delete_untouched=True, commit_interval=1000),
     #                 OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Domainevidence, Evidence, 'DOMAIN')
-
-    do_conversion(make_phosphorylation_evidence_starter(nex_session_maker),
-                  [Json2Obj(Phosphorylationevidence),
-                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Phosphorylationevidence), name='convert.from_bud.evidence.phosphorylation', delete_untouched=True, commit=True),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Phosphorylationevidence, Evidence, 'PHOSPHORYLATION')
+    #
+    # do_conversion(make_phosphorylation_evidence_starter(nex_session_maker),
+    #               [Json2Obj(Phosphorylationevidence),
+    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Phosphorylationevidence), name='convert.from_bud.evidence.phosphorylation', delete_untouched=True, commit=True),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Phosphorylationevidence, Evidence, 'PHOSPHORYLATION')
 
     do_conversion(make_protein_experiment_evidence_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Proteinexperimentevidence),
