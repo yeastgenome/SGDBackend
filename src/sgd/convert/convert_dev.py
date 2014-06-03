@@ -282,10 +282,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit=True),
     #                OutputTransformer(1000)])
 
-    do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Bibentry),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bibentry), name='convert.from_bud.bibentry', delete_untouched=True, commit=True),
-                   OutputTransformer(1000)])
+    # do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Bibentry),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bibentry), name='convert.from_bud.bibentry', delete_untouched=True, commit=True),
+    #                OutputTransformer(1000)])
     #
     # do_conversion(make_author_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Author),
@@ -330,10 +330,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'AUTHOR'), name='convert.from_bud.author.disambig', delete_untouched=True, commit=True)])
     #
     # # Nex -> Perf
-    from src.sgd.model.perf.core import Reference as PerfReference, Author as PerfAuthor, Bibentry as PerfBibentry
-    do_conversion(make_backend_starter(nex_backend, 'all_references', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfReference, name='convert.from_backend.reference', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+    # from src.sgd.model.perf.core import Reference as PerfReference, Author as PerfAuthor, Bibentry as PerfBibentry
+    # do_conversion(make_backend_starter(nex_backend, 'all_references', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfReference, name='convert.from_backend.reference', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_authors', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfAuthor, name='convert.from_backend.author', delete_untouched=True, commit_interval=1000),
@@ -577,9 +577,9 @@ if __name__ == "__main__":
     from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
     from src.sgd.model.perf.bioitem_data import BioitemDetails
     from src.sgd.model.perf.reference_data import ReferenceDetails
-    # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
-    #                [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000),
-    #                 OutputTransformer(1000)])
+    do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
+                   [Json2DisambigPerfDB(perf_session_maker, commit_interval=100),
+                    OutputTransformer(1000)])
 
     from src.sgd.model.nex.bioentity import Locus, Complex
     from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber

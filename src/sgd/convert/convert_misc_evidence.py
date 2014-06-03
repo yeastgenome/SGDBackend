@@ -22,27 +22,27 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.evidence import make_domain_evidence_starter, make_protein_experiment_evidence_starter, \
         make_ecnumber_evidence_starter, make_protein_experiment_evidence_starter, make_alias_evidence_starter, \
         make_binding_evidence_starter, make_phosphorylation_evidence_starter
-
-    do_conversion(make_alias_evidence_starter(bud_session_maker, nex_session_maker),
-                   [Json2Obj(Aliasevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Aliasevidence), name='convert.from_bud.evidence.alias', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Aliasevidence, Evidence, 'ALIAS')
-
-    do_conversion(make_binding_evidence_starter(nex_session_maker),
-                   [Json2Obj(Bindingevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Bindingevidence), name='convert.from_bud.evidence.binding', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Bindingevidence, Evidence, 'BINDING')
-
-    do_conversion(make_ecnumber_evidence_starter(bud_session_maker, nex_session_maker),
-                   [Json2Obj(ECNumberevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(ECNumberevidence), name='convert.from_bud.evidence.ecnumber', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, ECNumberevidence, Evidence, 'ECNUMBER')
-
-    do_conversion(make_domain_evidence_starter(bud_session_maker, nex_session_maker),
-                   [Json2Obj(Domainevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Domainevidence), name='convert.from_bud.evidence.domain', delete_untouched=True, commit_interval=1000),
-                    OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Domainevidence, Evidence, 'DOMAIN')
+    #
+    # do_conversion(make_alias_evidence_starter(bud_session_maker, nex_session_maker),
+    #                [Json2Obj(Aliasevidence),
+    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Aliasevidence), name='convert.from_bud.evidence.alias', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Aliasevidence, Evidence, 'ALIAS')
+    #
+    # do_conversion(make_binding_evidence_starter(nex_session_maker),
+    #                [Json2Obj(Bindingevidence),
+    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Bindingevidence), name='convert.from_bud.evidence.binding', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Bindingevidence, Evidence, 'BINDING')
+    #
+    # do_conversion(make_ecnumber_evidence_starter(bud_session_maker, nex_session_maker),
+    #                [Json2Obj(ECNumberevidence),
+    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(ECNumberevidence), name='convert.from_bud.evidence.ecnumber', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, ECNumberevidence, Evidence, 'ECNUMBER')
+    #
+    # do_conversion(make_domain_evidence_starter(bud_session_maker, nex_session_maker),
+    #                [Json2Obj(Domainevidence),
+    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Domainevidence), name='convert.from_bud.evidence.domain', delete_untouched=True, commit_interval=1000),
+    #                 OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Domainevidence, Evidence, 'DOMAIN')
 
     do_conversion(make_phosphorylation_evidence_starter(nex_session_maker),
                   [Json2Obj(Phosphorylationevidence),
