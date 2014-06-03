@@ -244,7 +244,9 @@ class SGDBackend(BackendInterface):
         from datetime import date, timedelta
         from src.sgd.model.nex.reference import Reference
         a_week_ago = date.today() - timedelta(days=8)
-        return json.dumps([x.to_semi_json() for x in sorted(DBSession.query(Reference).filter(Reference.date_created > a_week_ago).all(), key=lambda x: x.date_created, reverse=True)])
+        return json.dumps({'start': str(a_week_ago),
+                            'end': str(date.today()),
+                            'references': [x.to_semi_json() for x in sorted(DBSession.query(Reference).filter(Reference.date_created > a_week_ago).all(), key=lambda x: (-int(x.year), x.display_name) )]})
 
     #Phenotype
     def phenotype_ontology_graph(self, observable_identifier, are_ids=False):
