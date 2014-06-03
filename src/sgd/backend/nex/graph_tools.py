@@ -44,8 +44,8 @@ def make_ontology_graph(bioconcept_id, class_type, filter_f, subtype_f):
 
         #If there are too many children, hide some.
         hidden_children_count = 0
+        all_children = sorted([x.child for x in child_relations], key=lambda x: x.display_name.lower())
         if len(viable_ids) > 8:
-            all_children = sorted([x.child for x in child_relations], key=lambda x: x.display_name)
             hidden_children_count = len(viable_ids)-7
             viable_ids = set(list(viable_ids)[:7])
 

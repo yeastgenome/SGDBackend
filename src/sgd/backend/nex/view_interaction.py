@@ -35,13 +35,13 @@ def get_physical_interaction_evidence(locus_id, reference_id):
 
 def make_details(locus_id=None, reference_id=None):
     if locus_id is None and reference_id is None:
-        return {'Error': 'No locus_id or reference_id given.'}
+        return json.dumps({'Error': 'No locus_id or reference_id given.'})
 
     genetic_interevidences = get_genetic_interaction_evidence(locus_id=locus_id, reference_id=reference_id)
     physical_interevidences = get_physical_interaction_evidence(locus_id=locus_id, reference_id=reference_id)
 
     if genetic_interevidences is None or physical_interevidences is None:
-        return {'Error': 'Too much data to display.'}
+        return json.dumps({'Error': 'Too much data to display.'})
 
     all_interevidences = [x for x in genetic_interevidences]
     all_interevidences.extend(physical_interevidences)

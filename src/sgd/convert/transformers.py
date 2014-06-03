@@ -469,6 +469,58 @@ class Json2DataPerfDB(TransformerInterface):
         self.session.close()
         return message if self.name is None else self.name + ': ' + str(message)
 
+class Json2OrphanPerfDB(TransformerInterface):
+
+    def __init__(self, session_maker, name=None, commit_interval=None, commit=False):
+        from src.sgd.model.perf.core import Orphan
+        self.session = session_maker()
+        self.name = name
+        self.commit_interval = commit_interval
+        self.commit = commit
+
+        self.url_to_obj = dict([(x.url, x) for x in self.session.query(Orphan).all()])
+        self.none_count = 0
+        self.added_count = 0
+        self.updated_count = 0
+        self.no_change_count = 0
+        self.duplicate_count = 0
+        self.error_count = 0
+        self.deleted_count = 0
+
+    def convert(self, newly_created_obj_json):
+        from src.sgd.model.perf.core import Orphan
+        try:
+            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+                self.session.commit()
+
+            url, json_str = newly_created_obj_json
+
+            if url in self.url_to_obj:
+                self.url_to_obj[url].json = json_str
+                self.updated_count += 1
+                return 'Updated'
+            else:
+                self.session.add(Orphan(url, json_str))
+                self.added_count += 1
+                return 'Added'
+
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.error_count += 1
+            return 'Error'
+
+    def finished(self):
+        message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
+                   'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
+                   'None': self.none_count}
+        if self.commit_interval is not None or self.commit:
+            self.session.commit()
+        else:
+            message['Warning'] = 'Changes not committed!'
+        self.session.close()
+        return message if self.name is None else self.name + ': ' + str(message)
+
 class NullTransformer(TransformerInterface):
 
     def convert(self, x):
@@ -583,6 +635,12 @@ def make_locus_data_backend_starter(backend, method, obj_ids):
     def individual_backend_starter():
         for obj_id in obj_ids:
             yield (obj_id, getattr(backend, method)(locus_identifier=obj_id, are_ids=True))
+    return individual_backend_starter
+
+def make_orphan_backend_starter(backend, methods):
+    def individual_backend_starter():
+        for method in methods:
+            yield (method, getattr(backend, method)())
     return individual_backend_starter
 
 def make_reference_data_backend_starter(backend, method, obj_ids):

@@ -111,7 +111,8 @@ class PerfBackend(BackendInterface):
         return get_list(Bibentry, 'json', reference_ids)
 
     def references_this_week(self):
-        return None
+        from src.sgd.model.perf.core import Orphan
+        return DBSession.query(Orphan).filter_by(url='references_this_week').first().json
 
     def strain(self, strain_identifier):
         from src.sgd.model.perf.core import Strain

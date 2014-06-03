@@ -219,7 +219,7 @@ class Author(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         references = set([x.reference for x in self.author_references])
-        obj_json['references'] = [x.to_semi_json() for x in sorted(references, key=lambda x: x.date_published, reverse=True)]
+        obj_json['references'] = [x.to_semi_json() for x in sorted(references, key=lambda x: x.date_published if x.date_published is not None else x.year, reverse=True)]
         return obj_json
 
 class AuthorReference(Base, EqualityByIDMixin, UpdateByJsonMixin):

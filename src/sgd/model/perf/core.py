@@ -88,6 +88,17 @@ class Strain(Base, EqualityByIDMixin, JsonMixins):
     def __init__(self, obj_json):
         JsonMixins.__init__(self, obj_json)
 
+class Orphan(Base, EqualityByIDMixin):
+    __tablename__ = 'orphan'
+
+    id = Column('orphan_id', Integer, primary_key=True)
+    url = Column('url', String)
+    json = Column('json', CLOB)
+
+    def __init__(self, url, json):
+        self.url = url
+        self.json = json
+
 class Disambig(Base, EqualityByIDMixin):
     __tablename__ = 'disambig'
     
