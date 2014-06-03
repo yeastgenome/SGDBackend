@@ -34,11 +34,6 @@ if __name__ == "__main__":
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit=True),
                    OutputTransformer(1000)])
 
-    do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Bibentry),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bibentry), name='convert.from_bud.bibentry', delete_untouched=True, commit=True),
-                   OutputTransformer(1000)])
-
     do_conversion(make_author_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Author),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Author), name='convert.from_bud.author', delete_untouched=True, commit=True)])
@@ -54,6 +49,11 @@ if __name__ == "__main__":
     do_conversion(make_ref_reftype_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(ReferenceReftype),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(ReferenceReftype), name='convert.from_bud.reference_reftype', delete_untouched=True, commit=True)])
+
+    do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bibentry),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bibentry), name='convert.from_bud.bibentry', delete_untouched=True, commit=True),
+                   OutputTransformer(1000)])
 
     do_conversion(make_reference_relation_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Referencerelation),

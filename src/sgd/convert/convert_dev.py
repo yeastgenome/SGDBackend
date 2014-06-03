@@ -259,15 +259,15 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Reference ------------------------------------------
     # Bud -> Nex
-    # from src.sgd.model.nex.reference import Reference, Journal, Book, Author, Referencealias, Referenceurl, \
-    #     Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype
-    # from src.sgd.model.nex.misc import Alias, Relation, Url
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.reference import make_reference_starter, make_journal_starter, make_book_starter,\
-    #     make_bibentry_starter, make_reftype_starter, make_reference_alias_starter, \
-    #     make_author_reference_starter, make_author_starter, make_ref_reftype_starter, make_reference_relation_starter, \
-    #     make_reference_url_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    from src.sgd.model.nex.reference import Reference, Journal, Book, Author, Referencealias, Referenceurl, \
+        Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype
+    from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.reference import make_reference_starter, make_journal_starter, make_book_starter,\
+        make_bibentry_starter, make_reftype_starter, make_reference_alias_starter, \
+        make_author_reference_starter, make_author_starter, make_ref_reftype_starter, make_reference_relation_starter, \
+        make_reference_url_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_journal_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Journal),
@@ -281,11 +281,11 @@ if __name__ == "__main__":
     #               [Json2Obj(Reference),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit=True),
     #                OutputTransformer(1000)])
-    #
-    # do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Bibentry),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bibentry), name='convert.from_bud.bibentry', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
+
+    do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bibentry),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bibentry), name='convert.from_bud.bibentry', delete_untouched=True, commit=True),
+                   OutputTransformer(1000)])
     #
     # do_conversion(make_author_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Author),
@@ -331,9 +331,9 @@ if __name__ == "__main__":
     #
     # # Nex -> Perf
     from src.sgd.model.perf.core import Reference as PerfReference, Author as PerfAuthor, Bibentry as PerfBibentry
-    # do_conversion(make_backend_starter(nex_backend, 'all_references', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfReference, name='convert.from_backend.reference', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
+    do_conversion(make_backend_starter(nex_backend, 'all_references', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfReference, name='convert.from_backend.reference', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_authors', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfAuthor, name='convert.from_backend.author', delete_untouched=True, commit_interval=1000),
@@ -756,6 +756,6 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'PHENOTYPE_ONTOLOGY', observable_ids, name='convert.from_backend.phenotype_ontology_graph', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week']),
-                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week']),
+    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000),
+    #                 OutputTransformer(1000)])

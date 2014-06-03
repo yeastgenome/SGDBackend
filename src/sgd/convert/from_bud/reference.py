@@ -127,6 +127,7 @@ def make_reference_starter(bud_session_maker, nex_session_maker):
             yield {'id': old_reference.id,
                    'display_name': display_name,
                    'sgdid': old_reference.dbxref_id,
+                   'source': source,
                    'ref_status': old_reference.status,
                    'pubmed_id': pubmed_id,
                    'fulltext_status': old_reference.pdf_status,
@@ -219,6 +220,7 @@ def make_bibentry_starter(bud_session_maker, nex_session_maker):
             add_entry(entries, reference, lambda x: x.issue, 'IP')
             add_entry(entries, reference, lambda x: x.page, 'PG')
             add_entry(entries, reference, lambda x: x.volume, 'VI')
+            add_entry(entries, reference, lambda x: 'SGD', 'SO')
 
             for author_reference in reference.author_references:
                 author = id_to_author[author_reference.author_id]
