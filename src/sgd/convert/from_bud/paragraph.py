@@ -54,23 +54,26 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Locus).all()])
 
+        bioentity_key_to_date = dict()
         #Go
         for gofeature in make_db_starter(bud_session.query(GoFeature), 1000)():
             bioentity_key = (gofeature.feature.name, 'LOCUS')
-            source_key = gofeature.source
+            if bioentity_key not in bioentity_key_to_date or bioentity_key_to_date[bioentity_key] < gofeature.date_last_reviewed:
+                bioentity_key_to_date[bioentity_key] = gofeature.date_last_reviewed
 
-            if bioentity_key in key_to_bioentity and source_key in key_to_source:
+        for bioentity_key, date_last_reviewed in bioentity_key_to_date.iteritems():
+            if bioentity_key in key_to_bioentity:
                 yield {
                     'bioentity': key_to_bioentity[bioentity_key],
-                    'source': key_to_source[source_key],
-                    'text': str(gofeature.date_last_reviewed),
-                    'html': str(gofeature.date_last_reviewed),
-                    'date_created': gofeature.date_created,
-                    'created_by': gofeature.created_by,
+                    'source': key_to_source['SGD'],
+                    'text': str(date_last_reviewed),
+                    'html': str(date_last_reviewed),
+                    'date_created': None,
+                    'created_by': None,
                     'category': 'GO'
                 }
             else:
-                print 'Bioentity or source not found: ' + str(bioentity_key) + ' ' + str(source_key)
+                print 'Bioentity not found: ' + str(bioentity_key)
                 yield None
 
         #Regulation

@@ -2,7 +2,7 @@ from src.sgd.model import nex, perf
 from src.sgd.backend.nex import SGDBackend
 from src.sgd.convert import prepare_schema_connection, config
 from src.sgd.convert.transformers import do_conversion, OutputTransformer, \
-    make_backend_starter, Json2CorePerfDB
+    make_backend_starter, Json2CorePerfDB, Json2OrphanPerfDB, Json2DisambigPerfDB, make_orphan_backend_starter
 
 
 __author__ = 'kpaskov'
@@ -16,14 +16,12 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Evelements ------------------------------------------
     from src.sgd.model.perf.core import Strain as PerfStrain
-
     do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
                   [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True),
                    OutputTransformer(1000)])
 
     # ------------------------------------------ Bioentity ------------------------------------------
     from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
-
     do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
                   [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True),
                    OutputTransformer(1000)])
@@ -38,7 +36,6 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Bioconcept ------------------------------------------
     from src.sgd.model.perf.core import Bioconcept as PerfBioconcept
-
     do_conversion(make_backend_starter(nex_backend, 'all_bioconcepts', 1000),
                   [Json2CorePerfDB(perf_session_maker, PerfBioconcept, name='convert.from_backend.bioconcept', delete_untouched=True, commit=True),
                    OutputTransformer(1000)])
@@ -46,13 +43,13 @@ if __name__ == "__main__":
     # ------------------------------------------ Bioitem ------------------------------------------
     from src.sgd.model.perf.core import Bioitem as PerfBioitem
 
+    from src.sgd.model.perf.core import Bioitem as PerfBioitem
     do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
                   [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True),
                    OutputTransformer(1000)])
 
     # ------------------------------------------ Reference ------------------------------------------
     from src.sgd.model.perf.core import Reference as PerfReference, Author as PerfAuthor, Bibentry as PerfBibentry
-
     do_conversion(make_backend_starter(nex_backend, 'all_references', 1000),
                   [Json2CorePerfDB(perf_session_maker, PerfReference, name='convert.from_backend.reference', delete_untouched=True, commit_interval=1000),
                    OutputTransformer(1000)])
@@ -69,7 +66,11 @@ if __name__ == "__main__":
     from src.sgd.model.perf.core import Disambig as PerfDisambig
 
     do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
-                   [Json2CorePerfDB(perf_session_maker, PerfDisambig, name='convert.from_backend.disambig', commit_interval=1000, delete_untouched=True),
+                   [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000),
+                    OutputTransformer(1000)])
+
+    do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week']),
+                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000),
                     OutputTransformer(1000)])
 
 

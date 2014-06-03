@@ -2,16 +2,16 @@ from src.sgd.model import nex, perf
 from src.sgd.backend.nex import SGDBackend
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
 from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj, OutputTransformer, make_file_starter, \
-    Json2DataPerfDB, make_individual_locus_backend_starter
+    Json2DataPerfDB, make_locus_data_backend_starter, make_contig_data_backend_starter
 
 __author__ = 'kpaskov'
 
 if __name__ == "__main__":
 
-    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
-    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+    # perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
+    # nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
     # ------------------------------------------ Evidence ------------------------------------------
     from src.sgd.model.nex.evidence import Evidence, DNAsequenceevidence, DNAsequencetag, Proteinsequenceevidence
@@ -22,6 +22,12 @@ if __name__ == "__main__":
     strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
     nex_session.close()
 
+    from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
+    from src.sgd.model.nex.misc import Strain
+    nex_session = nex_session_maker()
+    strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
+    nex_session.close()
+    #
     for sequence_filename, coding_sequence_filename, strain_key in sequence_files[0:1]:
         do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
                       [Json2Obj(DNAsequenceevidence),
@@ -44,18 +50,25 @@ if __name__ == "__main__":
                        OutputTransformer(1000)])
     clean_up_orphans(nex_session_maker, Proteinsequenceevidence, Evidence, 'PROTEINSEQUENCE')
 
-    # ------------------------------------------ Perf ------------------------------------------
-    from src.sgd.model.perf.bioentity_data import BioentityDetails
-
-    from src.sgd.model.nex.bioentity import Locus
-    nex_session = nex_session_maker()
-    locus_ids = [x.id for x in nex_session.query(Locus).all()]
-    nex_session.close()
-
-    do_conversion(make_individual_locus_backend_starter(nex_backend, 'neighbor_sequence_details', 'NEIGHBOR_SEQUENCE', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', name='convert.from_backend.neighbor_sequence_details', commit_interval=1000, delete_untouched=True),
-                    OutputTransformer(1000)])
-
-    do_conversion(make_individual_locus_backend_starter(nex_backend, 'sequence_details', 'SEQUENCE', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', name='convert.from_backend.sequence_details', commit_interval=1000, delete_untouched=True),
-                    OutputTransformer(1000)])
+    # # ------------------------------------------ Perf ------------------------------------------
+    # from src.sgd.model.perf.bioentity_data import BioentityDetails
+    # from src.sgd.model.perf.bioitem_data import BioitemDetails
+    #
+    # from src.sgd.model.nex.bioentity import Locus
+    # from src.sgd.model.nex.bioitem import Contig
+    # nex_session = nex_session_maker()
+    # locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    # contig_ids = [x.id for x in nex_session.query(Contig).all()]
+    # nex_session.close()
+    #
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
+    #
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
+    #
+    # do_conversion(make_contig_data_backend_starter(nex_backend, 'sequence_details', contig_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'SEQUENCE', contig_ids, name='convert.from_backend.sequence_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])

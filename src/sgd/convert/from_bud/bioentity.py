@@ -96,7 +96,7 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
         for locus in make_db_starter(nex_session.query(Locus), 1000)():
             show_summary = 1
             show_history = 1
-            show_sequence = 1
+            show_sequence = 0
             show_wiki = 1
 
             if locus.bioent_status != 'Active':
@@ -115,40 +115,40 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
 
             show_literature = 1
 
-            no_go = {'ARS', 'ARS_CONSENSUS_SEQUENCE', 'MATING_LOCUS', 'X_ELEMENT_COMBINATORIAL_REPEATS',
-                     'X_ELEMENT_CORE_SEQUENCE', "Y'_ELEMENT", 'CENTROMERE', 'LONG_TERMINAL_REPEAT',
-                     'TELOMERE', 'TELOMERIC_REPEAT', 'RETROTRANSPOSON', 'GENE_CASSETTE', 'MULTIGENE_LOCUS'}
+            no_go = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
+                     'X_element_core_sequence', "Y'_element", 'centromere', 'long_terminal_repeat',
+                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette', 'multigene locus'}
             show_go = 0 if locus.locus_type in no_go else 1
 
-            no_phenotype = {'ARS', 'ARS_CONSENSUS_SEQUENCE', 'MATING_LOCUS', 'X_ELEMENT_COMBINATORIAL_REPEATS',
-                     'X_ELEMENT_CORE_SEQUENCE', "Y'_ELEMENT", 'CENTROMERE', 'LONG_TERMINAL_REPEAT',
-                     'TELOMERE', 'TELOMERIC_REPEAT', 'RETROTRANSPOSON', 'GENE_CASSETTE'}
+            no_phenotype = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
+                     'X_element_core_sequence', "Y'_element", 'centromere', 'LONG_TERMINAL_REPEAT',
+                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette'}
             show_phenotype = 0 if locus.locus_type in no_phenotype else 1
 
-            no_interactions = {'ARS', 'ARS_CONSENSUS_SEQUENCE', 'MATING_LOCUS', 'X_ELEMENT_COMBINATORIAL_REPEATS',
-                     'X_ELEMENT_CORE_SEQUENCE', "Y'_ELEMENT", 'CENTROMERE', 'LONG_TERMINAL_REPEAT',
-                     'TELOMERE', 'TELOMERIC_REPEAT', 'RETROTRANSPOSON', 'GENE_CASSETTE', 'MULTIGENE_LOCUS',
-                     'NOT_IN_SYSTEMATIC_SEQUENCE_OF_S288C', 'NOT_PHYSICALLY_MAPPED'}
+            no_interactions = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
+                     'X_element_core_sequence', "Y'_element", 'centromere', 'long_terminal_repeat',
+                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette', 'multigene locus',
+                     'not in systematic sequence of S288C', 'not physically mapped'}
             show_interactions = 0 if locus.locus_type in no_interactions else 1
 
-            no_expression = {'ARS', 'ARS_CONSENSUS_SEQUENCE', 'MATING_LOCUS', 'X_ELEMENT_COMBINATORIAL_REPEATS',
-                     'X_ELEMENT_CORE_SEQUENCE', "Y'_ELEMENT", 'CENTROMERE', 'LONG_TERMINAL_REPEAT',
-                     'TELOMERE', 'TELOMERIC_REPEAT', 'RETROTRANSPOSON', 'GENE_CASSETTE', 'MULTIGENE_LOCUS',
-                     'NOT_IN_SYSTEMATIC_SEQUENCE_OF_S288C', 'NOT_PHYSICALLY_MAPPED', 'TRANSPOSABLE_ELEMENT_GENE',
-                     'PSEUDOGENE', 'NCRNA', 'SNORNA', 'TRNA', 'RRNA', 'SNRNA'}
+            no_expression = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
+                     'X_element_core_sequence', "Y'_element", 'centromere', 'long_terminal_repeat',
+                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette', 'multigene locus',
+                     'not in systematic sequence of S288C', 'not physically mapped', 'transposable_element_gene',
+                     'pseudogene', 'ncRNA', 'snoRNA', 'tRNA', 'rRNA', 'snRNA'}
             show_expression = 0 if locus.locus_type in no_expression else 1
 
-            no_regulation = {'ARS', 'ARS_CONSENSUS_SEQUENCE', 'MATING_LOCUS', 'X_ELEMENT_COMBINATORIAL_REPEATS',
-                     'X_ELEMENT_CORE_SEQUENCE', "Y'_ELEMENT", 'CENTROMERE', 'LONG_TERMINAL_REPEAT',
-                     'TELOMERE', 'TELOMERIC_REPEAT', 'RETROTRANSPOSON', 'GENE_CASSETTE', 'MULTIGENE_LOCUS',
-                     'NOT_IN_SYSTEMATIC_SEQUENCE_OF_S288C', 'NOT_PHYSICALLY_MAPPED'}
+            no_regulation = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
+                     'X_element_core_sequence', "Y'_element", 'centromere', 'long_terminal_repeat',
+                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette', 'multigene locus',
+                     'not in systematic sequence of S288C', 'not physically mapped'}
             show_regulation = 0 if locus.locus_type in no_regulation else 1
 
-            no_protein = {'ARS', 'ARS_CONSENSUS_SEQUENCE', 'MATING_LOCUS', 'X_ELEMENT_COMBINATORIAL_REPEATS',
-                     'X_ELEMENT_CORE_SEQUENCE', "Y'_ELEMENT", 'CENTROMERE', 'LONG_TERMINAL_REPEAT',
-                     'TELOMERE', 'TELOMERIC_REPEAT', 'RETROTRANSPOSON', 'GENE_CASSETTE', 'MULTIGENE_LOCUS',
-                     'NOT_IN_SYSTEMATIC_SEQUENCE_OF_S288C', 'NOT_PHYSICALLY_MAPPED',
-                     'NCRNA', 'SNORNA', 'TRNA', 'RRNA', 'SNRNA'}
+            no_protein = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
+                     'X_element_core_sequence', "Y'_element", 'centromere', 'long_terminal_repeat',
+                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette', 'multigene locus',
+                     'not in systematic sequence of S288C', 'not physically mapped',
+                     'ncRNA', 'snoRNA', 'tRNA', 'rRNA', 'snRNA'}
             show_protein = 0 if locus.locus_type in no_protein else 1
 
             yield {'id': locus.id,
