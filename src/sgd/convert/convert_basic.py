@@ -132,22 +132,22 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconcepturl), name='convert.from_bud.bioconcept.url', commit_interval=1000, delete_untouched=True),
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Bioconcepturl, Url, 'BIOCONCEPT')
-
-    do_conversion(make_disambig_starter(nex_session_maker, ECNumber, ['id', 'format_name'], 'BIOCONCEPT', 'ECNUMBER'),
-                  [Json2Obj(Disambig),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'ECNUMBER'), name='convert.from_bud.bioconcept.disambig.ecnumber', delete_untouched=True, commit=True)])
-
-    do_conversion(make_disambig_starter(nex_session_maker, Observable, ['id', 'format_name'], 'BIOCONCEPT', 'OBSERVABLE'),
-                  [Json2Obj(Disambig),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'OBSERVABLE'), name='convert.from_bud.bioconcept.disambig.observable', delete_untouched=True, commit=True)])
-
-    do_conversion(make_disambig_starter(nex_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE'),
-                  [Json2Obj(Disambig),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'PHENOTYPE'), name='convert.from_bud.bioconcept.disambig.phenotype', delete_untouched=True, commit=True)])
-
-    do_conversion(make_disambig_starter(nex_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO'),
-                  [Json2Obj(Disambig),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'GO'), name='convert.from_bud.bioconcept.disambig.go', delete_untouched=True, commit=True)])
+    #
+    # do_conversion(make_disambig_starter(nex_session_maker, ECNumber, ['id', 'format_name'], 'BIOCONCEPT', 'ECNUMBER'),
+    #               [Json2Obj(Disambig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'ECNUMBER'), name='convert.from_bud.bioconcept.disambig.ecnumber', delete_untouched=True, commit=True)])
+    #
+    # do_conversion(make_disambig_starter(nex_session_maker, Observable, ['id', 'format_name'], 'BIOCONCEPT', 'OBSERVABLE'),
+    #               [Json2Obj(Disambig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'OBSERVABLE'), name='convert.from_bud.bioconcept.disambig.observable', delete_untouched=True, commit=True)])
+    #
+    # do_conversion(make_disambig_starter(nex_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE'),
+    #               [Json2Obj(Disambig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'PHENOTYPE'), name='convert.from_bud.bioconcept.disambig.phenotype', delete_untouched=True, commit=True)])
+    #
+    # do_conversion(make_disambig_starter(nex_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO'),
+    #               [Json2Obj(Disambig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'GO'), name='convert.from_bud.bioconcept.disambig.go', delete_untouched=True, commit=True)])
 
     # ------------------------------------------ Bioitem ------------------------------------------
     # Bud -> Nex
@@ -159,25 +159,25 @@ if __name__ == "__main__":
         make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
 
-    do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Orphanbioitem),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Orphanbioitem), name='convert.from_bud.bioitem.orphan', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Orphanbioitem, Bioitem, 'ORPHAN')
-
-    do_conversion(make_allele_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Allele),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Allele), name='convert.from_bud.bioitem.allele', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Allele, Bioitem, 'ALLELE')
-
-    do_conversion(make_domain_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Domain),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Domain), name='convert.from_bud.bioitem.domain', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Domain, Bioitem, 'DOMAIN')
-
-    do_conversion(make_chemical_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Chemical),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Chemical), name='convert.from_bud.bioitem.chemical', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL')
+    # do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Orphanbioitem),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Orphanbioitem), name='convert.from_bud.bioitem.orphan', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Orphanbioitem, Bioitem, 'ORPHAN')
+    #
+    # do_conversion(make_allele_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Allele),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Allele), name='convert.from_bud.bioitem.allele', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Allele, Bioitem, 'ALLELE')
+    #
+    # do_conversion(make_domain_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Domain),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Domain), name='convert.from_bud.bioitem.domain', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Domain, Bioitem, 'DOMAIN')
+    #
+    # do_conversion(make_chemical_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Chemical),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Chemical), name='convert.from_bud.bioitem.chemical', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL')
 
     do_conversion(make_contig_starter(nex_session_maker),
                   [Json2Obj(Contig),
