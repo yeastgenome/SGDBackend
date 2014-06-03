@@ -86,52 +86,52 @@ if __name__ == "__main__":
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'LOCUS'), name='convert.from_bud.bioentity.disambig.locus', delete_untouched=True, commit=True)])
 
-    # ------------------------------------------ Bioconcept ------------------------------------------
-    # Bud -> Nex
-    from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation, Bioconcepturl
-    from src.sgd.model.nex.misc import Alias, Relation, Url
-    from src.sgd.model.nex.auxiliary import Disambig
-    from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
-        make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
-    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
-
-    do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Observable),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Observable), name='convert.from_bud.bioconcept.observable', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Observable, Bioconcept, 'OBSERVABLE')
-
-    do_conversion(make_phenotype_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Phenotype),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Phenotype), name='convert.from_bud.bioconcept.phenotype', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Phenotype, Bioconcept, 'PHENOTYPE')
-
-    do_conversion(make_go_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Go),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Go), name='convert.from_bud.bioconcept.go', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Go, Bioconcept, 'GO')
-
-    do_conversion(make_ecnumber_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(ECNumber),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(ECNumber), name='convert.from_bud.bioconcept.ecnumber', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, ECNumber, Bioconcept, 'EC_NUMBER')
-
-    do_conversion(make_bioconcept_relation_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Bioconceptrelation),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptrelation), name='convert.from_bud.bioconcept.relation', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(10000)])
-    clean_up_orphans(nex_session_maker, Bioconceptrelation, Relation, 'BIOCONCEPT')
-
-    do_conversion(make_bioconcept_alias_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Bioconceptalias),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptalias), name='convert.from_bud.bioconcept.alias', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Bioconceptalias, Alias, 'BIOCONCEPT')
-
-    do_conversion(make_bioconcept_url_starter(nex_session_maker),
-                  [Json2Obj(Bioconcepturl),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconcepturl), name='convert.from_bud.bioconcept.url', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Bioconcepturl, Url, 'BIOCONCEPT')
+    # # ------------------------------------------ Bioconcept ------------------------------------------
+    # # Bud -> Nex
+    # from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation, Bioconcepturl
+    # from src.sgd.model.nex.misc import Alias, Relation, Url
+    # from src.sgd.model.nex.auxiliary import Disambig
+    # from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
+    #     make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
+    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    #
+    # do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Observable),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Observable), name='convert.from_bud.bioconcept.observable', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Observable, Bioconcept, 'OBSERVABLE')
+    #
+    # do_conversion(make_phenotype_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Phenotype),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Phenotype), name='convert.from_bud.bioconcept.phenotype', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Phenotype, Bioconcept, 'PHENOTYPE')
+    #
+    # do_conversion(make_go_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Go),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Go), name='convert.from_bud.bioconcept.go', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Go, Bioconcept, 'GO')
+    #
+    # do_conversion(make_ecnumber_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(ECNumber),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(ECNumber), name='convert.from_bud.bioconcept.ecnumber', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, ECNumber, Bioconcept, 'EC_NUMBER')
+    #
+    # do_conversion(make_bioconcept_relation_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Bioconceptrelation),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptrelation), name='convert.from_bud.bioconcept.relation', commit_interval=1000, delete_untouched=True),
+    #                OutputTransformer(10000)])
+    # clean_up_orphans(nex_session_maker, Bioconceptrelation, Relation, 'BIOCONCEPT')
+    #
+    # do_conversion(make_bioconcept_alias_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Bioconceptalias),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptalias), name='convert.from_bud.bioconcept.alias', commit_interval=1000, delete_untouched=True),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Bioconceptalias, Alias, 'BIOCONCEPT')
+    #
+    # do_conversion(make_bioconcept_url_starter(nex_session_maker),
+    #               [Json2Obj(Bioconcepturl),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconcepturl), name='convert.from_bud.bioconcept.url', commit_interval=1000, delete_untouched=True),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Bioconcepturl, Url, 'BIOCONCEPT')
 
     do_conversion(make_disambig_starter(nex_session_maker, ECNumber, ['id', 'format_name'], 'BIOCONCEPT', 'ECNUMBER'),
                   [Json2Obj(Disambig),
