@@ -77,7 +77,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                 yield None
 
         #Regulation
-        for row in make_file_starter('src/sgd/convert/data/RegulationSummaries04102014.txt')():
+        for row in make_file_starter('src/sgd/convert/data/regulationSummaries')():
             bioentity_key = (row[0], 'LOCUS')
 
             if bioentity_key in key_to_bioentity:
@@ -166,7 +166,7 @@ def make_paragraph_reference_starter(nex_session_maker):
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
         #Regulation
-        for row in make_file_starter('src/sgd/convert/data/RegulationSummaries04102014.txt')():
+        for row in make_file_starter('src/sgd/convert/data/regulationSummaries')():
             paragraph_key = (row[0], 'BIOENTITY', 'REGULATION')
             for pubmed_id in [int(x) for x in row[3].strip().split('|') if x != 'references' and x != '']:
                 if paragraph_key in key_to_paragraph and pubmed_id in pubmed_id_to_reference:
