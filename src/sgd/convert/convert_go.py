@@ -2,7 +2,7 @@ from src.sgd.model import bud, nex, perf
 from src.sgd.backend.nex import SGDBackend
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
 from src.sgd.convert.transformers import do_conversion, Json2Obj, OutputTransformer, Json2DataPerfDB, \
-    make_locus_data_backend_starter, make_reference_data_backend_starter, make_go_data_backend_starter, Evidence2NexDB
+    make_locus_data_backend_starter, make_reference_data_backend_starter, make_go_data_backend_starter, Evidence2NexDB, make_go_data_with_children_backend_starter
 
 __author__ = 'kpaskov'
 
@@ -32,19 +32,23 @@ if __name__ == "__main__":
     from src.sgd.model.nex.bioconcept import Go
     from src.sgd.model.nex.reference import Reference
     nex_session = nex_session_maker()
-    locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
     go_ids = [x.id for x in nex_session.query(Go).all()]
-    reference_ids = [x.id for x in nex_session.query(Reference).all()]
+    #reference_ids = [x.id for x in nex_session.query(Reference).all()]
     nex_session.close()
 
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'go_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'go_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
+    #
+    # do_conversion(make_go_data_backend_starter(nex_backend, 'go_details', go_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
+    #
+    # do_conversion(make_reference_data_backend_starter(nex_backend, 'go_details', reference_ids),
+    #                [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'GO', reference_ids, name='convert.from_backend.go_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
 
-    do_conversion(make_go_data_backend_starter(nex_backend, 'go_details', go_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
-                    OutputTransformer(1000)])
-
-    do_conversion(make_reference_data_backend_starter(nex_backend, 'go_details', reference_ids),
-                   [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'GO', reference_ids, name='convert.from_backend.go_details', commit_interval=1000),
+    do_conversion(make_go_data_with_children_backend_starter(nex_backend, 'go_details', go_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS_ALL_CHILDREN', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
                     OutputTransformer(1000)])
