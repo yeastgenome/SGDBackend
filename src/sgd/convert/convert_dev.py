@@ -516,11 +516,11 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Strainparagraph, Paragraph, 'STRAIN')
     #
-    # do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Referenceparagraph),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph), name='convert.from_bud.paragraph.reference', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE')
+    do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Referenceparagraph),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph), name='convert.from_bud.paragraph.reference', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE')
     #
     # do_conversion(make_paragraph_reference_starter(nex_session_maker),
     #               [Json2Obj(ParagraphReference),
@@ -577,9 +577,9 @@ if __name__ == "__main__":
     from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
     from src.sgd.model.perf.bioitem_data import BioitemDetails
     from src.sgd.model.perf.reference_data import ReferenceDetails
-    do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
-                   [Json2DisambigPerfDB(perf_session_maker, commit_interval=100),
-                    OutputTransformer(1000)])
+    # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
+    #                [Json2DisambigPerfDB(perf_session_maker, commit_interval=100),
+    #                 OutputTransformer(1000)])
 
     from src.sgd.model.nex.bioentity import Locus, Complex
     from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
