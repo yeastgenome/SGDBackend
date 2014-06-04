@@ -24,7 +24,9 @@ if __name__ == "__main__":
     # clean_up_orphans(nex_session_maker, Goevidence, Evidence, 'GO')
 
     # ------------------------------------------ Perf ------------------------------------------
-    from src.sgd.model.perf.bioentity_data import BioentityDetails, BioconceptDetails, ReferenceDetails
+    from src.sgd.model.perf.bioentity_data import BioentityDetails
+    from src.sgd.model.perf.bioconcept_data import BioconceptDetails
+    from src.sgd.model.perf.reference_data import ReferenceDetails
 
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.bioconcept import Go
