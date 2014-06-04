@@ -179,10 +179,10 @@ if __name__ == "__main__":
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Chemical), name='convert.from_bud.bioitem.chemical', delete_untouched=True, commit=True)])
     clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL')
 
-    do_conversion(make_contig_starter(nex_session_maker),
-                  [Json2Obj(Contig),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Contig), name='convert.from_bud.bioitem.contig', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG')
+    # do_conversion(make_contig_starter(nex_session_maker),
+    #               [Json2Obj(Contig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Contig), name='convert.from_bud.bioitem.contig', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG')
 
     do_conversion(make_bioitem_relation_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Bioitemrelation),
@@ -202,9 +202,9 @@ if __name__ == "__main__":
                   [Json2Obj(Disambig),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'CHEMICAL'), name='convert.from_bud.bioitem.disambig.chemical', delete_untouched=True, commit=True)])
 
-    do_conversion(make_disambig_starter(nex_session_maker, Contig, ['id', 'format_name'], 'BIOITEM', 'CONTIG'),
-                  [Json2Obj(Disambig),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'CONTIG'), name='convert.from_bud.bioitem.disambig.contig', delete_untouched=True, commit=True)])
+    # do_conversion(make_disambig_starter(nex_session_maker, Contig, ['id', 'format_name'], 'BIOITEM', 'CONTIG'),
+    #               [Json2Obj(Disambig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'CONTIG'), name='convert.from_bud.bioitem.disambig.contig', delete_untouched=True, commit=True)])
 
     # ------------------------------------------ Paragraph ------------------------------------------
     from src.sgd.model.nex.paragraph import Paragraph, ParagraphReference, Bioentityparagraph, Strainparagraph, Referenceparagraph
@@ -218,11 +218,11 @@ if __name__ == "__main__":
                    OutputTransformer(1000)])
     clean_up_orphans(nex_session_maker, Bioentityparagraph, Paragraph, 'BIOENTITY')
 
-    do_conversion(make_strain_paragraph_starter(nex_session_maker),
-                  [Json2Obj(Strainparagraph),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Strainparagraph), name='convert.from_bud.paragraph.strain', delete_untouched=True, commit=True),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Strainparagraph, Paragraph, 'STRAIN')
+    # do_conversion(make_strain_paragraph_starter(nex_session_maker),
+    #               [Json2Obj(Strainparagraph),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strainparagraph), name='convert.from_bud.paragraph.strain', delete_untouched=True, commit=True),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Strainparagraph, Paragraph, 'STRAIN')
 
     do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Referenceparagraph),
@@ -230,7 +230,7 @@ if __name__ == "__main__":
                    OutputTransformer(1000)])
     clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE')
 
-    do_conversion(make_paragraph_reference_starter(nex_session_maker),
-                  [Json2Obj(ParagraphReference),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(ParagraphReference), name='convert.from_bud.paragraph_reference', delete_untouched=True, commit=True),
-                   OutputTransformer(1000)])
+    # do_conversion(make_paragraph_reference_starter(nex_session_maker),
+    #               [Json2Obj(ParagraphReference),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(ParagraphReference), name='convert.from_bud.paragraph_reference', delete_untouched=True, commit=True),
+    #                OutputTransformer(1000)])

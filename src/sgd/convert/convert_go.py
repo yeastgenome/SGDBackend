@@ -8,20 +8,20 @@ __author__ = 'kpaskov'
 
 if __name__ == "__main__":
 
-    #bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
+    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
     nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
-    # # ------------------------------------------ Evidence ------------------------------------------
-    # from src.sgd.model.nex.evidence import Evidence, Goevidence
-    # from src.sgd.convert.from_bud.evidence import make_go_evidence_starter
-    # do_conversion(make_go_evidence_starter(bud_session_maker, nex_session_maker),
-    #                [Json2Obj(Goevidence),
-    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Goevidence), name='convert.from_bud.evidence.go', delete_untouched=True, commit_interval=1000),
-    #                 OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Goevidence, Evidence, 'GO')
+    # ------------------------------------------ Evidence ------------------------------------------
+    from src.sgd.model.nex.evidence import Evidence, Goevidence
+    from src.sgd.convert.from_bud.evidence import make_go_evidence_starter
+    do_conversion(make_go_evidence_starter(bud_session_maker, nex_session_maker),
+                   [Json2Obj(Goevidence),
+                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Goevidence), name='convert.from_bud.evidence.go', delete_untouched=True, commit_interval=1000),
+                    OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Goevidence, Evidence, 'GO')
 
     # ------------------------------------------ Perf ------------------------------------------
     from src.sgd.model.perf.bioentity_data import BioentityDetails

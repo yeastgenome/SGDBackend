@@ -17,7 +17,9 @@ __author__ = 'kpaskov'
 
 # -------------------------------Details---------------------------------------
 def get_literature_evidence(locus_id, reference_id, topic):
-    query = DBSession.query(Literatureevidence).options(joinedload('locus'), joinedload('reference'))
+    query = DBSession.query(Literatureevidence)
+    if locus_id is not None:
+        query = query.options(joinedload('reference'))
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
     if reference_id is not None:
@@ -54,11 +56,11 @@ def make_details(locus_id=None, reference_id=None, topic=None):
     if locus_id is not None:
         primary_ids = set([x.reference_id for x in evidences if x.topic == 'Primary Literature'])
         evidences.sort(key=lambda x: (x.reference.year, x.reference.pubmed_id), reverse=True)
-        go_references = sorted(set([x.reference for x in get_go_evidence(locus_id=locus_id, go_id=None, reference_id=None, with_children=False) if x.reference_id in primary_ids]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
-        phenotype_references = sorted(set([x.reference for x in get_phenotype_evidence(locus_id=locus_id, phenotype_id=None, observable_id=None, reference_id=None, chemical_id=None, with_children=False) if x.reference_id in primary_ids]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
-        regulation_references = sorted(set([x.reference for x in get_regulation_evidence(locus_id=locus_id, reference_id=None, between_ids=None)]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
-        interaction_references = set([x.reference for x in get_genetic_interaction_evidence(locus_id=locus_id, reference_id=None)])
-        interaction_references.update([x.reference for x in get_physical_interaction_evidence(locus_id=locus_id, reference_id=None)])
+        go_references = sorted(set([x.reference for x in DBSession.query(Goevidence).filter_by(locus_id=locus_id).options(joinedload('reference')).all() if x.reference_id in primary_ids]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
+        phenotype_references = sorted(set([x.reference for x in DBSession.query(Phenotypeevidence).filter_by(locus_id=locus_id).options(joinedload('reference')).all() if x.reference_id in primary_ids]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
+        regulation_references = sorted(set([x.reference for x in DBSession.query(Regulationevidence).filter_by(locus_id=locus_id).options(joinedload('reference')).all()]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
+        interaction_references = set([x.reference for x in DBSession.query(Geninteractionevidence).filter_by(locus_id=locus_id).options(joinedload('reference')).all()])
+        interaction_references.update([x.reference for x in DBSession.query(Physinteractionevidence).filter_by(locus_id=locus_id).options(joinedload('reference')).all()])
 
         return json.dumps({'primary': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Primary Literature'])],
                 'additional': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Additional Literature'])],
@@ -68,7 +70,7 @@ def make_details(locus_id=None, reference_id=None, topic=None):
                 'regulation': [x.to_semi_json() for x in regulation_references],
                 'interaction': [x.to_semi_json() for x in sorted(interaction_references, key=lambda x: (x.year, x.pubmed_id), reverse=True)]})
     elif reference_id is not None:
-        return '[' + ', '.join([x.json for x in sorted(evidences, key=lambda x: x.locus.display_name) if x.json is not None]) + ']'
+        return '[' + ', '.join([x.json for x in evidences if x.json is not None]) + ']'
     return '[' + ', '.join([x.json for x in evidences if x.json is not None]) + ']'
 
 # -------------------------------Graph---------------------------------------

@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # clean_up_orphans(nex_session_maker, Regulationevidence, Evidence, 'REGULATION')
 
     # ------------------------------------------ Perf ------------------------------------------
-    from src.sgd.model.perf.bioentity_data import BioentityDetails
+    from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityEnrichment
     from src.sgd.model.perf.reference_data import ReferenceDetails
 
     from src.sgd.model.nex.bioentity import Locus
@@ -38,4 +38,8 @@ if __name__ == "__main__":
 
     do_conversion(make_reference_data_backend_starter(nex_backend, 'regulation_details', reference_ids),
                    [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'REGULATION', reference_ids, name='convert.from_backend.regulation_details', commit_interval=1000),
+                    OutputTransformer(1000)])
+
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'regulation_target_enrichment', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityEnrichment, 'REGULATION', locus_ids, name='convert.from_backend.regulation_target_enrichment', commit_interval=1000),
                     OutputTransformer(1000)])

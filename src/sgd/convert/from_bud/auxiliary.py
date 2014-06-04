@@ -40,7 +40,7 @@ def make_bioentity_geninteraction_starter(nex_session_maker):
 
         #Geninteraction
         bioentity_pair_to_evidence_count = {}
-        for evidence in make_db_starter(nex_session.query(Geninteractionevidence), 1000)():
+        for evidence in nex_session.query(Geninteractionevidence).all():
             bioentity_pair = (evidence.locus1_id, evidence.locus2_id)
             if bioentity_pair in bioentity_pair_to_evidence_count:
                 bioentity_pair_to_evidence_count[bioentity_pair] += 1
@@ -65,7 +65,7 @@ def make_bioentity_physinteraction_starter(nex_session_maker):
 
         #Physinteraction
         bioentity_pair_to_evidence_count = {}
-        for evidence in make_db_starter(nex_session.query(Physinteractionevidence), 1000)():
+        for evidence in nex_session.query(Physinteractionevidence).all():
             bioentity_pair = (evidence.locus1_id, evidence.locus2_id)
             if bioentity_pair in bioentity_pair_to_evidence_count:
                 bioentity_pair_to_evidence_count[bioentity_pair] += 1
@@ -89,7 +89,7 @@ def make_bioentity_regulation_interaction_starter(nex_session_maker):
         id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
         #Regulation
         bioentity_pair_to_evidence_count = {}
-        for evidence in make_db_starter(nex_session.query(Regulationevidence), 1000)():
+        for evidence in nex_session.query(Regulationevidence).all():
             bioentity_pair = (evidence.locus1_id, evidence.locus2_id)
             if bioentity_pair in bioentity_pair_to_evidence_count:
                 bioentity_pair_to_evidence_count[bioentity_pair] += 1
