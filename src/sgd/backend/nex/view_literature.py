@@ -65,8 +65,8 @@ def make_details(locus_id=None, reference_id=None, topic=None):
         interaction_references = set([x.reference for x in DBSession.query(Geninteractionevidence).filter_by(locus1_id=locus_id).options(joinedload('reference')).all()])
         interaction_references.update([x.reference for x in DBSession.query(Geninteractionevidence).filter_by(locus2_id=locus_id).options(joinedload('reference')).all()])
         interaction_references.update([x.reference for x in DBSession.query(Physinteractionevidence).filter_by(locus1_id=locus_id).options(joinedload('reference')).all()])
-        interaction_references = list(interaction_references)
         interaction_references.update([x.reference for x in DBSession.query(Physinteractionevidence).filter_by(locus2_id=locus_id).options(joinedload('reference')).all()])
+        interaction_references = list(interaction_references)
         interaction_references.sort(key=lambda x: (x.year, x.pubmed_id), reverse=True)
 
         return json.dumps({'primary': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Primary Literature'])],
