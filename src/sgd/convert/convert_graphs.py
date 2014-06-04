@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     do_conversion(make_bioentity_regulation_interaction_starter(nex_session_maker),
                   [Json2Obj(Bioentityinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='REGULATION'), name='convert.from_bud.auxilliary.bioentity_interaction', delete_untouched=True, commit_interval=1000),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='REGULATION'), name='convert.from_bud.auxilliary.bioentity_regulation', delete_untouched=True, commit_interval=1000),
                    OutputTransformer(1000)])
 
     clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')

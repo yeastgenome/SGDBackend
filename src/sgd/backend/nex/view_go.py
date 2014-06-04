@@ -22,13 +22,16 @@ def make_enrichment(bioent_ids):
     enrichment_results = query_batter.query_go_processes(bioent_format_names)
     json_format = []
     for enrichment_result in enrichment_results:
-        identifier = 'GO:' + str(int(enrichment_result[0][3:])).zfill(7)
-        goterm_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        if goterm_id is not None:
-            goterm = DBSession.query(Go).filter_by(id=goterm_id).first().to_json()
-            json_format.append({'go': goterm,
-                            'match_count': enrichment_result[1],
-                            'pvalue': enrichment_result[2]})
+        try:
+            identifier = 'GO:' + str(int(enrichment_result[0][3:])).zfill(7)
+            goterm_id = get_obj_id(identifier, class_type='BIOCONCEPT', subclass_type='GO')
+            if goterm_id is not None:
+                goterm = DBSession.query(Go).filter_by(id=goterm_id).first().to_json()
+                json_format.append({'go': goterm,
+                                'match_count': enrichment_result[1],
+                                'pvalue': enrichment_result[2]})
+        except:
+            print 'Bad GO ID' + enrichment_result[0]
         else:
             print 'Go term not found: ' + str(enrichment_result[0])
     return json_format
