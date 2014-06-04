@@ -516,11 +516,11 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Strainparagraph, Paragraph, 'STRAIN')
     #
-    do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Referenceparagraph),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph), name='convert.from_bud.paragraph.reference', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE')
+    # do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Referenceparagraph),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph), name='convert.from_bud.paragraph.reference', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE')
     #
     # do_conversion(make_paragraph_reference_starter(nex_session_maker),
     #               [Json2Obj(ParagraphReference),
@@ -530,14 +530,14 @@ if __name__ == "__main__":
     # ------------------------------------------ Auxilliary ------------------------------------------
     from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Referenceinteraction, Bioiteminteraction
     from src.sgd.convert.from_bud.auxiliary import make_bioconcept_interaction_starter, make_reference_interaction_starter, \
-        make_bioitem_interaction_starter, make_bioentity_interaction_starter, make_bioentity_expression_interaction_starter
-
-    # do_conversion(make_bioentity_interaction_starter(nex_session_maker),
+        make_bioitem_interaction_starter, make_bioentity_physinteraction_starter, make_bioentity_geninteraction_starter, make_bioentity_expression_interaction_starter
+    #
+    # do_conversion(make_bioentity_physinteraction_starter(nex_session_maker),
     #               [Json2Obj(Bioentityinteraction),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='GENINTERACTION'), name='convert.from_bud.auxilliary.bioentity_interaction_genetic', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
-
-    # do_conversion(make_bioentity_interaction_starter(nex_session_maker),
+    #
+    # do_conversion(make_bioentity_geninteraction_starter(nex_session_maker),
     #               [Json2Obj(Bioentityinteraction),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='PHYSINTERACTION'), name='convert.from_bud.auxilliary.bioentity_interaction_physical', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
@@ -577,9 +577,9 @@ if __name__ == "__main__":
     from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
     from src.sgd.model.perf.bioitem_data import BioitemDetails
     from src.sgd.model.perf.reference_data import ReferenceDetails
-    # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
-    #                [Json2DisambigPerfDB(perf_session_maker, commit_interval=100),
-    #                 OutputTransformer(1000)])
+    do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
+                   [Json2DisambigPerfDB(perf_session_maker, commit_interval=100),
+                    OutputTransformer(1000)])
 
     from src.sgd.model.nex.bioentity import Locus, Complex
     from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber

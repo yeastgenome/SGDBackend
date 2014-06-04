@@ -16,14 +16,14 @@ if __name__ == "__main__":
     # ------------------------------------------ Auxilliary ------------------------------------------
     from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Referenceinteraction, Bioiteminteraction
     from src.sgd.convert.from_bud.auxiliary import make_bioconcept_interaction_starter, make_reference_interaction_starter, \
-        make_bioitem_interaction_starter, make_bioentity_interaction_starter, make_bioentity_regulation_interaction_starter
+        make_bioitem_interaction_starter, make_bioentity_physinteraction_starter, make_bioentity_geninteraction_starter, make_bioentity_regulation_interaction_starter
 
-    do_conversion(make_bioentity_interaction_starter(nex_session_maker),
+    do_conversion(make_bioentity_physinteraction_starter(nex_session_maker),
                   [Json2Obj(Bioentityinteraction),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='GENINTERACTION'), name='convert.from_bud.auxilliary.bioentity_interaction_genetic', delete_untouched=True, commit_interval=1000),
                    OutputTransformer(1000)])
 
-    do_conversion(make_bioentity_interaction_starter(nex_session_maker),
+    do_conversion(make_bioentity_geninteraction_starter(nex_session_maker),
                   [Json2Obj(Bioentityinteraction),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='PHYSINTERACTION'), name='convert.from_bud.auxilliary.bioentity_interaction_physical', delete_untouched=True, commit_interval=1000),
                    OutputTransformer(1000)])

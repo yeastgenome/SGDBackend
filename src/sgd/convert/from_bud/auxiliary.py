@@ -32,7 +32,7 @@ def make_disambig_starter(nex_session_maker, cls, fields, class_type, subclass_t
     return disambig_starter
 
 # --------------------- Convert Bioentityinteractions ---------------------
-def make_bioentity_interaction_starter(nex_session_maker):
+def make_bioentity_geninteraction_starter(nex_session_maker):
     def bioentity_interaction_starter():
         nex_session = nex_session_maker()
 
@@ -53,6 +53,15 @@ def make_bioentity_interaction_starter(nex_session_maker):
             bioentity2 = id_to_bioentity[bioentity2_id]
             yield {'interaction_type': 'GENINTERACTION', 'evidence_count': evidence_count, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'undirected'}
             yield {'interaction_type': 'GENINTERACTION', 'evidence_count': evidence_count, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'undirected'}
+
+        nex_session.close()
+    return bioentity_interaction_starter
+
+def make_bioentity_physinteraction_starter(nex_session_maker):
+    def bioentity_interaction_starter():
+        nex_session = nex_session_maker()
+
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
 
         #Physinteraction
         bioentity_pair_to_evidence_count = {}
