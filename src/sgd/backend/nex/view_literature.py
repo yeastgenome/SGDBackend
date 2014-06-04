@@ -60,10 +60,12 @@ def make_details(locus_id=None, reference_id=None, topic=None):
         phenotype_references = sorted(set([x.reference for x in DBSession.query(Phenotypeevidence).filter_by(locus_id=locus_id).options(joinedload('reference')).all() if x.reference_id in primary_ids]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
         regulation_references = set([x.reference for x in DBSession.query(Regulationevidence).filter_by(locus1_id=locus_id).options(joinedload('reference')).all()])
         regulation_references.update([x.reference for x in DBSession.query(Regulationevidence).filter_by(locus2_id=locus_id).options(joinedload('reference')).all()])
+        regulation_references = list(regulation_references)
         regulation_references.sort(key=lambda x: (x.year, x.pubmed_id), reverse=True)
         interaction_references = set([x.reference for x in DBSession.query(Geninteractionevidence).filter_by(locus1_id=locus_id).options(joinedload('reference')).all()])
         interaction_references.update([x.reference for x in DBSession.query(Geninteractionevidence).filter_by(locus2_id=locus_id).options(joinedload('reference')).all()])
         interaction_references.update([x.reference for x in DBSession.query(Physinteractionevidence).filter_by(locus1_id=locus_id).options(joinedload('reference')).all()])
+        interaction_references = list(interaction_references)
         interaction_references.update([x.reference for x in DBSession.query(Physinteractionevidence).filter_by(locus2_id=locus_id).options(joinedload('reference')).all()])
         interaction_references.sort(key=lambda x: (x.year, x.pubmed_id), reverse=True)
 
