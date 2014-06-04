@@ -30,10 +30,11 @@ def make_enrichment(bioent_ids):
                 json_format.append({'go': goterm,
                                 'match_count': enrichment_result[1],
                                 'pvalue': enrichment_result[2]})
+            else:
+                print 'Go term not found: ' + str(enrichment_result[0])
         except:
             print 'Bad GO ID' + enrichment_result[0]
-        else:
-            print 'Go term not found: ' + str(enrichment_result[0])
+
     return json_format
 
 # -------------------------------Details---------------------------------------
@@ -99,7 +100,7 @@ def make_details(locus_id=None, go_id=None, reference_id=None, with_children=Fal
     goevidences = get_go_evidence(locus_id=locus_id, go_id=go_id, reference_id=reference_id, with_children=with_children)
 
     if goevidences is None:
-        return {'Error': 'Too much data to display.'}
+        return json.dumps({'Error': 'Too much data to display.'})
 
     return '[' + ', '.join([x.json if x.json is not None else json.dumps(x.to_json()) for x in goevidences]) + ']'
 

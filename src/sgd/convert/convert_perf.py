@@ -14,16 +14,16 @@ if __name__ == "__main__":
 
     nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
-    # ------------------------------------------ Disambig ------------------------------------------
-    do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
-                   [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000),
-                    OutputTransformer(1000)])
-
-    # ------------------------------------------ Evelements ------------------------------------------
-    from src.sgd.model.perf.core import Strain as PerfStrain
-    do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(1000)])
+    # # ------------------------------------------ Disambig ------------------------------------------
+    # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
+    #                [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000),
+    #                 OutputTransformer(1000)])
+    #
+    # # ------------------------------------------ Evelements ------------------------------------------
+    # from src.sgd.model.perf.core import Strain as PerfStrain
+    # do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True),
+    #                OutputTransformer(1000)])
 
     # ------------------------------------------ Bioentity ------------------------------------------
     from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
