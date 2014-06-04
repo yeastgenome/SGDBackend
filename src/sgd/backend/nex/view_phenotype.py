@@ -25,7 +25,16 @@ def get_phenotype_evidence(locus_id, phenotype_id, observable_id, chemical_id, r
                 phenotype_ids.update([x.id for x in DBSession.query(Phenotype.id).filter_by(observable_id=new_observable_id).all()])
         else:
             phenotype_ids = set([x.id for x in DBSession.query(Phenotype.id).filter_by(observable_id=observable_id).all()])
-        query = query.filter(Phenotypeevidence.phenotype_id.in_(phenotype_ids))
+
+        phenotype_ids = list(phenotype_ids)
+        num_chunks = int(ceil(1.0*len(phenotype_ids)/500))
+        evidences = []
+        for i in range(num_chunks):
+            subquery = query.filter(Phenotypeevidence.phenotype_id.in_(phenotype_ids[i*500:(i+1)*500]))
+            if len(evidences) + subquery.count() > query_limit:
+                return None
+            evidences.extend(subquery.all())
+        return evidences
     if chemical_id is not None:
         chemical_evidence_ids = list(set([x.evidence_id for x in DBSession.query(Chemicalproperty).filter_by(bioitem_id=chemical_id).all()]))
         num_chunks = int(ceil(1.0*len(chemical_evidence_ids)/500))
@@ -48,6 +57,6 @@ def make_details(locus_id=None, phenotype_id=None, observable_id=None, chemical_
     phenoevidences = get_phenotype_evidence(locus_id=locus_id, phenotype_id=phenotype_id, observable_id=observable_id, chemical_id=chemical_id, reference_id=reference_id, with_children=with_children)
 
     if phenoevidences is None:
-        return {'Error': 'Too much data to display.'}
+        return json.dumps({'Error': 'Too much data to display.'})
 
     return '[' + ', '.join([x.json for x in phenoevidences if x.json is not None]) + ']'
