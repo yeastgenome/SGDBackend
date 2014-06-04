@@ -9,10 +9,10 @@ __author__ = 'kpaskov'
 
 if __name__ == "__main__":   
 
-    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
-    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
+    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
     # ------------------------------------------ Evelements ------------------------------------------
     from src.sgd.model.perf.core import Strain as PerfStrain
@@ -63,8 +63,6 @@ if __name__ == "__main__":
                    OutputTransformer(1000)])
 
     # ------------------------------------------ Disambig ------------------------------------------
-    from src.sgd.model.perf.core import Disambig as PerfDisambig
-
     do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
                    [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000),
                     OutputTransformer(1000)])
