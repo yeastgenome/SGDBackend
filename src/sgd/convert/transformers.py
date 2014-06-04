@@ -658,6 +658,12 @@ def make_go_data_backend_starter(backend, method, obj_ids):
             yield (obj_id, getattr(backend, method)(go_identifier=obj_id, are_ids=True))
     return individual_backend_starter
 
+def make_go_data_with_children_backend_starter(backend, method, obj_ids):
+    def individual_backend_starter():
+        for obj_id in obj_ids:
+            yield (obj_id, getattr(backend, method)(go_identifier=obj_id, are_ids=True, with_children=True))
+    return individual_backend_starter
+
 def make_phenotype_data_backend_starter(backend, method, obj_ids):
     def individual_backend_starter():
         for obj_id in obj_ids:

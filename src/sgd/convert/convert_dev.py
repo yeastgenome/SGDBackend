@@ -6,7 +6,7 @@ from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj, Out
     make_individual_go_backend_starter, make_individual_phenotype_backend_starter, make_individual_observable_backend_starter, Evidence2NexDB, make_locus_data_backend_starter, \
     make_reference_data_backend_starter, make_ecnumber_data_backend_starter, make_go_data_backend_starter, make_phenotype_data_backend_starter, make_observable_data_backend_starter, \
     make_chemical_data_backend_starter, make_observable_data_backend_starter, make_contig_data_backend_starter, make_domain_data_backend_starter, \
-    BigObj2NexDB, Json2DisambigPerfDB, make_orphan_backend_starter, Json2OrphanPerfDB
+    BigObj2NexDB, Json2DisambigPerfDB, make_orphan_backend_starter, Json2OrphanPerfDB, make_go_data_with_children_backend_starter
 from sqlalchemy.orm import with_polymorphic
 import os
 __author__ = 'kpaskov'
@@ -589,7 +589,7 @@ if __name__ == "__main__":
     locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     #complex_ids = [x.id for x in nex_session.query(Complex).all()]
-    #go_ids = [x.id for x in nex_session.query(Go).all()]
+    go_ids = [x.id for x in nex_session.query(Go).all()]
     #domain_ids = [x.id for x in nex_session.query(Domain).all()]
     #observable_ids = [x.id for x in nex_session.query(Observable).all()]
     #phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]
@@ -624,14 +624,18 @@ if __name__ == "__main__":
     #                 OutputTransformer(1000)])
     #
     # Done
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'go_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'go_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
     #
     # Done
     # do_conversion(make_go_data_backend_starter(nex_backend, 'go_details', go_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
+
+    do_conversion(make_go_data_with_children_backend_starter(nex_backend, 'go_details', go_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS_ALL_CHILDREN', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
+                    OutputTransformer(1000)])
     #
     # Done
     # do_conversion(make_reference_data_backend_starter(nex_backend, 'go_details', reference_ids),
