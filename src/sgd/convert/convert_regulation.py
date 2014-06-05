@@ -1,5 +1,6 @@
 from src.sgd.model import nex, perf
 from src.sgd.backend.nex import SGDBackend
+from src.sgd.backend.perf import PerfBackend
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
 from src.sgd.convert.transformers import do_conversion, Evidence2NexDB, Json2Obj, OutputTransformer, \
     make_locus_data_backend_starter, make_reference_data_backend_starter, Json2DataPerfDB
@@ -41,5 +42,21 @@ if __name__ == "__main__":
                     OutputTransformer(1000)])
 
     do_conversion(make_locus_data_backend_starter(nex_backend, 'regulation_target_enrichment', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityEnrichment, 'REGULATION', locus_ids, name='convert.from_backend.regulation_target_enrichment', commit_interval=1000),
+                    OutputTransformer(1000)])
+
+    # ------------------------------------------ Perf2 ------------------------------------------
+    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
+
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'regulation_details', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'REGULATION', locus_ids, name='convert.from_backend.regulation_details', commit_interval=1000),
+                    OutputTransformer(1000)])
+
+    do_conversion(make_reference_data_backend_starter(perf_backend, 'regulation_details', reference_ids),
+                   [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'REGULATION', reference_ids, name='convert.from_backend.regulation_details', commit_interval=1000),
+                    OutputTransformer(1000)])
+
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'regulation_target_enrichment', locus_ids),
                    [Json2DataPerfDB(perf_session_maker, BioentityEnrichment, 'REGULATION', locus_ids, name='convert.from_backend.regulation_target_enrichment', commit_interval=1000),
                     OutputTransformer(1000)])

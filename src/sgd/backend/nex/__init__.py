@@ -317,6 +317,7 @@ class SGDBackend(BackendInterface):
     # Go
     def go_ontology_graph(self, go_identifier, are_ids=False):
         import graph_tools
+        from src.sgd.model.nex.evidence import Goevidence
         if are_ids:
             go_id = go_identifier
         else:

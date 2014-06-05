@@ -1,5 +1,6 @@
 from src.sgd.model import bud, nex, perf
 from src.sgd.backend.nex import SGDBackend
+from src.sgd.backend.perf import PerfBackend
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
 from src.sgd.convert.transformers import do_conversion, Evidence2NexDB, Json2Obj, OutputTransformer, Json2DataPerfDB, \
     make_chemical_data_backend_starter, make_locus_data_backend_starter, make_reference_data_backend_starter, \
@@ -64,5 +65,34 @@ if __name__ == "__main__":
                     OutputTransformer(1000)])
 
     do_conversion(make_observable_data_with_children_backend_starter(nex_backend, 'phenotype_details', observable_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'OBSERVABLE_LOCUS_ALL_CHILDREN', observable_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
+                    OutputTransformer(1000)])
+
+    # ------------------------------------------ Perf2 ------------------------------------------
+    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
+
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'phenotype_details', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
+                    OutputTransformer(1000)])
+
+    do_conversion(make_phenotype_data_backend_starter(perf_backend, 'phenotype_details', phenotype_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'PHENOTYPE_LOCUS', phenotype_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
+                    OutputTransformer(1000)])
+
+    do_conversion(make_reference_data_backend_starter(perf_backend, 'phenotype_details', reference_ids),
+                   [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'PHENOTYPE', reference_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
+                    OutputTransformer(1000)])
+
+    do_conversion(make_chemical_data_backend_starter(perf_backend, 'phenotype_details', chemical_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'PHENOTYPE', chemical_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
+                    OutputTransformer(1000)])
+
+
+    do_conversion(make_observable_data_backend_starter(perf_backend, 'phenotype_details', observable_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'OBSERVABLE_LOCUS', observable_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
+                    OutputTransformer(1000)])
+
+    do_conversion(make_observable_data_with_children_backend_starter(perf_backend, 'phenotype_details', observable_ids),
                    [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'OBSERVABLE_LOCUS_ALL_CHILDREN', observable_ids, name='convert.from_backend.phenotype_details', commit_interval=1000),
                     OutputTransformer(1000)])
