@@ -57,17 +57,17 @@ if __name__ == "__main__":
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.bioitem import Contig
     nex_session = nex_session_maker()
-    locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
     contig_ids = [x.id for x in nex_session.query(Contig).all()]
     nex_session.close()
 
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000),
-                    OutputTransformer(1000)])
-
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
+    #
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
 
     do_conversion(make_contig_data_backend_starter(nex_backend, 'sequence_details', contig_ids),
                    [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'SEQUENCE', contig_ids, name='convert.from_backend.sequence_details', commit_interval=1000),

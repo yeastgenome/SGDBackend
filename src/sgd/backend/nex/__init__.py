@@ -107,6 +107,8 @@ class SGDBackend(BackendInterface):
     #Bioconcept
     def all_bioconcepts(self, chunk_size, offset):
         from src.sgd.model.nex.bioconcept import Bioconcept
+        from src.sgd.model.nex.evidence import Phenotypeevidence
+        from src.sgd.model.nex.evidence import Goevidence
         return [x.to_json() for x in DBSession.query(Bioconcept).with_polymorphic('*').order_by(Bioconcept.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def ec_number(self, ec_number_identifier, are_ids=False):
