@@ -200,6 +200,25 @@ SELECT expdata_seq.nextval INTO :new.expressiondata_id FROM DUAL;
 END;
 /
 
+DROP TRIGGER JOURNAL_TRIGGER;
+--/
+CREATE TRIGGER JOURNAL_TRIGGER
+BEFORE INSERT ON journal
+FOR EACH ROW
+BEGIN
+SELECT journal_seq.nextval INTO :new.journal_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BOOK_TRIGGER;
+--/
+CREATE TRIGGER BOOK_TRIGGER
+BEFORE INSERT ON book
+FOR EACH ROW
+BEGIN
+SELECT book_seq.nextval INTO :new.book_id FROM DUAL;
+END;
+/
 
 
 
