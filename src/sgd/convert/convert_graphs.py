@@ -67,6 +67,10 @@ if __name__ == "__main__":
     observable_ids = [x.id for x in nex_session.query(Observable).all()]
     nex_session.close()
 
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'interaction_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000),
+                    OutputTransformer(1000)])
+
     do_conversion(make_locus_data_backend_starter(nex_backend, 'phenotype_graph', locus_ids),
                    [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_graph', commit_interval=1000),
                     OutputTransformer(1000)])
@@ -98,6 +102,10 @@ if __name__ == "__main__":
     # ------------------------------------------ Perf2 ------------------------------------------
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
     perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
+
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'interaction_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000),
+                    OutputTransformer(1000)])
 
     do_conversion(make_locus_data_backend_starter(perf_backend, 'phenotype_graph', locus_ids),
                    [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_graph', commit_interval=1000),
