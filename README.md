@@ -1,6 +1,6 @@
 #SGD Website Project
 
-This project is a backend webaplication used for the SGD Nextgen Redesign. It returns data in JSON format at a 
+This project is a backend webaplication used for the SGD Nextgen Redesign. It returns data in JSON format at a
 variety of URLs.
 
 To install do:
