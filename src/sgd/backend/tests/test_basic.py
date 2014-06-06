@@ -102,7 +102,8 @@ def test_author_references_structure(model, identifier='Bi_E'):
 def test_new_references_structure(model):
     response = json.loads(model.references_this_week())
     assert response is not None
-    for reference in response:
+    assert response['references']
+    for reference in response['references']:
         check_reference(reference)
 
 def test_domain_structure(model, identifier='PTHR11937'):
