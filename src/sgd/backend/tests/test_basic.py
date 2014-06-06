@@ -113,7 +113,7 @@ def test_domain_structure(model, identifier='PTHR11937'):
     assert 'interpro_description' in response
     assert 'description' in response
     assert 'source' in response
-    assert 'external_link' in response
+    assert 'link' in response  ## no longer external_link
     assert 'interpro_id' in response
 
 def test_contig_structure(model, identifier='BY4741_chr08'):
@@ -121,7 +121,7 @@ def test_contig_structure(model, identifier='BY4741_chr08'):
     assert response is not None
     check_obj(response)
     assert 'residues' in response
-    assert 'length' in response
+    ##assert 'length' in response no longer in object
     assert 'format_name' in response
 
 def check_reference(reference):
