@@ -109,7 +109,7 @@ def make_graph(bioent_id):
     #Apply 100 node cutoff
     min_evidence_count = 10
     usable_neighbor_ids = set()
-    while len(usable_neighbor_ids) + len(evidence_count_to_neighbors[min_evidence_count]) < 100 and min_evidence_count > 1:
+    while len(usable_neighbor_ids) + len(evidence_count_to_neighbors[min_evidence_count]) < 100 and min_evidence_count > 0:
         usable_neighbor_ids.update(evidence_count_to_neighbors[min_evidence_count])
         min_evidence_count = min_evidence_count - 1
       

@@ -122,7 +122,7 @@ def convert_experiment(old_session_maker, new_session_maker):
         experiment_names = set()
         
         rows = break_up_file('data/yeastmine_regulation.tsv')
-        experiment_names.update([(row[4], row[5], row[12]) for row in rows])
+        experiment_names.update([(row[4], row[5], 'SGD') for row in rows])
                 
         for experiment_name, eco_id, source_key in experiment_names:
             newly_created_objs = create_experiment_from_reg_row(experiment_name, eco_id, source_key, key_to_source)

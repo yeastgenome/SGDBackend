@@ -20,24 +20,6 @@ from mpmath import ceil, floor
 """
 --------------------- Convert Evidence ---------------------
 """
-pubmed_to_strain = {#11504737: 'Other',
-                    12006656: 'S288C',
-                    15192094: 'W303',
-                    #15647283: 'Other',
-                    #16415340: 'Other',
-                    16522208: 'W303',
-                    17417638: 'S288C',
-                    18524923: 'CEN.PK',
-                    #21177862: 'Other',
-                    21329885: 'S288C',
-                    22114689: 'S288C',
-                    22189861: 'S288C',
-                    22384390: 'Sigma1278b',
-                    22438580: 'W303',
-                    22498630: 'S288C',
-                    22616008: 'S288C',
-                    20195295: 'S288C'}
-
 def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, key_to_source, key_to_strain):
     from model_new_schema.evidence import Regulationevidence
     
@@ -46,13 +28,14 @@ def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, 
     bioent2_format_name = row[3].upper().strip()
     experiment_format_name = create_format_name(row[4].strip())
     experiment_eco_id = row[5].strip()
-    condition_value = row[6].strip()
+    condition_value = row[6].strip() + '; ' + row[8].strip() + '; ' + row[7].strip()
     #unknown_field1 = row[7]
     #unknown_field2 = row[8]
     #unknown_field3 = row[9]
     #unknown_field4 = row[10]
     pubmed_id = int(row[11].strip())
     source_key = row[12].strip()
+    strain_key = row[9].strip()
     
     bioent1_key = (bioent1_format_name, 'LOCUS') 
     bioent1 = None if bioent1_key not in key_to_bioent else key_to_bioent[bioent1_key]
@@ -64,7 +47,7 @@ def create_evidence(row, key_to_experiment, key_to_bioent, pubmed_to_reference, 
     if experiment is None:
         experiment = None if experiment_eco_id not in key_to_experiment else key_to_experiment[experiment_eco_id]
     reference = None if pubmed_id not in pubmed_to_reference else pubmed_to_reference[pubmed_id]
-    strain = None if pubmed_id not in pubmed_to_strain else key_to_strain[pubmed_to_strain[pubmed_id]]
+    strain = None if strain_key not in key_to_strain else key_to_strain[strain_key]
     source = None if source_key not in key_to_source else key_to_source[source_key]
     
     conditions = []
@@ -213,7 +196,7 @@ def convert_paragraph(new_session_maker):
         
         untouched_obj_ids = set(id_to_current_obj.keys())
 
-        old_objs = break_up_file('data/Reg_Summary_Paragraphs04282013.txt')
+        old_objs = break_up_file('data/RegulationSummaries04102014.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_paragraph(old_obj, key_to_bioentity, key_to_source)
@@ -318,7 +301,7 @@ def convert_paragraph_reference(new_session_maker):
         
         used_unique_keys = set()  
 
-        old_objs = break_up_file('data/Reg_Summary_Paragraphs04282013.txt')
+        old_objs = break_up_file('data/RegulationSummaries04102014.txt')
         for old_obj in old_objs:
             #Convert old objects into new ones
             newly_created_objs = create_paragraph_reference(old_obj, key_to_bioentity, key_to_paragraph, pubmed_id_to_reference, key_to_source)
@@ -361,13 +344,13 @@ def convert_paragraph_reference(new_session_maker):
 def convert(new_session_maker):
     convert_evidence(new_session_maker, 300)
         
-    from model_new_schema.evidence import Regulationevidence
-    get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
+    #from model_new_schema.evidence import Regulationevidence
+    #get_bioent_ids_f = lambda x: [x.bioentity1_id, x.bioentity2_id]
     
-    convert_paragraph(new_session_maker)
+    #convert_paragraph(new_session_maker)
     
-    convert_paragraph_reference(new_session_maker)
+    #convert_paragraph_reference(new_session_maker)
     
-    convert_interaction(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.interaction', 10000, True)
+    #convert_interaction(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.interaction', 10000, True)
     
-    convert_bioentity_reference(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.bioentity_reference', 10000, get_bioent_ids_f)
+    #convert_bioentity_reference(new_session_maker, Regulationevidence, 'REGULATION', 'convert.regulation.bioentity_reference', 10000, get_bioent_ids_f)

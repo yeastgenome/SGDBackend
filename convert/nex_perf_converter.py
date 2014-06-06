@@ -250,7 +250,7 @@ class NexPerfConverter(ConverterInterface):
     def convert_literature_details(self):
         from model_perf_schema.bioentity_data import BioentityDetails
         from model_perf_schema.reference_data import ReferenceDetails
-        self.data_wrapper(BioentityDetails, "LITERATURE", 'bioentity_id', lambda x: self.backend.literature_details(locus_identifier=x), 'literature_details', self.locus_ids, 100)
+        #self.data_wrapper(BioentityDetails, "LITERATURE", 'bioentity_id', lambda x: self.backend.literature_details(locus_identifier=x), 'literature_details', self.locus_ids, 100)
         self.data_wrapper(ReferenceDetails, "LITERATURE", 'reference_id', lambda x: self.backend.literature_details(reference_identifier=x, are_ids=True), 'literature_details', self.reference_ids, 1000)
     def convert_protein_domain_details(self):
         from model_perf_schema.bioentity_data import BioentityDetails
