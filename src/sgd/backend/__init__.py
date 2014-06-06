@@ -329,6 +329,11 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('contig', request)(getattr(chosen_backend, 'contig')(contig_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('contig'),
                     route_name='contig')
+
+    config.add_route('dataset', '/dataset/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('dataset', request)(getattr(chosen_backend, 'dataset')(dataset_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('dataset'),
+                    route_name='dataset')
     
 def prepare_backend(backend_type):
     configurator = Configurator()

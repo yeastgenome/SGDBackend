@@ -234,6 +234,11 @@ class Dataset(Bioitem):
         self.display_name = self.format_name
         self.link = '/dataset/' + self.format_name + '/overview'
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['reference'] = self.reference.to_json()
+        return obj_json
+
 class Allele(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'ALLELE', 'inherit_condition': id == Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',

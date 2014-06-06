@@ -1517,7 +1517,7 @@ def make_expression_data_starter(nex_session_maker, expression_file, dataset_id,
             if evidences is None:
                 evidences = []
                 for condition in row[3:]:
-                    evidence_key = ('EXPRESSION', dataset_id, condition.strip())
+                    evidence_key = ('EXPRESSION', dataset_id, condition.strip().decode('ascii','ignore'))
                     if evidence_key in key_to_evidence:
                         evidences.append(key_to_evidence[evidence_key])
                     else:

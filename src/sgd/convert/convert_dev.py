@@ -257,6 +257,10 @@ if __name__ == "__main__":
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'CONTIG'), name='convert.from_bud.bioitem.disambig.contig', delete_untouched=True, commit=True)])
     #
+    # do_conversion(make_disambig_starter(nex_session_maker, Dataset, ['id', 'format_name'], 'BIOITEM', 'DATASET'),
+    #               [Json2Obj(Disambig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DATASET'), name='convert.from_bud.bioitem.disambig.dataset', delete_untouched=True, commit=True)])
+
     # # Nex -> Perf
     # from src.sgd.model.perf.core import Bioitem as PerfBioitem
     # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
@@ -482,7 +486,7 @@ if __name__ == "__main__":
     dataset_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Dataset).all()])
     dataset_key_to_channel_count = dict([(x.unique_key(), x.channel_count) for x in nex_session.query(Dataset).all()])
     nex_session.close()
-    for path in os.listdir('src/sgd/convert/data/microarray_05_14')[5:10]:
+    for path in os.listdir('src/sgd/convert/data/microarray_05_14')[10:20]:
         if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
             for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
                 dataset_key = (file[:-4], 'DATASET')

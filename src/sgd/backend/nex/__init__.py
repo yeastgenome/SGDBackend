@@ -189,6 +189,17 @@ class SGDBackend(BackendInterface):
             contig_id = get_obj_id(contig_identifier, class_type='BIOITEM', subclass_type='CONTIG')
         return None if contig_id is None else json.dumps(view_sequence.make_contig(contig_id))
 
+    def dataset(self, dataset_identifier, are_ids=False):
+        from src.sgd.model.nex.bioitem import Dataset
+        from src.sgd.model.nex.paragraph import Referenceparagraph
+        from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Physinteractionevidence, \
+            Geninteractionevidence, Regulationevidence, Literatureevidence
+        if are_ids:
+            dataset_id = dataset_identifier
+        else:
+            dataset_id = get_obj_id(dataset_identifier, class_type='BIOITEM', subclass_type='DATASET')
+        return None if dataset_id is None else json.dumps(DBSession.query(Dataset).filter_by(id=dataset_id).first().to_json())
+
     #EC number
     def ec_number_details(self, locus_identifier=None, ec_number_identifier=None, are_ids=False):
         import view_ec_number
