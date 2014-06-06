@@ -196,13 +196,13 @@ if __name__ == "__main__":
 
     # # ------------------------------------------ Bioitem ------------------------------------------
     # # Bud -> Nex
-    # from src.sgd.model.nex.bioitem import Bioitem, Orphanbioitem, Domain, Allele, Chemical, Bioitemurl, Bioitemrelation, \
-    #     Bioitemalias, Contig
-    # from src.sgd.model.nex.misc import Alias, Relation, Url
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
-    #     make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    from src.sgd.model.nex.bioitem import Bioitem, Orphanbioitem, Domain, Allele, Chemical, Bioitemurl, Bioitemrelation, \
+        Bioitemalias, Contig, Dataset
+    from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
+        make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter, make_dataset_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Orphanbioitem),
@@ -228,6 +228,12 @@ if __name__ == "__main__":
     #               [Json2Obj(Contig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Contig), name='convert.from_bud.bioitem.contig', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG')
+    #
+    # do_conversion(make_dataset_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
+    #               [Json2Obj(Dataset),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Dataset), name='convert.from_bud.bioitem.dataset', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Dataset, Bioitem, 'DATASET')
     #
     # do_conversion(make_bioitem_relation_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioitemrelation),
@@ -346,7 +352,7 @@ if __name__ == "__main__":
     # Bud -> Nex
     from src.sgd.model.nex.evidence import Evidence, Goevidence, DNAsequenceevidence, Regulationevidence, \
         Proteinsequenceevidence, Phosphorylationevidence, Domainevidence, Literatureevidence, Phenotypeevidence, \
-        DNAsequencetag, Expressionevidence, Expressiondata, Aliasevidence, Bindingevidence, Bioentityevidence, \
+        DNAsequencetag, Expressionevidence, Bioentitydata, Aliasevidence, Bindingevidence, Bioentityevidence, \
         Complexevidence, ECNumberevidence, Geninteractionevidence, Physinteractionevidence, Proteinexperimentevidence
     from src.sgd.model.nex.archive import ArchiveLiteratureevidence
     from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_dna_sequence_evidence_starter, \
@@ -471,24 +477,20 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Expressionevidence, Evidence, 'EXPRESSION')
     #
-    # for path in os.listdir('src/sgd/convert/data/microarray_05_14')[50:]:
-    #     if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
-    #         geo_id = None
-    #         pcl_filename = None
-    #         state = 'BEGIN'
-    #         for row in make_file_starter('src/sgd/convert/data/microarray_05_14/' + path + '/README')():
-    #             if row[0].startswith('GEO ID:'):
-    #                 geo_id = row[0][8:].strip()
-    #             elif row[0].startswith('PCL filename'):
-    #                 state = 'OTHER'
-    #             elif state == 'OTHER':
-    #                 pcl_filename = row[0].strip()
-    #
-    #         if geo_id is not None:
-    #             do_conversion(make_expression_data_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14/' + path, geo_id, pcl_filename),
-    #                           [Json2Obj(Expressiondata),
-    #                            Obj2NexDB(nex_session_maker, lambda x: x.query(Expressiondata).join(Expressionevidence).filter(Expressionevidence.geo_id == geo_id), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
-    #                            OutputTransformer(1000)])
+    from src.sgd.model.nex.bioitem import Dataset
+    nex_session = nex_session_maker()
+    dataset_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Dataset).all()])
+    dataset_key_to_channel_count = dict([(x.unique_key(), x.channel_count) for x in nex_session.query(Dataset).all()])
+    nex_session.close()
+    for path in os.listdir('src/sgd/convert/data/microarray_05_14')[5:10]:
+        if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
+            for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
+                dataset_key = (file[:-4], 'DATASET')
+                if dataset_key in dataset_key_to_id:
+                    do_conversion(make_expression_data_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14/' + path + '/' + file, dataset_key_to_id[dataset_key], dataset_key_to_channel_count[dataset_key]),
+                                      [Json2Obj(Bioentitydata),
+                                       Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence.has(dataset_id=dataset_key_to_id[dataset_key])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
+                                       OutputTransformer(1000)])
 
     # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty, Temperatureproperty, Generalproperty
     # clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')
@@ -633,9 +635,9 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
 
-    do_conversion(make_go_data_with_children_backend_starter(nex_backend, 'go_details', go_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS_ALL_CHILDREN', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_go_data_with_children_backend_starter(nex_backend, 'go_details', go_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS_ALL_CHILDREN', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
     #
     # Done
     # do_conversion(make_reference_data_backend_starter(nex_backend, 'go_details', reference_ids),

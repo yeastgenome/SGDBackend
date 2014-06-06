@@ -5,6 +5,7 @@ from src.sgd.convert.from_bud import contains_digits, get_dna_sequence_library, 
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
 from src.sgd.model.nex import create_format_name
 import os
+import math
 
 __author__ = 'kpaskov'
 
@@ -1466,110 +1467,87 @@ def make_protein_sequence_evidence_starter(nex_session_maker, strain_key, protei
 # --------------------- Convert Expression Evidence ---------------------
 def make_expression_evidence_starter(nex_session_maker, expression_dir):
     from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.reference import Reference
+    from src.sgd.model.nex.bioitem import Dataset
     def expression_evidence_starter():
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-        pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
-
-        filename_to_channel_count = dict([(x[0], x[1].strip()) for x in make_file_starter(expression_dir + '/channel_count.txt')()])
+        key_to_dataset = dict([(x.unique_key(), x) for x in nex_session.query(Dataset).all()])
 
         for path in os.listdir(expression_dir):
             if os.path.isdir(expression_dir + '/' + path):
-                full_description = None
-                geo_id = None
-                pcl_filename = None
-                short_description = None
-                tags = None
-                pubmed_id = None
+                for file in os.listdir(expression_dir + '/' + path):
+                    dataset_key = (file[:-4], 'DATASET')
+                    if dataset_key in key_to_dataset:
+                        f = open(expression_dir + '/' + path + '/' + file, 'r')
+                        pieces = f.next().split('\t')
+                        f.close()
 
-                state = 'BEGIN'
-
-                for row in make_file_starter(expression_dir + '/' + path + '/README')():
-                    if row[0].startswith('Full Description'):
-                        state = 'FULL_DESCRIPTION:'
-                        full_description = row[0][18:].strip()
-                    elif row[0].startswith('PMID:'):
-                        pubmed_id = int(row[0][6:].strip())
-                    elif row[0].startswith('GEO ID:'):
-                        geo_id = row[0][8:].strip()
-                    elif row[0].startswith('PCL filename'):
-                        state = 'OTHER'
-                    elif state == 'FULL_DESCRIPTION':
-                        full_description = full_description + row[0].strip()
-                    elif state == 'OTHER':
-                        pcl_filename = row[0].strip()
-                        short_description = row[1].strip()
-                        tags = row[3].strip()
-
-                if geo_id is not None and pubmed_id in pubmed_id_to_reference:
-                    for file in os.listdir(expression_dir + '/' + path):
-                        if file != 'README':
-                            f = open(expression_dir + '/' + path + '/' + file, 'r')
-                            pieces = f.next().split('\t')
-                            f.close()
-
-                            i = 0
-                            for piece in pieces[3:]:
-                                yield {
-                                    'description': full_description,
-                                    'geo_id': geo_id,
-                                    'pcl_filename': pcl_filename,
-                                    'short_description': short_description,
-                                    'tags': tags,
+                        i = 0
+                        for piece in pieces[3:]:
+                            yield {
                                     'condition': piece.strip().decode('ascii','ignore'),
-                                    'reference': pubmed_id_to_reference[pubmed_id],
+                                    'reference': key_to_dataset[dataset_key].reference,
                                     'source': key_to_source['SGD'],
-                                    'channel_count': 1 if pcl_filename not in filename_to_channel_count else filename_to_channel_count[pcl_filename],
-                                    'file_order': i
-                                }
-                                i += 1
-                else:
-                    print 'Geo ID or reference not found ' + str(pubmed_id)
-                    yield None
+                                    'file_order': i,
+                                    'dataset': key_to_dataset[dataset_key]
+                            }
+                            i += 1
 
         nex_session.close()
     return expression_evidence_starter
 
-def make_expression_data_starter(nex_session_maker, expression_dir, geo_id, pcl_filename):
+def make_expression_data_starter(nex_session_maker, expression_file, dataset_id, channel_count):
     from src.sgd.model.nex.evidence import Expressionevidence
     from src.sgd.model.nex.bioentity import Locus
     def expression_evidence_starter():
         nex_session = nex_session_maker()
 
-        key_to_evidence = dict([(x.unique_key(), x) for x in nex_session.query(Expressionevidence).filter_by(geo_id=geo_id).all()])
+        key_to_evidence = dict([(x.unique_key(), x) for x in nex_session.query(Expressionevidence).filter_by(dataset_id=dataset_id).all()])
         locuses = nex_session.query(Locus).all()
         key_to_locus = dict([(x.format_name, x) for x in locuses])
         key_to_locus.update([(x.display_name, x) for x in locuses])
         key_to_locus.update([('SGD:' + x.sgdid, x) for x in locuses])
 
-        for file in os.listdir(expression_dir):
-            if file != 'README':
-                evidences = None
-
-                for row in make_file_starter(expression_dir + '/' + file)():
-                    if evidences is None:
-                        evidences = []
-                        for condition in row[3:]:
-                            evidence_key = ('EXPRESSION', geo_id, pcl_filename, condition.strip())
-                            if evidence_key in key_to_evidence:
-                                evidences.append(key_to_evidence[evidence_key])
-                            else:
-                                print 'Evidence not found: ' + str(evidence_key)
-                                evidences.append(None)
-                    elif row[0] != 'EWEIGHT':
-                        locus_key = row[0]
-                        if locus_key in key_to_locus:
-                            for i in range(0, len(evidences)):
-                                if evidences[i] is not None:
-                                    yield {
-                                        'locus_id': key_to_locus[locus_key].id,
-                                        'evidence_id': evidences[i].id,
-                                        'value': Decimal(row[i+3])
-                                    }
-                        else:
-                            print 'Locus not found: ' + str(locus_key)
+        evidences = None
+        locii_not_found = 0
+        max_value = 0
+        has_negative = False
+        for row in make_file_starter(expression_file)():
+            if evidences is None:
+                evidences = []
+                for condition in row[3:]:
+                    evidence_key = ('EXPRESSION', dataset_id, condition.strip())
+                    if evidence_key in key_to_evidence:
+                        evidences.append(key_to_evidence[evidence_key])
+                    else:
+                        print 'Evidence not found: ' + str(evidence_key)
+                        evidences.append(None)
+            elif row[0] != 'EWEIGHT':
+                locus_key = row[0]
+                if locus_key in key_to_locus:
+                    log_sum = 0
+                    for value in row[3:]:
+                        dec_value = Decimal(value)
+                        if dec_value < 0:
+                            has_negative = True
+                        elif dec_value > max_value:
+                            max_value = dec_value
+                        log_sum = log_sum + 2**dec_value
+                    log_sum = math.log(log_sum, 2)
+                    log_n = math.log(len(row[3:]), 2)
+                    for i in range(0, len(evidences)):
+                        if evidences[i] is not None:
+                            yield {
+                                'locus_id': key_to_locus[locus_key].id,
+                                'evidence_id': evidences[i].id,
+                                'value': Decimal(row[i+3]) if channel_count == 2 else Decimal(float(row[i+3]) + log_n - log_sum)
+                            }
+                else:
+                    #print 'Locus not found: ' + str(locus_key)
+                    locii_not_found += 1
+        print 'Locii not found: ' + str(locii_not_found)
+        print channel_count, has_negative, max_value
 
         nex_session.close()
     return expression_evidence_starter

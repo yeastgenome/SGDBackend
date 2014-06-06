@@ -1,7 +1,7 @@
 from math import ceil
 
 from src.sgd.backend.nex import DBSession, query_limit
-from src.sgd.model.nex.evidence import Expressiondata
+from src.sgd.model.nex.evidence import Bioentitydata
 from sqlalchemy.orm import joinedload
 import json
 from src.sgd.model.nex.auxiliary import Bioentityinteraction
@@ -13,12 +13,10 @@ __author__ = 'kpaskov'
 
 # -------------------------------Details---------------------------------------
 def get_expression_evidence(locus_id):
-    query = DBSession.query(Expressiondata).options(joinedload('evidence'), joinedload('locus'))
+    query = DBSession.query(Bioentitydata).options(joinedload('evidence'), joinedload('locus'))
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
 
-    if query.count() > query_limit:
-        return None
     return query.all()
 
 def make_details(locus_id=None):
@@ -30,7 +28,7 @@ def make_details(locus_id=None):
     if expressionevidences is None:
         return {'Error': 'Too much data to display.'}
 
-    return json.dumps([x.to_json() for x in expressionevidences])
+    return json.dumps([x.to_json() for x in expressionevidences if expressionevidences])
 
 # -------------------------------Graph---------------------------------------
 def create_node(bioent, is_focus, ev_count):

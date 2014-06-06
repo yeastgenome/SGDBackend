@@ -6,7 +6,7 @@ from src.sgd.model.nex.bioentity import Locus, Complex
 from src.sgd.model.nex.bioconcept import Bioconcept, Go, Observable
 from src.sgd.model.nex.bioitem import Bioitem, Domain
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence, Regulationevidence, Goevidence, \
-    Phenotypeevidence, Literatureevidence, Domainevidence, Expressiondata
+    Phenotypeevidence, Literatureevidence, Domainevidence, Bioentitydata
 from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioiteminteraction
 import math
 

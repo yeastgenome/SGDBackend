@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 from src.sgd.convert import create_format_name
 from src.sgd.convert.transformers import make_db_starter, \
     make_file_starter, make_fasta_file_starter
-
+import os
 
 __author__ = 'kpaskov'
 
@@ -288,6 +288,72 @@ def make_contig_starter(nex_session_maker):
                            'residues': residues}
         nex_session.close()
     return contig_starter
+
+# --------------------- Convert Dataset ---------------------
+def make_dataset_starter(nex_session_maker, expression_dir):
+    from src.sgd.model.nex.misc import Source
+    from src.sgd.model.nex.reference import Reference
+    def dataset_starter():
+        nex_session = nex_session_maker()
+
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+        pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
+
+        filename_to_channel_count = dict([(x[0], x[1].strip()) for x in make_file_starter(expression_dir + '/channel_count.txt')()])
+
+        for path in os.listdir(expression_dir):
+            if os.path.isdir(expression_dir + '/' + path):
+                full_description = None
+                geo_id = None
+                pcl_filename_to_info = {}
+                pubmed_id = None
+
+                state = 'BEGIN'
+
+                for row in make_file_starter(expression_dir + '/' + path + '/README')():
+                    if row[0].startswith('Full Description'):
+                        state = 'FULL_DESCRIPTION:'
+                        full_description = row[0][18:].strip()
+                    elif row[0].startswith('PMID:'):
+                        pubmed_id = int(row[0][6:].strip())
+                    elif row[0].startswith('GEO ID:'):
+                        geo_id = row[0][8:].strip()
+                    elif row[0].startswith('PCL filename'):
+                        state = 'OTHER'
+                    elif state == 'FULL_DESCRIPTION':
+                        full_description = full_description + row[0].strip()
+                    elif state == 'OTHER':
+                        pcl_filename = row[0].strip()
+                        short_description = row[1].strip()
+                        tag = row[3].strip()
+                        pcl_filename_to_info[pcl_filename] = (short_description, tag)
+
+                if geo_id == 'N/A':
+                    geo_id = None
+
+                for file in os.listdir(expression_dir + '/' + path):
+                    if file != 'README':
+                        f = open(expression_dir + '/' + path + '/' + file, 'r')
+                        pieces = f.next().split('\t')
+                        f.close()
+
+                        if file in pcl_filename_to_info:
+                            yield {
+                                'description': full_description,
+                                'geo_id': geo_id,
+                                'pcl_filename': file,
+                                'short_description': pcl_filename_to_info[file][0],
+                                'tags': pcl_filename_to_info[file][1],
+                                'reference': None if pubmed_id is None or pubmed_id not in pubmed_id_to_reference else pubmed_id_to_reference[pubmed_id],
+                                'source': key_to_source['SGD'],
+                                'channel_count': 1 if file not in filename_to_channel_count else int(filename_to_channel_count[file]),
+                                'condition_count': len(pieces)-3
+                            }
+                        else:
+                            print 'Filename not in readme: ' + file
+
+        nex_session.close()
+    return dataset_starter
 
 # --------------------- Convert Relation ---------------------
 def make_bioitem_relation_starter(bud_session_maker, nex_session_maker):

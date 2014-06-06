@@ -7,6 +7,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from src.sgd.model.nex.misc import Source, Relation, Strain, Url, Alias
+from src.sgd.model.nex.reference import Reference
 
 __author__ = 'kpaskov'
 
@@ -205,6 +206,33 @@ class Contig(Bioitem):
         obj_json['overview'] = overview
 
         return obj_json
+
+class Dataset(Bioitem):
+    __tablename__ = "datasetbioitem"
+
+    id = Column('bioitem_id', Integer, primary_key=True)
+    geo_id = Column('geo_id', String)
+    pcl_filename = Column('pcl_filename', String)
+    short_description = Column('short_description', String)
+    tags = Column('tags', String)
+    channel_count = Column('channel_count', Integer)
+    condition_count = Column('condition_count', Integer)
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+
+    #Relationships
+    reference = relationship(Reference, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "DATASET", 'inherit_condition': id==Bioitem.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
+                     'geo_id', 'pcl_filename', 'short_description', 'tags', 'channel_count', 'condition_count',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'reference']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = obj_json.get('pcl_filename')[:-4]
+        self.display_name = self.format_name
+        self.link = '/dataset/' + self.format_name + '/overview'
 
 class Allele(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'ALLELE', 'inherit_condition': id == Bioitem.id}

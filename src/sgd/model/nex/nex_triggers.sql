@@ -190,13 +190,13 @@ END;
 /
 
 /* Expression */
-DROP TRIGGER EXPDATA_TRIGGER;
+DROP TRIGGER BIOENTDATA_TRIGGER;
 --/
-CREATE TRIGGER EXPDATA_TRIGGER
-BEFORE INSERT ON expressiondata
+CREATE TRIGGER BIOENTDATA_TRIGGER
+BEFORE INSERT ON bioentitydata
 FOR EACH ROW
 BEGIN
-SELECT expdata_seq.nextval INTO :new.expressiondata_id FROM DUAL;
+SELECT bioentdat_seq.nextval INTO :new.bioentitydata_id FROM DUAL;
 END;
 /
 

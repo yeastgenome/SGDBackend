@@ -9,7 +9,7 @@ from sqlalchemy.types import Integer, String, Date, Numeric
 from bioconcept import Bioconcept, Go, Phenotype, ECNumber
 from bioentity import Bioentity, Locus, Complex
 from misc import Source, Strain, Experiment, Alias
-from bioitem import Bioitem, Domain
+from bioitem import Bioitem, Domain, Dataset
 from reference import Reference
 from bioitem import Contig
 from src.sgd.model import EqualityByIDMixin
@@ -599,13 +599,8 @@ class Expressionevidence(Evidence):
     experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
     note = Column('note', String)
 
-    description = Column('description', CLOB)
-    geo_id = Column('geo_id', String)
-    pcl_filename = Column('pcl_filename', String)
-    short_description = Column('short_description', String)
-    tags = Column('tags', String)
+    dataset_id = Column('dataset_id', Integer, ForeignKey(Dataset.id))
     condition = Column('condition', String)
-    channel_count = Column('channel_count', Integer)
     file_order = Column('file_order', Integer)
 
     #Relationships
@@ -613,28 +608,34 @@ class Expressionevidence(Evidence):
     reference = relationship(Reference, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
+    dataset = relationship(Dataset, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': 'EXPRESSION', 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
-                     'description', 'geo_id', 'pcl_filename', 'short_description', 'tags', 'condition', 'channel_count', 'file_order',
+                     'condition', 'file_order',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source', 'reference', 'strain', 'experiment']
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'dataset']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
-        return self.class_type, self.geo_id, self.pcl_filename, self.condition
+        return self.class_type, self.dataset_id, self.condition
 
-class Expressiondata(Base, UpdateByJsonMixin):
-    __tablename__ = "expressiondata"
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['dataset'] = self.dataset.to_json()
+        return obj_json
 
-    id = Column('expressiondata_id', Integer, primary_key=True)
+class Bioentitydata(Base, UpdateByJsonMixin):
+    __tablename__ = "bioentitydata"
+
+    id = Column('bioentitydata_id', Integer, primary_key=True)
     evidence_id = Column('evidence_id', Integer, ForeignKey(Expressionevidence.id))
     locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
     value = Column('value', Numeric(7, 3))
-    class_type = 'EXPRESSION_DATA'
+    class_type = 'BIOENTITYDATA'
 
     #Relationships
     evidence = relationship(Expressionevidence, backref=backref('data', passive_deletes=True), uselist=False)
