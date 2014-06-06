@@ -28,10 +28,6 @@ class BackendInterface:
     @abstractmethod
     def all_references(self, min_id, max_id):
         return None
-    
-    @abstractmethod
-    def all_bibentries(self, min_id, max_id):
-        return None
 
     @abstractmethod
     def all_authors(self, min_id, max_id):
@@ -43,10 +39,6 @@ class BackendInterface:
 
     @abstractmethod
     def author(self, author_identifier):
-        return None
-
-    @abstractmethod
-    def author_references(self, author_identifier):
         return None
 
     @abstractmethod
@@ -65,10 +57,6 @@ class BackendInterface:
     #Locus
     @abstractmethod
     def locus(self, locus_identifier):
-        return None
-
-    @abstractmethod
-    def locus_alias(self, locus_identifier):
         return None
     
     @abstractmethod
@@ -90,7 +78,7 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def all_chemicals(self, min_id, max_id):
+    def all_bioitems(self, min_id, max_id):
         return None
 
     #Domain
@@ -109,10 +97,6 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def ec_number_ontology_graph(self, ec_number_identifier):
-        return None
-
-    @abstractmethod
     def ec_number_details(self, locus_identifier=None, ec_number_identifier=None, with_children=False):
         return None
 
@@ -123,10 +107,6 @@ class BackendInterface:
     
     @abstractmethod
     def go_ontology_graph(self, go_identifier):
-        return None
-    
-    @abstractmethod
-    def go_overview(self, locus_identifier):
         return None
     
     @abstractmethod
@@ -143,10 +123,6 @@ class BackendInterface:
     
     #Interaction
     @abstractmethod
-    def interaction_overview(self, locus_identifier):
-        return None
-    
-    @abstractmethod
     def interaction_details(self, locus_identifier=None, reference_identifier=None, ids_only=False):
         return None
     
@@ -154,15 +130,7 @@ class BackendInterface:
     def interaction_graph(self, locus_identifier):
         return None
     
-    @abstractmethod
-    def interaction_resources(self, locus_identifier):
-        return None
-    
     #Literature
-    @abstractmethod
-    def literature_overview(self, locus_identifier):
-        return None
-    
     @abstractmethod
     def literature_details(self, locus_identifier=None, reference_identifier=None):
         return None
@@ -177,15 +145,11 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def phenotype_ontology(self):
+    def observable(self, observable_identifier):
         return None
-    
+
     @abstractmethod
     def phenotype_ontology_graph(self, phenotype_identifier):
-        return None
-    
-    @abstractmethod
-    def phenotype_overview(self, locus_identifier):
         return None
     
     @abstractmethod
@@ -193,22 +157,10 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def phenotype_resources(self, locus_identifier):
-        return None
-
-    @abstractmethod
     def phenotype_graph(self, locus_identifier):
         return None
 
     #Protein
-    @abstractmethod
-    def protein_overview(self, locus_identifier):
-        return None
-
-    @abstractmethod
-    def sequence_overview(self, locus_identifier):
-        return None
-
     @abstractmethod
     def protein_domain_details(self, locus_identifier=None, domain_identifier=None):
         return None
@@ -220,26 +172,14 @@ class BackendInterface:
     @abstractmethod
     def protein_domain_graph(self, locus_identifier):
         return None
-
-    @abstractmethod
-    def protein_resources(self, locus_identifier):
-        return None
     
     #Regulation
-    @abstractmethod
-    def regulation_overview(self, locus_identifier):
-        return None
-    
     @abstractmethod
     def regulation_details(self, locus_identifier=None, reference_identifier=None):
         return None
     
     @abstractmethod
     def regulation_graph(self, locus_identifier):
-        return None
-
-    @abstractmethod
-    def regulation_paragraph(self, locus_identifier):
         return None
     
     @abstractmethod
@@ -252,7 +192,7 @@ class BackendInterface:
         return None
 
     @abstractmethod
-    def sequence_details(self, locus_identifier):
+    def sequence_details(self, locus_identifier, contig_identifier):
         return None
 
     @abstractmethod

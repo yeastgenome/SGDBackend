@@ -10,6 +10,39 @@ from feature import Feature
 from general import Dbxref, Url
 
 
+class Book(Base, EqualityByIDMixin):
+    __tablename__ = 'book'
+
+    id = Column('book_no', Integer, primary_key = True)
+    title = Column('title', String)
+    volume_title = Column('volume_title', String)
+    isbn = Column('isbn', String)
+    total_pages = Column('total_pages', Integer)
+    publisher = Column('publisher', String)
+    publisher_location = Column('publisher_location', String)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+
+    def __repr__(self):
+        data = self.title, self.total_pages, self.publisher
+        return 'Book(title=%s, total_pages=%s, publisher=%s)' % data
+
+class Journal(Base, EqualityByIDMixin):
+    __tablename__ = 'journal'
+
+    id = Column('journal_no', Integer, primary_key = True)
+    full_name = Column('full_name', String)
+    abbreviation = Column('abbreviation', String)
+    issn = Column('issn', String)
+    essn = Column('essn', String)
+    publisher = Column('publisher', String)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+
+    def __repr__(self):
+        data = self.full_name, self.publisher
+        return 'Journal(full_name=%s, publisher=%s)' % data
+
 class Reference(Base, EqualityByIDMixin):
     __tablename__ = 'reference'
 
@@ -27,8 +60,8 @@ class Reference(Base, EqualityByIDMixin):
     page = Column('page', String)
     volume = Column('volume', String)
     title = Column('title', String)
-    journal_id = Column('journal_no', Integer, ForeignKey('bud.journal.journal_no'))
-    book_id = Column('book_no', Integer, ForeignKey('bud.book.book_no'))
+    journal_id = Column('journal_no', Integer, ForeignKey(Journal.id))
+    book_id = Column('book_no', Integer, ForeignKey(Book.id))
     doi = Column('doi', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
@@ -52,44 +85,11 @@ class Reference(Base, EqualityByIDMixin):
         data = self.title, self.pubmed_id
         return 'Reference(title=%s, pubmed_id=%s)' % data
     
-class Book(Base, EqualityByIDMixin):
-    __tablename__ = 'book'
-
-    id = Column('book_no', Integer, primary_key = True)
-    title = Column('title', String)
-    volume_title = Column('volume_title', String)
-    isbn = Column('isbn', String)
-    total_pages = Column('total_pages', Integer)
-    publisher = Column('publisher', String)
-    publisher_location = Column('publisher_location', String)
-    created_by = Column('created_by', String)
-    date_created = Column('date_created', Date)
-
-    def __repr__(self):
-        data = self.title, self.total_pages, self.publisher
-        return 'Book(title=%s, total_pages=%s, publisher=%s)' % data
-    
-class Journal(Base, EqualityByIDMixin):
-    __tablename__ = 'journal'
-
-    id = Column('journal_no', Integer, primary_key = True)
-    full_name = Column('full_name', String)
-    abbreviation = Column('abbreviation', String)
-    issn = Column('issn', String)
-    essn = Column('essn', String)
-    publisher = Column('publisher', String)
-    created_by = Column('created_by', String)
-    date_created = Column('date_created', Date)
-
-    def __repr__(self):
-        data = self.full_name, self.publisher
-        return 'Journal(full_name=%s, publisher=%s)' % data
-    
 class DbxrefRef(Base, EqualityByIDMixin):
     __tablename__ = 'dbxref_ref'
 
     id = Column('dbxref_ref_no', Integer, primary_key = True)
-    dbxref_id = Column('dbxref_no', Integer, ForeignKey('bud.dbxref.dbxref_no'))
+    dbxref_id = Column('dbxref_no', Integer, ForeignKey(Dbxref.id))
     reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
     
     dbxref = relationship(Dbxref, uselist=False, lazy='joined')
@@ -148,8 +148,8 @@ class AuthorReference(Base, EqualityByIDMixin):
     __tablename__ = 'author_editor'
 
     id = Column('author_editor_no', Integer, primary_key = True)
-    author_id = Column('author_no', Integer, ForeignKey('bud.author.author_no'))
-    reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
+    author_id = Column('author_no', Integer, ForeignKey(Author.id))
+    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
     order = Column('author_order', Integer)
     type = Column('author_type', String)
 
@@ -159,7 +159,7 @@ class AuthorReference(Base, EqualityByIDMixin):
 class Abstract(Base, EqualityByIDMixin):
     __tablename__ = 'abstract'
 
-    reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'), primary_key = True)
+    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id), primary_key=True)
     text = Column('abstract', String)
 
     def __repr__(self):
@@ -183,7 +183,7 @@ class LitGuide(Base, EqualityByIDMixin):
     __tablename__ = 'lit_guide'
 
     id = Column('lit_guide_no', Integer, primary_key = True)
-    reference_id = Column('reference_no', Integer, ForeignKey("bud.reference.reference_no"))
+    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
     topic = Column('literature_topic', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
@@ -200,15 +200,15 @@ class RefCuration(Base, EqualityByIDMixin):
     __tablename__ = 'ref_curation'
 
     id = Column('ref_curation_no', Integer, primary_key = True)
-    reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
+    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
     task = Column('curation_task', String)
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
     comment = Column('curator_comment', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
     #Relationships
-    feature = relationship('Feature', uselist=False)
+    feature = relationship(Feature, uselist=False)
 
     def __repr__(self):
         if self.feature_id is not None:
@@ -222,8 +222,8 @@ class RefReftype(Base, EqualityByIDMixin):
     __tablename__ = 'ref_reftype'
     
     id = Column('ref_reftype_no', Integer, primary_key = True)
-    reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
-    reftype_id = Column('ref_type_no', Integer, ForeignKey('bud.ref_type.ref_type_no'))
+    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
+    reftype_id = Column('ref_type_no', Integer, ForeignKey(RefType.id))
 
     reftype = relationship('RefType') 
     reftype_name = association_proxy('reftype', 'name')
@@ -233,17 +233,19 @@ class Reflink(Base):
     __tablename__ = 'ref_link'
     
     id = Column('ref_link_no', Integer, primary_key = True)
-    reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
+    reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
     tab_name = Column('tab_name', String)
     primary_key = Column('primary_key', String)
     col_name = Column('col_name', String)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
         
 class RefRelation(Base):
     __tablename__ = 'ref_relationship'
     
-    id = Column('ref_relationship_no', Integer, primary_key = True)
-    parent_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
-    child_id = Column('related_ref_no', Integer, ForeignKey('bud.reference.reference_no'))
+    id = Column('ref_relationship_no', Integer, primary_key=True)
+    parent_id = Column('reference_no', Integer, ForeignKey(Reference.id))
+    child_id = Column('related_ref_no', Integer, ForeignKey(Reference.id))
     description = Column('description', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
@@ -256,9 +258,7 @@ class Litguide(Base):
     topic = Column('literature_topic', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
-    
-    reference = relationship(Reference)
-    
+
 class LitguideFeat(Base):
     __tablename__ = 'litguide_feat'
     
@@ -268,6 +268,6 @@ class LitguideFeat(Base):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
-    litguide = relationship(Litguide)
-    feature = relationship(Feature)
+    litguide = relationship(Litguide, uselist=False, backref='litguide_features')
+    feature = relationship(Feature, uselist=False)
     topic = association_proxy('litguide', 'topic')

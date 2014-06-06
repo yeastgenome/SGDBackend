@@ -1,16 +1,16 @@
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.ext.hybrid import hybrid_property
 
-from misc import Url, Alias, Relation
+from misc import Url, Alias, Relation, Source
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, create_format_name
+from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 
 
 __author__ = 'kpaskov'
 
-class Bioconcept(Base, EqualityByIDMixin):
+class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = "bioconcept"
         
     id = Column('bioconcept_id', Integer, primary_key=True)
@@ -18,106 +18,98 @@ class Bioconcept(Base, EqualityByIDMixin):
     format_name = Column('format_name', String)
     class_type = Column('subclass', String)
     link = Column('obj_url', String)
-    source_id = Column('source_id', Integer)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
     sgdid = Column('sgdid', String)
     description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
-    __mapper_args__ = {'polymorphic_on': class_type,
-                       'polymorphic_identity':"BIOCONCEPT"}
-    
-    def __init__(self, display_name, format_name, class_type, link, source, sgdid, description, date_created, created_by):
-        self.display_name = display_name
-        self.format_name = format_name
-        self.class_type = class_type
-        self.link = link
-        self.source_id = source.id
-        self.sgdid = sgdid
-        self.description = description
-        self.date_created = date_created
-        self.created_by = created_by
+    #Relationships
+    source = relationship(Source, uselist=False, lazy='joined')
+
+    __mapper_args__ = {'polymorphic_on': class_type}
         
     def unique_key(self):
-        return (self.format_name, self.class_type)
-
-    def to_json(self):
-        return {
-            'id': self.id,
-            'format_name': self.format_name,
-            'display_name': self.display_name,
-            'link': self.link,
-            'class_type': self.class_type
-            }
+        return self.format_name, self.class_type
       
 class Bioconceptrelation(Relation):
     __tablename__ = 'bioconceptrelation'
 
     id = Column('relation_id', Integer, primary_key=True)
-    bioconrel_class_type = Column('subclass', String)
     parent_id = Column('parent_id', Integer, ForeignKey(Bioconcept.id))
     child_id = Column('child_id', Integer, ForeignKey(Bioconcept.id))
 
     #Relationships
-    parent = relationship(Bioconcept, uselist=False, backref=backref("children", passive_deletes=True), primaryjoin="Bioconceptrelation.parent_id==Bioconcept.id")
-    child = relationship(Bioconcept, uselist=False, backref=backref("parents", passive_deletes=True), primaryjoin="Bioconceptrelation.child_id==Bioconcept.id")
+    parent = relationship(Bioconcept, uselist=False, backref=backref("children", passive_deletes=True), foreign_keys=[parent_id])
+    child = relationship(Bioconcept, uselist=False, backref=backref("parents", passive_deletes=True), foreign_keys=[child_id])
     
-    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
-                       'inherit_condition': id == Relation.id}
+    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT', 'inherit_condition': id == Relation.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relation_type',
+                     'parent_id', 'child_id',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source']
    
-    def __init__(self, source, relation_type, parent, child, bioconrel_class_type, date_created, created_by):
-        Relation.__init__(self, 
-                          child.display_name + ' ' + ('' if relation_type is None else relation_type + ' ') + parent.display_name, 
-                          str(parent.id) + '_' + str(child.id) + '_' + bioconrel_class_type, 
-                          'BIOCONCEPT', source, relation_type, date_created, created_by)
-        self.parent_id = parent.id
-        self.child_id = child.id
-        self.bioconrel_class_type = bioconrel_class_type
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
+        self.display_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
+        if self.relation_type is not None:
+            self.format_name = self.format_name + ' - ' + self.relation_type
+            self.display_name = self.display_name + ' - ' + self.relation_type
     
 class Bioconcepturl(Url):
     __tablename__ = 'bioconcepturl'
     
     id = Column('url_id', Integer, primary_key=True)
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
-    subclass_type = Column('subclass', String)
+
+    #Relationships
+    bioconcept = relationship(Bioconcept, uselist=False, backref=backref('urls', passive_deletes=True))
         
-    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
-                       'inherit_condition': id == Url.id}
-    def __init__(self, display_name, link, source, category, bioconcept, date_created, created_by):
-        Url.__init__(self, display_name, bioconcept.format_name, 'BIOCONCEPT', link, source, category,
-                     date_created, created_by)
-        self.bioconcept_id = bioconcept.id
-        self.subclass_type = bioconcept.class_type
+    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT', 'inherit_condition': id == Url.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category',
+                     'bioconcept_id',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = str(obj_json.get('bioconcept_id'))
     
 class Bioconceptalias(Alias):
     __tablename__ = 'bioconceptalias'
     
     id = Column('alias_id', Integer, primary_key=True)
     bioconcept_id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id))
-    subclass_type = Column('subclass', String)
 
+    #Relationships
     bioconcept = relationship(Bioconcept, uselist=False, backref=backref('aliases', passive_deletes=True))
 
-    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT',
-                       'inherit_condition': id == Alias.id}
+    __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT', 'inherit_condition': id == Alias.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category',
+                     'bioconcept_id',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source']
     
-    def __init__(self, display_name, source, category, bioconcept, date_created, created_by):
-        Alias.__init__(self, display_name, bioconcept.format_name, 'BIOCONCEPT', None, source, category, date_created, created_by)
-        self.bioconcept_id = bioconcept.id
-        self.subclass_type = bioconcept.class_type
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = str(obj_json.get('bioconcept_id'))
 
 class ECNumber(Bioconcept):
-    __mapper_args__ = {'polymorphic_identity': "EC_NUMBER",
-                       'inherit_condition': id==Bioconcept.id}   
+    __mapper_args__ = {'polymorphic_identity': "EC_NUMBER", 'inherit_condition': id==Bioconcept.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source']
      
-    def __init__(self, display_name, source, description, date_created, created_by):
-        Bioconcept.__init__(self, display_name + ('' if description is None else ' (' + description + ')'), display_name, 'EC_NUMBER', '/ec_number/' + display_name + '/overview', source, None, description, date_created, created_by)
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        if self.display_name is not None:
+            self.link = '/ecnumber/' + self.display_name + '/overview'
+        self.format_name = self.display_name
 
-    def to_full_json(self):
-        obj_json = self.to_json()
-        obj_json['count'] = None if self.count is None else self.count.gene_count
-        obj_json['child_count'] = None if self.count is None else self.count.child_gene_count
-        obj_json['description'] = self.description
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
         return obj_json
 
 class Go(Bioconcept):
@@ -127,34 +119,44 @@ class Go(Bioconcept):
     go_id = Column('go_id', String)
     go_aspect = Column('go_aspect', String)
     
-    __mapper_args__ = {'polymorphic_identity': "GO",
-                       'inherit_condition': id==Bioconcept.id}   
+    __mapper_args__ = {'polymorphic_identity': "GO", 'inherit_condition': id==Bioconcept.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
+                     'go_id', 'go_aspect',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source']
      
-    def __init__(self, display_name, source, sgdid, description, 
-                 go_id, go_aspect, date_created, created_by):
-        if display_name == 'biological_process':
-            Bioconcept.__init__(self, 'biological process', go_id, 'GO', '/ontology/go/biological_process/overview', source, sgdid, description, date_created, created_by)
-        elif display_name == 'molecular_function':
-            Bioconcept.__init__(self, 'molecular function', go_id, 'GO', '/ontology/go/molecular_function/overview', source, sgdid, description, date_created, created_by)
-        elif display_name == 'cellular_component':
-            Bioconcept.__init__(self, 'cellular component', go_id, 'GO', '/ontology/go/cellular_component/overview', source, sgdid, description, date_created, created_by)
-        else:
-            Bioconcept.__init__(self, display_name, go_id, 'GO', '/go/' + go_id + '/overview', source, sgdid, description, date_created, created_by)
-        self.go_id = go_id
-        self.go_aspect = go_aspect
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        if self.display_name == 'biological_process':
+            self.display_name = 'biological process'
+            self.link = '/ontology/go/biological_process/overview'
+            self.format_name = 'biological_process'
+        elif self.display_name == 'molecular_function':
+            self.display_name = 'molecular function'
+            self.link = '/ontology/go/molecular_function/overview'
+            self.format_name = 'molecular_function'
+        elif self.display_name == 'cellular_component':
+            self.display_name = 'cellular component'
+            self.link = '/ontology/go/cellular_component/overview'
+            self.format_name = 'cellular_component'
+        elif self.go_id is not None:
+            self.link = '/go/' + self.go_id + '/overview'
+            self.format_name = self.go_id
+
+    @hybrid_property
+    def count(self):
+        return len(set([x.locus_id for x in self.go_evidences]))
+
+    @hybrid_property
+    def child_count(self):
+        return self.count + sum([x.child.count for x in self.children if x.relation_type == 'is a'])
 
     def to_json(self):
-        obj_json = Bioconcept.to_json(self)
-        obj_json['aspect'] = self.go_aspect
-        obj_json['go_id'] = self.go_id
-        return obj_json
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['count'] = self.count
+        obj_json['child_count'] = self.child_count
 
-    def to_full_json(self):
-        obj_json = self.to_json()
-        obj_json['description'] = self.description
-        obj_json['aliases'] = [x.to_json() for x in self.aliases]
-        obj_json['count'] = self.count.gene_count
-        obj_json['child_count'] = self.count.child_gene_count
+        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
         return obj_json
         
 def create_phenotype_display_name(observable, qualifier):
@@ -173,49 +175,163 @@ def create_phenotype_format_name(observable, qualifier):
         qualifier = '.' if qualifier is None else qualifier
         format_name = create_format_name(qualifier.lower() + '_' + observable.lower())
     return format_name
+
+class Observable(Bioconcept):
+    __tablename__ = "observablebioconcept"
+
+    id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key=True)
+    ancestor_type = Column('ancestor_type', String)
+
+    __mapper_args__ = {'polymorphic_identity': "OBSERVABLE", 'inherit_condition': id==Bioconcept.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
+                     'ancestor_type',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        if self.display_name == 'observable':
+            self.display_name = 'Yeast Phenotype Ontology'
+            self.format_name = 'ypo'
+            self.link = '/ontology/phenotype/ypo/overview'
+        else:
+            self.format_name = create_format_name(self.display_name.lower())
+            self.link = '/observable/' + self.format_name + '/overview'
+
+    @hybrid_property
+    def count(self):
+        locus_ids = set()
+        for phenotype in self.phenotypes:
+            locus_ids.update([x.locus_id for x in phenotype.phenotype_evidences])
+        return len(locus_ids)
+
+    @hybrid_property
+    def child_count(self):
+        return self.count + sum([x.child.count for x in self.children if x.relation_type == 'is a'])
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['count'] = self.count
+        obj_json['child_count'] = self.child_count
+        return obj_json
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+
+        #Phenotype overview
+        phenotype_evidences = []
+        for phenotype in self.phenotypes:
+            phenotype_evidences.extend(phenotype.phenotype_evidences)
+
+        classical_groups = dict()
+        large_scale_groups = dict()
+        strain_groups = dict()
+        for evidence in phenotype_evidences:
+            if evidence.experiment.category == 'classical genetics':
+                if evidence.mutant_type in classical_groups:
+                    classical_groups[evidence.mutant_type] += 1
+                else:
+                    classical_groups[evidence.mutant_type] = 1
+            elif evidence.experiment.category == 'large-scale survey':
+                if evidence.mutant_type in large_scale_groups:
+                    large_scale_groups[evidence.mutant_type] += 1
+                else:
+                    large_scale_groups[evidence.mutant_type] = 1
+
+            if evidence.strain is not None:
+                if evidence.strain.display_name in strain_groups:
+                    strain_groups[evidence.strain.display_name] += 1
+                else:
+                    strain_groups[evidence.strain.display_name] = 1
+        experiment_categories = []
+        mutant_types = set(classical_groups.keys())
+        mutant_types.update(large_scale_groups.keys())
+        for mutant_type in mutant_types:
+            experiment_categories.append([mutant_type, 0 if mutant_type not in classical_groups else classical_groups[mutant_type], 0 if mutant_type not in large_scale_groups else large_scale_groups[mutant_type]])
+
+        strains = []
+        for strain, count in strain_groups.iteritems():
+            strains.append([strain, count])
+        experiment_categories.sort(key=lambda x: x[1] + x[2], reverse=True)
+        experiment_categories.insert(0, ['Mutant Type', 'classical genetics', 'large-scale survey'])
+        strains.sort(key=lambda x: x[1], reverse=True)
+        strains.insert(0, ['Strain', 'Annotations'])
+        obj_json['overview'] = {'experiment_categories': experiment_categories,
+                                          'strains': strains}
+
+        #Phenotypes
+        obj_json['phenotypes'] = []
+        for phenotype in self.phenotypes:
+            phenotype_json = phenotype.to_min_json()
+            phenotype_json['qualifier'] = phenotype.qualifier
+            obj_json['phenotypes'].append(phenotype_json)
+
+        #Counts
+        obj_json['count'] = self.count
+        obj_json['child_count'] = self.child_count
+
+        return obj_json
         
 class Phenotype(Bioconcept):
     __tablename__ = "phenotypebioconcept"
     
-    id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
-    observable = Column('observable', String)
+    id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key=True)
+    observable_id = Column('observable_id', Integer, ForeignKey(Observable.id))
     qualifier = Column('qualifier', String)
-    phenotype_type = Column('phenotype_type', String)
-    is_core_num = Column('is_core', Integer)
-    ancestor_type = Column('ancestor_type', String)
+
+    #Relationships
+    observable = relationship(Observable, uselist=False, foreign_keys=[observable_id], lazy='joined', backref="phenotypes")
        
-    __mapper_args__ = {'polymorphic_identity': "PHENOTYPE",
-                       'inherit_condition': id==Bioconcept.id}
+    __mapper_args__ = {'polymorphic_identity': "PHENOTYPE", 'inherit_condition': id==Bioconcept.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
+                     'qualifier',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'observable']
 
-    def __init__(self, source, sgdid, description,
-                 observable, qualifier, phenotype_type, ancestor_type,
-                 date_created, created_by):
-        if observable == 'observable':
-            Bioconcept.__init__(self, 'Yeast Phenotype Ontology', 'ypo', 'PHENOTYPE', '/ontology/phenotype/ypo/overview', source, sgdid, description, date_created, created_by)
-        else:
-            format_name = create_phenotype_format_name(observable, qualifier)
-            link = '/observable/' + format_name + '/overview' if qualifier is None else '/phenotype/' + format_name + '/overview'
-            Bioconcept.__init__(self, create_phenotype_display_name(observable, qualifier), format_name, 'PHENOTYPE', link, source, sgdid, description, date_created, created_by)
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.display_name = create_phenotype_display_name(obj_json['observable'].display_name, self.qualifier)
+        self.format_name = create_phenotype_format_name(obj_json['observable'].display_name, self.qualifier)
+        self.link = '/phenotype/' + self.format_name + '/overview'
 
-        self.observable = observable
-        self.qualifier = qualifier
-        self.phenotype_type = phenotype_type
-        self.is_core_num = 1 if self.qualifier is None else 0
-        self.ancestor_type = ancestor_type
-      
-    @hybrid_property  
-    def is_core(self):
-        return self.is_core_num == 1
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
 
-    def to_full_json(self):
-        obj_json = self.to_json()
-        obj_json['description'] = self.description
-        obj_json['ancestor_type'] = self.ancestor_type
-        obj_json['is_core'] = self.is_core
-        obj_json['qualifier'] = self.qualifier
-        obj_json['observable'] = self.observable
-        obj_json['count'] = self.count.gene_count
-        obj_json['child_count'] = self.count.child_gene_count
+        #Phenotype overview
+        classical_groups = dict()
+        large_scale_groups = dict()
+        strain_groups = dict()
+        for evidence in self.phenotype_evidences:
+            if evidence.experiment.category == 'classical genetics':
+                if evidence.mutant_type in classical_groups:
+                    classical_groups[evidence.mutant_type] += 1
+                else:
+                    classical_groups[evidence.mutant_type] = 1
+            elif evidence.experiment.category == 'large-scale survey':
+                if evidence.mutant_type in large_scale_groups:
+                    large_scale_groups[evidence.mutant_type] += 1
+                else:
+                    large_scale_groups[evidence.mutant_type] = 1
+            if evidence.strain is not None:
+                if evidence.strain.display_name in strain_groups:
+                    strain_groups[evidence.strain.display_name] += 1
+                else:
+                    strain_groups[evidence.strain.display_name] = 1
+        experiment_categories = []
+        mutant_types = set(classical_groups.keys())
+        mutant_types.update(large_scale_groups.keys())
+        for mutant_type in mutant_types:
+            experiment_categories.append([mutant_type, 0 if mutant_type not in classical_groups else classical_groups[mutant_type], 0 if mutant_type not in large_scale_groups else large_scale_groups[mutant_type]])
+
+        strains = []
+        for strain, count in strain_groups.iteritems():
+            strains.append([strain, count])
+        experiment_categories.sort(key=lambda x: x[1] + x[2], reverse=True)
+        experiment_categories.insert(0, ['Mutant Type', 'classical genetics', 'large-scale survey'])
+        strains.sort(key=lambda x: x[1], reverse=True)
+        strains.insert(0, ['Strain', 'Annotations'])
+        obj_json['overview'] = {'experiment_categories': experiment_categories,
+                                          'strains': strains}
         return obj_json
 
 

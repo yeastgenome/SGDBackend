@@ -7,6 +7,7 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.bud import Base
 from phenotype import Phenotype
 from reference import Reference
+from feature import Feature
 
 
 __author__ = 'kpaskov'
@@ -24,10 +25,8 @@ class Interaction(Base, EqualityByIDMixin):
     date_created = Column('date_created', Date)
     
     #Relationships
-    interaction_references = relationship('Interaction_Reference', lazy='subquery')
+    interaction_references = relationship('Interaction_Reference')
     reference_ids = association_proxy('interaction_references', 'reference_id')
-    
-    interaction_phenotypes = relationship('Interaction_Phenotype', lazy='subquery')
     
     feature_ids = association_proxy('interaction_features', 'feature_id')
 
@@ -39,7 +38,7 @@ class Interaction_Reference(Base, EqualityByIDMixin):
     __tablename__ = 'interact_ref'
 
     id = Column('interact_ref_no', Integer, primary_key=True)
-    interaction_id = Column('interaction_no', Integer, ForeignKey('bud.interaction.interaction_no'))
+    interaction_id = Column('interaction_no', Integer, ForeignKey(Interaction.id))
     reference_id = Column('reference_no', Integer, ForeignKey(Reference.id))
     note = Column('note', String)
     created_by = Column('created_by', String)
@@ -52,21 +51,23 @@ class Interaction_Phenotype(Base, EqualityByIDMixin):
     __tablename__ = 'interact_pheno'
 
     id = Column('interact_pheno_no', Integer, primary_key=True)
-    interaction_id = Column('interaction_no', Integer, ForeignKey('bud.interaction.interaction_no'))
-    phenotype_id = Column('phenotype_no', Integer, ForeignKey('bud.phenotype.phenotype_no'))
+    interaction_id = Column('interaction_no', Integer, ForeignKey(Interaction.id))
+    phenotype_id = Column('phenotype_no', Integer, ForeignKey(Phenotype.id))
     
     #Relationships
     phenotype = relationship(Phenotype, uselist=False)
+    interaction = relationship(Interaction, uselist=False, backref='interaction_phenotypes')
     qualifier = association_proxy('phenotype', 'qualifier')
     observable = association_proxy('phenotype', 'observable')
+    mutant_type = association_proxy('phenotype', 'mutant_type')
     
 class Interaction_Feature(Base, EqualityByIDMixin):
     __tablename__ = 'feat_interact'
     
     id = Column('feat_interact_no', Integer, primary_key = True)
-    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
-    interaction_id = Column('interaction_no', Integer, ForeignKey('bud.interaction.interaction_no'))
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
+    interaction_id = Column('interaction_no', Integer, ForeignKey(Interaction.id))
     action = Column('action', String)
         
-    feature = relationship('Feature', uselist=False) 
+    feature = relationship(Feature, uselist=False)
     interaction = relationship(Interaction, backref='interaction_features', uselist=False)

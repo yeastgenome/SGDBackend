@@ -1,105 +1,112 @@
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload
+from src.sgd.backend.nex.view_go import get_go_evidence
+from src.sgd.backend.nex.view_interaction import get_genetic_interaction_evidence, get_physical_interaction_evidence
+from src.sgd.backend.nex.view_phenotype import get_phenotype_evidence
+from src.sgd.backend.nex.view_regulation import get_regulation_evidence
+from src.sgd.model.nex.evidence import Literatureevidence, Goevidence, Regulationevidence, Phenotypeevidence, \
+    Physinteractionevidence, Geninteractionevidence
 from src.sgd.backend.nex import DBSession, query_limit
-from src.sgd.backend.nex.query_tools import get_bioentity_references
+from src.sgd.model.nex.archive import ArchiveLiteratureevidence
 from src.sgd.model.nex.bioentity import Bioentity
-from src.sgd.model.nex.evidence import Literatureevidence
 from src.sgd.model.nex.reference import Reference
+from src.sgd.model.nex.auxiliary import Referenceinteraction
+import json
 
 __author__ = 'kpaskov'
 
-# -------------------------------Overview---------------------------------------
-def make_overview(bioent_id):
-    references = {}
-
-    primary_ids = set([x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
-    all_ids = set(primary_ids)
-    all_ids.update([x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
-    all_ids.update([x.reference_id for x in get_bioentity_references('ADDITIONAL_LITERATURE', bioent_id=bioent_id)])
-    all_ids.update([x.reference_id for x in get_bioentity_references('REVIEW_LITERATURE', bioent_id=bioent_id)])
-    all_ids.update([x.reference_id for x in get_bioentity_references('GO', bioent_id=bioent_id) if x.reference_id in primary_ids])
-    all_ids.update([x.reference_id for x in get_bioentity_references('PHENOTYPE', bioent_id=bioent_id) if x.reference_id in primary_ids])
-    all_ids.update([x.reference_id for x in get_bioentity_references('GENINTERACTION', bioent_id=bioent_id)])
-    all_ids.update([x.reference_id for x in get_bioentity_references('PHYSINTERACTION', bioent_id=bioent_id)])
-    all_ids.update([x.reference_id for x in get_bioentity_references('REGULATION', bioent_id=bioent_id)])
-
-    references['total_count'] = len(all_ids)
-    return references
-
 # -------------------------------Details---------------------------------------
-def get_literature_evidence(locus_id, reference_id):
+def get_literature_evidence(locus_id, reference_id, topic):
     query = DBSession.query(Literatureevidence)
     if locus_id is not None:
-        query = query.filter_by(bioentity_id=locus_id)
+        query = query.options(joinedload('reference'))
+    if locus_id is not None:
+        query = query.filter_by(locus_id=locus_id)
     if reference_id is not None:
         query = query.filter_by(reference_id=reference_id)
+    if topic is not None:
+        query = query.filter(func.lower(Literatureevidence.topic) == topic.lower())
 
     if query.count() > query_limit:
         return None
     return query.all()
 
-def make_details(locus_id=None, reference_id=None):
-    if locus_id is None and reference_id is None:
-        return {'Error': 'No locus_id or reference_id given.'}
+def get_archived_literature_evidence(locus_id, reference_id, topic):
+    query = DBSession.query(ArchiveLiteratureevidence)
+    if locus_id is not None:
+        query = query.filter_by(bioentity_id=locus_id)
+    if reference_id is not None:
+        query = query.filter_by(reference_id=reference_id)
+    if topic is not None:
+        query = query.filter(func.lower(ArchiveLiteratureevidence.topic) == topic.lower())
 
-    if locus_id is not None and reference_id is None:
-        references = {}
-        references['primary'] = make_references(['PRIMARY_LITERATURE'], locus_id)
-        references['additional'] = make_references(['ADDITIONAL_LITERATURE'], locus_id)
-        references['reviews'] = make_references(['REVIEW_LITERATURE'], locus_id)
-        references['go'] = make_references(['GO'], locus_id, only_primary=True)
-        references['phenotype'] = make_references(['PHENOTYPE'], locus_id, only_primary=True)
-        references['interaction'] = make_references(['GENINTERACTION', 'PHYSINTERACTION'], locus_id)
-        references['regulation'] = make_references(['REGULATION'], locus_id)
-        return references
-    else:
-        evidences = get_literature_evidence(locus_id=locus_id, reference_id=reference_id)
+    if query.count() > query_limit:
+        return None
+    return query.all()
 
-        if evidences is None:
-            return {'Error': 'Too much data to display.'}
+def make_details(locus_id=None, reference_id=None, topic=None):
+    if locus_id is None and reference_id is None and topic is None:
+        return {'Error': 'No locus_id or reference_id or topic given.'}
 
-        tables = {}
-        tables['primary'] = sorted([x.to_json() for x in evidences if x.topic == 'Primary Literature'], key=lambda x: x['bioentity']['display_name'])
-        tables['additional'] = sorted([x.to_json() for x in evidences if x.topic == 'Additional Literature'], key=lambda x: x['bioentity']['display_name'])
-        tables['reviews'] = sorted([x.to_json() for x in evidences if x.topic == 'Reviews'], key=lambda x: x['bioentity']['display_name'])
-        return tables
+    evidences = get_literature_evidence(locus_id=locus_id, reference_id=reference_id, topic=topic)
 
-def make_references(bioent_ref_types, bioent_id, only_primary=False):
-    references = set()
-    for bioent_ref_type in bioent_ref_types:
-        references.update([x.reference for x in get_bioentity_references(bioent_ref_type, bioent_id=bioent_id)])
+    if evidences is None:
+        return {'Error': 'Too much data to display.'}
 
-    if only_primary:
-        primary_ids = set([x.reference for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)])
-        references.intersection_update(primary_ids)
+    if locus_id is not None:
+        primary_ids = set([x.reference_id for x in evidences if x.topic == 'Primary Literature'])
+        evidences.sort(key=lambda x: (x.reference.year, x.reference.pubmed_id), reverse=True)
+        go_references = sorted(set([x.reference for x in DBSession.query(Goevidence).filter_by(locus_id=locus_id).options(joinedload('reference')).all() if x.reference_id in primary_ids]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
+        phenotype_references = sorted(set([x.reference for x in DBSession.query(Phenotypeevidence).filter_by(locus_id=locus_id).options(joinedload('reference')).all() if x.reference_id in primary_ids]), key=lambda x: (x.year, x.pubmed_id), reverse=True)
+        regulation_references = set([x.reference for x in DBSession.query(Regulationevidence).filter_by(locus1_id=locus_id).options(joinedload('reference')).all()])
+        regulation_references.update([x.reference for x in DBSession.query(Regulationevidence).filter_by(locus2_id=locus_id).options(joinedload('reference')).all()])
+        regulation_references = list(regulation_references)
+        regulation_references.sort(key=lambda x: (x.year, x.pubmed_id), reverse=True)
+        interaction_references = set([x.reference for x in DBSession.query(Geninteractionevidence).filter_by(locus1_id=locus_id).options(joinedload('reference')).all()])
+        interaction_references.update([x.reference for x in DBSession.query(Geninteractionevidence).filter_by(locus2_id=locus_id).options(joinedload('reference')).all()])
+        interaction_references.update([x.reference for x in DBSession.query(Physinteractionevidence).filter_by(locus1_id=locus_id).options(joinedload('reference')).all()])
+        interaction_references.update([x.reference for x in DBSession.query(Physinteractionevidence).filter_by(locus2_id=locus_id).options(joinedload('reference')).all()])
+        interaction_references = list(interaction_references)
+        interaction_references.sort(key=lambda x: (x.year, x.pubmed_id), reverse=True)
 
-    return sorted([x.to_semi_full_json() for x in references], key=lambda x: (x['year'], x['pubmed_id']), reverse=True)
+        return json.dumps({'primary': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Primary Literature'])],
+                'additional': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Additional Literature'])],
+                'review': [x.to_semi_json() for x in set([y.reference for y in evidences if y.topic == 'Reviews'])],
+                'go': [x.to_semi_json() for x in go_references],
+                'phenotype': [x.to_semi_json() for x in phenotype_references],
+                'regulation': [x.to_semi_json() for x in regulation_references],
+                'interaction': [x.to_semi_json() for x in sorted(interaction_references, key=lambda x: (x.year, x.pubmed_id), reverse=True)]})
+    elif reference_id is not None:
+        return '[' + ', '.join([x.json for x in evidences if x.json is not None]) + ']'
+    return '[' + ', '.join([x.json for x in evidences if x.json is not None]) + ']'
 
 # -------------------------------Graph---------------------------------------
 def create_litguide_bioent_node(bioent, is_focus):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'LocusNode' + str(bioent.id), 'name':bioent.display_name, 'link': bioent.link,
-                    'sub_type':sub_type, 'type': 'BIOENT'}}
+    return {'data':{'id': 'BIOENTITY' + str(bioent.id), 'name':bioent.display_name, 'link': bioent.link,
+                    'sub_type':sub_type, 'type': 'BIOENTITY'}}
     
 def create_litguide_ref_node(reference, is_focus):
     sub_type = None
     if is_focus:
         sub_type = 'FOCUS'
-    return {'data':{'id':'RefNode' + str(reference.id), 'name':reference.display_name, 'link': reference.link,
+    return {'data':{'id':'INTERACTOR_REFERENCE' + str(reference.id), 'name':reference.display_name, 'link': reference.link,
                     'sub_type':sub_type, 'type': 'REFERENCE'}}
 
 def create_litguide_edge(bioent_id, reference_id):
-    return {'data':{'target': 'LocusNode' + str(bioent_id), 'source': 'RefNode' + str(reference_id)}}
+    return {'data':{'target': 'BIOENTITY' + str(bioent_id), 'source': 'INTERACTOR_REFERENCE' + str(reference_id)}}
 
 def make_graph(bioent_id):
     
     #Get primary genes for each paper in bioentevidences
-    reference_ids = [x.reference_id for x in get_bioentity_references('PRIMARY_LITERATURE', bioent_id=bioent_id)]
+    reference_ids = [x.interactor_id for x in DBSession.query(Referenceinteraction).filter_by(interaction_type='PRIMARY').filter_by(bioentity_id=bioent_id).all()]
 
     reference_id_to_bioent_ids = {}
-    for bioent_ref in get_bioentity_references('PRIMARY_LITERATURE', reference_ids=reference_ids):
+    for bioent_ref in DBSession.query(Referenceinteraction).filter_by(interaction_type='PRIMARY').filter(Referenceinteraction.interactor_id.in_(reference_ids)).all():
         bioentity_id = bioent_ref.bioentity_id
-        reference_id = bioent_ref.reference_id
+        reference_id = bioent_ref.interactor_id
         if reference_id in reference_id_to_bioent_ids:
             reference_id_to_bioent_ids[reference_id].add(bioentity_id)
         else:

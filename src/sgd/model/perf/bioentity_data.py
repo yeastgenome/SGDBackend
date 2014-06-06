@@ -8,80 +8,41 @@ from src.sgd.model import EqualityByIDMixin
 
 __author__ = 'kpaskov'
 
-class BioentityOverview(Base, EqualityByIDMixin):
-        __tablename__ = 'bioentity_overview'
+class BioentityGraph(Base):
+    __tablename__ = 'bioentity_graph'
 
-        id = Column('bioentity_overview_id', Integer, primary_key=True)
-        bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-        class_type = Column('class', String)
-        json = Column('json', String)
+    id = Column('bioentity_graph_id', Integer, primary_key=True)
+    obj_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    class_type = Column('class', String)
+    json = Column('json', CLOB)
 
-        def __init__(self, bioentity_id, class_type, json):
-            self.bioentity_id = bioentity_id
-            self.class_type = class_type
-            self.json = json
+    def __init__(self, bioentity_id, class_type, json):
+        self.obj_id = bioentity_id
+        self.class_type = class_type
+        self.json = json
 
-class BioentityGraph(Base, EqualityByIDMixin):
-        __tablename__ = 'bioentity_graph'
+class BioentityEnrichment(Base):
+    __tablename__ = 'bioentity_enrichment'
 
-        id = Column('bioentity_graph_id', Integer, primary_key=True)
-        bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-        class_type = Column('class', String)
-        json = Column('json', CLOB)
+    id = Column('bioentity_enrichment_id', Integer, primary_key=True)
+    obj_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    class_type = Column('class', String)
+    json = Column('json', CLOB)
 
-        def __init__(self, bioentity_id, class_type, json):
-            self.bioentity_id = bioentity_id
-            self.class_type = class_type
-            self.json = json
+    def __init__(self, bioentity_id, class_type, json):
+        self.obj_id = bioentity_id
+        self.class_type = class_type
+        self.json = json
 
-class BioentityResources(Base, EqualityByIDMixin):
-        __tablename__ = 'bioentity_resources'
+class BioentityDetails(Base):
+    __tablename__ = 'bioentity_details'
 
-        id = Column('bioentity_resources_id', Integer, primary_key=True)
-        bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-        class_type = Column('class', String)
-        json = Column('json', String)
+    id = Column('bioentity_details_id', Integer, primary_key=True)
+    obj_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    class_type = Column('class', String)
+    json = Column('json', CLOB)
 
-        def __init__(self, bioentity_id, class_type, json):
-            self.bioentity_id = bioentity_id
-            self.class_type = class_type
-            self.json = json
-
-class BioentityEnrichment(Base, EqualityByIDMixin):
-        __tablename__ = 'bioentity_enrichment'
-
-        id = Column('bioentity_enrichment_id', Integer, primary_key=True)
-        bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-        class_type = Column('class', String)
-        json = Column('json', CLOB)
-
-        def __init__(self, bioentity_id, class_type, json):
-            self.bioentity_id = bioentity_id
-            self.class_type = class_type
-            self.json = json
-
-class BioentityParagraph(Base, EqualityByIDMixin):
-        __tablename__ = 'bioentity_paragraph'
-
-        id = Column('bioentity_paragraph_id', Integer, primary_key=True)
-        bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-        class_type = Column('class', String)
-        json = Column('json', CLOB)
-
-        def __init__(self, bioentity_id, class_type, json):
-            self.bioentity_id = bioentity_id
-            self.class_type = class_type
-            self.json = json
-
-class BioentityDetails(Base, EqualityByIDMixin):
-        __tablename__ = 'bioentity_details'
-
-        id = Column('bioentity_details_id', Integer, primary_key=True)
-        bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-        class_type = Column('class', String)
-        json = Column('json', CLOB)
-
-        def __init__(self, bioentity_id, class_type, json):
-            self.bioentity_id = bioentity_id
-            self.class_type = class_type
-            self.json = json
+    def __init__(self, bioentity_id, class_type, json):
+        self.obj_id = bioentity_id
+        self.class_type = class_type
+        self.json = json

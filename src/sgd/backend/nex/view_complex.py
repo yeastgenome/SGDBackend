@@ -1,5 +1,6 @@
 from src.sgd.model.nex.evidence import Complexevidence
 from src.sgd.backend.nex import DBSession, query_limit
+import json
 
 __author__ = 'kpaskov'
 
@@ -9,7 +10,7 @@ def get_complex_evidence(locus_id, complex_id):
     if complex_id is not None:
         query = query.filter_by(complex_id=complex_id)
     if locus_id is not None:
-        query = query.filter_by(bioentity_id=locus_id)
+        query = query.filter_by(locus_id=locus_id)
 
     if query.count() > query_limit:
         return None
@@ -24,4 +25,4 @@ def make_details(locus_id=None, complex_id=None):
     if complex_evidences is None:
         return {'Error': 'Too much data to display.'}
 
-    return [x.to_json() for x in complex_evidences]
+    return '[' + ', '.join([x.json for x in complex_evidences if x.json is not None]) + ']'

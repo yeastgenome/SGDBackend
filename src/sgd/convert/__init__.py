@@ -1,117 +1,12 @@
-from abc import abstractmethod, ABCMeta
-from datetime import datetime
-import logging
-
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative.api import declarative_base
 from sqlalchemy.orm.session import sessionmaker
+from sqlalchemy import not_
 
 from src.sgd.convert.config import log_directory
 
 
 __author__ = 'kpaskov'
-
-class ConverterInterface:
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def convert_basic(self):
-        return None
-
-    @abstractmethod
-    def convert_basic_continued(self):
-        return None
-
-    @abstractmethod
-    def convert_reference(self):
-        return None
-
-    @abstractmethod
-    def convert_phenotype(self):
-        return None
-
-    @abstractmethod
-    def convert_literature(self):
-        return None
-
-    @abstractmethod
-    def convert_go(self):
-        return None
-
-    @abstractmethod
-    def convert_complex(self):
-        return None
-
-    @abstractmethod
-    def convert_sequence(self):
-        return None
-
-    @abstractmethod
-    def convert_interaction(self):
-        return None
-
-    @abstractmethod
-    def convert_protein(self):
-        return None
-
-    @abstractmethod
-    def convert_regulation(self):
-        return None
-
-output = []
-
-def write_to_output_file(text):
-    print text
-    output.append(text)
-
-class OutputCreator():
-    num_added = 0
-    num_changed = 0
-    fields_changed = {}
-    num_removed = 0
-    log = None
-
-    def __init__(self, log):
-        self.log = log
-
-    def added(self):
-        self.num_added = self.num_added+1
-
-    def removed(self):
-        self.num_removed = self.num_removed+1
-
-    def changed(self, key, field_name):
-        self.num_changed = self.num_changed+1
-        if field_name in self.fields_changed:
-            self.fields_changed[field_name] = self.fields_changed[field_name] + 1
-        else:
-            self.fields_changed[field_name] = 1
-
-    def finished(self, msg=None):
-        if msg is not None:
-            self.log.info(msg + ' ' + str((self.num_added, self.num_changed, self.num_removed)))
-        else:
-            self.log.info((self.num_added, self.num_changed, self.num_removed))
-
-    def change_made(self):
-        return self.num_added + self.num_changed + self.num_removed != 0
-
-def check_session_maker(session_maker, DBHOST, SCHEMA):
-    query = None
-    if SCHEMA == 'bud':
-        from src.sgd.model.bud import feature
-        query = session_maker().query(feature.Feature)
-    elif SCHEMA == 'nex':
-        from src.sgd.model.nex import bioentity
-        query = session_maker().query(bioentity.Bioentity)
-    elif SCHEMA == 'perf':
-        from src.sgd.model.perf import core
-        query = session_maker().query(core.Bioentity)
-
-    try:
-        query.first()
-    except:
-        raise Exception("Connection to " + DBHOST + " failed. Please check your parameters.")
 
 def prepare_schema_connection(model_cls, dbtype, dbhost, dbname, schema, dbuser, dbpass):
     class Base(object):
@@ -126,40 +21,6 @@ def prepare_schema_connection(model_cls, dbtype, dbhost, dbname, schema, dbuser,
     session_maker = sessionmaker(bind=engine)
 
     return session_maker
-
-def check_value(new_obj, old_obj, field_name):
-    new_obj_value = getattr(new_obj, field_name)
-    old_obj_value = getattr(old_obj, field_name)
-
-    if isinstance(new_obj_value, (int, long, float, complex)) and isinstance(old_obj_value, (int, long, float, complex)):
-        if not float_approx_equal(new_obj_value, old_obj_value):
-            setattr(old_obj, field_name, new_obj_value)
-            return False
-    elif new_obj_value != old_obj_value:
-        setattr(old_obj, field_name, new_obj_value)
-        return False
-    return True
-
-def check_values(new_obj, old_obj, field_names, output_creator, key):
-    for field_name in field_names:
-        if not check_value(new_obj, old_obj, field_name):
-            output_creator.changed(key, field_name)
-
-def add_or_check(new_obj, key_mapping, id_mapping, key, values_to_check, session, output_creator):
-    if key in key_mapping:
-        current_obj = key_mapping[key]
-        check_values(new_obj, current_obj, values_to_check, output_creator, key)
-        return False
-    else:
-        if new_obj.id in id_mapping:
-            to_be_removed = id_mapping[new_obj.id]
-            session.delete(to_be_removed)
-
-        session.add(new_obj)
-        key_mapping[key] = new_obj
-        id_mapping[new_obj.id] = new_obj
-        output_creator.added()
-        return True
 
 def create_format_name(display_name):
     format_name = display_name.replace(' ', '_')
@@ -184,6 +45,13 @@ def break_up_file(filename, delimeter='\t'):
     f.close()
     return rows
 
+def is_number(str_value):
+    try:
+        int(str_value)
+        return True
+    except:
+        return False
+
 def read_obo(filename):
     terms = []
     f = open(filename, 'r')
@@ -203,45 +71,121 @@ def read_obo(filename):
     f.close()
     return terms
 
-def create_or_update(new_obj, current_obj_by_id, current_obj_by_key, values_to_check, session, output_creator):
-    #If there's an object with the same key and it also has the same id, then that's our object - we just need to
-    #check to make sure it's values match ours.
-    if current_obj_by_key is not None and (new_obj.id is None or current_obj_by_key.id == new_obj.id):
-        for value_to_check in values_to_check:
-            if not check_value(new_obj, current_obj_by_key, value_to_check):
-                output_creator.changed(current_obj_by_key.unique_key(), value_to_check)
-        return False
-    else:
-        if current_obj_by_id is not None:
-            session.delete(current_obj_by_id)
-            print 'Removed ' + str(new_obj.id)
-            output_creator.removed()
-            session.commit()
+def clean_up_orphans(nex_session_maker, child_cls, parent_cls, class_type):
+    nex_session = nex_session_maker()
+    child_table_ids = nex_session.query(child_cls.id).subquery()
+    query = nex_session.query(parent_cls).filter_by(class_type=class_type).filter(not_(parent_cls.id.in_(child_table_ids)))
+    print 'Deleting orphans ' + class_type + ': ' + str(query.count())
+    query.delete(synchronize_session=False)
+    nex_session.commit()
+    nex_session.close()
 
-        if current_obj_by_key is not None:
-            session.delete(current_obj_by_key)
-            print 'Removed' + str(new_obj.unique_key())
-            output_creator.removed()
-            session.commit()
+word_to_bioent_id = None
 
-        session.add(new_obj)
-        output_creator.added()
-        return True
+def get_word_to_bioent_id(word, nex_session):
+    from src.sgd.model.nex.bioentity import Locus
 
-def set_up_logging(label):
-    logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', level=logging.DEBUG, datefmt='%m/%d/%Y %H:%M:%S')
+    global word_to_bioent_id
+    if word_to_bioent_id is None:
+        word_to_bioent_id = {}
+        for locus in nex_session.query(Locus).all():
+            word_to_bioent_id[locus.format_name.lower()] = locus.id
+            word_to_bioent_id[locus.display_name.lower()] = locus.id
+            word_to_bioent_id[locus.format_name.lower() + 'p'] = locus.id
+            word_to_bioent_id[locus.display_name.lower() + 'p'] = locus.id
 
-    requests_log = logging.getLogger("requests")
-    requests_log.setLevel(logging.WARNING)
+    word = word.lower()
+    return None if word not in word_to_bioent_id else word_to_bioent_id[word]
 
-    log = logging.getLogger(label)
+def get_bioent_by_name(bioent_name, to_ignore, nex_session):
+    from src.sgd.model.nex.bioentity import Bioentity
+    if bioent_name not in to_ignore:
+        try:
+            int(bioent_name)
+        except ValueError:
+            bioent_id = get_word_to_bioent_id(bioent_name, nex_session)
+            return None if bioent_id is None else nex_session.query(Bioentity).filter_by(id=bioent_id).first()
+    return None
 
-    if log_directory is not None:
-        hdlr = logging.FileHandler(log_directory + '/' + label + '.' + str(datetime.now()) + '.txt')
-        formatter = logging.Formatter('%(asctime)s %(name)s: %(message)s', '%m/%d/%Y %H:%M:%S')
-        hdlr.setFormatter(formatter)
-    else:
-        hdlr = logging.NullHandler()
-    log.addHandler(hdlr)
-    log.setLevel(logging.DEBUG)
-    return log
+def link_gene_names(text, to_ignore, nex_session):
+    words = text.split(' ')
+    new_chunks = []
+    chunk_start = 0
+    i = 0
+    for word in words:
+        if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+            bioent_name = word[:-1]
+        else:
+            bioent_name = word
+
+        bioent = get_bioent_by_name(bioent_name.upper(), to_ignore, nex_session)
+
+        if bioent is not None:
+            new_chunks.append(text[chunk_start: i])
+            chunk_start = i + len(word) + 1
+
+            new_chunk = "<a href='" + bioent.link + "'>" + bioent_name + "</a>"
+            if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+                new_chunk = new_chunk + word[-1]
+            new_chunks.append(new_chunk)
+        i = i + len(word) + 1
+    new_chunks.append(text[chunk_start: i])
+    try:
+        return ' '.join(new_chunks)
+    except:
+        print text
+        return text
+
+word_to_strain_id = None
+
+def get_word_to_strain_id(word, nex_session):
+    from src.sgd.model.nex.misc import Strain
+
+    global word_to_strain_id
+    if word_to_strain_id is None:
+        word_to_strain_id = {}
+        for strain in nex_session.query(Strain).all():
+            if strain.link is not None:
+                word_to_strain_id[strain.display_name.lower()] = strain.id
+
+    word = word.lower()
+    return None if word not in word_to_strain_id else word_to_strain_id[word]
+
+def get_strain_by_name(strain_name, to_ignore, nex_session):
+    from src.sgd.model.nex.misc import Strain
+    if strain_name not in to_ignore:
+        try:
+            int(strain_name)
+        except ValueError:
+            strain_id = get_word_to_strain_id(strain_name, nex_session)
+            return None if strain_id is None else nex_session.query(Strain).filter_by(id=strain_id).first()
+    return None
+
+def link_strain_names(text, to_ignore, nex_session):
+    words = text.split(' ')
+    new_chunks = []
+    chunk_start = 0
+    i = 0
+    for word in words:
+        if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+            strain_name = word[:-1]
+        else:
+            strain_name = word
+
+        strain = get_strain_by_name(strain_name.upper(), to_ignore, nex_session)
+
+        if strain is not None:
+            new_chunks.append(text[chunk_start: i])
+            chunk_start = i + len(word) + 1
+
+            new_chunk = "<a href='" + strain.link + "'>" + strain_name + "</a>"
+            if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+                new_chunk = new_chunk + word[-1]
+            new_chunks.append(new_chunk)
+        i = i + len(word) + 1
+    new_chunks.append(text[chunk_start: i])
+    try:
+        return ' '.join(new_chunks)
+    except:
+        print text
+        return text

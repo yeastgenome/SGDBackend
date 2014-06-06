@@ -146,23 +146,13 @@ END;
 
 
 /* Auxilliary */
-DROP TRIGGER AUX_BIOENT_REF_TRIGGER;
+DROP TRIGGER AUX_INTERACTION_TRIGGER;
 --/
-CREATE TRIGGER AUX_BIOENT_REF_TRIGGER
-BEFORE INSERT ON aux_bioentity_reference
+CREATE TRIGGER AUX_INTERACTION_TRIGGER
+BEFORE INSERT ON aux_interaction
 FOR EACH ROW
 BEGIN
-SELECT aux_bioentity_reference_seq.nextval INTO :new.aux_bioentity_reference_id FROM DUAL;
-END;
-/
-
-DROP TRIGGER AUX_BIOFACT_TRIGGER;
---/
-CREATE TRIGGER AUX_BIOFACT_TRIGGER
-BEFORE INSERT ON aux_biofact
-FOR EACH ROW
-BEGIN
-SELECT aux_biofact_seq.nextval INTO :new.aux_biofact_id FROM DUAL;
+SELECT aux_interaction_seq.nextval INTO :new.aux_interaction_id FROM DUAL;
 END;
 /
 
@@ -189,17 +179,6 @@ END;
 /
 
 /* Sequence */
-
-DROP TRIGGER SEQ_TRIGGER;
---/
-CREATE TRIGGER SEQ_TRIGGER
-BEFORE INSERT ON biosequence
-FOR EACH ROW
-BEGIN
-SELECT bioseq_seq.nextval INTO :new.biosequence_id FROM DUAL;
-END;
-/
-
 DROP TRIGGER DNASEQTAG_TRIGGER;
 --/
 CREATE TRIGGER DNASEQTAG_TRIGGER
@@ -210,7 +189,36 @@ SELECT dnaseqtag_seq.nextval INTO :new.dnasequencetag_id FROM DUAL;
 END;
 /
 
+/* Expression */
+DROP TRIGGER EXPDATA_TRIGGER;
+--/
+CREATE TRIGGER EXPDATA_TRIGGER
+BEFORE INSERT ON expressiondata
+FOR EACH ROW
+BEGIN
+SELECT expdata_seq.nextval INTO :new.expressiondata_id FROM DUAL;
+END;
+/
 
+DROP TRIGGER JOURNAL_TRIGGER;
+--/
+CREATE TRIGGER JOURNAL_TRIGGER
+BEFORE INSERT ON journal
+FOR EACH ROW
+BEGIN
+SELECT journal_seq.nextval INTO :new.journal_id FROM DUAL;
+END;
+/
+
+DROP TRIGGER BOOK_TRIGGER;
+--/
+CREATE TRIGGER BOOK_TRIGGER
+BEFORE INSERT ON book
+FOR EACH ROW
+BEGIN
+SELECT book_seq.nextval INTO :new.book_id FROM DUAL;
+END;
+/
 
 
 
