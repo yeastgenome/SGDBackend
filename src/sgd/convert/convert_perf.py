@@ -76,7 +76,7 @@ if __name__ == "__main__":
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
     perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
 
-     # ------------------------------------------ Disambig ------------------------------------------
+    # ------------------------------------------ Disambig ------------------------------------------
     do_conversion(make_backend_starter(perf_backend, 'all_disambigs', 1000),
                    [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000),
                     OutputTransformer(1000)])
