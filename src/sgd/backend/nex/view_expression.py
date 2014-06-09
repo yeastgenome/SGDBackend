@@ -5,7 +5,7 @@ from src.sgd.model.nex.evidence import Bioentitydata
 from sqlalchemy.orm import joinedload
 import json
 from src.sgd.model.nex.auxiliary import Bioentityinteraction
-from src.sgd.model.nex.bioentity import Bioentity
+from src.sgd.model.nex.bioentity import Locus
 from src.sgd.backend.nex.graph_tools import get_interactions_among
 
 
@@ -36,81 +36,66 @@ def create_node(bioent, is_focus, ev_count):
     if is_focus:
         sub_type = 'FOCUS'
     return {'data':{'id':'BIOENTITY' + str(bioent.id), 'name':bioent.display_name, 'link': bioent.link,
-                    'evidence': ev_count,
                     'sub_type':sub_type, 'type': 'BIOENTITY'}}
 
-def create_edge(bioent1_id, bioent2_id, total_ev_count, class_type):
+def create_edge(bioent1_id, bioent2_id, score, class_type, direction):
     return {'data':{'target': 'BIOENTITY' + str(bioent1_id), 'source': 'BIOENTITY' + str(bioent2_id),
-            'evidence':total_ev_count, 'class_type': class_type}}
+            'score':16*(float(score)-.75)+1, 'class_type': class_type, 'direction': direction}}
 
 def make_graph(bioent_id):
-    neighbor_id_to_evidence_count = dict([(x.interactor_id, x.evidence_count) for x in DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter_by(bioentity_id=bioent_id).all()])
-    all_neighbor_ids = set(neighbor_id_to_evidence_count.keys())
+    id_to_bioentity = dict([(x.id, x) for x in DBSession.query(Locus).all()])
+    interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter_by(bioentity_id=bioent_id).all()
 
-    max_count = 0
+    if len(interactions) == 0:
+         return {'nodes': [], 'edges': []}
+    neighbor_id_to_coeff = dict([(x.interactor_id, x.coeff) for x in interactions])
 
-    evidence_count_to_neighbors = dict()
+    max_coeff = 0
 
-    for neighbor_id in all_neighbor_ids:
-        evidence_count = 0 if neighbor_id not in neighbor_id_to_evidence_count else neighbor_id_to_evidence_count[neighbor_id]
+    coeff_to_interactions = dict()
 
-        max_count = max_count if evidence_count <= max_count else evidence_count
+    for interaction in interactions:
+        coeff = interaction.coeff
+        max_coeff = max_coeff if coeff <= max_coeff else coeff
 
-        if evidence_count in evidence_count_to_neighbors:
-            evidence_count_to_neighbors[evidence_count].add(neighbor_id)
+        if coeff in coeff_to_interactions:
+            coeff_to_interactions[coeff].append(interaction)
         else:
-            evidence_count_to_neighbors[evidence_count] = set([neighbor_id])
+            coeff_to_interactions[coeff] = [interaction]
 
     #Apply 100 node cutoff
-    min_evidence_count = 100
-    usable_neighbor_ids = set()
-    while min_evidence_count > 90 and (min_evidence_count not in evidence_count_to_neighbors or (len(usable_neighbor_ids) + len(evidence_count_to_neighbors[min_evidence_count]) < 100)):
-        if min_evidence_count in evidence_count_to_neighbors:
-            usable_neighbor_ids.update(evidence_count_to_neighbors[min_evidence_count])
-        min_evidence_count = min_evidence_count - 1
+    all_neighbors = sorted(neighbor_id_to_coeff.keys(), key=lambda x: neighbor_id_to_coeff[x], reverse=True)
+    usable_neighbor_ids = [x for x in all_neighbors][:100]
+    usable_neighbor_ids.append(bioent_id)
+    neighbor_id_to_coeff[bioent_id] = max_coeff
+    min_coeff = 0 if len(usable_neighbor_ids) <= 100 else neighbor_id_to_coeff[all_neighbors[100]]
 
-    print usable_neighbor_ids
-    tangent_to_evidence_count = dict([((x.bioentity_id, x.interactor_id), x.evidence_count) for x in get_interactions_among(usable_neighbor_ids, Bioentityinteraction, 'EXPRESSION')])
-
-    evidence_count_to_tangents = dict()
-
-    for tangent, evidence_count in tangent_to_evidence_count.iteritems():
-        bioent1_id, bioent2_id = tangent
-        if bioent1_id != bioent_id and bioent2_id != bioent_id:
-            bioent1_count = 0 if bioent1_id not in neighbor_id_to_evidence_count else neighbor_id_to_evidence_count[bioent1_id]
-            bioent2_count = 0 if bioent2_id not in neighbor_id_to_evidence_count else neighbor_id_to_evidence_count[bioent2_id]
-
-            index = min(bioent1_count, bioent2_count, evidence_count)
-            if index in evidence_count_to_tangents:
-                evidence_count_to_tangents[index].add(tangent)
+    more_interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter(Bioentityinteraction.bioentity_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.interactor_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.bioentity_id < Bioentityinteraction.interactor_id).all()
+    for interaction in more_interactions:
+        coeff = interaction.coeff
+        if coeff >= min_coeff:
+            if coeff in coeff_to_interactions:
+                coeff_to_interactions[coeff].append(interaction)
             else:
-                evidence_count_to_tangents[index] = set([tangent])
+                coeff_to_interactions[coeff] = [interaction]
 
-    #Apply 250 edge cutoff
-    old_min_evidence_count = min_evidence_count
-    min_evidence_count = 100
-    edges = []
-    nodes = [create_node(DBSession.query(Bioentity).filter_by(id=bioent_id).first(), True, max_count-90)]
-    min_evidence_used = 100
-    while min_evidence_count > 90 and ((len(edges) + (0 if min_evidence_count not in evidence_count_to_neighbors else len(evidence_count_to_neighbors[min_evidence_count])) + (0 if min_evidence_count not in evidence_count_to_tangents else len(evidence_count_to_tangents[min_evidence_count]))< 250 and min_evidence_count > old_min_evidence_count)):
-        if min_evidence_count in evidence_count_to_neighbors:
-            for neighbor_id in evidence_count_to_neighbors[min_evidence_count]:
-                count = 0 if neighbor_id not in neighbor_id_to_evidence_count else neighbor_id_to_evidence_count[neighbor_id]
-                nodes.append(create_node(DBSession.query(Bioentity).filter_by(id=neighbor_id).first(), False, count))
-                if count < min_evidence_used:
-                    min_evidence_used = count
+    all_coeffs = sorted(coeff_to_interactions.keys(), reverse=True)
+    ok_interactions = set()
+    cutoff_index = 0
+    while len(ok_interactions) < 250 and cutoff_index < len(all_coeffs):
+        cutoff = all_coeffs[cutoff_index]
+        ok_nodes = set([x for x, y in neighbor_id_to_coeff.iteritems() if y >= cutoff])
+        ok_interactions = set()
+        for coeff, interactions in coeff_to_interactions.iteritems():
+            if coeff >= cutoff:
+                ok_interactions.update([x for x in interactions if x.bioentity_id in ok_nodes and x.interactor_id in ok_nodes])
+        cutoff_index += 1
 
-            if min_evidence_count in evidence_count_to_neighbors:
-                for genetic_id in evidence_count_to_neighbors[min_evidence_count]:
-                    edges.append(create_edge(bioent_id, genetic_id, min_evidence_count, ''))
+    cutoff_index -= 1
+    min_coeff = max(min_coeff, all_coeffs[cutoff_index])
 
-            if min_evidence_count in evidence_count_to_tangents:
-                for tangent in evidence_count_to_tangents[min_evidence_count]:
-                    bioent1_id, bioent2_id = tangent
-                    if bioent1_id < bioent2_id:
-                        edges.append(create_edge(bioent1_id, bioent2_id, min_evidence_count, ''))
+    nodes = [create_node(id_to_bioentity[x], x==bioent_id, neighbor_id_to_coeff[x]) for x in usable_neighbor_ids if neighbor_id_to_coeff[x] >= min_coeff]
+    edges = [create_edge(x.bioentity_id, x.interactor_id, x.coeff, 'EXPRESSION', x.direction) for x in more_interactions if x.coeff >= min_coeff]
 
-        min_evidence_count = min_evidence_count - 1
 
-    return {'nodes': nodes, 'edges': edges,
-            'min_evidence_cutoff':min_evidence_used, 'max_evidence_cutoff':max_count}
+    return {'nodes': nodes, 'edges': edges}

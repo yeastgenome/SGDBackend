@@ -1,6 +1,6 @@
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, String
+from sqlalchemy.types import Integer, String, Numeric
 
 from bioconcept import Bioconcept
 from bioentity import Bioentity
@@ -20,19 +20,20 @@ class Interaction(Base, EqualityByIDMixin, UpdateByJsonMixin):
     class_type = Column('class', String)
     interaction_type = Column('interaction_type', String)
     evidence_count = Column('evidence_count', Integer)
+    coeff = Column('coeff', Numeric(7, 3))
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
 
     #Relationships
     bioentity = relationship(Bioentity, uselist=False, backref=backref('interactions', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity':"INTERACTION"}
-    __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count']
+    __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count', 'coeff']
     __eq_fks__ = ['bioentity', 'interactor']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json.get('interactor').id)
-        
+
     def unique_key(self):
         return self.bioentity_id, self.class_type, self.interaction_type, self.format_name
     
@@ -47,7 +48,7 @@ class Bioentityinteraction(Interaction, EqualityByIDMixin):
     interactor = relationship(Bioentity, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY', 'inherit_condition': id==Interaction.id}
-    __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count', 'direction']
+    __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count', 'direction', 'coeff']
 
 class Bioconceptinteraction(Interaction, EqualityByIDMixin):
     __tablename__ = "aux_bioconceptinteraction"

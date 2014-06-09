@@ -14,7 +14,7 @@ class UpdateByJsonMixin(object):
         anything_changed = False
         for key in self.__eq_values__:
             current_value = getattr(self, key)
-            new_value = None if key not in json_obj else json_obj[key]
+            new_value = json_obj[key]
 
             if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                 pass

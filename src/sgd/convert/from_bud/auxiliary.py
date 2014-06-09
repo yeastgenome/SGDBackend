@@ -115,26 +115,26 @@ def make_bioentity_expression_interaction_starter(nex_session_maker):
         #Expression
         bioentity_ids = [x.id for x in nex_session.query(Locus).all()]
         for bioent1_id in bioentity_ids:
-            evidence_id_to_value1 = dict([(x.evidence_id, x.value) for x in nex_session.query(Expressiondata).filter_by(locus_id=bioent1_id).all()])
+            evidence_id_to_value1 = dict([(x.evidence_id, x.value) for x in nex_session.query(Bioentitydata).filter_by(locus_id=bioent1_id).all()])
             if len(evidence_id_to_value1) > 0:
                 bioentity1 = id_to_bioentity[bioent1_id]
                 for bioent2_id in bioentity_ids:
                     if bioent1_id < bioent2_id:
-                        evidence_id_to_value2 = dict([(x.evidence_id, x.value) for x in nex_session.query(Expressiondata).filter_by(locus_id=bioent2_id).all()])
+                        evidence_id_to_value2 = dict([(x.evidence_id, x.value) for x in nex_session.query(Bioentitydata).filter_by(locus_id=bioent2_id).all()])
                         evidence_id_overlap = set(evidence_id_to_value1.keys()) & set(evidence_id_to_value2.keys())
                         x = [float(evidence_id_to_value1[evidence_id]) for evidence_id in evidence_id_overlap]
                         y = [float(evidence_id_to_value2[evidence_id]) for evidence_id in evidence_id_overlap]
 
                         if len(evidence_id_overlap) > 0:
-                            score = int(pearson_def(x, y)*100)
-                            if score >= 90 or score <= -90:
+                            score = pearson_def(x, y)
+                            if score >= .75 or score <= -.75:
                                 bioentity2 = id_to_bioentity[bioent2_id]
                                 if score < 0:
-                                    yield {'interaction_type': 'EXPRESSION', 'evidence_count': -score, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'negative'}
-                                    yield {'interaction_type': 'EXPRESSION', 'evidence_count': -score, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'negative'}
+                                    yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'negative'}
+                                    yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'negative'}
                                 else:
-                                    yield {'interaction_type': 'EXPRESSION', 'evidence_count': score, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'positive'}
-                                    yield {'interaction_type': 'EXPRESSION', 'evidence_count': score, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'positive'}
+                                    yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'positive'}
+                                    yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'positive'}
 
         nex_session.close()
     return bioentity_interaction_starter

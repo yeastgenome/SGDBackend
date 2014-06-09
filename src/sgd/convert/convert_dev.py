@@ -481,20 +481,20 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Expressionevidence, Evidence, 'EXPRESSION')
     #
-    from src.sgd.model.nex.bioitem import Dataset
-    nex_session = nex_session_maker()
-    dataset_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Dataset).all()])
-    dataset_key_to_channel_count = dict([(x.unique_key(), x.channel_count) for x in nex_session.query(Dataset).all()])
-    nex_session.close()
-    for path in os.listdir('src/sgd/convert/data/microarray_05_14')[10:20]:
-        if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
-            for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
-                dataset_key = (file[:-4], 'DATASET')
-                if dataset_key in dataset_key_to_id:
-                    do_conversion(make_expression_data_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14/' + path + '/' + file, dataset_key_to_id[dataset_key], dataset_key_to_channel_count[dataset_key]),
-                                      [Json2Obj(Bioentitydata),
-                                       Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence.has(dataset_id=dataset_key_to_id[dataset_key])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
-                                       OutputTransformer(1000)])
+    # from src.sgd.model.nex.bioitem import Dataset
+    # nex_session = nex_session_maker()
+    # dataset_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Dataset).all()])
+    # dataset_key_to_channel_count = dict([(x.unique_key(), x.channel_count) for x in nex_session.query(Dataset).all()])
+    # nex_session.close()
+    # for path in os.listdir('src/sgd/convert/data/microarray_05_14')[10:20]:
+    #     if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
+    #         for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
+    #             dataset_key = (file[:-4], 'DATASET')
+    #             if dataset_key in dataset_key_to_id:
+    #                 do_conversion(make_expression_data_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14/' + path + '/' + file, dataset_key_to_id[dataset_key], dataset_key_to_channel_count[dataset_key]),
+    #                                   [Json2Obj(Bioentitydata),
+    #                                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence.has(dataset_id=dataset_key_to_id[dataset_key])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
+    #                                    OutputTransformer(1000)])
 
     # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty, Temperatureproperty, Generalproperty
     # clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')
@@ -553,10 +553,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='REGULATION'), name='convert.from_bud.auxilliary.bioentity_interaction', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
 
-    # do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
-    #               [Json2Obj(Bioentityinteraction),
-    #                BigObj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'), name='convert.from_bud.auxilliary.bioentity_interaction_expression', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
+    do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
+                  [Json2Obj(Bioentityinteraction),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'), name='convert.from_bud.auxilliary.bioentity_interaction_expression', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
 
     # clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
     #
