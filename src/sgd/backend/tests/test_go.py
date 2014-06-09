@@ -14,7 +14,7 @@ def test_go_structure(model, identifier='GO:0018706'):
     assert 'format_name' in response
     assert 'go_id' in response
     assert 'child_count' in response
-    assert 'aspect' in response
+    assert 'go_aspect' in response
 
 def test_go_ontology_graph_structure(model, identifier='GO:0018706'):
     response = json.loads(model.go_ontology_graph(go_identifier=identifier))
@@ -58,7 +58,7 @@ def check_go_evidence(evidence):
 
     check_obj(evidence['go'])
     assert 'go_id' in evidence['go']
-    assert 'aspect' in evidence['go']
+    assert 'go_aspect' in evidence['go']
 
     check_obj(evidence['bioentity'])
     assert 'format_name' in evidence['bioentity']
