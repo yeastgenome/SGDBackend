@@ -15,7 +15,8 @@ def check_url(url):
 
 def check_evidence(evidence):
     assert 'id' in evidence
-    assert 'class_type' in evidence
+    if (evidence.has_key('properties') and len(evidence['properties']) > 0):
+        assert 'class_type' in evidence['properties'][0]
     assert 'strain' in evidence
     assert 'source' in evidence
     assert 'reference' in evidence
@@ -26,9 +27,10 @@ def check_evidence(evidence):
     check_obj(evidence['reference'])
     check_obj(evidence['experiment'])
 
-    assert 'conditions' in evidence
-    for cond in evidence['conditions']:
-        check_condition(cond)
+    #assert 'conditions' in evidence  Not always there.
+    if evidence.has_key('conditions'):
+        for cond in evidence['conditions']:
+            check_condition(cond)
 
 def check_condition(condition):
     assert 'note' in condition
