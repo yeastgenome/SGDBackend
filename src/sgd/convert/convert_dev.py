@@ -83,9 +83,9 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Complex), name='convert.from_bud.bioentity.complex', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS')
     #
-    # do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Locustabs),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locustabs), name='convert.from_bud.bioentity.locustabs', delete_untouched=True, commit=True)])
+    do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Locustabs),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Locustabs), name='convert.from_bud.bioentity.locustabs', delete_untouched=True, commit=True)])
 
     # do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioentityalias),
@@ -127,12 +127,12 @@ if __name__ == "__main__":
 
     # # ------------------------------------------ Bioconcept ------------------------------------------
     # # Bud -> Nex
-    # from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation, Bioconcepturl
-    # from src.sgd.model.nex.misc import Alias, Relation, Url
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
-    #     make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation, Bioconcepturl
+    from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
+        make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Observable),
@@ -553,10 +553,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='REGULATION'), name='convert.from_bud.auxilliary.bioentity_interaction', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
 
-    do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
-                  [Json2Obj(Bioentityinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'), name='convert.from_bud.auxilliary.bioentity_interaction_expression', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+    # do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
+    #               [Json2Obj(Bioentityinteraction),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'), name='convert.from_bud.auxilliary.bioentity_interaction_expression', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
 
     # clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
     #
@@ -595,7 +595,7 @@ if __name__ == "__main__":
     locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     #complex_ids = [x.id for x in nex_session.query(Complex).all()]
-    go_ids = [x.id for x in nex_session.query(Go).all()]
+    #go_ids = [x.id for x in nex_session.query(Go).all()]
     #domain_ids = [x.id for x in nex_session.query(Domain).all()]
     #observable_ids = [x.id for x in nex_session.query(Observable).all()]
     #phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]

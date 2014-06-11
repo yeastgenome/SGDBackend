@@ -96,7 +96,7 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
         for locus in make_db_starter(nex_session.query(Locus), 1000)():
             show_summary = 1
             show_history = 1
-            show_sequence = 0
+            show_sequence = 1
             show_wiki = 1
 
             if locus.bioent_status != 'Active':

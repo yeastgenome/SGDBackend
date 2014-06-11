@@ -9,7 +9,7 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from venn import calc_venn_measurements
 from itertools import chain
-
+from decimal import Decimal
 
 __author__ = 'kpaskov'
 
@@ -164,8 +164,44 @@ class Locus(Bioentity):
 
         #Go overview
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
+        id_to_go = dict([(x.go_id, x.go) for x in self.go_evidences if x.go.go_aspect == 'biological process'])
+
+
+        ancestor_to_children = dict()
+        for go in id_to_go.values():
+            for parent in go.parents:
+                if parent.parent in ancestor_to_children:
+                    ancestor_to_children[parent.parent].add(go.id)
+                else:
+                    ancestor_to_children[parent.parent] = set([go.id])
+                for grandparent in parent.parent.parents:
+                    if grandparent.parent in ancestor_to_children:
+                        ancestor_to_children[grandparent.parent].add(go.id)
+                    else:
+                        ancestor_to_children[grandparent.parent] = set([go.id])
+                    ancestor_to_children[grandparent.parent].add(parent.parent.id)
+
+        for ancestor, child_ids in sorted(ancestor_to_children.iteritems(), key=lambda x: len(x[1]), reverse=True):
+            workable_child_ids = [x for x in child_ids if x in id_to_go]
+            if len(workable_child_ids) > 1:
+                for child_id in workable_child_ids:
+                    del id_to_go[child_id]
+                id_to_go[ancestor.id] = ancestor
+
+        next_generation = id_to_go.values()
+        while len(next_generation) > 0:
+            new_generation = set()
+            for go in next_generation:
+                for x in go.parents:
+                    new_generation.add(x.parent)
+                    if x.parent_id in id_to_go:
+                        del id_to_go[x.parent_id]
+            next_generation = new_generation
+
+
         obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name']),
-                                   'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]}
+                                   'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0],
+                                   'go_slim_down': [x.to_min_json() for x in sorted(id_to_go.values(), key=lambda x: x.display_name.lower())]}
 
         #Interaction
         genetic_bioentities = set([x.locus2_id for x in self.geninteraction_evidences1])
@@ -190,17 +226,59 @@ class Locus(Bioentity):
         obj_json['description_references'] = [x.reference.to_min_json() for x in self.bioentity_evidences if x.info_key == 'Description']
 
         #Literature
-        reference_ids = set([x.reference_id for x in self.literature_evidences])
-        reference_ids.update([x.reference_id for x in self.geninteraction_evidences1])
-        reference_ids.update([x.reference_id for x in self.geninteraction_evidences2])
-        reference_ids.update([x.reference_id for x in self.physinteraction_evidences1])
-        reference_ids.update([x.reference_id for x in self.physinteraction_evidences2])
-        reference_ids.update([x.reference_id for x in self.regulation_evidences_targets])
-        reference_ids.update([x.reference_id for x in self.regulation_evidences_regulators])
-        obj_json['literature_overview'] = {'total_count': len(reference_ids)}
+        primary_reference_ids = set([x.reference_id for x in self.literature_evidences if x.topic == 'Primary Literature'])
+        additional_reference_ids = set([x.reference_id for x in self.literature_evidences if x.topic == 'Additional Literature'])
+        review_reference_ids = set([x.reference_id for x in self.literature_evidences if x.topic == 'Reviews'])
+        phenotype_reference_ids = set([x.reference_id for x in self.phenotype_evidences])
+        go_reference_ids = set([x.reference_id for x in self.go_evidences])
+        interaction_reference_ids = set([x.reference_id for x in self.geninteraction_evidences1])
+        interaction_reference_ids.update([x.reference_id for x in self.geninteraction_evidences2])
+        interaction_reference_ids.update([x.reference_id for x in self.physinteraction_evidences1])
+        interaction_reference_ids.update([x.reference_id for x in self.physinteraction_evidences2])
+        regulation_reference_ids = set([x.reference_id for x in self.regulation_evidences_targets])
+        regulation_reference_ids.update([x.reference_id for x in self.regulation_evidences_regulators])
+        obj_json['literature_overview'] = [['Literature Type', 'References'],
+                                          ['Primary', len(primary_reference_ids)],
+                                          ['Additional', len(additional_reference_ids)],
+                                          ['Reviews', len(review_reference_ids)],
+                                          ['Phenotype', len(phenotype_reference_ids)],
+                                          ['GO', len(go_reference_ids)],
+                                          ['Interaction', len(interaction_reference_ids)],
+                                          ['Regulation', len(regulation_reference_ids)]]
+
+        #Expression
+        expression_collapsed = {}
+        sum = 0;
+        sum_of_squares = 0;
+        n = 0;
+        for x in self.data:
+            rounded = float(x.value.quantize(Decimal('.1')))
+            if rounded in expression_collapsed:
+                expression_collapsed[rounded] += 1
+            else:
+                expression_collapsed[rounded] = 1
+
+            sum = sum + rounded;
+            sum_of_squares = sum_of_squares + rounded*rounded;
+            n = n + 1;
+
+        mean = 1.0*sum/n;
+        variance = 1.0*sum_of_squares/n - mean*mean;
+        standard_dev = variance**0.5;
+
+        obj_json['expression_overview'] = {'all_values': expression_collapsed,
+                                           'high_values': [x.to_json() for x in self.data if float(x.value) >= mean + 2*standard_dev],
+                                           'low_values': [x.to_json() for x in self.data if float(x.value) <= mean - 2*standard_dev],
+                                           'low_cutoff': mean - 2*standard_dev,
+                                           'high_cutoff': mean + 2*standard_dev}
 
         #Sequence
-        obj_json['sequence_overview'] = sorted(dict([(x.strain.id, x.strain.to_min_json()) for x in self.dnasequence_evidences]).values(), key=lambda x: x['display_name'])
+        obj_json['sequence_overview'] = [x.to_json() for x in self.dnasequence_evidences if x.strain_id == 1][0]
+
+        #Protein
+        reference_protein_sequence = [x.to_json() for x in self.proteinsequence_evidences if x.strain_id == 1]
+        obj_json['protein_overview'] = {'protein_sequence': None if len(reference_protein_sequence) == 0 else reference_protein_sequence[0],
+                                        'domains': [x.to_json() for x in self.domain_evidences]}
 
         #Aliases
         obj_json['aliases'] = [x.to_json() for x in self.aliases]

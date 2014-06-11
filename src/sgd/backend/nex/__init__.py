@@ -87,7 +87,7 @@ class SGDBackend(BackendInterface):
     def locus(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
+            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence, Domainevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         if are_ids:
             locus_id = locus_identifier

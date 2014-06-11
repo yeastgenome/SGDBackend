@@ -625,7 +625,11 @@ class Expressionevidence(Evidence):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['dataset'] = self.dataset.to_json()
+        obj_json['dataset'] = self.dataset.to_min_json()
+        obj_json['dataset']['tags'] = self.dataset.tags
+        obj_json['dataset']['short_description'] = self.dataset.short_description
+        obj_json['dataset']['condition_count'] = self.dataset.condition_count
+        obj_json['dataset']['pcl_filename'] = self.dataset.pcl_filename
         return obj_json
 
 class Bioentitydata(Base, UpdateByJsonMixin):
@@ -639,7 +643,7 @@ class Bioentitydata(Base, UpdateByJsonMixin):
 
     #Relationships
     evidence = relationship(Expressionevidence, backref=backref('data', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, backref=backref('expression_data', passive_deletes=True), uselist=False)
+    locus = relationship(Locus, backref=backref('data', passive_deletes=True), uselist=False)
 
     __eq_values__ = ['id', 'value', 'evidence_id', 'locus_id']
     __eq_fks__ = []

@@ -94,8 +94,9 @@ def make_graph(bioent_id):
     cutoff_index -= 1
     min_coeff = max(min_coeff, all_coeffs[cutoff_index])
 
-    nodes = [create_node(id_to_bioentity[x], x==bioent_id, neighbor_id_to_coeff[x]) for x in usable_neighbor_ids if neighbor_id_to_coeff[x] >= min_coeff]
-    edges = [create_edge(x.bioentity_id, x.interactor_id, x.coeff, 'EXPRESSION', x.direction) for x in more_interactions if x.coeff >= min_coeff]
+    usable_neighbor_ids = set([x for x in usable_neighbor_ids if neighbor_id_to_coeff[x] >= min_coeff])
+    nodes = [create_node(id_to_bioentity[x], x==bioent_id, neighbor_id_to_coeff[x]) for x in usable_neighbor_ids]
+    edges = [create_edge(x.bioentity_id, x.interactor_id, x.coeff, 'EXPRESSION', x.direction) for x in more_interactions if x.coeff >= min_coeff and x.bioentity_id in usable_neighbor_ids and x.interactor_id in usable_neighbor_ids]
 
 
     return {'nodes': nodes, 'edges': edges}
