@@ -58,7 +58,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
         #Go
         for gofeature in make_db_starter(bud_session.query(GoFeature), 1000)():
             bioentity_key = (gofeature.feature.name, 'LOCUS')
-            if bioentity_key not in bioentity_key_to_date or bioentity_key_to_date[bioentity_key] < gofeature.date_last_reviewed:
+            if gofeature.annotation_type == 'manually curated' and bioentity_key not in bioentity_key_to_date:
                 bioentity_key_to_date[bioentity_key] = gofeature.date_last_reviewed
 
         for bioentity_key, date_last_reviewed in bioentity_key_to_date.iteritems():
