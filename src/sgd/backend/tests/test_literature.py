@@ -7,15 +7,16 @@ from src.sgd.backend.tests.test_basic import check_reference
 __author__ = 'kpaskov'
 
 def test_literature_overview_structure(model, identifier='YFL039C'):
-    response = json.loads(model.literature_overview(locus_identifier=identifier))
-    assert 'total_count' in response
-    
+    response = json.loads(model.locus(locus_identifier=identifier))
+    literature = response['literature_overview']
+    assert 'total_count' in literature
+
 def test_literature_bioent_details_structure(model, identifier='YFL039C'):
     response = json.loads(model.literature_details(locus_identifier=identifier))
     assert response is not None
     assert 'primary' in response
     assert 'additional' in response
-    assert 'reviews' in response
+    assert 'review' in response
     assert 'phenotype' in response
     assert 'go' in response
     assert 'interaction' in response
@@ -25,7 +26,7 @@ def test_literature_bioent_details_structure(model, identifier='YFL039C'):
         check_reference(entry)
     for entry in response['additional']:
         check_reference(entry)
-    for entry in response['reviews']:
+    for entry in response['review']:
         check_reference(entry)
     for entry in response['phenotype']:
         check_reference(entry)
@@ -37,27 +38,27 @@ def test_literature_bioent_details_structure(model, identifier='YFL039C'):
         check_reference(entry)
 
 def check_literature_evidence(evidence):
-    check_evidence(evidence)
-    assert 'bioentity' in evidence
+    #check_evidence(evidence)
+    assert 'locus' in evidence
     assert 'topic' in evidence
 
-    check_obj(evidence['bioentity'])
-    assert 'format_name' in evidence['bioentity']
+    check_obj(evidence['locus'])
+    assert 'format_name' in evidence['locus']
 
 def test_literature_ref_details_structure(model, identifier='769'):
     response = json.loads(model.literature_details(reference_identifier=identifier))
     assert response is not None
-    assert 'primary' in response
-    assert 'additional' in response
-    assert 'reviews' in response
+    #assert 'primary' in response
+    #assert 'additional' in response
+    #assert 'review' in response
 
-    for entry in response['primary']:
+    for entry in response:
         check_literature_evidence(entry)
-    for entry in response['additional']:
-        check_literature_evidence(entry)
-    for entry in response['reviews']:
-        check_literature_evidence(entry)
-     
+    #for entry in response['additional']:
+    #    check_literature_evidence(entry)
+    #for entry in response['review']:
+    #    check_literature_evidence(entry)
+
 def test_literature_graph_structure(model, identifier='YFL039C'):
     response = json.loads(model.literature_graph(locus_identifier=identifier))
     assert response is not None

@@ -5,22 +5,24 @@ from src.sgd.backend.tests import check_evidence, check_obj
 __author__ = 'kpaskov'
 
 def test_sequence_overview_structure(model, identifier='GAL4'):
-    response = json.loads(model.sequence_overview(locus_identifier=identifier))
-    assert response is not None
+    response = json.loads(model.locus(locus_identifier=identifier))
+    sequence = response['sequence_overview']
+    assert sequence is not None
+    assert len(sequence) > 20 ## at least 20 strains
 
 def check_sequence_evidence(evidence):
     check_evidence(evidence)
-    assert 'sequence' in evidence
-    assert 'bioentity' in evidence
+    assert 'residues' in evidence
+    assert 'locus' in evidence
 
-    check_obj(evidence['sequence'])
-    check_obj(evidence['bioentity'])
-    assert 'format_name' in evidence['bioentity']
+    ##check_obj(evidence['residues'])
+    check_obj(evidence['locus'])
+    assert 'format_name' in evidence['locus']
 
 def check_genomic_sequence_evidence(evidence):
     check_sequence_evidence(evidence)
     assert 'contig' in evidence
-    assert 'sequence_labels' in evidence
+    assert 'tags' in evidence
     assert 'strand' in evidence
     assert 'end' in evidence
     assert 'start' in evidence
@@ -28,7 +30,7 @@ def check_genomic_sequence_evidence(evidence):
     check_obj(evidence['contig'])
     assert 'format_name' in evidence['contig']
 
-    for label in evidence['sequence_labels']:
+    for label in evidence['tags']:
         assert 'chromosomal_start' in label
         assert 'relative_start' in label
         assert 'relative_end' in label

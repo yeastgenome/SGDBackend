@@ -1,10 +1,12 @@
 import json
+import pytest
 
 from src.sgd.backend.tests import check_evidence, check_obj, check_url
 from src.sgd.backend.tests.test_basic import check_protein
 
 __author__ = 'kpaskov'
 
+@pytest.mark.xfail()  ## This does nothing and there is no replacment
 def test_protein_overview_structure(model, identifier='GAL4'):
     response = json.loads(model.protein_overview(locus_identifier=identifier))
     assert response is not None
@@ -14,7 +16,7 @@ def test_protein_overview_structure(model, identifier='GAL4'):
 def check_protein_domain_evidence(evidence):
     check_evidence(evidence)
     assert 'domain' in evidence
-    assert 'protein' in evidence
+    #assert 'protein' in evidence
     assert 'status' in evidence
     assert 'start' in evidence
     assert 'end' in evidence
@@ -22,7 +24,7 @@ def check_protein_domain_evidence(evidence):
     assert 'evalue' in evidence
 
     check_obj(evidence['domain'])
-    check_protein(evidence['protein'])
+    #check_protein(evidence['protein'])
 
 def test_protein_domain_bioent_details_structure(model, identifier='GAL4'):
     response = json.loads(model.protein_domain_details(locus_identifier=identifier))
@@ -58,7 +60,7 @@ def test_protein_domain_graph_structure(model, identifier='GAL4'):
         assert 'data' in edge
         assert 'source' in edge['data']
         assert 'target' in edge['data']
-        
+
 def test_binding_site_details_structure(model, identifier='GAL4'):
     response = json.loads(model.binding_site_details(identifier))
     assert response is not None
@@ -68,8 +70,8 @@ def test_binding_site_details_structure(model, identifier='GAL4'):
         assert 'expert_confidence' in entry
         assert 'total_score' in entry
         assert 'motif_id' in entry
-        assert 'img_url' in entry
-        
+        assert 'link' in entry
+
         check_obj(entry['locus'])
         assert 'format_name' in entry['locus']
 
@@ -78,12 +80,13 @@ def test_protein_phosphorylation_details_structure(model, identifier='GAL4'):
     assert response is not None
     for entry in response:
         check_evidence(entry)
-        assert 'protein' in entry
+        assert 'locus' in entry
         assert 'site_index' in entry
         assert 'site_residue' in entry
 
-        check_protein(entry['protein'])
+        check_protein(entry['locus'])
 
+@pytest.mark.xfail()   ## resources no longer used
 def test_protein_resources_structure(model, identifier='YFL039C'):
     response = json.loads(model.protein_resources(locus_identifier=identifier))
     assert response is not None
