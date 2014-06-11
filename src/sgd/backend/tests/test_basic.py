@@ -138,9 +138,7 @@ def check_reference(reference):
 def check_protein(protein):
     check_obj(protein)
     assert 'format_name' in protein
-    assert 'locus' in protein
-    check_obj(protein['locus'])
-    assert 'format_name' in protein['locus']
+    assert 'display_name' in protein
 
 def check_locus(locus):
     check_obj(locus)
