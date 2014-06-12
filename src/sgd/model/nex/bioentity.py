@@ -130,6 +130,7 @@ class Locus(Bioentity):
         classical_groups = dict()
         large_scale_groups = dict()
         strain_groups = dict()
+        overall = {}
         for evidence in self.phenotype_evidences:
             if evidence.experiment.category == 'classical genetics':
                 if evidence.mutant_type in classical_groups:
@@ -147,6 +148,19 @@ class Locus(Bioentity):
                     strain_groups[evidence.strain.display_name] += 1
                 else:
                     strain_groups[evidence.strain.display_name] = 1
+
+            ancestory = [evidence.phenotype.observable]
+            while ancestory[-1] is not None:
+                parents = ancestory[-1].parents
+                if len(parents) == 0:
+                    ancestory.append(None)
+                else:
+                    ancestory.append(parents[0].parent)
+            ancestor = ancestory[-3].to_min_json()
+            if ancestor['id'] in overall:
+                overall[ancestor['id']][1] +=1
+            else:
+                overall[ancestor['id']] = [ancestor, 1]
         experiment_categories = []
         mutant_types = set(classical_groups.keys())
         mutant_types.update(large_scale_groups.keys())
@@ -160,7 +174,8 @@ class Locus(Bioentity):
         strains.sort(key=lambda x: x[1], reverse=True)
         strains.insert(0, ['Strain', 'Annotations'])
         obj_json['phenotype_overview'] = {'experiment_categories': experiment_categories,
-                                          'strains': strains}
+                                          'strains': strains,
+                                          'phenotype_slim': overall.values()}
 
         #Go overview
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
@@ -241,8 +256,8 @@ class Locus(Bioentity):
                                           ['Primary', len(primary_reference_ids)],
                                           ['Additional', len(additional_reference_ids)],
                                           ['Reviews', len(review_reference_ids)],
-                                          ['Phenotype', len(phenotype_reference_ids)],
-                                          ['GO', len(go_reference_ids)],
+                                          ['Phenotype', len(phenotype_reference_ids & primary_reference_ids)],
+                                          ['GO', len(go_reference_ids & primary_reference_ids)],
                                           ['Interaction', len(interaction_reference_ids)],
                                           ['Regulation', len(regulation_reference_ids)]]
 

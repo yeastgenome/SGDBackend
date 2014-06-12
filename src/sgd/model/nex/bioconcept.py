@@ -211,12 +211,6 @@ class Observable(Bioconcept):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['count'] = self.count
-        obj_json['child_count'] = self.child_count
-        return obj_json
-
-    def to_json(self):
-        obj_json = UpdateByJsonMixin.to_json(self)
 
         #Phenotype overview
         phenotype_evidences = []
@@ -293,6 +287,19 @@ class Phenotype(Bioconcept):
         self.display_name = create_phenotype_display_name(obj_json['observable'].display_name, self.qualifier)
         self.format_name = create_phenotype_format_name(obj_json['observable'].display_name, self.qualifier)
         self.link = '/phenotype/' + self.format_name + '/overview'
+
+    def to_min_json(self):
+        obj_json = UpdateByJsonMixin.to_min_json(self)
+
+        ancestory = [self.observable]
+        while ancestory[-1] is not None:
+            parents = ancestory[-1].parents
+            if len(parents) == 0:
+                ancestory.append(None)
+            else:
+                ancestory.append(parents[0].parent)
+        obj_json['ancestor'] = ancestory[-3].to_min_json()
+        return obj_json
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)

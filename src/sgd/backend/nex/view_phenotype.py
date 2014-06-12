@@ -59,4 +59,5 @@ def make_details(locus_id=None, phenotype_id=None, observable_id=None, chemical_
     if phenoevidences is None:
         return json.dumps({'Error': 'Too much data to display.'})
 
-    return '[' + ', '.join([x.json for x in phenoevidences if x.json is not None]) + ']'
+    #return '[' + ', '.join([x.json for x in phenoevidences if x.json is not None]) + ']'
+    return json.dumps([x.to_json() for x in phenoevidences])
