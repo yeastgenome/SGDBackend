@@ -291,14 +291,7 @@ class Phenotype(Bioconcept):
     def to_min_json(self):
         obj_json = UpdateByJsonMixin.to_min_json(self)
 
-        ancestory = [self.observable]
-        while ancestory[-1] is not None:
-            parents = ancestory[-1].parents
-            if len(parents) == 0:
-                ancestory.append(None)
-            else:
-                ancestory.append(parents[0].parent)
-        obj_json['ancestor'] = ancestory[-3].to_min_json()
+        obj_json['ancestor'] = [x.parent.to_min_json() for x in self.parents if x.relation_type == 'PHENOTYPE_SLIM'][0]
         return obj_json
 
     def to_json(self):

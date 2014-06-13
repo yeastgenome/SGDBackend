@@ -253,10 +253,20 @@ def make_bioentity_relation_starter(bud_session_maker, nex_session_maker):
     return bioentity_relation_starter
 
 # --------------------- Convert Url ---------------------
+category_mapping = {
+    'Mutant Strains': 'LOCUS_PHENOTYPE_MUTANT_STRAINS',
+    'Phenotype Resources': 'LOCUS_PHENOTYPE_PHENOTYPE_RESOURCES',
+    'Interaction Resources': 'LOCUS_INTERACTION',
+    'Protein Information Homologs': 'LOCUS_PROTEIN_HOMOLOGS',
+    'Analyze Sequence S288C vs. other species': 'LOCUS_PROTEIN_HOMOLOGS',
+    'Protein databases/Other': 'LOCUS_PROTEIN_PROTEIN_DATABASES',
+    'Localization Resources': 'LOCUS_PROEIN_LOCALIZATION',
+    'Post-translational modifications': 'LOCUS_PROTEIN_MODIFICATIONS',
+}
 def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex import create_format_name
     from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.bioentity import Bioentity
+    from src.sgd.model.nex.bioentity import Bioentity, Locus
     from src.sgd.model.bud.general import FeatUrl, DbxrefFeat
     def bioentity_url_starter():
         bud_session = bud_session_maker()
@@ -283,10 +293,12 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
                         print "Can't handle this url. " + str(old_url.url_type)
                         yield None
 
+                    category = None if old_webdisplay.label_location not in category_mapping else category_mapping[old_webdisplay.label_location]
+
                     yield {'display_name': old_webdisplay.label_name,
                            'link': link,
                            'source': key_to_source[create_format_name(old_url.source)],
-                           'category': old_webdisplay.label_location,
+                           'category': category,
                            'bioentity_id': bioentity_id,
                            'date_created': old_url.date_created,
                            'created_by': old_url.created_by}
@@ -316,16 +328,56 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
                             print "Can't handle this url. " + str(old_url.url_type)
                             yield None
 
+                        category = None if old_webdisplay.label_location not in category_mapping else category_mapping[old_webdisplay.label_location]
+
                         yield {'display_name': old_webdisplay.label_name,
                                    'link': link,
                                    'source': key_to_source[create_format_name(old_url.source)],
-                                   'category': old_webdisplay.label_location,
+                                   'category': category,
                                    'bioentity_id': bioentity_id,
                                    'date_created': old_url.date_created,
                                    'created_by': old_url.created_by}
                     else:
                         print 'Bioentity not found: ' + str(bioentity_id)
                         yield None
+
+            for locus in nex_session.query(Locus).all():
+                yield {'display_name': 'SPELL',
+                        'link': 'http://spell.yeastgenome.org/search/show_results?search_string=' + locus.format_name,
+                        'source': key_to_source['SGD'],
+                        'category': 'LOCUS_EXPRESSION',
+                        'bioentity_id': locus.id}
+                yield {'display_name': 'Gene/Sequence Resources',
+                        'link': '/cgi-bin/seqTools?back=1&seqname=' + locus.format_name,
+                        'source': key_to_source['SGD'],
+                        'category': 'LOCUS_SEQUENCE',
+                        'bioentity_id': locus.id}
+                yield {'display_name': 'ORF Map',
+                        'link': '/cgi-bin/ORFMAP/ORFmap?dbid=' + locus.sgdid,
+                        'source': key_to_source['SGD'],
+                        'category': 'LOCUS_SEQUENCE',
+                        'bioentity_id': locus.id}
+                yield {'display_name': 'GBrowse',
+                        'link': 'http://browse.yeastgenome.org/fgb2/gbrowse/scgenome/?name=' + locus.format_name,
+                        'source': key_to_source['SGD'],
+                        'category': 'LOCUS_SEQUENCE',
+                        'bioentity_id': locus.id}
+
+                yield {'display_name': 'BLASTN',
+                        'link': '/cgi-bin/blast-sgd.pl?name=' + locus.format_name,
+                        'source': key_to_source['SGD'],
+                        'category': 'LOCUS_SEQUENCE_SECTION',
+                        'bioentity_id': locus.id}
+                yield {'display_name': 'BLASTP',
+                        'link': '/cgi-bin/blast-sgd.pl?name=' + locus.format_name + '&suffix=prot',
+                        'source': key_to_source['SGD'],
+                        'category': 'LOCUS_SEQUENCE_SECTION',
+                        'bioentity_id': locus.id}
+                yield {'display_name': 'Yeast Phenotype Ontology',
+                        'link': '/ontology/phenotype/ypo/overview',
+                        'source': key_to_source['SGD'],
+                        'category': 'LOCUS_PHENOTYPE_ONTOLOGY',
+                        'bioentity_id': locus.id}
 
         bud_session.close()
         nex_session.close()

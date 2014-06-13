@@ -149,14 +149,7 @@ class Locus(Bioentity):
                 else:
                     strain_groups[evidence.strain.display_name] = 1
 
-            ancestory = [evidence.phenotype.observable]
-            while ancestory[-1] is not None:
-                parents = ancestory[-1].parents
-                if len(parents) == 0:
-                    ancestory.append(None)
-                else:
-                    ancestory.append(parents[0].parent)
-            ancestor = ancestory[-3].to_min_json()
+            ancestor = [x.parent.to_min_json() for x in evidence.phenotype.parents if x.relation_type == 'PHENOTYPE_SLIM'][0]
             if ancestor['id'] in overall:
                 overall[ancestor['id']][1] +=1
             else:
@@ -179,7 +172,7 @@ class Locus(Bioentity):
 
         #Go overview
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
-        id_to_go = dict([(x.go_id, x.go) for x in self.go_evidences if x.go.go_aspect == 'biological process'])
+        id_to_go = dict([(x.go_id, x.go) for x in self.go_evidences])
 
 
         ancestor_to_children = dict()
@@ -239,6 +232,7 @@ class Locus(Bioentity):
                                             'paragraph': None if len(regulation_paragraphs) == 0 else regulation_paragraphs[0]}
 
         obj_json['description_references'] = [x.reference.to_min_json() for x in self.bioentity_evidences if x.info_key == 'Description']
+        obj_json['basic_info_references'] = [x.to_json() for x in self.bioentity_evidences if x.info_key != 'Description']
 
         #Literature
         primary_reference_ids = set([x.reference_id for x in self.literature_evidences if x.topic == 'Primary Literature'])
@@ -299,7 +293,7 @@ class Locus(Bioentity):
         obj_json['aliases'] = [x.to_json() for x in self.aliases]
 
         #Urls
-        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
+        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name) if x.category is not None]
 
         return obj_json
 

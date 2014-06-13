@@ -1497,17 +1497,35 @@ def make_expression_evidence_starter(nex_session_maker, expression_dir):
         nex_session.close()
     return expression_evidence_starter
 
-def make_expression_data_starter(nex_session_maker, expression_file, dataset_id, channel_count):
+def get_alias_info(expression_file, key_to_locus, aliases):
+    alias_used_count = 0
+    undefined_alias_used_count = 0
+    undefined_aliases = set()
+    completely_undefined_count = 0
+    completely_undefined = set()
+    evidences = None
+    for row in make_file_starter(expression_file)():
+        if evidences is None:
+            evidences = []
+        elif row[0] != 'EWEIGHT':
+            locus_key = row[0]
+            if locus_key in aliases:
+                alias_used_count += 1
+                if len(aliases[locus_key]) > 1:
+                    undefined_alias_used_count +=1
+                    undefined_aliases.add(locus_key)
+            elif locus_key not in key_to_locus:
+                completely_undefined_count += 1
+                completely_undefined.add(locus_key)
+    print '\t'.join([expression_file, str(alias_used_count), str(undefined_alias_used_count), str(completely_undefined_count), str(undefined_aliases), str(completely_undefined)])
+
+def make_expression_data_starter(nex_session_maker, expression_file, dataset_id, channel_count, key_to_locus, aliases):
     from src.sgd.model.nex.evidence import Expressionevidence
-    from src.sgd.model.nex.bioentity import Locus
+    from src.sgd.model.nex.bioentity import Locus, Bioentityalias
     def expression_evidence_starter():
         nex_session = nex_session_maker()
 
         key_to_evidence = dict([(x.unique_key(), x) for x in nex_session.query(Expressionevidence).filter_by(dataset_id=dataset_id).all()])
-        locuses = nex_session.query(Locus).all()
-        key_to_locus = dict([(x.format_name, x) for x in locuses])
-        key_to_locus.update([(x.display_name, x) for x in locuses])
-        key_to_locus.update([('SGD:' + x.sgdid, x) for x in locuses])
 
         evidences = None
         locii_not_found = 0
@@ -1525,7 +1543,12 @@ def make_expression_data_starter(nex_session_maker, expression_file, dataset_id,
                         evidences.append(None)
             elif row[0] != 'EWEIGHT':
                 locus_key = row[0]
-                if locus_key in key_to_locus:
+                locus = None
+                if locus_key in key_to_locus and (locus_key not in aliases or len(aliases[locus_key]) == 1):
+                    locus = key_to_locus[locus_key]
+                elif locus_key in aliases and len(aliases[locus_key]) == 1:
+                    locus = list(aliases[locus_key])[0]
+                if locus is not None:
                     log_sum = 0
                     for value in row[3:]:
                         dec_value = Decimal(value)
@@ -1533,15 +1556,15 @@ def make_expression_data_starter(nex_session_maker, expression_file, dataset_id,
                             has_negative = True
                         elif dec_value > max_value:
                             max_value = dec_value
-                        log_sum = log_sum + 2**dec_value
+                        log_sum += 2**dec_value
                     log_sum = math.log(log_sum, 2)
                     log_n = math.log(len(row[3:]), 2)
                     for i in range(0, len(evidences)):
                         if evidences[i] is not None:
                             yield {
-                                'locus_id': key_to_locus[locus_key].id,
+                                'locus_id': locus.id,
                                 'evidence_id': evidences[i].id,
-                                'value': Decimal(row[i+3]) if channel_count == 2 else Decimal(float(row[i+3]) + log_n - log_sum)
+                                'value': Decimal(row[i+3]) if channel_count == 2 else Decimal(float(row[i+3]) + log_n - log_sum).quantize(Decimal('1.000'))
                             }
                 else:
                     #print 'Locus not found: ' + str(locus_key)

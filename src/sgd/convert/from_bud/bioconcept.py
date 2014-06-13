@@ -206,7 +206,7 @@ def make_ecnumber_starter(bud_session_maker, nex_session_maker):
 # --------------------- Convert Bioconcept Relation ---------------------
 def make_bioconcept_relation_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.bioconcept import Bioconcept, Bioconceptrelation
+    from src.sgd.model.nex.bioconcept import Bioconcept, Bioconceptrelation, Phenotype
     from src.sgd.model.nex import create_format_name
     from src.sgd.model.bud.go import GoPath, GoSet
     from src.sgd.model.bud.cv import CVTermRel
@@ -242,6 +242,7 @@ def make_bioconcept_relation_starter(bud_session_maker, nex_session_maker):
             else:
                 print 'GO term not found: ' + str(go_key)
 
+        #Go Slim
         go_child_id_to_parent_ids = {}
         for go_relation in nex_session.query(Bioconceptrelation).filter(Bioconceptrelation.relation_type == 'is a'):
             if go_relation.child_id in go_child_id_to_parent_ids:
@@ -300,6 +301,27 @@ def make_bioconcept_relation_starter(bud_session_maker, nex_session_maker):
                 else:
                     print 'Could not find phenotype. Parent: ' + str(parent_key) + ' Child: ' + str(child_key)
                     yield None
+
+        #Phenotype Slim
+        observable_id_to_ancestor = dict()
+        for phenotype in nex_session.query(Phenotype).all():
+            if phenotype.observable_id not in observable_id_to_ancestor:
+                ancestory = [phenotype.observable]
+                while ancestory[-1] is not None:
+                    parents = ancestory[-1].parents
+                    if len(parents) == 0:
+                        ancestory.append(None)
+                    else:
+                        ancestory.append(parents[0].parent)
+                ancestor = ancestory[-3]
+                if ancestor.display_name == 'essentiality':
+                    ancestor = ancestory[-4]
+                observable_id_to_ancestor[phenotype.observable_id] = ancestor.id
+
+            yield {'source': key_to_source['SGD'],
+                    'parent_id': observable_id_to_ancestor[phenotype.observable_id],
+                    'child_id': phenotype.id,
+                    'relation_type': 'PHENOTYPE_SLIM'}
 
         bud_session.close()
         nex_session.close()

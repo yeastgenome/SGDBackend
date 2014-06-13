@@ -8,6 +8,7 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from src.sgd.model.nex.misc import Source, Relation, Strain, Url, Alias
 from src.sgd.model.nex.reference import Reference
+from decimal import Decimal
 
 __author__ = 'kpaskov'
 
