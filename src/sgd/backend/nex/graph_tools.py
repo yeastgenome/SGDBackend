@@ -1,7 +1,7 @@
 from src.sgd.backend.nex import DBSession
 from src.sgd.backend.nex.query_tools import get_relations, get_interactions_among
 from src.sgd.model.nex.bioconcept import Bioconceptrelation
-from src.sgd.model.nex.bioconcept import Bioconcept, Observable
+from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype
 from src.sgd.model.nex.bioitem import Bioitem
 from src.sgd.model.nex.bioentity import Locus
 from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Bioiteminteraction, Referenceinteraction
@@ -279,7 +279,12 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
     for bioent1_id in bioent_ids_in_use:
         for bioent2_id in bioent_ids_in_use:
             if bioent1_id < bioent2_id:
-                pair_to_score[(bioent1_id, bioent2_id)] = len(bioent_id_to_interactor_ids[bioent1_id] & bioent_id_to_interactor_ids[bioent2_id])
+                overlap = bioent_id_to_interactor_ids[bioent1_id] & bioent_id_to_interactor_ids[bioent2_id]
+                domain_count = len([x for x in overlap if x[0] == 'DOMAIN'])
+                phenotype_count = len([x for x in overlap if x[0] == 'PHENOTYPE'])
+                go_count = len([x for x in overlap if x[0] == 'GO'])
+                score = int(ceil(.5*domain_count + .5*phenotype_count + go_count))
+                pair_to_score[(bioent1_id, bioent2_id)] = score
 
     interactions = DBSession.query(Bioentityinteraction).filter(Bioentityinteraction.bioentity_id.in_(bioent_ids_in_use)).filter(Bioentityinteraction.evidence_count > 2).all()
     pair_to_interactions = dict()
@@ -287,19 +292,19 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
         if interaction.bioentity_id < interaction.interactor_id:
             key = (interaction.bioentity_id, interaction.interactor_id)
             if interaction.interaction_type == 'EXPRESSION':
-                score = max(0, interaction.evidence_count - 95)
+                score = max(0, (interaction.coeff - .75)*20)
             else:
                 score = interaction.evidence_count-2
         elif interaction.bioentity_id > interaction.interactor_id:
             key = (interaction.interactor_id, interaction.bioentity_id)
             if interaction.interaction_type == 'EXPRESSION':
-                score = max(0, interaction.evidence_count - 95)
+                score = max(0, (interaction.coeff - .75)*20)
             else:
                 score = interaction.evidence_count-2
         else:
             key = (interaction.bioentity_id, interaction.interactor_id)
             if interaction.interaction_type == 'EXPRESSION':
-                score = max(0, (interaction.evidence_count-95)/2)
+                score = max(0, (interaction.coeff - .75)*10)
             else:
                 score = 1.0*(interaction.evidence_count-2)/2
         if key in pair_to_score:
@@ -348,7 +353,8 @@ def make_lsp_graph(locus_id, node_max=100, edge_max=250):
                 interaction_type_to_count[interaction.interaction_type] = interaction.evidence_count-2
 
         for interaction_type, count in interaction_type_to_count.iteritems():
-            edges.append(create_lsp_edge(bioent1_id, bioent2_id, interaction_type, min(count, 5)))
+            if bioent1_id != bioent2_id:
+                edges.append(create_lsp_edge(bioent1_id, bioent2_id, interaction_type, min(count, 5)))
 
     #Pick out interactors to highlight
     interactor_ids_in_use = set()
