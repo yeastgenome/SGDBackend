@@ -88,4 +88,49 @@ class DbxrefUrl(Base, EqualityByIDMixin):
     url = relationship(Url, uselist=False)
     dbxref = relationship(Dbxref, uselist=False, backref='dbxref_urls')
     
-    
+class Note(Base, EqualityByIDMixin):
+    __tablename__ = 'note'
+
+    #Values
+    id = Column('note_no', Integer, primary_key = True)
+    note = Column('note', String)
+    note_type = Column('note_type', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+
+class NoteFeat(Base, EqualityByIDMixin):
+    __tablename__ = 'note_link'
+
+    #Values
+    id = Column('note_link_no', Integer, primary_key = True)
+    note_id = Column('note_no', Integer, ForeignKey(Note.id))
+    tab_name = Column('tab_name', String)
+    primary_key = Column('primary_key', Integer)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+
+    #Relationships
+    note = relationship(Note, uselist=False, backref='note_feats')
+
+class Paragraph(Base, EqualityByIDMixin):
+    __tablename__ = 'paragraph'
+
+    #Values
+    id = Column('paragraph_no', Integer, primary_key = True)
+    text = Column('paragraph_text', String)
+    date_edited = Column('date_edited', Date)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+
+class ParagraphFeat(Base, EqualityByIDMixin):
+    __tablename__ = 'feat_para'
+
+    #Values
+    id = Column('feat_para_no', Integer, primary_key = True)
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
+    paragraph_id = Column('paragraph_no', Integer, ForeignKey(Paragraph.id))
+    order = Column('paragraph_order', Integer)
+
+    #Relationships
+    feature = relationship(Feature, uselist=False, backref='paragraph_feats')
+    paragraph = relationship(Paragraph, uselist=False, backref='paragraph_feats')

@@ -341,39 +341,39 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
                         print 'Bioentity not found: ' + str(bioentity_id)
                         yield None
 
-            for locus in nex_session.query(Locus).all():
-                yield {'display_name': 'SPELL',
+        for locus in nex_session.query(Locus).all():
+            yield {'display_name': 'SPELL',
                         'link': 'http://spell.yeastgenome.org/search/show_results?search_string=' + locus.format_name,
                         'source': key_to_source['SGD'],
                         'category': 'LOCUS_EXPRESSION',
                         'bioentity_id': locus.id}
-                yield {'display_name': 'Gene/Sequence Resources',
+            yield {'display_name': 'Gene/Sequence Resources',
                         'link': '/cgi-bin/seqTools?back=1&seqname=' + locus.format_name,
                         'source': key_to_source['SGD'],
                         'category': 'LOCUS_SEQUENCE',
                         'bioentity_id': locus.id}
-                yield {'display_name': 'ORF Map',
+            yield {'display_name': 'ORF Map',
                         'link': '/cgi-bin/ORFMAP/ORFmap?dbid=' + locus.sgdid,
                         'source': key_to_source['SGD'],
                         'category': 'LOCUS_SEQUENCE',
                         'bioentity_id': locus.id}
-                yield {'display_name': 'GBrowse',
+            yield {'display_name': 'GBrowse',
                         'link': 'http://browse.yeastgenome.org/fgb2/gbrowse/scgenome/?name=' + locus.format_name,
                         'source': key_to_source['SGD'],
                         'category': 'LOCUS_SEQUENCE',
                         'bioentity_id': locus.id}
 
-                yield {'display_name': 'BLASTN',
+            yield {'display_name': 'BLASTN',
                         'link': '/cgi-bin/blast-sgd.pl?name=' + locus.format_name,
                         'source': key_to_source['SGD'],
                         'category': 'LOCUS_SEQUENCE_SECTION',
                         'bioentity_id': locus.id}
-                yield {'display_name': 'BLASTP',
+            yield {'display_name': 'BLASTP',
                         'link': '/cgi-bin/blast-sgd.pl?name=' + locus.format_name + '&suffix=prot',
                         'source': key_to_source['SGD'],
                         'category': 'LOCUS_SEQUENCE_SECTION',
                         'bioentity_id': locus.id}
-                yield {'display_name': 'Yeast Phenotype Ontology',
+            yield {'display_name': 'Yeast Phenotype Ontology',
                         'link': '/ontology/phenotype/ypo/overview',
                         'source': key_to_source['SGD'],
                         'category': 'LOCUS_PHENOTYPE_ONTOLOGY',

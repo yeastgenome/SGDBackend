@@ -590,6 +590,131 @@ def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_referenc
             return evidence_key, conditions
     return None
 
+# --------------------- History Evidence ---------------------
+def make_history_evidence_starter(bud_session_maker, nex_session_maker):
+    from src.sgd.model.bud.general import Note
+    from src.sgd.model.bud.reference import Reflink
+    from src.sgd.model.nex.misc import Experiment, Source
+    from src.sgd.model.nex.reference import Reference
+    from src.sgd.model.nex.bioentity import Bioentity
+    def history_evidence_starter():
+        bud_session = bud_session_maker()
+        nex_session = nex_session_maker()
+
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Bioentity).all()])
+        id_to_reference = dict([(x.id, x) for x in nex_session.query(Reference).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+
+        note_id_to_reference_ids = dict()
+        for note_link in bud_session.query(Reflink).filter_by(tab_name='NOTE').all():
+            if note_link.primary_key in note_id_to_reference_ids:
+                note_id_to_reference_ids[note_link.primary_key].append(note_link.reference_id)
+            else:
+                note_id_to_reference_ids[note_link.primary_key] = [note_link.reference_id]
+
+        for note in bud_session.query(Note).filter(Note.note_type.in_({'Alternative processing', 'Annotation change',
+                                                                       'Mapping', 'Proposed annotation change', 'Proposed sequence change', 'Sequence change', 'Other', 'Repeated'})).all():
+            for note_feat in note.note_feats:
+                if note_feat.tab_name == 'FEATURE':
+                    if note.id in note_id_to_reference_ids:
+                        for reference_id in note_id_to_reference_ids[note.id]:
+                            if reference_id in id_to_reference:
+                                yield {'source': key_to_source['SGD'],
+                                       'reference': id_to_reference[reference_id],
+                                       'locus': id_to_bioentity[note_feat.primary_key],
+                                       'category': note.note_type,
+                                       'history_type': 'SEQUENCE',
+                                       'note': note.note,
+                                       'date_created': note_feat.date_created,
+                                       'created_by': note_feat.created_by
+                                       }
+                    else:
+                        yield {'source': key_to_source['SGD'],
+                                'locus': id_to_bioentity[note_feat.primary_key],
+                                'category': note.note_type,
+                                'history_type': 'SEQUENCE',
+                                'note': note.note,
+                                'date_created': note_feat.date_created,
+                                'created_by': note_feat.created_by
+                                }
+
+        for note in bud_session.query(Note).filter(Note.note_type.in_({'Nomenclature conflict', 'Nomenclature history',
+                                                                       'Reserved Name Note', 'Other', 'Repeated'})).all():
+            for note_feat in note.note_feats:
+                if note_feat.tab_name == 'FEATURE':
+                    if note.id in note_id_to_reference_ids:
+                        for reference_id in note_id_to_reference_ids[note.id]:
+                            if reference_id in id_to_reference:
+                                yield {'source': key_to_source['SGD'],
+                                       'reference': id_to_reference[reference_id],
+                                       'locus': id_to_bioentity[note_feat.primary_key],
+                                       'category': note.note_type,
+                                       'history_type': 'LSP',
+                                       'note': note.note,
+                                       'date_created': note_feat.date_created,
+                                       'created_by': note_feat.created_by
+                                       }
+                    else:
+                        yield {'source': key_to_source['SGD'],
+                                'locus': id_to_bioentity[note_feat.primary_key],
+                                'category': note.note_type,
+                                'history_type': 'LSP',
+                                'note': note.note,
+                                'date_created': note_feat.date_created,
+                                'created_by': note_feat.created_by
+                                }
+
+        for bioentity in id_to_bioentity.values():
+            yield {'source': key_to_source['SGD'],
+                    'reference': None,
+                    'locus': bioentity,
+                    'category': 'Added',
+                    'history_type': 'LSP',
+                    'note': bioentity.display_name + ' added to SGD.',
+                    'date_created': bioentity.date_created,
+                    'created_by': bioentity.created_by
+                    }
+            for alias in bioentity.aliases:
+                if alias.category == 'Gene product':
+                    reference = None if len(alias.alias_evidences) == 0 else alias.alias_evidences[0].reference
+                    yield {'source': key_to_source['SGD'],
+                        'reference': reference,
+                        'locus': bioentity,
+                        'category': 'Nomenclature history',
+                        'history_type': 'LSP',
+                        'note': 'Gene Product: ' + alias.display_name,
+                        'date_created': alias.date_created,
+                        'created_by': alias.created_by
+                        }
+                elif alias.category == 'NCBI protein name':
+                    reference = None if len(alias.alias_evidences) == 0 else alias.alias_evidences[0].reference
+                    yield {'source': key_to_source['SGD'],
+                        'reference': reference,
+                        'locus': bioentity,
+                        'category': 'Nomenclature history',
+                        'history_type': 'LSP',
+                        'note': 'Protein Product: ' + alias.display_name,
+                        'date_created': alias.date_created,
+                        'created_by': alias.created_by
+                        }
+
+            for bioentity_evidence in bioentity.bioentity_evidences:
+                if bioentity_evidence.info_key == 'Gene Name':
+                    yield {'source': key_to_source['SGD'],
+                            'reference': bioentity_evidence.reference,
+                            'locus': bioentity,
+                            'category': 'Nomenclature history',
+                            'history_type': 'LSP',
+                            'note': 'Standard Name: ' + bioentity.display_name,
+                            'date_created': bioentity_evidence.date_created,
+                            'created_by': bioentity_evidence.created_by
+                            }
+
+
+        bud_session.close()
+        nex_session.close()
+    return history_evidence_starter
+
 # --------------------- Convert Interaction Evidence ---------------------
 def make_interaction_evidence_starter(bud_session_maker, nex_session_maker, interaction_type):
     from src.sgd.model.nex.misc import Experiment, Source
@@ -1521,7 +1646,6 @@ def get_alias_info(expression_file, key_to_locus, aliases):
 
 def make_expression_data_starter(nex_session_maker, expression_file, dataset_id, channel_count, key_to_locus, aliases):
     from src.sgd.model.nex.evidence import Expressionevidence
-    from src.sgd.model.nex.bioentity import Locus, Bioentityalias
     def expression_evidence_starter():
         nex_session = nex_session_maker()
 
@@ -1550,22 +1674,31 @@ def make_expression_data_starter(nex_session_maker, expression_file, dataset_id,
                     locus = list(aliases[locus_key])[0]
                 if locus is not None:
                     log_sum = 0
+                    n = 0
                     for value in row[3:]:
-                        dec_value = Decimal(value)
-                        if dec_value < 0:
-                            has_negative = True
-                        elif dec_value > max_value:
-                            max_value = dec_value
-                        log_sum += 2**dec_value
+                        try:
+                            dec_value = Decimal(value)
+                            if dec_value < 0:
+                                has_negative = True
+                            elif dec_value > max_value:
+                                max_value = dec_value
+                            log_sum += 2**dec_value
+                            n += 1
+                        except:
+                            pass
                     log_sum = math.log(log_sum, 2)
-                    log_n = math.log(len(row[3:]), 2)
+                    log_n = math.log(n, 2)
                     for i in range(0, len(evidences)):
                         if evidences[i] is not None:
-                            yield {
-                                'locus_id': locus.id,
-                                'evidence_id': evidences[i].id,
-                                'value': Decimal(row[i+3]) if channel_count == 2 else Decimal(float(row[i+3]) + log_n - log_sum).quantize(Decimal('1.000'))
-                            }
+                            try:
+                                yield {
+                                    'locus_id': locus.id,
+                                    'evidence_id': evidences[i].id,
+                                    'value': Decimal(row[i+3]) if channel_count == 2 else Decimal(float(row[i+3]) + log_n - log_sum).quantize(Decimal('1.000'))
+                                }
+                            except:
+                                pass
+                                #print 'Bad value: ' + str(row[i+3])
                 else:
                     #print 'Locus not found: ' + str(locus_key)
                     locii_not_found += 1

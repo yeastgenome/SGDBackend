@@ -170,6 +170,10 @@ class Locus(Bioentity):
                                           'strains': strains,
                                           'phenotype_slim': overall.values()}
 
+        #Paragraph
+        lsp_paragraphs = [x.to_json(linkit=True) for x in self.paragraphs if x.category == 'LSP']
+        obj_json['paragraph'] = None if len(lsp_paragraphs) == 0 else lsp_paragraphs[0]
+
         #Go overview
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
         id_to_go = dict([(x.go_id, x.go) for x in self.go_evidences])
@@ -271,18 +275,26 @@ class Locus(Bioentity):
             sum_of_squares = sum_of_squares + rounded*rounded;
             n = n + 1;
 
-        mean = 1.0*sum/n;
-        variance = 1.0*sum_of_squares/n - mean*mean;
-        standard_dev = variance**0.5;
+        if n == 0:
+            obj_json['expression_overview'] = {'all_values': expression_collapsed,
+                                               'high_values': [],
+                                               'low_values': [],
+                                               'low_cutoff': 0,
+                                               'high_cutoff': 0}
+        else:
+            mean = 1.0*sum/n;
+            variance = 1.0*sum_of_squares/n - mean*mean;
+            standard_dev = variance**0.5;
 
-        obj_json['expression_overview'] = {'all_values': expression_collapsed,
-                                           'high_values': [x.to_json() for x in self.data if float(x.value) >= mean + 2*standard_dev],
-                                           'low_values': [x.to_json() for x in self.data if float(x.value) <= mean - 2*standard_dev],
-                                           'low_cutoff': mean - 2*standard_dev,
-                                           'high_cutoff': mean + 2*standard_dev}
+            obj_json['expression_overview'] = {'all_values': expression_collapsed,
+                                               'high_values': [x.to_json() for x in self.data if float(x.value) >= mean + 2*standard_dev],
+                                               'low_values': [x.to_json() for x in self.data if float(x.value) <= mean - 2*standard_dev],
+                                               'low_cutoff': mean - 2*standard_dev,
+                                               'high_cutoff': mean + 2*standard_dev}
 
         #Sequence
-        obj_json['sequence_overview'] = [x.to_json() for x in self.dnasequence_evidences if x.strain_id == 1][0]
+        reference_sequence = [x.to_json() for x in self.dnasequence_evidences if x.strain_id == 1 and x.dna_type == 'GENOMIC']
+        obj_json['sequence_overview'] = None if len(reference_sequence) == 0 else reference_sequence[0]
 
         #Protein
         reference_protein_sequence = [x.to_json() for x in self.proteinsequence_evidences if x.strain_id == 1]

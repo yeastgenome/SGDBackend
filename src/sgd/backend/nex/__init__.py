@@ -462,6 +462,14 @@ class SGDBackend(BackendInterface):
             return json.dumps({'go_graph': graph_tools.make_graph(complex_id, Bioconceptinteraction, 'GO', 'COMPLEX'),
                                'interaction_graph': graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'PHYSINTERACTION')})
 
+    def history_details(self, locus_identifier, are_ids=False):
+        from src.sgd.backend.nex import view_history
+        if are_ids:
+            locus_id = locus_identifier
+        else:
+            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else view_history.make_details(locus_id=locus_id)
+
     #Regulation
     def regulation_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
         import view_regulation

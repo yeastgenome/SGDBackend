@@ -13,14 +13,14 @@ class UpdateByJsonMixin(object):
     def update(self, json_obj):
         anything_changed = False
         for key in self.__eq_values__:
-            current_value = getattr(self, key)
-            new_value = json_obj[key]
-
             if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                 pass
-            elif new_value != current_value:
-                setattr(self, key, new_value)
-                anything_changed = True
+            else:
+                current_value = getattr(self, key)
+                new_value = json_obj[key]
+                if new_value != current_value:
+                    setattr(self, key, new_value)
+                    anything_changed = True
 
         for key in self.__eq_fks__:
             current_value = getattr(self, key + '_id')

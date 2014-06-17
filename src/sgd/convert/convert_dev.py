@@ -357,7 +357,7 @@ if __name__ == "__main__":
     from src.sgd.model.nex.evidence import Evidence, Goevidence, DNAsequenceevidence, Regulationevidence, \
         Proteinsequenceevidence, Phosphorylationevidence, Domainevidence, Literatureevidence, Phenotypeevidence, \
         DNAsequencetag, Expressionevidence, Bioentitydata, Aliasevidence, Bindingevidence, Bioentityevidence, \
-        Complexevidence, ECNumberevidence, Geninteractionevidence, Physinteractionevidence, Proteinexperimentevidence
+        Complexevidence, ECNumberevidence, Geninteractionevidence, Physinteractionevidence, Proteinexperimentevidence, Historyevidence
     from src.sgd.model.nex.archive import ArchiveLiteratureevidence
     from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_dna_sequence_evidence_starter, \
         make_regulation_evidence_starter, make_protein_sequence_evidence_starter, make_phosphorylation_evidence_starter, \
@@ -365,7 +365,7 @@ if __name__ == "__main__":
         make_dna_sequence_tag_starter, make_expression_evidence_starter, make_expression_data_starter, \
         make_alias_evidence_starter, make_binding_evidence_starter, make_bioentity_evidence_starter, \
         make_complex_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
-        make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter
+        make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter
 
     # do_conversion(make_alias_evidence_starter(bud_session_maker, nex_session_maker),
     #                [Json2Obj(Aliasevidence),
@@ -481,7 +481,6 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Expressionevidence, Evidence, 'EXPRESSION')
     #
-    #30:40
     from src.sgd.model.nex.bioitem import Dataset
     from src.sgd.convert.from_bud.evidence import get_alias_info
     nex_session = nex_session_maker()
@@ -504,7 +503,7 @@ if __name__ == "__main__":
             aliases[key].add(locus)
 
     nex_session.close()
-    for path in os.listdir('src/sgd/convert/data/microarray_05_14'):
+    for path in os.listdir('src/sgd/convert/data/microarray_05_14')[180:]:
         if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
             for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
                 #if file != 'README':
@@ -515,6 +514,12 @@ if __name__ == "__main__":
                                       [Json2Obj(Bioentitydata),
                                        Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence.has(dataset_id=dataset_key_to_id[dataset_key])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
                                        OutputTransformer(1000)])
+    #
+    # do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Historyevidence),
+    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Historyevidence), name='convert.from_bud.evidence.history', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')
 
     # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty, Temperatureproperty, Generalproperty
     # clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')
@@ -532,7 +537,7 @@ if __name__ == "__main__":
     #
     # do_conversion(make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioentityparagraph),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit=True),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Bioentityparagraph, Paragraph, 'BIOENTITY')
     #

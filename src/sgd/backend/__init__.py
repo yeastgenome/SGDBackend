@@ -325,6 +325,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('protein_experiment_details'),
                     route_name='protein_experiment_details')
 
+    config.add_route('history_details', '/locus/{identifier}/history_details')
+    config.add_view(lambda request: chosen_backend.response_wrapper('history_details', request)(getattr(chosen_backend, 'history_details')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('history_details'),
+                    route_name='history_details')
+
     config.add_route('contig', '/contig/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('contig', request)(getattr(chosen_backend, 'contig')(contig_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('contig'),

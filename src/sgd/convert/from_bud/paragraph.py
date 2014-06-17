@@ -43,16 +43,109 @@ strain_paragraphs = {'S288C': ('S288C is a widely used laboratory strain, design
 }
 
 # --------------------- Convert Bioentity Paragraph ---------------------
+def clean_paragraph(text, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
+    html_text = text
+
+    # Replace references
+    while text.find('<reference:') > -1:
+        start_index = text.find('<reference:')
+        end_index = text.find('>', start_index)
+        sgdid = text[start_index + 11:end_index]
+        replacement = ''
+        if sgdid in sgdid_to_reference:
+            reference = sgdid_to_reference[sgdid]
+            replacement = reference.display_name
+        else:
+            print 'Reference not found: ' + sgdid
+        text = text.replace(text[start_index:end_index+1], replacement)
+
+    while html_text.find('<reference:') > -1:
+        start_index = html_text.find('<reference:')
+        end_index = html_text.find('>', start_index)
+        sgdid = html_text[start_index + 11:end_index]
+        replacement = ''
+        if sgdid in sgdid_to_reference:
+            reference = sgdid_to_reference[sgdid]
+            replacement = '<a href="' + reference.link + '">' + reference.display_name + '</a>'
+        else:
+            print 'Reference not found: ' + sgdid
+        html_text = html_text.replace(html_text[start_index:end_index+1], replacement)
+
+    # # Replace bioentities
+    # while text.find('<feature:') > -1:
+    #     start_index = text.find('<feature:')
+    #     end_index = text.find('>', start_index)
+    #     final_end_index = text.find('</feature>', start_index)
+    #     sgdid = None
+    #     try:
+    #         sgdid = 'S' + str(int(text[start_index + 10:end_index])).zfill(9)
+    #     except:
+    #         pass
+    #     replacement = ''
+    #     html_replacement = ''
+    #     if sgdid in sgdid_to_bioentity:
+    #         bioentity = sgdid_to_bioentity[sgdid]
+    #         replacement = bioentity.display_name
+    #         html_replacement = '<a href="' + bioentity.link + '">' + bioentity.display_name + '</a>'
+    #     else:
+    #         print 'Feature not found: ' + sgdid
+    #     text = text.replace(text[start_index:final_end_index+11], replacement)
+    #     html_text = html_text.replace(text[start_index:final_end_index+11], html_replacement)
+
+    # # Replace go
+    # while text.find('<go:') > -1:
+    #     start_index = text.find('<go:')
+    #     end_index = text.find('>', start_index)
+    #     final_end_index = text.find('</go>', start_index)
+    #     goid = int(text[start_index + 4:end_index])
+    #     replacement = ''
+    #     html_replacement = ''
+    #     if goid in goid_to_go:
+    #         go = goid_to_go[goid]
+    #         replacement = go.display_name
+    #         html_replacement = '<a href="' + go.link + '">' + go.display_name + '</a>'
+    #     else:
+    #         print 'Go not found: ' + goid
+    #     text = text.replace(text[start_index:final_end_index+6], replacement)
+    #     html_text = html_text.replace(text[start_index:final_end_index+6], html_replacement)
+
+    return html_text, text
+
 def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.misc import Source
+    from src.sgd.model.nex.reference import Reference
+    from src.sgd.model.nex.bioentity import Bioentity
+    from src.sgd.model.nex.bioconcept import Go
+    from src.sgd.model.bud.general import ParagraphFeat
     from src.sgd.model.bud.go import GoFeature
+    from src.sgd.model.bud.feature import Feature
     def bioentity_paragraph_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Locus).all()])
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+        sgdid_to_reference = dict([(x.sgdid, x) for x in nex_session.query(Reference).all()])
+        sgdid_to_bioentity = dict([(x.sgdid, x) for x in nex_session.query(Bioentity).all()])
+        goid_to_go = dict([(int(x.go_id[3:]), x) for x in nex_session.query(Go).all()])
+
+        #LSP
+        for feature in bud_session.query(Feature).all():
+            paragraph_feats = feature.paragraph_feats
+            if len(paragraph_feats) > 0:
+                paragraph_feats.sort(key=lambda x: x.order)
+                paragraph_html, paragraph_text = clean_paragraph('\n'.join([x.paragraph.text for x in paragraph_feats]), sgdid_to_reference, sgdid_to_bioentity, goid_to_go)
+                yield {
+                    'bioentity': id_to_bioentity[feature.id],
+                    'source': key_to_source['SGD'],
+                    'text': paragraph_text,
+                    'html': paragraph_html,
+                    'date_created': paragraph_feats[0].paragraph.date_created,
+                    'created_by': paragraph_feats[0].paragraph.created_by,
+                    'category': 'LSP'
+                }
 
         bioentity_key_to_date = dict()
         #Go
@@ -92,6 +185,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
             else:
                 print 'Bioentity not found: ' + str(bioentity_key)
                 yield None
+
 
         bud_session.close()
         nex_session.close()
