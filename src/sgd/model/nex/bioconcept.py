@@ -157,6 +157,7 @@ class Go(Bioconcept):
         obj_json['child_count'] = self.child_count
 
         obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
+        obj_json['aliases'] = [x.to_json() for x in sorted(self.aliases, key=lambda x: x.display_name)]
         return obj_json
         
 def create_phenotype_display_name(observable, qualifier):

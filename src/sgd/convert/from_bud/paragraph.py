@@ -46,6 +46,19 @@ strain_paragraphs = {'S288C': ('S288C is a widely used laboratory strain, design
 def clean_paragraph(text, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
     html_text = text
 
+    # Wrap reference lists in html
+    current_index = 0
+    while html_text.find('(', current_index) > -1:
+        start_index = html_text.find('(', current_index)
+        end_index = html_text.find(')', start_index)
+        if html_text.find('<reference:', start_index, end_index) > -1:
+            print 'Here: ' + str(start_index) + ' ' + str(end_index)
+            replacement = '<a href="#" data-dropdown="drop_' + str(start_index) + '"><i class="fa fa-info-circle"></i></a><div id="drop_' + str(start_index) + '" class="f-dropdown content medium" data-dropdown-content><p>'
+            replacement += html_text[start_index+1:end_index]
+            replacement += '</p></div>'
+            html_text.replace(html_text[start_index:end_index+1], replacement)
+        current_index = end_index
+
     # Replace references
     while text.find('<reference:') > -1:
         start_index = text.find('<reference:')
@@ -55,8 +68,6 @@ def clean_paragraph(text, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
         if sgdid in sgdid_to_reference:
             reference = sgdid_to_reference[sgdid]
             replacement = reference.display_name
-        else:
-            print 'Reference not found: ' + sgdid
         text = text.replace(text[start_index:end_index+1], replacement)
 
     while html_text.find('<reference:') > -1:
@@ -71,43 +82,58 @@ def clean_paragraph(text, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
             print 'Reference not found: ' + sgdid
         html_text = html_text.replace(html_text[start_index:end_index+1], replacement)
 
-    # # Replace bioentities
-    # while text.find('<feature:') > -1:
-    #     start_index = text.find('<feature:')
-    #     end_index = text.find('>', start_index)
-    #     final_end_index = text.find('</feature>', start_index)
-    #     sgdid = None
-    #     try:
-    #         sgdid = 'S' + str(int(text[start_index + 10:end_index])).zfill(9)
-    #     except:
-    #         pass
-    #     replacement = ''
-    #     html_replacement = ''
-    #     if sgdid in sgdid_to_bioentity:
-    #         bioentity = sgdid_to_bioentity[sgdid]
-    #         replacement = bioentity.display_name
-    #         html_replacement = '<a href="' + bioentity.link + '">' + bioentity.display_name + '</a>'
-    #     else:
-    #         print 'Feature not found: ' + sgdid
-    #     text = text.replace(text[start_index:final_end_index+11], replacement)
-    #     html_text = html_text.replace(text[start_index:final_end_index+11], html_replacement)
 
-    # # Replace go
-    # while text.find('<go:') > -1:
-    #     start_index = text.find('<go:')
-    #     end_index = text.find('>', start_index)
-    #     final_end_index = text.find('</go>', start_index)
-    #     goid = int(text[start_index + 4:end_index])
-    #     replacement = ''
-    #     html_replacement = ''
-    #     if goid in goid_to_go:
-    #         go = goid_to_go[goid]
-    #         replacement = go.display_name
-    #         html_replacement = '<a href="' + go.link + '">' + go.display_name + '</a>'
-    #     else:
-    #         print 'Go not found: ' + goid
-    #     text = text.replace(text[start_index:final_end_index+6], replacement)
-    #     html_text = html_text.replace(text[start_index:final_end_index+6], html_replacement)
+    # Replace bioentities
+    while text.find('<feature:') > -1:
+        start_index = text.find('<feature:')
+        end_index = text.find('>', start_index)
+        final_end_index = text.find('</feature>', start_index)
+        replacement = text[end_index+1:final_end_index]
+        text = text.replace(text[start_index:final_end_index+10], replacement)
+
+    while html_text.find('<feature:') > -1:
+        start_index = html_text.find('<feature:')
+        end_index = html_text.find('>', start_index)
+        final_end_index = html_text.find('</feature>', start_index)
+        sgdid = None
+        replacement = ''
+        try:
+            sgdid = 'S' + str(int(html_text[start_index + 10:end_index])).zfill(9)
+        except:
+            pass
+
+        if sgdid in sgdid_to_bioentity:
+            bioentity = sgdid_to_bioentity[sgdid]
+            replacement = '<a href="' + bioentity.link + '">' + html_text[end_index+1:final_end_index] + '</a>'
+        else:
+            print 'Feature not found: ' + sgdid
+        html_text = html_text.replace(html_text[start_index:final_end_index+10], replacement)
+
+    # Replace go
+    while text.find('<go:') > -1:
+        start_index = text.find('<go:')
+        end_index = text.find('>', start_index)
+        final_end_index = text.find('</go>', start_index)
+        replacement = text[end_index+1:final_end_index]
+        text = text.replace(text[start_index:final_end_index+4], replacement)
+
+    while html_text.find('<go:') > -1:
+        start_index = html_text.find('<go:')
+        end_index = html_text.find('>', start_index)
+        final_end_index = html_text.find('</go>', start_index)
+        goid = None
+        replacement = ''
+        try:
+            goid = int(html_text[start_index + 4:end_index])
+        except:
+            print 'Goid not an integer: ' + html_text[start_index + 4:end_index]
+
+        if goid in goid_to_go:
+            go = goid_to_go[goid]
+            replacement = '<a href="' + go.link + '">' + html_text[end_index+1:final_end_index] + '</a>'
+        else:
+            print 'Go not found: ' + str(goid)
+        html_text = html_text.replace(html_text[start_index:final_end_index+5], replacement)
 
     return html_text, text
 
@@ -133,6 +159,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
 
         #LSP
         for feature in bud_session.query(Feature).all():
+            print feature.id
             paragraph_feats = feature.paragraph_feats
             if len(paragraph_feats) > 0:
                 paragraph_feats.sort(key=lambda x: x.order)

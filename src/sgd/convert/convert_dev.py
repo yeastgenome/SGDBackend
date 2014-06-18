@@ -481,39 +481,39 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Expressionevidence, Evidence, 'EXPRESSION')
     #
-    from src.sgd.model.nex.bioitem import Dataset
-    from src.sgd.convert.from_bud.evidence import get_alias_info
-    nex_session = nex_session_maker()
-    dataset_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Dataset).all()])
-    dataset_key_to_channel_count = dict([(x.unique_key(), x.channel_count) for x in nex_session.query(Dataset).all()])
-
-    from src.sgd.model.nex.bioentity import Locus, Bioentityalias
-    locuses = nex_session.query(Locus).all()
-    key_to_locus = dict([(x.format_name, x) for x in locuses])
-    key_to_locus.update([(x.display_name, x) for x in locuses])
-    key_to_locus.update([('SGD:' + x.sgdid, x) for x in locuses])
-    aliases = dict()
-    for alias in nex_session.query(Bioentityalias).all():
-        if alias.display_name in aliases:
-            aliases[alias.display_name].add(alias.bioentity)
-        else:
-            aliases[alias.display_name] = set([alias.bioentity])
-    for key, locus in key_to_locus.iteritems():
-        if key in aliases:
-            aliases[key].add(locus)
-
-    nex_session.close()
-    for path in os.listdir('src/sgd/convert/data/microarray_05_14')[180:]:
-        if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
-            for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
-                #if file != 'README':
-                #    get_alias_info('src/sgd/convert/data/microarray_05_14/' + path + '/' + file, key_to_locus, aliases)
-                dataset_key = (file[:-4], 'DATASET')
-                if dataset_key in dataset_key_to_id:
-                    do_conversion(make_expression_data_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14/' + path + '/' + file, dataset_key_to_id[dataset_key], dataset_key_to_channel_count[dataset_key], key_to_locus, aliases),
-                                      [Json2Obj(Bioentitydata),
-                                       Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence.has(dataset_id=dataset_key_to_id[dataset_key])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
-                                       OutputTransformer(1000)])
+    # from src.sgd.model.nex.bioitem import Dataset
+    # from src.sgd.convert.from_bud.evidence import get_alias_info
+    # nex_session = nex_session_maker()
+    # dataset_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Dataset).all()])
+    # dataset_key_to_channel_count = dict([(x.unique_key(), x.channel_count) for x in nex_session.query(Dataset).all()])
+    #
+    # from src.sgd.model.nex.bioentity import Locus, Bioentityalias
+    # locuses = nex_session.query(Locus).all()
+    # key_to_locus = dict([(x.format_name, x) for x in locuses])
+    # key_to_locus.update([(x.display_name, x) for x in locuses])
+    # key_to_locus.update([('SGD:' + x.sgdid, x) for x in locuses])
+    # aliases = dict()
+    # for alias in nex_session.query(Bioentityalias).all():
+    #     if alias.display_name in aliases:
+    #         aliases[alias.display_name].add(alias.bioentity)
+    #     else:
+    #         aliases[alias.display_name] = set([alias.bioentity])
+    # for key, locus in key_to_locus.iteritems():
+    #     if key in aliases:
+    #         aliases[key].add(locus)
+    #
+    # nex_session.close()
+    # for path in os.listdir('src/sgd/convert/data/microarray_05_14')[186:]:
+    #     if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
+    #         for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
+    #             #if file != 'README':
+    #             #    get_alias_info('src/sgd/convert/data/microarray_05_14/' + path + '/' + file, key_to_locus, aliases)
+    #             dataset_key = (file[:-4], 'DATASET')
+    #             if dataset_key in dataset_key_to_id:
+    #                 do_conversion(make_expression_data_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14/' + path + '/' + file, dataset_key_to_id[dataset_key], dataset_key_to_channel_count[dataset_key], key_to_locus, aliases),
+    #                                   [Json2Obj(Bioentitydata),
+    #                                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence.has(dataset_id=dataset_key_to_id[dataset_key])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
+    #                                    OutputTransformer(1000)])
     #
     # do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Historyevidence),
@@ -535,11 +535,11 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.paragraph import make_paragraph_reference_starter, make_bioentity_paragraph_starter, \
         make_strain_paragraph_starter, make_reference_paragraph_starter
     #
-    # do_conversion(make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Bioentityparagraph),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Bioentityparagraph, Paragraph, 'BIOENTITY')
+    do_conversion(make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bioentityparagraph),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Bioentityparagraph, Paragraph, 'BIOENTITY')
     #
     # do_conversion(make_strain_paragraph_starter(nex_session_maker),
     #               [Json2Obj(Strainparagraph),

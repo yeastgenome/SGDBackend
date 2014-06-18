@@ -1686,19 +1686,20 @@ def make_expression_data_starter(nex_session_maker, expression_file, dataset_id,
                             n += 1
                         except:
                             pass
-                    log_sum = math.log(log_sum, 2)
-                    log_n = math.log(n, 2)
-                    for i in range(0, len(evidences)):
-                        if evidences[i] is not None:
-                            try:
-                                yield {
-                                    'locus_id': locus.id,
-                                    'evidence_id': evidences[i].id,
-                                    'value': Decimal(row[i+3]) if channel_count == 2 else Decimal(float(row[i+3]) + log_n - log_sum).quantize(Decimal('1.000'))
-                                }
-                            except:
-                                pass
-                                #print 'Bad value: ' + str(row[i+3])
+                    if log_sum != 0:
+                        log_sum = math.log(log_sum, 2)
+                        log_n = math.log(n, 2)
+                        for i in range(0, len(evidences)):
+                            if evidences[i] is not None:
+                                try:
+                                    yield {
+                                        'locus_id': locus.id,
+                                        'evidence_id': evidences[i].id,
+                                        'value': Decimal(row[i+3]) if channel_count == 2 else Decimal(float(row[i+3]) + log_n - log_sum).quantize(Decimal('1.000'))
+                                    }
+                                except:
+                                    pass
+                                    #print 'Bad value: ' + str(row[i+3])
                 else:
                     #print 'Locus not found: ' + str(locus_key)
                     locii_not_found += 1

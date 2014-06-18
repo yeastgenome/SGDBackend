@@ -13,6 +13,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 from src.sgd.backend.backend_interface import BackendInterface
 from src.sgd.model import nex
+import random
 
 
 __author__ = 'kpaskov'
@@ -577,7 +578,22 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
         return [(disambig.identifier, disambig.class_type, disambig.subclass_type) for disambig in disambigs]
     return None
 
+def get_random_obj_id(class_type, subclass_type):
+    from src.sgd.model.nex.auxiliary import Disambig
+    query = DBSession.query(Disambig)
+    if class_type is not None:
+        query = query.filter(class_type == Disambig.class_type)
+    if subclass_type is not None:
+        query = query.filter(subclass_type == Disambig.subclass_type)
+
+    all_ids = list(set([x.identifier for x in query.all()]))
+    return random.choice(all_ids)
+
+
 def get_obj_id(identifier, class_type=None, subclass_type=None):
-    objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
-    obj_id = None if objs_ids is None or len(objs_ids) != 1 else objs_ids[0][0]
+    if identifier.lower() == 'random':
+        obj_id = get_random_obj_id(class_type, subclass_type)
+    else:
+        objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
+        obj_id = None if objs_ids is None or len(objs_ids) != 1 else objs_ids[0][0]
     return obj_id
