@@ -43,7 +43,7 @@ strain_paragraphs = {'S288C': ('S288C is a widely used laboratory strain, design
 }
 
 # --------------------- Convert Bioentity Paragraph ---------------------
-def clean_paragraph(text, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
+def clean_paragraph(text, label, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
     html_text = text
 
     # Wrap reference lists in html
@@ -52,11 +52,11 @@ def clean_paragraph(text, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
         start_index = html_text.find('(', current_index)
         end_index = html_text.find(')', start_index)
         if html_text.find('<reference:', start_index, end_index) > -1:
-            print 'Here: ' + str(start_index) + ' ' + str(end_index)
-            replacement = '<a href="#" data-dropdown="drop_' + str(start_index) + '"><i class="fa fa-info-circle"></i></a><div id="drop_' + str(start_index) + '" class="f-dropdown content medium" data-dropdown-content><p>'
-            replacement += html_text[start_index+1:end_index]
-            replacement += '</p></div>'
-            html_text.replace(html_text[start_index:end_index+1], replacement)
+            replacement = '<a href="#" data-options="align:left;is_hover:true" data-dropdown="drop_' + str(start_index) + '"><i class="fa fa-info-circle"></i></a><span id="drop_' + str(start_index) + '" class="f-dropdown content small" data-dropdown-content>'
+            replacement = replacement + html_text[start_index+1:end_index]
+            replacement = replacement + '</span>'
+            html_text = html_text[:start_index] + replacement + html_text[end_index+1:]
+            end_index = start_index + len(replacement)
         current_index = end_index
 
     # Replace references
@@ -79,7 +79,7 @@ def clean_paragraph(text, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
             reference = sgdid_to_reference[sgdid]
             replacement = '<a href="' + reference.link + '">' + reference.display_name + '</a>'
         else:
-            print 'Reference not found: ' + sgdid
+            print 'Reference not found: ' + sgdid + ' in ' + label
         html_text = html_text.replace(html_text[start_index:end_index+1], replacement)
 
 
@@ -106,7 +106,7 @@ def clean_paragraph(text, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
             bioentity = sgdid_to_bioentity[sgdid]
             replacement = '<a href="' + bioentity.link + '">' + html_text[end_index+1:final_end_index] + '</a>'
         else:
-            print 'Feature not found: ' + sgdid
+            print 'Feature not found: ' + sgdid + ' in ' + label
         html_text = html_text.replace(html_text[start_index:final_end_index+10], replacement)
 
     # Replace go
@@ -126,13 +126,13 @@ def clean_paragraph(text, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
         try:
             goid = int(html_text[start_index + 4:end_index])
         except:
-            print 'Goid not an integer: ' + html_text[start_index + 4:end_index]
+            print 'Goid not an integer: ' + html_text[start_index + 4:end_index] + ' in ' + label
 
         if goid in goid_to_go:
             go = goid_to_go[goid]
             replacement = '<a href="' + go.link + '">' + html_text[end_index+1:final_end_index] + '</a>'
         else:
-            print 'Go not found: ' + str(goid)
+            print 'Go not found: ' + str(goid) + ' in ' + label
         html_text = html_text.replace(html_text[start_index:final_end_index+5], replacement)
 
     return html_text, text
@@ -159,11 +159,10 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
 
         #LSP
         for feature in bud_session.query(Feature).all():
-            print feature.id
             paragraph_feats = feature.paragraph_feats
             if len(paragraph_feats) > 0:
                 paragraph_feats.sort(key=lambda x: x.order)
-                paragraph_html, paragraph_text = clean_paragraph('\n'.join([x.paragraph.text for x in paragraph_feats]), sgdid_to_reference, sgdid_to_bioentity, goid_to_go)
+                paragraph_html, paragraph_text = clean_paragraph('\n'.join([x.paragraph.text for x in paragraph_feats]), str([x.paragraph.id for x in paragraph_feats]), sgdid_to_reference, sgdid_to_bioentity, goid_to_go)
                 yield {
                     'bioentity': id_to_bioentity[feature.id],
                     'source': key_to_source['SGD'],

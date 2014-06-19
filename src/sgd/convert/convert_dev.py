@@ -112,10 +112,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'COMPLEX'), name='convert.from_bud.bioentity.disambig.complex', delete_untouched=True, commit=True)])
     #
     # # Nex -> Perf
-    # from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
-    # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True),
-    #                OutputTransformer(1000)])
+    from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
+    do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 10),
+                  [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=10, delete_untouched=True),
+                   OutputTransformer(10)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_locustabs', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfLocustab, name='convert.from_backend.all_locustabs', commit_interval=1000, delete_untouched=True),
@@ -503,12 +503,13 @@ if __name__ == "__main__":
     #         aliases[key].add(locus)
     #
     # nex_session.close()
-    # for path in os.listdir('src/sgd/convert/data/microarray_05_14')[186:]:
+    # for path in os.listdir('src/sgd/convert/data/microarray_05_14'):
     #     if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
     #         for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
     #             #if file != 'README':
     #             #    get_alias_info('src/sgd/convert/data/microarray_05_14/' + path + '/' + file, key_to_locus, aliases)
     #             dataset_key = (file[:-4], 'DATASET')
+    #             print dataset_key
     #             if dataset_key in dataset_key_to_id:
     #                 do_conversion(make_expression_data_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14/' + path + '/' + file, dataset_key_to_id[dataset_key], dataset_key_to_channel_count[dataset_key], key_to_locus, aliases),
     #                                   [Json2Obj(Bioentitydata),
@@ -535,11 +536,11 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.paragraph import make_paragraph_reference_starter, make_bioentity_paragraph_starter, \
         make_strain_paragraph_starter, make_reference_paragraph_starter
     #
-    do_conversion(make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Bioentityparagraph),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Bioentityparagraph, Paragraph, 'BIOENTITY')
+    # do_conversion(make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Bioentityparagraph),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Bioentityparagraph, Paragraph, 'BIOENTITY')
     #
     # do_conversion(make_strain_paragraph_starter(nex_session_maker),
     #               [Json2Obj(Strainparagraph),

@@ -56,7 +56,7 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
             Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
-        return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').order_by(Bioentity.id.desc()).limit(chunk_size).offset(offset).all()]
+        return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').order_by(Bioentity.id.asc()).limit(chunk_size).offset(offset).all()]
 
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity

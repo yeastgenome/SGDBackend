@@ -210,10 +210,45 @@ class Locus(Bioentity):
                         del id_to_go[x.parent_id]
             next_generation = new_generation
 
+        go_aspect = [['Strain', 'Annotations'], ['Biological Process', 0], ['Molecular Function', 0], ['Cellular Component', 0]]
+        go_slim_id_to_count = {}
+        go_slim_id_to_count[-1] = 0
+        id_to_go_slim = {}
+        for evidence in self.go_evidences:
+            if evidence.go.go_aspect == 'biological process':
+                go_aspect[1][1] += 1
+            elif evidence.go.go_aspect == 'molecular function':
+                go_aspect[2][1] += 1
+            elif evidence.go.go_aspect == 'cellular component':
+                go_aspect[3][1] += 1
+
+            go_slims = [x.parent for x in evidence.go.parents if x.relation_type == 'GO_SLIM']
+            if len(go_slims) > 0:
+                go_slim = go_slims[0]
+                if go_slim.id in go_slim_id_to_count:
+                    go_slim_id_to_count[go_slim.id] +=1
+                else:
+                    go_slim_id_to_count[go_slim.id] = 1
+                    id_to_go_slim[go_slim.id] = go_slim
+            else:
+                go_slim_id_to_count[-1] += 1
+
+        go_slim_counts = [['Term', 'Annotations']]
+        for go_slim_id, count in go_slim_id_to_count.iteritems():
+            if go_slim_id > -1:
+                go_slim_counts.append([id_to_go_slim[go_slim_id].display_name,  count])
+            elif count > 0:
+                go_slim_counts.append(['N/A', count])
+
 
         obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name']),
                                    'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0],
-                                   'go_slim_down': [x.to_min_json() for x in sorted(id_to_go.values(), key=lambda x: x.display_name.lower())]}
+                                   'go_slim_down_bp': [x.to_min_json() for x in sorted(id_to_go.values(), key=lambda x: x.display_name.lower()) if x.go_aspect == 'biological process'],
+                                   'go_slim_down_mf': [x.to_min_json() for x in sorted(id_to_go.values(), key=lambda x: x.display_name.lower()) if x.go_aspect == 'molecular function'],
+                                   'go_slim_down_cc': [x.to_min_json() for x in sorted(id_to_go.values(), key=lambda x: x.display_name.lower()) if x.go_aspect == 'cellular component'],
+                                   'go_aspect': go_aspect,
+                                   'go_slim_counts': go_slim_counts
+                                   }
 
         #Interaction
         genetic_bioentities = set([x.locus2_id for x in self.geninteraction_evidences1])
