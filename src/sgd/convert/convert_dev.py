@@ -125,19 +125,19 @@ if __name__ == "__main__":
     #               [Json2CorePerfDB(perf_session_maker, PerfLocusentry, name='convert.from_backend.all_locusentries', commit_interval=1000, delete_untouched=True),
     #                OutputTransformer(1000)])
 
-    # # ------------------------------------------ Bioconcept ------------------------------------------
-    # # Bud -> Nex
-    # from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation, Bioconcepturl
-    # from src.sgd.model.nex.misc import Alias, Relation, Url
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
-    #     make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
-    #
-    # do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Observable),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Observable), name='convert.from_bud.bioconcept.observable', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Observable, Bioconcept, 'OBSERVABLE')
+    # ------------------------------------------ Bioconcept ------------------------------------------
+    # Bud -> Nex
+    from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation, Bioconcepturl
+    from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
+        make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+
+    do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Observable),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Observable), name='convert.from_bud.bioconcept.observable', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Observable, Bioconcept, 'OBSERVABLE')
     #
     # do_conversion(make_phenotype_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Phenotype),
@@ -632,10 +632,10 @@ if __name__ == "__main__":
     # do_conversion(make_go_data_backend_starter(nex_backend, 'go_details', go_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
-
-    do_conversion(make_go_data_with_children_backend_starter(nex_backend, 'go_details', go_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS_ALL_CHILDREN', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
-                    OutputTransformer(1000)])
+    #
+    # do_conversion(make_go_data_with_children_backend_starter(nex_backend, 'go_details', go_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS_ALL_CHILDREN', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
     #
     # Done
     # do_conversion(make_reference_data_backend_starter(nex_backend, 'go_details', reference_ids),
