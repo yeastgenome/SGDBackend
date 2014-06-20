@@ -220,6 +220,14 @@ SELECT book_seq.nextval INTO :new.book_id FROM DUAL;
 END;
 /
 
-
+DROP TRIGGER AUTHOR_TRIGGER;
+--/
+CREATE TRIGGER AUTHOR_TRIGGER
+BEFORE INSERT ON author
+FOR EACH ROW
+BEGIN
+SELECT author_seq.nextval INTO :new.author_id FROM DUAL;
+END;
+/
 
 

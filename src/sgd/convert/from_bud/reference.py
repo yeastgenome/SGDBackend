@@ -270,8 +270,7 @@ def make_author_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
 
         for old_author in make_db_starter(bud_session.query(Author), 1000)():
-            yield {'id': old_author.id,
-                   'display_name': old_author.name,
+            yield {'display_name': old_author.name,
                    'source': key_to_source['PubMed'],
                    'date_created': old_author.date_created,
                    'created_by': old_author.created_by}
