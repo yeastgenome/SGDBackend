@@ -289,21 +289,21 @@ def make_author_reference_starter(bud_session_maker, nex_session_maker):
         nex_session = nex_session_maker()
 
         id_to_reference = dict([(x.id, x) for x in nex_session.query(Reference).all()])
-        id_to_author = dict([(x.id, x) for x in nex_session.query(Author).all()])
+        key_to_author = dict([(x.unique_key(), x) for x in nex_session.query(Author).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
 
         for old_author_reference in make_db_starter(bud_session.query(OldAuthorReference), 1000)():
-            author_id = old_author_reference.author_id
+            author_key = create_format_name(old_author_reference.author.name)
             reference_id = old_author_reference.reference_id
-            if author_id in id_to_author and reference_id in id_to_reference:
+            if author_key in key_to_author and reference_id in id_to_reference:
                 yield {'id': old_author_reference.id,
                        'source': key_to_source['PubMed'],
-                       'author': id_to_author[author_id],
+                       'author': key_to_author[author_key],
                        'reference': id_to_reference[reference_id],
                        'order': old_author_reference.order,
                        'author_type': old_author_reference.type}
             else:
-                print 'Author or reference not found: ' + str(author_id) + ' ' + str(reference_id)
+                print 'Author or reference not found: ' + str(author_key) + ' ' + str(reference_id)
 
         bud_session.close()
         nex_session.close()
