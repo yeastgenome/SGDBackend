@@ -134,10 +134,10 @@ if __name__ == "__main__":
         make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
 
-    do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Observable),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Observable), name='convert.from_bud.bioconcept.observable', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Observable, Bioconcept, 'OBSERVABLE')
+    # do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Observable),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Observable), name='convert.from_bud.bioconcept.observable', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Observable, Bioconcept, 'OBSERVABLE')
     #
     # do_conversion(make_phenotype_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Phenotype),
@@ -437,24 +437,24 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Regulationevidence, Evidence, 'REGULATION')
     #
-    # from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
-    # from src.sgd.model.nex.misc import Strain
-    # nex_session = nex_session_maker()
-    # strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
-    # nex_session.close()
-    # #
-    # for sequence_filename, coding_sequence_filename, strain_key in sequence_files[0:1]:
-    #     do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
-    #                   [Json2Obj(DNAsequenceevidence),
-    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000),
-    #                    OutputTransformer(1000)])
+    from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
+    from src.sgd.model.nex.misc import Strain
+    nex_session = nex_session_maker()
+    strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
+    nex_session.close()
     #
-    #     if strain_key == 'S288C':
-    #         do_conversion(make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filename),
-    #                       [Json2Obj(DNAsequencetag),
-    #                        Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
-    #                        OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, DNAsequenceevidence, Evidence, 'DNASEQUENCE')
+    for sequence_filename, coding_sequence_filename, strain_key in sequence_files[1:]:
+        do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
+                      [Json2Obj(DNAsequenceevidence),
+                       Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000),
+                       OutputTransformer(1000)])
+
+        # if strain_key == 'S288C':
+        #     do_conversion(make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filename),
+        #                   [Json2Obj(DNAsequencetag),
+        #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
+        #                    OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, DNAsequenceevidence, Evidence, 'DNASEQUENCE')
     #
     #
     # protparam_data = dict([(row[0], row) for row in make_file_starter('src/sgd/convert/data/ProtParam.txt')()])
