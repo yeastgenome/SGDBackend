@@ -27,8 +27,7 @@ def make_journal_starter(bud_session_maker, nex_session_maker):
 
             title = old_journal.full_name
             if title is not None or abbreviation is not None:
-                yield {'id': old_journal.id,
-                       'source': key_to_source['PubMed'],
+                yield {'source': key_to_source['PubMed'],
                        'title': title,
                        'med_abbr': abbreviation,
                        'issn_print': old_journal.issn,
@@ -51,8 +50,7 @@ def make_book_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
         for old_book in make_db_starter(bud_session.query(Book), 1000)():
-            yield {'id': old_book.id,
-                   'source': key_to_source['PubMed'],
+            yield {'source': key_to_source['PubMed'],
                    'title': old_book.title,
                    'volume_title': old_book.volume_title,
                    'isbn': old_book.isbn,
@@ -81,7 +79,7 @@ def make_reference_starter(bud_session_maker, nex_session_maker):
         reference_id_to_doi = dict([(x.reference_id, x.url.url[18:]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'DOI full text'])
         reference_id_to_pmcid = dict([(x.reference_id, x.url.url.replace('http://www.ncbi.nlm.nih.gov/pmc/articles/', '')[:-1]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'PMC full text'])
 
-        for old_reference in make_db_starter(bud_session.query(Reference).order_by(Reference.id.desc()).options(joinedload('book'), joinedload('journal')), 1000)():
+        for old_reference in bud_session.query(Reference).order_by(Reference.id.desc()).options(joinedload('book'), joinedload('journal')).all():
             citation = create_citation(old_reference.citation)
             display_name = create_display_name(citation)
 
