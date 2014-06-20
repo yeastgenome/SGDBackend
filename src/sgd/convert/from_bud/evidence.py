@@ -427,14 +427,6 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
         sgdid_to_bioentity = dict([(x.sgdid, x) for x in id_to_bioentity.values()])
         chebi_id_to_chemical = dict([(x.chebi_id, x) for x in key_to_bioitem.values() if x.class_type == 'CHEMICAL'])
 
-        bioentity_id_to_date_last_reviewed = dict()
-
-        for gofeature in make_db_starter(bud_session.query(GoFeature), 1000)():
-            bioentity_id = gofeature.feature_id
-            if bioentity_id not in bioentity_id_to_date_last_reviewed or bioentity_id_to_date_last_reviewed[bioentity_id] < gofeature.date_last_reviewed:
-                bioentity_id_to_date_last_reviewed[bioentity_id] = gofeature.date_last_reviewed
-
-        print bioentity_id_to_date_last_reviewed
         uniprot_id_to_bioentity = dict([(x.uniprotid, x) for x in id_to_bioentity.values()])
         pubmed_id_to_reference = dict([(str(x.pubmed_id), x) for x in id_to_reference.values()])
 
@@ -486,7 +478,7 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
                            'annotation_type': old_go_feature.annotation_type,
                            'qualifier': qualifier,
                            'properties': key_to_condition.values(),
-                           'date_created': old_go_ref.date_created if go_evidence != 'IEA' else bioentity_id_to_date_last_reviewed[bioent_id],
+                           'date_created': old_go_ref.date_created if go_evidence != 'IEA' else old_go_feature.date_last_reviewed,
                            'created_by': old_go_ref.created_by}
                 else:
                     print 'Could not find bioentity or bioconcept or reference: ' + str(bioent_id) + ' ' + str(go_key) + ' ' + str(reference_id)

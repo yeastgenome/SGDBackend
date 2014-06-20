@@ -3,7 +3,7 @@ from src.sgd.backend.nex import SGDBackend
 from src.sgd.backend.perf import PerfBackend
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
 from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj, OutputTransformer, Json2DataPerfDB, \
-    make_locus_data_backend_starter, make_observable_data_backend_starter, make_go_data_backend_starter
+    make_locus_data_backend_starter, make_observable_data_backend_starter, make_go_data_backend_starter, make_phenotype_data_backend_starter
 
 __author__ = 'kpaskov'
 
@@ -19,6 +19,7 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.auxiliary import make_bioconcept_interaction_starter, make_reference_interaction_starter, \
         make_bioitem_interaction_starter, make_bioentity_physinteraction_starter, make_bioentity_geninteraction_starter, make_bioentity_regulation_interaction_starter
 
+    clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
     do_conversion(make_bioentity_geninteraction_starter(nex_session_maker),
                   [Json2Obj(Bioentityinteraction),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='GENINTERACTION'), name='convert.from_bud.auxilliary.bioentity_interaction_genetic', delete_untouched=True, commit_interval=1000),
@@ -34,25 +35,24 @@ if __name__ == "__main__":
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='REGULATION'), name='convert.from_bud.auxilliary.bioentity_regulation', delete_untouched=True, commit_interval=1000),
                    OutputTransformer(1000)])
 
-    clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
-
+    clean_up_orphans(nex_session_maker, Bioconceptinteraction, Interaction, 'BIOCONCEPT')
     do_conversion(make_bioconcept_interaction_starter(nex_session_maker),
                   [Json2Obj(Bioconceptinteraction),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptinteraction), name='convert.from_bud.auxilliary.bioconcept_interaction', delete_untouched=True, commit_interval=1000),
                    OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Bioconceptinteraction, Interaction, 'BIOCONCEPT')
 
+    clean_up_orphans(nex_session_maker, Referenceinteraction, Interaction, 'REFERENCE')
     do_conversion(make_reference_interaction_starter(nex_session_maker),
                   [Json2Obj(Referenceinteraction),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceinteraction), name='convert.from_bud.auxilliary.reference_interaction', delete_untouched=True, commit_interval=1000),
                    OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Referenceinteraction, Interaction, 'REFERENCE')
 
+    clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
     do_conversion(make_bioitem_interaction_starter(nex_session_maker),
                   [Json2Obj(Bioiteminteraction),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioiteminteraction), name='convert.from_bud.auxilliary.bioitem_interaction', delete_untouched=True, commit_interval=1000),
                    OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
+
 
     # ------------------------------------------ Perf ------------------------------------------
     from src.sgd.model.perf.bioentity_data import BioentityGraph
@@ -131,6 +131,6 @@ if __name__ == "__main__":
                    [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'GO_ONTOLOGY', go_ids, name='convert.from_backend.go_ontology_graph', commit_interval=1000),
                     OutputTransformer(1000)])
 
-    do_conversion(make_observable_data_backend_starter(perf_backend, 'phenotype_ontology_graph', observable_ids),
+    do_conversion(make_phenotype_data_backend_starter(perf_backend, 'phenotype_ontology_graph', observable_ids),
                    [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'PHENOTYPE_ONTOLOGY', observable_ids, name='convert.from_backend.phenotype_ontology_graph', commit_interval=1000),
                     OutputTransformer(1000)])

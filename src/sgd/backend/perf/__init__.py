@@ -53,7 +53,7 @@ class PerfBackend(BackendInterface):
     #Bioentity
     def all_bioentities(self, chunk_size, offset):
         from src.sgd.model.perf.core import Bioentity
-        return get_all(Bioentity, 'json', chunk_size, offset)
+        return [x.to_json() for x in DBSession.query(Bioentity).order_by(Bioentity.id.desc()).limit(chunk_size).offset(offset).all()]
     
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.perf.core import Locusentry
@@ -70,15 +70,19 @@ class PerfBackend(BackendInterface):
         from src.sgd.model.perf.core import Locustab
         bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
         return DBSession.query(Locustab).filter_by(id=bioent_id).first().json
-    
+
     def all_locustabs(self, chunk_size, offset):
-        from src.sgd.model.perf.core import Bioentity
-        return get_all(Bioentity, 'locustabs_json', chunk_size, offset)
+        from src.sgd.model.perf.core import Locustab
+        return [x.to_json() for x in DBSession.query(Locustab).order_by(Locustab.id.desc()).limit(chunk_size).offset(offset).all()]
+
+    def all_locusentries(self, chunk_size, offset):
+        from src.sgd.model.perf.core import Locusentry
+        return [x.to_json() for x in DBSession.query(Locusentry).order_by(Locusentry.id.desc()).limit(chunk_size).offset(offset).all()]
     
     #Bioconcept
-    def all_bioconcepts(self, chunk_size, offset, callback=None):
+    def all_bioconcepts(self, chunk_size, offset):
         from src.sgd.model.perf.core import Bioconcept
-        return get_all(Bioconcept, 'json', chunk_size, offset)
+        return [x.to_json() for x in DBSession.query(Bioconcept).order_by(Bioconcept.id.desc()).limit(chunk_size).offset(offset).all()]
     
     def bioconcept_list(self, biocon_ids, callback=None):
         from src.sgd.model.perf.core import Bioconcept
@@ -98,13 +102,17 @@ class PerfBackend(BackendInterface):
         auth_id = get_obj_id(str(author_identifier), class_type='AUTHOR')
         return get_obj(Author, 'json', auth_id)
 
-    def all_authors(self, chunk_size, offset, callback=None):
+    def all_authors(self, chunk_size, offset):
         from src.sgd.model.perf.core import Author
-        return get_all(Author, 'json', chunk_size, offset)
+        return [x.to_json() for x in DBSession.query(Author).order_by(Author.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def all_references(self, chunk_size, offset):
         from src.sgd.model.perf.core import Reference
-        return get_all(Reference, 'json', chunk_size, offset)
+        return [x.to_json() for x in DBSession.query(Reference).order_by(Reference.id.desc()).limit(chunk_size).offset(offset).all()]
+
+    def all_bibentries(self, chunk_size, offset):
+        from src.sgd.model.perf.core import Bibentry
+        return [x.to_json() for x in DBSession.query(Bibentry).order_by(Bibentry.id.desc()).limit(chunk_size).offset(offset).all()]
     
     def reference_list(self, reference_ids):
         from src.sgd.model.perf.core import Bibentry
@@ -121,12 +129,12 @@ class PerfBackend(BackendInterface):
 
     def all_strains(self, chunk_size, offset):
         from src.sgd.model.perf.core import Strain
-        return get_all(Strain, 'json', chunk_size, offset)
+        return [x.to_json() for x in DBSession.query(Strain).order_by(Strain.id.desc()).limit(chunk_size).offset(offset).all()]
 
     #Bioitem
-    def all_bioitems(self, chunk_size, offset, callback=None):
+    def all_bioitems(self, chunk_size, offset):
         from src.sgd.model.perf.core import Bioitem
-        return get_all(Bioitem, 'json', chunk_size, offset)
+        return [x.to_json() for x in DBSession.query(Bioitem).order_by(Bioitem.id.desc()).limit(chunk_size).offset(offset).all()]
     
     #Interaction
     def interaction_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
@@ -213,7 +221,6 @@ class PerfBackend(BackendInterface):
                 biocon_id = go_identifier
             else:
                 biocon_id = get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
-            print biocon_id
             if with_children:
                 return get_bioconcept_details(biocon_id, 'GO_LOCUS_ALL_CHILDREN')
             else:
@@ -466,13 +473,7 @@ class PerfBackend(BackendInterface):
     #Misc
     def all_disambigs(self, chunk_size, offset):
         from src.sgd.model.perf.core import Disambig
-        disambigs = DBSession.query(Disambig).limit(chunk_size).offset(offset).all()
-        return json.dumps([{'id': disambig.id,
-                            'disambig_key': disambig.disambig_key,
-                            'class_type': disambig.class_type,
-                            'subclass_type': disambig.subclass_type,
-                            'identifier': disambig.obj_id} 
-                        for disambig in disambigs])
+        return [x.to_json() for x in DBSession.query(Disambig).order_by(Disambig.id.desc()).limit(chunk_size).offset(offset).all()]
 
         
 #Useful methods

@@ -434,11 +434,12 @@ def make_reference_url_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
 
         for reference in make_db_starter(nex_session.query(Reference), 1000)():
-            yield {'display_name': 'PubMed',
-                   'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id),
-                   'source': key_to_source['PubMed'],
-                   'category': 'PUBMED',
-                   'reference_id': reference.id}
+            if reference.pubmed_id is not None:
+                yield {'display_name': 'PubMed',
+                       'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id),
+                       'source': key_to_source['PubMed'],
+                       'category': 'PUBMED',
+                       'reference_id': reference.id}
             if reference.doi is not None:
                 yield {'display_name': 'Full-Text',
                        'link': 'http://dx.doi.org/' + reference.doi,

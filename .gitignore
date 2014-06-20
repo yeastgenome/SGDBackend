@@ -7,6 +7,8 @@ develop-eggs
 eggs
 parts
 .idea
+.installed.cfg
+.mr.developer.cfg
 SGDBackend.egg-info
 src/sgd/backend/config.py
 src/sgd/convert/config.py

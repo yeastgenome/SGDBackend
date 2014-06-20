@@ -6,24 +6,26 @@ from src.sgd.backend.tests.test_basic import check_reference
 __author__ = 'kpaskov'
 
 def test_regulation_overview_structure(model, identifier='GAL4'):
-    response = json.loads(model.regulation_overview(locus_identifier=identifier))
-    assert response is not None
-    assert 'regulator_count' in response
-    assert 'target_count' in response
+    response = json.loads(model.locus(locus_identifier=identifier))
+    regulation = response['regulation_overview']
+    assert regulation is not None
+    assert 'regulator_count' in regulation
+    assert 'target_count' in regulation
 
 def test_regulation_paragraph_structure(model, identifier='GAL4'):
-    response = json.loads(model.regulation_paragraph(locus_identifier=identifier))
-    if response is not None:
-        assert 'text' in response
-        assert 'references' in response
-        for reference in response['references']:
+    response = json.loads(model.locus(locus_identifier=identifier))
+    paragraph = response['regulation_overview']['paragraph']
+    if paragraph is not None:
+        assert 'text' in paragraph
+        assert 'references' in paragraph
+        for reference in paragraph['references']:
             check_reference(reference)
 
 def check_regulation_evidence(evidence):
     check_evidence(evidence)
     assert 'locus1' in evidence
     assert 'locus2' in evidence
-    assert 'conditions' in evidence
+    #assert 'conditions' in evidence
 
     check_obj(evidence['locus1'])
     assert 'format_name' in evidence['locus1']
@@ -41,7 +43,7 @@ def test_regulation_ref_details_structure(model, identifier='16449570'):
     assert response is not None
     for entry in response:
         check_regulation_evidence(entry)
-        
+
 def test_regulation_graph_structure(model, identifier='GAL4'):
     response = json.loads(model.regulation_graph(locus_identifier=identifier))
     assert response is not None
@@ -64,7 +66,6 @@ def test_regulation_graph_structure(model, identifier='GAL4'):
     for entry in response['nodes']:
         assert 'data' in entry
         node_data = entry['data']
-        assert 'class_type' in node_data
         assert 'evidence' in node_data
         assert 'link' in node_data
         assert 'id' in node_data
@@ -72,11 +73,11 @@ def test_regulation_graph_structure(model, identifier='GAL4'):
         assert 'name' in node_data
         assert 'targ_evidence' in node_data
         assert 'reg_evidence' in node_data
-        
+
 def test_regulation_target_enrichment_structure(model, identifier='ADF1'):
     response = json.loads(model.regulation_target_enrichment(locus_identifier=identifier))
     assert response is not None
-    
+
     for entry in response:
         assert 'go' in entry
         assert 'match_count' in entry
@@ -84,4 +85,4 @@ def test_regulation_target_enrichment_structure(model, identifier='ADF1'):
         check_obj(entry['go'])
         assert 'format_name' in entry['go']
         assert 'go_id' in entry['go']
-        assert 'aspect' in entry['go']
+        assert 'go_aspect' in entry['go']

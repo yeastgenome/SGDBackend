@@ -38,10 +38,10 @@ class Book(Base, EqualityByIDMixin, UpdateByJsonMixin):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.display_name = self.title
         self.format_name = create_format_name(self.title + '' if self.volume_title is None else ('_' + self.volume_title))
-        
+
     def unique_key(self):
         return self.title, self.volume_title
-    
+
 class Journal(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'journal'
 
@@ -63,12 +63,12 @@ class Journal(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'title', 'med_abbr', 'issn_print', 'issn_online',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
-        
+
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.display_name = self.title if self.title is not None else self.med_abbr
         self.format_name = create_format_name(self.display_name[:99] if self.med_abbr is None else self.display_name[:50] + '_' + self.med_abbr[:49])
-        
+
     def unique_key(self):
         return self.title, self.med_abbr
 
@@ -81,7 +81,7 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     sgdid = Column('sgdid', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    
+
     ref_status = Column('ref_status', String)
     pubmed_id = Column('pubmed_id', Integer)
     pubmed_central_id = Column('pubmed_central_id', String)
@@ -100,10 +100,8 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
     class_type = 'REFERENCE'
-    
-    #Relationships  
-    book = relationship(Book, uselist=False)
-    journal = relationship(Journal, uselist=False)
+    book = relationship(Book, uselist=False, backref=backref('references', passive_deletes=True))
+    journal = relationship(Journal, uselist=False, backref=backref('references', passive_deletes=True))
     source = relationship(Source, uselist=False, lazy='joined')
 
     author_names = association_proxy('author_references', 'author_name')
@@ -114,12 +112,12 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
                      'issue', 'page', 'volume', 'title', 'doi',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'journal', 'book']
-    
+
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = self.sgdid if self.pubmed_id is None else str(self.pubmed_id)
         self.link = '/reference/' + self.sgdid + '/overview'
-        
+
     def unique_key(self):
         return self.format_name
 
@@ -151,6 +149,7 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
         regulation_locus_ids = set()
         regulation_locus_ids.update([x.locus1_id for x in self.regulation_evidences])
         regulation_locus_ids.update([x.locus2_id for x in self.regulation_evidences])
+        obj_json['urls'] = [x.to_min_json() for x in self.urls]
         obj_json['counts'] = {
             'interaction': len(interaction_locus_ids),
             'go': len(set([x.locus_id for x in self.go_evidences])),
@@ -172,7 +171,7 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
         if self.journal is not None:
             obj_json['journal']['med_abbr'] = self.journal.med_abbr
         return obj_json
-    
+
 class Bibentry(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'bibentry'
 
@@ -184,13 +183,31 @@ class Bibentry(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     __eq_values__ = ['id', 'text']
     __eq_fks__ = []
-        
+
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        
+
     def unique_key(self):
         return self.id
-    
+
+class Abstract(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    __tablename__ = 'abstract'
+
+    id = Column('reference_id', Integer, ForeignKey(Reference.id), primary_key = True)
+    text = Column('text', CLOB)
+
+    #Relationships
+    reference = relationship(Reference, uselist=False, backref=backref("abstract", uselist=False, passive_deletes=True))
+
+    __eq_values__ = ['id', 'text']
+    __eq_fks__ = []
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+    def unique_key(self):
+        return self.id
+
 class Author(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'author'
 
@@ -207,7 +224,7 @@ class Author(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'created_by', 'date_created']
     __eq_fks__ = ['source']
-        
+
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = create_format_name(self.display_name)
@@ -224,7 +241,7 @@ class Author(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
 class AuthorReference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'author_reference'
-    
+
     id = Column('author_reference_id', Integer, primary_key=True)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     author_id = Column('author_id', Integer, ForeignKey(Author.id))
@@ -236,19 +253,19 @@ class AuthorReference(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     #Relationships
     source = relationship(Source, uselist=False)
-    author = relationship(Author, backref=backref('author_references', passive_deletes=True), uselist=False) 
+    author = relationship(Author, backref=backref('author_references', passive_deletes=True), uselist=False)
     reference = relationship(Reference, backref=backref('author_references', passive_deletes=True, order_by=order), uselist=False)
     author_name = association_proxy('author', 'display_name')
 
     __eq_values__ = ['id', 'order', 'author_type', 'created_by', 'date_created']
     __eq_fks__ = ['source', 'author', 'reference']
-        
+
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        
+
     def unique_key(self):
         return self.author_id, self.reference_id, self.order
-    
+
 class Reftype(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'reftype'
 
@@ -265,14 +282,14 @@ class Reftype(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'created_by', 'date_created']
     __eq_fks__ = ['source']
-    
+
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = create_format_name(self.display_name)
-        
+
     def unique_key(self):
         return self.format_name
-    
+
 class ReferenceReftype(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'reference_reftype'
 
@@ -282,7 +299,7 @@ class ReferenceReftype(Base, EqualityByIDMixin, UpdateByJsonMixin):
     reftype_id = Column('reftype_id', Integer, ForeignKey(Reftype.id))
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
-    
+
     #Relationships
     source = relationship(Source, uselist=False)
     reference = relationship(Reference, backref=backref('ref_reftypes', passive_deletes=True), uselist=False)
@@ -290,13 +307,13 @@ class ReferenceReftype(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     __eq_values__ = ['id', 'created_by', 'date_created']
     __eq_fks__ = ['source', 'reference', 'reftype']
-    
+
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        
+
     def unique_key(self):
         return self.reference_id, self.reftype_id
-    
+
 class Referencerelation(Relation):
     __tablename__ = 'referencerelation'
 
@@ -313,34 +330,34 @@ class Referencerelation(Relation):
                      'parent_id', 'child_id',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'parent', 'child']
-   
+
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
         self.display_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
-    
+
 class Referenceurl(Url):
     __tablename__ = 'referenceurl'
-    
+
     id = Column('url_id', Integer, primary_key=True)
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
 
     #Relationships
     reference = relationship(Reference, backref=backref('urls', passive_deletes=True), uselist=False)
-        
+
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE', 'inherit_condition': id == Url.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category',
                      'reference_id',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
-    
+
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json.get('reference_id'))
-    
+
 class Referencealias(Alias):
     __tablename__ = 'referencealias'
-    
+
     id = Column('alias_id', Integer, primary_key=True)
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
 
@@ -352,10 +369,10 @@ class Referencealias(Alias):
                      'reference_id',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference']
-    
+
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name =str(obj_json.get('reference_id'))
- 
+
 
 
