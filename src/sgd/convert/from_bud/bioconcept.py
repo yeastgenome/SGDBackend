@@ -313,15 +313,17 @@ def make_bioconcept_relation_starter(bud_session_maker, nex_session_maker):
                         ancestory.append(None)
                     else:
                         ancestory.append(parents[0].parent)
-                ancestor = ancestory[-3]
-                if ancestor.display_name == 'essentiality':
-                    ancestor = ancestory[-4]
-                observable_id_to_ancestor[phenotype.observable_id] = ancestor.id
+                if len(ancestory) > 3:
+                    ancestor = ancestory[-3]
+                    if ancestor.display_name == 'essentiality':
+                        ancestor = ancestory[-4]
+                    observable_id_to_ancestor[phenotype.observable_id] = ancestor.id
 
-            yield {'source': key_to_source['SGD'],
-                    'parent_id': observable_id_to_ancestor[phenotype.observable_id],
-                    'child_id': phenotype.id,
-                    'relation_type': 'PHENOTYPE_SLIM'}
+            if phenotype.observable_id in observable_id_to_ancestor:
+                yield {'source': key_to_source['SGD'],
+                        'parent_id': observable_id_to_ancestor[phenotype.observable_id],
+                        'child_id': phenotype.id,
+                        'relation_type': 'PHENOTYPE_SLIM'}
 
         bud_session.close()
         nex_session.close()

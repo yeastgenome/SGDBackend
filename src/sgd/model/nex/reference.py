@@ -100,8 +100,8 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
     class_type = 'REFERENCE'
-    book = relationship(Book, uselist=False, backref=backref('references', passive_deletes=True))
-    journal = relationship(Journal, uselist=False, backref=backref('references', passive_deletes=True))
+    book = relationship(Book, uselist=False)
+    journal = relationship(Journal, uselist=False)
     source = relationship(Source, uselist=False, lazy='joined')
 
     author_names = association_proxy('author_references', 'author_name')
