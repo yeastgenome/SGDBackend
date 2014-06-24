@@ -3,7 +3,6 @@ import sys
 import traceback
 
 from src.sgd.model.nex import UpdateByJsonMixin
-from math import ceil
 
 __author__ = 'kpaskov'
 
@@ -759,11 +758,14 @@ def make_fasta_file_starter(filename):
 
 # ------------------------------------------ Conversion ------------------------------------------
 def do_conversion(starter, converters):
-    for element in starter():
-        reduce(lambda x, y: y.convert(x), converters, element)
+    try:
+        for element in starter():
+            reduce(lambda x, y: y.convert(x), converters, element)
 
-    for converter in converters:
-        output = converter.finished()
-        if output is not None:
-            print output
+        for converter in converters:
+            output = converter.finished()
+            if output is not None:
+                print output
+    except:
+        print "Unexpected error:", sys.exc_info()[0]
 
