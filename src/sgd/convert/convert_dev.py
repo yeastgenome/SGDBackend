@@ -139,10 +139,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Observable), name='convert.from_bud.bioconcept.observable', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Observable, Bioconcept, 'OBSERVABLE')
     #
-    do_conversion(make_phenotype_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Phenotype),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Phenotype), name='convert.from_bud.bioconcept.phenotype', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Phenotype, Bioconcept, 'PHENOTYPE')
+    # do_conversion(make_phenotype_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Phenotype),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Phenotype), name='convert.from_bud.bioconcept.phenotype', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Phenotype, Bioconcept, 'PHENOTYPE')
 
     # do_conversion(make_go_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Go),
@@ -180,9 +180,9 @@ if __name__ == "__main__":
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'OBSERVABLE'), name='convert.from_bud.bioconcept.disambig.observable', delete_untouched=True, commit=True)])
     #
-    do_conversion(make_disambig_starter(nex_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE'),
-                  [Json2Obj(Disambig),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'PHENOTYPE'), name='convert.from_bud.bioconcept.disambig.phenotype', delete_untouched=True, commit=True)])
+    # do_conversion(make_disambig_starter(nex_session_maker, Phenotype, ['id', 'format_name'], 'BIOCONCEPT', 'PHENOTYPE'),
+    #               [Json2Obj(Disambig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOCONCEPT').filter(Disambig.subclass_type == 'PHENOTYPE'), name='convert.from_bud.bioconcept.disambig.phenotype', delete_untouched=True, commit=True)])
 
     # do_conversion(make_disambig_starter(nex_session_maker, Go, ['id', 'format_name'], 'BIOCONCEPT', 'GO'),
     #               [Json2Obj(Disambig),
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     # do_conversion(make_author_reference_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(AuthorReference),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(AuthorReference), name='convert.from_bud.author_reference', delete_untouched=True, commit=True)])
-    #
+
     # do_conversion(make_reftype_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Reftype),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Reftype), name='convert.from_bud.reftype', delete_untouched=True, commit=True)])
@@ -579,10 +579,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='REGULATION'), name='convert.from_bud.auxilliary.bioentity_interaction', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
 
-    # do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
-    #               [Json2Obj(Bioentityinteraction),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'), name='convert.from_bud.auxilliary.bioentity_interaction_expression', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
+    do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
+                  [Json2Obj(Bioentityinteraction),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'), name='convert.from_bud.auxilliary.bioentity_interaction_expression', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
 
     # clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
     #

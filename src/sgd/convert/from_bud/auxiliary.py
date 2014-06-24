@@ -6,7 +6,7 @@ from src.sgd.model.nex.bioentity import Locus, Complex
 from src.sgd.model.nex.bioconcept import Bioconcept, Go, Observable
 from src.sgd.model.nex.bioitem import Bioitem, Domain
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence, Regulationevidence, Goevidence, \
-    Phenotypeevidence, Literatureevidence, Domainevidence, Bioentitydata
+    Phenotypeevidence, Literatureevidence, Domainevidence, Bioentitydata, Expressionevidence
 from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioiteminteraction
 import math
 
@@ -111,55 +111,47 @@ def make_bioentity_expression_interaction_starter(nex_session_maker):
         nex_session = nex_session_maker()
 
         id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+        evidence_ids = [x.id for x in nex_session.query(Expressionevidence).all()]
+        evidence_id_count = len(evidence_ids)
 
-        #Expression
-        bioentity_ids = [x.id for x in nex_session.query(Locus).all()]
-        for bioent1_id in bioentity_ids:
-            evidence_id_to_value1 = dict([(x.evidence_id, x.value) for x in nex_session.query(Bioentitydata).filter_by(locus_id=bioent1_id).all()])
-            if len(evidence_id_to_value1) > 0:
-                bioentity1 = id_to_bioentity[bioent1_id]
-                for bioent2_id in bioentity_ids:
-                    if bioent1_id < bioent2_id:
-                        evidence_id_to_value2 = dict([(x.evidence_id, x.value) for x in nex_session.query(Bioentitydata).filter_by(locus_id=bioent2_id).all()])
-                        evidence_id_overlap = set(evidence_id_to_value1.keys()) & set(evidence_id_to_value2.keys())
-                        x = [float(evidence_id_to_value1[evidence_id]) for evidence_id in evidence_id_overlap]
-                        y = [float(evidence_id_to_value2[evidence_id]) for evidence_id in evidence_id_overlap]
+        bioentity_id_to_values = {}
+        bioentity_id_to_magnitude = {}
 
-                        if len(evidence_id_overlap) > 0:
-                            score = pearson_def(x, y)
-                            if score >= .75 or score <= -.75:
-                                bioentity2 = id_to_bioentity[bioent2_id]
-                                if score < 0:
-                                    yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'negative'}
-                                    yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'negative'}
-                                else:
-                                    yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'positive'}
-                                    yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'positive'}
+        for bioentity in id_to_bioentity.values():
+            yielded = 0
+            evidence_id_to_values = dict([(x.evidence_id, x.value) for x in nex_session.query(Bioentitydata).filter_by(locus_id=bioentity.id).all()])
+            value_sum = float(sum(evidence_id_to_values.values()))
+            value_count = len(evidence_id_to_values)
+            vector1 = [0 if x not in evidence_id_to_values else float(evidence_id_to_values[x])-(value_sum/value_count) for x in evidence_ids]
+            vector1_magnitude = math.sqrt(sum([x*x for x in evidence_id_to_values.values()]))
+            if vector1_magnitude != 0:
+                for bioentity2_id, vector2 in bioentity_id_to_values.iteritems():
+                    vector2_magnitude = bioentity_id_to_magnitude[bioentity2_id]
+                    score = dot_product(vector1, vector2)/(vector1_magnitude*vector2_magnitude)
+
+                    if score >= .8 or score <= -.8:
+                        yielded += 1
+                        if bioentity.id < bioentity2_id:
+                            bioentity1 = bioentity
+                            bioentity2 = id_to_bioentity[bioentity2_id]
+                        else:
+                            bioentity1 = id_to_bioentity[bioentity2_id]
+                            bioentity2 = bioentity
+                        if score < 0:
+                            yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'negative'}
+                            yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'negative'}
+                        else:
+                            yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': bioentity1, 'interactor': bioentity2, 'direction': 'positive'}
+                            yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': bioentity2, 'interactor': bioentity1, 'direction': 'positive'}
+                bioentity_id_to_values[bioentity.id] = vector1
+                bioentity_id_to_magnitude[bioentity.id] = vector1_magnitude
+            print bioentity.id, yielded
 
         nex_session.close()
     return bioentity_interaction_starter
 
-def average(x):
-    assert len(x) > 0
-    return float(sum(x)) / len(x)
-
-def pearson_def(x, y):
-    assert len(x) == len(y)
-    n = len(x)
-    assert n > 0
-    avg_x = average(x)
-    avg_y = average(y)
-    diffprod = 0
-    xdiff2 = 0
-    ydiff2 = 0
-    for idx in range(n):
-        xdiff = x[idx] - avg_x
-        ydiff = y[idx] - avg_y
-        diffprod += xdiff * ydiff
-        xdiff2 += xdiff * xdiff
-        ydiff2 += ydiff * ydiff
-
-    return diffprod / math.sqrt(xdiff2 * ydiff2)
+def dot_product(x, y):
+    return sum(p*q for p,q in zip(x, y))
 
 # --------------------- Convert Bioconceptinteractions ---------------------
 def make_bioconcept_interaction_starter(nex_session_maker):

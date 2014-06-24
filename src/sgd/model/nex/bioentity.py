@@ -322,10 +322,10 @@ class Locus(Bioentity):
             standard_dev = variance**0.5;
 
             obj_json['expression_overview'] = {'all_values': expression_collapsed,
-                                               'high_values': [x.to_json() for x in self.data if float(x.value) >= mean + 2*standard_dev],
-                                               'low_values': [x.to_json() for x in self.data if float(x.value) <= mean - 2*standard_dev],
-                                               'low_cutoff': mean - 2*standard_dev,
-                                               'high_cutoff': mean + 2*standard_dev}
+                                               'high_values': [x.to_json() for x in self.data if float(x.value) >= mean + 3*standard_dev],
+                                               'low_values': [x.to_json() for x in self.data if float(x.value) <= mean - 3*standard_dev],
+                                               'low_cutoff': mean - 3*standard_dev,
+                                               'high_cutoff': mean + 3*standard_dev}
 
         #Sequence
         reference_sequence = [x.to_json() for x in self.dnasequence_evidences if x.strain_id == 1 and x.dna_type == 'GENOMIC']
