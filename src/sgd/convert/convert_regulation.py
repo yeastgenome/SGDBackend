@@ -18,8 +18,11 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.evidence import make_regulation_evidence_starter
     do_conversion(make_regulation_evidence_starter(nex_session_maker),
                   [Json2Obj(Regulationevidence),
-                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Regulationevidence), name='convert.from_bud.evidence.regulation', delete_untouched=True, commit_interval=1000)])
-    clean_up_orphans(nex_session_maker, Regulationevidence, Evidence, 'REGULATION')
+                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Regulationevidence),
+                                  name='convert.from_bud.evidence.regulation',
+                                  delete_untouched=True,
+                                  commit_interval=1000,
+                                  already_deleted=clean_up_orphans(nex_session_maker, Regulationevidence, Evidence, 'REGULATION'))])
 
     # ------------------------------------------ Perf ------------------------------------------
     from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityEnrichment

@@ -113,7 +113,6 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
         for row in make_file_starter('src/sgd/convert/data/PANTHER9.0_HMM_classifications.txt')():
             panther_id_to_description[row[0]] = row[1].lower()
 
-        not_a_panther_id = set()
         for row in make_file_starter('src/sgd/convert/data/yeastmine_protein_domains.tsv')():
             source_key = row[10].strip()
 
@@ -169,8 +168,6 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                        'bioitem_type': source_key,
                        'interpro_id': interpro_id,
                        'interpro_description': interpro_description}
-                else:
-                    not_a_panther_id.add(display_name)
 
             else:
                 yield {'display_name': display_name,
@@ -179,8 +176,6 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                        'bioitem_type': source_key,
                        'interpro_id': interpro_id,
                        'interpro_description': interpro_description}
-
-        print 'Not a panther ID: ' + str(not_a_panther_id)
 
         for row in make_file_starter('src/sgd/convert/data/TF_family_class_accession04302013.txt')():
             description = 'Class: ' + row[4] + ', Family: ' + row[3]
@@ -197,8 +192,6 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                'source': key_to_source['TMHMM'],
                'description': 'predicted transmembrane domain',
                'bioitem_type': 'TMHMM'}
-
-        not_a_panther_id = set()
 
         for bud_obj in make_db_starter(bud_session.query(Dbxref).filter(or_(Dbxref.dbxref_type == 'PANTHER', Dbxref.dbxref_type == 'Prosite')), 1000)():
             dbxref_type = bud_obj.dbxref_type
@@ -219,15 +212,11 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                        'source': source,
                        'description': panther_id_to_description[bud_obj.dbxref_id],
                        'bioitem_type': bioitem_type}
-                else:
-                    not_a_panther_id.add(bud_obj.dbxref_id)
             else:
                 yield {'display_name': bud_obj.dbxref_id,
                        'source': source,
                        'description': bud_obj.dbxref_name,
                        'bioitem_type': bioitem_type}
-
-        print 'Not a panther ID: ' + str(not_a_panther_id)
 
         bud_session.close()
         nex_session.close()

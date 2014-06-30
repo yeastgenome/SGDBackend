@@ -19,33 +19,51 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.auxiliary import make_bioconcept_interaction_starter, make_reference_interaction_starter, \
         make_bioitem_interaction_starter, make_bioentity_physinteraction_starter, make_bioentity_geninteraction_starter, make_bioentity_regulation_interaction_starter
 
-    clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
     do_conversion(make_bioentity_geninteraction_starter(nex_session_maker),
                   [Json2Obj(Bioentityinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='GENINTERACTION'), name='convert.from_bud.auxilliary.bioentity_interaction_genetic', delete_untouched=True, commit_interval=1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='GENINTERACTION'),
+                             name='convert.from_bud.auxilliary.bioentity_interaction_genetic',
+                             delete_untouched=True,
+                             commit_interval=1000,
+                             already_deleted=clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY'))])
 
     do_conversion(make_bioentity_physinteraction_starter(nex_session_maker),
                   [Json2Obj(Bioentityinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='PHYSINTERACTION'), name='convert.from_bud.auxilliary.bioentity_interaction_physical', delete_untouched=True, commit_interval=1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='PHYSINTERACTION'),
+                             name='convert.from_bud.auxilliary.bioentity_interaction_physical',
+                             delete_untouched=True,
+                             commit_interval=1000)])
 
     do_conversion(make_bioentity_regulation_interaction_starter(nex_session_maker),
                   [Json2Obj(Bioentityinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='REGULATION'), name='convert.from_bud.auxilliary.bioentity_regulation', delete_untouched=True, commit_interval=1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='REGULATION'),
+                             name='convert.from_bud.auxilliary.bioentity_regulation',
+                             delete_untouched=True,
+                             commit_interval=1000)])
 
-    clean_up_orphans(nex_session_maker, Bioconceptinteraction, Interaction, 'BIOCONCEPT')
     do_conversion(make_bioconcept_interaction_starter(nex_session_maker),
                   [Json2Obj(Bioconceptinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptinteraction), name='convert.from_bud.auxilliary.bioconcept_interaction', delete_untouched=True, commit_interval=1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptinteraction),
+                             name='convert.from_bud.auxilliary.bioconcept_interaction',
+                             delete_untouched=True,
+                             commit_interval=1000,
+                             already_deleted=clean_up_orphans(nex_session_maker, Bioconceptinteraction, Interaction, 'BIOCONCEPT'))])
 
-    clean_up_orphans(nex_session_maker, Referenceinteraction, Interaction, 'REFERENCE')
     do_conversion(make_reference_interaction_starter(nex_session_maker),
                   [Json2Obj(Referenceinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceinteraction), name='convert.from_bud.auxilliary.reference_interaction', delete_untouched=True, commit_interval=1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceinteraction),
+                             name='convert.from_bud.auxilliary.reference_interaction',
+                             delete_untouched=True,
+                             commit_interval=1000,
+                             already_deleted=clean_up_orphans(nex_session_maker, Referenceinteraction, Interaction, 'REFERENCE'))])
 
-    clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
     do_conversion(make_bioitem_interaction_starter(nex_session_maker),
                   [Json2Obj(Bioiteminteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioiteminteraction), name='convert.from_bud.auxilliary.bioitem_interaction', delete_untouched=True, commit_interval=1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioiteminteraction),
+                             name='convert.from_bud.auxilliary.bioitem_interaction',
+                             delete_untouched=True,
+                             commit_interval=1000,
+                             already_deleted=clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM'))])
 
     # ------------------------------------------ Perf ------------------------------------------
     from src.sgd.model.perf.bioentity_data import BioentityGraph

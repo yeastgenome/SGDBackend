@@ -20,13 +20,19 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.evidence import make_interaction_evidence_starter
     do_conversion(make_interaction_evidence_starter(bud_session_maker, nex_session_maker, 'genetic interactions'),
                   [Json2Obj(Geninteractionevidence),
-                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Geninteractionevidence), name='convert.from_bud.evidence.geninteraction', delete_untouched=True, commit_interval=1000)])
-    clean_up_orphans(nex_session_maker, Geninteractionevidence, Evidence, 'GENINTERACTION')
+                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Geninteractionevidence),
+                                  name='convert.from_bud.evidence.geninteraction',
+                                  delete_untouched=True,
+                                  commit_interval=1000,
+                                  already_deleted=clean_up_orphans(nex_session_maker, Geninteractionevidence, Evidence, 'GENINTERACTION'))])
 
     do_conversion(make_interaction_evidence_starter(bud_session_maker, nex_session_maker, 'physical interactions'),
                   [Json2Obj(Physinteractionevidence),
-                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Physinteractionevidence), name='convert.from_bud.evidence.physinteraction', delete_untouched=True, commit_interval=1000)])
-    clean_up_orphans(nex_session_maker, Physinteractionevidence, Evidence, 'PHYSINTERACTION')
+                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Physinteractionevidence),
+                                  name='convert.from_bud.evidence.physinteraction',
+                                  delete_untouched=True,
+                                  commit_interval=1000,
+                                  already_deleted=clean_up_orphans(nex_session_maker, Physinteractionevidence, Evidence, 'PHYSINTERACTION'))])
 
     # ------------------------------------------ Perf ------------------------------------------
     from src.sgd.model.perf.bioentity_data import BioentityDetails

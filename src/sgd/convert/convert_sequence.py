@@ -28,7 +28,7 @@ if __name__ == "__main__":
     nex_session = nex_session_maker()
     strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
     nex_session.close()
-    #
+
     for sequence_filename, coding_sequence_filename, strain_key in sequence_files:
         do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
                       [Json2Obj(DNAsequenceevidence),
