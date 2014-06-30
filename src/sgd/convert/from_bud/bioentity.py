@@ -22,7 +22,7 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
                 sgdid_to_uniprotid[line[2].strip()] = line[0].strip()
 
         #From feature
-        for bud_obj in make_db_starter(bud_session.query(Feature).options(joinedload('annotation')), 1000)():
+        for bud_obj in bud_session.query(Feature).options(joinedload('annotation')).all():
             display_name = bud_obj.gene_name
             if display_name is None:
                 display_name = bud_obj.name
@@ -93,7 +93,7 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
-        for locus in make_db_starter(nex_session.query(Locus), 1000)():
+        for locus in nex_session.query(Locus).all():
             show_summary = 1
             show_history = 1
             show_sequence = 0
@@ -181,7 +181,7 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         bioentity_ids = set([x.id for x in nex_session.query(Bioentity.id).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(AliasFeature).options(joinedload('alias')), 1000)():
+        for bud_obj in bud_session.query(AliasFeature).options(joinedload('alias')).all():
             bioentity_id = bud_obj.feature_id
             if bioentity_id in bioentity_ids:
                 yield {'display_name': bud_obj.alias_name,
@@ -195,7 +195,7 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
                 print 'Bioentity not found: ' + str(bioentity_id)
                 yield None
 
-        for bud_obj in make_db_starter(bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')), 1000)():
+        for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).all():
             display_name = bud_obj.dbxref.dbxref_id
             bioentity_id = bud_obj.feature_id
             if bioentity_id in bioentity_ids:
@@ -215,7 +215,7 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
                 print 'Bioentity not found: ' + str(bioentity_id)
                 yield None
 
-        for complex in make_db_starter(nex_session.query(Complex), 1000)():
+        for complex in nex_session.query(Complex).all():
             for alias in complex.go.aliases:
                 yield {'display_name': alias.display_name,
                        'source': alias.source,
@@ -238,7 +238,7 @@ def make_bioentity_relation_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         go_id_to_complex = dict([(x.go_id, x) for x in nex_session.query(Complex).all()])
 
-        for complex in make_db_starter(nex_session.query(Complex), 1000)():
+        for complex in nex_session.query(Complex).all():
             for relation in complex.go.parents:
                 if relation.child_id in go_id_to_complex and relation.parent_id in go_id_to_complex:
                     parent = go_id_to_complex[relation.parent_id]

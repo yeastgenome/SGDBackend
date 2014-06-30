@@ -4,7 +4,6 @@ from mpmath import ceil
 from sqlalchemy.orm import joinedload
 import requests
 
-from src.sgd.convert.transformers import make_db_starter
 from src.sgd.model.nex import create_format_name
 
 
@@ -20,7 +19,7 @@ def make_journal_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for old_journal in make_db_starter(bud_session.query(Journal), 1000)():
+        for old_journal in bud_session.query(Journal).all():
             abbreviation = old_journal.abbreviation
             if old_journal.issn == '0948-5023':
                 abbreviation = 'J Mol Model (Online)'
@@ -49,7 +48,7 @@ def make_book_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for old_book in make_db_starter(bud_session.query(Book), 1000)():
+        for old_book in bud_session.query(Book).all():
             yield {'source': key_to_source['PubMed'],
                    'title': old_book.title,
                    'volume_title': old_book.volume_title,
@@ -206,7 +205,7 @@ def make_bibentry_starter(bud_session_maker, nex_session_maker):
         id_to_author = dict([(x.id, x) for x in nex_session.query(Author).all()])
         id_to_reftype = dict([(x.id, x) for x in nex_session.query(Reftype).all()])
 
-        for reference in make_db_starter(nex_session.query(Reference).options(joinedload('author_references'), joinedload('ref_reftypes')), 1000)():
+        for reference in nex_session.query(Reference).options(joinedload('author_references'), joinedload('ref_reftypes')).all():
             entries = []
 
             add_entry(entries, reference, lambda x: x.pubmed_id, 'PMID')
@@ -269,7 +268,7 @@ def make_author_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
 
-        for old_author in make_db_starter(bud_session.query(Author), 1000)():
+        for old_author in bud_session.query(Author).all():
             yield {'display_name': old_author.name,
                    'source': key_to_source['PubMed'],
                    'date_created': old_author.date_created,
@@ -292,7 +291,7 @@ def make_author_reference_starter(bud_session_maker, nex_session_maker):
         key_to_author = dict([(x.unique_key(), x) for x in nex_session.query(Author).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
 
-        for old_author_reference in make_db_starter(bud_session.query(OldAuthorReference), 1000)():
+        for old_author_reference in bud_session.query(OldAuthorReference).all():
             author_key = create_format_name(old_author_reference.author.name)
             reference_id = old_author_reference.reference_id
             if author_key in key_to_author and reference_id in id_to_reference:
@@ -319,7 +318,7 @@ def make_reftype_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
 
-        for old_reftype in make_db_starter(bud_session.query(RefType), 1000)():
+        for old_reftype in bud_session.query(RefType).all():
             source_key = create_format_name(old_reftype.source)
             source = None if source_key not in key_to_source else key_to_source[source_key]
             yield {'id': old_reftype.id,
@@ -345,7 +344,7 @@ def make_ref_reftype_starter(bud_session_maker, nex_session_maker):
         id_to_reference = dict([(x.id, x) for x in nex_session.query(Reference).all()])
         id_to_reftype = dict([(x.id, x) for x in nex_session.query(Reftype).all()])
 
-        for old_refreftype in make_db_starter(bud_session.query(RefReftype), 1000)():
+        for old_refreftype in bud_session.query(RefReftype).all():
             reference_id = old_refreftype.reference_id
             reftype_id = old_refreftype.reftype_id
             if reference_id in id_to_reference and reftype_id in id_to_reftype:
@@ -377,7 +376,7 @@ def make_reference_relation_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
         reference_ids = set(x.id for x in nex_session.query(Reference.id).all())
 
-        for old_ref_relation in make_db_starter(bud_session.query(RefRelation), 1000)():
+        for old_ref_relation in bud_session.query(RefRelation).all():
             parent_id = old_ref_relation.parent_id
             child_id = old_ref_relation.child_id
             if parent_id in reference_ids and child_id in reference_ids:
@@ -405,7 +404,7 @@ def make_reference_alias_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
         reference_ids = set(x.id for x in nex_session.query(Reference.id).all())
 
-        for old_reference in make_db_starter(bud_session.query(OldReference).options(joinedload('dbxrefrefs')), 1000)():
+        for old_reference in bud_session.query(OldReference).options(joinedload('dbxrefrefs')).all():
             reference_id = old_reference.id
             if reference_id in reference_ids:
                 for dbxref in old_reference.dbxrefs:
@@ -432,7 +431,7 @@ def make_reference_url_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
 
-        for reference in make_db_starter(nex_session.query(Reference), 1000)():
+        for reference in nex_session.query(Reference).all():
             if reference.pubmed_id is not None:
                 yield {'display_name': 'PubMed',
                        'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id),
