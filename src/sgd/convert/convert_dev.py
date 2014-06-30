@@ -425,11 +425,11 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Phosphorylationevidence, Evidence, 'PHOSPHORYLATION')
     #
-    # do_conversion(make_protein_experiment_evidence_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Proteinexperimentevidence),
-    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Proteinexperimentevidence), name='convert.from_bud.evidence.protein_experiment', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Proteinexperimentevidence, Evidence, 'PROTEINEXPERIMENT')
+    do_conversion(make_protein_experiment_evidence_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Proteinexperimentevidence),
+                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Proteinexperimentevidence), name='convert.from_bud.evidence.protein_experiment', delete_untouched=True, commit=True),
+                   OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Proteinexperimentevidence, Evidence, 'PROTEINEXPERIMENT')
     #
     # do_conversion(make_regulation_evidence_starter(nex_session_maker),
     #               [Json2Obj(Regulationevidence),
