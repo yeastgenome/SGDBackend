@@ -96,13 +96,12 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
         for locus in make_db_starter(nex_session.query(Locus), 1000)():
             show_summary = 1
             show_history = 1
-            show_sequence = 0
             show_wiki = 1
 
             if locus.bioent_status != 'Active':
                 yield {'id': locus.id,
                            'summary_tab': show_summary,
-                           'sequence_tab': show_sequence,
+                           'sequence_tab': 0,
                            'history_tab': show_history,
                            'literature_tab': 0,
                            'go_tab': 0,
@@ -112,6 +111,8 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                            'regulation_tab': 0,
                            'protein_tab': 0,
                            'wiki_tab': show_wiki}
+
+            show_sequence = 1 if locus.locus_type == 'ORF' or locus.locus_type == 'centromere' else 0
 
             show_literature = 1
 

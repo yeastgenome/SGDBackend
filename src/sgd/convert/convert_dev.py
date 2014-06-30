@@ -112,7 +112,7 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'COMPLEX'), name='convert.from_bud.bioentity.disambig.complex', delete_untouched=True, commit=True)])
     #
     # # Nex -> Perf
-    # from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
+    from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
     # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True),
     #                OutputTransformer(1000)])
@@ -268,80 +268,80 @@ if __name__ == "__main__":
         make_author_reference_starter, make_author_starter, make_ref_reftype_starter, make_reference_relation_starter, \
         make_reference_url_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
-    #
-    # do_conversion(make_journal_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Journal),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Journal), name='convert.from_bud.journal', delete_untouched=True, commit=True)])
-    #
-    # do_conversion(make_book_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Book),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Book), name='convert.from_bud.book', delete_untouched=True, commit=True)])
-    #
-    # do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Reference),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
 
-    # do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Bibentry),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bibentry), name='convert.from_bud.bibentry', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
-    #
-    # do_conversion(make_author_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Author),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Author), name='convert.from_bud.author', delete_untouched=True, commit=True)])
-    #
-    # do_conversion(make_author_reference_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(AuthorReference),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(AuthorReference), name='convert.from_bud.author_reference', delete_untouched=True, commit=True)])
-    #
-    # do_conversion(make_reftype_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Reftype),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Reftype), name='convert.from_bud.reftype', delete_untouched=True, commit=True)])
-    #
-    # do_conversion(make_ref_reftype_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(ReferenceReftype),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(ReferenceReftype), name='convert.from_bud.reference_reftype', delete_untouched=True, commit=True)])
-    #
-    # do_conversion(make_reference_relation_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Referencerelation),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Referencerelation), name='convert.from_bud.reference_relation', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Referencerelation, Relation, 'REFERENCE')
-    #
-    # do_conversion(make_reference_alias_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Referencealias),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Referencealias), name='convert.from_bud.reference_alias', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Referencealias, Alias, 'REFERENCE')
-    #
-    # do_conversion(make_reference_url_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Referenceurl),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceurl), name='convert.from_bud.reference_url', commit_interval=1000, delete_untouched=True),
-    #                OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Referenceurl, Url, 'REFERENCE')
-    #
-    # do_conversion(make_disambig_starter(nex_session_maker, Reference, ['id', 'sgdid', 'pubmed_id', 'doi'], 'REFERENCE', None),
-    #               [Json2Obj(Disambig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'REFERENCE'), name='convert.from_bud.reference.disambig', delete_untouched=True, commit=True)])
-    #
-    # do_conversion(make_disambig_starter(nex_session_maker, Author, ['format_name', 'id'], 'AUTHOR', None),
-    #               [Json2Obj(Disambig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'AUTHOR'), name='convert.from_bud.author.disambig', delete_untouched=True, commit=True)])
-    #
-    # # Nex -> Perf
-    # from src.sgd.model.perf.core import Reference as PerfReference, Author as PerfAuthor, Bibentry as PerfBibentry
-    # do_conversion(make_backend_starter(nex_backend, 'all_references', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfReference, name='convert.from_backend.reference', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
-    #
-    # do_conversion(make_backend_starter(nex_backend, 'all_authors', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfAuthor, name='convert.from_backend.author', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
+    do_conversion(make_journal_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Journal),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Journal), name='convert.from_bud.journal', delete_untouched=True, commit=True)])
 
-    # do_conversion(make_backend_starter(nex_backend, 'all_bibentries', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfBibentry, name='convert.from_backend.all_bibentries', commit_interval=1000, delete_untouched=True),
-    #                OutputTransformer(1000)])
+    do_conversion(make_book_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Book),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Book), name='convert.from_bud.book', delete_untouched=True, commit=True)])
+
+    do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Reference),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit=True),
+                   OutputTransformer(1000)])
+
+    do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bibentry),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bibentry), name='convert.from_bud.bibentry', delete_untouched=True, commit=True),
+                   OutputTransformer(1000)])
+
+    do_conversion(make_author_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Author),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Author), name='convert.from_bud.author', delete_untouched=True, commit=True)])
+
+    do_conversion(make_author_reference_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(AuthorReference),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(AuthorReference), name='convert.from_bud.author_reference', delete_untouched=True, commit=True)])
+
+    do_conversion(make_reftype_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Reftype),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Reftype), name='convert.from_bud.reftype', delete_untouched=True, commit=True)])
+
+    do_conversion(make_ref_reftype_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(ReferenceReftype),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(ReferenceReftype), name='convert.from_bud.reference_reftype', delete_untouched=True, commit=True)])
+
+    do_conversion(make_reference_relation_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Referencerelation),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referencerelation), name='convert.from_bud.reference_relation', delete_untouched=True, commit=True),
+                   OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Referencerelation, Relation, 'REFERENCE')
+
+    do_conversion(make_reference_alias_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Referencealias),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referencealias), name='convert.from_bud.reference_alias', delete_untouched=True, commit=True),
+                   OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Referencealias, Alias, 'REFERENCE')
+
+    do_conversion(make_reference_url_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Referenceurl),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceurl), name='convert.from_bud.reference_url', commit_interval=1000, delete_untouched=True),
+                   OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Referenceurl, Url, 'REFERENCE')
+
+    do_conversion(make_disambig_starter(nex_session_maker, Reference, ['id', 'sgdid', 'pubmed_id', 'doi'], 'REFERENCE', None),
+                  [Json2Obj(Disambig),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'REFERENCE'), name='convert.from_bud.reference.disambig', delete_untouched=True, commit=True)])
+
+    do_conversion(make_disambig_starter(nex_session_maker, Author, ['format_name', 'id'], 'AUTHOR', None),
+                  [Json2Obj(Disambig),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'AUTHOR'), name='convert.from_bud.author.disambig', delete_untouched=True, commit=True)])
+
+    # Nex -> Perf
+    from src.sgd.model.perf.core import Reference as PerfReference, Author as PerfAuthor, Bibentry as PerfBibentry
+    do_conversion(make_backend_starter(nex_backend, 'all_references', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfReference, name='convert.from_backend.reference', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
+
+    do_conversion(make_backend_starter(nex_backend, 'all_authors', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfAuthor, name='convert.from_backend.author', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
+
+    do_conversion(make_backend_starter(nex_backend, 'all_bibentries', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfBibentry, name='convert.from_backend.all_bibentries', commit_interval=1000, delete_untouched=True),
+                   OutputTransformer(1000)])
     # ------------------------------------------ Evidence ------------------------------------------
     # Bud -> Nex
     from src.sgd.model.nex.evidence import Evidence, Goevidence, DNAsequenceevidence, Regulationevidence, \
@@ -437,24 +437,24 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Regulationevidence, Evidence, 'REGULATION')
     #
-    from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
-    from src.sgd.model.nex.misc import Strain
-    nex_session = nex_session_maker()
-    strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
-    nex_session.close()
+    # from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
+    # from src.sgd.model.nex.misc import Strain
+    # nex_session = nex_session_maker()
+    # strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
+    # nex_session.close()
+    # #
+    # for sequence_filename, coding_sequence_filename, strain_key in sequence_files[1:]:
+    #     do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
+    #                   [Json2Obj(DNAsequenceevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000),
+    #                    OutputTransformer(1000)])
     #
-    for sequence_filename, coding_sequence_filename, strain_key in sequence_files[1:]:
-        do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
-                      [Json2Obj(DNAsequenceevidence),
-                       Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000),
-                       OutputTransformer(1000)])
-
-        # if strain_key == 'S288C':
-        #     do_conversion(make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filename),
-        #                   [Json2Obj(DNAsequencetag),
-        #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
-        #                    OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, DNAsequenceevidence, Evidence, 'DNASEQUENCE')
+    #     # if strain_key == 'S288C':
+    #     #     do_conversion(make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filename),
+    #     #                   [Json2Obj(DNAsequencetag),
+    #     #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
+    #     #                    OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, DNAsequenceevidence, Evidence, 'DNASEQUENCE')
     #
     #
     # protparam_data = dict([(row[0], row) for row in make_file_starter('src/sgd/convert/data/ProtParam.txt')()])
@@ -585,18 +585,18 @@ if __name__ == "__main__":
     from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
     from src.sgd.model.nex.bioitem import Chemical, Contig, Domain
     from src.sgd.model.nex.reference import Reference
-    nex_session = nex_session_maker()
-    locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    #nex_session = nex_session_maker()
+    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     #complex_ids = [x.id for x in nex_session.query(Complex).all()]
-    go_ids = [x.id for x in nex_session.query(Go).all()]
+    #go_ids = [x.id for x in nex_session.query(Go).all()]
     #domain_ids = [x.id for x in nex_session.query(Domain).all()]
     #observable_ids = [x.id for x in nex_session.query(Observable).all()]
     #phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]
     #chemical_ids = [x.id for x in nex_session.query(Chemical).all()]
     #contig_ids = [x.id for x in nex_session.query(Contig).all()]
     #reference_ids = [x.id for x in nex_session.query(Reference).all()]
-    nex_session.close()
+    #nex_session.close()
 
     # Done
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
