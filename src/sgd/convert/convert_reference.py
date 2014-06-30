@@ -1,7 +1,6 @@
 from src.sgd.model import bud, nex
-from src.sgd.backend.nex import SGDBackend
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
-from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj, OutputTransformer
+from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj
 __author__ = 'kpaskov'
 
 if __name__ == "__main__":
@@ -32,8 +31,7 @@ if __name__ == "__main__":
 
     do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Reference),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Reference), name='convert.from_bud.reference', delete_untouched=True, commit_interval=1000)])
     clean_up_orphans(nex_session_maker, Referencerelation, Relation, 'REFERENCE')
     clean_up_orphans(nex_session_maker, Referencealias, Alias, 'REFERENCE')
     clean_up_orphans(nex_session_maker, Referenceurl, Url, 'REFERENCE')
@@ -64,20 +62,16 @@ if __name__ == "__main__":
 
     do_conversion(make_bibentry_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Bibentry),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bibentry), name='convert.from_bud.bibentry', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bibentry), name='convert.from_bud.bibentry', delete_untouched=True, commit_interval=1000)])
 
     do_conversion(make_reference_relation_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Referencerelation),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referencerelation), name='convert.from_bud.reference_relation', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referencerelation), name='convert.from_bud.reference_relation', delete_untouched=True, commit_interval=1000)])
 
     do_conversion(make_reference_alias_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Referencealias),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referencealias), name='convert.from_bud.reference_alias', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referencealias), name='convert.from_bud.reference_alias', delete_untouched=True, commit_interval=1000)])
 
     do_conversion(make_reference_url_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Referenceurl),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceurl), name='convert.from_bud.reference_url', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceurl), name='convert.from_bud.reference_url', commit_interval=1000, delete_untouched=True)])

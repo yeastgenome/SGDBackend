@@ -1,7 +1,6 @@
 from src.sgd.model import bud, nex
-from src.sgd.backend.nex import SGDBackend
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
-from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj, OutputTransformer
+from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj
 __author__ = 'kpaskov'
 
 if __name__ == "__main__":
@@ -36,8 +35,7 @@ if __name__ == "__main__":
 
     do_conversion(make_strain_url_starter(nex_session_maker),
                   [Json2Obj(Strainurl),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Strainurl), name='convert.from_bud.strain.url', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(10000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Strainurl), name='convert.from_bud.strain.url', delete_untouched=True, commit_interval=1000)])
 
     do_conversion(make_experiment_alias_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Experimentalias),
@@ -177,8 +175,7 @@ if __name__ == "__main__":
 
     do_conversion(make_bioentity_url_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Bioentityurl),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityurl), name='convert.from_bud.bioentity.url', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(10000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityurl), name='convert.from_bud.bioentity.url', delete_untouched=True, commit_interval=1000)])
 
     # # ------------------------------------------ Bioconcept ------------------------------------------
     # # Bud -> Nex
@@ -194,18 +191,15 @@ if __name__ == "__main__":
 
     do_conversion(make_bioconcept_relation_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Bioconceptrelation),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptrelation), name='convert.from_bud.bioconcept.relation', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(10000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptrelation), name='convert.from_bud.bioconcept.relation', commit_interval=1000, delete_untouched=True)])
 
     do_conversion(make_bioconcept_alias_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Bioconceptalias),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptalias), name='convert.from_bud.bioconcept.alias', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconceptalias), name='convert.from_bud.bioconcept.alias', commit_interval=1000, delete_untouched=True)])
 
     do_conversion(make_bioconcept_url_starter(nex_session_maker),
                   [Json2Obj(Bioconcepturl),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconcepturl), name='convert.from_bud.bioconcept.url', commit_interval=1000, delete_untouched=True),
-                   OutputTransformer(1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioconcepturl), name='convert.from_bud.bioconcept.url', commit_interval=1000, delete_untouched=True)])
 
     # ------------------------------------------ Bioitem ------------------------------------------
     # Bud -> Nex
@@ -238,22 +232,18 @@ if __name__ == "__main__":
 
     do_conversion(make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Bioentityparagraph),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit=True),
-                   OutputTransformer(1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit=True)])
 
     # do_conversion(make_strain_paragraph_starter(nex_session_maker),
     #               [Json2Obj(Strainparagraph),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strainparagraph), name='convert.from_bud.paragraph.strain', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strainparagraph), name='convert.from_bud.paragraph.strain', delete_untouched=True, commit=True)])
 
     clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE')
     do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Referenceparagraph),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph), name='convert.from_bud.paragraph.reference', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph), name='convert.from_bud.paragraph.reference', delete_untouched=True, commit_interval=1000)])
 
 
     # do_conversion(make_paragraph_reference_starter(nex_session_maker),
     #               [Json2Obj(ParagraphReference),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(ParagraphReference), name='convert.from_bud.paragraph_reference', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(ParagraphReference), name='convert.from_bud.paragraph_reference', delete_untouched=True, commit=True)])

@@ -1,6 +1,6 @@
 from src.sgd.model import bud, nex
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
-from src.sgd.convert.transformers import do_conversion, Json2Obj, OutputTransformer, Evidence2NexDB
+from src.sgd.convert.transformers import do_conversion, Json2Obj, Evidence2NexDB
 
 __author__ = 'kpaskov'
 
@@ -14,8 +14,7 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.evidence import make_go_evidence_starter
     do_conversion(make_go_evidence_starter(bud_session_maker, nex_session_maker),
                    [Json2Obj(Goevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Goevidence), name='convert.from_bud.evidence.go', delete_untouched=True, commit_interval=1000),
-                    OutputTransformer(1000)])
+                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Goevidence), name='convert.from_bud.evidence.go', delete_untouched=True, commit_interval=1000)])
     clean_up_orphans(nex_session_maker, Goevidence, Evidence, 'GO')
 
     # ------------------------------------------ Literature ------------------------------------------
@@ -23,8 +22,7 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.evidence import make_literature_evidence_starter
     do_conversion(make_literature_evidence_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Literatureevidence),
-                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Literatureevidence), name='convert.from_bud.evidence.literature', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Literatureevidence), name='convert.from_bud.evidence.literature', delete_untouched=True, commit_interval=1000)])
     clean_up_orphans(nex_session_maker, Literatureevidence, Evidence, 'LITERATURE')
 
     # ------------------------------------------ Misc ------------------------------------------
@@ -52,20 +50,17 @@ if __name__ == "__main__":
 
     do_conversion(make_domain_evidence_starter(bud_session_maker, nex_session_maker),
                    [Json2Obj(Domainevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Domainevidence), name='convert.from_bud.evidence.domain', delete_untouched=True, commit_interval=1000),
-                    OutputTransformer(1000)])
+                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Domainevidence), name='convert.from_bud.evidence.domain', delete_untouched=True, commit_interval=1000)])
     clean_up_orphans(nex_session_maker, Domainevidence, Evidence, 'DOMAIN')
 
     # do_conversion(make_phosphorylation_evidence_starter(nex_session_maker),
     #               [Json2Obj(Phosphorylationevidence),
-    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Phosphorylationevidence), name='convert.from_bud.evidence.phosphorylation', delete_untouched=True, commit=True),
-    #                OutputTransformer(1000)])
+    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Phosphorylationevidence), name='convert.from_bud.evidence.phosphorylation', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Phosphorylationevidence, Evidence, 'PHOSPHORYLATION')
 
     do_conversion(make_protein_experiment_evidence_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Proteinexperimentevidence),
-                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Proteinexperimentevidence), name='convert.from_bud.evidence.protein_experiment', delete_untouched=True, commit=True),
-                   OutputTransformer(1000)])
+                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Proteinexperimentevidence), name='convert.from_bud.evidence.protein_experiment', delete_untouched=True, commit=True)])
     clean_up_orphans(nex_session_maker, Proteinexperimentevidence, Evidence, 'PROTEINEXPERIMENT')
 
     # ------------------------------------------ Phenotype ------------------------------------------
@@ -73,6 +68,5 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.evidence import make_phenotype_evidence_starter
     do_conversion(make_phenotype_evidence_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Phenotypeevidence),
-                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Phenotypeevidence), name='convert.from_bud.evidence.phenotype', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Phenotypeevidence), name='convert.from_bud.evidence.phenotype', delete_untouched=True, commit_interval=1000)])
     clean_up_orphans(nex_session_maker, Phenotypeevidence, Evidence, 'PHENOTYPE')
