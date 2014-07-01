@@ -731,9 +731,9 @@ def do_conversion(starter, converters):
             if output is not None:
                 print str(datetime.datetime.now()) + ': ' + str(output)
     except:
-        output = converters[converters.length-1].finished()
+        output = converters[len(converters)-1].finished()
         if output is not None:
-                print str(datetime.datetime.now()) + ': ' + str(output)
+            print str(datetime.datetime.now()) + ': ' + str(output)
 
         print str(datetime.datetime.now()) + ': !!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!'
         exc_type, exc_value, exc_traceback = sys.exc_info()
