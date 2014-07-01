@@ -53,7 +53,7 @@ class Obj2NexDB(TransformerInterface):
         self.delete_untouched = delete_untouched
         self.key_to_current_obj_json = dict()
         self.current_obj_ids = set()
-        for obj in current_obj_query(self.session()):
+        for obj in current_obj_query(self.session):
             self.key_to_current_obj_json[obj.unique_key()] = UpdateByJsonMixin.to_json(obj)
             self.current_obj_ids.add(obj.id)
         self.keys_already_seen = set()
