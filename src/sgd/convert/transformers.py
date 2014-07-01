@@ -125,7 +125,7 @@ class Obj2NexDB(TransformerInterface):
 
 class Evidence2NexDB(TransformerInterface):
 
-    def __init__(self, session_maker, current_obj_query, name=None, commit_interval=None, commit=False, delete_untouched=False):
+    def __init__(self, session_maker, current_obj_query, name=None, commit_interval=None, commit=False, delete_untouched=False, already_deleted=0):
         self.session = session_maker()
         self.current_obj_query = current_obj_query
         self.name = name
@@ -140,7 +140,7 @@ class Evidence2NexDB(TransformerInterface):
         self.no_change_count = 0
         self.duplicate_count = 0
         self.error_count = 0
-        self.deleted_count = 0
+        self.deleted_count = already_deleted
 
     def convert(self, newly_created_obj):
         if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
