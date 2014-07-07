@@ -300,7 +300,9 @@ def make_author_reference_starter(bud_session_maker, nex_session_maker):
                        'author': key_to_author[author_key],
                        'reference': id_to_reference[reference_id],
                        'order': old_author_reference.order,
-                       'author_type': old_author_reference.type}
+                       'author_type': old_author_reference.type,
+                       'date_created': old_author_reference.author.date_created,
+                       'created_by': old_author_reference.author.created_by}
             else:
                 print 'Author or reference not found: ' + str(author_key) + ' ' + str(reference_id)
 
