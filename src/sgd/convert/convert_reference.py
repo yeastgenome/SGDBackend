@@ -13,12 +13,14 @@ if __name__ == "__main__":
     from src.sgd.model.nex.reference import Reference, Journal, Book, Author, Referencealias, Referenceurl, \
         Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype
     from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.paragraph import Paragraph, Referenceparagraph
     from src.sgd.model.nex.auxiliary import Disambig
     from src.sgd.convert.from_bud.reference import make_reference_starter, make_journal_starter, make_book_starter,\
         make_bibentry_starter, make_reftype_starter, make_reference_alias_starter, \
         make_author_reference_starter, make_author_starter, make_ref_reftype_starter, make_reference_relation_starter, \
         make_reference_url_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    from src.sgd.convert.from_bud.paragraph import make_reference_paragraph_starter
 
     do_conversion(make_journal_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Journal),
@@ -113,3 +115,11 @@ if __name__ == "__main__":
                              commit_interval=1000,
                              delete_untouched=True,
                              already_deleted=clean_up_orphans(nex_session_maker, Referenceurl, Url, 'REFERENCE'))])
+
+    do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Referenceparagraph),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph),
+                             name='convert.from_bud.paragraph.reference',
+                             delete_untouched=True,
+                             commit_interval=1000,
+                             already_deleted=clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE'))])

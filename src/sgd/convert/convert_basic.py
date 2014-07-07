@@ -315,8 +315,8 @@ if __name__ == "__main__":
                              already_deleted=clean_up_orphans(nex_session_maker, Bioitemurl, Url, 'BIOITEM'))])
 
     # ------------------------------------------ Paragraph ------------------------------------------
-    from src.sgd.model.nex.paragraph import Paragraph, Bioentityparagraph, Referenceparagraph
-    from src.sgd.convert.from_bud.paragraph import make_bioentity_paragraph_starter, make_reference_paragraph_starter
+    from src.sgd.model.nex.paragraph import Paragraph, Bioentityparagraph
+    from src.sgd.convert.from_bud.paragraph import make_bioentity_paragraph_starter
 
     do_conversion(make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Bioentityparagraph),
@@ -333,14 +333,6 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Strainparagraph, Paragraph, 'STRAIN'))])
-
-    do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Referenceparagraph),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph),
-                             name='convert.from_bud.paragraph.reference',
-                             delete_untouched=True,
-                             commit_interval=1000,
-                             already_deleted=clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE'))])
 
     # do_conversion(make_paragraph_reference_starter(nex_session_maker),
     #               [Json2Obj(ParagraphReference),
