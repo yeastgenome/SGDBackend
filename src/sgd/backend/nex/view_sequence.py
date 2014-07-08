@@ -72,8 +72,12 @@ def make_neighbor_details(locus_id=None):
     neighbors = {}
     genomic_dnaseqevidences = [x for x in dnaseqevidences if x.dna_type == 'GENOMIC']
     for evidence in genomic_dnaseqevidences:
-        neighbor_evidences = DBSession.query(DNAsequenceevidence).filter_by(contig_id=evidence.contig_id).filter(DNAsequenceevidence.start >= evidence.start - 5000).filter(DNAsequenceevidence.end <= evidence.end + 5000).options(joinedload('locus'), joinedload('strain')).all()
-        neighbors[evidence.strain.format_name] = [x.to_json() for x in sorted(neighbor_evidences, key=lambda x: x.start if x.strand == '+' else x.end)]
+        midpoint = int(round((evidence.start + (evidence.end-evidence.start)/2)/1000))*1000
+        start = max(1, midpoint - 5000)
+        end = min(len(evidence.contig.residues), midpoint + 5000)
+        print evidence.strain.display_name, midpoint, start, end
+        neighbor_evidences = DBSession.query(DNAsequenceevidence).filter_by(contig_id=evidence.contig_id).filter(DNAsequenceevidence.start >= start).filter(DNAsequenceevidence.end <= end).options(joinedload('locus'), joinedload('strain')).all()
+        neighbors[evidence.strain.format_name] = {'neighbors': [x.to_json() for x in sorted(neighbor_evidences, key=lambda x: x.start if x.strand == '+' else x.end)], 'start': start, 'end': end}
 
     return neighbors
 
