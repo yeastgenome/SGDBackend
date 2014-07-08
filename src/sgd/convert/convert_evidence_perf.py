@@ -29,9 +29,6 @@ if __name__ == "__main__":
     nex_session = nex_session_maker()
     locus_ids = [x.id for x in nex_session.query(Locus).all()]
     reference_ids = [x.id for x in nex_session.query(Reference).all()]
-    go_ids = [x.id for x in nex_session.query(Go).all()]
-    domain_ids = [x.id for x in nex_session.query(Domain).all()]
-    ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]
     observable_ids = [x.id for x in nex_session.query(Observable).all()]
     chemical_ids = [x.id for x in nex_session.query(Chemical).all()]
@@ -43,41 +40,6 @@ if __name__ == "__main__":
 
     do_conversion(make_reference_data_backend_starter(nex_backend, 'literature_details', reference_ids),
                    [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'LITERATURE', reference_ids, name='convert.from_backend.literature_details', commit_interval=1000)])
-
-    # ------------------------------------------ GO Perf ------------------------------------------
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'go_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000)])
-
-    do_conversion(make_go_data_backend_starter(nex_backend, 'go_details', go_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS', go_ids, name='convert.from_backend.go_details', commit_interval=1000)])
-
-    do_conversion(make_reference_data_backend_starter(nex_backend, 'go_details', reference_ids),
-                   [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'GO', reference_ids, name='convert.from_backend.go_details', commit_interval=1000)])
-
-    do_conversion(make_go_data_with_children_backend_starter(nex_backend, 'go_details', go_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS_ALL_CHILDREN', go_ids, name='convert.from_backend.go_details', commit_interval=1000)])
-
-    # ------------------------------------------ Misc Perf ------------------------------------------
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'ec_number_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EC_NUMBER', locus_ids, name='convert.from_backend.ec_number_details', commit_interval=1000)])
-
-    do_conversion(make_ecnumber_data_backend_starter(nex_backend, 'ec_number_details', ecnumber_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'EC_NUMBER_LOCUS', ecnumber_ids, name='convert.from_backend.ec_number_details', commit_interval=1000)])
-
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_domain_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_DOMAIN', locus_ids, name='convert.from_backend.protein_domain_details', commit_interval=1000)])
-
-    do_conversion(make_domain_data_backend_starter(nex_backend, 'protein_domain_details', domain_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'PROTEIN_DOMAIN_LOCUS', domain_ids, name='convert.from_backend.protein_domain_details', commit_interval=1000)])
-
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_phosphorylation_details', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_PHOSPHORYLATION', locus_ids, name='convert.from_backend.protein_phosphorylation_details', commit_interval=1000)])
-
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_experiment_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_EXPERIMENT', locus_ids, name='convert.from_backend.protein_experiment_details', commit_interval=1000)])
-
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'binding_site_details', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'BINDING_SITE', locus_ids, name='convert.from_backend.binding_site_details', commit_interval=1000)])
 
     # ------------------------------------------ Phenotype Perf ------------------------------------------
     do_conversion(make_locus_data_backend_starter(nex_backend, 'phenotype_details', locus_ids),
@@ -107,41 +69,6 @@ if __name__ == "__main__":
 
     do_conversion(make_reference_data_backend_starter(perf_backend, 'literature_details', reference_ids),
                    [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'LITERATURE', reference_ids, name='convert.from_backend.literature_details', commit_interval=1000)])
-
-    # ------------------------------------------ GO Perf2 ------------------------------------------
-    do_conversion(make_locus_data_backend_starter(perf_backend, 'go_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000)])
-
-    do_conversion(make_go_data_backend_starter(perf_backend, 'go_details', go_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS', go_ids, name='convert.from_backend.go_details', commit_interval=1000)])
-
-    do_conversion(make_reference_data_backend_starter(perf_backend, 'go_details', reference_ids),
-                   [Json2DataPerfDB(perf_session_maker, ReferenceDetails, 'GO', reference_ids, name='convert.from_backend.go_details', commit_interval=1000)])
-
-    do_conversion(make_go_data_with_children_backend_starter(perf_backend, 'go_details', go_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS_ALL_CHILDREN', go_ids, name='convert.from_backend.go_details', commit_interval=1000)])
-
-    # ------------------------------------------ Misc Perf2 ------------------------------------------
-    do_conversion(make_locus_data_backend_starter(perf_backend, 'ec_number_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EC_NUMBER', locus_ids, name='convert.from_backend.ec_number_details', commit_interval=1000)])
-
-    do_conversion(make_ecnumber_data_backend_starter(perf_backend, 'ec_number_details', ecnumber_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'EC_NUMBER_LOCUS', ecnumber_ids, name='convert.from_backend.ec_number_details', commit_interval=1000)])
-
-    do_conversion(make_locus_data_backend_starter(perf_backend, 'protein_domain_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_DOMAIN', locus_ids, name='convert.from_backend.protein_domain_details', commit_interval=1000)])
-
-    do_conversion(make_domain_data_backend_starter(perf_backend, 'protein_domain_details', domain_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'PROTEIN_DOMAIN_LOCUS', domain_ids, name='convert.from_backend.protein_domain_details', commit_interval=1000)])
-
-    do_conversion(make_locus_data_backend_starter(perf_backend, 'protein_phosphorylation_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_PHOSPHORYLATION', locus_ids, name='convert.from_backend.protein_phosphorylation_details', commit_interval=1000)])
-
-    do_conversion(make_locus_data_backend_starter(perf_backend, 'protein_experiment_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_EXPERIMENT', locus_ids, name='convert.from_backend.protein_experiment_details', commit_interval=1000)])
-
-    do_conversion(make_locus_data_backend_starter(perf_backend, 'binding_site_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'BINDING_SITE', locus_ids, name='convert.from_backend.binding_site_details', commit_interval=1000)])
 
     # ------------------------------------------ Phenotype Perf2 ------------------------------------------
     do_conversion(make_locus_data_backend_starter(perf_backend, 'phenotype_details', locus_ids),
