@@ -1234,7 +1234,7 @@ def make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_f
                             print bioentity_key
                         contig_key = (strain_key + '_' + parent_id, 'CONTIG')
 
-                        if bioentity_key in key_to_bioentity and contig_key in key_to_bioitem:
+                        if bioentity_key in key_to_bioentity and contig_key in key_to_bioitem and key_to_bioentity[bioentity_key].locus_type != 'plasmid':
                             yield {'source': key_to_source['SGD'],
                                         'strain': key_to_strain[strain_key],
                                         'locus': key_to_bioentity[bioentity_key],
@@ -1312,15 +1312,21 @@ extra_child_to_parent = {'TEL01L-TR': 'TEL01L',
                          'YCR108C': 'TEL03R',
                          }
 
-def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filenames):
+def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker, strain_key, sequence_filenames):
     from src.sgd.model.nex.misc import Strain
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.evidence import DNAsequenceevidence
+    from src.sgd.model.bud.feature import FeatRel
+    from src.sgd.model.bud.sequence import Feat_Location, Sequence
     def dna_sequence_tag_starter():
         nex_session = nex_session_maker()
+        bud_session = bud_session_maker()
 
         key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Locus).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
+        feature_id_to_parent = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).all()])
+        key_to_coord_version = dict([((feature_id_to_parent[x.feature_id], x.min_coord, x.max_coord), x.coord_version, x.seq_id) for x in bud_session.query(Feat_Location).all() if x.is_current == 'Y' and x.feature_id in feature_id_to_parent])
+        seq_id_to_version = dict([(x.id, x.seq_version) for x in bud_session.query(Sequence).all() if x.is_current == 'Y' and x.seq_type == 'genomic' and x.feature_id in feature_id_to_parent])
 
         bioentity_id_to_parent_id = {}
         parent_id_to_rows = {}
@@ -1375,6 +1381,8 @@ def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filena
                         end = int(pieces[4])
                         phase = pieces[7]
                         class_type = pieces[2]
+                        coord_version, seq_id = None if (evidence.locus_id, start, end) not in key_to_coord_version else key_to_coord_version[(evidence.locus_id, start, end)]
+                        seq_version = None if seq_id not in seq_id_to_version else seq_id_to_version[seq_id]
                         if evidence.strand != '-':
                             yield {
                                 'evidence_id': evidence.id,
@@ -1383,7 +1391,9 @@ def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filena
                                 'relative_end': end - evidence.start + 1,
                                 'chromosomal_start': start,
                                 'chromosomal_end': end,
-                                'phase': phase
+                                'phase': phase,
+                                'seq_version': seq_version,
+                                'coord_version': coord_version
                             }
                         else:
                             yield {
@@ -1393,10 +1403,13 @@ def make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filena
                                 'relative_end': evidence.end - start + 1,
                                 'chromosomal_start': end,
                                 'chromosomal_end': start,
-                                'phase': phase
+                                'phase': phase,
+                                'seq_version': seq_version,
+                                'coord_version': coord_version
                             }
 
         nex_session.close()
+        bud_session.close()
     return dna_sequence_tag_starter
 
 # --------------------- Convert Protein Sequence Evidence ---------------------

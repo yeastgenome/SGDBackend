@@ -16,6 +16,11 @@ class UpdateByJsonMixin(object):
             current_value = getattr(self, key)
             new_value = None if key not in json_obj else json_obj[key]
 
+            if key == 'seq_version' or key == 'coord_version':
+                if new_value != str(current_value):
+                    setattr(self, key, new_value)
+                    anything_changed = True
+
             if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                 pass
             elif new_value != current_value:
@@ -37,6 +42,10 @@ class UpdateByJsonMixin(object):
         for key in self.__eq_values__:
             current_value = getattr(self, key)
             new_value = json_obj[key]
+
+            if key == 'seq_version' or key == 'coord_version':
+                if new_value != str(current_value):
+                    anything_changed = True
 
             if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                 pass
@@ -65,7 +74,7 @@ class UpdateByJsonMixin(object):
         for key in self.__eq_values__:
             if key == 'json':
                 pass
-            elif key == 'date_created' or key == 'date_revised':
+            elif key == 'date_created' or key == 'date_revised' or key == 'coord_version' or key == 'seq_version':
                 obj_json[key] = str(getattr(self, key))
             else:
                 obj_json[key] = getattr(self, key)

@@ -879,6 +879,8 @@ class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     chromosomal_start = Column('chromosomal_start_index', Integer)
     chromosomal_end = Column('chromosomal_end_index', Integer)
     phase = Column('phase', String)
+    coord_version = Column('coord_version', Date)
+    seq_version = Column('seq_version', Date)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -886,7 +888,7 @@ class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     evidence = relationship(DNAsequenceevidence, uselist=False, backref=backref('tags', passive_deletes=True))
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relative_start', 'relative_end',
-                     'chromosomal_start', 'chromosomal_end', 'phase', 'evidence_id',
+                     'chromosomal_start', 'chromosomal_end', 'phase', 'evidence_id', 'coord_version', 'seq_version',
                      'date_created', 'created_by', ]
     __eq_fks__ = []
 
