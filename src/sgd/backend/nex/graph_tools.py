@@ -26,12 +26,12 @@ def make_ontology_graph(bioconcept_id, class_type, filter_f, subtype_f):
     full_ontology = None
     all_children = []
     bioconcept = DBSession.query(Bioconcept).filter_by(id=bioconcept_id).first()
-    parent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[bioconcept_id]) if x.relation_type != 'GO_SLIM']
-    child_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[bioconcept_id]) if x.relation_type != 'GO_SLIM']
+    parent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[bioconcept_id]) if x.relation_type == 'is a']
+    child_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[bioconcept_id]) if x.relation_type == 'is a']
     if len(parent_relations) > 0:
-        grandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in parent_relations]) if x.relation_type != 'GO_SLIM']
-        greatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in grandparent_relations]) if x.relation_type != 'GO_SLIM']
-        greatgreatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in greatgrandparent_relations]) if x.relation_type != 'GO_SLIM']
+        grandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in parent_relations]) if x.relation_type == 'is a']
+        greatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in grandparent_relations]) if x.relation_type == 'is a']
+        greatgreatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in greatgrandparent_relations]) if x.relation_type == 'is a']
 
         nodes = [create_node(bioconcept, True, subtype_f(bioconcept))]
 
@@ -73,7 +73,7 @@ def make_ontology_graph(bioconcept_id, class_type, filter_f, subtype_f):
         edges = [create_edge(x.child_id, x.parent_id, x.relation_type) for x in child_relations]
 
         if bioconcept.class_type == 'OBSERVABLE':
-            grandchild_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[x.child_id for x in child_relations])]
+            grandchild_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[x.child_id for x in child_relations]) if x.relation_type == 'is a']
             nodes.extend([create_node(x.child, False, subtype_f(x.child)) for x in grandchild_relations])
             edges.extend([create_edge(x.child_id, x.parent_id, x.relation_type) for x in grandchild_relations])
 

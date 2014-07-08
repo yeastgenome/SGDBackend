@@ -31,6 +31,32 @@ class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
         
     def unique_key(self):
         return self.format_name, self.class_type
+
+    def has_children(self):
+        return len(self.evidences) > 0
+
+    def has_descendants(self):
+        if self.has_children():
+            return True
+        elif len([x for x in self.children if x.relation_type == 'is a']) == 0:
+            return False
+        else:
+            for child in self.children:
+                if child.child.has_descendants():
+                    return True
+            return False
+
+    @hybrid_property
+    def count(self):
+        return len(set(self.related_locus_ids))
+
+    @hybrid_property
+    def child_count(self):
+        return len(set(self.related_locus_ids + sum([x.child.related_locus_ids for x in self.children if x.relation_type == 'is a'], [])))
+
+    @hybrid_property
+    def related_locus_ids(self):
+        return [x.locus_id for x in self.evidences]
       
 class Bioconceptrelation(Relation):
     __tablename__ = 'bioconceptrelation'
@@ -144,12 +170,8 @@ class Go(Bioconcept):
             self.format_name = self.go_id
 
     @hybrid_property
-    def count(self):
-        return len(set([x.locus_id for x in self.go_evidences]))
-
-    @hybrid_property
-    def child_count(self):
-        return self.count + sum([x.child.count for x in self.children if x.relation_type == 'is a'])
+    def evidences(self):
+        return self.go_evidences
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
@@ -198,15 +220,8 @@ class Observable(Bioconcept):
             self.link = '/observable/' + self.format_name + '/overview'
 
     @hybrid_property
-    def count(self):
-        locus_ids = set()
-        for phenotype in self.phenotypes:
-            locus_ids.update([x.locus_id for x in phenotype.phenotype_evidences])
-        return len(locus_ids)
-
-    @hybrid_property
-    def child_count(self):
-        return self.count + sum([x.child.count for x in self.children if x.relation_type == 'is a'])
+    def evidences(self):
+        return set(sum([x.phenotype_evidences for x in self.phenotypes], []))
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
@@ -292,6 +307,10 @@ class Phenotype(Bioconcept):
         self.display_name = create_phenotype_display_name(obj_json['observable'].display_name, self.qualifier)
         self.format_name = create_phenotype_format_name(obj_json['observable'].display_name, self.qualifier)
         self.link = '/phenotype/' + self.format_name + '/overview'
+
+    @hybrid_property
+    def evidences(self):
+        return self.phenotype_evidences
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)

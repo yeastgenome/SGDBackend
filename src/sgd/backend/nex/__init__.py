@@ -258,7 +258,7 @@ class SGDBackend(BackendInterface):
             observable_id = observable_identifier
         else:
             observable_id = get_obj_id(observable_identifier, class_type='BIOCONCEPT', subclass_type='OBSERVABLE')
-        return None if observable_id is None else json.dumps(graph_tools.make_ontology_graph(observable_id, 'OBSERVABLE', lambda x: True, lambda x: x.ancestor_type))
+        return None if observable_id is None else json.dumps(graph_tools.make_ontology_graph(observable_id, 'OBSERVABLE', lambda x: True, lambda x: None if not hasattr(x, 'ancestor_type') else x.ancestor_type))
 
     def phenotype_details(self, locus_identifier=None, phenotype_identifier=None, observable_identifier=None, chemical_identifier=None, reference_identifier=None, with_children=False, are_ids=False):
         from src.sgd.backend.nex import view_phenotype
@@ -322,7 +322,7 @@ class SGDBackend(BackendInterface):
             go_id = go_identifier
         else:
             go_id = get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        return None if go_id is None else json.dumps(graph_tools.make_ontology_graph(go_id, 'GO', lambda x: True, lambda x: x.go_aspect))
+        return None if go_id is None else json.dumps(graph_tools.make_ontology_graph(go_id, 'GO', lambda x: True, lambda x: 'HAS_CHILDREN' if x.has_children() else 'HAS_DESCENDANTS' if x.has_descendants() else 'NO_DESCENDANTS'))
     
     def go_details(self, locus_identifier=None, go_identifier=None, reference_identifier=None, with_children=False, are_ids=False):
         import view_go
