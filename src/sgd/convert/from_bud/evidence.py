@@ -1325,7 +1325,7 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker, strain_k
         key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Locus).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
         feature_id_to_parent = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).all()])
-        key_to_coord_version = dict([((feature_id_to_parent[x.feature_id], x.min_coord, x.max_coord), x.coord_version, x.seq_id) for x in bud_session.query(Feat_Location).all() if x.is_current == 'Y' and x.feature_id in feature_id_to_parent])
+        key_to_coord_version = dict([((feature_id_to_parent[x.feature_id], x.min_coord, x.max_coord), (x.coord_version, x.sequence_id)) for x in bud_session.query(Feat_Location).all() if x.is_current == 'Y' and x.feature_id in feature_id_to_parent])
         seq_id_to_version = dict([(x.id, x.seq_version) for x in bud_session.query(Sequence).all() if x.is_current == 'Y' and x.seq_type == 'genomic' and x.feature_id in feature_id_to_parent])
 
         bioentity_id_to_parent_id = {}
@@ -1381,7 +1381,7 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker, strain_k
                         end = int(pieces[4])
                         phase = pieces[7]
                         class_type = pieces[2]
-                        coord_version, seq_id = None if (evidence.locus_id, start, end) not in key_to_coord_version else key_to_coord_version[(evidence.locus_id, start, end)]
+                        coord_version, seq_id = (None, None) if (evidence.locus_id, start, end) not in key_to_coord_version else key_to_coord_version[(evidence.locus_id, start, end)]
                         seq_version = None if seq_id not in seq_id_to_version else seq_id_to_version[seq_id]
                         if evidence.strand != '-':
                             yield {

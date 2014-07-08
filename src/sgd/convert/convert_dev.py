@@ -437,23 +437,23 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Regulationevidence, Evidence, 'REGULATION')
     #
-    from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
-    from src.sgd.model.nex.misc import Strain
-    nex_session = nex_session_maker()
-    strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
-    nex_session.close()
-
-    for sequence_filename, coding_sequence_filename, strain_key in sequence_files[0:1]:
-    #     do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
-    #                   [Json2Obj(DNAsequenceevidence),
-    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000),
-    #                    OutputTransformer(1000)])
+    # from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
+    # from src.sgd.model.nex.misc import Strain
+    # nex_session = nex_session_maker()
+    # strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
+    # nex_session.close()
     #
-        if strain_key == 'S288C':
-            do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker, strain_key, sequence_filename),
-                          [Json2Obj(DNAsequencetag),
-                           Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
-                           OutputTransformer(1000)])
+    # for sequence_filename, coding_sequence_filename, strain_key in sequence_files[0:1]:
+    # #     do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
+    # #                   [Json2Obj(DNAsequenceevidence),
+    # #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000),
+    # #                    OutputTransformer(1000)])
+    # #
+    #     if strain_key == 'S288C':
+    #         do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker, strain_key, sequence_filename),
+    #                       [Json2Obj(DNAsequencetag),
+    #                        Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
+    #                        OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, DNAsequenceevidence, Evidence, 'DNASEQUENCE')
     #
     #
@@ -586,7 +586,7 @@ if __name__ == "__main__":
     from src.sgd.model.nex.bioitem import Chemical, Contig, Domain
     from src.sgd.model.nex.reference import Reference
     nex_session = nex_session_maker()
-    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     #complex_ids = [x.id for x in nex_session.query(Complex).all()]
     #go_ids = [x.id for x in nex_session.query(Go).all()]
@@ -604,9 +604,9 @@ if __name__ == "__main__":
     #                 OutputTransformer(1000)])
     #
     # Done
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000),
-    #                 OutputTransformer(1000)])
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000),
+                    OutputTransformer(1000)])
     #
     # Done
     # do_conversion(make_contig_data_backend_starter(nex_backend, 'sequence_details', contig_ids),

@@ -1,6 +1,7 @@
 __author__ = 'kpaskov'
 
 import json
+from datetime import datetime
 
 def create_format_name(display_name):
     format_name = display_name.replace(' ', '_')
@@ -17,9 +18,7 @@ class UpdateByJsonMixin(object):
             new_value = None if key not in json_obj else json_obj[key]
 
             if key == 'seq_version' or key == 'coord_version':
-                if new_value != str(current_value):
-                    setattr(self, key, new_value)
-                    anything_changed = True
+                new_value = None if new_value == 'None' else datetime.strptime(new_value, "%Y-%m-%d")
 
             if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                 pass
@@ -44,8 +43,7 @@ class UpdateByJsonMixin(object):
             new_value = json_obj[key]
 
             if key == 'seq_version' or key == 'coord_version':
-                if new_value != str(current_value):
-                    anything_changed = True
+                new_value = None if new_value == 'None' else datetime.strptime(new_value, "%Y-%m-%d")
 
             if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                 pass
