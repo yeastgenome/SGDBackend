@@ -26,12 +26,12 @@ def make_ontology_graph(bioconcept_id, class_type, filter_f, subtype_f):
     full_ontology = None
     all_children = []
     bioconcept = DBSession.query(Bioconcept).filter_by(id=bioconcept_id).first()
-    parent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[bioconcept_id]) if x.relation_type == 'is a']
-    child_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[bioconcept_id]) if x.relation_type == 'is a']
+    parent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[bioconcept_id]) if x.relation_type != 'GO_SLIM']
+    child_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[bioconcept_id]) if x.relation_type != 'GO_SLIM']
     if len(parent_relations) > 0:
-        grandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in parent_relations]) if x.relation_type == 'is a']
-        greatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in grandparent_relations]) if x.relation_type == 'is a']
-        greatgreatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in greatgrandparent_relations]) if x.relation_type == 'is a']
+        grandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in parent_relations]) if x.relation_type != 'GO_SLIM']
+        greatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in grandparent_relations]) if x.relation_type != 'GO_SLIM']
+        greatgreatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in greatgrandparent_relations]) if x.relation_type != 'GO_SLIM']
 
         nodes = [create_node(bioconcept, True, subtype_f(bioconcept))]
 
