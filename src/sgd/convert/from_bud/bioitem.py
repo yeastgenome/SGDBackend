@@ -2,8 +2,7 @@ from sqlalchemy.sql.expression import or_
 from sqlalchemy.orm import joinedload
 
 from src.sgd.convert import create_format_name
-from src.sgd.convert.transformers import make_db_starter, \
-    make_file_starter, make_fasta_file_starter
+from src.sgd.convert.transformers import make_file_starter, make_fasta_file_starter
 
 
 __author__ = 'kpaskov'
@@ -20,12 +19,12 @@ def make_orphan_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Reporter'), 1000)():
+        for bud_obj in bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Reporter').all():
             if bud_obj.type == 'Reporter':
                 yield {'display_name': bud_obj.value,
                        'source': key_to_source['SGD']}
 
-        for bud_obj in make_db_starter(bud_session.query(GorefDbxref), 1000)():
+        for bud_obj in bud_session.query(GorefDbxref).all():
             dbxref = bud_obj.dbxref
             dbxref_type = dbxref.dbxref_type
             if dbxref_type != 'GOID' and dbxref_type != 'EC number' and dbxref_type != 'DBID Primary' and dbxref_type != 'PANTHER' and dbxref_type != 'Prosite':
@@ -89,7 +88,7 @@ def make_allele_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Allele'), 1000)():
+        for bud_obj in bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Allele').all():
             if bud_obj.type == 'Allele':
                 yield {'display_name': bud_obj.value,
                        'source': key_to_source['SGD']}
@@ -113,7 +112,6 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
         for row in make_file_starter('src/sgd/convert/data/PANTHER9.0_HMM_classifications.txt')():
             panther_id_to_description[row[0]] = row[1].lower()
 
-        not_a_panther_id = set()
         for row in make_file_starter('src/sgd/convert/data/yeastmine_protein_domains.tsv')():
             source_key = row[10].strip()
 
@@ -169,8 +167,6 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                        'bioitem_type': source_key,
                        'interpro_id': interpro_id,
                        'interpro_description': interpro_description}
-                else:
-                    not_a_panther_id.add(display_name)
 
             else:
                 yield {'display_name': display_name,
@@ -179,8 +175,6 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                        'bioitem_type': source_key,
                        'interpro_id': interpro_id,
                        'interpro_description': interpro_description}
-
-        print 'Not a panther ID: ' + str(not_a_panther_id)
 
         for row in make_file_starter('src/sgd/convert/data/TF_family_class_accession04302013.txt')():
             description = 'Class: ' + row[4] + ', Family: ' + row[3]
@@ -198,9 +192,7 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                'description': 'predicted transmembrane domain',
                'bioitem_type': 'TMHMM'}
 
-        not_a_panther_id = set()
-
-        for bud_obj in make_db_starter(bud_session.query(Dbxref).filter(or_(Dbxref.dbxref_type == 'PANTHER', Dbxref.dbxref_type == 'Prosite')), 1000)():
+        for bud_obj in bud_session.query(Dbxref).filter(or_(Dbxref.dbxref_type == 'PANTHER', Dbxref.dbxref_type == 'Prosite')).all():
             dbxref_type = bud_obj.dbxref_type
             source_key = create_format_name(bud_obj.source)
             source = None if source_key not in key_to_source else key_to_source[source_key]
@@ -219,15 +211,11 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                        'source': source,
                        'description': panther_id_to_description[bud_obj.dbxref_id],
                        'bioitem_type': bioitem_type}
-                else:
-                    not_a_panther_id.add(bud_obj.dbxref_id)
             else:
                 yield {'display_name': bud_obj.dbxref_id,
                        'source': source,
                        'description': bud_obj.dbxref_name,
                        'bioitem_type': bioitem_type}
-
-        print 'Not a panther ID: ' + str(not_a_panther_id)
 
         bud_session.close()
         nex_session.close()
@@ -245,7 +233,7 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no == 3), 1000)():
+        for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no == 3).all():
             yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
                    'chebi_id': bud_obj.dbxref_id,
@@ -253,7 +241,7 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
 
-        for bud_obj in make_db_starter(bud_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')), 1000)():
+        for bud_obj in bud_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')).all():
             yield {'display_name': bud_obj.value,
                    'source': key_to_source['SGD'],
                    'date_created': bud_obj.date_created,
@@ -302,7 +290,7 @@ def make_bioitem_relation_starter(bud_session_maker, nex_session_maker):
         key_to_chemical = dict([(x.unique_key(), x) for x in nex_session.query(Chemical).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(CVTermRel).options(joinedload('child'), joinedload('parent')), 1000)():
+        for bud_obj in bud_session.query(CVTermRel).options(joinedload('child'), joinedload('parent')).all():
             parent_key = (create_format_name(bud_obj.parent.name)[:95], 'CHEMICAL')
             child_key = (create_format_name(bud_obj.child.name)[:95], 'CHEMICAL')
 
@@ -328,7 +316,7 @@ def make_bioitem_url_starter(nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for domain in make_db_starter(nex_session.query(Domain), 1000)():
+        for domain in nex_session.query(Domain).all():
             bioitem_type = domain.source.unique_key()
             display_name = domain.display_name
             if bioitem_type == 'JASPAR':
@@ -374,7 +362,7 @@ def make_bioitem_url_starter(nex_session_maker):
                        'category': 'Interpro',
                        'bioitem_id': domain.id}
 
-        for chemical in make_db_starter(nex_session.query(Chemical), 1000)():
+        for chemical in nex_session.query(Chemical).all():
             if chemical.chebi_id is not None:
                 yield {'display_name': chemical.chebi_id,
                        'link': 'http://www.ebi.ac.uk/chebi/searchId.do?chebiId=' + chemical.chebi_id,

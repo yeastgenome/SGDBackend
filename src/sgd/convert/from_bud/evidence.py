@@ -38,7 +38,7 @@ def make_alias_evidence_starter(bud_session_maker, nex_session_maker):
             else:
                 dbxref_feat_id_to_reflinks[reflink.primary_key] = [reflink]
 
-        for old_alias in make_db_starter(bud_session.query(OldAliasFeature).options(joinedload('alias')), 1000)():
+        for old_alias in bud_session.query(OldAliasFeature).options(joinedload('alias')).all():
             bioentity_id = old_alias.feature_id
             alias_key = 'BIOENTITY', old_alias.alias_name, str(bioentity_id), old_alias.alias_type
 
@@ -54,7 +54,7 @@ def make_alias_evidence_starter(bud_session_maker, nex_session_maker):
                     else:
                         print 'Reference or alias not found: ' + str(reference_id) + ' ' + str(alias_key)
 
-        for old_dbxref_feat in make_db_starter(bud_session.query(OldDbxrefFeat).options(joinedload(OldDbxrefFeat.dbxref), joinedload('dbxref.dbxref_urls')), 1000)():
+        for old_dbxref_feat in bud_session.query(OldDbxrefFeat).options(joinedload(OldDbxrefFeat.dbxref), joinedload('dbxref.dbxref_urls')).all():
             if old_dbxref_feat.dbxref.dbxref_type != 'DBID Primary':
                 bioentity_id = old_dbxref_feat.feature_id
                 alias_key = 'BIOENTITY', old_dbxref_feat.dbxref.dbxref_id, str(bioentity_id), old_dbxref_feat.dbxref.dbxref_type
@@ -139,7 +139,7 @@ def make_bioentity_evidence_starter(bud_session_maker, nex_session_maker):
             else:
                 feature_property_id_to_reflinks[reflink.primary_key] = [reflink]
 
-        for old_annotation in make_db_starter(bud_session.query(OldAnnotation), 1000)():
+        for old_annotation in bud_session.query(OldAnnotation).all():
             bioentity_id = old_annotation.feature_id
 
             if bioentity_id in feature_id_to_reflinks:
@@ -179,7 +179,7 @@ def make_bioentity_evidence_starter(bud_session_maker, nex_session_maker):
                         print 'Could not find reference or bioentity or col_name: ' + str(bioentity_id) + ' ' + str(reference_id) + ' ' + reflink.col_name
                         yield None
 
-        for reflink in make_db_starter(bud_session.query(OldReflink).filter_by(tab_name='FEATURE'), 1000)():
+        for reflink in bud_session.query(OldReflink).filter_by(tab_name='FEATURE').all():
             bioentity_id = reflink.primary_key
             reference_id = reflink.reference_id
             if bioentity_id in id_to_bioentity and reference_id in id_to_reference:
@@ -209,7 +209,7 @@ def make_bioentity_evidence_starter(bud_session_maker, nex_session_maker):
                 print 'Could not find reference or bioentity or col_name: ' + str(bioentity_id) + ' ' + str(reference_id) + ' ' + reflink.col_name
                 yield None
 
-        for feature_property in make_db_starter(bud_session.query(OldFeatureProperty), 1000)():
+        for feature_property in bud_session.query(OldFeatureProperty).all():
             bioentity_id = feature_property.feature_id
 
             if feature_property.id in feature_property_id_to_reflinks:
@@ -242,7 +242,7 @@ def make_complex_evidence_starter(nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for complex in make_db_starter(nex_session.query(Complex), 1000)():
+        for complex in nex_session.query(Complex).all():
             for evidence in complex.go.go_evidences:
                 if evidence.annotation_type != 'computational' and evidence.qualifier != 'colocalizes_with':
                     yield {
@@ -319,7 +319,7 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
                     print 'Bioentity or domain or source not found: ' + str(bioent_key) + ' ' + str(domain_key) + ' ' + str(source_key)
                     yield None
 
-        for protein_detail in make_db_starter(bud_session.query(ProteinDetail).options(joinedload('info')), 1000)():
+        for protein_detail in bud_session.query(ProteinDetail).options(joinedload('info')).all():
             bioentity_id = protein_detail.info.feature_id
             domain_key = None
             source = None
@@ -431,7 +431,7 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
 
         evidence_key_to_gpad_conditions = dict(filter(None, [make_go_gpad_conditions(x, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept, chebi_id_to_chemical, sgdid_to_bioentity) for x in make_file_starter('src/sgd/convert/data/gp_association.559292_sgd')()]))
 
-        for old_go_feature in make_db_starter(bud_session.query(GoFeature).options(joinedload(GoFeature.go_refs)), 1000)():
+        for old_go_feature in bud_session.query(GoFeature).options(joinedload(GoFeature.go_refs)).all():
             go_key = ('GO:' + str(old_go_feature.go.go_go_id).zfill(7), 'GO')
             if go_key[0] == 'GO:0008150':
                 go_key = ('biological_process', 'GO')
@@ -951,7 +951,7 @@ def make_protein_experiment_evidence_starter(bud_session_maker, nex_session_make
 
         protein_detail_id_to_reference = dict([(x.primary_key, x.reference_id) for x in bud_session.query(Reflink).filter(Reflink.tab_name == 'PROTEIN_DETAIL').all()])
 
-        for old_protein_detail in make_db_starter(bud_session.query(ProteinDetail).filter(ProteinDetail.group == 'molecules/cell').options(joinedload(ProteinDetail.info)), 1000)():
+        for old_protein_detail in bud_session.query(ProteinDetail).filter(ProteinDetail.group == 'molecules/cell').options(joinedload(ProteinDetail.info)).all():
             reference_id = protein_detail_id_to_reference[old_protein_detail.id]
             bioentity_id = old_protein_detail.info.feature_id
             if reference_id in id_to_reference and bioentity_id in id_to_bioentity:

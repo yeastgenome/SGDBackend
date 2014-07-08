@@ -1,6 +1,6 @@
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert.transformers import make_db_starter, make_file_starter, \
+from src.sgd.convert.transformers import make_file_starter, \
     make_obo_file_starter
 from src.sgd.convert import create_format_name
 
@@ -29,7 +29,7 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
                    'description': None if 'def' not in bud_obj else bud_obj['def'],
                    'eco_id': bud_obj['id']}
 
-        for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==7), 1000)():
+        for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no==7).all():
             format_name = create_format_name(bud_obj.name)
             yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
@@ -109,7 +109,7 @@ def make_experiment_alias_starter(bud_session_maker, nex_session_maker):
         key_to_experiment = dict([(x.unique_key(), x) for x in nex_session.query(Experiment).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for old_cv_term in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==7).options(joinedload('cv_dbxrefs'), joinedload('cv_dbxrefs.dbxref')), 1000)():
+        for old_cv_term in bud_session.query(CVTerm).filter(CVTerm.cv_no==7).options(joinedload('cv_dbxrefs'), joinedload('cv_dbxrefs.dbxref')).all():
             experiment_key = create_format_name(old_cv_term.name)
             if experiment_key in key_to_experiment:
                 for dbxref in old_cv_term.dbxrefs:
@@ -139,7 +139,7 @@ def make_experiment_relation_starter(bud_session_maker, nex_session_maker):
         key_to_experiment = dict([(x.unique_key(), x) for x in nex_session.query(Experiment).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for old_cv_term in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==7).options(joinedload('parent_rels'), joinedload('parent_rels.parent')), 1000)():
+        for old_cv_term in bud_session.query(CVTerm).filter(CVTerm.cv_no==7).options(joinedload('parent_rels'), joinedload('parent_rels.parent')).all():
             child_key = create_format_name(old_cv_term.name)
             for parent_rel in old_cv_term.parent_rels:
                 parent_key = create_format_name(parent_rel.parent.name)
@@ -203,7 +203,7 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==10), 1000)():
+        for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no==10).all():
             yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
                    'description': bud_obj.definition if bud_obj.name not in strain_to_description else strain_to_description[bud_obj.name],
@@ -370,7 +370,7 @@ def make_source_starter(bud_session_maker, nex_session_maker):
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
-        for bud_obj in make_db_starter(bud_session.query(Code), 1000)():
+        for bud_obj in bud_session.query(Code).all():
             if (bud_obj.tab_name, bud_obj.col_name) in ok_codes:
                 yield {'display_name': bud_obj.code_value,
                        'description': bud_obj.description,

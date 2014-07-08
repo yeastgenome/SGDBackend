@@ -42,7 +42,7 @@ def make_observable_starter(bud_session_maker, nex_session_maker):
             else:
                 observable_to_ancestor[old_obj.name] = id_to_observable[ancestry[0]]
 
-        for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no == 6), 1000)():
+        for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no == 6).all():
             observable = bud_obj.name
             source = key_to_source['SGD']
             ancestor_type = None if observable not in observable_to_ancestor else observable_to_ancestor[observable]
@@ -111,7 +111,7 @@ def make_phenotype_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_observable = dict([(x.unique_key(), x) for x in nex_session.query(Observable).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(Phenotype), 1000)():
+        for bud_obj in bud_session.query(Phenotype).all():
             observable_key = (create_format_name(bud_obj.observable).lower(), 'OBSERVABLE')
             if observable_key in key_to_observable:
                 yield {'source': key_to_source['SGD'],
@@ -167,7 +167,7 @@ def make_go_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(Go), 1000)():
+        for bud_obj in bud_session.query(Go).all():
             yield {'display_name': bud_obj.go_term,
                    'source': key_to_source['GO'],
                    'description': bud_obj.go_definition,
@@ -192,7 +192,7 @@ def make_ecnumber_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(Dbxref).filter(Dbxref.dbxref_type == 'EC number'), 1000)():
+        for bud_obj in bud_session.query(Dbxref).filter(Dbxref.dbxref_type == 'EC number').all():
             yield {'display_name': bud_obj.dbxref_id,
                    'source': key_to_source[bud_obj.source],
                    'description': bud_obj.dbxref_name,
@@ -264,7 +264,7 @@ def make_bioconcept_relation_starter(bud_session_maker, nex_session_maker):
                 parent_ids = new_parent_ids
 
         #Phenotype relations
-        for cvtermrel in make_db_starter(bud_session.query(CVTermRel).options(joinedload('child'), joinedload('parent')), 1000)():
+        for cvtermrel in bud_session.query(CVTermRel).options(joinedload('child'), joinedload('parent')).all():
             parent_key = (create_format_name(cvtermrel.parent.name.lower()), 'OBSERVABLE')
             child_key = (create_format_name(cvtermrel.child.name.lower()), 'OBSERVABLE')
 
@@ -346,7 +346,7 @@ def make_bioconcept_alias_starter(bud_session_maker, nex_session_maker):
                 yield None
 
         #Phenotype aliases
-        for cvtermsynonym in make_db_starter(bud_session.query(CVTermSynonym).join(CVTerm).filter(CVTerm.cv_no == 6), 1000)():
+        for cvtermsynonym in bud_session.query(CVTermSynonym).join(CVTerm).filter(CVTerm.cv_no == 6).all():
             observable = cvtermsynonym.cvterm.name.lower()
             if observable == 'observable':
                 observable = 'ypo'
@@ -362,7 +362,7 @@ def make_bioconcept_alias_starter(bud_session_maker, nex_session_maker):
                 print 'Phenotype not found: ' + str(phenotype_key)
                 yield None
 
-        for cvterm_dbxref in make_db_starter(bud_session.query(CVTermDbxref).join(CVTerm).filter(CVTerm.cv_no == 6).options(joinedload('dbxref')), 1000)():
+        for cvterm_dbxref in bud_session.query(CVTermDbxref).join(CVTerm).filter(CVTerm.cv_no == 6).options(joinedload('dbxref')).all():
             observable = cvterm_dbxref.cvterm.name.lower()
             if observable == 'observable':
                 observable = 'ypo'
@@ -393,7 +393,7 @@ def make_bioconcept_url_starter(nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for goterm in make_db_starter(nex_session.query(Go), 1000)():
+        for goterm in nex_session.query(Go).all():
             go_id = goterm.go_id
 
             yield {'display_name': go_id,
@@ -408,7 +408,7 @@ def make_bioconcept_url_starter(nex_session_maker):
                        'category': 'Amigo',
                        'bioconcept_id': goterm.id}
 
-        for ecnumber in make_db_starter(nex_session.query(ECNumber), 1000)():
+        for ecnumber in nex_session.query(ECNumber).all():
             yield {'display_name': 'ExPASy',
                        'link': 'http://enzyme.expasy.org/EC/' + ecnumber.format_name,
                        'source': key_to_source['ExPASy'],
