@@ -24,6 +24,7 @@ class Sequence(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     
     feat_locations = relationship('Feat_Location', primaryjoin="Feat_Location.sequence_id==Sequence.id")
+    feature = relationship('Feature', backref='sequences')
     
     @hybrid_property
     def current_feat_location(self):
@@ -51,6 +52,9 @@ class Feat_Location(Base, EqualityByIDMixin):
     is_current = Column('is_current', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
+
+    sequence = relationship(Sequence, uselist=False, primaryjoin="Feat_Location.sequence_id==Sequence.id")
+    feature = relationship(Feature, uselist=False)
     
 class ProteinInfo(Base, EqualityByIDMixin):
     __tablename__ = 'protein_info'

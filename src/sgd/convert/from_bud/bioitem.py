@@ -252,12 +252,15 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
     return chemical_starter
 
 # --------------------- Convert Contig ---------------------
-def make_contig_starter(nex_session_maker):
+def make_contig_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.convert.from_bud import sequence_files
+    from src.sgd.model.bud.sequence import Sequence
+    from src.sgd.model.bud.feature import Feature
 
     def contig_starter():
         nex_session = nex_session_maker()
+        bud_session = bud_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
@@ -274,7 +277,18 @@ def make_contig_starter(nex_session_maker):
                            'source': key_to_source['SGD'],
                            'strain': key_to_strain[strain.replace('.', '')],
                            'residues': residues}
+
+        #S288C Contigs
+        for feature in bud_session.query(Feature).filter(or_(Feature.type == 'chromosome', Feature.type == 'plasmid')).all():
+            for sequence in feature.sequences:
+                if sequence.is_current == 'Y':
+                    yield {'display_name': 'Chromosome ' + feature.name,
+                           'source': key_to_source['SGD'],
+                           'strain': key_to_strain['S288C'],
+                           'residues': sequence.residues}
+
         nex_session.close()
+        bud_session.close()
     return contig_starter
 
 # --------------------- Convert Relation ---------------------

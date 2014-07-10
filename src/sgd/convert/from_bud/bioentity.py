@@ -6,6 +6,41 @@ from src.sgd.convert.transformers import make_db_starter, make_file_starter
 __author__ = 'kpaskov'
 
 # --------------------- Convert Locus ---------------------
+non_locus_feature_types = {
+    'ARS consensus sequence',
+    'binding_site',
+    'CDEI',
+    'CDEII',
+    'CDEIII',
+    'CDS',
+    'chromosome',
+    'external_transcribed_spacer_region',
+    'five_prime_UTR_intron',
+    'insertion',
+    'internal_transcribed_spacer_region',
+    'intron',
+    'mRNA',
+    'not in systematic sequence of S288C',
+    'not physically mapped',
+    'non_transcribed_region',
+    'noncoding_exon',
+    'plasmid',
+    'plus_1_translational_frameshift',
+    'repeat_region',
+    'TF_binding_site',
+    'TF_binding_sites',
+    'telomeric_repeat',
+    'X_element_combinatorial_repeats',
+    'X_element_core_sequence',
+    "Y'_element",
+    'uORF',
+    'W_region',
+    'X_region',
+    'Y_region',
+    'Z1_region',
+    'Z2_region'
+}
+
 def make_locus_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.bud.feature import Feature
@@ -41,20 +76,22 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
 
             source_key = bud_obj.source
             source = None if source_key not in key_to_source else key_to_source[source_key]
-            yield {'id': bud_obj.id,
-                                  'display_name': display_name,
-                                  'format_name':bud_obj.name,
-                                  'source': source,
-                                  'sgdid': sgdid,
-                                  'uniprotid': None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid],
-                                  'bioent_status': bud_obj.status,
-                                  'locus_type': bud_obj.type,
-                                  'name_description': name_description,
-                                  'headline': headline,
-                                  'description': description,
-                                  'gene_name': bud_obj.gene_name,
-                                  'date_created': bud_obj.date_created,
-                                  'created_by': bud_obj.created_by}
+
+            if bud_obj.type not in non_locus_feature_types:
+                yield {'id': bud_obj.id,
+                                      'display_name': display_name,
+                                      'format_name':bud_obj.name,
+                                      'source': source,
+                                      'sgdid': sgdid,
+                                      'uniprotid': None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid],
+                                      'bioent_status': bud_obj.status,
+                                      'locus_type': bud_obj.type,
+                                      'name_description': name_description,
+                                      'headline': headline,
+                                      'description': description,
+                                      'gene_name': bud_obj.gene_name,
+                                      'date_created': bud_obj.date_created,
+                                      'created_by': bud_obj.created_by}
         bud_session.close()
         nex_session.close()
     return locus_starter

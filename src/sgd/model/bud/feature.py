@@ -35,8 +35,7 @@ class Feature(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     
     #phenotypes = relationship('Phenotype_Feature', lazy='joined')
-    
-    
+
     def __repr__(self):
         data = self.name, self.gene_name
         return 'Feature(name=%s, gene_name=%s)' % data

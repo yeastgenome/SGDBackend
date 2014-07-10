@@ -1286,127 +1286,103 @@ def get_info(data):
             info[pieces[0]] = pieces[1]
     return info
 
-extra_child_to_parent = {'TEL01L-TR': 'TEL01L',
-                         'TEL01L-XC': 'TEL01L',
-                         'TEL01L-XR': 'TEL01L',
-                         'YAL068W-A': 'TEL01L',
-                         'YAL069W': 'TEL01L',
-                         'TEL01R-TR': 'TEL01R',
-                         'TEL01R-XC': 'TEL01R',
-                         'TEL02L-XC': 'TEL02L',
-                         'TEL02L-XR': 'TEL02L',
-                         'TEL02L-YP': 'TEL02L',
-                         'YBL111C': 'TEL02L',
-                         'YBL112C': 'TEL02L',
-                         'YBL113C': 'TEL02L',
-                         'YBL113W-A': 'TEL02L',
-                         'TEL02R-TR': 'TEL02R',
-                         'TEL02R-XC': 'TEL02R',
-                         'TEL02R-XR': 'TEL02R',
-                         'TEL03L-TR': 'TEL03L',
-                         'TEL03L-XC': 'TEL03L',
-                         'TEL03L-XR': 'TEL03L',
-                         'TEL03R-TR': 'TEL03R',
-                         'TEL03R-XC': 'TEL03R',
-                         'TEL03R-XR': 'TEL03R',
-                         'YCR108C': 'TEL03R',
-                         }
+def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker):
+    from src.sgd.model.nex.misc import Strain, Source
+    from src.sgd.model.nex.bioentity import Locus
+    from src.sgd.model.nex.bioitem import Contig
+    from src.sgd.model.bud.sequence import Feat_Location
+    from src.sgd.model.bud.feature import FeatRel, Feature
+    def ref_dna_sequence_starter():
+        nex_session = nex_session_maker()
+        bud_session = bud_session_maker()
 
-def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker, strain_key, sequence_filenames):
-    from src.sgd.model.nex.misc import Strain
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+        key_to_contig = dict([(x.unique_key(), x) for x in nex_session.query(Contig).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+        key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
+        feature_id_to_contig = dict()
+        child_id_to_parent_id = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).all()])
+        id_to_feature = dict([(x.id, x) for x in bud_session.query(Feature).all()])
+        for bioentity_id in id_to_bioentity.keys():
+            ancestor_id = bioentity_id
+            while ancestor_id in child_id_to_parent_id:
+                ancestor_id = child_id_to_parent_id[ancestor_id]
+
+            contig_key = ('S288C_Chromosome_' + id_to_feature[ancestor_id].name, 'CONTIG')
+            if contig_key in key_to_contig:
+                feature_id_to_contig[bioentity_id] = key_to_contig[contig_key]
+
+        for bud_location in bud_session.query(Feat_Location).all():
+            bioentity_id = bud_location.feature_id
+
+            if bud_location.is_current == 'Y' and bioentity_id in id_to_bioentity and bioentity_id in feature_id_to_contig:
+                yield {'source': key_to_source['SGD'],
+                        'strain': key_to_strain['S288C'],
+                        'locus': id_to_bioentity[bioentity_id],
+                        'dna_type': 'GENOMIC',
+                        'residues': bud_location.sequence.residues,
+                        'contig': feature_id_to_contig[bioentity_id],
+                        'start': bud_location.min_coord,
+                        'end': bud_location.max_coord,
+                        'strand': bud_location.strand}
+
+        nex_session.close()
+        bud_session.close()
+    return ref_dna_sequence_starter
+
+def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.evidence import DNAsequenceevidence
     from src.sgd.model.bud.feature import FeatRel
-    from src.sgd.model.bud.sequence import Feat_Location, Sequence
+    from src.sgd.model.bud.sequence import Feat_Location
     def dna_sequence_tag_starter():
         nex_session = nex_session_maker()
         bud_session = bud_session_maker()
 
-        key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Locus).all()])
-        key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
         feature_id_to_parent = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).all()])
-        key_to_coord_version = dict([((feature_id_to_parent[x.feature_id], x.min_coord, x.max_coord), (x.coord_version, x.sequence_id)) for x in bud_session.query(Feat_Location).all() if x.is_current == 'Y' and x.feature_id in feature_id_to_parent])
-        seq_id_to_version = dict([(x.id, x.seq_version) for x in bud_session.query(Sequence).all() if x.is_current == 'Y' and x.seq_type == 'genomic' and x.feature_id in feature_id_to_parent])
+        bioentity_id_to_evidence = dict([(x.locus_id, x) for x in nex_session.query(DNAsequenceevidence).filter_by(strain_id=1).filter_by(dna_type='GENOMIC').all()])
 
-        bioentity_id_to_parent_id = {}
-        parent_id_to_rows = {}
-        for sequence_filename in sequence_filenames:
-            f = open(sequence_filename, 'r')
-            for row in f:
-                pieces = row.split('\t')
-                if len(pieces) == 9:
-                    info = get_info(pieces[8])
-                    name = None
-                    if 'Name' in info:
-                        name = info['Name'].strip().replace('%28', "(").replace('%29', ")")
+        for bud_location in bud_session.query(Feat_Location).filter(Feat_Location.is_current == 'Y').all():
+            bioentity_id = None if bud_location.feature_id not in feature_id_to_parent else feature_id_to_parent[bud_location.feature_id]
+            while bioentity_id is not None and bioentity_id not in id_to_bioentity:
+                if bioentity_id in feature_id_to_parent:
+                    bioentity_id = feature_id_to_parent[bioentity_id]
+                else:
+                    bioentity_id = None
 
-                    if 'ID' in info and name is not None:
-                        bioentity_key = (name, 'LOCUS')
-                        if bioentity_key[0].endswith('_mRNA'):
-                            bioentity_key = (bioentity_key[0][:-5], 'LOCUS')
-                        elif bioentity_key[0] == 'tS(GCU)L':
-                            bioentity_key = ('tX(XXX)L', 'LOCUS')
-                        elif bioentity_key[0] == 'tT(XXX)Q2':
-                            bioentity_key = ('tT(UAG)Q2', 'LOCUS')
-                        elif bioentity_key[0] == '15S':
-                            bioentity_key = ('15S_rRNA', 'LOCUS')
-                        elif bioentity_key[0] == '21S':
-                            bioentity_key = ('21S_rRNA', 'LOCUS')
-
-                        if bioentity_key in key_to_bioentity:
-                            bioentity_id_to_parent_id[key_to_bioentity[bioentity_key].id] = info['ID'].strip()
-
-                    if 'Parent' in info:
-                        parent_id = info['Parent'].strip()
-                        if parent_id in parent_id_to_rows:
-                            parent_id_to_rows[parent_id].append(pieces)
-                        else:
-                            parent_id_to_rows[parent_id] = [pieces]
-                    elif name is not None and name in extra_child_to_parent:
-                        print name
-                        parent_id = extra_child_to_parent[name]
-                        if parent_id in parent_id_to_rows:
-                            parent_id_to_rows[parent_id].append(pieces)
-                        else:
-                            parent_id_to_rows[parent_id] = [pieces]
-            f.close()
-
-        strain = key_to_strain[strain_key]
-        for evidence in make_db_starter(nex_session.query(DNAsequenceevidence).filter_by(strain_id=strain.id).filter_by(dna_type='GENOMIC'), 1000)():
-            if evidence.locus_id in bioentity_id_to_parent_id:
-                parent_id = bioentity_id_to_parent_id[evidence.locus_id]
-                if parent_id in parent_id_to_rows:
-                    for pieces in parent_id_to_rows[parent_id]:
-                        start = int(pieces[3])
-                        end = int(pieces[4])
-                        phase = pieces[7]
-                        class_type = pieces[2]
-                        coord_version, seq_id = (None, None) if (evidence.locus_id, start, end) not in key_to_coord_version else key_to_coord_version[(evidence.locus_id, start, end)]
-                        seq_version = None if seq_id not in seq_id_to_version else seq_id_to_version[seq_id]
-                        if evidence.strand != '-':
-                            yield {
-                                'evidence_id': evidence.id,
-                                'class_type': class_type,
-                                'relative_start': start - evidence.start + 1,
-                                'relative_end': end - evidence.start + 1,
-                                'chromosomal_start': start,
-                                'chromosomal_end': end,
-                                'phase': phase,
-                                'seq_version': seq_version,
-                                'coord_version': coord_version
-                            }
-                        else:
-                            yield {
-                                'evidence_id': evidence.id,
-                                'class_type': class_type,
-                                'relative_start': evidence.end - end + 1,
-                                'relative_end': evidence.end - start + 1,
-                                'chromosomal_start': end,
-                                'chromosomal_end': start,
-                                'phase': phase,
-                                'seq_version': seq_version,
-                                'coord_version': coord_version
-                            }
+            if bioentity_id is not None and bioentity_id in bioentity_id_to_evidence:
+                evidence = bioentity_id_to_evidence[bioentity_id]
+                start = bud_location.min_coord
+                end = bud_location.max_coord
+                if bud_location.feature.type == 'ORF':
+                    display_name = bud_location.feature.name if bud_location.feature.gene_name is None else bud_location.feature.name + '(' + bud_location.feature.gene_name + ')'
+                else:
+                    display_name = bud_location.feature.type
+                if bud_location.strand != '-':
+                    yield {
+                        'evidence_id': evidence.id,
+                        'class_type': bud_location.feature.type,
+                        'display_name': display_name,
+                        'relative_start': start - evidence.start + 1,
+                        'relative_end': end - evidence.start + 1,
+                        'chromosomal_start': start,
+                        'chromosomal_end': end,
+                        'seq_version': bud_location.sequence.seq_version,
+                        'coord_version': bud_location.coord_version
+                    }
+                else:
+                    yield {
+                        'evidence_id': evidence.id,
+                        'class_type': bud_location.feature.type,
+                        'display_name': display_name,
+                        'relative_start': evidence.end - end + 1,
+                        'relative_end': evidence.end - start + 1,
+                        'chromosomal_start': end,
+                        'chromosomal_end': start,
+                        'seq_version': bud_location.sequence.seq_version,
+                        'coord_version': bud_location.coord_version
+                    }
 
         nex_session.close()
         bud_session.close()

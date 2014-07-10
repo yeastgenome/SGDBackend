@@ -895,11 +895,10 @@ class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = self.class_type
-        self.display_name = self.class_type
         self.class_type = self.class_type.upper()
 
     def unique_key(self):
-        return self.evidence_id, self.class_type, self.chromosomal_start, self.chromosomal_end
+        return self.evidence_id, self.class_type, self.relative_start, self.relative_end
 
 class Proteinsequenceevidence(Evidence):
     __tablename__ = "proteinsequenceevidence"

@@ -152,21 +152,21 @@ class Chemical(Bioitem):
 
 number_to_roman = {'01': 'I', '1': 'I',
                    '02': 'II', '2': 'II',
-                   '03': 'III', '2': 'III',
-                   '04': 'IV', '2': 'IV',
-                   '05': 'V', '2': 'V',
-                   '06': 'VI', '2': 'VI',
-                   '07': 'VII', '2': 'VII',
-                   '08': 'VIII', '2': 'VIII',
-                   '09': 'IX', '2': 'IX',
-                   '10': 'X', '2': 'X',
-                   '11': 'XI', '2': 'XI',
-                   '12': 'XII', '2': 'XII',
-                   '13': 'XIII', '2': 'XIII',
-                   '14': 'XIV', '2': 'XIV',
-                   '15': 'XV', '2': 'XV',
-                   '16': 'XVI', '2': 'XVI',
-                   '17': 'XVII', '2': 'XVII'
+                   '03': 'III', '3': 'III',
+                   '04': 'IV', '4': 'IV',
+                   '05': 'V', '5': 'V',
+                   '06': 'VI', '6': 'VI',
+                   '07': 'VII', '7': 'VII',
+                   '08': 'VIII', '8': 'VIII',
+                   '09': 'IX', '9': 'IX',
+                   '10': 'X',
+                   '11': 'XI',
+                   '12': 'XII',
+                   '13': 'XIII',
+                   '14': 'XIV',
+                   '15': 'XV',
+                   '16': 'XVI',
+                   '17': 'XVII',
                    }
 
 class Contig(Bioitem):
@@ -187,10 +187,12 @@ class Contig(Bioitem):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = None if obj_json.get('strain') is None or obj_json.get('display_name') is None else obj_json.get('strain').format_name + '_' + obj_json.get('display_name')
+        self.format_name = None if obj_json.get('strain') is None or create_format_name(obj_json.get('display_name')) is None else obj_json.get('strain').format_name + '_' + create_format_name(obj_json.get('display_name'))
         self.link = None if self.format_name is None else '/contig/' + self.format_name + '/overview'
         if self.display_name.startswith('chr'):
             self.display_name = 'Chromosome ' + (self.display_name[3:] if self.display_name[3:] not in number_to_roman else number_to_roman[self.display_name[3:]])
+        if self.display_name.startswith('Chromosome '):
+            self.display_name = 'Chromosome ' + (self.display_name[11:] if self.display_name[11:] not in number_to_roman else number_to_roman[self.display_name[11:]])
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
