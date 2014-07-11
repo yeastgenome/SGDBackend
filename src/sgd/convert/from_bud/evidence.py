@@ -1351,7 +1351,7 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                 else:
                     bioentity_id = None
 
-            if bioentity_id is not None and bioentity_id in bioentity_id_to_evidence:
+            if bioentity_id is not None and bioentity_id in bioentity_id_to_evidence and bud_location.feature.type != 'TF_binding_site':
                 evidence = bioentity_id_to_evidence[bioentity_id]
                 start = bud_location.min_coord
                 end = bud_location.max_coord
