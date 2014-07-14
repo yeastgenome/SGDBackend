@@ -17,7 +17,7 @@ class TransformerInterface:
         pass
 
     @abstractmethod
-    def finished(self):
+    def finished(self, with_error=False):
         pass
 
 class Json2Obj(TransformerInterface):
@@ -31,7 +31,7 @@ class Json2Obj(TransformerInterface):
         else:
             return self.cls(obj_json)
 
-    def finished(self):
+    def finished(self, with_error=False):
         return None
 
 class Obj2Json(TransformerInterface):
@@ -39,7 +39,7 @@ class Obj2Json(TransformerInterface):
     def convert(self, obj):
         return obj.to_json()
 
-    def finished(self):
+    def finished(self, with_error=False):
         return None
 
 class Obj2NexDB(TransformerInterface):
@@ -100,8 +100,8 @@ class Obj2NexDB(TransformerInterface):
             self.duplicate_count += 1
             return 'Duplicate'
 
-    def finished(self):
-        if self.delete_untouched:
+    def finished(self, with_error=False):
+        if self.delete_untouched and not with_error:
             keys_to_delete = set(self.key_to_current_obj_json.keys()).difference(self.keys_already_seen)
             ids_to_delete = [self.key_to_current_obj_json[key]['id'] for key in keys_to_delete]
 
@@ -172,8 +172,8 @@ class Evidence2NexDB(TransformerInterface):
             self.duplicate_count += 1
             return 'Duplicate'
 
-    def finished(self):
-        if self.delete_untouched:
+    def finished(self, with_error=False):
+        if self.delete_untouched and not with_error:
             keys_to_delete = set(self.key_to_current_json.keys()).difference(self.keys_already_seen)
             ids_to_delete = [self.key_to_current_json[key][1] for key in keys_to_delete]
 
@@ -240,8 +240,8 @@ class BigObj2NexDB(TransformerInterface):
             self.duplicate_count += 1
             return 'Duplicate'
 
-    def finished(self):
-        if self.delete_untouched:
+    def finished(self, with_error=False):
+        if self.delete_untouched and not with_error:
             keys_to_delete = set(self.key_to_current_id.keys()).difference(self.keys_already_seen)
             ids_to_delete = [self.key_to_current_id[key] for key in keys_to_delete]
 
@@ -306,8 +306,8 @@ class Json2CorePerfDB(TransformerInterface):
             self.duplicate_count += 1
             return 'Duplicate'
 
-    def finished(self):
-        if self.delete_untouched:
+    def finished(self, with_error=False):
+        if self.delete_untouched and not with_error:
             ids_to_delete = set(self.id_to_current_obj.keys()).difference(self.ids_already_seen)
             for untouched_id in ids_to_delete:
                 self.session.delete(self.id_to_current_obj[untouched_id])
@@ -364,7 +364,7 @@ class Json2DisambigPerfDB(TransformerInterface):
             self.added_count += 1
             return 'Added'
 
-    def finished(self):
+    def finished(self, with_error=False):
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
                    'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
                    'None': self.none_count}
@@ -419,7 +419,7 @@ class Json2DataPerfDB(TransformerInterface):
         self.updated_count += 1
         return 'Updated'
 
-    def finished(self):
+    def finished(self, with_error=False):
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
                    'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
                    'None': self.none_count}
@@ -464,7 +464,7 @@ class Json2OrphanPerfDB(TransformerInterface):
             self.added_count += 1
             return 'Added'
 
-    def finished(self):
+    def finished(self, with_error=False):
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
                    'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
                    'None': self.none_count}
@@ -480,7 +480,7 @@ class NullTransformer(TransformerInterface):
     def convert(self, x):
         return x
 
-    def finished(self):
+    def finished(self, with_error=False):
         return None
 
 class OutputTransformer(TransformerInterface):
@@ -501,7 +501,7 @@ class OutputTransformer(TransformerInterface):
             print self.output
         return x
 
-    def finished(self):
+    def finished(self, with_error=False):
         return self.output
 
 # ------------------------------------------ Starters ------------------------------------------
@@ -731,7 +731,7 @@ def do_conversion(starter, converters):
             if output is not None:
                 print str(datetime.datetime.now()) + ': ' + str(output)
     except:
-        output = converters[len(converters)-1].finished()
+        output = converters[len(converters)-1].finished(with_error=True)
         if output is not None:
             print str(datetime.datetime.now()) + ': ' + str(output)
 
