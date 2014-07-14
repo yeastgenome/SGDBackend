@@ -149,7 +149,8 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                            'protein_tab': 0,
                            'wiki_tab': show_wiki}
 
-            show_sequence = 1 if locus.locus_type == 'ORF' or locus.locus_type == 'centromere' else 0
+            yes_sequence = {'ORF', 'ncRNA', 'tRNA', 'centromere', 'mating_locus', 'gene_cassette', 'ARS', 'telomere', 'long_terminal_repeat', 'transposable_element_gene', 'rRNA', 'snoRNA ', 'snRNA'}
+            show_sequence = 1 if locus.locus_type in yes_sequence else 0
 
             show_literature = 1
 
@@ -230,7 +231,6 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
                        'date_created': bud_obj.date_created,
                        'created_by': bud_obj.created_by}
             else:
-                print 'Bioentity not found: ' + str(bioentity_id)
                 yield None
 
         for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).all():
@@ -250,7 +250,6 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
                        'date_created': bud_obj.dbxref.date_created,
                        'created_by': bud_obj.dbxref.created_by}
             else:
-                print 'Bioentity not found: ' + str(bioentity_id)
                 yield None
 
         for complex in nex_session.query(Complex).all():

@@ -1286,7 +1286,7 @@ def get_info(data):
             info[pieces[0]] = pieces[1]
     return info
 
-def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker):
+def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, coding_sequence_filenames):
     from src.sgd.model.nex.misc import Strain, Source
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.bioitem import Contig
@@ -1297,6 +1297,7 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker)
         bud_session = bud_session_maker()
 
         id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+        key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Locus).all()])
         key_to_contig = dict([(x.unique_key(), x) for x in nex_session.query(Contig).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
@@ -1326,6 +1327,26 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker)
                         'end': bud_location.max_coord,
                         'strand': bud_location.strand}
 
+        for coding_seq_file in coding_sequence_filenames:
+            f = open(coding_seq_file, 'r')
+            for bioentity_name, residues in get_sequence_library_fsa(f).iteritems():
+                bioentity_key = (bioentity_name, 'LOCUS')
+                if bioentity_key[0] == 'tS(GCU)L':
+                    bioentity_key = ('tX(XXX)L', 'LOCUS')
+                elif bioentity_key[0] == 'tT(XXX)Q2':
+                    bioentity_key = ('tT(UAG)Q2', 'LOCUS')
+
+                if bioentity_key in key_to_bioentity:
+                    yield {'source': key_to_source['SGD'],
+                            'strain': key_to_strain['S288C'],
+                            'locus': key_to_bioentity[bioentity_key],
+                            'dna_type': 'CODING',
+                            'residues': residues}
+                else:
+                    print 'Bioentity not found: ' + str(bioentity_key)
+
+            f.close()
+
         nex_session.close()
         bud_session.close()
     return ref_dna_sequence_starter
@@ -1351,7 +1372,7 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                 else:
                     bioentity_id = None
 
-            if bioentity_id is not None and bioentity_id in bioentity_id_to_evidence and bud_location.feature.type != 'TF_binding_site':
+            if bioentity_id is not None and bioentity_id in bioentity_id_to_evidence:
                 evidence = bioentity_id_to_evidence[bioentity_id]
                 start = bud_location.min_coord
                 end = bud_location.max_coord
