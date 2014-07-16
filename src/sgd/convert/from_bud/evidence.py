@@ -392,7 +392,7 @@ def make_ecnumber_evidence_starter(bud_session_maker, nex_session_maker):
 
 # --------------------- Convert GO Evidence ---------------------
 def make_go_evidence_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
+    from src.sgd.model.nex.misc import Source, Experiment
     from src.sgd.model.nex.bioentity import Bioentity, Locus
     from src.sgd.model.nex.paragraph import Bioentityparagraph
     from src.sgd.model.nex.bioconcept import Bioconcept
@@ -408,6 +408,7 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
         key_to_bioconcept = dict([(x.unique_key(), x) for x in nex_session.query(Bioconcept).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_bioitem = dict([(x.unique_key(), x) for x in nex_session.query(Bioitem).all()])
+        key_to_experiment = dict([(x.unique_key(), x) for x in nex_session.query(Experiment).all()])
         sgdid_to_bioentity = dict([(x.sgdid, x) for x in id_to_bioentity.values()])
         chebi_id_to_chemical = dict([(x.chebi_id, x) for x in key_to_bioitem.values() if x.class_type == 'CHEMICAL'])
 
@@ -455,6 +456,7 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
                         key_to_condition[condition.unique_key()] = condition
 
                     yield {'source': key_to_source[source_key],
+                           'experiment': key_to_experiment[go_evidence],
                            'reference': id_to_reference[reference_id],
                            'locus': id_to_bioentity[bioent_id],
                            'go': go,

@@ -19,19 +19,19 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Evelements ------------------------------------------
     # Bud -> Nex
-    # from src.sgd.model.nex.misc import Source, Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.evelements import make_source_starter, make_strain_starter, make_experiment_starter, \
-    #     make_experiment_alias_starter, make_experiment_relation_starter, make_strain_url_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    from src.sgd.model.nex.misc import Source, Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.evelements import make_source_starter, make_strain_starter, make_experiment_starter, \
+        make_experiment_alias_starter, make_experiment_relation_starter, make_strain_url_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     # do_conversion(make_source_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Source),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Source), name='convert.from_bud.source', delete_untouched=True, commit=True)])
-
+    #
     # do_conversion(make_experiment_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Experiment),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Experiment), name='convert.from_bud.experiment', delete_untouched=True, commit=True)])
-    #
+
     # do_conversion(make_strain_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Strain),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strain), name='convert.from_bud.strain', delete_untouched=True, commit=True)])
@@ -371,11 +371,11 @@ if __name__ == "__main__":
     #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Complexevidence), name='convert.from_bud.evidence.complex', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Complexevidence, Evidence, 'COMPLEX')
     #
-    clean_up_orphans(nex_session_maker, Domainevidence, Evidence, 'DOMAIN')
-    do_conversion(make_domain_evidence_starter(bud_session_maker, nex_session_maker),
-                   [Json2Obj(Domainevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Domainevidence), name='convert.from_bud.evidence.domain', delete_untouched=True, commit_interval=1000),
-                    OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Domainevidence, Evidence, 'DOMAIN')
+    # do_conversion(make_domain_evidence_starter(bud_session_maker, nex_session_maker),
+    #                [Json2Obj(Domainevidence),
+    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Domainevidence), name='convert.from_bud.evidence.domain', delete_untouched=True, commit_interval=1000),
+    #                 OutputTransformer(1000)])
 
     #
     # do_conversion(make_ecnumber_evidence_starter(bud_session_maker, nex_session_maker),
@@ -383,11 +383,11 @@ if __name__ == "__main__":
     #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(ECNumberevidence), name='convert.from_bud.evidence.ecnumber', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, ECNumberevidence, Evidence, 'ECNUMBER')
     #
-    # do_conversion(make_go_evidence_starter(bud_session_maker, nex_session_maker),
-    #                [Json2Obj(Goevidence),
-    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Goevidence), name='convert.from_bud.evidence.go', delete_untouched=True, commit_interval=1000),
-    #                 OutputTransformer(1000)])
-    # clean_up_orphans(nex_session_maker, Goevidence, Evidence, 'GO')
+    do_conversion(make_go_evidence_starter(bud_session_maker, nex_session_maker),
+                   [Json2Obj(Goevidence),
+                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Goevidence), name='convert.from_bud.evidence.go', delete_untouched=True, commit_interval=1000),
+                    OutputTransformer(1000)])
+    clean_up_orphans(nex_session_maker, Goevidence, Evidence, 'GO')
     #
     # do_conversion(make_interaction_evidence_starter(bud_session_maker, nex_session_maker, 'genetic interactions'),
     #               [Json2Obj(Geninteractionevidence),
