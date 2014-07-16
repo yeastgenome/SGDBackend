@@ -28,9 +28,9 @@ if __name__ == "__main__":
     #               [Json2Obj(Source),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Source), name='convert.from_bud.source', delete_untouched=True, commit=True)])
     #
-    # do_conversion(make_experiment_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Experiment),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Experiment), name='convert.from_bud.experiment', delete_untouched=True, commit=True)])
+    do_conversion(make_experiment_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Experiment),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Experiment), name='convert.from_bud.experiment', delete_untouched=True, commit=True)])
 
     # do_conversion(make_strain_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Strain),

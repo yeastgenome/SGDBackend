@@ -91,7 +91,7 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
 
         yield {'display_name': 'EXP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/exp-inferred-experiment', 'description': 'Inferred from Experiment'}
         yield {'display_name': 'IDA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ida-inferred-direct-assay', 'description': 'Inferred from Direct Assay'}
-        yield {'display_name': 'PIP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ipi-inferred-physical-interaction', 'description': 'Inferred from Physical Interaction'}
+        yield {'display_name': 'IPI', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ipi-inferred-physical-interaction', 'description': 'Inferred from Physical Interaction'}
         yield {'display_name': 'IMP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/imp-inferred-mutant-phenotype', 'description': 'Inferred from Mutant Phenotype'}
         yield {'display_name': 'IGI', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/igi-inferred-genetic-interaction', 'description': 'Inferred from Genetic Interaction'}
         yield {'display_name': 'IEP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/iep-inferred-expression-pattern', 'description': 'Inferred from Expression Pattern'}
