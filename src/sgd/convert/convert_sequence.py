@@ -1,4 +1,4 @@
-from src.sgd.model import nex, perf
+from src.sgd.model import nex, perf, bud
 from src.sgd.backend.nex import SGDBackend
 from src.sgd.backend.perf import PerfBackend
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
@@ -9,6 +9,7 @@ __author__ = 'kpaskov'
 
 if __name__ == "__main__":
 
+    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
@@ -16,15 +17,18 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Evidence ------------------------------------------
     from src.sgd.model.nex.evidence import Evidence, DNAsequenceevidence, DNAsequencetag, Proteinsequenceevidence
-    from src.sgd.convert.from_bud.evidence import make_dna_sequence_evidence_starter, make_protein_sequence_evidence_starter, make_dna_sequence_tag_starter
+    from src.sgd.convert.from_bud.evidence import make_dna_sequence_evidence_starter, make_protein_sequence_evidence_starter, make_dna_sequence_tag_starter, make_ref_dna_sequence_evidence_starter
     from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
     from src.sgd.model.nex.misc import Strain
-    nex_session = nex_session_maker()
-    strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
-    nex_session.close()
 
-    from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
-    from src.sgd.model.nex.misc import Strain
+    do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
+                      [Json2Obj(DNAsequenceevidence),
+                       Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1), name='convert.from_bud.evidence.reference_dnasequence', delete_untouched=True, commit_interval=1000)])
+
+    do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(DNAsequencetag),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000)])
+
     nex_session = nex_session_maker()
     strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
     nex_session.close()
@@ -33,11 +37,6 @@ if __name__ == "__main__":
         do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
                       [Json2Obj(DNAsequenceevidence),
                        Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000)])
-
-        if strain_key == 'S288C':
-            do_conversion(make_dna_sequence_tag_starter(nex_session_maker, strain_key, sequence_filename),
-                          [Json2Obj(DNAsequencetag),
-                           Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000)])
     clean_up_orphans(nex_session_maker, DNAsequenceevidence, Evidence, 'DNASEQUENCE')
 
 
