@@ -500,7 +500,7 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
 
 def get_obj_id(identifier, class_type=None, subclass_type=None):
     objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
-    obj_id = None if objs_ids is None or len(objs_ids) != 1 else objs_ids[0][0]
+    obj_id = None if objs_ids is None or len(objs_ids) == 0 else objs_ids[0][0]
     return obj_id
 
 def get_all(cls, col_name, chunk_size, offset):
