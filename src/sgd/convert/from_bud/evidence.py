@@ -1376,8 +1376,9 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                 evidence = bioentity_id_to_evidence[bioentity_id]
                 start = bud_location.min_coord
                 end = bud_location.max_coord
-                if bud_location.feature.type == 'ORF':
-                    display_name = bud_location.feature.name if bud_location.feature.gene_name is None else bud_location.feature.name + '(' + bud_location.feature.gene_name + ')'
+                if bud_location.feature.type == 'ORF' or bud_location.feature.type == 'rRNA':
+                    display_name = bud_location.feature.type + ': '
+                    display_name = display_name + bud_location.feature.name if bud_location.feature.gene_name is None else bud_location.feature.name + '(' + bud_location.feature.gene_name + ')'
                 else:
                     display_name = bud_location.feature.type
                 if bud_location.strand != '-':
