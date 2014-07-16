@@ -1,5 +1,6 @@
 from decimal import Decimal
 from sqlalchemy.orm import joinedload
+from datetime import datetime
 
 from src.sgd.convert.from_bud import contains_digits, get_dna_sequence_library, get_sequence, get_sequence_library_fsa
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
@@ -271,39 +272,23 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
-        for row in make_file_starter('src/sgd/convert/data/yeastmine_protein_domains.tsv')():
-            source_key = row[10].strip()
-            start = row[7].strip()
-            end = row[8].strip()
-            evalue = row[9].strip()
-            status = None
-            date_of_run = None
+        for row in make_file_starter('src/sgd/convert/data/domains.tab')():
+            source_key = row[3].strip()
+            start = row[6].strip()
+            end = row[7].strip()
+            evalue = row[8].strip()
+            status = row[9].strip()
+            date_of_run = datetime.strptime(row[10].strip(), "%d-%m-%Y").date()
 
-            if source_key == 'HMMSmart':
-                source_key = 'SMART'
-            elif source_key == 'HMMPanther':
-                source_key = 'PANTHER'
-            elif source_key == 'FPrintScan':
-                source_key = 'PRINTS'
-            elif source_key == 'HMMPfam':
-                source_key = 'Pfam'
-            elif source_key == 'PatternScan' or source_key == 'ProfileScan':
-                source_key = 'PROSITE'
-            elif source_key == 'BlastProDom':
-                source_key = 'ProDom'
-            elif source_key == 'HMMTigr':
-                source_key = 'TIGRFAMs'
-            elif source_key == 'HMMPIR':
-                source_key = 'PIR_superfamily'
-            elif source_key == 'superfamily':
-                source_key = 'SUPERFAMILY'
-            elif source_key == 'Seg' or source_key == 'Coil':
+            if source_key == 'Coils':
                 source_key = '-'
 
-            bioent_key = (row[1].strip(), 'LOCUS')
-            domain_key = (create_format_name(row[3].strip()), 'DOMAIN')
+            bioent_key = (row[0].strip(), 'LOCUS')
+            domain_key = (create_format_name(row[4].strip()), 'DOMAIN')
 
-            if source_key is not None:
+
+
+            if status == 'T':
                 if bioent_key in key_to_bioentity and domain_key in key_to_domain and source_key in key_to_source:
                     yield {
                         'source': key_to_source[source_key],

@@ -377,10 +377,10 @@ def make_source_starter(bud_session_maker, nex_session_maker):
                        'date_created': bud_obj.date_created,
                        'created_by': bud_obj.created_by}
 
-        other_sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAMs', 'Pfam', 'PRINTS',
-                                        'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI',
+        other_sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAM', 'Pfam', 'PRINTS',
+                                        'PIRSF', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI',
                                         'PubMedCentral', 'PubMed', '-', 'ECO', 'TMHMM', 'SignalP', 'PhosphoGRID',
-                                        'GenBank/EMBL/DDBJ']
+                                        'GenBank/EMBL/DDBJ', 'Phobius']
 
         for source in other_sources:
             yield {'display_name': source}
