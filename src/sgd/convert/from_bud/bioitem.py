@@ -112,52 +112,26 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
         for row in make_file_starter('src/sgd/convert/data/PANTHER9.0_HMM_classifications.txt')():
             panther_id_to_description[row[0]] = row[1].lower()
 
-        for row in make_file_starter('src/sgd/convert/data/yeastmine_protein_domains.tsv')():
-            source_key = row[10].strip()
+        for row in make_file_starter('src/sgd/convert/data/domains.tab')():
+            source_key = row[3].strip()
 
-            display_name = row[3].strip()
-            description = row[4].strip()
-            interpro_id = row[5].strip()
-            interpro_description = row[6].strip()
+            if source_key == 'Coils':
+                source_key = '-'
 
-            if source_key == 'JASPAR':
-                pass
-            elif source_key == 'HMMSmart':
-                source_key = 'SMART'
-            elif source_key == 'HMMPfam':
-                source_key = 'Pfam'
-            elif source_key == 'Gene3D':
-                pass
-            elif source_key == 'superfamily':
-                source_key = 'SUPERFAMILY'
-            elif source_key == 'Seg':
-                source_key = '-'
-            elif source_key == 'Coil':
-                source_key = '-'
-            elif source_key == 'HMMPanther':
-                source_key = 'PANTHER'
-            elif source_key == 'HMMTigr':
-                source_key = 'TIGRFAMs'
-            elif source_key == 'FPrintScan':
-                source_key = 'PRINTS'
-            elif source_key == 'BlastProDom':
-                source_key = 'ProDom'
-            elif source_key == 'HMMPIR':
-                source_key = "PIR superfamily"
-            elif source_key == 'ProfileScan':
-                source_key = 'PROSITE'
-            elif source_key == 'PatternScan':
-                source_key = 'PROSITE'
-            else:
-                print 'No source translation ' + source_key + ' ' + str(display_name)
-                yield None
+            display_name = row[4].strip()
+            description = row[5].strip()
+            interpro_id = None
+            interpro_description = None
+            if len(row) == 13:
+                interpro_id = row[11].strip()
+                interpro_description = row[12].strip()
 
             source_key = create_format_name(source_key)
             source = None if source_key not in key_to_source else key_to_source[source_key]
 
-            description = None if description == 'no description' else description
-            interpro_description = None if interpro_description == 'NULL' else interpro_description
-            interpro_id = None if interpro_id == 'NULL' else interpro_id
+            description = None if description == '' else description
+            interpro_description = None if interpro_description == '' else interpro_description
+            interpro_id = None if interpro_id == '' else interpro_id
 
             if source_key == 'PANTHER':
                 if display_name in panther_id_to_description:
@@ -168,13 +142,15 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                        'interpro_id': interpro_id,
                        'interpro_description': interpro_description}
 
-            else:
+            elif source_key is not None:
                 yield {'display_name': display_name,
                        'source': source,
                        'description': description if description is not None else interpro_description,
                        'bioitem_type': source_key,
                        'interpro_id': interpro_id,
                        'interpro_description': interpro_description}
+            else:
+                print 'Source not found: ' + source_key
 
         for row in make_file_starter('src/sgd/convert/data/TF_family_class_accession04302013.txt')():
             description = 'Class: ' + row[4] + ', Family: ' + row[3]

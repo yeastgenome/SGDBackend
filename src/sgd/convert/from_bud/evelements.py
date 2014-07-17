@@ -89,6 +89,28 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
         yield {'display_name': 'protein abundance',
                'source': key_to_source['SGD']}
 
+        yield {'display_name': 'EXP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/exp-inferred-experiment', 'description': 'Inferred from Experiment'}
+        yield {'display_name': 'IDA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ida-inferred-direct-assay', 'description': 'Inferred from Direct Assay'}
+        yield {'display_name': 'IPI', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ipi-inferred-physical-interaction', 'description': 'Inferred from Physical Interaction'}
+        yield {'display_name': 'IMP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/imp-inferred-mutant-phenotype', 'description': 'Inferred from Mutant Phenotype'}
+        yield {'display_name': 'IGI', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/igi-inferred-genetic-interaction', 'description': 'Inferred from Genetic Interaction'}
+        yield {'display_name': 'IEP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/iep-inferred-expression-pattern', 'description': 'Inferred from Expression Pattern'}
+        yield {'display_name': 'ISS', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/iss-inferred-sequence-or-structural-similarity', 'description': 'Inferred from Sequence or Structural Similarity'}
+        yield {'display_name': 'ISA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/isa-inferred-sequence-alignment', 'description': 'Inferred from Sequence Alignment'}
+        yield {'display_name': 'ISO', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/iso-inferred-sequence-orthology', 'description': 'Inferred from Sequence Orthology'}
+        yield {'display_name': 'ISM', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ism-inferred-sequence-model', 'description': 'Inferred from Sequence Model'}
+        yield {'display_name': 'IGC', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/igc-inferred-genomic-context', 'description': 'Inferred from Genomic Context'}
+        yield {'display_name': 'IBA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/iba-inferred-biological-aspect-ancestor', 'description': 'Inferred from Biological aspect of Ancestor'}
+        yield {'display_name': 'IBD', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ibd-inferred-biological-aspect-descendent', 'description': 'Inferred from Biological aspect of Descendent'}
+        yield {'display_name': 'IKR', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ikr-inferred-key-residues', 'description': 'Inferred from Key Residues'}
+        yield {'display_name': 'IRD', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ird-inferred-rapid-divergence', 'description': 'Inferred from Rapid Divergence'}
+        yield {'display_name': 'RCA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/rca-inferred-reviewed-computational-analysis', 'description': 'inferred from Reviewed Computational Analysis'}
+        yield {'display_name': 'TAS', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/tas-traceable-author-statement', 'description': 'Traceable Author Statement'}
+        yield {'display_name': 'NAS', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/nas-non-traceable-author-statement', 'description': 'Non-traceable Author Statement'}
+        yield {'display_name': 'IC', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ic-inferred-curator', 'description': 'Inferred by Curator'}
+        yield {'display_name': 'ND', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/nd-no-biological-data-available', 'description': 'No Biological Data Available'}
+        yield {'display_name': 'IEA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/automatically-assigned-evidence-codes', 'description': 'Inferred from Electronic Annotation'}
+
         bud_session.close()
         nex_session.close()
     return experiment_starter
@@ -377,10 +399,10 @@ def make_source_starter(bud_session_maker, nex_session_maker):
                        'date_created': bud_obj.date_created,
                        'created_by': bud_obj.created_by}
 
-        other_sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAMs', 'Pfam', 'PRINTS',
-                                        'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI',
+        other_sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAM', 'Pfam', 'PRINTS',
+                                        'PIRSF', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI',
                                         'PubMedCentral', 'PubMed', '-', 'ECO', 'TMHMM', 'SignalP', 'PhosphoGRID',
-                                        'GenBank/EMBL/DDBJ']
+                                        'GenBank/EMBL/DDBJ', 'Phobius']
 
         for source in other_sources:
             yield {'display_name': source}
