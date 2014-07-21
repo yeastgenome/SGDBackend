@@ -196,15 +196,31 @@ class Contig(Bioitem):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        overview = {}
+        overview_counts = {}
         for evidence in self.dnasequence_evidences:
-            if evidence.locus.locus_type in overview:
-                overview[evidence.locus.locus_type] += 1
+            if evidence.locus.locus_type in overview_counts:
+                overview_counts[evidence.locus.locus_type] += 1
             else:
-                overview[evidence.locus.locus_type] = 1
-        overview = [[key, value] for key, value in overview.iteritems()]
-        overview.insert(0, ['Feature Type', 'Count'])
-        obj_json['overview'] = overview
+                overview_counts[evidence.locus.locus_type] = 1
+
+        obj_json['overview'] = [
+            ['Feature Type', 'Count'],
+            ['ORF', (0 if 'ORF' not in overview_counts else overview_counts['ORF'])],
+            ['long_terminal_repeat', (0 if 'long_terminal_repeat' not in overview_counts else overview_counts['long_terminal_repeat'])],
+            ['ARS', (0 if 'ARS' not in overview_counts else overview_counts['ARS'])],
+            ['tRNA', (0 if 'tRNA' not in overview_counts else overview_counts['tRNA'])],
+            ['transposable_element_gene', (0 if 'transposable_element_gene' not in overview_counts else overview_counts['transposable_element_gene'])],
+            ['snoRNA', (0 if 'snoRNA' not in overview_counts else overview_counts['snoRNA'])],
+            ['retrotransposon', (0 if 'retrotransposon' not in overview_counts else overview_counts['retrotransposon'])],
+            ['telomere', (0 if 'telomere' not in overview_counts else overview_counts['telomere'])],
+            ['rRNA', (0 if 'rRNA' not in overview_counts else overview_counts['rRNA'])],
+            ['pseudogene', (0 if 'pseudogene' not in overview_counts else overview_counts['pseudogene'])],
+            ['ncRNA', (0 if 'ncRNA' not in overview_counts else overview_counts['ncRNA'])],
+            ['centromere', (0 if 'centromere' not in overview_counts else overview_counts['centromere'])],
+            ['snRNA', (0 if 'snRNA' not in overview_counts else overview_counts['snRNA'])],
+            ['multigene locus', (0 if 'multigene locus' not in overview_counts else overview_counts['multigene locus'])],
+            ['gene_cassette', (0 if 'gene_cassette' not in overview_counts else overview_counts['gene_cassette'])],
+            ['mating_locus', (0 if 'mating_locus' not in overview_counts else overview_counts['mating_locus'])]]
 
         return obj_json
 

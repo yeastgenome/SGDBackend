@@ -54,9 +54,9 @@ def make_details(locus_id=None, contig_id=None):
     coding_dnaseqevidences = [x for x in dnaseqevidences if x.dna_type == 'CODING']
 
     tables = {}
-    tables['genomic_dna'] = [x.to_json() for x in sorted(genomic_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA')]
-    tables['coding_dna'] = [x.to_json() for x in sorted(coding_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA')]
-    tables['protein'] = [x.to_json() for x in sorted(proteinseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA')]
+    tables['genomic_dna'] = [x.to_json() for x in sorted(genomic_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.locus.bioent_status == 'Active' or x.locus_id == locus_id]
+    tables['coding_dna'] = [x.to_json() for x in sorted(coding_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.locus.bioent_status == 'Active' or x.locus_id == locus_id]
+    tables['protein'] = [x.to_json() for x in sorted(proteinseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.locus.bioent_status == 'Active' or x.locus_id == locus_id]
 
     return tables
 
@@ -76,7 +76,7 @@ def make_neighbor_details(locus_id=None):
         start = max(1, midpoint - 5000)
         end = min(len(evidence.contig.residues), midpoint + 5000)
         neighbor_evidences = DBSession.query(DNAsequenceevidence).filter_by(contig_id=evidence.contig_id).filter(DNAsequenceevidence.start >= start).filter(DNAsequenceevidence.end <= end).options(joinedload('locus'), joinedload('strain')).all()
-        neighbors[evidence.strain.format_name] = {'neighbors': [x.to_json() for x in sorted(neighbor_evidences, key=lambda x: x.start if x.strand == '+' else x.end)], 'start': start, 'end': end}
+        neighbors[evidence.strain.format_name] = {'neighbors': [x.to_json() for x in sorted(neighbor_evidences, key=lambda x: x.start if x.strand == '+' else x.end) if x.locus.bioent_status == 'Active' or x.locus_id == locus_id], 'start': start, 'end': end}
 
     return neighbors
 
