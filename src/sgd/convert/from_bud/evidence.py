@@ -1368,30 +1368,32 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                     display_name = display_name + bud_location.feature.name if bud_location.feature.gene_name is None else bud_location.feature.name + '(' + bud_location.feature.gene_name + ')'
                 else:
                     display_name = bud_location.feature.type
-                if bud_location.strand != '-':
-                    yield {
-                        'evidence_id': evidence.id,
-                        'class_type': bud_location.feature.type,
-                        'display_name': display_name,
-                        'relative_start': start - evidence.start + 1,
-                        'relative_end': end - evidence.start + 1,
-                        'chromosomal_start': start,
-                        'chromosomal_end': end,
-                        'seq_version': bud_location.sequence.seq_version,
-                        'coord_version': bud_location.coord_version
-                    }
-                else:
-                    yield {
-                        'evidence_id': evidence.id,
-                        'class_type': bud_location.feature.type,
-                        'display_name': display_name,
-                        'relative_start': evidence.end - end + 1,
-                        'relative_end': evidence.end - start + 1,
-                        'chromosomal_start': end,
-                        'chromosomal_end': start,
-                        'seq_version': bud_location.sequence.seq_version,
-                        'coord_version': bud_location.coord_version
-                    }
+
+                if bud_location.feature_type != 'TF_binding_site':
+                    if bud_location.strand != '-':
+                        yield {
+                            'evidence_id': evidence.id,
+                            'class_type': bud_location.feature.type,
+                            'display_name': display_name,
+                            'relative_start': start - evidence.start + 1,
+                            'relative_end': end - evidence.start + 1,
+                            'chromosomal_start': start,
+                            'chromosomal_end': end,
+                            'seq_version': bud_location.sequence.seq_version,
+                            'coord_version': bud_location.coord_version
+                        }
+                    else:
+                        yield {
+                            'evidence_id': evidence.id,
+                            'class_type': bud_location.feature.type,
+                            'display_name': display_name,
+                            'relative_start': evidence.end - end + 1,
+                            'relative_end': evidence.end - start + 1,
+                            'chromosomal_start': end,
+                            'chromosomal_end': start,
+                            'seq_version': bud_location.sequence.seq_version,
+                            'coord_version': bud_location.coord_version
+                        }
 
         nex_session.close()
         bud_session.close()
