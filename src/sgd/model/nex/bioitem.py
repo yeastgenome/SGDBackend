@@ -166,7 +166,7 @@ number_to_roman = {'01': 'I', '1': 'I',
                    '14': 'XIV',
                    '15': 'XV',
                    '16': 'XVI',
-                   '17': 'XVII',
+                   '17': 'Mito',
                    }
 
 class Contig(Bioitem):

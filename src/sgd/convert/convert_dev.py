@@ -224,7 +224,7 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Chemical), name='convert.from_bud.bioitem.chemical', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL')
     #
-    # do_conversion(make_contig_starter(nex_session_maker),
+    # do_conversion(make_contig_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Contig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Contig), name='convert.from_bud.bioitem.contig', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG')
@@ -256,13 +256,13 @@ if __name__ == "__main__":
     # do_conversion(make_disambig_starter(nex_session_maker, Contig, ['id', 'format_name'], 'BIOITEM', 'CONTIG'),
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'CONTIG'), name='convert.from_bud.bioitem.disambig.contig', delete_untouched=True, commit=True)])
-    #
+
     # do_conversion(make_disambig_starter(nex_session_maker, Dataset, ['id', 'format_name'], 'BIOITEM', 'DATASET'),
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DATASET'), name='convert.from_bud.bioitem.disambig.dataset', delete_untouched=True, commit=True)])
 
-    # # Nex -> Perf
-    # from src.sgd.model.perf.core import Bioitem as PerfBioitem
+    # Nex -> Perf
+    from src.sgd.model.perf.core import Bioitem as PerfBioitem
     # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True),
     #                OutputTransformer(1000)])
@@ -452,11 +452,11 @@ if __name__ == "__main__":
     #                   [Json2Obj(DNAsequenceevidence),
     #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1), name='convert.from_bud.evidence.reference_dnasequence', delete_untouched=True, commit_interval=1000),
     #                    OutputTransformer(1000)])
-    #
-    # do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(DNAsequencetag),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
+
+    do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(DNAsequencetag),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
 
     # from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
     # from src.sgd.model.nex.misc import Strain
@@ -785,9 +785,9 @@ if __name__ == "__main__":
     #                 OutputTransformer(1000)])
     #
     # Done
-    do_conversion(make_go_data_backend_starter(nex_backend, 'go_ontology_graph', go_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'GO_ONTOLOGY', go_ids, name='convert.from_backend.go_ontology_graph', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_go_data_backend_starter(nex_backend, 'go_ontology_graph', go_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'GO_ONTOLOGY', go_ids, name='convert.from_backend.go_ontology_graph', commit_interval=1000),
+    #                 OutputTransformer(1000)])
     #
     # Done
     # do_conversion(make_observable_data_backend_starter(nex_backend, 'phenotype_ontology_graph', observable_ids),

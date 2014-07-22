@@ -1369,7 +1369,7 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                 else:
                     display_name = bud_location.feature.type
 
-                if bud_location.feature_type != 'TF_binding_site':
+                if bud_location.feature.type != 'TF_binding_site':
                     if bud_location.strand != '-':
                         yield {
                             'evidence_id': evidence.id,
