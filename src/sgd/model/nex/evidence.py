@@ -858,6 +858,7 @@ class DNAsequenceevidence(Evidence):
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['locus']['locus_type'] = self.locus.locus_type
+        obj_json['locus']['headline'] = self.locus.headline
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['status'] = self.strain.status
         obj_json['tags'] = [x.to_json() for x in sorted(self.tags, key=lambda x:x.relative_start)]

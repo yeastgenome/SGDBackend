@@ -1352,48 +1352,48 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
         bioentity_id_to_evidence = dict([(x.locus_id, x) for x in nex_session.query(DNAsequenceevidence).filter_by(strain_id=1).filter_by(dna_type='GENOMIC').all()])
 
         for bud_location in bud_session.query(Feat_Location).filter(Feat_Location.is_current == 'Y').all():
-            bioentity_id = None if bud_location.feature_id not in feature_id_to_parent else feature_id_to_parent[bud_location.feature_id]
-            while bioentity_id is not None and bioentity_id not in id_to_bioentity:
-                if bioentity_id in feature_id_to_parent:
-                    bioentity_id = feature_id_to_parent[bioentity_id]
-                else:
-                    bioentity_id = None
-
-            if bioentity_id is not None and bioentity_id in bioentity_id_to_evidence:
-                evidence = bioentity_id_to_evidence[bioentity_id]
-                start = bud_location.min_coord
-                end = bud_location.max_coord
-                if bud_location.feature.type == 'ORF' or bud_location.feature.type == 'rRNA':
-                    display_name = bud_location.feature.type + ': '
-                    display_name = display_name + bud_location.feature.name if bud_location.feature.gene_name is None else bud_location.feature.name + '(' + bud_location.feature.gene_name + ')'
-                else:
-                    display_name = bud_location.feature.type
-
-                if bud_location.feature.type != 'TF_binding_site':
-                    if bud_location.strand != '-':
-                        yield {
-                            'evidence_id': evidence.id,
-                            'class_type': bud_location.feature.type,
-                            'display_name': display_name,
-                            'relative_start': start - evidence.start + 1,
-                            'relative_end': end - evidence.start + 1,
-                            'chromosomal_start': start,
-                            'chromosomal_end': end,
-                            'seq_version': bud_location.sequence.seq_version,
-                            'coord_version': bud_location.coord_version
-                        }
+            if bud_location.sequence.is_current == 'Y':
+                bioentity_id = None if bud_location.feature_id not in feature_id_to_parent else feature_id_to_parent[bud_location.feature_id]
+                while bioentity_id is not None and bioentity_id not in id_to_bioentity:
+                    if bioentity_id in feature_id_to_parent:
+                        bioentity_id = feature_id_to_parent[bioentity_id]
                     else:
-                        yield {
-                            'evidence_id': evidence.id,
-                            'class_type': bud_location.feature.type,
-                            'display_name': display_name,
-                            'relative_start': evidence.end - end + 1,
-                            'relative_end': evidence.end - start + 1,
-                            'chromosomal_start': end,
-                            'chromosomal_end': start,
-                            'seq_version': bud_location.sequence.seq_version,
-                            'coord_version': bud_location.coord_version
-                        }
+                        bioentity_id = None
+
+                if bioentity_id is not None and bioentity_id in bioentity_id_to_evidence:
+                    evidence = bioentity_id_to_evidence[bioentity_id]
+                    start = bud_location.min_coord
+                    end = bud_location.max_coord
+                    if bud_location.feature.type == 'ORF' or bud_location.feature.type == 'rRNA':
+                        display_name = bud_location.feature.name if bud_location.feature.gene_name is None else bud_location.feature.name + '(' + bud_location.feature.gene_name + ')'
+                    else:
+                        display_name = bud_location.feature.type
+
+                    if bud_location.feature.type != 'TF_binding_site':
+                        if bud_location.strand != '-':
+                            yield {
+                                'evidence_id': evidence.id,
+                                'class_type': bud_location.feature.type,
+                                'display_name': display_name,
+                                'relative_start': start - evidence.start + 1,
+                                'relative_end': end - evidence.start + 1,
+                                'chromosomal_start': start,
+                                'chromosomal_end': end,
+                                'seq_version': bud_location.sequence.seq_version,
+                                'coord_version': bud_location.coord_version
+                            }
+                        else:
+                            yield {
+                                'evidence_id': evidence.id,
+                                'class_type': bud_location.feature.type,
+                                'display_name': display_name,
+                                'relative_start': evidence.end - end + 1,
+                                'relative_end': evidence.end - start + 1,
+                                'chromosomal_start': end,
+                                'chromosomal_end': start,
+                                'seq_version': bud_location.sequence.seq_version,
+                                'coord_version': bud_location.coord_version
+                            }
 
         nex_session.close()
         bud_session.close()
