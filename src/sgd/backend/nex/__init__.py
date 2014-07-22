@@ -322,7 +322,7 @@ class SGDBackend(BackendInterface):
             go_id = go_identifier
         else:
             go_id = get_obj_id(go_identifier, class_type='BIOCONCEPT', subclass_type='GO')
-        return None if go_id is None else json.dumps(graph_tools.make_ontology_graph(go_id, 'GO', lambda x: True, lambda x: 'HAS_CHILDREN' if x.has_children() else 'HAS_DESCENDANTS' if x.has_descendants() else 'NO_DESCENDANTS'))
+        return None if go_id is None else json.dumps(graph_tools.make_ontology_graph(go_id, 'GO', lambda x: True, lambda x: ''))
     
     def go_details(self, locus_identifier=None, go_identifier=None, reference_identifier=None, with_children=False, are_ids=False):
         import view_go

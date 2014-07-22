@@ -19,13 +19,13 @@ if __name__ == "__main__":
 
     nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
-    # # ------------------------------------------ Evelements ------------------------------------------
-    # # Bud -> Nex
-    # from src.sgd.model.nex.misc import Source, Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.evelements import make_source_starter, make_strain_starter, make_experiment_starter, \
-    #     make_experiment_alias_starter, make_experiment_relation_starter, make_strain_url_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    # ------------------------------------------ Evelements ------------------------------------------
+    # Bud -> Nex
+    from src.sgd.model.nex.misc import Source, Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.evelements import make_source_starter, make_strain_starter, make_experiment_starter, \
+        make_experiment_alias_starter, make_experiment_relation_starter, make_strain_url_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     # do_conversion(make_source_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Source),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Source), name='convert.from_bud.source', delete_untouched=True, commit=True)])
@@ -34,10 +34,10 @@ if __name__ == "__main__":
     #               [Json2Obj(Experiment),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Experiment), name='convert.from_bud.experiment', delete_untouched=True, commit=True)])
     #
-    # do_conversion(make_strain_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Strain),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strain), name='convert.from_bud.strain', delete_untouched=True, commit=True)])
-    #
+    do_conversion(make_strain_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Strain),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Strain), name='convert.from_bud.strain', delete_untouched=True, commit=True)])
+
     # do_conversion(make_strain_url_starter(nex_session_maker),
     #               [Json2Obj(Strainurl),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strainurl), name='convert.from_bud.strain.url', delete_untouched=True, commit_interval=1000),
@@ -452,11 +452,11 @@ if __name__ == "__main__":
     #                   [Json2Obj(DNAsequenceevidence),
     #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1), name='convert.from_bud.evidence.reference_dnasequence', delete_untouched=True, commit_interval=1000),
     #                    OutputTransformer(1000)])
-
-    do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(DNAsequencetag),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+    #
+    # do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(DNAsequencetag),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
 
     # from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
     # from src.sgd.model.nex.misc import Strain
