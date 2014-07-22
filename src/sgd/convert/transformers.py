@@ -348,7 +348,7 @@ class Json2DisambigPerfDB(TransformerInterface):
         if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
             self.session.commit()
 
-        key = (newly_created_obj_json['class_type'], newly_created_obj_json['subclass_type'], newly_created_obj_json['disambig_key'])
+        key = (newly_created_obj_json['class_type'], newly_created_obj_json['subclass_type'], newly_created_obj_json['disambig_key'].encode('utf-8'))
         identifier = newly_created_obj_json['identifier']
         if key in self.id_to_current_obj:
             if identifier == self.id_to_current_obj[key]:
