@@ -38,12 +38,8 @@ def test_literature_bioent_details_structure(model, identifier='YFL039C'):
         check_reference(entry)
 
 def check_literature_evidence(evidence):
-    #check_evidence(evidence)
-    assert 'locus' in evidence
+    check_evidence(evidence)
     assert 'topic' in evidence
-
-    check_obj(evidence['locus'])
-    assert 'format_name' in evidence['locus']
 
 def test_literature_ref_details_structure(model, identifier='769'):
     response = json.loads(model.literature_details(reference_identifier=identifier))
