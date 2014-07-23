@@ -188,14 +188,6 @@ if __name__ == "__main__":
                              commit=True,
                              already_deleted=clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL'))])
 
-    # do_conversion(make_contig_starter(nex_session_maker),
-    #               [Json2Obj(Contig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Contig),
-    #                          name='convert.from_bud.bioitem.contig',
-    #                          delete_untouched=True,
-    #                          commit=True,
-    #                          clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG'))])
-
     do_conversion(make_disambig_starter(nex_session_maker, Domain, ['id', 'format_name'], 'BIOITEM', 'DOMAIN'),
                   [Json2Obj(Disambig),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DOMAIN'),
@@ -209,13 +201,6 @@ if __name__ == "__main__":
                              name='convert.from_bud.bioitem.disambig.chemical',
                              delete_untouched=True,
                              commit=True)])
-
-    # do_conversion(make_disambig_starter(nex_session_maker, Contig, ['id', 'format_name'], 'BIOITEM', 'CONTIG'),
-    #               [Json2Obj(Disambig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'CONTIG'),
-    #                          name='convert.from_bud.bioitem.disambig.contig',
-    #                          delete_untouched=True,
-    #                          commit=True)])
 
     clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')
     clean_up_orphans(nex_session_maker, Bioconceptproperty, Property, 'BIOCONCEPT')

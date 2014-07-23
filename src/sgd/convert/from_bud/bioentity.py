@@ -344,7 +344,7 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
                            'date_created': old_url.date_created,
                            'created_by': old_url.created_by}
                 else:
-                    print 'Bioentity not found: ' + str(bioentity_id)
+                    #print 'Bioentity not found: ' + str(bioentity_id)
                     yield None
 
         for bud_obj in make_db_starter(bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')), 1000)():
@@ -379,7 +379,7 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
                                    'date_created': old_url.date_created,
                                    'created_by': old_url.created_by}
                     else:
-                        print 'Bioentity not found: ' + str(bioentity_id)
+                        #print 'Bioentity not found: ' + str(bioentity_id)
                         yield None
 
         for locus in nex_session.query(Locus).all():
