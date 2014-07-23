@@ -376,6 +376,12 @@ def make_strain_url_starter(nex_session_maker):
                                'category': 'source',
                                'strain': strain}
 
+            yield {'display_name': 'PubMed',
+                    'link': 'http://www.ncbi.nlm.nih.gov/pubmed/?term=saccharomyces+cerevisiae+' + strain.display_name,
+                    'source': key_to_source['SGD'],
+                    'category': 'pubmed',
+                    'strain': strain}
+
         yield {'display_name': 'Download Sequence',
                                'link': 'http://www.yeastgenome.org/download-data/sequence',
                                'source': key_to_source['SGD'],

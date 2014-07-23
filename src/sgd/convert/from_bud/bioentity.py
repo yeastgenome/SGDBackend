@@ -20,8 +20,6 @@ non_locus_feature_types = {
     'internal_transcribed_spacer_region',
     'intron',
     'mRNA',
-    'not in systematic sequence of S288C',
-    'not physically mapped',
     'non_transcribed_region',
     'noncoding_exon',
     'plasmid',
