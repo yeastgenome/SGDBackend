@@ -863,6 +863,7 @@ class DNAsequenceevidence(Evidence):
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['locus']['locus_type'] = self.locus.locus_type
+        obj_json['locus']['headline'] = self.locus.headline
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['status'] = self.strain.status
         obj_json['tags'] = [x.to_json() for x in sorted(self.tags, key=lambda x:x.relative_start)]
@@ -884,6 +885,8 @@ class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     chromosomal_start = Column('chromosomal_start_index', Integer)
     chromosomal_end = Column('chromosomal_end_index', Integer)
     phase = Column('phase', String)
+    coord_version = Column('coord_version', Date)
+    seq_version = Column('seq_version', Date)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -891,18 +894,17 @@ class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     evidence = relationship(DNAsequenceevidence, uselist=False, backref=backref('tags', passive_deletes=True))
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relative_start', 'relative_end',
-                     'chromosomal_start', 'chromosomal_end', 'phase', 'evidence_id',
+                     'chromosomal_start', 'chromosomal_end', 'phase', 'evidence_id', 'coord_version', 'seq_version',
                      'date_created', 'created_by', ]
     __eq_fks__ = []
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = self.class_type
-        self.display_name = self.class_type
         self.class_type = self.class_type.upper()
 
     def unique_key(self):
-        return self.evidence_id, self.class_type, self.chromosomal_start, self.chromosomal_end
+        return self.evidence_id, self.class_type, self.relative_start, self.relative_end
 
 class Proteinsequenceevidence(Evidence):
     __tablename__ = "proteinsequenceevidence"

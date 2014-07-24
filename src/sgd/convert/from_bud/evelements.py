@@ -1,6 +1,6 @@
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert.transformers import make_db_starter, make_file_starter, \
+from src.sgd.convert.transformers import make_file_starter, \
     make_obo_file_starter
 from src.sgd.convert import create_format_name
 
@@ -29,7 +29,7 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
                    'description': None if 'def' not in bud_obj else bud_obj['def'],
                    'eco_id': bud_obj['id']}
 
-        for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==7), 1000)():
+        for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no==7).all():
             format_name = create_format_name(bud_obj.name)
             yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
@@ -89,6 +89,28 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
         yield {'display_name': 'protein abundance',
                'source': key_to_source['SGD']}
 
+        yield {'display_name': 'EXP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/exp-inferred-experiment', 'description': 'Inferred from Experiment'}
+        yield {'display_name': 'IDA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ida-inferred-direct-assay', 'description': 'Inferred from Direct Assay'}
+        yield {'display_name': 'IPI', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ipi-inferred-physical-interaction', 'description': 'Inferred from Physical Interaction'}
+        yield {'display_name': 'IMP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/imp-inferred-mutant-phenotype', 'description': 'Inferred from Mutant Phenotype'}
+        yield {'display_name': 'IGI', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/igi-inferred-genetic-interaction', 'description': 'Inferred from Genetic Interaction'}
+        yield {'display_name': 'IEP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/iep-inferred-expression-pattern', 'description': 'Inferred from Expression Pattern'}
+        yield {'display_name': 'ISS', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/iss-inferred-sequence-or-structural-similarity', 'description': 'Inferred from Sequence or Structural Similarity'}
+        yield {'display_name': 'ISA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/isa-inferred-sequence-alignment', 'description': 'Inferred from Sequence Alignment'}
+        yield {'display_name': 'ISO', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/iso-inferred-sequence-orthology', 'description': 'Inferred from Sequence Orthology'}
+        yield {'display_name': 'ISM', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ism-inferred-sequence-model', 'description': 'Inferred from Sequence Model'}
+        yield {'display_name': 'IGC', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/igc-inferred-genomic-context', 'description': 'Inferred from Genomic Context'}
+        yield {'display_name': 'IBA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/iba-inferred-biological-aspect-ancestor', 'description': 'Inferred from Biological aspect of Ancestor'}
+        yield {'display_name': 'IBD', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ibd-inferred-biological-aspect-descendent', 'description': 'Inferred from Biological aspect of Descendent'}
+        yield {'display_name': 'IKR', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ikr-inferred-key-residues', 'description': 'Inferred from Key Residues'}
+        yield {'display_name': 'IRD', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ird-inferred-rapid-divergence', 'description': 'Inferred from Rapid Divergence'}
+        yield {'display_name': 'RCA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/rca-inferred-reviewed-computational-analysis', 'description': 'inferred from Reviewed Computational Analysis'}
+        yield {'display_name': 'TAS', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/tas-traceable-author-statement', 'description': 'Traceable Author Statement'}
+        yield {'display_name': 'NAS', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/nas-non-traceable-author-statement', 'description': 'Non-traceable Author Statement'}
+        yield {'display_name': 'IC', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ic-inferred-curator', 'description': 'Inferred by Curator'}
+        yield {'display_name': 'ND', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/nd-no-biological-data-available', 'description': 'No Biological Data Available'}
+        yield {'display_name': 'IEA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/automatically-assigned-evidence-codes', 'description': 'Inferred from Electronic Annotation'}
+
         bud_session.close()
         nex_session.close()
     return experiment_starter
@@ -109,7 +131,7 @@ def make_experiment_alias_starter(bud_session_maker, nex_session_maker):
         key_to_experiment = dict([(x.unique_key(), x) for x in nex_session.query(Experiment).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for old_cv_term in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==7).options(joinedload('cv_dbxrefs'), joinedload('cv_dbxrefs.dbxref')), 1000)():
+        for old_cv_term in bud_session.query(CVTerm).filter(CVTerm.cv_no==7).options(joinedload('cv_dbxrefs'), joinedload('cv_dbxrefs.dbxref')).all():
             experiment_key = create_format_name(old_cv_term.name)
             if experiment_key in key_to_experiment:
                 for dbxref in old_cv_term.dbxrefs:
@@ -139,7 +161,7 @@ def make_experiment_relation_starter(bud_session_maker, nex_session_maker):
         key_to_experiment = dict([(x.unique_key(), x) for x in nex_session.query(Experiment).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for old_cv_term in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==7).options(joinedload('parent_rels'), joinedload('parent_rels.parent')), 1000)():
+        for old_cv_term in bud_session.query(CVTerm).filter(CVTerm.cv_no==7).options(joinedload('parent_rels'), joinedload('parent_rels.parent')).all():
             child_key = create_format_name(old_cv_term.name)
             for parent_rel in old_cv_term.parent_rels:
                 parent_key = create_format_name(parent_rel.parent.name)
@@ -203,7 +225,7 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no==10), 1000)():
+        for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no==10).all():
             yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
                    'description': bud_obj.definition if bud_obj.name not in strain_to_description else strain_to_description[bud_obj.name],
@@ -212,74 +234,74 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
 
-        other_strains = [('10560-6B', 'Sigma1278b-derivative laboratory strain.'),
+        other_strains = [('10560-6B', 'Sigma1278b-derivative laboratory strain'),
                                    ('AB972', 'Isogenic to S288C; used in the systematic sequencing project, the sequence stored in SGD. AB972 is an ethidium bromide-induced rho- derivative of the strain X2180-1B-trp1.'),
-                                   ('A364A', 'Used in the systematic sequencing project, the sequence stored in SGD.'),
-                                   ('AWRI1631', 'Haploid derivative of South African commercial wine strain N96.'),
-                                   ('AWRI796', 'South African red wine strain.'),
-                                   ('BC187', 'Derivative of California wine barrel isolate.'),
-                                   ('BY4741', 'S288C-derivative laboratory strain.'),
-                                   ('BY4742', 'S288C-derivative laboratory strain.'),
+                                   ('A364A', 'Used in the systematic sequencing project, the sequence stored in SGD'),
+                                   ('AWRI1631', 'Haploid derivative of South African commercial wine strain N96'),
+                                   ('AWRI796', 'South African red wine strain'),
+                                   ('BC187', 'Derivative of California wine barrel isolate'),
+                                   ('BY4741', 'S288C-derivative laboratory strain'),
+                                   ('BY4742', 'S288C-derivative laboratory strain'),
                                    ('BY4743', 'Strain used in the systematic deletion project, generated from a cross between BY4741 and BY4742, which are derived from S288C. As in S288c, this strain as well as haploid derivatives BY4741, and BY4742 have allelic variants of MIP1, SAL1 and CAT5 and these polymorphisms, described in the respective locus history notes for these genes (MIP1, SAL1 and CAT5) all contribute to the high observed petite frequency.'),
-                                   ('CBS7960', 'Brazilian bioethanol factory isolate.'),
-                                   ('CLIB215', 'New Zealand bakery isolate.'),
-                                   ('CLIB324', 'Vietnamese bakery isolate.'),
-                                   ('CLIB382', 'Irish beer isolate.'),
-                                   ('D273', 'Laboratory strain.'),
+                                   ('CBS7960', 'Brazilian bioethanol factory isolate'),
+                                   ('CLIB215', 'New Zealand bakery isolate'),
+                                   ('CLIB324', 'Vietnamese bakery isolate'),
+                                   ('CLIB382', 'Irish beer isolate'),
+                                   ('D273', 'Laboratory strain'),
                                    ('D273-10B', 'Normal cytochrome content and respiration; low frequency of rho-. This strain and its auxotrophic derivatives were used in numerious laboratories for mitochondrial and related studies and for mutant screens. Good respirer that\'s relatively resistant to glucose repression.'),
-                                   ('DBVPG6044', 'West African isolate.'),
-                                   ('DBY12020', 'Derived from FY4.'),
-                                   ('DBY12021', 'Derived from FY4.'),
-                                   ('DC5', 'Isogenic to S288C; used in the systematic sequencing project, the sequence stored in SGD.'),
+                                   ('DBVPG6044', 'West African isolate'),
+                                   ('DBY12020', 'Derived from FY4'),
+                                   ('DBY12021', 'Derived from FY4'),
+                                   ('DC5', 'Isogenic to S288C; used in the systematic sequencing project, the sequence stored in SGD'),
                                    ('DY1457', ''),
-                                   ('EC1118', 'Commercial wine strain.'),
-                                   ('EC9-8', 'Haploid derivative of Israeli canyon isolate.'),
-                                   ('FL100', 'Laboratory strain.'),
-                                   ('FostersB', 'Commercial ale strain.'),
-                                   ('FostersO', 'Commercial ale strain.'),
-                                   ('FY4', 'Derived from S288C.'),
-                                   ('FY1679', 'S288C-derivative laboratory strain.'),
-                                   ('JAY291', 'Haploid derivative of Brazilian industrial bioethanol strain PE-2.'),
-                                   ('JK9', 'Laboratory strain.'),
+                                   ('EC1118', 'Commercial wine strain'),
+                                   ('EC9-8', 'Haploid derivative of Israeli canyon isolate'),
+                                   ('FL100', 'Laboratory strain'),
+                                   ('FostersB', 'Commercial ale strain'),
+                                   ('FostersO', 'Commercial ale strain'),
+                                   ('FY4', 'Derived from S288C'),
+                                   ('FY1679', 'S288C-derivative laboratory strain'),
+                                   ('JAY291', 'Haploid derivative of Brazilian industrial bioethanol strain PE-2'),
+                                   ('JK9', 'Laboratory strain'),
                                    ('JK9-3d', 'JK9-3d was constructed by Jeanette Kunz while in Mike Hall\'s lab. She made the original strain while Joe Heitman isolated isogenic strains of opposite mating type and derived the a/alpha isogenic diploid by mating type switching. It has in its background S288c, a strain from the Oshima lab, and a strain from the Herskowitz lab. It was chosen because of its robust growth and sporulation, as well as good growth on galactose (GAL+) (so that genes under control of the galactose promoter could be induced). It may also have a SUP mutation that allows translation through premature STOP codons and therefore produces functional alleles with many point mutations.'),
-                                   ('K11', 'Sake strain.'),
-                                   ('Kyokai7', 'Japanese sake yeast.'),
-                                   ('L1528', 'Chilean wine strain.'),
-                                   ('LalvinQA23', 'Portuguese Vinho Verde white wine strain.'),
-                                   ('M22', 'Italian vineyard isolate.'),
-                                   ('PW5', 'Nigerian Raphia palm wine isolate.'),
-                                   ('RedStar', 'Commercial baking strain.'),
-                                   ('SEY', 'Laboratory strain.'),
+                                   ('K11', 'Sake strain'),
+                                   ('Kyokai7', 'Japanese sake yeast'),
+                                   ('L1528', 'Chilean wine strain'),
+                                   ('LalvinQA23', 'Portuguese Vinho Verde white wine strain'),
+                                   ('M22', 'Italian vineyard isolate'),
+                                   ('PW5', 'Nigerian Raphia palm wine isolate'),
+                                   ('RedStar', 'Commercial baking strain'),
+                                   ('SEY', 'Laboratory strain'),
                                    ('SEY6210', 'SEY6210 is a MATalpha haploid constructed by Scott Emr and has been used in studies of autophagy, protein sorting etc. It is the product of crossing with strains from 5 different labs (Gerry Fink, Ron Davis, David Botstein, Fred Sherman, Randy Schekman). It has several selectable markers and good growth properties.'),
                                    ('SEY6211', 'SEY6211 is a MATa haploid constructed by Scott Emr and has been used in studies of autophagy, protein sorting etc. It is the product of crossing with strains from 5 different labs (Gerry Fink, Ron Davis, David Botstein, Fred Sherman, Randy Schekman). It has several selectable markers and good growth properties.'),
                                    ('SEY6210/SEY6211', 'SEY6210/SEY6211, also known as SEY6210.5, was constructed by Scott Emr and has been used in studies of autophagy, protein sorting etc. It is the product of crossing with strains from 5 different labs (Gerry Fink, Ron Davis, David Botstein, Fred Sherman, Randy Schekman). It has several selectable markers, good growth properties and good sporulation.'),
-                                   ('SK1', 'Laboratory strain.'),
-                                   ('T7', 'Missouri oak tree exudate isolate.'),
-                                   ('T73', 'Spanish red wine strain.'),
-                                   ('UC5', 'Japanese sake yeast.'),
-                                   ('UWOPSS', 'Environmental isolate.'),
-                                   ('VIN13', 'South African white wine strain.'),
-                                   ('VL3', 'French white wine strain.'),
-                                   ('W303', 'Laboratory strain.'),
+                                   ('SK1', 'Laboratory strain'),
+                                   ('T7', 'Missouri oak tree exudate isolate'),
+                                   ('T73', 'Spanish red wine strain'),
+                                   ('UC5', 'Japanese sake yeast'),
+                                   ('UWOPSS', 'Environmental isolate'),
+                                   ('VIN13', 'South African white wine strain'),
+                                   ('VL3', 'French white wine strain'),
+                                   ('W303', 'Laboratory strain'),
                                    ('W303-1A', 'W303-1A possesses a ybp1-1 mutation (I7L, F328V, K343E, N571D) which abolishes Ybp1p function, increasing sensitivity to oxidative stress.'),
                                    ('W303-1B', ''),
                                    ('W303-K6001', ''),
-                                   ('X2180', 'S288C-derivative laboratory strain.'),
+                                   ('X2180', 'S288C-derivative laboratory strain'),
                                    ('X2180-1A', 'S288c spontaneously diploidized to give rise to X2180. The haploid segregants X2180-1a and X2180-1b were obtained from sporulated X2180.'),
-                                   ('XJ24-24a', 'Derived from, but not isogenic to, S288C.'),
-                                   ('Y10', 'Philippine coconut isolate.'),
-                                   ('Y55', 'Laboratory strain.'),
-                                   ('YJM269', 'Austrian Blauer Portugieser wine grape isolate.'),
-                                   ('YJM339', 'Clinical isolate.'),
-                                   ('YJM789', 'Haploid derivative of opportunistic human pathogen.'),
+                                   ('XJ24-24a', 'Derived from, but not isogenic to, S288C'),
+                                   ('Y10', 'Philippine coconut isolate'),
+                                   ('Y55', 'Laboratory strain'),
+                                   ('YJM269', 'Austrian Blauer Portugieser wine grape isolate'),
+                                   ('YJM339', 'Clinical isolate'),
+                                   ('YJM789', 'Haploid derivative of opportunistic human pathogen'),
                                    ('YNN216', 'Congenic to S288C (see Sikorski and Hieter). Used to derive YSS and CY strains (see Sobel and Wolin).'),
-                                   ('YPH499', 'S288C-congenic laboratory strain.'),
+                                   ('YPH499', 'S288C-congenic laboratory strain'),
                                    ('YPH500', 'MAT&alpha; strain isogenic to YPH499 except at mating type locus. Derived from the diploid strain YNN216 (Johnston and Davis 1984; original source: M. Carlson, Columbia University), which is congenic with S288C.'),
                                    ('YPH501', 'a/&alpha; diploid isogenic to YPH499 and YPH500. Derived from the diploid strain YNN216 (Johnston and Davis 1984; original source: M. Carlson, Columbia University), which is congenic with S288C.'),
-                                   ('YPS128', 'Pennsylvania woodland isolate.'),
-                                   ('YPS163', 'Pennsylvania woodland isolate.'),
-                                   ('YS9', 'Singapore baking strain.'),
-                                   ('ZTW1', 'Chinese corn mash bioethanol isolate.')]
+                                   ('YPS128', 'Pennsylvania woodland isolate'),
+                                   ('YPS163', 'Pennsylvania woodland isolate'),
+                                   ('YS9', 'Singapore baking strain'),
+                                   ('ZTW1', 'Chinese corn mash bioethanol isolate')]
 
         for strain, description in other_strains:
             yield {'display_name': strain,
@@ -354,6 +376,12 @@ def make_strain_url_starter(nex_session_maker):
                                'category': 'source',
                                'strain': strain}
 
+            yield {'display_name': 'PubMed',
+                    'link': 'http://www.ncbi.nlm.nih.gov/pubmed/?term=saccharomyces+cerevisiae+' + strain.display_name,
+                    'source': key_to_source['SGD'],
+                    'category': 'pubmed',
+                    'strain': strain}
+
         yield {'display_name': 'Download Sequence',
                                'link': 'http://www.yeastgenome.org/download-data/sequence',
                                'source': key_to_source['SGD'],
@@ -370,17 +398,17 @@ def make_source_starter(bud_session_maker, nex_session_maker):
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
-        for bud_obj in make_db_starter(bud_session.query(Code), 1000)():
+        for bud_obj in bud_session.query(Code).all():
             if (bud_obj.tab_name, bud_obj.col_name) in ok_codes:
                 yield {'display_name': bud_obj.code_value,
                        'description': bud_obj.description,
                        'date_created': bud_obj.date_created,
                        'created_by': bud_obj.created_by}
 
-        other_sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAMs', 'Pfam', 'PRINTS',
-                                        'PIR superfamily', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI',
+        other_sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAM', 'Pfam', 'PRINTS',
+                                        'PIRSF', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI',
                                         'PubMedCentral', 'PubMed', '-', 'ECO', 'TMHMM', 'SignalP', 'PhosphoGRID',
-                                        'GenBank/EMBL/DDBJ']
+                                        'GenBank/EMBL/DDBJ', 'Phobius']
 
         for source in other_sources:
             yield {'display_name': source}

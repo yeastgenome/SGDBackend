@@ -73,7 +73,7 @@ def make_ontology_graph(bioconcept_id, class_type, filter_f, subtype_f):
         edges = [create_edge(x.child_id, x.parent_id, x.relation_type) for x in child_relations]
 
         if bioconcept.class_type == 'OBSERVABLE':
-            grandchild_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[x.child_id for x in child_relations])]
+            grandchild_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[x.child_id for x in child_relations]) if x.relation_type == 'is a']
             nodes.extend([create_node(x.child, False, subtype_f(x.child)) for x in grandchild_relations])
             edges.extend([create_edge(x.child_id, x.parent_id, x.relation_type) for x in grandchild_relations])
 

@@ -130,7 +130,6 @@ class Locus(Bioentity):
         classical_groups = dict()
         large_scale_groups = dict()
         strain_groups = dict()
-        overall = {}
         for evidence in self.phenotype_evidences:
             if evidence.experiment.category == 'classical genetics':
                 if evidence.mutant_type in classical_groups:
@@ -148,12 +147,6 @@ class Locus(Bioentity):
                     strain_groups[evidence.strain.display_name] += 1
                 else:
                     strain_groups[evidence.strain.display_name] = 1
-
-            ancestor = [x.parent.to_min_json() for x in evidence.phenotype.parents if x.relation_type == 'PHENOTYPE_SLIM'][0]
-            if ancestor['id'] in overall:
-                overall[ancestor['id']][1] +=1
-            else:
-                overall[ancestor['id']] = [ancestor, 1]
         experiment_categories = []
         mutant_types = set(classical_groups.keys())
         mutant_types.update(large_scale_groups.keys())
@@ -167,88 +160,12 @@ class Locus(Bioentity):
         strains.sort(key=lambda x: x[1], reverse=True)
         strains.insert(0, ['Strain', 'Annotations'])
         obj_json['phenotype_overview'] = {'experiment_categories': experiment_categories,
-                                          'strains': strains,
-                                          'phenotype_slim': overall.values()}
-
-        #Paragraph
-        lsp_paragraphs = [x.to_json(linkit=True) for x in self.paragraphs if x.category == 'LSP']
-        obj_json['paragraph'] = None if len(lsp_paragraphs) == 0 else lsp_paragraphs[0]
+                                          'strains': strains}
 
         #Go overview
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
-        id_to_go = dict([(x.go_id, x.go) for x in self.go_evidences])
-
-
-        ancestor_to_children = dict()
-        for go in id_to_go.values():
-            for parent in go.parents:
-                if parent.parent in ancestor_to_children:
-                    ancestor_to_children[parent.parent].add(go.id)
-                else:
-                    ancestor_to_children[parent.parent] = set([go.id])
-                for grandparent in parent.parent.parents:
-                    if grandparent.parent in ancestor_to_children:
-                        ancestor_to_children[grandparent.parent].add(go.id)
-                    else:
-                        ancestor_to_children[grandparent.parent] = set([go.id])
-                    ancestor_to_children[grandparent.parent].add(parent.parent.id)
-
-        for ancestor, child_ids in sorted(ancestor_to_children.iteritems(), key=lambda x: len(x[1]), reverse=True):
-            workable_child_ids = [x for x in child_ids if x in id_to_go]
-            if len(workable_child_ids) > 1:
-                for child_id in workable_child_ids:
-                    del id_to_go[child_id]
-                id_to_go[ancestor.id] = ancestor
-
-        next_generation = id_to_go.values()
-        while len(next_generation) > 0:
-            new_generation = set()
-            for go in next_generation:
-                for x in go.parents:
-                    new_generation.add(x.parent)
-                    if x.parent_id in id_to_go:
-                        del id_to_go[x.parent_id]
-            next_generation = new_generation
-
-        go_aspect = [['Strain', 'Annotations'], ['Biological Process', 0], ['Molecular Function', 0], ['Cellular Component', 0]]
-        go_slim_id_to_count = {}
-        go_slim_id_to_count[-1] = 0
-        id_to_go_slim = {}
-        for evidence in self.go_evidences:
-            if evidence.go.go_aspect == 'biological process':
-                go_aspect[1][1] += 1
-            elif evidence.go.go_aspect == 'molecular function':
-                go_aspect[2][1] += 1
-            elif evidence.go.go_aspect == 'cellular component':
-                go_aspect[3][1] += 1
-
-            go_slims = [x.parent for x in evidence.go.parents if x.relation_type == 'GO_SLIM']
-            if len(go_slims) > 0:
-                go_slim = go_slims[0]
-                if go_slim.id in go_slim_id_to_count:
-                    go_slim_id_to_count[go_slim.id] +=1
-                else:
-                    go_slim_id_to_count[go_slim.id] = 1
-                    id_to_go_slim[go_slim.id] = go_slim
-            else:
-                go_slim_id_to_count[-1] += 1
-
-        go_slim_counts = [['Term', 'Annotations']]
-        for go_slim_id, count in go_slim_id_to_count.iteritems():
-            if go_slim_id > -1:
-                go_slim_counts.append([id_to_go_slim[go_slim_id].display_name,  count])
-            elif count > 0:
-                go_slim_counts.append(['N/A', count])
-
-
         obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name']),
-                                   'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0],
-                                   'go_slim_down_bp': [x.to_min_json() for x in sorted(id_to_go.values(), key=lambda x: x.display_name.lower()) if x.go_aspect == 'biological process'],
-                                   'go_slim_down_mf': [x.to_min_json() for x in sorted(id_to_go.values(), key=lambda x: x.display_name.lower()) if x.go_aspect == 'molecular function'],
-                                   'go_slim_down_cc': [x.to_min_json() for x in sorted(id_to_go.values(), key=lambda x: x.display_name.lower()) if x.go_aspect == 'cellular component'],
-                                   'go_aspect': go_aspect,
-                                   'go_slim_counts': go_slim_counts
-                                   }
+                                   'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]}
 
         #Interaction
         genetic_bioentities = set([x.locus2_id for x in self.geninteraction_evidences1])
@@ -271,76 +188,25 @@ class Locus(Bioentity):
                                             'paragraph': None if len(regulation_paragraphs) == 0 else regulation_paragraphs[0]}
 
         obj_json['description_references'] = [x.reference.to_min_json() for x in self.bioentity_evidences if x.info_key == 'Description']
-        obj_json['basic_info_references'] = [x.to_json() for x in self.bioentity_evidences if x.info_key != 'Description']
 
         #Literature
-        primary_reference_ids = set([x.reference_id for x in self.literature_evidences if x.topic == 'Primary Literature'])
-        additional_reference_ids = set([x.reference_id for x in self.literature_evidences if x.topic == 'Additional Literature'])
-        review_reference_ids = set([x.reference_id for x in self.literature_evidences if x.topic == 'Reviews'])
-        phenotype_reference_ids = set([x.reference_id for x in self.phenotype_evidences])
-        go_reference_ids = set([x.reference_id for x in self.go_evidences])
-        interaction_reference_ids = set([x.reference_id for x in self.geninteraction_evidences1])
-        interaction_reference_ids.update([x.reference_id for x in self.geninteraction_evidences2])
-        interaction_reference_ids.update([x.reference_id for x in self.physinteraction_evidences1])
-        interaction_reference_ids.update([x.reference_id for x in self.physinteraction_evidences2])
-        regulation_reference_ids = set([x.reference_id for x in self.regulation_evidences_targets])
-        regulation_reference_ids.update([x.reference_id for x in self.regulation_evidences_regulators])
-        obj_json['literature_overview'] = [['Literature Type', 'References'],
-                                          ['Primary', len(primary_reference_ids)],
-                                          ['Additional', len(additional_reference_ids)],
-                                          ['Reviews', len(review_reference_ids)],
-                                          ['Phenotype', len(phenotype_reference_ids & primary_reference_ids)],
-                                          ['GO', len(go_reference_ids & primary_reference_ids)],
-                                          ['Interaction', len(interaction_reference_ids)],
-                                          ['Regulation', len(regulation_reference_ids)]]
-
-        #Expression
-        expression_collapsed = {}
-        sum = 0;
-        sum_of_squares = 0;
-        n = 0;
-        for x in self.data:
-            rounded = float(x.value.quantize(Decimal('.1')))
-            if rounded in expression_collapsed:
-                expression_collapsed[rounded] += 1
-            else:
-                expression_collapsed[rounded] = 1
-
-            sum = sum + rounded;
-            sum_of_squares = sum_of_squares + rounded*rounded;
-            n = n + 1;
-
-        if n == 0:
-            obj_json['expression_overview'] = {'all_values': expression_collapsed,
-                                               'high_values': [],
-                                               'low_values': [],
-                                               'low_cutoff': 0,
-                                               'high_cutoff': 0}
-        else:
-            mean = 1.0*sum/n;
-            variance = 1.0*sum_of_squares/n - mean*mean;
-            standard_dev = variance**0.5;
-
-            obj_json['expression_overview'] = {'all_values': expression_collapsed,
-                                               'high_values': [x.to_json() for x in self.data if float(x.value) >= mean + 3*standard_dev],
-                                               'low_values': [x.to_json() for x in self.data if float(x.value) <= mean - 3*standard_dev],
-                                               'low_cutoff': mean - 3*standard_dev,
-                                               'high_cutoff': mean + 3*standard_dev}
+        reference_ids = set([x.reference_id for x in self.literature_evidences])
+        reference_ids.update([x.reference_id for x in self.geninteraction_evidences1])
+        reference_ids.update([x.reference_id for x in self.geninteraction_evidences2])
+        reference_ids.update([x.reference_id for x in self.physinteraction_evidences1])
+        reference_ids.update([x.reference_id for x in self.physinteraction_evidences2])
+        reference_ids.update([x.reference_id for x in self.regulation_evidences_targets])
+        reference_ids.update([x.reference_id for x in self.regulation_evidences_regulators])
+        obj_json['literature_overview'] = {'total_count': len(reference_ids)}
 
         #Sequence
-        reference_sequence = [x.to_json() for x in self.dnasequence_evidences if x.strain_id == 1 and x.dna_type == 'GENOMIC']
-        obj_json['sequence_overview'] = None if len(reference_sequence) == 0 else reference_sequence[0]
-
-        #Protein
-        reference_protein_sequence = [x.to_json() for x in self.proteinsequence_evidences if x.strain_id == 1]
-        obj_json['protein_overview'] = {'protein_sequence': None if len(reference_protein_sequence) == 0 else reference_protein_sequence[0],
-                                        'domains': [x.to_json() for x in self.domain_evidences]}
+        obj_json['sequence_overview'] = sorted(dict([(x.strain.id, x.strain.to_min_json()) for x in self.dnasequence_evidences]).values(), key=lambda x: x['display_name'])
 
         #Aliases
         obj_json['aliases'] = [x.to_json() for x in self.aliases]
 
         #Urls
-        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name) if x.category is not None]
+        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name) if x.category is not None and x.category != 'NONE']
 
         return obj_json
 

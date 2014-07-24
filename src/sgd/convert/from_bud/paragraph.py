@@ -35,8 +35,8 @@ strain_paragraphs = {'S288C': ('S288C is a widely used laboratory strain, design
               'W303': ("W303-derivative K6001 is a key model organism for research into aging, and shares >85% of its genome with S288C, differing at >8000 nucleotide positions, causing changes to the sequences of 799 proteins. These differences are distributed non-randomly throughout the genome, with chromosome XVI being almost identical between the two strains, and chromosome XI the most divergent. Some of the non-S288C regions in W303 are also present in Sigma1278b.", [22977733]),
               'Y10': ("Y10 was isolated from a coconut in the Philippines, sometime before 1973.", []),
               'YJM269': ("YJM269 came from red Blauer Portugieser grapes in Austria in 1954. YJM269 shares with CEN.PK113-7D some genes that are absent from S288C, including the ENA6 sodium pump, and others that are also found in PW5.", [22448915]),
-              'BY4741': ("BY4741 is an S288C-deriviative strain that was used for the systematic deletion collection. Variation between these BY4741 and S288C is miniscule.", []),
-              'BY4742': ("BY4742 is an S288C-deriviative strain that was used for the systematic deletion collection. Variation between these BY4742 and S288C is miniscule.", []),
+              'BY4741': ("BY4741 is an S288C-derivative strain that was used for the systematic deletion collection. Variation between BY4741 and S288C is miniscule.", []),
+              'BY4742': ("BY4742 is an S288C-derivative strain that was used for the systematic deletion collection. Variation between BY4742 and S288C is miniscule.", []),
               'CENPK': ("CEN.PK113-7D is a laboratory strain derived from parental strains ENY.WA-1A and MC996A, and is popular for use in systems biology studies. There are six duplicated regions in CEN.PK113-7D relative to S288C, two on chromosome II, and one each on chromosomes III, VII, VIII and XV, including an enrichment of maltose metabolism genes. CEN.PK113-7D is a biotin prototroph, and has genes required for biotin biosynthesis. There are >20,000 SNPs between CEN.PK113-7D and S288C, two-thirds of which are within ORFs. Almost 5000 of these result in altered sequences of >1400 proteins. There are also >2800 small indels averaging 3 bp each in CEN.PK113-7D relative to S288C, and more than 400 of these are in coding regions. CEN.PK113-7D also has an additional 83 genes that are absent from S288C, including the ENA6 sodium pump that is also found in YJM269, and others that are present in both YJM269 and PW5.", [22448915]),
               'ZTW1': ("ZTW1 was isolated from corn mash used for industrial bioethanol production in China in 2007.", [])
 
@@ -175,7 +175,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
 
         bioentity_key_to_date = dict()
         #Go
-        for gofeature in make_db_starter(bud_session.query(GoFeature), 1000)():
+        for gofeature in bud_session.query(GoFeature).all():
             bioentity_key = (gofeature.feature.name, 'LOCUS')
             if gofeature.annotation_type == 'manually curated' and bioentity_key not in bioentity_key_to_date:
                 bioentity_key_to_date[bioentity_key] = gofeature.date_last_reviewed

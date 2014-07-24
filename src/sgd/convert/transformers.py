@@ -1,9 +1,9 @@
 from abc import abstractmethod, ABCMeta
 import sys
 import traceback
+import datetime
 
 from src.sgd.model.nex import UpdateByJsonMixin
-from math import ceil
 
 __author__ = 'kpaskov'
 
@@ -17,7 +17,7 @@ class TransformerInterface:
         pass
 
     @abstractmethod
-    def finished(self):
+    def finished(self, with_error=False):
         pass
 
 class Json2Obj(TransformerInterface):
@@ -31,7 +31,7 @@ class Json2Obj(TransformerInterface):
         else:
             return self.cls(obj_json)
 
-    def finished(self):
+    def finished(self, with_error=False):
         return None
 
 class Obj2Json(TransformerInterface):
@@ -39,19 +39,23 @@ class Obj2Json(TransformerInterface):
     def convert(self, obj):
         return obj.to_json()
 
-    def finished(self):
+    def finished(self, with_error=False):
         return None
 
 class Obj2NexDB(TransformerInterface):
 
-    def __init__(self, session_maker, current_obj_query, name=None, commit_interval=None, commit=False, delete_untouched=False):
+    def __init__(self, session_maker, current_obj_query, name=None, commit_interval=None, commit=False, delete_untouched=False, already_deleted=0):
         self.session = session_maker()
         self.current_obj_query = current_obj_query
         self.name = name
         self.commit_interval = commit_interval
         self.commit = commit
         self.delete_untouched = delete_untouched
-        self.key_to_current_obj_json = dict([(x.unique_key(), UpdateByJsonMixin.to_json(x)) for x in make_db_starter(current_obj_query(self.session), 20000)()])
+        self.key_to_current_obj_json = dict()
+        self.current_obj_ids = set()
+        for obj in current_obj_query(self.session):
+            self.key_to_current_obj_json[obj.unique_key()] = UpdateByJsonMixin.to_json(obj)
+            self.current_obj_ids.add(obj.id)
         self.keys_already_seen = set()
         self.none_count = 0
         self.added_count = 0
@@ -59,48 +63,45 @@ class Obj2NexDB(TransformerInterface):
         self.no_change_count = 0
         self.duplicate_count = 0
         self.error_count = 0
-        self.deleted_count = 0
+        self.deleted_count = already_deleted
 
     def convert(self, newly_created_obj):
-        try:
-            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
-                self.session.commit()
+        if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+            self.session.commit()
 
-            if newly_created_obj is None:
-                self.none_count += 1
-                return 'None'
-            key = newly_created_obj.unique_key()
-            if key not in self.keys_already_seen:
-                self.keys_already_seen.add(key)
-                current_obj_json = None if key not in self.key_to_current_obj_json else self.key_to_current_obj_json[key]
-                newly_created_obj_json = UpdateByJsonMixin.to_json(newly_created_obj)
-                if current_obj_json is None:
-                    self.session.add(newly_created_obj)
-                    self.added_count += 1
-                    return 'Added'
-                elif newly_created_obj.compare(current_obj_json):
-                    current_obj = self.current_obj_query(self.session).filter_by(id=current_obj_json['id']).first()
-                    if current_obj is not None:
-                        current_obj.update(newly_created_obj_json)
-                        self.updated_count += 1
-                        return 'Updated'
-                    else:
-                        self.error_count += 1
-                        return 'Error'
+        if newly_created_obj is None:
+            self.none_count += 1
+            return 'None'
+        key = newly_created_obj.unique_key()
+        if key not in self.keys_already_seen:
+            self.keys_already_seen.add(key)
+            current_obj_json = None if key not in self.key_to_current_obj_json else self.key_to_current_obj_json[key]
+            newly_created_obj_json = UpdateByJsonMixin.to_json(newly_created_obj)
+            if current_obj_json is None:
+                if newly_created_obj.id in self.current_obj_ids:
+                    current_obj_by_id = self.current_obj_query(self.session).filter_by(id=newly_created_obj.id).first()
+                    self.session.delete(current_obj_by_id)
+                self.session.add(newly_created_obj)
+                self.added_count += 1
+                return 'Added'
+            elif newly_created_obj.compare(current_obj_json):
+                current_obj = self.current_obj_query(self.session).filter_by(id=current_obj_json['id']).first()
+                if current_obj is not None:
+                    current_obj.update(newly_created_obj_json)
+                    self.updated_count += 1
+                    return 'Updated'
                 else:
-                    self.no_change_count += 1
-                    return 'No Change'
+                    self.error_count += 1
+                    return 'Error'
             else:
-                self.duplicate_count += 1
-                return 'Duplicate'
-        except:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.error_count += 1
-            return 'Error'
+                self.no_change_count += 1
+                return 'No Change'
+        else:
+            self.duplicate_count += 1
+            return 'Duplicate'
 
-    def finished(self):
-        if self.delete_untouched:
+    def finished(self, with_error=False):
+        if self.delete_untouched and not with_error:
             keys_to_delete = set(self.key_to_current_obj_json.keys()).difference(self.keys_already_seen)
             ids_to_delete = [self.key_to_current_obj_json[key]['id'] for key in keys_to_delete]
 
@@ -124,7 +125,7 @@ class Obj2NexDB(TransformerInterface):
 
 class Evidence2NexDB(TransformerInterface):
 
-    def __init__(self, session_maker, current_obj_query, name=None, commit_interval=None, commit=False, delete_untouched=False):
+    def __init__(self, session_maker, current_obj_query, name=None, commit_interval=None, commit=False, delete_untouched=False, already_deleted=0):
         self.session = session_maker()
         self.current_obj_query = current_obj_query
         self.name = name
@@ -139,46 +140,40 @@ class Evidence2NexDB(TransformerInterface):
         self.no_change_count = 0
         self.duplicate_count = 0
         self.error_count = 0
-        self.deleted_count = 0
+        self.deleted_count = already_deleted
 
     def convert(self, newly_created_obj):
-        try:
-            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
-                self.session.commit()
+        if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+            self.session.commit()
 
-            if newly_created_obj is None:
-                self.none_count += 1
-                return 'None'
-            key = newly_created_obj.unique_key()
-            if key not in self.keys_already_seen:
-                self.keys_already_seen.add(key)
-                current_json = None if key not in self.key_to_current_json else self.key_to_current_json[key][0]
-                newly_created_json = newly_created_obj.json
-                if key not in self.key_to_current_json:
-                    self.session.add(newly_created_obj)
-                    self.added_count += 1
-                    return 'Added'
-                elif current_json == newly_created_json:
-                    self.no_change_count += 1
-                    return 'No Change'
-                else:
-                    newly_created_obj_json = UpdateByJsonMixin.to_json(newly_created_obj)
-                    current_obj = self.current_obj_query(self.session).filter_by(id=self.key_to_current_json[key][1]).first()
-                    current_obj.update(newly_created_obj_json)
-                    current_obj.json = newly_created_json
-                    self.updated_count += 1
-                    return 'Updated'
+        if newly_created_obj is None:
+            self.none_count += 1
+            return 'None'
+        key = newly_created_obj.unique_key()
+        if key not in self.keys_already_seen:
+            self.keys_already_seen.add(key)
+            current_json = None if key not in self.key_to_current_json else self.key_to_current_json[key][0]
+            newly_created_json = newly_created_obj.json
+            if key not in self.key_to_current_json:
+                self.session.add(newly_created_obj)
+                self.added_count += 1
+                return 'Added'
+            elif current_json == newly_created_json:
+                self.no_change_count += 1
+                return 'No Change'
             else:
-                self.duplicate_count += 1
-                return 'Duplicate'
-        except:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.error_count += 1
-            return 'Error'
+                newly_created_obj_json = UpdateByJsonMixin.to_json(newly_created_obj)
+                current_obj = self.current_obj_query(self.session).filter_by(id=self.key_to_current_json[key][1]).first()
+                current_obj.update(newly_created_obj_json)
+                current_obj.json = newly_created_json
+                self.updated_count += 1
+                return 'Updated'
+        else:
+            self.duplicate_count += 1
+            return 'Duplicate'
 
-    def finished(self):
-        if self.delete_untouched:
+    def finished(self, with_error=False):
+        if self.delete_untouched and not with_error:
             keys_to_delete = set(self.key_to_current_json.keys()).difference(self.keys_already_seen)
             ids_to_delete = [self.key_to_current_json[key][1] for key in keys_to_delete]
 
@@ -217,42 +212,36 @@ class BigObj2NexDB(TransformerInterface):
         self.deleted_count = 0
 
     def convert(self, newly_created_obj):
-        try:
-            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
-                self.session.commit()
+        if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+            self.session.commit()
 
-            if newly_created_obj is None:
-                self.none_count += 1
-                return 'None'
-            key = newly_created_obj.unique_key()
-            if key not in self.keys_already_seen:
-                self.keys_already_seen.add(key)
-                current_id = None if key not in self.key_to_current_id else self.key_to_current_id[key]
-                if current_id is None:
-                    self.session.add(newly_created_obj)
-                    self.added_count += 1
-                    return 'Added'
-                else:
-                    current_obj = self.current_obj_query(self.session).filter_by(id=current_id).first()
-                    current_obj_json = UpdateByJsonMixin.to_json(current_obj)
-                    if newly_created_obj.compare(current_obj_json):
-                        current_obj.update(current_obj_json)
-                        self.updated_count += 1
-                        return 'Updated'
-                    else:
-                        self.no_change_count += 1
-                        return 'No Change'
+        if newly_created_obj is None:
+            self.none_count += 1
+            return 'None'
+        key = newly_created_obj.unique_key()
+        if key not in self.keys_already_seen:
+            self.keys_already_seen.add(key)
+            current_id = None if key not in self.key_to_current_id else self.key_to_current_id[key]
+            if current_id is None:
+                self.session.add(newly_created_obj)
+                self.added_count += 1
+                return 'Added'
             else:
-                self.duplicate_count += 1
-                return 'Duplicate'
-        except:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.error_count += 1
-            return 'Error'
+                current_obj = self.current_obj_query(self.session).filter_by(id=current_id).first()
+                current_obj_json = UpdateByJsonMixin.to_json(current_obj)
+                if newly_created_obj.compare(current_obj_json):
+                    current_obj.update(current_obj_json)
+                    self.updated_count += 1
+                    return 'Updated'
+                else:
+                    self.no_change_count += 1
+                    return 'No Change'
+        else:
+            self.duplicate_count += 1
+            return 'Duplicate'
 
-    def finished(self):
-        if self.delete_untouched:
+    def finished(self, with_error=False):
+        if self.delete_untouched and not with_error:
             keys_to_delete = set(self.key_to_current_id.keys()).difference(self.keys_already_seen)
             ids_to_delete = [self.key_to_current_id[key] for key in keys_to_delete]
 
@@ -294,37 +283,31 @@ class Json2CorePerfDB(TransformerInterface):
         if newly_created_obj_json is None:
             self.none_count += 1
             return 'None'
-        try:
-            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
-                self.session.commit()
+        if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+            self.session.commit()
 
-            identifier = newly_created_obj_json['id']
-            if identifier not in self.ids_already_seen:
-                self.ids_already_seen.add(identifier)
-                current_obj = None if identifier not in self.id_to_current_obj else self.id_to_current_obj[identifier]
-                if current_obj is None:
-                    self.session.add(self.cls(newly_created_obj_json))
-                    self.added_count += 1
-                    return 'Added'
-                else:
-                    updated = current_obj.update(newly_created_obj_json)
-                    if updated:
-                        self.updated_count += 1
-                        return 'Updated'
-                    else:
-                        self.no_change_count += 1
-                        return 'No Change'
+        identifier = newly_created_obj_json['id']
+        if identifier not in self.ids_already_seen:
+            self.ids_already_seen.add(identifier)
+            current_obj = None if identifier not in self.id_to_current_obj else self.id_to_current_obj[identifier]
+            if current_obj is None:
+                self.session.add(self.cls(newly_created_obj_json))
+                self.added_count += 1
+                return 'Added'
             else:
-                self.duplicate_count += 1
-                return 'Duplicate'
-        except:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.error_count += 1
-            return 'Error'
+                updated = current_obj.update(newly_created_obj_json)
+                if updated:
+                    self.updated_count += 1
+                    return 'Updated'
+                else:
+                    self.no_change_count += 1
+                    return 'No Change'
+        else:
+            self.duplicate_count += 1
+            return 'Duplicate'
 
-    def finished(self):
-        if self.delete_untouched:
+    def finished(self, with_error=False):
+        if self.delete_untouched and not with_error:
             ids_to_delete = set(self.id_to_current_obj.keys()).difference(self.ids_already_seen)
             for untouched_id in ids_to_delete:
                 self.session.delete(self.id_to_current_obj[untouched_id])
@@ -362,32 +345,26 @@ class Json2DisambigPerfDB(TransformerInterface):
         if newly_created_obj_json is None:
             self.none_count += 1
             return 'None'
-        try:
-            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
-                self.session.commit()
+        if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+            self.session.commit()
 
-            key = (newly_created_obj_json['class_type'], newly_created_obj_json['subclass_type'], newly_created_obj_json['disambig_key'])
-            identifier = newly_created_obj_json['identifier']
-            if key in self.id_to_current_obj:
-                if identifier == self.id_to_current_obj[key]:
-                    self.no_change_count += 1
-                    return 'No Change'
-                else:
-                    to_update = self.session.query(Disambig).filter_by(class_type=key[0], subclass_type=key[1], disambig_key=key[2]).first()
-                    to_update.obj_id = identifier
-                    self.updated_count += 1
-                    return 'Updated'
+        key = (newly_created_obj_json['class_type'], newly_created_obj_json['subclass_type'], newly_created_obj_json['disambig_key'].encode('utf-8'))
+        identifier = newly_created_obj_json['identifier']
+        if key in self.id_to_current_obj:
+            if identifier == self.id_to_current_obj[key]:
+                self.no_change_count += 1
+                return 'No Change'
             else:
-                self.session.add(Disambig(newly_created_obj_json))
-                self.added_count += 1
-                return 'Added'
-        except:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.error_count += 1
-            return 'Error'
+                to_update = self.session.query(Disambig).filter_by(class_type=key[0], subclass_type=key[1], disambig_key=key[2]).first()
+                to_update.obj_id = identifier
+                self.updated_count += 1
+                return 'Updated'
+        else:
+            self.session.add(Disambig(newly_created_obj_json))
+            self.added_count += 1
+            return 'Added'
 
-    def finished(self):
+    def finished(self, with_error=False):
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
                    'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
                    'None': self.none_count}
@@ -433,23 +410,16 @@ class Json2DataPerfDB(TransformerInterface):
         self.deleted_count = len(to_be_deleted)
 
     def convert(self, newly_created_obj_json):
-        try:
-            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
-                self.session.commit()
+        if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+            self.session.commit()
 
-            obj_id, json_str = newly_created_obj_json
+        obj_id, json_str = newly_created_obj_json
 
-            self.id_to_obj[obj_id].json = json_str
-            self.updated_count += 1
-            return 'Updated'
+        self.id_to_obj[obj_id].json = json_str
+        self.updated_count += 1
+        return 'Updated'
 
-        except:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.error_count += 1
-            return 'Error'
-
-    def finished(self):
+    def finished(self, with_error=False):
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
                    'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
                    'None': self.none_count}
@@ -480,28 +450,21 @@ class Json2OrphanPerfDB(TransformerInterface):
 
     def convert(self, newly_created_obj_json):
         from src.sgd.model.perf.core import Orphan
-        try:
-            if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
-                self.session.commit()
+        if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+            self.session.commit()
 
-            url, json_str = newly_created_obj_json
+        url, json_str = newly_created_obj_json
 
-            if url in self.url_to_obj:
-                self.url_to_obj[url].json = json_str
-                self.updated_count += 1
-                return 'Updated'
-            else:
-                self.session.add(Orphan(url, json_str))
-                self.added_count += 1
-                return 'Added'
+        if url in self.url_to_obj:
+            self.url_to_obj[url].json = json_str
+            self.updated_count += 1
+            return 'Updated'
+        else:
+            self.session.add(Orphan(url, json_str))
+            self.added_count += 1
+            return 'Added'
 
-        except:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
-            self.error_count += 1
-            return 'Error'
-
-    def finished(self):
+    def finished(self, with_error=False):
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
                    'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
                    'None': self.none_count}
@@ -517,7 +480,7 @@ class NullTransformer(TransformerInterface):
     def convert(self, x):
         return x
 
-    def finished(self):
+    def finished(self, with_error=False):
         return None
 
 class OutputTransformer(TransformerInterface):
@@ -538,7 +501,7 @@ class OutputTransformer(TransformerInterface):
             print self.output
         return x
 
-    def finished(self):
+    def finished(self, with_error=False):
         return self.output
 
 # ------------------------------------------ Starters ------------------------------------------
@@ -759,11 +722,20 @@ def make_fasta_file_starter(filename):
 
 # ------------------------------------------ Conversion ------------------------------------------
 def do_conversion(starter, converters):
-    for element in starter():
-        reduce(lambda x, y: y.convert(x), converters, element)
+    try:
+        for element in starter():
+            reduce(lambda x, y: y.convert(x), converters, element)
 
-    for converter in converters:
-        output = converter.finished()
+        for converter in converters:
+            output = converter.finished()
+            if output is not None:
+                print str(datetime.datetime.now()) + ': ' + str(output)
+    except:
+        output = converters[len(converters)-1].finished(with_error=True)
         if output is not None:
-            print output
+            print str(datetime.datetime.now()) + ': ' + str(output)
+
+        print str(datetime.datetime.now()) + ': !!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!'
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback)
 

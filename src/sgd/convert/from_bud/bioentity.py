@@ -6,6 +6,39 @@ from src.sgd.convert.transformers import make_db_starter, make_file_starter
 __author__ = 'kpaskov'
 
 # --------------------- Convert Locus ---------------------
+non_locus_feature_types = {
+    'ARS consensus sequence',
+    'binding_site',
+    'CDEI',
+    'CDEII',
+    'CDEIII',
+    'CDS',
+    'chromosome',
+    'external_transcribed_spacer_region',
+    'five_prime_UTR_intron',
+    'insertion',
+    'internal_transcribed_spacer_region',
+    'intron',
+    'mRNA',
+    'non_transcribed_region',
+    'noncoding_exon',
+    'plasmid',
+    'plus_1_translational_frameshift',
+    'repeat_region',
+    'TF_binding_site',
+    'TF_binding_sites',
+    'telomeric_repeat',
+    'X_element_combinatorial_repeats',
+    'X_element_core_sequence',
+    "Y'_element",
+    'uORF',
+    'W_region',
+    'X_region',
+    'Y_region',
+    'Z1_region',
+    'Z2_region'
+}
+
 def make_locus_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.bud.feature import Feature
@@ -22,7 +55,7 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
                 sgdid_to_uniprotid[line[2].strip()] = line[0].strip()
 
         #From feature
-        for bud_obj in make_db_starter(bud_session.query(Feature).options(joinedload('annotation')), 1000)():
+        for bud_obj in bud_session.query(Feature).options(joinedload('annotation')).all():
             display_name = bud_obj.gene_name
             if display_name is None:
                 display_name = bud_obj.name
@@ -41,20 +74,22 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
 
             source_key = bud_obj.source
             source = None if source_key not in key_to_source else key_to_source[source_key]
-            yield {'id': bud_obj.id,
-                                  'display_name': display_name,
-                                  'format_name':bud_obj.name,
-                                  'source': source,
-                                  'sgdid': sgdid,
-                                  'uniprotid': None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid],
-                                  'bioent_status': bud_obj.status,
-                                  'locus_type': bud_obj.type,
-                                  'name_description': name_description,
-                                  'headline': headline,
-                                  'description': description,
-                                  'gene_name': bud_obj.gene_name,
-                                  'date_created': bud_obj.date_created,
-                                  'created_by': bud_obj.created_by}
+
+            if bud_obj.type not in non_locus_feature_types:
+                yield {'id': bud_obj.id,
+                                      'display_name': display_name,
+                                      'format_name':bud_obj.name,
+                                      'source': source,
+                                      'sgdid': sgdid,
+                                      'uniprotid': None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid],
+                                      'bioent_status': bud_obj.status,
+                                      'locus_type': bud_obj.type,
+                                      'name_description': name_description,
+                                      'headline': headline,
+                                      'description': description,
+                                      'gene_name': bud_obj.gene_name,
+                                      'date_created': bud_obj.date_created,
+                                      'created_by': bud_obj.created_by}
         bud_session.close()
         nex_session.close()
     return locus_starter
@@ -93,16 +128,15 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
-        for locus in make_db_starter(nex_session.query(Locus), 1000)():
+        for locus in nex_session.query(Locus).all():
             show_summary = 1
             show_history = 1
-            show_sequence = 1
             show_wiki = 1
 
             if locus.bioent_status != 'Active':
                 yield {'id': locus.id,
                            'summary_tab': show_summary,
-                           'sequence_tab': show_sequence,
+                           'sequence_tab': 0,
                            'history_tab': show_history,
                            'literature_tab': 0,
                            'go_tab': 0,
@@ -112,6 +146,9 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                            'regulation_tab': 0,
                            'protein_tab': 0,
                            'wiki_tab': show_wiki}
+
+            yes_sequence = {'ORF', 'ncRNA', 'tRNA', 'centromere', 'mating_locus', 'gene_cassette', 'ARS', 'telomere', 'long_terminal_repeat', 'transposable_element_gene', 'rRNA', 'snoRNA ', 'snRNA'}
+            show_sequence = 1 if locus.locus_type in yes_sequence else 0
 
             show_literature = 1
 
@@ -181,7 +218,7 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         bioentity_ids = set([x.id for x in nex_session.query(Bioentity.id).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(AliasFeature).options(joinedload('alias')), 1000)():
+        for bud_obj in bud_session.query(AliasFeature).options(joinedload('alias')).all():
             bioentity_id = bud_obj.feature_id
             if bioentity_id in bioentity_ids:
                 yield {'display_name': bud_obj.alias_name,
@@ -192,10 +229,9 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
                        'date_created': bud_obj.date_created,
                        'created_by': bud_obj.created_by}
             else:
-                print 'Bioentity not found: ' + str(bioentity_id)
                 yield None
 
-        for bud_obj in make_db_starter(bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')), 1000)():
+        for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).all():
             display_name = bud_obj.dbxref.dbxref_id
             bioentity_id = bud_obj.feature_id
             if bioentity_id in bioentity_ids:
@@ -212,10 +248,9 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
                        'date_created': bud_obj.dbxref.date_created,
                        'created_by': bud_obj.dbxref.created_by}
             else:
-                print 'Bioentity not found: ' + str(bioentity_id)
                 yield None
 
-        for complex in make_db_starter(nex_session.query(Complex), 1000)():
+        for complex in nex_session.query(Complex).all():
             for alias in complex.go.aliases:
                 yield {'display_name': alias.display_name,
                        'source': alias.source,
@@ -238,7 +273,7 @@ def make_bioentity_relation_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         go_id_to_complex = dict([(x.go_id, x) for x in nex_session.query(Complex).all()])
 
-        for complex in make_db_starter(nex_session.query(Complex), 1000)():
+        for complex in nex_session.query(Complex).all():
             for relation in complex.go.parents:
                 if relation.child_id in go_id_to_complex and relation.parent_id in go_id_to_complex:
                     parent = go_id_to_complex[relation.parent_id]
@@ -262,7 +297,11 @@ category_mapping = {
     'Protein databases/Other': 'LOCUS_PROTEIN_PROTEIN_DATABASES',
     'Localization Resources': 'LOCUS_PROEIN_LOCALIZATION',
     'Post-translational modifications': 'LOCUS_PROTEIN_MODIFICATIONS',
+    'Analyze Sequence S288C only': 'LOCUS_SEQUENCE_S288C',
+    'Analyze Sequence S288C vs. other species': 'LOCUS_SEQUENCE_OTHER_SPECIES',
+    'Analyze Sequence S288C vs. other strains': 'LOCUS_SEQUENCE_OTHER_STRAINS'
 }
+
 def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex import create_format_name
     from src.sgd.model.nex.misc import Source
@@ -303,7 +342,7 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
                            'date_created': old_url.date_created,
                            'created_by': old_url.created_by}
                 else:
-                    print 'Bioentity not found: ' + str(bioentity_id)
+                    #print 'Bioentity not found: ' + str(bioentity_id)
                     yield None
 
         for bud_obj in make_db_starter(bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')), 1000)():
@@ -338,7 +377,7 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
                                    'date_created': old_url.date_created,
                                    'created_by': old_url.created_by}
                     else:
-                        print 'Bioentity not found: ' + str(bioentity_id)
+                        #print 'Bioentity not found: ' + str(bioentity_id)
                         yield None
 
         for locus in nex_session.query(Locus).all():

@@ -75,10 +75,11 @@ def clean_up_orphans(nex_session_maker, child_cls, parent_cls, class_type):
     nex_session = nex_session_maker()
     child_table_ids = nex_session.query(child_cls.id).subquery()
     query = nex_session.query(parent_cls).filter_by(class_type=class_type).filter(not_(parent_cls.id.in_(child_table_ids)))
-    print 'Deleting orphans ' + class_type + ': ' + str(query.count())
+    deleted_count = query.count()
     query.delete(synchronize_session=False)
     nex_session.commit()
     nex_session.close()
+    return deleted_count
 
 word_to_bioent_id = None
 

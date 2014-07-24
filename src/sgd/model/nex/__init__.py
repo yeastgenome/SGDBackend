@@ -1,6 +1,7 @@
 __author__ = 'kpaskov'
 
 import json
+import datetime
 
 def create_format_name(display_name):
     format_name = display_name.replace(' ', '_')
@@ -13,14 +14,17 @@ class UpdateByJsonMixin(object):
     def update(self, json_obj):
         anything_changed = False
         for key in self.__eq_values__:
+            current_value = getattr(self, key)
+            new_value = None if key not in json_obj else json_obj[key]
+
+            if isinstance(new_value, str) and (key == 'seq_version' or key == 'coord_version' or key == 'date_of_run'):
+                new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
+
             if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                 pass
-            else:
-                current_value = getattr(self, key)
-                new_value = json_obj[key]
-                if new_value != current_value:
-                    setattr(self, key, new_value)
-                    anything_changed = True
+            elif new_value != current_value:
+                setattr(self, key, new_value)
+                anything_changed = True
 
         for key in self.__eq_fks__:
             current_value = getattr(self, key + '_id')
@@ -37,6 +41,9 @@ class UpdateByJsonMixin(object):
         for key in self.__eq_values__:
             current_value = getattr(self, key)
             new_value = json_obj[key]
+
+            if isinstance(new_value, str) and (key == 'seq_version' or key == 'coord_version' or key == 'date_of_run'):
+                new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
 
             if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                 pass
@@ -65,10 +72,12 @@ class UpdateByJsonMixin(object):
         for key in self.__eq_values__:
             if key == 'json':
                 pass
-            elif key == 'date_created' or key == 'date_revised':
-                obj_json[key] = str(getattr(self, key))
             else:
-                obj_json[key] = getattr(self, key)
+                value = getattr(self, key)
+                if value is not None and isinstance(value, datetime.date):
+                    obj_json[key] = str(value)
+                else:
+                    obj_json[key] = value
 
         for key in self.__eq_fks__:
             fk_obj = getattr(self, key)

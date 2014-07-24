@@ -5,10 +5,6 @@ import uuid
 
 from mpmath import ceil
 from pyramid.response import Response
-from sqlalchemy.engine import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.sql.expression import func
 from zope.sqlalchemy import ZopeTransactionExtension
 
 from src.sgd.backend.backend_interface import BackendInterface
@@ -18,21 +14,10 @@ from src.sgd.model import perf
 
 __author__ = 'kpaskov'
 
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
 class PerfBackend(BackendInterface):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
-        class Base(object):
-            __table_args__ = {'schema': schema, 'extend_existing':True}
-                
-        perf.Base = declarative_base(cls=Base)
-
-        engine = create_engine("%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname), convert_unicode=True, pool_recycle=3600)
-
-        DBSession.configure(bind=engine)
-        perf.Base.metadata.bind = engine
-        
-        self.log = set_up_logging(log_directory, 'perf')
+        self.log = set_up_logging(log_directory, 'test')
         
     #Renderer
     def get_renderer(self, method_name):
@@ -500,7 +485,7 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
 
 def get_obj_id(identifier, class_type=None, subclass_type=None):
     objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
-    obj_id = None if objs_ids is None or len(objs_ids) == 0 else objs_ids[0][0]
+    obj_id = None if objs_ids is None or len(objs_ids) != 1 else objs_ids[0][0]
     return obj_id
 
 def get_all(cls, col_name, chunk_size, offset):

@@ -20,12 +20,12 @@ def make_orphan_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Reporter'), 1000)():
+        for bud_obj in bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Reporter').all():
             if bud_obj.type == 'Reporter':
                 yield {'display_name': bud_obj.value,
                        'source': key_to_source['SGD']}
 
-        for bud_obj in make_db_starter(bud_session.query(GorefDbxref), 1000)():
+        for bud_obj in bud_session.query(GorefDbxref).all():
             dbxref = bud_obj.dbxref
             dbxref_type = dbxref.dbxref_type
             if dbxref_type != 'GOID' and dbxref_type != 'EC number' and dbxref_type != 'DBID Primary' and dbxref_type != 'PANTHER' and dbxref_type != 'Prosite':
@@ -89,7 +89,7 @@ def make_allele_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Allele'), 1000)():
+        for bud_obj in bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Allele').all():
             if bud_obj.type == 'Allele':
                 yield {'display_name': bud_obj.value,
                        'source': key_to_source['SGD']}
@@ -113,53 +113,26 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
         for row in make_file_starter('src/sgd/convert/data/PANTHER9.0_HMM_classifications.txt')():
             panther_id_to_description[row[0]] = row[1].lower()
 
-        not_a_panther_id = set()
-        for row in make_file_starter('src/sgd/convert/data/yeastmine_protein_domains.tsv')():
-            source_key = row[10].strip()
+        for row in make_file_starter('src/sgd/convert/data/domains.tab')():
+            source_key = row[3].strip()
 
-            display_name = row[3].strip()
-            description = row[4].strip()
-            interpro_id = row[5].strip()
-            interpro_description = row[6].strip()
+            if source_key == 'Coils':
+                source_key = '-'
 
-            if source_key == 'JASPAR':
-                pass
-            elif source_key == 'HMMSmart':
-                source_key = 'SMART'
-            elif source_key == 'HMMPfam':
-                source_key = 'Pfam'
-            elif source_key == 'Gene3D':
-                pass
-            elif source_key == 'superfamily':
-                source_key = 'SUPERFAMILY'
-            elif source_key == 'Seg':
-                source_key = '-'
-            elif source_key == 'Coil':
-                source_key = '-'
-            elif source_key == 'HMMPanther':
-                source_key = 'PANTHER'
-            elif source_key == 'HMMTigr':
-                source_key = 'TIGRFAMs'
-            elif source_key == 'FPrintScan':
-                source_key = 'PRINTS'
-            elif source_key == 'BlastProDom':
-                source_key = 'ProDom'
-            elif source_key == 'HMMPIR':
-                source_key = "PIR superfamily"
-            elif source_key == 'ProfileScan':
-                source_key = 'PROSITE'
-            elif source_key == 'PatternScan':
-                source_key = 'PROSITE'
-            else:
-                print 'No source translation ' + source_key + ' ' + str(display_name)
-                yield None
+            display_name = row[4].strip()
+            description = row[5].strip()
+            interpro_id = None
+            interpro_description = None
+            if len(row) == 13:
+                interpro_id = row[11].strip()
+                interpro_description = row[12].strip()
 
             source_key = create_format_name(source_key)
             source = None if source_key not in key_to_source else key_to_source[source_key]
 
-            description = None if description == 'no description' else description
-            interpro_description = None if interpro_description == 'NULL' else interpro_description
-            interpro_id = None if interpro_id == 'NULL' else interpro_id
+            description = None if description == '' else description
+            interpro_description = None if interpro_description == '' else interpro_description
+            interpro_id = None if interpro_id == '' else interpro_id
 
             if source_key == 'PANTHER':
                 if display_name in panther_id_to_description:
@@ -169,18 +142,16 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                        'bioitem_type': source_key,
                        'interpro_id': interpro_id,
                        'interpro_description': interpro_description}
-                else:
-                    not_a_panther_id.add(display_name)
 
-            else:
+            elif source_key is not None:
                 yield {'display_name': display_name,
                        'source': source,
                        'description': description if description is not None else interpro_description,
                        'bioitem_type': source_key,
                        'interpro_id': interpro_id,
                        'interpro_description': interpro_description}
-
-        print 'Not a panther ID: ' + str(not_a_panther_id)
+            else:
+                print 'Source not found: ' + source_key
 
         for row in make_file_starter('src/sgd/convert/data/TF_family_class_accession04302013.txt')():
             description = 'Class: ' + row[4] + ', Family: ' + row[3]
@@ -198,9 +169,7 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                'description': 'predicted transmembrane domain',
                'bioitem_type': 'TMHMM'}
 
-        not_a_panther_id = set()
-
-        for bud_obj in make_db_starter(bud_session.query(Dbxref).filter(or_(Dbxref.dbxref_type == 'PANTHER', Dbxref.dbxref_type == 'Prosite')), 1000)():
+        for bud_obj in bud_session.query(Dbxref).filter(or_(Dbxref.dbxref_type == 'PANTHER', Dbxref.dbxref_type == 'Prosite')).all():
             dbxref_type = bud_obj.dbxref_type
             source_key = create_format_name(bud_obj.source)
             source = None if source_key not in key_to_source else key_to_source[source_key]
@@ -219,15 +188,11 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                        'source': source,
                        'description': panther_id_to_description[bud_obj.dbxref_id],
                        'bioitem_type': bioitem_type}
-                else:
-                    not_a_panther_id.add(bud_obj.dbxref_id)
             else:
                 yield {'display_name': bud_obj.dbxref_id,
                        'source': source,
                        'description': bud_obj.dbxref_name,
                        'bioitem_type': bioitem_type}
-
-        print 'Not a panther ID: ' + str(not_a_panther_id)
 
         bud_session.close()
         nex_session.close()
@@ -245,7 +210,7 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(CVTerm).filter(CVTerm.cv_no == 3), 1000)():
+        for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no == 3).all():
             yield {'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
                    'chebi_id': bud_obj.dbxref_id,
@@ -253,7 +218,7 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
 
-        for bud_obj in make_db_starter(bud_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')), 1000)():
+        for bud_obj in bud_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')).all():
             yield {'display_name': bud_obj.value,
                    'source': key_to_source['SGD'],
                    'date_created': bud_obj.date_created,
@@ -264,12 +229,15 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
     return chemical_starter
 
 # --------------------- Convert Contig ---------------------
-def make_contig_starter(nex_session_maker):
+def make_contig_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.convert.from_bud import sequence_files
+    from src.sgd.model.bud.sequence import Sequence
+    from src.sgd.model.bud.feature import Feature
 
     def contig_starter():
         nex_session = nex_session_maker()
+        bud_session = bud_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
@@ -286,7 +254,18 @@ def make_contig_starter(nex_session_maker):
                            'source': key_to_source['SGD'],
                            'strain': key_to_strain[strain.replace('.', '')],
                            'residues': residues}
+
+        #S288C Contigs
+        for feature in bud_session.query(Feature).filter(or_(Feature.type == 'chromosome', Feature.type == 'plasmid')).all():
+            for sequence in feature.sequences:
+                if sequence.is_current == 'Y':
+                    yield {'display_name': 'Chromosome ' + feature.name,
+                           'source': key_to_source['SGD'],
+                           'strain': key_to_strain['S288C'],
+                           'residues': sequence.residues}
+
         nex_session.close()
+        bud_session.close()
     return contig_starter
 
 # --------------------- Convert Dataset ---------------------
@@ -368,7 +347,7 @@ def make_bioitem_relation_starter(bud_session_maker, nex_session_maker):
         key_to_chemical = dict([(x.unique_key(), x) for x in nex_session.query(Chemical).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for bud_obj in make_db_starter(bud_session.query(CVTermRel).options(joinedload('child'), joinedload('parent')), 1000)():
+        for bud_obj in bud_session.query(CVTermRel).options(joinedload('child'), joinedload('parent')).all():
             parent_key = (create_format_name(bud_obj.parent.name)[:95], 'CHEMICAL')
             child_key = (create_format_name(bud_obj.child.name)[:95], 'CHEMICAL')
 
@@ -394,7 +373,7 @@ def make_bioitem_url_starter(nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
-        for domain in make_db_starter(nex_session.query(Domain), 1000)():
+        for domain in nex_session.query(Domain).all():
             bioitem_type = domain.source.unique_key()
             display_name = domain.display_name
             if bioitem_type == 'JASPAR':
@@ -440,7 +419,7 @@ def make_bioitem_url_starter(nex_session_maker):
                        'category': 'Interpro',
                        'bioitem_id': domain.id}
 
-        for chemical in make_db_starter(nex_session.query(Chemical), 1000)():
+        for chemical in nex_session.query(Chemical).all():
             if chemical.chebi_id is not None:
                 yield {'display_name': chemical.chebi_id,
                        'link': 'http://www.ebi.ac.uk/chebi/searchId.do?chebiId=' + chemical.chebi_id,
