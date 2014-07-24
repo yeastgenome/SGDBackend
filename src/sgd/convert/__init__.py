@@ -168,7 +168,7 @@ def link_strain_names(text, to_ignore, nex_session):
     chunk_start = 0
     i = 0
     for word in words:
-        if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+        if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-') or word.endswith(')'):
             strain_name = word[:-1]
         else:
             strain_name = word
