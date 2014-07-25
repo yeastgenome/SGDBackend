@@ -114,10 +114,13 @@ def link_gene_names(text, to_ignore, nex_session):
     chunk_start = 0
     i = 0
     for word in words:
-        if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
-            bioent_name = word[:-1]
-        else:
-            bioent_name = word
+        bioent_name = word
+        if bioent_name.endswith('.') or bioent_name.endswith(',') or bioent_name.endswith('?') or bioent_name.endswith('-'):
+            bioent_name = bioent_name[:-1]
+        if bioent_name.endswith(')'):
+            bioent_name = bioent_name[:-1]
+        if bioent_name.startswith('('):
+            bioent_name = bioent_name[1:]
 
         bioent = get_bioent_by_name(bioent_name.upper(), to_ignore, nex_session)
 
@@ -126,8 +129,12 @@ def link_gene_names(text, to_ignore, nex_session):
             chunk_start = i + len(word) + 1
 
             new_chunk = "<a href='" + bioent.link + "'>" + bioent_name + "</a>"
-            if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+            if word[-2] == ')':
+                new_chunk = new_chunk + word[-2]
+            if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-') or word.endswith(')'):
                 new_chunk = new_chunk + word[-1]
+            if word.startswith('('):
+                new_chunk = word[0] + new_chunk
             new_chunks.append(new_chunk)
         i = i + len(word) + 1
     new_chunks.append(text[chunk_start: i])
@@ -168,10 +175,14 @@ def link_strain_names(text, to_ignore, nex_session):
     chunk_start = 0
     i = 0
     for word in words:
-        if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-') or word.endswith(')'):
-            strain_name = word[:-1]
-        else:
-            strain_name = word
+        strain_name = word
+        if strain_name.endswith('.') or strain_name.endswith(',') or strain_name.endswith('?') or strain_name.endswith('-'):
+            strain_name = strain_name[:-1]
+        if strain_name.endswith(')'):
+            strain_name = strain_name[:-1]
+        if strain_name.startswith('('):
+            strain_name = strain_name[1:]
+
 
         strain = get_strain_by_name(strain_name.upper(), to_ignore, nex_session)
 
@@ -180,8 +191,12 @@ def link_strain_names(text, to_ignore, nex_session):
             chunk_start = i + len(word) + 1
 
             new_chunk = "<a href='" + strain.link + "'>" + strain_name + "</a>"
-            if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-'):
+            if word[-2] == ')':
+                new_chunk = new_chunk + word[-2]
+            if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-') or word.endswith(')'):
                 new_chunk = new_chunk + word[-1]
+            if word.startswith('('):
+                new_chunk = word[0] + new_chunk
             new_chunks.append(new_chunk)
         i = i + len(word) + 1
     new_chunks.append(text[chunk_start: i])
