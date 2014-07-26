@@ -230,10 +230,10 @@ class Locus(Bioentity):
             standard_dev = variance**0.5;
 
             obj_json['expression_overview'] = {'all_values': expression_collapsed,
-                                               'high_values': [x.to_json() for x in self.data if float(x.value) >= mean + 3*standard_dev],
-                                               'low_values': [x.to_json() for x in self.data if float(x.value) <= mean - 3*standard_dev],
-                                               'low_cutoff': mean - 3*standard_dev,
-                                               'high_cutoff': mean + 3*standard_dev}
+                                               'high_values': [x.to_json() for x in self.data if float(x.value) >= mean + 4*standard_dev],
+                                               'low_values': [x.to_json() for x in self.data if float(x.value) <= mean - 4*standard_dev],
+                                               'low_cutoff': mean - 4*standard_dev,
+                                               'high_cutoff': mean + 4*standard_dev}
 
         #Aliases
         obj_json['aliases'] = [x.to_json() for x in self.aliases]

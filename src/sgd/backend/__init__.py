@@ -107,6 +107,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('expression_graph'),
                     route_name='expression_graph')
 
+    config.add_route('expression_col_details', '/datasetcolumn/{identifier}/expression_details')
+    config.add_view(lambda request: chosen_backend.response_wrapper('expression_details', request)(getattr(chosen_backend, 'expression_details')(datasetcolumn_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('expression_details'),
+                    route_name='expression_col_details')
+
     #Phenotype views
     config.add_route('phenotype', '/phenotype/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('phenotype', request)(getattr(chosen_backend, 'phenotype')(phenotype_identifier=request.matchdict['identifier'])),
@@ -339,6 +344,16 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('dataset', request)(getattr(chosen_backend, 'dataset')(dataset_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('dataset'),
                     route_name='dataset')
+
+    config.add_route('datasetcolumn', '/datasetcolumn/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('datasetcolumn', request)(getattr(chosen_backend, 'datasetcolumn')(datasetcolumn_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('datasetcolumn'),
+                    route_name='datasetcolumn')
+
+    config.add_route('tag', '/tag/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('tag', request)(getattr(chosen_backend, 'tag')(tag_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('tag'),
+                    route_name='tag')
     
 def prepare_backend(backend_type):
     configurator = Configurator()

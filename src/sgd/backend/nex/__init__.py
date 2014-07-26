@@ -201,6 +201,25 @@ class SGDBackend(BackendInterface):
             dataset_id = get_obj_id(dataset_identifier, class_type='BIOITEM', subclass_type='DATASET')
         return None if dataset_id is None else json.dumps(DBSession.query(Dataset).filter_by(id=dataset_id).first().to_json())
 
+    def datasetcolumn(self, datasetcolumn_identifier, are_ids=False):
+        from src.sgd.model.nex.bioitem import Datasetcolumn
+        from src.sgd.model.nex.paragraph import Referenceparagraph
+        from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Physinteractionevidence, \
+            Geninteractionevidence, Regulationevidence, Literatureevidence
+        if are_ids:
+            datasetcolumn_id = datasetcolumn_identifier
+        else:
+            datasetcolumn_id = get_obj_id(datasetcolumn_identifier, class_type='BIOITEM', subclass_type='DATASETCOLUMN')
+        return None if datasetcolumn_id is None else json.dumps(DBSession.query(Datasetcolumn).filter_by(id=datasetcolumn_id).first().to_json())
+
+    def tag(self, tag_identifier, are_ids=False):
+        from src.sgd.model.nex.misc import Tag
+        if are_ids:
+            tag_id = tag_identifier
+        else:
+            tag_id = get_obj_id(tag_identifier, class_type='TAG')
+        return None if tag_id is None else json.dumps(DBSession.query(Tag).filter_by(id=tag_id).first().to_json())
+
     #EC number
     def ec_number_details(self, locus_identifier=None, ec_number_identifier=None, are_ids=False):
         import view_ec_number
@@ -309,14 +328,16 @@ class SGDBackend(BackendInterface):
         return None if locus_id is None else json.dumps(graph_tools.make_lsp_graph(locus_id))
 
     #Expression
-    def expression_details(self, locus_identifier=None, are_ids=False):
+    def expression_details(self, locus_identifier=None, datasetcolumn_identifier=None, are_ids=False):
         from src.sgd.backend.nex import view_expression
         if are_ids:
             locus_id = locus_identifier
+            datasetcolumn_id = datasetcolumn_identifier
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+            datasetcolumn_id = None if datasetcolumn_identifier is None else get_obj_id(datasetcolumn_identifier, class_type='BIOITEM', subclass_type='DATASETCOLUMN')
 
-        return view_expression.make_details(locus_id=locus_id)
+        return view_expression.make_details(locus_id=locus_id, datasetcolumn_id=datasetcolumn_id)
 
     def expression_graph(self, locus_identifier, are_ids=False):
         import view_expression

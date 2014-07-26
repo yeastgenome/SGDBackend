@@ -7,23 +7,27 @@ import json
 from src.sgd.model.nex.auxiliary import Bioentityinteraction
 from src.sgd.model.nex.bioentity import Locus
 from src.sgd.backend.nex.graph_tools import get_interactions_among
+from src.sgd.model.nex.evidence import Expressionevidence
 
 
 __author__ = 'kpaskov'
 
 # -------------------------------Details---------------------------------------
-def get_expression_evidence(locus_id):
+def get_expression_evidence(locus_id, datasetcolumn_id):
     query = DBSession.query(Bioentitydata).options(joinedload('evidence'), joinedload('locus'))
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
+    if datasetcolumn_id is not None:
+        evidence_id = DBSession.query(Expressionevidence).filter_by(datasetcolumn_id=datasetcolumn_id).first().id
+        query = query.filter_by(evidence_id=evidence_id)
 
     return query.all()
 
-def make_details(locus_id=None):
-    if locus_id is None:
-        return {'Error': 'No locus_id given.'}
+def make_details(locus_id=None, datasetcolumn_id=None):
+    if locus_id is None and datasetcolumn_id is None:
+        return {'Error': 'No locus_id or datasetcolumn_id given.'}
 
-    expressionevidences = get_expression_evidence(locus_id=locus_id)
+    expressionevidences = get_expression_evidence(locus_id=locus_id, datasetcolumn_id=datasetcolumn_id)
 
     if expressionevidences is None:
         return {'Error': 'Too much data to display.'}

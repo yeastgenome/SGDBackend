@@ -144,6 +144,30 @@ class Url(Base, EqualityByIDMixin, UpdateByJsonMixin):
         obj_json['category'] = self.category
         return obj_json
 
+class Tag(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    __tablename__ = 'tag'
+    id = Column('tag_id', Integer, primary_key=True)
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
+    link = Column('obj_url', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'date_created', 'created_by']
+    __eq_fks__ = []
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = create_format_name(obj_json['display_name'])
+        self.link = '/tag/' + self.format_name + '/overview'
+
+    def unique_key(self):
+        return self.format_name
+
+    def to_min_json(self):
+        obj_json = UpdateByJsonMixin.to_min_json(self)
+        return obj_json
+
 class Alias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'alias'
 

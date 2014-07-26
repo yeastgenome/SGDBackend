@@ -1584,12 +1584,13 @@ def make_protein_sequence_evidence_starter(nex_session_maker, strain_key, protei
 # --------------------- Convert Expression Evidence ---------------------
 def make_expression_evidence_starter(nex_session_maker, expression_dir):
     from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.bioitem import Dataset
+    from src.sgd.model.nex.bioitem import Dataset, Datasetcolumn
     def expression_evidence_starter():
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_dataset = dict([(x.unique_key(), x) for x in nex_session.query(Dataset).all()])
+        key_to_dataset_column = dict([(x.unique_key(), x) for x in nex_session.query(Datasetcolumn).all()])
 
         for path in os.listdir(expression_dir):
             if os.path.isdir(expression_dir + '/' + path):
@@ -1600,16 +1601,13 @@ def make_expression_evidence_starter(nex_session_maker, expression_dir):
                         pieces = f.next().split('\t')
                         f.close()
 
-                        i = 0
-                        for piece in pieces[3:]:
+                        for i in range(len(pieces)-3):
+                            datasetcolumn_key = (file[:-4] + '.' + str(i), 'DATASETCOLUMN')
                             yield {
-                                    'condition': piece.strip().decode('ascii','ignore'),
                                     'reference': key_to_dataset[dataset_key].reference,
                                     'source': key_to_source['SGD'],
-                                    'file_order': i,
-                                    'dataset': key_to_dataset[dataset_key]
+                                    'datasetcolumn': None if datasetcolumn_key not in key_to_dataset_column else key_to_dataset_column[datasetcolumn_key]
                             }
-                            i += 1
 
         nex_session.close()
     return expression_evidence_starter

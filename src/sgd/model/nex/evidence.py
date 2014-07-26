@@ -9,7 +9,7 @@ from sqlalchemy.types import Integer, String, Date, Numeric
 from bioconcept import Bioconcept, Go, Phenotype, ECNumber
 from bioentity import Bioentity, Locus, Complex
 from misc import Source, Strain, Experiment, Alias
-from bioitem import Bioitem, Domain, Dataset
+from bioitem import Bioitem, Domain, Dataset, Datasetcolumn
 from reference import Reference
 from bioitem import Contig
 from src.sgd.model import EqualityByIDMixin
@@ -599,37 +599,36 @@ class Expressionevidence(Evidence):
     experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
     note = Column('note', String)
 
-    dataset_id = Column('dataset_id', Integer, ForeignKey(Dataset.id))
-    condition = Column('condition', String)
-    file_order = Column('file_order', Integer)
+    datasetcolumn_id = Column('datasetcolumn_id', Integer, ForeignKey(Datasetcolumn.id))
 
     #Relationships
     source = relationship(Source, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
     reference = relationship(Reference, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
     strain = relationship(Strain, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
     experiment = relationship(Experiment, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
-    dataset = relationship(Dataset, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
+    datasetcolumn = relationship(Datasetcolumn, backref=backref('expression_evidences', passive_deletes=True), uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': 'EXPRESSION', 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
-                     'condition', 'file_order',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'dataset']
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'datasetcolumn']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
-        return self.class_type, self.dataset_id, self.condition
+        return self.class_type, self.datasetcolumn_id
 
-    def to_json(self):
+    def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['dataset'] = self.dataset.to_min_json()
-        obj_json['dataset']['tags'] = self.dataset.tags
-        obj_json['dataset']['short_description'] = self.dataset.short_description
-        obj_json['dataset']['condition_count'] = self.dataset.condition_count
-        obj_json['dataset']['pcl_filename'] = self.dataset.pcl_filename
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+            datasetcolumn = aux_obj_json['datasetcolumn']
+        else:
+            datasetcolumn = self.datasetcolumn
+        obj_json['datasetcolumn'] = datasetcolumn.to_json()
         return obj_json
 
 class Bioentitydata(Base, UpdateByJsonMixin):

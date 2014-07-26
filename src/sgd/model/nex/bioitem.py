@@ -6,7 +6,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
-from src.sgd.model.nex.misc import Source, Relation, Strain, Url, Alias
+from src.sgd.model.nex.misc import Source, Relation, Strain, Url, Alias, Tag
 from src.sgd.model.nex.reference import Reference
 from decimal import Decimal
 
@@ -101,6 +101,26 @@ class Bioitemalias(Alias):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json.get('bioitem_id'))
+
+class BioitemTag(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    __tablename__ = 'bioitem_tag'
+
+    id = Column('bioitem_tag_id', Integer, primary_key=True)
+    bioitem_id = Column('bioitem_id', Integer, ForeignKey(Bioitem.id))
+    tag_id = Column('tag_id', Integer, ForeignKey(Tag.id))
+
+    #Relationships
+    bioitem = relationship(Bioitem, uselist=False, backref=backref('bioitem_tags', passive_deletes=True))
+    tag = relationship(Tag, uselist=False, backref=backref('bioitem_tags', passive_deletes=True))
+
+    __eq_values__ = ['id']
+    __eq_fks__ = ['bioitem', 'tag']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+    def unique_key(self):
+        return self.bioitem_id, self.tag_id
 
 class Domain(Bioitem):
     __tablename__ = "domainbioitem"
@@ -233,7 +253,6 @@ class Dataset(Bioitem):
     geo_id = Column('geo_id', String)
     pcl_filename = Column('pcl_filename', String)
     short_description = Column('short_description', String)
-    tags = Column('tags', String)
     channel_count = Column('channel_count', Integer)
     condition_count = Column('condition_count', Integer)
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
@@ -243,7 +262,7 @@ class Dataset(Bioitem):
 
     __mapper_args__ = {'polymorphic_identity': "DATASET", 'inherit_condition': id==Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
-                     'geo_id', 'pcl_filename', 'short_description', 'tags', 'channel_count', 'condition_count',
+                     'geo_id', 'pcl_filename', 'short_description', 'channel_count', 'condition_count',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference']
 
@@ -255,7 +274,36 @@ class Dataset(Bioitem):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['reference'] = self.reference.to_json()
+        obj_json['reference'] = None if self.reference is None else self.reference.to_json()
+        obj_json['datasetcolumns'] = [x.to_min_json() for x in self.datasetcolumns]
+        obj_json['tags'] = [x.tag.to_min_json() for x in self.bioitem_tags]
+        return obj_json
+
+class Datasetcolumn(Bioitem):
+    __tablename__ = "datasetcolumnbioitem"
+
+    id = Column('bioitem_id', Integer, primary_key=True)
+    file_order = Column('file_order', Integer)
+    dataset_id = Column('dataset_id', Integer, ForeignKey(Dataset.id))
+
+    #Relationships
+    dataset = relationship(Dataset, uselist=False, backref='datasetcolumns')
+
+    __mapper_args__ = {'polymorphic_identity': "DATASETCOLUMN", 'inherit_condition': id==Bioitem.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
+                     'file_order', 'dataset_id',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'dataset']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = obj_json.get('dataset').format_name + '.' + str(obj_json.get('file_order'))
+        self.display_name = obj_json.get('description')
+        self.link = '/datasetcolumn/' + self.format_name + '/overview'
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['dataset'] = self.dataset.to_min_json()
         return obj_json
 
 class Allele(Bioitem):
