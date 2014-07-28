@@ -1351,8 +1351,8 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
         feature_id_to_parent = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).all()])
         bioentity_id_to_evidence = dict([(x.locus_id, x) for x in nex_session.query(DNAsequenceevidence).filter_by(strain_id=1).filter_by(dna_type='GENOMIC').all()])
 
-        for bud_location in bud_session.query(Feat_Location).filter(Feat_Location.is_current == 'Y').all():
-            if bud_location.sequence.is_current == 'Y':
+        for bud_location in bud_session.query(Feat_Location).filter(Feat_Location.is_current == 'Y').options(joinedload('sequence'), joinedload('feature')).all():
+            if bud_location.sequence.is_current == 'Y' and bud_location.feature.status == 'Active':
                 bioentity_id = None if bud_location.feature_id not in feature_id_to_parent else feature_id_to_parent[bud_location.feature_id]
                 while bioentity_id is not None and bioentity_id not in id_to_bioentity:
                     if bioentity_id in feature_id_to_parent:
