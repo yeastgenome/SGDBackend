@@ -660,7 +660,8 @@ def make_literature_evidence_starter(bud_session_maker, nex_session_maker):
                            'date_created': litguide_feature.date_created,
                            'created_by': litguide_feature.created_by}
                 else:
-                    print 'Bioentity or reference not found: ' + str(bioentity_id) + ' ' + str(reference_id)
+                    if reference_id not in id_to_reference:
+                        print 'Reference not found: ' + str(bioentity_id) + ' ' + str(reference_id)
 
         bud_session.close()
         nex_session.close()

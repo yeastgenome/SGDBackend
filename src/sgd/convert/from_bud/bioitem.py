@@ -323,18 +323,22 @@ def make_bioitem_url_starter(nex_session_maker):
                 link = None
             elif bioitem_type == 'PANTHER':
                 link = "http://www.pantherdb.org/panther/family.do?clsAccession=" + display_name
-            elif bioitem_type == 'TIGRFAMs':
+            elif bioitem_type == 'TIGRFAM':
                 link = "http://cmr.tigr.org/tigr-scripts/CMR/HmmReport.cgi?hmm_acc=" + display_name
             elif bioitem_type == 'PRINTS':
                 link = "http:////www.bioinf.man.ac.uk/cgi-bin/dbbrowser/sprint/searchprintss.cgi?display_opts=Prints&amp;category=None&amp;queryform=false&amp;prints_accn=" + display_name
             elif bioitem_type == 'ProDom':
                 link = "http://prodom.prabi.fr/prodom/current/cgi-bin/request.pl?question=DBEN&amp;query=" + display_name
-            elif bioitem_type == 'PIR_superfamily':
+            elif bioitem_type == 'PIRSF':
                 link = "http://pir.georgetown.edu/cgi-bin/ipcSF?" + display_name
             elif bioitem_type == 'PROSITE':
                 link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
             elif bioitem_type == 'PROSITE':
                 link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
+            elif bioitem_type == 'Phobius':
+                link = None
+            elif bioitem_type == '-':
+                link = None
             else:
                 print 'No link for source = ' + str(bioitem_type) + ' ' + str(display_name)
                 link = None
