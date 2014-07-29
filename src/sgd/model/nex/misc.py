@@ -168,6 +168,11 @@ class Tag(Base, EqualityByIDMixin, UpdateByJsonMixin):
         obj_json = UpdateByJsonMixin.to_min_json(self)
         return obj_json
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['bioitems'] = [x.bioitem.to_semi_json() for x in self.bioitem_tags]
+        return obj_json
+
 class Alias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'alias'
 

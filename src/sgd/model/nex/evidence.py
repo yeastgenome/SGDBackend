@@ -621,14 +621,6 @@ class Expressionevidence(Evidence):
 
     def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
-        if aux_obj_json is not None:
-            for eq_fk in self.__eq_fks__:
-                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
-                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
-            datasetcolumn = aux_obj_json['datasetcolumn']
-        else:
-            datasetcolumn = self.datasetcolumn
-        obj_json['datasetcolumn'] = datasetcolumn.to_json()
         return obj_json
 
 class Bioentitydata(Base, UpdateByJsonMixin):
@@ -654,7 +646,7 @@ class Bioentitydata(Base, UpdateByJsonMixin):
         return self.evidence_id, self.locus_id
 
     def to_json(self):
-        obj_json = self.evidence.to_json()
+        obj_json = dict()
         obj_json['value'] = float(self.value)
         obj_json['hist_value'] = float(self.value.quantize(Decimal('1.0')))
         obj_json['locus'] = self.locus.to_min_json()

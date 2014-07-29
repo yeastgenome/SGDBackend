@@ -597,6 +597,12 @@ def make_orphan_backend_starter(backend, methods):
             yield (method, getattr(backend, method)())
     return individual_backend_starter
 
+def make_datasetcolumn_data_backend_starter(backend, method, obj_ids):
+    def individual_backend_starter():
+        for obj_id in obj_ids:
+            yield (obj_id, getattr(backend, method)(datasetcolumn_identifier=obj_id, are_ids=True))
+    return individual_backend_starter
+
 def make_reference_data_backend_starter(backend, method, obj_ids):
     def individual_backend_starter():
         for obj_id in obj_ids:

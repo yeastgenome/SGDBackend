@@ -6,7 +6,7 @@ from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj, Out
     make_individual_go_backend_starter, make_individual_phenotype_backend_starter, make_individual_observable_backend_starter, Evidence2NexDB, make_locus_data_backend_starter, \
     make_reference_data_backend_starter, make_ecnumber_data_backend_starter, make_go_data_backend_starter, make_phenotype_data_backend_starter, make_observable_data_backend_starter, \
     make_chemical_data_backend_starter, make_observable_data_backend_starter, make_contig_data_backend_starter, make_domain_data_backend_starter, \
-    BigObj2NexDB, Json2DisambigPerfDB, make_orphan_backend_starter, Json2OrphanPerfDB, make_go_data_with_children_backend_starter
+    BigObj2NexDB, Json2DisambigPerfDB, make_orphan_backend_starter, Json2OrphanPerfDB, make_go_data_with_children_backend_starter, make_datasetcolumn_data_backend_starter
 from sqlalchemy.orm import with_polymorphic
 import os
 __author__ = 'kpaskov'
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     #               [Json2Obj(Contig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Contig), name='convert.from_bud.bioitem.contig', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG')
-    #
+    # #
     # do_conversion(make_dataset_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
     #               [Json2Obj(Dataset),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Dataset), name='convert.from_bud.bioitem.dataset', delete_untouched=True, commit_interval=1000),
@@ -260,9 +260,9 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'TAG'), name='convert.from_bud.bioitem.disambig.tag', delete_untouched=True, commit=True)])
 
 
-    do_conversion(make_bioitem_tag_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
-                  [Json2Obj(BioitemTag),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(BioitemTag), name='convert.from_bud.bioitem.tag', delete_untouched=True, commit=True)])
+    # do_conversion(make_bioitem_tag_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
+    #               [Json2Obj(BioitemTag),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(BioitemTag), name='convert.from_bud.bioitem.tag', delete_untouched=True, commit=True)])
     #
     # do_conversion(make_disambig_starter(nex_session_maker, Domain, ['id', 'format_name'], 'BIOITEM', 'DOMAIN'),
     #               [Json2Obj(Disambig),
@@ -644,13 +644,14 @@ if __name__ == "__main__":
 
     from src.sgd.model.nex.bioentity import Locus, Complex
     from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
-    from src.sgd.model.nex.bioitem import Chemical, Contig, Domain
+    from src.sgd.model.nex.bioitem import Chemical, Contig, Domain, Datasetcolumn
     from src.sgd.model.nex.reference import Reference
     nex_session = nex_session_maker()
     locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     #complex_ids = [x.id for x in nex_session.query(Complex).all()]
-    go_ids = [x.id for x in nex_session.query(Go).all()]
+    #go_ids = [x.id for x in nex_session.query(Go).all()]
+    datasetcolumn_ids = [x.id for x in nex_session.query(Datasetcolumn).all()]
     #domain_ids = [x.id for x in nex_session.query(Domain).all()]
     #observable_ids = [x.id for x in nex_session.query(Observable).all()]
     #phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]
@@ -824,3 +825,11 @@ if __name__ == "__main__":
     # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week']),
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000),
     #                 OutputTransformer(1000)])
+    #
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
+
+    do_conversion(make_datasetcolumn_data_backend_starter(nex_backend, 'expression_details', datasetcolumn_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'EXPRESSION', datasetcolumn_ids, name='convert.from_backend.expression_details', commit_interval=1000),
+                    OutputTransformer(1000)])

@@ -9,7 +9,6 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from venn import calc_venn_measurements
 from itertools import chain
-from decimal import Decimal
 
 __author__ = 'kpaskov'
 
@@ -201,39 +200,6 @@ class Locus(Bioentity):
 
         #Sequence
         obj_json['sequence_overview'] = sorted(dict([(x.strain.id, x.strain.to_min_json()) for x in self.dnasequence_evidences]).values(), key=lambda x: x['display_name'])
-
-        #Expression
-        expression_collapsed = {}
-        sum = 0;
-        sum_of_squares = 0;
-        n = 0;
-        for x in self.data:
-            rounded = float(x.value.quantize(Decimal('.1')))
-            if rounded in expression_collapsed:
-                expression_collapsed[rounded] += 1
-            else:
-                expression_collapsed[rounded] = 1
-
-            sum = sum + rounded;
-            sum_of_squares = sum_of_squares + rounded*rounded;
-            n = n + 1;
-
-        if n == 0:
-            obj_json['expression_overview'] = {'all_values': expression_collapsed,
-                                               'high_values': [],
-                                               'low_values': [],
-                                               'low_cutoff': 0,
-                                               'high_cutoff': 0}
-        else:
-            mean = 1.0*sum/n;
-            variance = 1.0*sum_of_squares/n - mean*mean;
-            standard_dev = variance**0.5;
-
-            obj_json['expression_overview'] = {'all_values': expression_collapsed,
-                                               'high_values': [x.to_json() for x in self.data if float(x.value) >= mean + 4*standard_dev],
-                                               'low_values': [x.to_json() for x in self.data if float(x.value) <= mean - 4*standard_dev],
-                                               'low_cutoff': mean - 4*standard_dev,
-                                               'high_cutoff': mean + 4*standard_dev}
 
         #Aliases
         obj_json['aliases'] = [x.to_json() for x in self.aliases]

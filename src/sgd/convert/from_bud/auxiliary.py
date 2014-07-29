@@ -142,22 +142,20 @@ def make_bioentity_expression_interaction_starter(nex_session_maker):
         magnitudes = [math.sqrt(x) for x in magnitudes]
 
         for bioentity1_id, bioentity1_index in bioent_id_to_index.iteritems():
-            bioentity_id_to_score = dict()
             for bioentity2_id, bioentity2_index in bioent_id_to_index.iteritems():
-                if bioentity1_id != bioentity2_id and magnitudes[bioentity1_index] > 0 and magnitudes[bioentity2_index] > 0:
-                    if bioentity1_index < bioentity2_index:
-                        score = pair_dot_products[bioentity1_index][bioentity2_index]/(magnitudes[bioentity1_index]*magnitudes[bioentity2_index])
-                    else:
-                        score = pair_dot_products[bioentity2_index][bioentity1_index]/(magnitudes[bioentity1_index]*magnitudes[bioentity2_index])
-                    bioentity_id_to_score[bioentity2_id] = score
+                if bioentity1_index < bioentity2_index and magnitudes[bioentity1_index] > 0 and magnitudes[bioentity2_index] > 0:
+                    score = pair_dot_products[bioentity1_index][bioentity2_index]/(magnitudes[bioentity1_index]*magnitudes[bioentity2_index])
 
-            bioentity = id_to_bioentity[bioentity1_id]
-            for interactor_id, score in sorted(bioentity_id_to_score.iteritems(), key=lambda y: y[1], reverse=True)[:20]:
-                interactor = id_to_bioentity[interactor_id]
-                if score < 0:
-                    yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'negative'}
-                else:
-                    yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'positive'}
+                    if score >= .75 or score <= -.75:
+                        bioentity = id_to_bioentity[bioentity1_id]
+                        interactor = id_to_bioentity[bioentity2_id]
+
+                        if score < 0:
+                            yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'negative'}
+                            yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': interactor, 'interactor': bioentity, 'direction': 'negative'}
+                        else:
+                            yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'positive'}
+                            yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': interactor, 'interactor': bioentity, 'direction': 'positive'}
 
         nex_session.close()
     return bioentity_interaction_starter

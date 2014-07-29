@@ -8,17 +8,17 @@ from src.sgd.model.nex.auxiliary import Bioentityinteraction
 from src.sgd.model.nex.bioentity import Locus
 from src.sgd.backend.nex.graph_tools import get_interactions_among
 from src.sgd.model.nex.evidence import Expressionevidence
-
+from src.sgd.model.nex.bioitem import Datasetcolumn
+from decimal import Decimal
 
 __author__ = 'kpaskov'
 
 # -------------------------------Details---------------------------------------
-def get_expression_evidence(locus_id, datasetcolumn_id):
-    query = DBSession.query(Bioentitydata).options(joinedload('evidence'), joinedload('locus'))
+def get_expression_evidence(locus_id, evidence_id):
+    query = DBSession.query(Bioentitydata).options(joinedload(Bioentitydata.evidence))
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
-    if datasetcolumn_id is not None:
-        evidence_id = DBSession.query(Expressionevidence).filter_by(datasetcolumn_id=datasetcolumn_id).first().id
+    if evidence_id is not None:
         query = query.filter_by(evidence_id=evidence_id)
 
     return query.all()
@@ -27,12 +27,72 @@ def make_details(locus_id=None, datasetcolumn_id=None):
     if locus_id is None and datasetcolumn_id is None:
         return {'Error': 'No locus_id or datasetcolumn_id given.'}
 
-    expressionevidences = get_expression_evidence(locus_id=locus_id, datasetcolumn_id=datasetcolumn_id)
+    evidence = None
+    if datasetcolumn_id is not None:
+        evidence = DBSession.query(Expressionevidence).filter_by(datasetcolumn_id=datasetcolumn_id).options(joinedload(Expressionevidence.datasetcolumn)).first()
 
-    if expressionevidences is None:
-        return {'Error': 'Too much data to display.'}
+    expressionevidences = get_expression_evidence(locus_id=locus_id, evidence_id=None if evidence is None else evidence.id)
 
-    return json.dumps([x.to_json() for x in expressionevidences if expressionevidences])
+    if locus_id is not None:
+        #Expression
+        id_to_datasetcolumn = dict([(x.id, x) for x in DBSession.query(Datasetcolumn).options(joinedload(Datasetcolumn.dataset)).all()])
+        expression_collapsed = {}
+        sum = 0;
+        sum_of_squares = 0;
+        n = 0;
+        id_to_dataset = dict()
+        for x in expressionevidences:
+            dataset = id_to_datasetcolumn[x.evidence.datasetcolumn_id].dataset
+            id_to_dataset[dataset.id] = dataset
+            rounded = float(x.value.quantize(Decimal('.1')))
+            if rounded in expression_collapsed:
+                expression_collapsed[rounded] += 1
+            else:
+                expression_collapsed[rounded] = 1
+
+            sum += rounded;
+            sum_of_squares += rounded*rounded;
+            n += 1;
+
+        if n == 0:
+            overview = {'all_values': expression_collapsed,
+                                               'high_values': [],
+                                               'low_values': [],
+                                               'low_cutoff': 0,
+                                               'high_cutoff': 0}
+        else:
+            mean = 1.0*sum/n;
+            variance = 1.0*sum_of_squares/n - mean*mean;
+            standard_dev = variance**0.5;
+            high_values = []
+            low_values = []
+            for x in expressionevidences:
+                if float(x.value) >= mean + 4*standard_dev:
+                    obj_json = x.to_json()
+                    obj_json['datasetcolumn'] = x.evidence.datasetcolumn.to_min_json()
+                    high_values.append(obj_json)
+                elif float(x.value) <= mean - 4*standard_dev:
+                    obj_json = x.to_json()
+                    obj_json['datasetcolumn'] = x.evidence.datasetcolumn.to_min_json()
+                    low_values.append(obj_json)
+            overview = {'all_values': expression_collapsed,
+                                               'high_values': high_values,
+                                               'low_values': low_values,
+                                               'low_cutoff': mean - 4*standard_dev,
+                                               'high_cutoff': mean + 4*standard_dev}
+
+        return json.dumps({'overview': overview,
+                           'datasets': [x.to_semi_json() for x in id_to_dataset.values()]})
+
+    else:
+        evidences_json = []
+        for x in expressionevidences:
+            obj_json = x.to_json()
+            obj_json['datasetcolumn'] = evidence.datasetcolumn.to_min_json()
+            obj_json['dataset'] = evidence.datasetcolumn.dataset.to_min_json()
+            obj_json['id'] = evidence.id
+            evidences_json.append(obj_json)
+        return json.dumps(evidences_json)
 
 # -------------------------------Graph---------------------------------------
 def create_node(bioent, is_focus, ev_count):
@@ -44,7 +104,7 @@ def create_node(bioent, is_focus, ev_count):
 
 def create_edge(bioent1_id, bioent2_id, score, class_type, direction):
     return {'data':{'target': 'BIOENTITY' + str(bioent1_id), 'source': 'BIOENTITY' + str(bioent2_id),
-            'score':16*(float(score)-.75)+1, 'class_type': class_type, 'direction': direction}}
+            'score':float(score), 'class_type': class_type, 'direction': direction}}
 
 def make_graph(bioent_id):
     id_to_bioentity = dict([(x.id, x) for x in DBSession.query(Locus).all()])

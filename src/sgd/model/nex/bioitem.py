@@ -272,6 +272,17 @@ class Dataset(Bioitem):
         self.display_name = self.format_name
         self.link = '/dataset/' + self.format_name + '/overview'
 
+    def to_semi_json(self):
+        obj_json = UpdateByJsonMixin.to_min_json(self)
+        obj_json['pcl_filename'] = self.pcl_filename
+        obj_json['geo_id'] = self.geo_id
+        obj_json['short_description'] = self.short_description
+        obj_json['condition_count'] = self.condition_count
+        obj_json['reference'] = None if self.reference is None else self.reference.to_min_json()
+        obj_json['tags'] = [x.tag.to_min_json() for x in self.bioitem_tags]
+        obj_json['display_name'] = self.display_name.replace('.', '. ')
+        return obj_json
+
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['reference'] = None if self.reference is None else self.reference.to_json()

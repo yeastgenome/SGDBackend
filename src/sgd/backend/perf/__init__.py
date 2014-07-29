@@ -24,20 +24,20 @@ class PerfBackend(BackendInterface):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
         class Base(object):
             __table_args__ = {'schema': schema, 'extend_existing':True}
-                
+
         perf.Base = declarative_base(cls=Base)
 
         engine = create_engine("%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname), convert_unicode=True, pool_recycle=3600)
 
         DBSession.configure(bind=engine)
         perf.Base.metadata.bind = engine
-        
+
         self.log = set_up_logging(log_directory, 'perf')
-        
+
     #Renderer
     def get_renderer(self, method_name):
         return 'string'
-    
+
     def response_wrapper(self, method_name, request):
         request_id = str(uuid.uuid4())
         callback = None if 'callback' not in request.GET else request.GET['callback']
@@ -49,17 +49,17 @@ class PerfBackend(BackendInterface):
             else:
                 return Response(body=data, content_type='application/json')
         return f
-    
+
     #Bioentity
     def all_bioentities(self, chunk_size, offset):
         from src.sgd.model.perf.core import Bioentity
         return [x.to_json() for x in DBSession.query(Bioentity).order_by(Bioentity.id.desc()).limit(chunk_size).offset(offset).all()]
-    
+
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.perf.core import Locusentry
         print len(bioent_ids)
         return get_list(Locusentry, 'json', bioent_ids)
-    
+
     #Locus
     def locus(self, locus_identifier):
         from src.sgd.model.perf.core import Bioentity
@@ -78,16 +78,16 @@ class PerfBackend(BackendInterface):
     def all_locusentries(self, chunk_size, offset):
         from src.sgd.model.perf.core import Locusentry
         return [x.to_json() for x in DBSession.query(Locusentry).order_by(Locusentry.id.desc()).limit(chunk_size).offset(offset).all()]
-    
+
     #Bioconcept
     def all_bioconcepts(self, chunk_size, offset):
         from src.sgd.model.perf.core import Bioconcept
         return [x.to_json() for x in DBSession.query(Bioconcept).order_by(Bioconcept.id.desc()).limit(chunk_size).offset(offset).all()]
-    
+
     def bioconcept_list(self, biocon_ids, callback=None):
         from src.sgd.model.perf.core import Bioconcept
         return get_list(Bioconcept, 'json', biocon_ids)
-    
+
     #Reference
     def reference(self, reference_identifier, are_ids=False):
         from src.sgd.model.perf.core import Reference
@@ -113,7 +113,7 @@ class PerfBackend(BackendInterface):
     def all_bibentries(self, chunk_size, offset):
         from src.sgd.model.perf.core import Bibentry
         return [x.to_json() for x in DBSession.query(Bibentry).order_by(Bibentry.id.desc()).limit(chunk_size).offset(offset).all()]
-    
+
     def reference_list(self, reference_ids):
         from src.sgd.model.perf.core import Bibentry
         return get_list(Bibentry, 'json', reference_ids)
@@ -135,7 +135,7 @@ class PerfBackend(BackendInterface):
     def all_bioitems(self, chunk_size, offset):
         from src.sgd.model.perf.core import Bioitem
         return [x.to_json() for x in DBSession.query(Bioitem).order_by(Bioitem.id.desc()).limit(chunk_size).offset(offset).all()]
-    
+
     #Interaction
     def interaction_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
         if locus_identifier is not None:
@@ -151,14 +151,14 @@ class PerfBackend(BackendInterface):
                 ref_id = get_obj_id(str(reference_identifier).upper(), class_type='REFERENCE')
             return get_reference_details(ref_id, 'INTERACTION')
         return None
-    
+
     def interaction_graph(self, locus_identifier, are_ids=False):
         if are_ids:
             bioent_id = locus_identifier
         else:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
         return get_bioentity_graph(bioent_id, 'INTERACTION')
-    
+
     #Literature
     def literature_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
         if locus_identifier is not None:
@@ -174,7 +174,7 @@ class PerfBackend(BackendInterface):
                 ref_id = get_obj_id(str(reference_identifier).upper(), class_type='REFERENCE')
             return get_reference_details(ref_id, 'LITERATURE')
         return None
-    
+
     def literature_graph(self, locus_identifier, are_ids=False):
         if are_ids:
             bioent_id = locus_identifier
@@ -191,7 +191,7 @@ class PerfBackend(BackendInterface):
             bioent_format_names.extend([json.loads(x.json)['format_name'] for x in DBSession.query(Bioentity).filter(Bioentity.id.in_(bioent_ids[i*500:(i+1)*500])).all()])
         enrichment_results = query_batter.query_go_processes(bioent_format_names)
         json_format = []
-        
+
         for enrichment_result in enrichment_results:
             identifier = 'GO:' + str(int(enrichment_result[0][3:])).zfill(7)
             goterm_id = get_obj_id(str(identifier).upper(), 'BIOCONCEPT', 'GO')
@@ -319,7 +319,7 @@ class PerfBackend(BackendInterface):
         else:
             biocon_id = get_obj_id(str(phenotype_identifier).lower(), class_type='BIOCONCEPT', subclass_type='OBSERVABLE')
         return get_bioconcept_graph(biocon_id, 'PHENOTYPE_ONTOLOGY')
-    
+
     #Protein
     def domain(self, domain_identifier, are_ids=False):
         from src.sgd.model.perf.core import Bioitem
@@ -355,7 +355,7 @@ class PerfBackend(BackendInterface):
         else:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
         return get_bioentity_graph(bioent_id, 'PROTEIN_DOMAIN')
-    
+
     def regulation_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
         if locus_identifier is not None:
             if are_ids:
@@ -369,21 +369,21 @@ class PerfBackend(BackendInterface):
             else:
                 ref_id = get_obj_id(str(reference_identifier).upper(), class_type='REFERENCE')
             return get_reference_details(ref_id, 'REGULATION')
-    
+
     def regulation_graph(self, locus_identifier, are_ids=False):
         if are_ids:
             bioent_id = locus_identifier
         else:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
         return get_bioentity_graph(bioent_id, 'REGULATION')
-    
+
     def regulation_target_enrichment(self, locus_identifier, are_ids=False):
         if are_ids:
             bioent_id = locus_identifier
         else:
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
         return get_bioentity_enrichment(bioent_id, 'REGULATION')
-    
+
     #Binding
     def binding_site_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
         if locus_identifier is not None:
@@ -469,6 +469,31 @@ class PerfBackend(BackendInterface):
                 bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
             return get_bioentity_details(bioent_id, 'NEIGHBOR_SEQUENCE')
         return None
+
+    #Expression
+    def dataset(self, dataset_identifier, are_ids=False):
+        from src.sgd.model.perf.core import Bioitem
+        if are_ids:
+            bioitem_id = dataset_identifier
+        else:
+            bioitem_id = get_obj_id(str(dataset_identifier).lower(), class_type='BIOITEM', subclass_type='DATASET')
+        return get_obj(Bioitem, 'json', bioitem_id)
+
+    def datasetcolumn(self, datasetcolumn_identifier, are_ids=False):
+        from src.sgd.model.perf.core import Bioitem
+        if are_ids:
+            bioitem_id = datasetcolumn_identifier
+        else:
+            bioitem_id = get_obj_id(str(datasetcolumn_identifier).lower(), class_type='BIOITEM', subclass_type='DATASETCOLUMN')
+        return get_obj(Bioitem, 'json', bioitem_id)
+
+    def tag(self, tag_identifier, are_ids=False):
+        from src.sgd.model.perf.core import Bioitem
+        if are_ids:
+            bioitem_id = tag_identifier
+        else:
+            bioitem_id = get_obj_id(str(tag_identifier).lower(), class_type='TAG')
+        return get_obj(Tag, 'json', bioitem_id)
 
     #Misc
     def all_disambigs(self, chunk_size, offset):
