@@ -122,6 +122,10 @@ class PerfBackend(BackendInterface):
         from src.sgd.model.perf.core import Orphan
         return DBSession.query(Orphan).filter_by(url='references_this_week').first().json
 
+    def all_locus(self):
+        from src.sgd.model.perf.core import Orphan
+        return DBSession.query(Orphan).filter_by(url='all_locus').first().json
+
     def strain(self, strain_identifier):
         from src.sgd.model.perf.core import Strain
         strain_id = get_obj_id(str(strain_identifier), class_type='STRAIN')

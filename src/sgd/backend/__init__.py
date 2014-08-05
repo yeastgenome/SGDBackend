@@ -354,6 +354,11 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('tag', request)(getattr(chosen_backend, 'tag')(tag_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('tag'),
                     route_name='tag')
+
+    config.add_route('all_locus', '/locus')
+    config.add_view(lambda request: chosen_backend.response_wrapper('all_locus', request)(getattr(chosen_backend, 'all_locus')()),
+                    renderer=chosen_backend.get_renderer('all_locus'),
+                    route_name='all_locus')
     
 def prepare_backend(backend_type):
     configurator = Configurator()

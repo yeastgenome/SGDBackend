@@ -118,6 +118,7 @@ def make_bioentity_expression_interaction_starter(nex_session_maker):
             bioent_id_to_index[bioent_id] = len(bioent_id_to_index)
 
         magnitudes = [0]*len(bioent_id_to_index)
+        ns = [0]*len(bioent_id_to_index)
         pair_dot_products = [([0]*len(bioent_id_to_index)) for _ in range(len(bioent_id_to_index))]
         print 'Empty arrays created.'
 
@@ -130,6 +131,7 @@ def make_bioentity_expression_interaction_starter(nex_session_maker):
             for bioentity_index1, value1 in bioentity_index_to_value.iteritems():
                 #Update magnitudes
                 magnitudes[bioentity_index1] += value1*value1
+                ns[bioentity_index1] += 1
 
                 #Update pair dot products
                 for bioentity_index2, value2 in bioentity_index_to_value.iteritems():
@@ -145,6 +147,8 @@ def make_bioentity_expression_interaction_starter(nex_session_maker):
             for bioentity2_id, bioentity2_index in bioent_id_to_index.iteritems():
                 if bioentity1_index < bioentity2_index and magnitudes[bioentity1_index] > 0 and magnitudes[bioentity2_index] > 0:
                     score = pair_dot_products[bioentity1_index][bioentity2_index]/(magnitudes[bioentity1_index]*magnitudes[bioentity2_index])
+                    n = min(ns[bioentity1_index], ns[bioentity2_index])
+                    print score, n, score*math.sqrt((n-2)/(1-score*score))
 
                     if score >= .75 or score <= -.75:
                         bioentity = id_to_bioentity[bioentity1_id]

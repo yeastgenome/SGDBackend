@@ -14,7 +14,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 from src.sgd.backend.backend_interface import BackendInterface
 from src.sgd.model import nex
 import random
-
+from sqlalchemy.orm import joinedload
 
 __author__ = 'kpaskov'
 
@@ -57,6 +57,28 @@ class SGDBackend(BackendInterface):
             Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').order_by(Bioentity.id.asc()).limit(chunk_size).offset(offset).all()]
+
+    def all_locus(self):
+        from src.sgd.model.nex.bioentity import Locus
+        from src.sgd.model.nex.bioitem import Contig
+        from src.sgd.model.nex.misc import Strain
+        from src.sgd.model.nex.evidence import DNAsequenceevidence
+        id_to_locus = {}
+        id_to_contig = dict([(x.id, x.to_min_json()) for x in DBSession.query(Contig).all()])
+        id_to_strain = dict([(x.id, x.to_min_json()) for x in DBSession.query(Strain).all()])
+        for locus in DBSession.query(Locus).all():
+            obj_json = locus.to_min_json()
+            if locus.bioent_status == 'Active':
+                obj_json['locus_type'] = locus.locus_type
+                obj_json['chromosomes'] = []
+                id_to_locus[locus.id] = obj_json
+
+        for evidence in DBSession.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').all():
+            if evidence.locus_id in id_to_locus:
+                id_to_locus[evidence.locus_id]['chromosomes'].append(id_to_contig[evidence.contig_id])
+                id_to_locus[evidence.locus_id]['chromosomes'][-1]['strain'] = id_to_strain[evidence.strain_id]
+
+        return json.dumps(id_to_locus.values())
 
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity

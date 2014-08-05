@@ -830,6 +830,9 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
 
-    do_conversion(make_datasetcolumn_data_backend_starter(nex_backend, 'expression_details', datasetcolumn_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'EXPRESSION', datasetcolumn_ids, name='convert.from_backend.expression_details', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_datasetcolumn_data_backend_starter(nex_backend, 'expression_details', datasetcolumn_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'EXPRESSION', datasetcolumn_ids, name='convert.from_backend.expression_details', commit_interval=1000),
+    #                 OutputTransformer(1000)])
+
+    do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'all_locus']),
+                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
