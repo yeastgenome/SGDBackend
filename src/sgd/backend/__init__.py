@@ -355,7 +355,7 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('tag'),
                     route_name='tag')
 
-    config.add_route('all_locus', '/locus')
+    config.add_route('all_locus', '/sequence_snapshot')
     config.add_view(lambda request: chosen_backend.response_wrapper('all_locus', request)(getattr(chosen_backend, 'all_locus')()),
                     renderer=chosen_backend.get_renderer('all_locus'),
                     route_name='all_locus')
