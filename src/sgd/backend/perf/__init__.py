@@ -475,6 +475,21 @@ class PerfBackend(BackendInterface):
         return None
 
     #Expression
+    def expression_details(self, locus_identifier, are_ids=False):
+        if locus_identifier is not None:
+            if are_ids:
+                bioent_id = locus_identifier
+            else:
+                bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
+            return get_bioentity_details(bioent_id, 'EXPRESSION')
+
+    def expression_graph(self, locus_identifier, are_ids=False):
+        if are_ids:
+            bioent_id = locus_identifier
+        else:
+            bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
+        return get_bioentity_graph(bioent_id, 'EXPRESSION')
+
     def dataset(self, dataset_identifier, are_ids=False):
         from src.sgd.model.perf.core import Bioitem
         if are_ids:

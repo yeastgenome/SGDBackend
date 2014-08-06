@@ -146,11 +146,11 @@ def make_bioentity_expression_interaction_starter(nex_session_maker):
         for bioentity1_id, bioentity1_index in bioent_id_to_index.iteritems():
             for bioentity2_id, bioentity2_index in bioent_id_to_index.iteritems():
                 if bioentity1_index < bioentity2_index and magnitudes[bioentity1_index] > 0 and magnitudes[bioentity2_index] > 0:
-                    score = pair_dot_products[bioentity1_index][bioentity2_index]/(magnitudes[bioentity1_index]*magnitudes[bioentity2_index])
+                    r = pair_dot_products[bioentity1_index][bioentity2_index]/(magnitudes[bioentity1_index]*magnitudes[bioentity2_index])
                     n = min(ns[bioentity1_index], ns[bioentity2_index])
-                    print score, n, score*math.sqrt((n-2)/(1-score*score))
+                    score = r*math.sqrt((n-2)/(1-r*r))
 
-                    if score >= .75 or score <= -.75:
+                    if score >= 20 or score <= -20:
                         bioentity = id_to_bioentity[bioentity1_id]
                         interactor = id_to_bioentity[bioentity2_id]
 

@@ -61,24 +61,40 @@ class SGDBackend(BackendInterface):
     def all_locus(self):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.bioitem import Contig
-        from src.sgd.model.nex.misc import Strain
         from src.sgd.model.nex.evidence import DNAsequenceevidence
-        id_to_locus = {}
-        id_to_contig = dict([(x.id, x.to_min_json()) for x in DBSession.query(Contig).all()])
-        id_to_strain = dict([(x.id, x.to_min_json()) for x in DBSession.query(Strain).all()])
-        for locus in DBSession.query(Locus).all():
-            obj_json = locus.to_min_json()
-            if locus.bioent_status == 'Active':
-                obj_json['locus_type'] = locus.locus_type
-                obj_json['chromosomes'] = []
-                id_to_locus[locus.id] = obj_json
+        from src.sgd.model.nex.misc import Strain
+
+        id_to_strain = dict([(x.id, x) for x in DBSession.query(Strain)])
+        good_strain_ids = [x.id for x in id_to_strain.values() if x.status != 'Other']
+        contigs = DBSession.query(Contig).filter(Contig.strain_id.in_(good_strain_ids)).all()
+        labels = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
+
+        contig_id_to_index = {}
+        label_to_index = {}
+        for contig in contigs:
+            contig_id_to_index[contig.id] = len(contig_id_to_index)
+        for label in labels:
+            label_to_index[label] = len(label_to_index)
+
+        locus_id_to_label_index = dict([(x.id, label_to_index[x.locus_type]) for x in DBSession.query(Locus).filter_by(bioent_status='Active').all()])
+
+        data = [([0]*len(contigs)) for _ in range(len(labels))]
+
+        print 'ready', len(labels), len(contigs), len(data), len(data[0])
 
         for evidence in DBSession.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').all():
-            if evidence.locus_id in id_to_locus:
-                id_to_locus[evidence.locus_id]['chromosomes'].append(id_to_contig[evidence.contig_id])
-                id_to_locus[evidence.locus_id]['chromosomes'][-1]['strain'] = id_to_strain[evidence.strain_id]
+            label_index = None if evidence.locus_id not in locus_id_to_label_index else locus_id_to_label_index[evidence.locus_id]
+            contig_index = None if evidence.contig_id not in contig_id_to_index else contig_id_to_index[evidence.contig_id]
+            if label_index is not None and contig_index is not None:
+                data[label_index][contig_index] += 1
 
-        return json.dumps(id_to_locus.values())
+        columns = []
+        for x in contigs:
+            obj_json = x.to_min_json()
+            obj_json['strain'] = id_to_strain[x.strain_id].to_min_json()
+            columns.append(obj_json)
+
+        return json.dumps({'data': data, 'columns': columns, 'rows': labels})
 
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity
@@ -172,6 +188,7 @@ class SGDBackend(BackendInterface):
     #Bioitem
     def all_bioitems(self, chunk_size, offset):
         from src.sgd.model.nex.bioitem import Bioitem
+        from src.sgd.model.nex.paragraph import Referenceparagraph
         return [x.to_json() for x in DBSession.query(Bioitem).with_polymorphic('*').order_by(Bioitem.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def chemical(self, chemical_identifier, are_ids=False):
