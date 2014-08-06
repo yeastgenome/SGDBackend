@@ -10,10 +10,11 @@ if __name__ == "__main__":
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
 
     from src.sgd.model.nex.evidence import Evidence, Goevidence, Literatureevidence, Domainevidence, ECNumberevidence, \
-        Proteinexperimentevidence, Aliasevidence, Phenotypeevidence
+        Proteinexperimentevidence, Aliasevidence, Phenotypeevidence, Bioentityevidence
     from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_literature_evidence_starter, \
         make_domain_evidence_starter, make_protein_experiment_evidence_starter, \
-        make_ecnumber_evidence_starter, make_protein_experiment_evidence_starter, make_alias_evidence_starter, make_phenotype_evidence_starter
+        make_ecnumber_evidence_starter, make_protein_experiment_evidence_starter, make_alias_evidence_starter, \
+        make_phenotype_evidence_starter, make_bioentity_evidence_starter
 
     do_conversion(make_go_evidence_starter(bud_session_maker, nex_session_maker),
                    [Json2Obj(Goevidence),
@@ -86,3 +87,10 @@ if __name__ == "__main__":
                                   delete_untouched=True,
                                   commit_interval=1000,
                                   already_deleted=clean_up_orphans(nex_session_maker, Phenotypeevidence, Evidence, 'PHENOTYPE'))])
+
+    do_conversion(make_bioentity_evidence_starter(bud_session_maker, nex_session_maker),
+                   [Json2Obj(Bioentityevidence),
+                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Bioentityevidence),
+                                   name='convert.from_bud.evidence.bioentity',
+                                   delete_untouched=True,
+                                   commit_interval=1000)])

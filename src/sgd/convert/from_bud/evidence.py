@@ -177,7 +177,7 @@ def make_bioentity_evidence_starter(bud_session_maker, nex_session_maker):
                                'date_created': old_annotation.date_created,
                                'created_by': old_annotation.created_by}
                     else:
-                        print 'Could not find reference or bioentity or col_name: ' + str(bioentity_id) + ' ' + str(reference_id) + ' ' + reflink.col_name
+                        #print 'Could not find reference or bioentity or col_name: ' + str(bioentity_id) + ' ' + str(reference_id) + ' ' + reflink.col_name
                         yield None
 
         for reflink in bud_session.query(OldReflink).filter_by(tab_name='FEATURE').all():
@@ -207,7 +207,7 @@ def make_bioentity_evidence_starter(bud_session_maker, nex_session_maker):
                            'date_created': reflink.date_created,
                            'created_by': reflink.created_by}
             else:
-                print 'Could not find reference or bioentity or col_name: ' + str(bioentity_id) + ' ' + str(reference_id) + ' ' + reflink.col_name
+                #print 'Could not find reference or bioentity or col_name: ' + str(bioentity_id) + ' ' + str(reference_id) + ' ' + reflink.col_name
                 yield None
 
         for feature_property in bud_session.query(OldFeatureProperty).all():
@@ -226,7 +226,7 @@ def make_bioentity_evidence_starter(bud_session_maker, nex_session_maker):
                                'date_created': feature_property.date_created,
                                'created_by': feature_property.created_by}
                     else:
-                        print 'Could not find reference or bioentity: ' + str(bioentity_id) + ' ' + str(reference_id)
+                        #print 'Could not find reference or bioentity: ' + str(bioentity_id) + ' ' + str(reference_id)
                         yield None
 
         bud_session.close()
