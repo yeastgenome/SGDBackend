@@ -475,13 +475,19 @@ class PerfBackend(BackendInterface):
         return None
 
     #Expression
-    def expression_details(self, locus_identifier, are_ids=False):
+    def expression_details(self, locus_identifier=None, datasetcolumn_identifier=None, are_ids=False):
         if locus_identifier is not None:
             if are_ids:
                 bioent_id = locus_identifier
             else:
                 bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
             return get_bioentity_details(bioent_id, 'EXPRESSION')
+        elif datasetcolumn_identifier is not None:
+            if are_ids:
+                datasetcolumn_id = datasetcolumn_identifier
+            else:
+                datasetcolumn_id = get_obj_id(str(datasetcolumn_identifier).upper(), class_type='BIOITEM', subclass_type='DATASETCOLUMN')
+            return get_bioitem_details(datasetcolumn_id, 'EXPRESSION')
 
     def expression_graph(self, locus_identifier, are_ids=False):
         if are_ids:
@@ -507,7 +513,7 @@ class PerfBackend(BackendInterface):
         return get_obj(Bioitem, 'json', bioitem_id)
 
     def tag(self, tag_identifier, are_ids=False):
-        from src.sgd.model.perf.core import Bioitem
+        from src.sgd.model.perf.core import Tag
         if are_ids:
             bioitem_id = tag_identifier
         else:

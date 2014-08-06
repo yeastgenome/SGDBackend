@@ -285,10 +285,13 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DATASETCOLUMN'), name='convert.from_bud.bioitem.disambig.datasetcolumn', delete_untouched=True, commit=True)])
 
     # Nex -> Perf
-    from src.sgd.model.perf.core import Bioitem as PerfBioitem
+    from src.sgd.model.perf.core import Bioitem as PerfBioitem, Tag as PerfTag
     # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True),
     #                OutputTransformer(1000)])
+    do_conversion(make_backend_starter(nex_backend, 'all_tags', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfTag, name='convert.from_backend.tag', commit_interval=1000, delete_untouched=True),
+                   OutputTransformer(1000)])
 
     # ------------------------------------------ Reference ------------------------------------------
     # Bud -> Nex
@@ -646,19 +649,19 @@ if __name__ == "__main__":
     from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
     from src.sgd.model.nex.bioitem import Chemical, Contig, Domain, Datasetcolumn
     from src.sgd.model.nex.reference import Reference
-    #nex_session = nex_session_maker()
+    nex_session = nex_session_maker()
     #locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     #complex_ids = [x.id for x in nex_session.query(Complex).all()]
     #go_ids = [x.id for x in nex_session.query(Go).all()]
-    #datasetcolumn_ids = [x.id for x in nex_session.query(Datasetcolumn).all()]
+    datasetcolumn_ids = [x.id for x in nex_session.query(Datasetcolumn).all()]
     #domain_ids = [x.id for x in nex_session.query(Domain).all()]
     #observable_ids = [x.id for x in nex_session.query(Observable).all()]
     #phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]
     #chemical_ids = [x.id for x in nex_session.query(Chemical).all()]
     #contig_ids = [x.id for x in nex_session.query(Contig).all()]
     #reference_ids = [x.id for x in nex_session.query(Reference).all()]
-    #nex_session.close()
+    nex_session.close()
 
     # Done
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
@@ -830,9 +833,9 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
 
-    # do_conversion(make_datasetcolumn_data_backend_starter(nex_backend, 'expression_details', datasetcolumn_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'EXPRESSION', datasetcolumn_ids, name='convert.from_backend.expression_details', commit_interval=1000),
-    #                 OutputTransformer(1000)])
+    do_conversion(make_datasetcolumn_data_backend_starter(nex_backend, 'expression_details', datasetcolumn_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'EXPRESSION', datasetcolumn_ids, name='convert.from_backend.expression_details', commit_interval=1000),
+                    OutputTransformer(1000)])
     #
-    do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'all_locus']),
-                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+    # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'all_locus']),
+    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])

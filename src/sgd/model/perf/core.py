@@ -79,6 +79,15 @@ class Author(Base, EqualityByIDMixin, JsonMixins):
     def __init__(self, obj_json):
         JsonMixins.__init__(self, obj_json)
 
+class Tag(Base, EqualityByIDMixin, JsonMixins):
+    __tablename__ = 'tag'
+
+    id = Column('tag_id', Integer, primary_key=True)
+    json = Column('json', CLOB)
+
+    def __init__(self, obj_json):
+        JsonMixins.__init__(self, obj_json)
+
 class Strain(Base, EqualityByIDMixin, JsonMixins):
     __tablename__ = 'strain'
 

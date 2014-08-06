@@ -58,6 +58,10 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').order_by(Bioentity.id.asc()).limit(chunk_size).offset(offset).all()]
 
+    def all_tags(self, chunk_size, offset):
+        from src.sgd.model.nex.misc import Tag
+        return [x.to_json() for x in DBSession.query(Tag).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
+
     def all_locus(self):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.bioitem import Contig
