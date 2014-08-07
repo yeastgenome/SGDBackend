@@ -403,7 +403,7 @@ def make_bioconcept_url_starter(nex_session_maker):
                        'bioconcept_id': goterm.id}
 
             yield {'display_name': 'View GO Annotations in other species in AmiGO',
-                       'link': 'http://amigo.geneontology.org/amigo/term/' + go_id + '#display-annotations-tab',
+                       'link': 'http://amigo.geneontology.org/amigo/term/' + go_id + '#display-associations-tab',
                        'source': key_to_source['GO'],
                        'category': 'Amigo',
                        'bioconcept_id': goterm.id}
