@@ -100,6 +100,33 @@ class SGDBackend(BackendInterface):
 
         return json.dumps({'data': data, 'columns': columns, 'rows': labels})
 
+    def go_snapshot(self):
+        from src.sgd.model.nex.bioconcept import Go, Bioconceptrelation
+        from src.sgd.model.nex.evidence import Goevidence
+        go_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='GO_SLIM').all()])
+        go_terms = DBSession.query(Go).filter(Go.id.in_(go_slim_ids)).all()
+        go_slim_terms = []
+        relationships = [['Child', 'Parent']]
+        for go_term in go_terms:
+            obj_json = go_term.to_min_json()
+            obj_json['annotation_count'] = go_term.child_count
+            go_slim_terms.append(obj_json)
+
+            parents = [x.parent for x in go_term.parents if x.relation_type == 'is a']
+            while parents is not None and len(parents) > 0:
+                new_parents = []
+                for parent in parents:
+                    if parent.id in go_slim_ids:
+                        relationships.append([go_term.id, parent.id])
+                        parents = None
+                        break
+                    else:
+                        new_parents.extend([x.parent for x in parent.parents if x.relation_type == 'is a'])
+                parents = new_parents
+
+        return json.dumps({'go_slim_terms': go_slim_terms, 'go_slim_relationships': relationships})
+
+
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
@@ -244,17 +271,6 @@ class SGDBackend(BackendInterface):
             dataset_id = get_obj_id(dataset_identifier, class_type='BIOITEM', subclass_type='DATASET')
         return None if dataset_id is None else json.dumps(DBSession.query(Dataset).filter_by(id=dataset_id).first().to_json())
 
-    def datasetcolumn(self, datasetcolumn_identifier, are_ids=False):
-        from src.sgd.model.nex.bioitem import Datasetcolumn
-        from src.sgd.model.nex.paragraph import Referenceparagraph
-        from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Physinteractionevidence, \
-            Geninteractionevidence, Regulationevidence, Literatureevidence
-        if are_ids:
-            datasetcolumn_id = datasetcolumn_identifier
-        else:
-            datasetcolumn_id = get_obj_id(datasetcolumn_identifier, class_type='BIOITEM', subclass_type='DATASETCOLUMN')
-        return None if datasetcolumn_id is None else json.dumps(DBSession.query(Datasetcolumn).filter_by(id=datasetcolumn_id).first().to_json())
-
     def tag(self, tag_identifier, are_ids=False):
         from src.sgd.model.nex.misc import Tag
         if are_ids:
@@ -371,16 +387,14 @@ class SGDBackend(BackendInterface):
         return None if locus_id is None else json.dumps(graph_tools.make_lsp_graph(locus_id))
 
     #Expression
-    def expression_details(self, locus_identifier=None, datasetcolumn_identifier=None, are_ids=False):
+    def expression_details(self, locus_identifier=None, are_ids=False):
         from src.sgd.backend.nex import view_expression
         if are_ids:
             locus_id = locus_identifier
-            datasetcolumn_id = datasetcolumn_identifier
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-            datasetcolumn_id = None if datasetcolumn_identifier is None else get_obj_id(datasetcolumn_identifier, class_type='BIOITEM', subclass_type='DATASETCOLUMN')
 
-        return view_expression.make_details(locus_id=locus_id, datasetcolumn_id=datasetcolumn_id)
+        return view_expression.make_details(locus_id=locus_id)
 
     def expression_graph(self, locus_identifier, are_ids=False):
         import view_expression

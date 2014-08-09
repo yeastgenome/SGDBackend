@@ -4,7 +4,7 @@ import logging
 import uuid
 
 from mpmath import ceil
-from pyramid.response import Response
+
 
 from src.sgd.backend.backend_interface import BackendInterface
 from src.sgd.go_enrichment import query_batter

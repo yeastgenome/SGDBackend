@@ -14,85 +14,34 @@ from decimal import Decimal
 __author__ = 'kpaskov'
 
 # -------------------------------Details---------------------------------------
-def get_expression_evidence(locus_id, evidence_id):
-    query = DBSession.query(Bioentitydata).options(joinedload(Bioentitydata.evidence))
+def get_expression_evidence(locus_id):
+    query = DBSession.query(Bioentitydata)
     if locus_id is not None:
-        query = query.filter_by(locus_id=locus_id)
-    if evidence_id is not None:
-        query = query.filter_by(evidence_id=evidence_id)
+        query = query.filter_by(locus_id=locus_id).options(joinedload(Bioentitydata.evidence))
 
     return query.all()
 
-def make_details(locus_id=None, datasetcolumn_id=None):
-    if locus_id is None and datasetcolumn_id is None:
-        return {'Error': 'No locus_id or datasetcolumn_id given.'}
+def make_details(locus_id=None):
+    if locus_id is None:
+        return {'Error': 'No locus_id given.'}
 
-    evidence = None
-    if datasetcolumn_id is not None:
-        evidence = DBSession.query(Expressionevidence).filter_by(datasetcolumn_id=datasetcolumn_id).options(joinedload(Expressionevidence.datasetcolumn)).first()
+    expressionevidences = get_expression_evidence(locus_id=locus_id)
 
-    expressionevidences = get_expression_evidence(locus_id=locus_id, evidence_id=None if evidence is None else evidence.id)
-
-    if locus_id is not None:
-        #Expression
-        id_to_datasetcolumn = dict([(x.id, x) for x in DBSession.query(Datasetcolumn).options(joinedload(Datasetcolumn.dataset)).all()])
-        expression_collapsed = {}
-        sum = 0;
-        sum_of_squares = 0;
-        n = 0;
-        id_to_dataset = dict()
-        for x in expressionevidences:
-            dataset = id_to_datasetcolumn[x.evidence.datasetcolumn_id].dataset
-            id_to_dataset[dataset.id] = dataset
-            rounded = float(x.value.quantize(Decimal('.1')))
-            if rounded in expression_collapsed:
-                expression_collapsed[rounded] += 1
-            else:
-                expression_collapsed[rounded] = 1
-
-            sum += rounded;
-            sum_of_squares += rounded*rounded;
-            n += 1;
-
-        if n == 0:
-            overview = {'all_values': expression_collapsed,
-                                               'high_values': [],
-                                               'low_values': [],
-                                               'low_cutoff': 0,
-                                               'high_cutoff': 0}
+    #Expression
+    id_to_datasetcolumn = dict([(x.id, x) for x in DBSession.query(Datasetcolumn).options(joinedload(Datasetcolumn.dataset)).all()])
+    expression_collapsed = {}
+    id_to_dataset = dict()
+    for x in expressionevidences:
+        dataset = id_to_datasetcolumn[x.evidence.datasetcolumn_id].dataset
+        id_to_dataset[dataset.id] = dataset
+        rounded = float(x.value.quantize(Decimal('.1')))
+        if rounded in expression_collapsed:
+            expression_collapsed[rounded] += 1
         else:
-            mean = 1.0*sum/n;
-            variance = 1.0*sum_of_squares/n - mean*mean;
-            standard_dev = variance**0.5;
-            high_values = []
-            low_values = []
-            for x in expressionevidences:
-                if float(x.value) >= mean + 4*standard_dev:
-                    obj_json = x.to_json()
-                    obj_json['datasetcolumn'] = x.evidence.datasetcolumn.to_min_json()
-                    high_values.append(obj_json)
-                elif float(x.value) <= mean - 4*standard_dev:
-                    obj_json = x.to_json()
-                    obj_json['datasetcolumn'] = x.evidence.datasetcolumn.to_min_json()
-                    low_values.append(obj_json)
-            overview = {'all_values': expression_collapsed,
-                                               'high_values': high_values,
-                                               'low_values': low_values,
-                                               'low_cutoff': mean - 4*standard_dev,
-                                               'high_cutoff': mean + 4*standard_dev}
+            expression_collapsed[rounded] = 1
 
-        return json.dumps({'overview': overview,
+    return json.dumps({'overview': expression_collapsed,
                            'datasets': [x.to_semi_json() for x in id_to_dataset.values()]})
-
-    else:
-        evidences_json = []
-        for x in expressionevidences:
-            obj_json = x.to_json()
-            obj_json['datasetcolumn'] = evidence.datasetcolumn.to_min_json()
-            obj_json['dataset'] = evidence.datasetcolumn.dataset.to_min_json()
-            obj_json['id'] = evidence.id
-            evidences_json.append(obj_json)
-        return json.dumps(evidences_json)
 
 # -------------------------------Graph---------------------------------------
 def create_node(bioent, is_focus, ev_count):
@@ -108,7 +57,7 @@ def create_edge(bioent1_id, bioent2_id, score, class_type, direction):
 
 def make_graph(bioent_id):
     id_to_bioentity = dict([(x.id, x) for x in DBSession.query(Locus).all()])
-    interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter_by(bioentity_id=bioent_id).all()
+    interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter_by(bioentity_id=bioent_id).filter(Bioentityinteraction.coeff > 0).all()
 
     if len(interactions) == 0:
          return {'nodes': [], 'edges': []}
@@ -134,7 +83,7 @@ def make_graph(bioent_id):
     neighbor_id_to_coeff[bioent_id] = max_coeff
     min_coeff = 0 if len(usable_neighbor_ids) <= 100 else neighbor_id_to_coeff[all_neighbors[100]]
 
-    more_interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter(Bioentityinteraction.bioentity_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.interactor_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.bioentity_id < Bioentityinteraction.interactor_id).all()
+    more_interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter(Bioentityinteraction.coeff > 0).filter(Bioentityinteraction.bioentity_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.interactor_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.bioentity_id < Bioentityinteraction.interactor_id).all()
     for interaction in more_interactions:
         coeff = interaction.coeff
         if coeff >= min_coeff:
@@ -163,4 +112,4 @@ def make_graph(bioent_id):
     edges = [create_edge(x.bioentity_id, x.interactor_id, x.coeff, 'EXPRESSION', x.direction) for x in more_interactions if x.coeff >= min_coeff and x.bioentity_id in usable_neighbor_ids and x.interactor_id in usable_neighbor_ids]
 
 
-    return {'nodes': nodes, 'edges': edges}
+    return {'nodes': nodes, 'edges': edges, 'min_coeff': float(min_coeff), 'max_coeff': float(max_coeff)}

@@ -1,15 +1,17 @@
 from sqlalchemy.sql.expression import func
+from sqlalchemy.orm import joinedload
 
 from src.sgd.convert import is_number
 from src.sgd.convert.transformers import make_db_starter
 from src.sgd.model.nex.bioentity import Locus, Complex
 from src.sgd.model.nex.bioconcept import Bioconcept, Go, Observable
-from src.sgd.model.nex.bioitem import Bioitem, Domain
+from src.sgd.model.nex.bioitem import Bioitem, Domain, Dataset, Datasetcolumn
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence, Regulationevidence, Goevidence, \
     Phenotypeevidence, Literatureevidence, Domainevidence, Bioentitydata, Expressionevidence
 from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioiteminteraction
 import math
 import datetime
+import operator
 __author__ = 'kpaskov'
     
 # --------------------- Convert Disambigs ---------------------
@@ -111,32 +113,59 @@ def make_bioentity_expression_interaction_starter(nex_session_maker):
         nex_session = nex_session_maker()
 
         id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
-        evidence_ids = [x.id for x in nex_session.query(Expressionevidence).all()]
+        dataset_id_to_evidence_ids = dict()
+        for evidence in nex_session.query(Expressionevidence).options(joinedload(Expressionevidence.datasetcolumn)).all():
+            dataset_id = evidence.datasetcolumn.dataset_id
+            if dataset_id in dataset_id_to_evidence_ids:
+                dataset_id_to_evidence_ids[dataset_id].append(evidence.id)
+            else:
+                dataset_id_to_evidence_ids[dataset_id] = [evidence.id]
 
         bioent_id_to_index = dict()
         for bioent_id in id_to_bioentity.keys():
             bioent_id_to_index[bioent_id] = len(bioent_id_to_index)
 
-        magnitudes = [0]*len(bioent_id_to_index)
-        ns = [0]*len(bioent_id_to_index)
-        pair_dot_products = [([0]*len(bioent_id_to_index)) for _ in range(len(bioent_id_to_index))]
+        bioent_count = len(bioent_id_to_index)
+
+        magnitudes = [0]*bioent_count
+        ns = [0]*bioent_count
+        pair_dot_products = [([0]*bioent_count) for _ in range(bioent_count)]
         print 'Empty arrays created.'
 
         count = 0
-        for evidence_id in evidence_ids:
-            start = datetime.datetime.now()
-            bioentity_index_to_value = dict([(bioent_id_to_index[x.locus_id], float(x.value)) for x in nex_session.query(Bioentitydata).filter_by(
-                evidence_id=evidence_id).all()])
+        for evidence_ids in dataset_id_to_evidence_ids.values():
+            if len(evidence_ids) > 1:
+                start = datetime.datetime.now()
 
-            for bioentity_index1, value1 in bioentity_index_to_value.iteritems():
-                #Update magnitudes
-                magnitudes[bioentity_index1] += value1*value1
-                ns[bioentity_index1] += 1
+                evidence_id_to_index = dict()
+                for evidence_id in evidence_ids:
+                    evidence_id_to_index[evidence_id] = len(evidence_id_to_index)
 
-                #Update pair dot products
-                for bioentity_index2, value2 in bioentity_index_to_value.iteritems():
-                    if bioentity_index1 < bioentity_index2:
-                        pair_dot_products[bioentity_index1][bioentity_index2] += value1*value2
+                means = [0]*bioent_count
+                data = [([0]*bioent_count) for _ in range(len(evidence_ids))]
+                for x in nex_session.query(Bioentitydata).filter(Bioentitydata.evidence_id.in_(evidence_ids)).all():
+                    value = 2**float(x.value)
+                    bioentity_index = bioent_id_to_index[x.locus_id]
+                    evidence_index = evidence_id_to_index[x.evidence_id]
+                    data[evidence_index][bioentity_index] = value
+                    means[bioentity_index] += value
+
+                    ns[bioentity_index] += 1
+
+                means = [means[x]/len(evidence_ids) for x in range(0, bioent_count)]
+                print len(evidence_ids)
+
+                for data_row in data:
+                    data_row = map(operator.sub, data_row, means)
+
+                    for bioentity1_index, value1 in enumerate(data_row):
+                        #Update magnitudes
+                        magnitudes[bioentity1_index] += value1**2
+
+                        #Update pair dot products
+                        for bioentity2_index, value2 in enumerate(data_row):
+                            if bioentity1_index < bioentity2_index:
+                                pair_dot_products[bioentity1_index][bioentity2_index] += value1*value2
 
             count += 1
             print count, (datetime.datetime.now() - start)
