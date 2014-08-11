@@ -310,7 +310,6 @@ class Datasetcolumn(Bioitem):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = obj_json.get('dataset').format_name + '.' + str(obj_json.get('file_order'))
         self.display_name = obj_json.get('description')
-        self.link = '/datasetcolumn/' + self.format_name + '/overview'
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)

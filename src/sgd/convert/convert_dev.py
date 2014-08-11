@@ -205,13 +205,13 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Bioitem ------------------------------------------
     # Bud -> Nex
-    # from src.sgd.model.nex.bioitem import Bioitem, Orphanbioitem, Domain, Allele, Chemical, Bioitemurl, Bioitemrelation, \
-    #     Bioitemalias, Contig, Dataset, Datasetcolumn, BioitemTag
-    # from src.sgd.model.nex.misc import Alias, Relation, Url, Tag
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
-    #     make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter, make_dataset_starter, make_datasetcolumn_starter, make_bioitem_tag_starter, make_tag_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    from src.sgd.model.nex.bioitem import Bioitem, Orphanbioitem, Domain, Allele, Chemical, Bioitemurl, Bioitemrelation, \
+        Bioitemalias, Contig, Dataset, Datasetcolumn, BioitemTag
+    from src.sgd.model.nex.misc import Alias, Relation, Url, Tag
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
+        make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter, make_dataset_starter, make_datasetcolumn_starter, make_bioitem_tag_starter, make_tag_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Orphanbioitem),
@@ -260,9 +260,9 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioitemurl), name='convert.from_bud.bioitem.url', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Bioitemurl, Url, 'BIOITEM')
     #
-    # do_conversion(make_tag_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
-    #               [Json2Obj(Tag),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Tag), name='convert.from_bud.tag', delete_untouched=True, commit=True)])
+    do_conversion(make_tag_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
+                  [Json2Obj(Tag),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Tag), name='convert.from_bud.tag', delete_untouched=True, commit=True)])
     #
     # do_conversion(make_disambig_starter(nex_session_maker, Tag, ['id', 'format_name'], 'TAG', None),
     #               [Json2Obj(Disambig),
@@ -406,10 +406,10 @@ if __name__ == "__main__":
     #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Aliasevidence), name='convert.from_bud.evidence.alias', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Aliasevidence, Evidence, 'ALIAS')
     #
-    do_conversion(make_binding_evidence_starter(nex_session_maker),
-                   [Json2Obj(Bindingevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Bindingevidence), name='convert.from_bud.evidence.binding', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Bindingevidence, Evidence, 'BINDING')
+    # do_conversion(make_binding_evidence_starter(nex_session_maker),
+    #                [Json2Obj(Bindingevidence),
+    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Bindingevidence), name='convert.from_bud.evidence.binding', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Bindingevidence, Evidence, 'BINDING')
     #
     # do_conversion(make_complex_evidence_starter(nex_session_maker),
     #                [Json2Obj(Complexevidence),

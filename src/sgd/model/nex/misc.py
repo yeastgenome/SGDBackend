@@ -168,16 +168,17 @@ class Tag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     link = Column('obj_url', String)
+    description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by']
     __eq_fks__ = []
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = create_format_name(obj_json['display_name'])
-        self.link = '/tag/' + self.format_name + '/overview'
+        self.link = '/category/' + self.format_name + '/overview'
 
     def unique_key(self):
         return self.format_name
