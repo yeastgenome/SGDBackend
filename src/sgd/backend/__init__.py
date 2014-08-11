@@ -17,6 +17,11 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('strain', request)(getattr(chosen_backend, 'strain')(strain_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('strain'),
                     route_name='strain')
+
+    config.add_route('experiment', '/experiment/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('experiment', request)(getattr(chosen_backend, 'experiment')(experiment_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('experiment'),
+                    route_name='experiment')
     
     #Reference views
     config.add_route('reference', '/reference/{identifier}/overview')

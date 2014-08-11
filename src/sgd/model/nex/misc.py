@@ -75,6 +75,24 @@ class Experiment(Base, EqualityByIDMixin, UpdateByJsonMixin):
         self.format_name = create_format_name(obj_json.get('display_name'))
         if obj_json.get('eco_id') in eco_id_to_category:
             self.category = eco_id_to_category[obj_json.get('eco_id')]
+        if self.eco_id is not None:
+            self.link = '/experiment/' + self.eco_id + '/overview'
+        else:
+            self.link = '/experiment/' + self.format_name + '/overview'
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        id_to_reference = dict()
+        id_to_reference.update([(x.reference_id, x.reference) for x in self.go_evidences if x.reference_id not in id_to_reference and x.reference_id is not None])
+        id_to_reference.update([(x.reference_id, x.reference) for x in self.geninteraction_evidences if x.reference_id not in id_to_reference and x.reference_id is not None])
+        id_to_reference.update([(x.reference_id, x.reference) for x in self.physinteraction_evidences if x.reference_id not in id_to_reference and x.reference_id is not None])
+        id_to_reference.update([(x.reference_id, x.reference) for x in self.phenotype_evidences if x.reference_id not in id_to_reference and x.reference_id is not None])
+        id_to_reference.update([(x.reference_id, x.reference) for x in self.regulation_evidences if x.reference_id not in id_to_reference and x.reference_id is not None])
+        id_to_reference.update([(x.reference_id, x.reference) for x in self.binding_evidences if x.reference_id not in id_to_reference and x.reference_id is not None])
+        id_to_reference.update([(x.reference_id, x.reference) for x in self.proteinexperiment_evidences if x.reference_id not in id_to_reference and x.reference_id is not None])
+
+        obj_json['references'] = [x.to_semi_json() for x in sorted(id_to_reference.values(), key=lambda x: (x.year, x.date_published), reverse=True)]
+        return obj_json
 
     def unique_key(self):
         return self.format_name

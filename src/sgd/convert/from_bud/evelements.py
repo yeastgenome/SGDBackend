@@ -24,9 +24,14 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
         for bud_obj in make_obo_file_starter('src/sgd/convert/data/eco.obo')():
+            description = None if 'def' not in bud_obj else bud_obj['def']
+            if description is not None and description.find('[') >= 0:
+                description = description[:description.find('[')-1]
+            if description is not None and description.find('"') >= 0:
+                description = description[1:-1]
             yield {'display_name': bud_obj['name'],
                    'source': key_to_source['ECO'],
-                   'description': None if 'def' not in bud_obj else bud_obj['def'],
+                   'description': description,
                    'eco_id': bud_obj['id']}
 
         for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no==7).all():
@@ -60,9 +65,9 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
             if len(row) >= 10:
                 if source_key in key_to_source:
                     source_key = row[11].strip()
-                    yield {'display_name': row[4] if row[4] != '' else row[5],
+                    yield {'display_name': row[5] if row[5] != '' else row[4],
                            'source': None if source_key not in key_to_source else key_to_source[source_key],
-                           'eco_id': row[5]}
+                           'eco_id': row[4]}
                 else:
                     print 'Source not found: ' + str(source_key)
 
@@ -80,15 +85,7 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
             yield {'display_name': row[9][1:-1],
                    'source': key_to_source['YeTFaSCo']}
 
-        for row in make_file_starter('src/sgd/convert/data/phosphosites.txt', delimeter=';')():
-            if len(row) > 3:
-                for display_name in row[3].split('|'):
-                    yield {'display_name': display_name,
-                           'source': key_to_source['PhosphoGRID']}
-
-        yield {'display_name': 'protein abundance',
-               'source': key_to_source['SGD']}
-
+        yield {'display_name': 'protein abundance', 'source': key_to_source['SGD']}
         yield {'display_name': 'EXP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/exp-inferred-experiment', 'description': 'Inferred from Experiment'}
         yield {'display_name': 'IDA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ida-inferred-direct-assay', 'description': 'Inferred from Direct Assay'}
         yield {'display_name': 'IPI', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ipi-inferred-physical-interaction', 'description': 'Inferred from Physical Interaction'}

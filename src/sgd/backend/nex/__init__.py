@@ -244,6 +244,19 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.paragraph import Strainparagraph
         return [x.to_json() for x in DBSession.query(Strain).order_by(Strain.id.desc()).limit(chunk_size).offset(offset).all()]
 
+    def experiment(self, experiment_identifier, are_ids=False):
+        from src.sgd.model.nex.misc import Experiment
+        from src.sgd.model.nex.evidence import Goevidence, Geninteractionevidence, Physinteractionevidence, Phenotypeevidence, Regulationevidence, Bindingevidence, Proteinexperimentevidence
+        if are_ids:
+            experiment_id = experiment_identifier
+        else:
+            experiment_id = get_obj_id(experiment_identifier, class_type='EXPERIMENT')
+        return None if experiment_id is None else json.dumps(DBSession.query(Experiment).filter_by(id=experiment_id).first().to_json())
+
+    def all_experiments(self, chunk_size, offset):
+        from src.sgd.model.nex.misc import Experiment
+        return [x.to_json() for x in DBSession.query(Experiment).order_by(Experiment.id.desc()).limit(chunk_size).offset(offset).all()]
+
     def domain(self, domain_identifier, are_ids=False):
         from src.sgd.model.nex.bioitem import Domain
         if are_ids:

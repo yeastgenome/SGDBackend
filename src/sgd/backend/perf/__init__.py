@@ -139,6 +139,15 @@ class PerfBackend(BackendInterface):
         from src.sgd.model.perf.core import Strain
         return [x.to_json() for x in DBSession.query(Strain).order_by(Strain.id.desc()).limit(chunk_size).offset(offset).all()]
 
+    def experiment(self, experiment_identifier):
+        from src.sgd.model.perf.core import Experiment
+        experiment_id = get_obj_id(str(experiment_identifier), class_type='EXPERIMENT')
+        return get_obj(Experiment, 'json', experiment_id)
+
+    def all_experiments(self, chunk_size, offset):
+        from src.sgd.model.perf.core import Experiment
+        return [x.to_json() for x in DBSession.query(Experiment).order_by(Experiment.id.desc()).limit(chunk_size).offset(offset).all()]
+
     #Bioitem
     def all_bioitems(self, chunk_size, offset):
         from src.sgd.model.perf.core import Bioitem
