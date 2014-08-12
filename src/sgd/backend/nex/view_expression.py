@@ -10,6 +10,7 @@ from src.sgd.backend.nex.graph_tools import get_interactions_among
 from src.sgd.model.nex.evidence import Expressionevidence
 from src.sgd.model.nex.bioitem import Datasetcolumn
 from decimal import Decimal
+import math
 
 __author__ = 'kpaskov'
 
@@ -31,17 +32,40 @@ def make_details(locus_id=None):
     id_to_datasetcolumn = dict([(x.id, x) for x in DBSession.query(Datasetcolumn).options(joinedload(Datasetcolumn.dataset)).all()])
     expression_collapsed = {}
     id_to_dataset = dict()
+    dataset_id_to_histogram = dict()
+    min_value = 0
+    max_value = 0
     for x in expressionevidences:
-        dataset = id_to_datasetcolumn[x.evidence.datasetcolumn_id].dataset
-        id_to_dataset[dataset.id] = dataset
-        rounded = float(x.value.quantize(Decimal('.1')))
+        value = float(x.value)
+        rounded = math.floor(value)
+        if value - rounded >= .5:
+            rounded += .5
+
+        if rounded < min_value:
+            min_value = rounded
+        if rounded > max_value:
+            max_value = rounded
+
+        rounded = max(-5.5, min(5, rounded))
         if rounded in expression_collapsed:
             expression_collapsed[rounded] += 1
         else:
             expression_collapsed[rounded] = 1
 
-    return json.dumps({'overview': expression_collapsed,
-                           'datasets': [x.to_semi_json() for x in id_to_dataset.values()]})
+        datasetcolumn = id_to_datasetcolumn[x.evidence.datasetcolumn_id]
+        dataset_id = datasetcolumn.dataset_id
+        if dataset_id not in id_to_dataset:
+            id_to_dataset[dataset_id] = datasetcolumn.dataset
+            dataset_id_to_histogram[dataset_id] = set()
+        dataset_id_to_histogram[dataset_id].add(rounded)
+
+    datasets = []
+    for dataset in id_to_dataset.values():
+        obj_json = dataset.to_semi_json()
+        obj_json['hist_values'] = sorted(dataset_id_to_histogram[dataset.id])
+        datasets.append(obj_json)
+
+    return json.dumps({'overview': expression_collapsed, 'datasets': datasets, 'min_value': min_value, 'max_value': max_value + .5})
 
 # -------------------------------Graph---------------------------------------
 def create_node(bioent, is_focus, ev_count):

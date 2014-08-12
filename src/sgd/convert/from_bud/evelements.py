@@ -82,8 +82,10 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
                     print 'Source not found: ' + str(source_key)
 
         for row in make_file_starter('src/sgd/convert/data/yetfasco_data.txt', delimeter=';')():
-            yield {'display_name': row[9][1:-1],
-                   'source': key_to_source['YeTFaSCo']}
+            expert_confidence = row[8][1:-1]
+            if expert_confidence == 'High':
+                yield {'display_name': row[9][1:-1],
+                    'source': key_to_source['YeTFaSCo']}
 
         yield {'display_name': 'protein abundance', 'source': key_to_source['SGD']}
         yield {'display_name': 'EXP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/exp-inferred-experiment', 'description': 'Inferred from Experiment'}

@@ -12,6 +12,7 @@ from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioiteminteractio
 import math
 import datetime
 import operator
+from exceptions import Exception
 __author__ = 'kpaskov'
     
 # --------------------- Convert Disambigs ---------------------
@@ -117,82 +118,116 @@ def make_bioentity_expression_interaction_starter(nex_session_maker):
 
         id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
         dataset_id_to_evidence_ids = dict()
+        all_evidence_ids = set()
+
+        #Load dataset -> evidence id groups
         for evidence in nex_session.query(Expressionevidence).options(joinedload(Expressionevidence.datasetcolumn)).all():
             dataset_id = evidence.datasetcolumn.dataset_id
             if dataset_id in dataset_id_to_evidence_ids:
                 dataset_id_to_evidence_ids[dataset_id].append(evidence.id)
             else:
                 dataset_id_to_evidence_ids[dataset_id] = [evidence.id]
+            all_evidence_ids.add(evidence.id)
 
+        #Bioentity indexes
         bioent_id_to_index = dict()
         for bioent_id in id_to_bioentity.keys():
             bioent_id_to_index[bioent_id] = len(bioent_id_to_index)
-
         bioent_count = len(bioent_id_to_index)
 
-        magnitudes = [0]*bioent_count
-        ns = [0]*bioent_count
-        pair_dot_products = [([0]*bioent_count) for _ in range(bioent_count)]
+        #Evidence indexes
+        evidence_id_to_index = dict()
+        for evidence_id in all_evidence_ids:
+            evidence_id_to_index[evidence_id] = len(evidence_id_to_index)
+        ev_count = len(evidence_id_to_index)
+
+        data = [([0]*bioent_count) for _ in range(ev_count)]
         print 'Empty arrays created.'
 
+        #Pull data
+        count = 0
+        for x in nex_session.query(Bioentitydata).yield_per(100000):
+            value = float(x.value)
+            bioentity_index = bioent_id_to_index[x.locus_id]
+            evidence_index = evidence_id_to_index[x.evidence_id]
+
+            data[evidence_index][bioentity_index] = value
+            count += 1
+            if count % 100000 == 0:
+                print count
+
+        positive_scores = [([0]*bioent_count) for _ in range(bioent_count)]
+        negative_scores = [([0]*bioent_count) for _ in range(bioent_count)]
+
+        #Calculate score per dataset
+        min_score = 20
         count = 0
         for evidence_ids in dataset_id_to_evidence_ids.values():
-            if count < 10:
-                if len(evidence_ids) > 1:
-                    start = datetime.datetime.now()
+            n = len(evidence_ids)
+            if n > 2:
+                min_r = min_score/math.sqrt(n - 2 + min_score*min_score)
+                print n, min_r
+                evidence_indexes = [evidence_id_to_index[x] for x in evidence_ids]
+                subdata = [data[x] for x in evidence_indexes]
 
-                    evidence_id_to_index = dict()
-                    for evidence_id in evidence_ids:
-                        evidence_id_to_index[evidence_id] = len(evidence_id_to_index)
+                #Calculate magnitudes
+                magnitudes = []
+                for bioentity1_id, bioentity1_index in bioent_id_to_index.iteritems():
+                    v1 = [x[bioentity1_index] for x in subdata]
+                    magnitudes.append(math.sqrt(sum(map(operator.mul, v1, v1))))
 
-                    means = [0]*bioent_count
-                    data = [([0]*bioent_count) for _ in range(len(evidence_ids))]
-                    for x in nex_session.query(Bioentitydata).filter(Bioentitydata.evidence_id.in_(evidence_ids)).all():
-                        value = float(x.value)
-                        bioentity_index = bioent_id_to_index[x.locus_id]
-                        evidence_index = evidence_id_to_index[x.evidence_id]
-                        data[evidence_index][bioentity_index] = value
-                        means[bioentity_index] += value
+                #Calculate scores
+                for bioentity1_id, bioentity1_index in bioent_id_to_index.iteritems():
+                    v1 = [x[bioentity1_index] for x in subdata]
+                    mag1 = magnitudes[bioentity1_index]
 
-                        ns[bioentity_index] += 1
+                    for bioentity2_id, bioentity2_index in bioent_id_to_index.iteritems():
+                        mag2 = magnitudes[bioentity2_index]
+                        if bioentity1_index < bioentity2_index and mag1 > 0 and mag2 > 0:
+                            v2 = [x[bioentity2_index] for x in subdata]
 
-                    means = [means[x]/len(evidence_ids) for x in range(0, bioent_count)]
-                    print len(evidence_ids)
+                            v1_dot_v2 = sum(map(operator.mul, v1, v2))
+                            r = v1_dot_v2/(mag1*mag2)
 
-                    for data_row in data:
-                        data_row = map(operator.sub, data_row, means)
+                            if r >= min_r:
+                                positive_scores[bioentity1_index][bioentity2_index] += 1
+                            if r <= -min_r:
+                                negative_scores[bioentity1_index][bioentity2_index] += 1
+            count += 1
+            if count % 100 == 0:
+                print count
 
-                        for bioentity1_index, value1 in enumerate(data_row):
-                            #Update magnitudes
-                            magnitudes[bioentity1_index] += value1**2
-
-                            #Update pair dot products
-                            for bioentity2_index, value2 in enumerate(data_row):
-                                if bioentity1_index < bioentity2_index:
-                                    pair_dot_products[bioentity1_index][bioentity2_index] += value1*value2
-
-                count += 1
-                print count, (datetime.datetime.now() - start)
-
-        magnitudes = [math.sqrt(x) for x in magnitudes]
-
+        #Calculate scores
+        positive_relationships_not_added = [0 for _ in range(0, 6)]
+        negative_relationships_not_added = [0 for _ in range(0, 6)]
+        count = 0
         for bioentity1_id, bioentity1_index in bioent_id_to_index.iteritems():
             for bioentity2_id, bioentity2_index in bioent_id_to_index.iteritems():
-                if bioentity1_index < bioentity2_index and magnitudes[bioentity1_index] > 0 and magnitudes[bioentity2_index] > 0:
-                    r = pair_dot_products[bioentity1_index][bioentity2_index]/(magnitudes[bioentity1_index]*magnitudes[bioentity2_index])
-                    n = min(ns[bioentity1_index], ns[bioentity2_index])
-                    score = r*math.sqrt((n-2)/(1-r*r))
-
-                    if score >= 20 or score <= -20:
+                if bioentity1_index < bioentity2_index:
+                    positive_score = positive_scores[bioentity1_index][bioentity2_index]
+                    negative_score = negative_scores[bioentity1_index][bioentity2_index]
+                    if positive_score > 5:
                         bioentity = id_to_bioentity[bioentity1_id]
                         interactor = id_to_bioentity[bioentity2_id]
+                        yield {'interaction_type': 'EXPRESSION', 'coeff': positive_score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'positive'}
+                        yield {'interaction_type': 'EXPRESSION', 'coeff': positive_score, 'bioentity': interactor, 'interactor': bioentity, 'direction': 'positive'}
+                    elif positive_score > 0:
+                        positive_relationships_not_added[positive_score] += 1
 
-                        if r < 0:
-                            yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'negative'}
-                            yield {'interaction_type': 'EXPRESSION', 'coeff': -score, 'bioentity': interactor, 'interactor': bioentity, 'direction': 'negative'}
-                        else:
-                            yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'positive'}
-                            yield {'interaction_type': 'EXPRESSION', 'coeff': score, 'bioentity': interactor, 'interactor': bioentity, 'direction': 'positive'}
+                    if negative_score > 5:
+                        bioentity = id_to_bioentity[bioentity1_id]
+                        interactor = id_to_bioentity[bioentity2_id]
+                        yield {'interaction_type': 'EXPRESSION', 'coeff': negative_score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'negative'}
+                        yield {'interaction_type': 'EXPRESSION', 'coeff': negative_score, 'bioentity': interactor, 'interactor': bioentity, 'direction': 'negative'}
+                    elif negative_score > 0:
+                        negative_relationships_not_added[negative_score] += 1
+
+            count += 1
+            if count % 1000 == 0:
+                print count
+
+        print positive_relationships_not_added
+        print negative_relationships_not_added
 
         nex_session.close()
     return bioentity_interaction_starter
