@@ -102,7 +102,7 @@ def make_graph(bioent_id):
 
     #Apply 100 node cutoff
     all_neighbors = sorted(neighbor_id_to_coeff.keys(), key=lambda x: neighbor_id_to_coeff[x], reverse=True)
-    min_coeff = 0 if len(all_neighbors) <= 100 else neighbor_id_to_coeff[all_neighbors[100]]
+    min_coeff = 0 if len(all_neighbors) <= 50 else neighbor_id_to_coeff[all_neighbors[50]]
 
     usable_neighbor_ids = [neighbor_id for neighbor_id, coeff in neighbor_id_to_coeff.iteritems() if coeff > min_coeff]
     usable_neighbor_ids.append(bioent_id)
@@ -121,7 +121,7 @@ def make_graph(bioent_id):
     all_coeffs = sorted(coeff_to_interactions.keys(), reverse=True)
     ok_interactions = set()
     cutoff_index = 0
-    while len(ok_interactions) < 250 and cutoff_index < len(all_coeffs):
+    while len(ok_interactions) < 200 and cutoff_index < len(all_coeffs):
         cutoff = all_coeffs[cutoff_index]
         ok_nodes = set([x for x, y in neighbor_id_to_coeff.iteritems() if y >= cutoff])
         ok_interactions = set()
