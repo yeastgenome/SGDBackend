@@ -6,7 +6,7 @@ from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj, Out
     make_individual_go_backend_starter, make_individual_phenotype_backend_starter, make_individual_observable_backend_starter, Evidence2NexDB, make_locus_data_backend_starter, \
     make_reference_data_backend_starter, make_ecnumber_data_backend_starter, make_go_data_backend_starter, make_phenotype_data_backend_starter, make_observable_data_backend_starter, \
     make_chemical_data_backend_starter, make_observable_data_backend_starter, make_contig_data_backend_starter, make_domain_data_backend_starter, \
-    BigObj2NexDB, Json2DisambigPerfDB, make_orphan_backend_starter, Json2OrphanPerfDB, make_go_data_with_children_backend_starter, make_datasetcolumn_data_backend_starter
+    BigObj2NexDB, Json2DisambigPerfDB, make_orphan_backend_starter, Json2OrphanPerfDB, make_go_data_with_children_backend_starter, make_datasetcolumn_data_backend_starter, make_orphan_arg_backend_starter
 from sqlalchemy.orm import with_polymorphic
 import os
 __author__ = 'kpaskov'
@@ -480,7 +480,7 @@ if __name__ == "__main__":
     #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Regulationevidence), name='convert.from_bud.evidence.regulation', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Regulationevidence, Evidence, 'REGULATION')
-    #
+
 
     # do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
     #                   [Json2Obj(DNAsequenceevidence),
@@ -619,10 +619,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='REGULATION'), name='convert.from_bud.auxilliary.bioentity_interaction', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
     #
-    do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
-                  [Json2Obj(Bioentityinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'), name='convert.from_bud.auxilliary.bioentity_interaction_expression', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
+    # do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
+    #               [Json2Obj(Bioentityinteraction),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'), name='convert.from_bud.auxilliary.bioentity_interaction_expression', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
 
     # clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY')
     #
@@ -658,11 +658,11 @@ if __name__ == "__main__":
     from src.sgd.model.nex.bioitem import Chemical, Contig, Domain, Datasetcolumn
     from src.sgd.model.nex.reference import Reference
     nex_session = nex_session_maker()
-    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     #complex_ids = [x.id for x in nex_session.query(Complex).all()]
     #go_ids = [x.id for x in nex_session.query(Go).all()]
-    datasetcolumn_ids = [x.id for x in nex_session.query(Datasetcolumn).all()]
+    #datasetcolumn_ids = [x.id for x in nex_session.query(Datasetcolumn).all()]
     #domain_ids = [x.id for x in nex_session.query(Domain).all()]
     #observable_ids = [x.id for x in nex_session.query(Observable).all()]
     #phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]
@@ -841,10 +841,6 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_datasetcolumn_data_backend_starter(nex_backend, 'expression_details', datasetcolumn_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'EXPRESSION', datasetcolumn_ids, name='convert.from_backend.expression_details', commit_interval=10),
-    #                 OutputTransformer(10)])
-    #
     # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'all_locus']),
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
 
@@ -854,3 +850,7 @@ if __name__ == "__main__":
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
     #do_conversion(make_orphan_backend_starter(nex_backend, ['go_snapshot']),
     #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+
+    locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
+    do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', locus_types),
+                  [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])

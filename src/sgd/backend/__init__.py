@@ -355,6 +355,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('all_locus'),
                     route_name='all_locus')
 
+    config.add_route('obj_list', '/all/{list_type}')
+    config.add_view(lambda request: chosen_backend.response_wrapper('obj_list', request)(getattr(chosen_backend, 'obj_list')(list_type=request.matchdict['list_type'])),
+                    renderer=chosen_backend.get_renderer('obj_list'),
+                    route_name='obj_list')
+
     config.add_route('go_snapshot', '/go_snapshot')
     config.add_view(lambda request: chosen_backend.response_wrapper('go_snapshot', request)(getattr(chosen_backend, 'go_snapshot')()),
                     renderer=chosen_backend.get_renderer('go_snapshot'),

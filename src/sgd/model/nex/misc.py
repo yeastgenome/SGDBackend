@@ -178,7 +178,7 @@ class Tag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = create_format_name(obj_json['display_name'])
-        self.link = '/category/' + self.format_name + '/overview'
+        self.link = '/tag/' + self.format_name + '/overview'
 
     def unique_key(self):
         return self.format_name

@@ -47,6 +47,13 @@ class Bioentityinteraction(Interaction, EqualityByIDMixin):
     #Relationships
     interactor = relationship(Bioentity, uselist=False)
 
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = str(obj_json.get('interactor').id)
+        if self.direction is not None:
+            self.format_name = self.format_name + '_' + self.direction
+
+
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY', 'inherit_condition': id==Interaction.id}
     __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count', 'direction', 'coeff']
 

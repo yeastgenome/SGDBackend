@@ -130,6 +130,10 @@ class PerfBackend(BackendInterface):
         from src.sgd.model.perf.core import Orphan
         return DBSession.query(Orphan).filter_by(url='go_snapshot').first().json
 
+    def obj_list(self, list_type):
+        from src.sgd.model.perf.core import Orphan
+        return DBSession.query(Orphan).filter_by(url='obj_list.' + list_type).first().json
+
     def strain(self, strain_identifier):
         from src.sgd.model.perf.core import Strain
         strain_id = get_obj_id(str(strain_identifier), class_type='STRAIN')
@@ -147,6 +151,8 @@ class PerfBackend(BackendInterface):
     def all_experiments(self, chunk_size, offset):
         from src.sgd.model.perf.core import Experiment
         return [x.to_json() for x in DBSession.query(Experiment).order_by(Experiment.id.desc()).limit(chunk_size).offset(offset).all()]
+
+
 
     #Bioitem
     def all_bioitems(self, chunk_size, offset):

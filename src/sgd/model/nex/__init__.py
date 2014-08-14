@@ -59,13 +59,16 @@ class UpdateByJsonMixin(object):
 
         return anything_changed
 
-    def to_min_json(self):
-        return {
+    def to_min_json(self, include_description=False):
+        obj_json = {
             'id': self.id,
             'format_name': self.format_name,
             'display_name': self.display_name,
             'link': self.link,
             }
+        if include_description and hasattr(self, 'description'):
+            obj_json['description'] = self.description
+        return obj_json
 
     def to_json(self):
         obj_json = {}

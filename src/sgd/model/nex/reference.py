@@ -121,8 +121,8 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def unique_key(self):
         return self.format_name
 
-    def to_min_json(self):
-        obj_json = UpdateByJsonMixin.to_min_json(self)
+    def to_min_json(self, include_description=False):
+        obj_json = UpdateByJsonMixin.to_min_json(self, include_description=include_description)
         obj_json['pubmed_id'] = self.pubmed_id
         return obj_json
 

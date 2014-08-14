@@ -37,8 +37,8 @@ class Bioitem(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def unique_key(self):
         return self.format_name, self.class_type
 
-    def to_min_json(self):
-        obj_json = UpdateByJsonMixin.to_min_json(self)
+    def to_min_json(self, include_description=False):
+        obj_json = UpdateByJsonMixin.to_min_json(self, include_description=include_description)
         obj_json['class_type'] = self.class_type
         return obj_json
 
@@ -219,11 +219,12 @@ class Contig(Bioitem):
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         overview_counts = {}
-        for evidence in self.dnasequence_evidences:
-            if evidence.locus.locus_type in overview_counts:
-                overview_counts[evidence.locus.locus_type] += 1
-            else:
-                overview_counts[evidence.locus.locus_type] = 1
+        for evidence in [x for x in self.dnasequence_evidences if x.dna_type== 'GENOMIC']:
+            if x.locus.bioent_status == 'Active':
+                if evidence.locus.locus_type in overview_counts:
+                    overview_counts[evidence.locus.locus_type] += 1
+                else:
+                    overview_counts[evidence.locus.locus_type] = 1
 
         obj_json['overview'] = [
             ['Feature Type', 'Count'],

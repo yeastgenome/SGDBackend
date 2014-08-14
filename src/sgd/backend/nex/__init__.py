@@ -100,6 +100,19 @@ class SGDBackend(BackendInterface):
 
         return json.dumps({'data': data, 'columns': columns, 'rows': labels})
 
+    def obj_list(self, list_type):
+        from src.sgd.model.nex.bioentity import Locus
+        from src.sgd.model.nex.reference import Author, Reference
+        from src.sgd.model.nex.bioitem import Contig, Dataset, Domain, Chemical
+        query = None
+        if list_type in set(['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']):
+            query = DBSession.query(Locus).filter_by(locus_type=list_type)
+
+        if query is not None:
+            return json.dumps([x.to_min_json(include_description=True) for x in query.all()])
+        else:
+            return None
+
     def go_snapshot(self):
         from src.sgd.model.nex.bioconcept import Go, Bioconceptrelation
         from src.sgd.model.nex.evidence import Goevidence

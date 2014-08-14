@@ -77,11 +77,11 @@ def create_node(bioent, is_focus, ev_count):
 
 def create_edge(bioent1_id, bioent2_id, score, class_type, direction):
     return {'data':{'target': 'BIOENTITY' + str(bioent1_id), 'source': 'BIOENTITY' + str(bioent2_id),
-            'score':float(score), 'class_type': class_type, 'direction': direction}}
+            'score':float(score)/10, 'class_type': class_type, 'direction': direction}}
 
 def make_graph(bioent_id):
     id_to_bioentity = dict([(x.id, x) for x in DBSession.query(Locus).all()])
-    interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter_by(bioentity_id=bioent_id).filter(Bioentityinteraction.coeff > 0).all()
+    interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter_by(bioentity_id=bioent_id).all()
 
     if len(interactions) == 0:
          return {'nodes': [], 'edges': []}
@@ -102,12 +102,14 @@ def make_graph(bioent_id):
 
     #Apply 100 node cutoff
     all_neighbors = sorted(neighbor_id_to_coeff.keys(), key=lambda x: neighbor_id_to_coeff[x], reverse=True)
-    usable_neighbor_ids = [x for x in all_neighbors][:100]
+    min_coeff = 0 if len(all_neighbors) <= 100 else neighbor_id_to_coeff[all_neighbors[100]]
+
+    usable_neighbor_ids = [neighbor_id for neighbor_id, coeff in neighbor_id_to_coeff.iteritems() if coeff > min_coeff]
     usable_neighbor_ids.append(bioent_id)
     neighbor_id_to_coeff[bioent_id] = max_coeff
-    min_coeff = 0 if len(usable_neighbor_ids) <= 100 else neighbor_id_to_coeff[all_neighbors[100]]
 
-    more_interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter(Bioentityinteraction.coeff > 0).filter(Bioentityinteraction.bioentity_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.interactor_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.bioentity_id < Bioentityinteraction.interactor_id).all()
+
+    more_interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter(Bioentityinteraction.coeff > min_coeff).filter(Bioentityinteraction.bioentity_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.interactor_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.bioentity_id < Bioentityinteraction.interactor_id).all()
     for interaction in more_interactions:
         coeff = interaction.coeff
         if coeff >= min_coeff:
