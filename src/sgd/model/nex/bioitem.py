@@ -289,6 +289,7 @@ class Dataset(Bioitem):
         obj_json['reference'] = None if self.reference is None else self.reference.to_json()
         obj_json['datasetcolumns'] = [x.to_min_json() for x in self.datasetcolumns]
         obj_json['tags'] = [x.tag.to_min_json() for x in self.bioitem_tags]
+        obj_json['urls'] = [x.to_min_json() for x in self.urls]
         return obj_json
 
 class Datasetcolumn(Bioitem):

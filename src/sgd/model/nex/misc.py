@@ -75,10 +75,10 @@ class Experiment(Base, EqualityByIDMixin, UpdateByJsonMixin):
         self.format_name = create_format_name(obj_json.get('display_name'))
         if obj_json.get('eco_id') in eco_id_to_category:
             self.category = eco_id_to_category[obj_json.get('eco_id')]
-        if self.eco_id is not None:
-            self.link = '/experiment/' + self.eco_id + '/overview'
-        else:
-            self.link = '/experiment/' + self.format_name + '/overview'
+        # if self.eco_id is not None:
+        #     self.link = '/experiment/' + self.eco_id + '/overview'
+        # else:
+        #     self.link = '/experiment/' + self.format_name + '/overview'
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)

@@ -398,7 +398,7 @@ def make_bioitem_relation_starter(bud_session_maker, nex_session_maker):
 # --------------------- Convert Bioitem URL ---------------------
 def make_bioitem_url_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.bioitem import Domain, Chemical
+    from src.sgd.model.nex.bioitem import Domain, Chemical, Dataset
 
     def bioitem_url_starter():
         nex_session = nex_session_maker()
@@ -422,13 +422,13 @@ def make_bioitem_url_starter(nex_session_maker):
                 link = None
             elif bioitem_type == 'PANTHER':
                 link = "http://www.pantherdb.org/panther/family.do?clsAccession=" + display_name
-            elif bioitem_type == 'TIGRFAMs':
+            elif bioitem_type == 'TIGRFAM':
                 link = "http://cmr.tigr.org/tigr-scripts/CMR/HmmReport.cgi?hmm_acc=" + display_name
             elif bioitem_type == 'PRINTS':
                 link = "http:////www.bioinf.man.ac.uk/cgi-bin/dbbrowser/sprint/searchprintss.cgi?display_opts=Prints&amp;category=None&amp;queryform=false&amp;prints_accn=" + display_name
             elif bioitem_type == 'ProDom':
                 link = "http://prodom.prabi.fr/prodom/current/cgi-bin/request.pl?question=DBEN&amp;query=" + display_name
-            elif bioitem_type == 'PIR_superfamily':
+            elif bioitem_type == 'PIRSF':
                 link = "http://pir.georgetown.edu/cgi-bin/ipcSF?" + display_name
             elif bioitem_type == 'PROSITE':
                 link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
@@ -458,6 +458,28 @@ def make_bioitem_url_starter(nex_session_maker):
                        'source': key_to_source['SGD'],
                        'category': 'External',
                        'bioitem_id': chemical.id}
+
+        for dataset in nex_session.query(Dataset).all():
+            if dataset.geo_id is not None:
+                yield {'display_name': dataset.geo_id,
+                       'link': 'http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=' + dataset.geo_id,
+                       'source': key_to_source['NCBI'],
+                       'category': 'External',
+                       'bioitem_id': dataset.id}
+
+        pcl_filename_to_dataset = dict([(x.pcl_filename, x) for x in nex_session.query(Dataset).all()])
+
+        for path in os.listdir('src/sgd/convert/data/microarray_05_14'):
+            if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
+                for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
+                    if file != 'README':
+                        if file in pcl_filename_to_dataset:
+                            dataset = pcl_filename_to_dataset[file]
+                            yield {'display_name': 'Download',
+                                   'link': 'http://downloads.yeastgenome.org/expression/microarray/' + path + '/',
+                                   'source': key_to_source['SGD'],
+                                   'category': 'Download',
+                                   'bioitem_id': dataset.id}
 
         nex_session.close()
     return bioitem_url_starter
