@@ -164,7 +164,7 @@ class Locus(Bioentity):
         #Go overview
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
         obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name']),
-                                   'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]}
+                                   'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]['text']}
 
         #Interaction
         genetic_bioentities = set([x.locus2_id for x in self.geninteraction_evidences1])
