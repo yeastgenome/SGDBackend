@@ -132,14 +132,16 @@ class Locus(Bioentity):
         for evidence in self.phenotype_evidences:
             if evidence.experiment.category == 'classical genetics':
                 if evidence.mutant_type in classical_groups:
-                    classical_groups[evidence.mutant_type] += 1
+                    if evidence.phenotype_id not in classical_groups[evidence.mutant_type]:
+                        classical_groups[evidence.mutant_type][evidence.phenotype_id] = evidence.phenotype
                 else:
-                    classical_groups[evidence.mutant_type] = 1
+                    classical_groups[evidence.mutant_type] = {evidence.phenotype_id: evidence.phenotype}
             elif evidence.experiment.category == 'large-scale survey':
                 if evidence.mutant_type in large_scale_groups:
-                    large_scale_groups[evidence.mutant_type] += 1
+                    if evidence.phenotype_id not in large_scale_groups[evidence.mutant_type]:
+                        large_scale_groups[evidence.mutant_type][evidence.phenotype_id] = evidence.phenotype
                 else:
-                    large_scale_groups[evidence.mutant_type] = 1
+                    large_scale_groups[evidence.mutant_type] = {evidence.phenotype_id: evidence.phenotype}
 
             if evidence.strain is not None:
                 if evidence.strain.display_name in strain_groups:
@@ -150,7 +152,7 @@ class Locus(Bioentity):
         mutant_types = set(classical_groups.keys())
         mutant_types.update(large_scale_groups.keys())
         for mutant_type in mutant_types:
-            experiment_categories.append([mutant_type, 0 if mutant_type not in classical_groups else classical_groups[mutant_type], 0 if mutant_type not in large_scale_groups else large_scale_groups[mutant_type]])
+            experiment_categories.append([mutant_type, 0 if mutant_type not in classical_groups else len(classical_groups[mutant_type]), 0 if mutant_type not in large_scale_groups else len(large_scale_groups[mutant_type])])
         strains = []
         for strain, count in strain_groups.iteritems():
             strains.append([strain, count])
@@ -159,26 +161,63 @@ class Locus(Bioentity):
         strains.sort(key=lambda x: x[1], reverse=True)
         strains.insert(0, ['Strain', 'Annotations'])
         obj_json['phenotype_overview'] = {'experiment_categories': experiment_categories,
-                                          'strains': strains}
+                                          'strains': strains,
+                                          'classical_phenotypes': dict([(x, [phenotype.to_min_json() for phenotype in y.values()]) for x, y in classical_groups.iteritems()]),
+                                          'large_scale_phenotypes': dict([(x, [phenotype.to_min_json() for phenotype in y.values()]) for x, y in large_scale_groups.iteritems()])
+                                          }
 
         #Go overview
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
         obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name']),
-                                   'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]['text']}
+                                   'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]['text'],
+                                   'molecular_function_terms': dict([(x.go.id, x.go.to_min_json()) for x in self.go_evidences if x.go.go_aspect == 'molecular function' and x.annotation_type != 'computational']).values(),
+                                   'biological_process_terms': dict([(x.go.id, x.go.to_min_json()) for x in self.go_evidences if x.go.go_aspect == 'biological process' and x.annotation_type != 'computational']).values(),
+                                   'cellular_component_terms': dict([(x.go.id, x.go.to_min_json()) for x in self.go_evidences if x.go.go_aspect == 'cellular component' and x.annotation_type != 'computational']).values()}
 
         #Interaction
         genetic_bioentities = set([x.locus2_id for x in self.geninteraction_evidences1])
         genetic_bioentities.update([x.locus1_id for x in self.geninteraction_evidences2])
         physical_bioentities = set([x.locus2_id for x in self.physinteraction_evidences1])
-        physical_bioentities.update([x.locus1_id for x in self.physinteraction_evidences2 ])
+        physical_bioentities.update([x.locus1_id for x in self.physinteraction_evidences2])
 
         A = len(genetic_bioentities)
         B = len(physical_bioentities)
         C = len(genetic_bioentities & physical_bioentities)
         r, s, x = calc_venn_measurements(A, B, C)
 
+        physical_experiments = dict()
+        genetic_experiments = dict()
+        experiment_id_to_name = dict()
+
+        for genevidence in chain(self.geninteraction_evidences1, self.geninteraction_evidences2):
+            experiment_id = genevidence.experiment_id
+            if experiment_id not in experiment_id_to_name:
+                experiment_id_to_name[experiment_id] = genevidence.experiment.display_name
+            experiment_name = experiment_id_to_name[experiment_id]
+
+            if experiment_name not in genetic_experiments:
+                genetic_experiments[experiment_name] = 1
+            else:
+                genetic_experiments[experiment_name] += 1
+
+        for physevidence in chain(self.physinteraction_evidences1, self.physinteraction_evidences2):
+            experiment_id = physevidence.experiment_id
+            if experiment_id not in experiment_id_to_name:
+                experiment_id_to_name[experiment_id] = physevidence.experiment.display_name
+            experiment_name = experiment_id_to_name[experiment_id]
+
+            if experiment_name not in physical_experiments:
+                physical_experiments[experiment_name] = 1
+            else:
+                physical_experiments[experiment_name] += 1
+
         obj_json['interaction_overview'] = {'gen_circle_size': r, 'phys_circle_size':s, 'circle_distance': x,
-                                            'num_gen_interactors': A, 'num_phys_interactors': B, 'num_both_interactors': C}
+                                            'num_gen_interactors': A, 'num_phys_interactors': B, 'num_both_interactors': C,
+                                            'total_interactions': len(self.geninteraction_evidences1) + len(self.geninteraction_evidences2) + len(self.physinteraction_evidences1) + len(self.physinteraction_evidences2),
+                                            'total_interactors': len(genetic_bioentities | physical_bioentities),
+                                            'physical_experiments': physical_experiments,
+                                            'genetic_experiments': genetic_experiments
+                                            }
         #Regulation
         regulation_paragraphs = [x.to_json(linkit=True) for x in self.paragraphs if x.category == 'REGULATION']
 
@@ -200,6 +239,17 @@ class Locus(Bioentity):
 
         #Sequence
         obj_json['sequence_overview'] = sorted(dict([(x.strain.id, x.strain.to_min_json()) for x in self.dnasequence_evidences]).values(), key=lambda x: x['display_name'])
+
+        reference_protein_sequence = None
+        for protein_sequence in self.proteinsequence_evidences:
+            if protein_sequence.strain_id == 1:
+                reference_protein_sequence = protein_sequence
+        #Protein
+        obj_json['protein_overview'] = {
+            'length': None if reference_protein_sequence is None else len(reference_protein_sequence.residues)-1,
+            'molecular_weight': None if reference_protein_sequence is None else reference_protein_sequence.molecular_weight,
+            'pi': None if reference_protein_sequence is None else reference_protein_sequence.pi
+        }
 
         #Aliases
         obj_json['aliases'] = [x.to_json() for x in self.aliases]
