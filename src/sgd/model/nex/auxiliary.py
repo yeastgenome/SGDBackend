@@ -44,7 +44,7 @@ class Bioentityinteraction(Interaction, EqualityByIDMixin):
     direction = Column('direction', String)
 
     #Relationships
-    interactor = relationship(Bioentity, uselist=False)
+    interactor = relationship(Bioentity, uselist=False, backref=backref('interactions2', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY', 'inherit_condition': id==Interaction.id}
     __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count', 'direction']
@@ -56,7 +56,7 @@ class Bioconceptinteraction(Interaction, EqualityByIDMixin):
     interactor_id = Column('interactor_id', Integer, ForeignKey(Bioconcept.id))
 
     #Relationships
-    interactor = relationship(Bioconcept, uselist=False)
+    interactor = relationship(Bioconcept, uselist=False, backref=backref('interactions', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT', 'inherit_condition': id==Interaction.id}
 
@@ -78,7 +78,7 @@ class Referenceinteraction(Interaction, EqualityByIDMixin):
     interactor_id = Column('interactor_id', Integer, ForeignKey(Reference.id))
 
     #Relationships
-    interactor = relationship(Reference, uselist=False, backref='reference_interactions')
+    interactor = relationship(Reference, uselist=False, backref=backref('reference_interactions', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE', 'inherit_condition': id==Interaction.id}
     
