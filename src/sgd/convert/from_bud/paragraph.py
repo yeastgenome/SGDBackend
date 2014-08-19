@@ -160,9 +160,9 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
         #LSP
         for feature in bud_session.query(Feature).all():
             paragraph_feats = feature.paragraph_feats
-            if len(paragraph_feats) > 0:
+            if len(paragraph_feats) > 0 and feature.id in id_to_bioentity:
                 paragraph_feats.sort(key=lambda x: x.order)
-                paragraph_html, paragraph_text = clean_paragraph('\n'.join([x.paragraph.text for x in paragraph_feats]), str([x.paragraph.id for x in paragraph_feats]), sgdid_to_reference, sgdid_to_bioentity, goid_to_go)
+                paragraph_html, paragraph_text = clean_paragraph('<p>' + ('</p><p>'.join([x.paragraph.text for x in paragraph_feats])) + '</p>', str([x.paragraph.id for x in paragraph_feats]), sgdid_to_reference, sgdid_to_bioentity, goid_to_go)
                 yield {
                     'bioentity': id_to_bioentity[feature.id],
                     'source': key_to_source['SGD'],

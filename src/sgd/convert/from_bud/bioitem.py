@@ -485,7 +485,7 @@ def make_bioitem_url_starter(nex_session_maker):
     return bioitem_url_starter
 
 # --------------------- Convert Bioitem Tag ---------------------
-def make_bioitem_tag_starter(nex_session_maker, expression_dir):
+def make_bioitem_tag_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Tag
     from src.sgd.model.nex.bioitem import Dataset
     def bioitem_tag_starter():
@@ -494,42 +494,15 @@ def make_bioitem_tag_starter(nex_session_maker, expression_dir):
         key_to_dataset = dict([(x.unique_key(), x) for x in nex_session.query(Dataset).all()])
         key_to_tag = dict([(x.unique_key(), x) for x in nex_session.query(Tag).all()])
 
-        for path in os.listdir(expression_dir):
-            if os.path.isdir(expression_dir + '/' + path):
-                pcl_filename_to_info = {}
-                state = 'BEGIN'
-
-                for row in make_file_starter(expression_dir + '/' + path + '/README')():
-                    if row[0].startswith('Full Description'):
-                        state = 'FULL_DESCRIPTION:'
-                        full_description = row[0][18:].strip()
-                    elif row[0].startswith('PMID:'):
-                        pubmed_id = int(row[0][6:].strip())
-                    elif row[0].startswith('GEO ID:'):
-                        geo_id = row[0][8:].strip()
-                    elif row[0].startswith('PCL filename'):
-                        state = 'OTHER'
-                    elif state == 'FULL_DESCRIPTION':
-                        full_description = full_description + row[0].strip()
-                    elif state == 'OTHER':
-                        pcl_filename = row[0].strip()
-                        short_description = row[1].strip()
-                        tag = row[3].strip()
-                        pcl_filename_to_info[pcl_filename] = (short_description, tag)
-
-
-                for path in os.listdir(expression_dir):
-                    if os.path.isdir(expression_dir + '/' + path):
-                        for file in os.listdir(expression_dir + '/' + path):
-                            dataset_key = (file[:-4], 'DATASET')
-                            if dataset_key in key_to_dataset and file in pcl_filename_to_info:
-                                tags = pcl_filename_to_info[file][1].split('|')
-
-                                for tag in tags:
-                                    yield {
-                                            'bioitem': key_to_dataset[dataset_key],
-                                            'tag': key_to_tag[create_format_name(tag)],
-                                    }
+        for row in make_file_starter('src/sgd/convert/data/SPELL-tags.txt')():
+            dataset_key = (row[1].strip()[:-4], 'DATASET')
+            tags = row[2].strip()
+            for t in [x.strip() for x in tags.split('|')]:
+                if t != '':
+                    yield {
+                        'bioitem': key_to_dataset[dataset_key],
+                        'tag': key_to_tag[create_format_name(t)]
+                    }
 
         nex_session.close()
     return bioitem_tag_starter
@@ -586,31 +559,18 @@ definitions = {
     'other':                        'Cannot be binned based on the current set of tags.',
     'not yet curated':              'The dataset has not yet been assigned a tag or tags.'
 }
-def make_tag_starter(nex_session_maker, expression_dir):
-    from src.sgd.model.nex.misc import Tag
-    from src.sgd.model.nex.bioitem import Dataset
+def make_tag_starter(nex_session_maker):
     def tag_starter():
         nex_session = nex_session_maker()
 
-        for path in os.listdir(expression_dir):
-            if os.path.isdir(expression_dir + '/' + path):
-                state = 'BEGIN'
-
-                for row in make_file_starter(expression_dir + '/' + path + '/README')():
-                    if row[0].startswith('Full Description'):
-                        state = 'FULL_DESCRIPTION:'
-                        full_description = row[0][18:].strip()
-                    elif row[0].startswith('PCL filename'):
-                        state = 'OTHER'
-                    elif state == 'FULL_DESCRIPTION':
-                        full_description = full_description + row[0].strip()
-                    elif state == 'OTHER':
-                        tag = row[3].strip()
-                        for t in tag.split('|'):
-                            yield {
-                                    'display_name': t,
-                                    'description': definitions.get(t)
-                                    }
+        for row in make_file_starter('src/sgd/convert/data/SPELL-tags.txt')():
+            tag = row[2].strip()
+            for t in [x.strip() for x in tag.split('|')]:
+                if t != '':
+                    yield {
+                        'display_name': t,
+                        'description': definitions.get(t)
+                    }
 
         nex_session.close()
     return tag_starter

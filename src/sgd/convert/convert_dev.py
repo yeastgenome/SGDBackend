@@ -73,14 +73,14 @@ if __name__ == "__main__":
     #               [Json2CorePerfDB(perf_session_maker, PerfExperiment, name='convert.from_backend.experiment', commit_interval=100, delete_untouched=True),
     #                OutputTransformer(100)])
 
-    # # ------------------------------------------ Bioentity ------------------------------------------
-    # # Bud -> Nex
-    # from src.sgd.model.nex.bioentity import Bioentity, Locus, Complex, Bioentityalias, Bioentityrelation, Bioentityurl
-    # from src.sgd.model.nex.misc import Alias, Relation, Url
-    # from src.sgd.model.nex.auxiliary import Locustabs, Disambig
-    # from src.sgd.convert.from_bud.bioentity import make_locus_starter, make_complex_starter, make_bioentity_tab_starter, \
-    #     make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    # ------------------------------------------ Bioentity ------------------------------------------
+    # Bud -> Nex
+    from src.sgd.model.nex.bioentity import Bioentity, Locus, Complex, Bioentityalias, Bioentityrelation, Bioentityurl
+    from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.auxiliary import Locustabs, Disambig
+    from src.sgd.convert.from_bud.bioentity import make_locus_starter, make_complex_starter, make_bioentity_tab_starter, \
+        make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_locus_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Locus),
@@ -260,7 +260,7 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioitemurl), name='convert.from_bud.bioitem.url', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Bioitemurl, Url, 'BIOITEM')
     #
-    # do_conversion(make_tag_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
+    # do_conversion(make_tag_starter(nex_session_maker),
     #               [Json2Obj(Tag),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Tag), name='convert.from_bud.tag', delete_untouched=True, commit=True)])
     #
@@ -268,10 +268,10 @@ if __name__ == "__main__":
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'TAG'), name='convert.from_bud.bioitem.disambig.tag', delete_untouched=True, commit=True)])
     #
-    # do_conversion(make_bioitem_tag_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
+    # do_conversion(make_bioitem_tag_starter(nex_session_maker),
     #               [Json2Obj(BioitemTag),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(BioitemTag), name='convert.from_bud.bioitem.tag', delete_untouched=True, commit=True)])
-    #
+
     # do_conversion(make_disambig_starter(nex_session_maker, Domain, ['id', 'format_name'], 'BIOITEM', 'DOMAIN'),
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DOMAIN'), name='convert.from_bud.bioitem.disambig.domain', delete_untouched=True, commit=True)])
@@ -823,9 +823,9 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'REGULATION', locus_ids, name='convert.from_backend.regulation_graph', commit_interval=1000),
     #                 OutputTransformer(1000)])
 
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_graph', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_graph', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_graph', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_graph', commit_interval=1000),
+    #                 OutputTransformer(1000)])
     #
     # Done
     # do_conversion(make_go_data_backend_starter(nex_backend, 'go_ontology_graph', go_ids),
@@ -842,8 +842,8 @@ if __name__ == "__main__":
     #                 OutputTransformer(1000)])
     #
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_details', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_details', commit_interval=1000),
-    #                 OutputTransformer(1000)])
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_details', commit_interval=100),
+    #                 OutputTransformer(100)])
     #
     # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'all_locus']),
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
@@ -858,3 +858,6 @@ if __name__ == "__main__":
     # locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', locus_types),
     #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+
+    do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', ['tag']),
+                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])

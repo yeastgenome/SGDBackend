@@ -257,6 +257,9 @@ class Locus(Bioentity):
         #Urls
         obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name) if x.category is not None and x.category != 'NONE']
 
+        lsp_paragraphs = [x.to_json(linkit=True) for x in self.paragraphs if x.category == 'LSP']
+        obj_json['paragraph'] = None if len(lsp_paragraphs) == 0 else lsp_paragraphs[0]
+
         return obj_json
 
 class Complex(Bioentity):

@@ -292,6 +292,8 @@ category_mapping = {
     'Mutant Strains': 'LOCUS_PHENOTYPE_MUTANT_STRAINS',
     'Phenotype Resources': 'LOCUS_PHENOTYPE_PHENOTYPE_RESOURCES',
     'Interaction Resources': 'LOCUS_INTERACTION',
+    'Expression Resources': 'LOCUS_EXPRESSION',
+    'Regulatory Role Resources': 'LOCUS_REGULATION',
     'Protein Information Homologs': 'LOCUS_PROTEIN_HOMOLOGS',
     'Analyze Sequence S288C vs. other species': 'LOCUS_PROTEIN_HOMOLOGS',
     'Protein databases/Other': 'LOCUS_PROTEIN_PROTEIN_DATABASES',
@@ -299,7 +301,8 @@ category_mapping = {
     'Post-translational modifications': 'LOCUS_PROTEIN_MODIFICATIONS',
     'Analyze Sequence S288C only': 'LOCUS_SEQUENCE_S288C',
     'Analyze Sequence S288C vs. other species': 'LOCUS_SEQUENCE_OTHER_SPECIES',
-    'Analyze Sequence S288C vs. other strains': 'LOCUS_SEQUENCE_OTHER_STRAINS'
+    'Analyze Sequence S288C vs. other strains': 'LOCUS_SEQUENCE_OTHER_STRAINS',
+    'Resources External Links': 'LOCUS_LSP'
 }
 
 def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
