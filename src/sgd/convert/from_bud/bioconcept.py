@@ -303,25 +303,20 @@ def make_bioconcept_relation_starter(bud_session_maker, nex_session_maker):
                     yield None
 
         #Phenotype Slim
-        observable_id_to_ancestor = dict()
+        phenotype_slim = {'cell_death', 'chromosome-plasmid_maintenance', 'intracellular_transport', 'mitotic_cell_cycle',
+                          'prion_state', 'stress_resistance', 'budding', 'filamentous_growth', 'lifespan', 'sexual_cycle',
+                          'essentiality', 'fitness', 'metabolism_and_growth', 'cellular_morphology', 'culture_appearance'}
         for phenotype in nex_session.query(Phenotype).all():
-            if phenotype.observable_id not in observable_id_to_ancestor:
-                ancestory = [phenotype.observable]
-                while ancestory[-1] is not None:
-                    parents = ancestory[-1].parents
-                    if len(parents) == 0:
-                        ancestory.append(None)
-                    else:
-                        ancestory.append(parents[0].parent)
-                if len(ancestory) > 3:
-                    ancestor = ancestory[-3]
-                    if ancestor.display_name == 'essentiality':
-                        ancestor = ancestory[-4]
-                    observable_id_to_ancestor[phenotype.observable_id] = ancestor.id
+            ancestor = phenotype.observable
+            while ancestor is not None and ancestor.format_name not in phenotype_slim:
+                if len(ancestor.parents) > 0:
+                    ancestor = ancestor.parents[0].parent
+                else:
+                    ancestor = None
 
-            if phenotype.observable_id in observable_id_to_ancestor:
+            if ancestor is not None:
                 yield {'source': key_to_source['SGD'],
-                        'parent_id': observable_id_to_ancestor[phenotype.observable_id],
+                        'parent_id': ancestor.id,
                         'child_id': phenotype.id,
                         'relation_type': 'PHENOTYPE_SLIM'}
 

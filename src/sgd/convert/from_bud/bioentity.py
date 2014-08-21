@@ -97,7 +97,7 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
                                       'source': source,
                                       'sgdid': '0',
                                       'uniprotid': None,
-                                      'bioent_status': 'Inactive',
+                                      'bioent_status': 'Active',
                                       'locus_type': 'ORF',
                                       'name_description': 'Represents undefined locii in sequence.',
                                       'headline': 'Represents undefined locii in sequence.',

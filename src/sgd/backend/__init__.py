@@ -364,6 +364,11 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('go_snapshot', request)(getattr(chosen_backend, 'go_snapshot')()),
                     renderer=chosen_backend.get_renderer('go_snapshot'),
                     route_name='go_snapshot')
+
+    config.add_route('phenotype_snapshot', '/phenotype_snapshot')
+    config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_snapshot', request)(getattr(chosen_backend, 'phenotype_snapshot')()),
+                    renderer=chosen_backend.get_renderer('phenotype_snapshot'),
+                    route_name='phenotype_snapshot')
     
 def prepare_backend(backend_type):
     configurator = Configurator()

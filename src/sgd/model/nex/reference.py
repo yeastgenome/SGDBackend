@@ -171,7 +171,11 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
         if self.journal is not None:
             obj_json['journal']['med_abbr'] = self.journal.med_abbr
 
-        obj_json['expression_datasets'] = []
+        id_to_dataset = {}
+        for expression_evidence in self.expression_evidences:
+            if expression_evidence.datasetcolumn.dataset_id not in id_to_dataset:
+                id_to_dataset[expression_evidence.datasetcolumn.dataset_id] = expression_evidence.datasetcolumn.dataset
+        obj_json['expression_datasets'] = [x.to_semi_json() for x in id_to_dataset.values()]
         return obj_json
 
 class Bibentry(Base, EqualityByIDMixin, UpdateByJsonMixin):
