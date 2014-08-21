@@ -231,7 +231,7 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
 # --------------------- Convert Contig ---------------------
 def make_contig_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain
-    from src.sgd.convert.from_bud import sequence_files
+    from src.sgd.convert.from_bud import sequence_files, new_sequence_files
     from src.sgd.model.bud.sequence import Sequence
     from src.sgd.model.bud.feature import Feature
 
@@ -251,6 +251,19 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
             for filename in filenames:
                 for sequence_id, residues in make_fasta_file_starter(filename)():
                     yield {'display_name': sequence_id,
+                           'source': key_to_source['SGD'],
+                           'strain': key_to_strain[strain.replace('.', '')],
+                           'residues': residues}
+
+        for sequence_filename, strain in new_sequence_files:
+            filenames = []
+            if isinstance(sequence_filename, list):
+                filenames = sequence_filename
+            elif sequence_filename is not None:
+                filenames.append(sequence_filename)
+            for filename in filenames:
+                for sequence_id, residues in make_fasta_file_starter(filename)():
+                    yield {'display_name': sequence_id.split(' ')[0],
                            'source': key_to_source['SGD'],
                            'strain': key_to_strain[strain.replace('.', '')],
                            'residues': residues}

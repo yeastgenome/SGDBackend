@@ -170,6 +170,8 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
         obj_json['urls'] = [x.to_json() for x in self.urls]
         if self.journal is not None:
             obj_json['journal']['med_abbr'] = self.journal.med_abbr
+
+        obj_json['expression_datasets'] = []
         return obj_json
 
 class Bibentry(Base, EqualityByIDMixin, UpdateByJsonMixin):

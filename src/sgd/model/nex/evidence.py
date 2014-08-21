@@ -861,7 +861,7 @@ class DNAsequenceevidence(Evidence):
         return obj_json
 
     def unique_key(self):
-        return self.class_type, self.locus_id, self.strain_id, self.dna_type
+        return self.class_type, self.locus_id, self.strain_id, self.dna_type, self.contig_id, self.start, self.end
 
 class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'dnasequencetag'

@@ -90,6 +90,21 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
                                       'gene_name': bud_obj.gene_name,
                                       'date_created': bud_obj.date_created,
                                       'created_by': bud_obj.created_by}
+
+        yield {'id': 0,
+                                      'display_name': 'UNDEF',
+                                      'format_name':'UNDEF',
+                                      'source': source,
+                                      'sgdid': '0',
+                                      'uniprotid': None,
+                                      'bioent_status': 'Inactive',
+                                      'locus_type': 'ORF',
+                                      'name_description': 'Represents undefined locii in sequence.',
+                                      'headline': 'Represents undefined locii in sequence.',
+                                      'description': 'Represents undefined locii in sequence.',
+                                      'gene_name': 'UNDEF',
+                                      'date_created': bud_obj.date_created,
+                                      'created_by': bud_obj.created_by}
         bud_session.close()
         nex_session.close()
     return locus_starter

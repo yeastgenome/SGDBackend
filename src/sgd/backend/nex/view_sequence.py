@@ -54,9 +54,9 @@ def make_details(locus_id=None, contig_id=None):
     coding_dnaseqevidences = [x for x in dnaseqevidences if x.dna_type == 'CODING']
 
     tables = {}
-    tables['genomic_dna'] = [x.to_json() for x in sorted(genomic_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.locus.bioent_status == 'Active' or x.locus_id == locus_id]
-    tables['coding_dna'] = [x.to_json() for x in sorted(coding_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.locus.bioent_status == 'Active' or x.locus_id == locus_id]
-    tables['protein'] = [x.to_json() for x in sorted(proteinseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else 'AAA') if x.locus.bioent_status == 'Active' or x.locus_id == locus_id]
+    tables['genomic_dna'] = [x.to_json() for x in sorted(genomic_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else '1') if x.locus.bioent_status == 'Active' or x.locus_id == locus_id]
+    tables['coding_dna'] = [x.to_json() for x in sorted(coding_dnaseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else '1') if x.locus.bioent_status == 'Active' or x.locus_id == locus_id]
+    tables['protein'] = [x.to_json() for x in sorted(proteinseqevidences, key=lambda x: x.strain.display_name if x.strain.display_name != 'S288C' else '1') if x.locus.bioent_status == 'Active' or x.locus_id == locus_id]
 
     return tables
 

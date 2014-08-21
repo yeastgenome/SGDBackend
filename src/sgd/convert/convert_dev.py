@@ -399,7 +399,7 @@ if __name__ == "__main__":
         make_dna_sequence_tag_starter, make_expression_evidence_starter, make_expression_data_starter, \
         make_alias_evidence_starter, make_binding_evidence_starter, make_bioentity_evidence_starter, \
         make_complex_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
-        make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter
+        make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter, make_new_dna_sequence_evidence_starter
 
     # do_conversion(make_alias_evidence_starter(bud_session_maker, nex_session_maker),
     #                [Json2Obj(Aliasevidence),
@@ -487,19 +487,25 @@ if __name__ == "__main__":
     #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1), name='convert.from_bud.evidence.reference_dnasequence', delete_untouched=True, commit_interval=1000),
     #                    OutputTransformer(1000)])
     #
-    # do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(DNAsequencetag),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
-    #                OutputTransformer(1000)])
+    do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(DNAsequencetag),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000),
+                   OutputTransformer(1000)])
 
-    # from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
-    # from src.sgd.model.nex.misc import Strain
-    # nex_session = nex_session_maker()
-    # strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
-    # nex_session.close()
+    from src.sgd.convert.from_bud import sequence_files, protein_sequence_files, new_sequence_files
+    from src.sgd.model.nex.misc import Strain
+    nex_session = nex_session_maker()
+    strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
+    nex_session.close()
 
     # for sequence_filename, coding_sequence_filename, strain_key in sequence_files:
     #     do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
+    #                   [Json2Obj(DNAsequenceevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000),
+    #                    OutputTransformer(1000)])
+    #
+    # for sequence_filename, strain_key in new_sequence_files:
+    #     do_conversion(make_new_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename),
     #                   [Json2Obj(DNAsequenceevidence),
     #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000),
     #                    OutputTransformer(1000)])
@@ -858,6 +864,6 @@ if __name__ == "__main__":
     # locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', locus_types),
     #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
-
-    do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', ['tag']),
-                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+    #
+    # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', ['tag']),
+    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])

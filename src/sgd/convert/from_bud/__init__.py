@@ -14,12 +14,12 @@ def contains_digits(d):
 
 sequence_files = [
                       #(["src/sgd/convert/data/strains/saccharomyces_cerevisiae.gff", "src/sgd/convert/data/strains/scerevisiae_2-micron.gff"], ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"], 'S288C'),
-                      ("src/sgd/convert/data/strains/CEN.PK113-7D_AEHG00000000.gff", "src/sgd/convert/data/strains/CEN.PK113-7D_AEHG00000000_cds.fsa.txt", 'CENPK'),
-                      ("src/sgd/convert/data/strains/W303_ALAV00000000.gff", "src/sgd/convert/data/strains/W303_ALAV00000000_cds.fsa.txt", 'W303'),
+                      #("src/sgd/convert/data/strains/CEN.PK113-7D_AEHG00000000.gff", "src/sgd/convert/data/strains/CEN.PK113-7D_AEHG00000000_cds.fsa.txt", 'CENPK'),
+                      #("src/sgd/convert/data/strains/W303_ALAV00000000.gff", "src/sgd/convert/data/strains/W303_ALAV00000000_cds.fsa.txt", 'W303'),
                       ("src/sgd/convert/data/strains/AWRI1631_ABSV01000000.gff", "src/sgd/convert/data/strains/AWRI1631_ABSV01000000_cds.fsa.txt", 'AWRI1631'),
                       ("src/sgd/convert/data/strains/AWRI796_ADVS01000000.gff", "src/sgd/convert/data/strains/AWRI796_ADVS01000000_cds.fsa.txt", 'AWRI796'),
-                      ("src/sgd/convert/data/strains/BY4741_Toronto_2012.gff", "src/sgd/convert/data/strains/BY4741_Toronto_2012_cds.fsa.txt", 'BY4741'),
-                      ("src/sgd/convert/data/strains/BY4742_Toronto_2012.gff", "src/sgd/convert/data/strains/BY4742_Toronto_2012_cds.fsa.txt", 'BY4742'),
+                      #("src/sgd/convert/data/strains/BY4741_Toronto_2012.gff", "src/sgd/convert/data/strains/BY4741_Toronto_2012_cds.fsa.txt", 'BY4741'),
+                      #("src/sgd/convert/data/strains/BY4742_Toronto_2012.gff", "src/sgd/convert/data/strains/BY4742_Toronto_2012_cds.fsa.txt", 'BY4742'),
                       ("src/sgd/convert/data/strains/CBS7960_AEWL01000000.gff", "src/sgd/convert/data/strains/CBS7960_AEWL01000000_cds.fsa.txt", 'CBS7960'),
                       ("src/sgd/convert/data/strains/CLIB215_AEWP01000000.gff", "src/sgd/convert/data/strains/CLIB215_AEWP01000000_cds.fsa.txt", 'CLIB215'),
                       #("src/sgd/convert/data/strains/CLIB324_AEWM01000000.gff", "src/sgd/convert/data/strains/CLIB324_AEWM01000000_cds.fsa.txt", 'CLIB324'),
@@ -34,7 +34,7 @@ sequence_files = [
                       ("src/sgd/convert/data/strains/LalvinQA23_ADVV01000000.gff", "src/sgd/convert/data/strains/LalvinQA23_ADVV01000000_cds.fsa.txt", 'LalvinQA23'),
                       #("src/sgd/convert/data/strains/M22_ABPC01000000.gff", "src/sgd/convert/data/strains/M22_ABPC01000000_cds.fsa.txt", 'M22'),
                       ("src/sgd/convert/data/strains/PW5_AFDC01000000.gff", "src/sgd/convert/data/strains/PW5_AFDC01000000_cds.fsa.txt", 'PW5'),
-                      ("src/sgd/convert/data/strains/RM11-1a_AAEG01000000.gff", "src/sgd/convert/data/strains/RM11-1a_AAEG01000000_cds.fsa.txt", 'RM11-1a'),
+                      #("src/sgd/convert/data/strains/RM11-1a_AAEG01000000.gff", "src/sgd/convert/data/strains/RM11-1a_AAEG01000000_cds.fsa.txt", 'RM11-1a'),
                       ("src/sgd/convert/data/strains/Sigma1278b_ACVY01000000.gff", "src/sgd/convert/data/strains/Sigma1278b_ACVY01000000_cds.fsa.txt", 'Sigma1278b'),
                       ("src/sgd/convert/data/strains/T7_AFDE01000000.gff", "src/sgd/convert/data/strains/T7_AFDE01000000_cds.fsa.txt", 'T7'),
                       #("src/sgd/convert/data/strains/T73_AFDF01000000.gff", "src/sgd/convert/data/strains/T73_AFDF01000000_cds.fsa.txt", 'T73'),
@@ -46,6 +46,34 @@ sequence_files = [
                       ("src/sgd/convert/data/strains/YJM789_AAFW02000000.gff", "src/sgd/convert/data/strains/YJM789_AAFW02000000_cds.fsa.txt", 'YJM789'),
                       #("src/sgd/convert/data/strains/YPS163_ABPD01000000.gff", "src/sgd/convert/data/strains/YPS163_ABPD01000000_cds.fsa.txt", 'YPS163'),
                       ("src/sgd/convert/data/strains/ZTW1_AMDD00000000.gff", "src/sgd/convert/data/strains/ZTW1_AMDD00000000_cds.fsa.txt", 'ZTW1')]
+
+new_sequence_files = [("src/sgd/convert/data/strains/10560_6B.genes.gff", '10560-6B'),
+                      ("src/sgd/convert/data/strains/BC187.genes.gff", 'BC187'),
+                      ("src/sgd/convert/data/strains/BY4741.genes.gff", 'BY4741'),
+                      ("src/sgd/convert/data/strains/BY4742.genes.gff", 'BY4742'),
+                      ("src/sgd/convert/data/strains/CEN.PK.genes.gff", 'CENPK'),
+                      ("src/sgd/convert/data/strains/D273.genes.gff", 'D273'),
+                      ("src/sgd/convert/data/strains/DBVPG6044.genes.gff", 'DBVPG6044'),
+                      ("src/sgd/convert/data/strains/FL100.genes.gff", 'FL100'),
+                      ("src/sgd/convert/data/strains/FY1679.genes.gff", 'FY1679'),
+                      ("src/sgd/convert/data/strains/JK9.genes.gff", 'JK9'),
+                      ("src/sgd/convert/data/strains/K11.genes.gff", 'K11'),
+                      ("src/sgd/convert/data/strains/L1528.genes.gff", 'L1528'),
+                      ("src/sgd/convert/data/strains/RedStar.genes.gff", 'RedStar'),
+                      ("src/sgd/convert/data/strains/RM11_1A.genes.gff", 'RM11-1a'),
+                      ("src/sgd/convert/data/strains/SEY.genes.gff", 'SEY'),
+                      ("src/sgd/convert/data/strains/SK1.genes.gff", 'SK1'),
+                      ("src/sgd/convert/data/strains/UWOPSS.genes.gff", 'UWOPSS'),
+                      ("src/sgd/convert/data/strains/W303.genes.gff", 'W303'),
+                      ("src/sgd/convert/data/strains/X2180.genes.gff", 'X2180'),
+                      ("src/sgd/convert/data/strains/Y55.genes.gff", 'Y55'),
+                      ("src/sgd/convert/data/strains/YJM339.genes.gff", 'YJM339'),
+                      ("src/sgd/convert/data/strains/YPH499.genes.gff", 'YPH499'),
+                      ("src/sgd/convert/data/strains/YPS128.genes.gff", 'YPS128'),
+                      ("src/sgd/convert/data/strains/YPS163.genes.gff", 'YPS163'),
+                      ("src/sgd/convert/data/strains/YS9.genes.gff", 'YS9'),
+
+]
 
 protein_sequence_files = [("src/sgd/convert/data/strains/orf_trans_all_R64-1-1_20110203.fasta", 'S288C'),
                       ("src/sgd/convert/data/strains/CEN.PK113-7D_AEHG00000000_pep.fsa.txt", 'CENPK'),
@@ -84,7 +112,7 @@ protein_sequence_files = [("src/sgd/convert/data/strains/orf_trans_all_R64-1-1_2
 
 
 
-def get_dna_sequence_library(gff3_file):
+def get_dna_sequence_library(gff3_file, remove_spaces=False):
     id_to_sequence = {}
     on_sequence = False
     current_id = None
@@ -97,6 +125,8 @@ def get_dna_sequence_library(gff3_file):
             if current_id is not None:
                 id_to_sequence[current_id] = ''.join(current_sequence)
             current_id = line[1:]
+            if remove_spaces:
+                current_id = current_id.split(' ')[0]
             current_sequence = []
         elif on_sequence:
             current_sequence.append(line)
@@ -138,18 +168,11 @@ def get_sequence_library_fsa(fsa_file):
 
     return id_to_sequence
 
-def get_sequence(row, sequence_library):
-    pieces = row.split('\t')
-    if len(pieces) == 9:
-        parent_id = pieces[0]
-        start = int(pieces[3])
-        end = int(pieces[4])
-        strand = pieces[6]
-        if parent_id in sequence_library:
-            residues = sequence_library[parent_id][start-1:end]
-            if strand == '-':
-                residues = reverse_complement(residues)
-            return residues
-        else:
-            print 'Parent not found: ' + parent_id
-    return None
+def get_sequence(parent_id, start, end, strand, sequence_library):
+    if parent_id in sequence_library:
+        residues = sequence_library[parent_id][start-1:end]
+        if strand == '-':
+            residues = reverse_complement(residues)
+        return residues
+    else:
+        print 'Parent not found: ' + parent_id
