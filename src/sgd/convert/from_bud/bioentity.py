@@ -252,7 +252,13 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
             if bioentity_id in bioentity_ids:
                 link = None
                 if len(bud_obj.dbxref.urls) > 0:
-                    link = bud_obj.dbxref.urls[0].url.replace('_SUBSTITUTE_THIS_', display_name)
+                    if len(bud_obj.dbxref.urls) == 1:
+                        link = bud_obj.dbxref.urls[0].url.replace('_SUBSTITUTE_THIS_', display_name)
+                    else:
+                        for url in bud_obj.dbxref.urls:
+                            for display in url.displays:
+                                if display.label_location == 'Resources External Links':
+                                    link = url.url.replace('_SUBSTITUTE_THIS_', display_name)
 
                 yield {'display_name': display_name,
                        'link': link,

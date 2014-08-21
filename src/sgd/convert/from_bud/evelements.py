@@ -209,7 +209,10 @@ strain_to_genotype = {'S288C': '<i>MAT&alpha; SUC2 gal2 mal2 mel flo1 flo8-1 hap
                       'SEY6211': '<i>MAT</i>a<i> leu2-3,112 ura3-52 his3-&Delta;200 trp1-&Delta;901 ade2-101 suc2-&Delta;9; GAL</i>',
                       'JK9-3d': 'JK9-3da <i>MAT</i>a<i> leu2-3,112 ura3-52 rme1 trp1 his4</i><br>JK9-3d&alpha; has the same genotype as JK9-3da with the exception of the MAT locus<br>JK9-3da/&alpha; is homozygous for all markers except mating type',
                       'RM11-1a': '<i>MAT</i>a<i> leu2&Delta;0 ura3-&Delta;0 HO::kanMX</i>',
-                      'Y55': '<i>MAT</i>a<i>/MATalpha HO/HO</i>'
+                      'Y55': '<i>MAT</i>a<i>/MATalpha HO/HO</i>',
+                      'BY4741': 'MATa his3&Delta;1 leu2&Delta;0 met15&Delta;0 ura3&Delta;0',
+                      'BY4742': 'MAT&alpha; his3&Delta;1 leu2&Delta;0 lys2&Delta;0 ura3&Delta;0',
+                      'FY1679': 'MATa/&alpha; ura3-52/ura3-52 trp1&Delta;63/TRP1 leu2&Delta;1/LEU2 his3&Delta;200/HIS3 GAL2/GAL2'
 }
 
 strain_to_description = {'S288C': 'Reference Genome',
@@ -343,6 +346,13 @@ strain_to_source = {'S288C': ('ATCC:204508', 'http://www.atcc.org/ATCCAdvancedCa
                     'SEY6210/SEY6211': ('ATCC:201392', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=201392&Template=fungiYeast'),
                     'SEY6210': ('ATCC:96099', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=96099&Template=fungiYeast'),
                     'SEY6211': ('ATCC:96100', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=96100&Template=fungiYeast'),
+                    'FY1679': ('ATCC:96604', 'http://www.atcc.org/ATCCAdvancedCatalogSearch/ProductDetails/tabid/452/Default.aspx?ATCCNum=96604&Template=fungiYeast')
+}
+
+strain_to_euroscarf = {
+    'BY4741': 'Y00000',
+    'BY4742': 'Y10000',
+    'FY1679': '10000D'
 }
 
 def make_strain_url_starter(nex_session_maker):
@@ -371,6 +381,13 @@ def make_strain_url_starter(nex_session_maker):
             if strain.format_name in strain_to_source:
                 yield {'display_name': strain_to_source[strain.format_name][0],
                                'link': strain_to_source[strain.format_name][1],
+                               'source': key_to_source['SGD'],
+                               'category': 'source',
+                               'strain': strain}
+
+            if strain.format_name in strain_to_euroscarf:
+                yield {'display_name': 'EUROSCARF:' + strain_to_euroscarf[strain.format_name],
+                               'link': 'http://web.uni-frankfurt.de/fb15/mikro/euroscarf/data/' + strain.format_name + '.html',
                                'source': key_to_source['SGD'],
                                'category': 'source',
                                'strain': strain}

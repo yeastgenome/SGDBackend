@@ -447,6 +447,10 @@ def make_bioitem_url_starter(nex_session_maker):
                 link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
             elif bioitem_type == 'PROSITE':
                 link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
+            elif bioitem_type == 'Phobius':
+                link = None
+            elif bioitem_type == '-':
+                link = None
             else:
                 print 'No link for source = ' + str(bioitem_type) + ' ' + str(display_name)
                 link = None

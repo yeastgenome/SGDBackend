@@ -157,6 +157,8 @@ class Evidence2NexDB(TransformerInterface):
             if key not in self.key_to_current_json:
                 self.session.add(newly_created_obj)
                 self.added_count += 1
+                if self.name == 'convert.from_bud.evidence.bioentity':
+                    print newly_created_json
                 return 'Added'
             elif current_json == newly_created_json:
                 self.no_change_count += 1
@@ -167,6 +169,8 @@ class Evidence2NexDB(TransformerInterface):
                 current_obj.update(newly_created_obj_json)
                 current_obj.json = newly_created_json
                 self.updated_count += 1
+                if self.name == 'convert.from_bud.evidence.bioentity':
+                    print newly_created_json
                 return 'Updated'
         else:
             self.duplicate_count += 1
