@@ -1593,6 +1593,8 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
             strain_id = key_to_strain[strain_name].id
 
             f = open(seq_file, 'r')
+            previous_evidence_id = None
+            previous_end = None
             for row in f:
                 pieces = row.split(' ')
                 if len(pieces) == 9:
@@ -1613,6 +1615,22 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                                 bioentity_id = key_to_bioentity[bioentity_key].id
                                 if (bioentity_id, strain_id) in bioentity_strain_id_to_evidence:
                                     evidence = bioentity_strain_id_to_evidence[(bioentity_id, strain_id)]
+
+                                    #Handle introns
+                                    if previous_evidence_id == evidence.id:
+                                        yield {
+                                            'evidence_id': evidence.id,
+                                            'class_type': 'intron',
+                                            'display_name': 'intron',
+                                            'relative_start': evidence.end - start + 1,
+                                            'relative_end': evidence.end - previous_end + 1,
+                                            'chromosomal_start': start,
+                                            'chromosomal_end': previous_end,
+                                            'seq_version': None,
+                                            'coord_version': None
+                                        }
+                                    previous_evidence_id = evidence.id
+                                    previous_end = end
 
                                     yield {
                                         'evidence_id': evidence.id,
