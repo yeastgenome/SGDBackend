@@ -140,10 +140,10 @@ class SGDBackend(BackendInterface):
         return json.dumps({'go_slim_terms': go_slim_terms, 'go_slim_relationships': relationships})
 
     def phenotype_snapshot(self):
-        from src.sgd.model.nex.bioconcept import Phenotype, Bioconceptrelation
+        from src.sgd.model.nex.bioconcept import Observable, Bioconceptrelation
         from src.sgd.model.nex.evidence import Phenotypeevidence
         phenotype_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='PHENOTYPE_SLIM').all()])
-        phenotypes = DBSession.query(Phenotype).filter(Phenotype.id.in_(phenotype_slim_ids)).all()
+        phenotypes = DBSession.query(Observable).filter(Observable.id.in_(phenotype_slim_ids)).all()
         phenotype_slim_terms = []
         relationships = [['Child', 'Parent']]
         for phenotype in phenotypes:

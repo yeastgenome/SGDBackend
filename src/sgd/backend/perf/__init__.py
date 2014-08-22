@@ -130,6 +130,10 @@ class PerfBackend(BackendInterface):
         from src.sgd.model.perf.core import Orphan
         return DBSession.query(Orphan).filter_by(url='go_snapshot').first().json
 
+    def phenotype_snapshot(self):
+        from src.sgd.model.perf.core import Orphan
+        return DBSession.query(Orphan).filter_by(url='phenotype_snapshot').first().json
+
     def obj_list(self, list_type):
         from src.sgd.model.perf.core import Orphan
         return DBSession.query(Orphan).filter_by(url='obj_list.' + list_type).first().json

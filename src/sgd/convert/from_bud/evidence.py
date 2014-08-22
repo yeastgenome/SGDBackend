@@ -1618,72 +1618,43 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                             bioentity_key = (info_values[0].strip(), 'LOCUS')
                             if bioentity_key in key_to_bioentity:
                                 bioentity_id = key_to_bioentity[bioentity_key].id
-                                if (bioentity_id, strain_id, contig_id) in bioentity_strain_id_to_evidence:
-                                    evidence = bioentity_strain_id_to_evidence[(bioentity_id, strain_id, contig_id)]
+                                if bioentity_id != 0:
+                                    if (bioentity_id, strain_id, contig_id) in bioentity_strain_id_to_evidence:
+                                        evidence = bioentity_strain_id_to_evidence[(bioentity_id, strain_id, contig_id)]
 
-                                    if strand != '-':
                                         #Handle introns
                                         if previous_evidence_id == evidence.id:
                                             intron_start = previous_end + 1
                                             intron_end = start - 1
                                             yield {
-                                                'evidence_id': evidence.id,
-                                                'class_type': 'intron',
-                                                'display_name': 'intron',
-                                                'relative_start': intron_start - evidence.start + 1,
-                                                'relative_end': intron_end - evidence.start + 1,
-                                                'chromosomal_start': intron_start,
-                                                'chromosomal_end': intron_end,
-                                                'seq_version': None,
-                                                'coord_version': None
+                                                    'evidence_id': evidence.id,
+                                                    'class_type': 'intron',
+                                                    'display_name': 'intron',
+                                                    'relative_start': intron_start - evidence.start + 1,
+                                                    'relative_end': intron_end - evidence.start + 1,
+                                                    'chromosomal_start': intron_start,
+                                                    'chromosomal_end': intron_end,
+                                                    'seq_version': None,
+                                                    'coord_version': None
                                             }
                                         previous_evidence_id = evidence.id
                                         previous_end = end
 
                                         yield {
-                                            'evidence_id': evidence.id,
-                                            'class_type': class_type,
-                                            'display_name': class_type,
-                                            'relative_start': start - evidence.start + 1,
-                                            'relative_end': end - evidence.start + 1,
-                                            'chromosomal_start': start,
-                                            'chromosomal_end': end,
-                                            'seq_version': None,
-                                            'coord_version': None
+                                                'evidence_id': evidence.id,
+                                                'class_type': class_type,
+                                                'display_name': class_type,
+                                                'relative_start': start - evidence.start + 1,
+                                                'relative_end': end - evidence.start + 1,
+                                                'chromosomal_start': start,
+                                                'chromosomal_end': end,
+                                                'seq_version': None,
+                                                'coord_version': None
                                         }
+
                                     else:
-                                        #Handle introns
-                                        if previous_evidence_id == evidence.id:
-                                            intron_start = previous_end + 1
-                                            intron_end = start - 1
-                                            yield {
-                                                'evidence_id': evidence.id,
-                                                'class_type': 'intron',
-                                                'display_name': 'intron',
-                                                'relative_start': evidence.end - intron_end + 1,
-                                                'relative_end': evidence.end - intron_start + 1,
-                                                'chromosomal_start': intron_end,
-                                                'chromosomal_end': intron_start,
-                                                'seq_version': None,
-                                                'coord_version': None
-                                            }
-                                        previous_evidence_id = evidence.id
-                                        previous_end = end
-
-                                        yield {
-                                            'evidence_id': evidence.id,
-                                            'class_type': class_type,
-                                            'display_name': class_type,
-                                            'relative_start': evidence.end - end + 1,
-                                            'relative_end': evidence.end - start + 1,
-                                            'chromosomal_start': end,
-                                            'chromosomal_end': start,
-                                            'seq_version': None,
-                                            'coord_version': None
-                                        }
-                                else:
-                                    print 'Evidence not found: ' + str((bioentity_id, strain_id))
-                                    yield None
+                                        print 'Evidence not found: ' + str((bioentity_id, strain_id))
+                                        yield None
                             else:
                                 print 'Bioentity not found: ' + str(bioentity_key)
                                 yield None

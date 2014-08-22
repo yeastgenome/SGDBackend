@@ -48,16 +48,20 @@ class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     @hybrid_property
     def count(self):
-        return len(set(self.related_locus_ids))
+        return len(self.related_locus_ids)
 
     @hybrid_property
     def child_count(self):
-        return len(set(self.related_locus_ids + sum([x.child.related_locus_ids for x in self.children if x.relation_type == 'is a'], [])))
+        return len(self.all_related_locus_ids)
 
     @hybrid_property
     def related_locus_ids(self):
-        return [x.locus_id for x in self.evidences]
-      
+        return set([x.locus_id for x in self.evidences])
+
+    @hybrid_property
+    def all_related_locus_ids(self):
+        return set(list(self.related_locus_ids) + sum([list(x.child.all_related_locus_ids) for x in self.children if x.relation_type == 'is a'], []))
+
 class Bioconceptrelation(Relation):
     __tablename__ = 'bioconceptrelation'
 
