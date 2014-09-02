@@ -87,10 +87,10 @@ if __name__ == "__main__":
     #               [Json2Obj(Locustabs),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locustabs), name='convert.from_bud.bioentity.locustabs', delete_untouched=True, commit=True)])
     #
-    do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Bioentityalias),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityalias), name='convert.from_bud.bioentity.alias', delete_untouched=True, commit=True)])
-    clean_up_orphans(nex_session_maker, Bioentityalias, Alias, 'BIOENTITY')
+    # do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Bioentityalias),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityalias), name='convert.from_bud.bioentity.alias', delete_untouched=True, commit=True)])
+    # clean_up_orphans(nex_session_maker, Bioentityalias, Alias, 'BIOENTITY')
     #
     # do_conversion(make_bioentity_relation_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioentityrelation),
@@ -139,10 +139,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Observable), name='convert.from_bud.bioconcept.observable', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Observable, Bioconcept, 'OBSERVABLE')
     #
-    # do_conversion(make_phenotype_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Phenotype),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Phenotype), name='convert.from_bud.bioconcept.phenotype', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Phenotype, Bioconcept, 'PHENOTYPE')
+    do_conversion(make_phenotype_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Phenotype),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Phenotype), name='convert.from_bud.bioconcept.phenotype', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Phenotype, Bioconcept, 'PHENOTYPE')
 
     # do_conversion(make_go_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Go),
@@ -365,7 +365,7 @@ if __name__ == "__main__":
         make_dna_sequence_tag_starter, make_expression_evidence_starter, make_expression_data_starter, \
         make_alias_evidence_starter, make_binding_evidence_starter, make_bioentity_evidence_starter, \
         make_complex_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
-        make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter
+        make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_ref_dna_sequence_evidence_starter
 
     # do_conversion(make_alias_evidence_starter(bud_session_maker, nex_session_maker),
     #                [Json2Obj(Aliasevidence),
