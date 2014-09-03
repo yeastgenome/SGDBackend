@@ -63,12 +63,14 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
             name_description = None
             headline = None
             description = None
+            qualifier = None
 
             ann = bud_obj.annotation
             if ann is not None:
                 name_description = ann.name_description
                 headline = ann.headline
                 description = ann.description
+                qualifier = ann.qualifier
 
             sgdid = bud_obj.dbxref_id
 
@@ -86,6 +88,7 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
                                       'locus_type': bud_obj.type,
                                       'name_description': name_description,
                                       'headline': headline,
+                                      'qualifier': qualifier,
                                       'description': description,
                                       'gene_name': bud_obj.gene_name,
                                       'date_created': bud_obj.date_created,

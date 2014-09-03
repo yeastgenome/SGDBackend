@@ -71,14 +71,14 @@ if __name__ == "__main__":
     # ------------------------------------------ Basic ------------------------------------------
     from src.sgd.model.nex.bioentity import Bioentity, Locus
     from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber
-    from src.sgd.model.nex.bioitem import Bioitem, Orphanbioitem, Domain, Allele, Chemical
+    from src.sgd.model.nex.bioitem import Bioitem, Orphanbioitem, Domain, Allele, Chemical, Datasetcolumn, Dataset
     from src.sgd.model.nex.auxiliary import Disambig
     from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty
     from src.sgd.convert.from_bud.bioentity import make_locus_starter
     from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
         make_ecnumber_starter, make_observable_starter
     from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
-        make_orphan_starter
+        make_orphan_starter, make_dataset_starter, make_datasetcolumn_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
 
     do_conversion(make_locus_starter(bud_session_maker, nex_session_maker),
@@ -188,6 +188,24 @@ if __name__ == "__main__":
                              commit=True,
                              already_deleted=clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL'))])
 
+    do_conversion(make_dataset_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
+                  [Json2Obj(Dataset),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Dataset),
+                             name='convert.from_bud.bioitem.dataset',
+                             delete_untouched=True,
+                             commit_interval=1000,
+                             already_deleted=clean_up_orphans(nex_session_maker, Dataset, Bioitem, 'DATASET'))])
+
+
+    do_conversion(make_datasetcolumn_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
+                  [Json2Obj(Datasetcolumn),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Datasetcolumn),
+                             name='convert.from_bud.bioitem.datasetcolumn',
+                             delete_untouched=True,
+                             commit_interval=1000,
+                             already_deleted=clean_up_orphans(nex_session_maker, Datasetcolumn, Bioitem, 'DATASETCOLUMN'))])
+
+
     do_conversion(make_disambig_starter(nex_session_maker, Domain, ['id', 'format_name'], 'BIOITEM', 'DOMAIN'),
                   [Json2Obj(Disambig),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DOMAIN'),
@@ -201,6 +219,10 @@ if __name__ == "__main__":
                              name='convert.from_bud.bioitem.disambig.chemical',
                              delete_untouched=True,
                              commit=True)])
+
+    do_conversion(make_disambig_starter(nex_session_maker, Dataset, ['id', 'format_name'], 'BIOITEM', 'DATASET'),
+                  [Json2Obj(Disambig),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DATASET'), name='convert.from_bud.bioitem.disambig.dataset', delete_untouched=True, commit=True)])
 
     clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')
     clean_up_orphans(nex_session_maker, Bioconceptproperty, Property, 'BIOCONCEPT')

@@ -71,7 +71,9 @@ class SGDBackend(BackendInterface):
         id_to_strain = dict([(x.id, x) for x in DBSession.query(Strain)])
         good_strain_ids = [x.id for x in id_to_strain.values() if x.status != 'Other']
         contigs = DBSession.query(Contig).filter(Contig.strain_id.in_(good_strain_ids)).all()
-        labels = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
+        labels = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon',
+                  'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette',
+                  'mating_locus', 'Verified', 'Dubious', 'Uncharacterized']
 
         contig_id_to_index = {}
         label_to_index = {}
@@ -80,17 +82,24 @@ class SGDBackend(BackendInterface):
         for label in labels:
             label_to_index[label] = len(label_to_index)
 
-        locus_id_to_label_index = dict([(x.id, label_to_index[x.locus_type]) for x in DBSession.query(Locus).filter_by(bioent_status='Active').all()])
+        locuses = DBSession.query(Locus).filter_by(bioent_status='Active').all()
+        locus_id_to_label_index = dict([(x.id, label_to_index[x.locus_type]) for x in locuses if x.locus_type in label_to_index])
+        locus_id_to_char_label_index = dict([(x.id, label_to_index[x.qualifier]) for x in locuses if x.locus_type == 'ORF'])
 
         data = [([0]*len(contigs)) for _ in range(len(labels))]
 
         print 'ready', len(labels), len(contigs), len(data), len(data[0])
 
         for evidence in DBSession.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').all():
-            label_index = None if evidence.locus_id not in locus_id_to_label_index else locus_id_to_label_index[evidence.locus_id]
+            locus_id = evidence.locus_id
+            label_index = None if evidence.locus_id not in locus_id_to_label_index else locus_id_to_label_index[locus_id]
             contig_index = None if evidence.contig_id not in contig_id_to_index else contig_id_to_index[evidence.contig_id]
             if label_index is not None and contig_index is not None:
                 data[label_index][contig_index] += 1
+
+            if locus_id in locus_id_to_char_label_index:
+                char_label_index = locus_id_to_char_label_index[locus_id]
+                data[char_label_index][contig_index] += 1
 
         columns = []
         for x in contigs:
