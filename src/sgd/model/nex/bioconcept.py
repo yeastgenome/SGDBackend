@@ -299,7 +299,7 @@ class Phenotype(Bioconcept):
     qualifier = Column('qualifier', String)
 
     #Relationships
-    observable = relationship(Observable, uselist=False, foreign_keys=[observable_id], lazy='joined', backref="phenotypes")
+    observable = relationship(Observable, uselist=False, foreign_keys=[observable_id], lazy='joined', backref=backref('phenotypes', passive_deletes=True))
        
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE", 'inherit_condition': id==Bioconcept.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
