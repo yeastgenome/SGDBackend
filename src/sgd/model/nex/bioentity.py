@@ -169,11 +169,21 @@ class Locus(Bioentity):
 
         #Go overview
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
-        obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name']),
+        mf_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'molecular function' and x.annotation_type != 'computational'])
+        bp_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'biological process' and x.annotation_type != 'computational'])
+        cc_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'cellular component' and x.annotation_type != 'computational'])
+        term_to_evidence_codes = dict([(x, set()) for x in mf_terms.keys()])
+        term_to_evidence_codes.update([(x, set()) for x in bp_terms.keys()])
+        term_to_evidence_codes.update([(x, set()) for x in cc_terms.keys()])
+        for evidence in self.go_evidences:
+            if evidence.annotation_type != 'computational':
+                term_to_evidence_codes[evidence.go_id].add(evidence.experiment)
+
+        obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name'].lower()),
                                    'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]['text'],
-                                   'molecular_function_terms': dict([(x.go.id, x.go.to_min_json()) for x in self.go_evidences if x.go.go_aspect == 'molecular function' and x.annotation_type != 'computational']).values(),
-                                   'biological_process_terms': dict([(x.go.id, x.go.to_min_json()) for x in self.go_evidences if x.go.go_aspect == 'biological process' and x.annotation_type != 'computational']).values(),
-                                   'cellular_component_terms': dict([(x.go.id, x.go.to_min_json()) for x in self.go_evidences if x.go.go_aspect == 'cellular component' and x.annotation_type != 'computational']).values()}
+                                   'molecular_function_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in mf_terms.values()], key=lambda x: x['term']['display_name'].lower()),
+                                   'biological_process_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in bp_terms.values()], key=lambda x: x['term']['display_name'].lower()),
+                                   'cellular_component_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in cc_terms.values()], key=lambda x: x['term']['display_name'].lower())}
 
         #Interaction
         genetic_bioentities = set([x.locus2_id for x in self.geninteraction_evidences1])
@@ -226,7 +236,7 @@ class Locus(Bioentity):
                                             'regulator_count':len(set([x.locus1_id for x in self.regulation_evidences_regulators])),
                                             'paragraph': None if len(regulation_paragraphs) == 0 else regulation_paragraphs[0]}
 
-        obj_json['description_references'] = [x.reference.to_min_json() for x in self.bioentity_evidences if x.info_key == 'Description']
+        obj_json['bioentity_references'] = [x.to_json() for x in self.bioentity_evidences]
 
         #Literature
         reference_ids = set([x.reference_id for x in self.literature_evidences])
@@ -260,6 +270,9 @@ class Locus(Bioentity):
 
         lsp_paragraphs = [x.to_json(linkit=True) for x in self.paragraphs if x.category == 'LSP']
         obj_json['paragraph'] = None if len(lsp_paragraphs) == 0 else lsp_paragraphs[0]
+
+        #History
+        obj_json['history'] = [x.to_json() for x in self.history_evidences]
 
         return obj_json
 

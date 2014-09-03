@@ -63,7 +63,7 @@ new_sequence_files = [("src/sgd/convert/data/strains/10560_6B.genes.gff", 'src/s
                       ("src/sgd/convert/data/strains/RM11_1A.genes.gff", "src/sgd/convert/data/strains/RM11_1A.cds.fsa", 'RM11-1a'),
                       ("src/sgd/convert/data/strains/SEY.genes.gff", "src/sgd/convert/data/strains/SEY.cds.fsa", 'SEY'),
                       ("src/sgd/convert/data/strains/SK1.genes.gff", "src/sgd/convert/data/strains/SK1.cds.fsa", 'SK1'),
-                      ("src/sgd/convert/data/strains/UWOPSS.genes.gff", "src/sgd/convert/data/strains/UWOPSS.cds.fsa", 'UWOPSS'),
+                      ("src/sgd/convert/data/strains/UWOPSS.genes.gff", "src/sgd/convert/data/strains/UWOPS.cds.fsa", 'UWOPSS'),
                       ("src/sgd/convert/data/strains/W303.genes.gff", "src/sgd/convert/data/strains/W303.cds.fsa", 'W303'),
                       ("src/sgd/convert/data/strains/X2180.genes.gff", "src/sgd/convert/data/strains/X2180.cds.fsa", 'X2180'),
                       ("src/sgd/convert/data/strains/Y55.genes.gff", "src/sgd/convert/data/strains/Y55.cds.fsa", 'Y55'),

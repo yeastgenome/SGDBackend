@@ -84,7 +84,7 @@ class SGDBackend(BackendInterface):
 
         locuses = DBSession.query(Locus).filter_by(bioent_status='Active').all()
         locus_id_to_label_index = dict([(x.id, label_to_index[x.locus_type]) for x in locuses if x.locus_type in label_to_index])
-        locus_id_to_char_label_index = dict([(x.id, label_to_index[x.qualifier]) for x in locuses if x.locus_type == 'ORF'])
+        locus_id_to_char_label_index = dict([(x.id, label_to_index[x.qualifier]) for x in locuses if x.qualifier is not None])
 
         data = [([0]*len(contigs)) for _ in range(len(labels))]
 
@@ -97,9 +97,10 @@ class SGDBackend(BackendInterface):
             if label_index is not None and contig_index is not None:
                 data[label_index][contig_index] += 1
 
-            if locus_id in locus_id_to_char_label_index:
+            if locus_id in locus_id_to_char_label_index and contig_index is not None:
                 char_label_index = locus_id_to_char_label_index[locus_id]
-                data[char_label_index][contig_index] += 1
+                if char_label_index is not None:
+                    data[char_label_index][contig_index] += 1
 
         columns = []
         for x in contigs:
@@ -204,7 +205,7 @@ class SGDBackend(BackendInterface):
     def locus(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence, Domainevidence
+            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence, Domainevidence, Historyevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         if are_ids:
             locus_id = locus_identifier

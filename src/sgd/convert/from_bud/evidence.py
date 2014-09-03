@@ -594,100 +594,66 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
         for note in bud_session.query(Note).filter(Note.note_type.in_({'Alternative processing', 'Annotation change',
                                                                        'Mapping', 'Proposed annotation change', 'Proposed sequence change', 'Sequence change', 'Other', 'Repeated'})).all():
             for note_feat in note.note_feats:
+                bioentity_id = note_feat.primary_key
                 if note_feat.tab_name == 'FEATURE':
                     if note.id in note_id_to_reference_ids:
                         for reference_id in note_id_to_reference_ids[note.id]:
-                            if reference_id in id_to_reference:
+                            if reference_id in id_to_reference and bioentity_id in id_to_bioentity:
                                 yield {'source': key_to_source['SGD'],
                                        'reference': id_to_reference[reference_id],
-                                       'locus': id_to_bioentity[note_feat.primary_key],
+                                       'locus': id_to_bioentity[bioentity_id],
                                        'category': note.note_type,
                                        'history_type': 'SEQUENCE',
                                        'note': note.note,
                                        'date_created': note_feat.date_created,
                                        'created_by': note_feat.created_by
                                        }
+                            else:
+                                print 'Bioentity or reference not found: ' + str(bioentity_id) + ', ' + str(reference_id)
                     else:
-                        yield {'source': key_to_source['SGD'],
-                                'locus': id_to_bioentity[note_feat.primary_key],
-                                'category': note.note_type,
-                                'history_type': 'SEQUENCE',
-                                'note': note.note,
-                                'date_created': note_feat.date_created,
-                                'created_by': note_feat.created_by
-                                }
+                        if bioentity_id in id_to_bioentity:
+                            yield {'source': key_to_source['SGD'],
+                                    'locus': id_to_bioentity[bioentity_id],
+                                    'category': note.note_type,
+                                    'history_type': 'SEQUENCE',
+                                    'note': note.note,
+                                    'date_created': note_feat.date_created,
+                                    'created_by': note_feat.created_by
+                                    }
+                        else:
+                            print 'Bioentity not found: ' + str(bioentity_id)
 
         for note in bud_session.query(Note).filter(Note.note_type.in_({'Nomenclature conflict', 'Nomenclature history',
                                                                        'Reserved Name Note', 'Other', 'Repeated'})).all():
             for note_feat in note.note_feats:
+                bioentity_id = note_feat.primary_key
                 if note_feat.tab_name == 'FEATURE':
                     if note.id in note_id_to_reference_ids:
                         for reference_id in note_id_to_reference_ids[note.id]:
-                            if reference_id in id_to_reference:
+                            if reference_id in id_to_reference and bioentity_id in id_to_bioentity:
                                 yield {'source': key_to_source['SGD'],
                                        'reference': id_to_reference[reference_id],
-                                       'locus': id_to_bioentity[note_feat.primary_key],
+                                       'locus': id_to_bioentity[bioentity_id],
                                        'category': note.note_type,
                                        'history_type': 'LSP',
                                        'note': note.note,
                                        'date_created': note_feat.date_created,
                                        'created_by': note_feat.created_by
                                        }
+                            else:
+                                print 'Bioentity or reference not found: ' + str(bioentity_id) + ', ' + str(reference_id)
                     else:
-                        yield {'source': key_to_source['SGD'],
-                                'locus': id_to_bioentity[note_feat.primary_key],
-                                'category': note.note_type,
-                                'history_type': 'LSP',
-                                'note': note.note,
-                                'date_created': note_feat.date_created,
-                                'created_by': note_feat.created_by
-                                }
-
-        for bioentity in id_to_bioentity.values():
-            yield {'source': key_to_source['SGD'],
-                    'reference': None,
-                    'locus': bioentity,
-                    'category': 'Added',
-                    'history_type': 'LSP',
-                    'note': bioentity.display_name + ' added to SGD.',
-                    'date_created': bioentity.date_created,
-                    'created_by': bioentity.created_by
-                    }
-            for alias in bioentity.aliases:
-                if alias.category == 'Gene product':
-                    reference = None if len(alias.alias_evidences) == 0 else alias.alias_evidences[0].reference
-                    yield {'source': key_to_source['SGD'],
-                        'reference': reference,
-                        'locus': bioentity,
-                        'category': 'Nomenclature history',
-                        'history_type': 'LSP',
-                        'note': 'Gene Product: ' + alias.display_name,
-                        'date_created': alias.date_created,
-                        'created_by': alias.created_by
-                        }
-                elif alias.category == 'NCBI protein name':
-                    reference = None if len(alias.alias_evidences) == 0 else alias.alias_evidences[0].reference
-                    yield {'source': key_to_source['SGD'],
-                        'reference': reference,
-                        'locus': bioentity,
-                        'category': 'Nomenclature history',
-                        'history_type': 'LSP',
-                        'note': 'Protein Product: ' + alias.display_name,
-                        'date_created': alias.date_created,
-                        'created_by': alias.created_by
-                        }
-
-            for bioentity_evidence in bioentity.bioentity_evidences:
-                if bioentity_evidence.info_key == 'Gene Name':
-                    yield {'source': key_to_source['SGD'],
-                            'reference': bioentity_evidence.reference,
-                            'locus': bioentity,
-                            'category': 'Nomenclature history',
-                            'history_type': 'LSP',
-                            'note': 'Standard Name: ' + bioentity.display_name,
-                            'date_created': bioentity_evidence.date_created,
-                            'created_by': bioentity_evidence.created_by
-                            }
+                        if bioentity_id in id_to_bioentity:
+                            yield {'source': key_to_source['SGD'],
+                                    'locus': id_to_bioentity[bioentity_id],
+                                    'category': note.note_type,
+                                    'history_type': 'LSP',
+                                    'note': note.note,
+                                    'date_created': note_feat.date_created,
+                                    'created_by': note_feat.created_by
+                                    }
+                        else:
+                            print 'Bioentity not found: ' + str(bioentity_id)
 
 
         bud_session.close()
@@ -1599,7 +1565,7 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
 
         #Other strains
         from src.sgd.convert.from_bud import new_sequence_files
-        for seq_file, strain_name in new_sequence_files:
+        for seq_file, coding_file, strain_name in new_sequence_files:
             strain_id = key_to_strain[strain_name].id
 
             f = open(seq_file, 'r')
