@@ -576,6 +576,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Experiment, Source
     from src.sgd.model.nex.reference import Reference
     from src.sgd.model.nex.bioentity import Bioentity
+    from src.sgd.model.nex.evidence import Aliasevidence, Bioentityevidence
     def history_evidence_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
@@ -654,6 +655,33 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                     }
                         else:
                             print 'Bioentity not found: ' + str(bioentity_id)
+
+        for bioentity in id_to_bioentity.values():
+            for evidence in bioentity.bioentity_evidences:
+                if evidence.info_key == 'Gene Name':
+                    yield {'source': key_to_source['SGD'],
+                               'reference': evidence.reference,
+                               'locus': bioentity,
+                               'category': 'Nomenclature',
+                               'history_type': 'LSP',
+                               'note': 'Standard Name: ' + bioentity.display_name,
+                               'date_created': datetime(evidence.reference.year, 1, 1),
+                               'created_by': None
+                            }
+
+            for alias in bioentity.aliases:
+                if alias.category == 'Uniform' or alias.category == 'Gene Product':
+                    for evidence in alias.alias_evidences:
+                        yield {'source': key_to_source['SGD'],
+                                   'reference': evidence.reference,
+                                   'locus': bioentity,
+                                   'category': 'Nomenclature',
+                                   'history_type': 'LSP',
+                                   'note': 'Other Name: ' + alias.display_name,
+                                   'date_created': datetime(evidence.reference.year, 1, 1),
+                                   'created_by': None
+                                }
+
 
 
         bud_session.close()
@@ -1731,10 +1759,14 @@ def get_alias_info(expression_file, key_to_locus, aliases):
 
 def make_expression_data_starter(nex_session_maker, expression_file, dataset_id, channel_count, key_to_locus, aliases):
     from src.sgd.model.nex.evidence import Expressionevidence
+    from src.sgd.model.nex.bioitem import Datasetcolumn, Dataset
     def expression_evidence_starter():
         nex_session = nex_session_maker()
+        print dataset_id
+        dataset = nex_session.query(Dataset).filter_by(id=dataset_id).first()
+        key_to_evidence = dict([(x.unique_key(), x) for x in nex_session.query(Expressionevidence).filter(Expressionevidence.datasetcolumn_id.in_([y.id for y in dataset.datasetcolumns])).all()])
+        key_to_datasetcolumn = dict([(x.unique_key(), x) for x in nex_session.query(Datasetcolumn).all()])
 
-        key_to_evidence = dict([(x.unique_key(), x) for x in nex_session.query(Expressionevidence).filter_by(dataset_id=dataset_id).all()])
 
         evidences = None
         locii_not_found = 0
@@ -1743,13 +1775,17 @@ def make_expression_data_starter(nex_session_maker, expression_file, dataset_id,
         for row in make_file_starter(expression_file)():
             if evidences is None:
                 evidences = []
-                for condition in row[3:]:
-                    evidence_key = ('EXPRESSION', dataset_id, condition.strip().decode('ascii','ignore'))
-                    if evidence_key in key_to_evidence:
-                        evidences.append(key_to_evidence[evidence_key])
+                for file_order in range(0, len(row)-3):
+                    datasetcolumn_key = (dataset.format_name + '.' + str(file_order), 'DATASETCOLUMN')
+                    if datasetcolumn_key in key_to_datasetcolumn:
+                        evidence_key = ('EXPRESSION', key_to_datasetcolumn[datasetcolumn_key].id)
+                        if evidence_key in key_to_evidence:
+                            evidences.append(key_to_evidence[evidence_key])
+                        else:
+                            print 'Evidence not found: ' + str(evidence_key)
+                            evidences.append(None)
                     else:
-                        print 'Evidence not found: ' + str(evidence_key)
-                        evidences.append(None)
+                        print 'Datasetcolumn not found: ' + str(datasetcolumn_key)
             elif row[0] != 'EWEIGHT':
                 locus_key = row[0]
                 locus = None

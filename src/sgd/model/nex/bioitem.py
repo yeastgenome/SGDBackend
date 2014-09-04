@@ -297,6 +297,7 @@ class Datasetcolumn(Bioitem):
 
     id = Column('bioitem_id', Integer, primary_key=True)
     file_order = Column('file_order', Integer)
+    geo_id = Column('geo_id', String)
     dataset_id = Column('dataset_id', Integer, ForeignKey(Dataset.id))
 
     #Relationships
@@ -304,7 +305,7 @@ class Datasetcolumn(Bioitem):
 
     __mapper_args__ = {'polymorphic_identity': "DATASETCOLUMN", 'inherit_condition': id==Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
-                     'file_order', 'dataset_id',
+                     'file_order', 'geo_id',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'dataset']
 
@@ -312,6 +313,11 @@ class Datasetcolumn(Bioitem):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = obj_json.get('dataset').format_name + '.' + str(obj_json.get('file_order'))
         self.display_name = obj_json.get('description')
+
+    def to_min_json(self, include_description=False):
+        obj_json = UpdateByJsonMixin.to_min_json(self, include_description=include_description)
+        obj_json['geo_id'] = self.geo_id
+        return obj_json
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)

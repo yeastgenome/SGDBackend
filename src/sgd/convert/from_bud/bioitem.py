@@ -357,6 +357,9 @@ def make_datasetcolumn_starter(nex_session_maker, expression_dir):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_dataset = dict([(x.unique_key(), x) for x in nex_session.query(Dataset).all()])
 
+
+        key_to_GSM = dict([((x[0], x[1]), x[2]) for x in make_file_starter('src/sgd/convert/data/GSM_to_GSE.txt')()])
+
         for path in os.listdir(expression_dir):
             if os.path.isdir(expression_dir + '/' + path):
                 for file in os.listdir(expression_dir + '/' + path):
@@ -366,13 +369,20 @@ def make_datasetcolumn_starter(nex_session_maker, expression_dir):
                         pieces = f.next().split('\t')
                         f.close()
 
+                        geo_id = key_to_dataset[dataset_key].geo_id
+
                         i = 0
                         for piece in pieces[3:]:
+                            column_name = piece.strip().decode('ascii','ignore')
+                            col_geo_id = None if (geo_id, column_name) not in key_to_GSM else key_to_GSM[(geo_id, column_name)]
+                            link = None if col_geo_id is None else 'http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=' + col_geo_id
                             yield {
-                                    'description': piece.strip().decode('ascii','ignore'),
-                                    'dataset': key_to_dataset[dataset_key],
-                                    'source': key_to_source['SGD'],
-                                    'file_order': i,
+                                        'description': column_name,
+                                        'dataset': key_to_dataset[dataset_key],
+                                        'source': key_to_source['SGD'],
+                                        'file_order': i,
+                                        'geo_id': col_geo_id,
+                                        'link': link
                             }
                             i += 1
 
