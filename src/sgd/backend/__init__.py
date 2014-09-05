@@ -355,7 +355,7 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('obj_list'),
                     route_name='obj_list')
 
-    config.add_route('snapshot', '/go_snapshot')
+    config.add_route('snapshot', '/snapshot')
     config.add_view(lambda request: chosen_backend.response_wrapper('snapshot', request)(getattr(chosen_backend, 'snapshot')()),
                     renderer=chosen_backend.get_renderer('snapshot'),
                     route_name='snapshot')
