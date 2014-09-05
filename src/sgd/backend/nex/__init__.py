@@ -83,7 +83,7 @@ class SGDBackend(BackendInterface):
         go_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='GO_SLIM').all()])
         go_terms = DBSession.query(Go).filter(Go.id.in_(go_slim_ids)).all()
         go_slim_terms = []
-        relationships = [['Child', 'Parent']]
+        go_relationships = [['Child', 'Parent']]
         for go_term in go_terms:
             obj_json = go_term.to_min_json()
             obj_json['annotation_count'] = go_term.child_count
@@ -94,7 +94,7 @@ class SGDBackend(BackendInterface):
                 new_parents = []
                 for parent in parents:
                     if parent.id in go_slim_ids:
-                        relationships.append([go_term.id, parent.id])
+                        go_relationships.append([go_term.id, parent.id])
                         break
                     else:
                         new_parents.extend([x.parent for x in parent.parents if x.relation_type == 'is a'])
@@ -106,7 +106,7 @@ class SGDBackend(BackendInterface):
         phenotype_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='PHENOTYPE_SLIM').all()])
         phenotypes = DBSession.query(Observable).filter(Observable.id.in_(phenotype_slim_ids)).all()
         phenotype_slim_terms = []
-        relationships = [['Child', 'Parent']]
+        phenotype_relationships = [['Child', 'Parent']]
         for phenotype in phenotypes:
             obj_json = phenotype.to_min_json()
             obj_json['annotation_count'] = phenotype.child_count
@@ -117,7 +117,7 @@ class SGDBackend(BackendInterface):
                 new_parents = []
                 for parent in parents:
                     if parent.id in phenotype_slim_ids:
-                        relationships.append([phenotype.id, parent.id])
+                        phenotype_relationships.append([phenotype.id, parent.id])
                         break
                     else:
                         new_parents.extend([x.parent for x in parent.parents if x.relation_type == 'is a'])
@@ -169,8 +169,8 @@ class SGDBackend(BackendInterface):
             obj_json['strain'] = id_to_strain[x.strain_id].to_min_json()
             columns.append(obj_json)
 
-        return json.dumps({'phenotype_slim_terms': phenotype_slim_terms, 'phenotype_slim_relationships': relationships,
-                           'go_slim_terms': go_slim_terms, 'go_slim_relationships': relationships,
+        return json.dumps({'phenotype_slim_terms': phenotype_slim_terms, 'phenotype_slim_relationships': phenotype_relationships,
+                           'go_slim_terms': go_slim_terms, 'go_slim_relationships': go_relationships,
                            'data': data, 'columns': columns, 'rows': labels})
 
     def bioentity_list(self, bioent_ids):
