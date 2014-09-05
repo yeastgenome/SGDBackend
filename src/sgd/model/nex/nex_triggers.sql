@@ -216,7 +216,7 @@ CREATE TRIGGER BIOENTDAT_TRIGGER
 BEFORE INSERT ON bioentitydata
 FOR EACH ROW
 BEGIN
-SELECT bioentdat_seq.nextval INTO :new.bioentitydata_id FROM DUAL;
+SELECT data_seq.nextval INTO :new.bioentitydata_id FROM DUAL;
 END;
 /
 

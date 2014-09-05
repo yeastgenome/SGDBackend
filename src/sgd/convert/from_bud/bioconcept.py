@@ -305,7 +305,8 @@ def make_bioconcept_relation_starter(bud_session_maker, nex_session_maker):
         #Phenotype Slim
         phenotype_slim = {'cell_death', 'chromosome-plasmid_maintenance', 'intracellular_transport', 'mitotic_cell_cycle',
                           'prion_state', 'stress_resistance', 'budding', 'filamentous_growth', 'lifespan', 'sexual_cycle',
-                          'essentiality', 'fitness', 'metabolism_and_growth', 'cellular_morphology', 'culture_appearance', 'ypo'}
+                          'viable', 'inviable', 'competitive_fitness', 'viability', 'haploinsufficient', 'haploproficient',
+                          'metabolism_and_growth', 'cellular_morphology', 'culture_appearance', 'ypo'}
         for phenotype in nex_session.query(Phenotype).all():
             ancestor = phenotype.observable
             while ancestor is not None and ancestor.format_name not in phenotype_slim:

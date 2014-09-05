@@ -79,7 +79,7 @@ def test_go_biocon_details_structure(model, identifier='GO:0000916'):
     for entry in response:
         check_go_evidence(entry)
 
-def test_go_biocon_all_details_structure(model, identifier='GO:0000916'):
+def test_go_biocon_all_details_structure(model, identifier='GO:0051301'):
     response = json.loads(model.go_details(go_identifier=identifier, with_children=True))
     assert response is not None
     for entry in response:

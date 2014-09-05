@@ -62,7 +62,68 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.misc import Tag
         return [x.to_json() for x in DBSession.query(Tag).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
 
-    def all_locus(self):
+    def obj_list(self, list_type):
+        from src.sgd.model.nex.bioentity import Locus
+        from src.sgd.model.nex.misc import Tag
+        query = None
+        if list_type in set(['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']):
+            query = DBSession.query(Locus).filter_by(locus_type=list_type)
+        elif list_type == 'tag':
+            query = DBSession.query(Tag)
+
+        if query is not None:
+            return json.dumps([x.to_min_json(include_description=True) for x in query.all()])
+        else:
+            return None
+
+    def snapshot(self):
+        #Go
+        from src.sgd.model.nex.bioconcept import Go, Bioconceptrelation
+        from src.sgd.model.nex.evidence import Goevidence
+        go_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='GO_SLIM').all()])
+        go_terms = DBSession.query(Go).filter(Go.id.in_(go_slim_ids)).all()
+        go_slim_terms = []
+        relationships = [['Child', 'Parent']]
+        for go_term in go_terms:
+            obj_json = go_term.to_min_json()
+            obj_json['annotation_count'] = go_term.child_count
+            go_slim_terms.append(obj_json)
+
+            parents = [x.parent for x in go_term.parents if x.relation_type == 'is a']
+            while parents is not None and len(parents) > 0:
+                new_parents = []
+                for parent in parents:
+                    if parent.id in go_slim_ids:
+                        relationships.append([go_term.id, parent.id])
+                        break
+                    else:
+                        new_parents.extend([x.parent for x in parent.parents if x.relation_type == 'is a'])
+                parents = new_parents
+
+        #Phenotype
+        from src.sgd.model.nex.bioconcept import Observable, Bioconceptrelation
+        from src.sgd.model.nex.evidence import Phenotypeevidence
+        phenotype_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='PHENOTYPE_SLIM').all()])
+        phenotypes = DBSession.query(Observable).filter(Observable.id.in_(phenotype_slim_ids)).all()
+        phenotype_slim_terms = []
+        relationships = [['Child', 'Parent']]
+        for phenotype in phenotypes:
+            obj_json = phenotype.to_min_json()
+            obj_json['annotation_count'] = phenotype.child_count
+            phenotype_slim_terms.append(obj_json)
+
+            parents = [x.parent for x in phenotype.parents if x.relation_type == 'is a']
+            while parents is not None and len(parents) > 0:
+                new_parents = []
+                for parent in parents:
+                    if parent.id in phenotype_slim_ids:
+                        relationships.append([phenotype.id, parent.id])
+                        break
+                    else:
+                        new_parents.extend([x.parent for x in parent.parents if x.relation_type == 'is a'])
+                parents = new_parents
+
+        #Sequence
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.bioitem import Contig
         from src.sgd.model.nex.evidence import DNAsequenceevidence
@@ -108,72 +169,9 @@ class SGDBackend(BackendInterface):
             obj_json['strain'] = id_to_strain[x.strain_id].to_min_json()
             columns.append(obj_json)
 
-        return json.dumps({'data': data, 'columns': columns, 'rows': labels})
-
-    def obj_list(self, list_type):
-        from src.sgd.model.nex.bioentity import Locus
-        from src.sgd.model.nex.misc import Tag
-        query = None
-        if list_type in set(['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']):
-            query = DBSession.query(Locus).filter_by(locus_type=list_type)
-        elif list_type == 'tag':
-            query = DBSession.query(Tag)
-
-        if query is not None:
-            return json.dumps([x.to_min_json(include_description=True) for x in query.all()])
-        else:
-            return None
-
-    def go_snapshot(self):
-        from src.sgd.model.nex.bioconcept import Go, Bioconceptrelation
-        from src.sgd.model.nex.evidence import Goevidence
-        go_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='GO_SLIM').all()])
-        go_terms = DBSession.query(Go).filter(Go.id.in_(go_slim_ids)).all()
-        go_slim_terms = []
-        relationships = [['Child', 'Parent']]
-        for go_term in go_terms:
-            obj_json = go_term.to_min_json()
-            obj_json['annotation_count'] = go_term.child_count
-            go_slim_terms.append(obj_json)
-
-            parents = [x.parent for x in go_term.parents if x.relation_type == 'is a']
-            while parents is not None and len(parents) > 0:
-                new_parents = []
-                for parent in parents:
-                    if parent.id in go_slim_ids:
-                        relationships.append([go_term.id, parent.id])
-                        break
-                    else:
-                        new_parents.extend([x.parent for x in parent.parents if x.relation_type == 'is a'])
-                parents = new_parents
-
-        return json.dumps({'go_slim_terms': go_slim_terms, 'go_slim_relationships': relationships})
-
-    def phenotype_snapshot(self):
-        from src.sgd.model.nex.bioconcept import Observable, Bioconceptrelation
-        from src.sgd.model.nex.evidence import Phenotypeevidence
-        phenotype_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='PHENOTYPE_SLIM').all()])
-        phenotypes = DBSession.query(Observable).filter(Observable.id.in_(phenotype_slim_ids)).all()
-        phenotype_slim_terms = []
-        relationships = [['Child', 'Parent']]
-        for phenotype in phenotypes:
-            obj_json = phenotype.to_min_json()
-            obj_json['annotation_count'] = phenotype.child_count
-            phenotype_slim_terms.append(obj_json)
-
-            parents = [x.parent for x in phenotype.parents if x.relation_type == 'is a']
-            while parents is not None and len(parents) > 0:
-                new_parents = []
-                for parent in parents:
-                    if parent.id in phenotype_slim_ids:
-                        relationships.append([phenotype.id, parent.id])
-                        break
-                    else:
-                        new_parents.extend([x.parent for x in parent.parents if x.relation_type == 'is a'])
-                parents = new_parents
-
-        return json.dumps({'phenotype_slim_terms': phenotype_slim_terms, 'phenotype_slim_relationships': relationships})
-
+        return json.dumps({'phenotype_slim_terms': phenotype_slim_terms, 'phenotype_slim_relationships': relationships,
+                           'go_slim_terms': go_slim_terms, 'go_slim_relationships': relationships,
+                           'data': data, 'columns': columns, 'rows': labels})
 
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity

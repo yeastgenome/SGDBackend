@@ -83,10 +83,3 @@ def test_interaction_graph_structure(model, identifier='YFL039C'):
         assert 'class_type' in edge_data
         assert 'evidence' in edge_data
         assert 'target' in edge_data
-
-@pytest.mark.xfail()   ## not sure if we still have resources or where they are
-def test_interaction_resources_structure(model, identifier='YFL039C'):
-    response = json.loads(model.interaction_resources(locus_identifier=identifier))
-    assert response is not None
-    for entry in response:
-        check_url(entry)

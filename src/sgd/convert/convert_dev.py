@@ -294,7 +294,7 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DATASET'), name='convert.from_bud.bioitem.disambig.dataset', delete_untouched=True, commit=True)])
     #
     # Nex -> Perf
-    from src.sgd.model.perf.core import Bioitem as PerfBioitem, Tag as PerfTag
+    # from src.sgd.model.perf.core import Bioitem as PerfBioitem, Tag as PerfTag
     # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True),
     #                OutputTransformer(1000)])
@@ -528,52 +528,52 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Expressionevidence, Evidence, 'EXPRESSION')
 
-    from src.sgd.model.nex.bioitem import Dataset, Datasetcolumn
-    from src.sgd.model.nex.evidence import Expressionevidence
-    from src.sgd.convert.from_bud.evidence import get_alias_info
-    nex_session = nex_session_maker()
-    dataset_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Dataset).all()])
-    dataset_id_to_columns = dict([(x, []) for x in dataset_key_to_id.values()])
-
-    for datasetcolumn in nex_session.query(Datasetcolumn).all():
-        if datasetcolumn.dataset_id in dataset_id_to_columns:
-            dataset_id_to_columns[datasetcolumn.dataset_id].append(datasetcolumn.id)
-
-    datasetcolumn_id_to_evidence_id = dict()
-    for expressionevidence in nex_session.query(Expressionevidence).all():
-        datasetcolumn_id_to_evidence_id[expressionevidence.datasetcolumn_id] = expressionevidence.id
-
-
-    dataset_key_to_channel_count = dict([(x.unique_key(), x.channel_count) for x in nex_session.query(Dataset).all()])
-
-    from src.sgd.model.nex.bioentity import Locus, Bioentityalias
-    locuses = nex_session.query(Locus).all()
-    key_to_locus = dict([(x.format_name, x) for x in locuses])
-    key_to_locus.update([(x.display_name, x) for x in locuses])
-    key_to_locus.update([('SGD:' + x.sgdid, x) for x in locuses])
-    aliases = dict()
-    for alias in nex_session.query(Bioentityalias).all():
-        if alias.display_name in aliases:
-            aliases[alias.display_name].add(alias.bioentity)
-        else:
-            aliases[alias.display_name] = set([alias.bioentity])
-    for key, locus in key_to_locus.iteritems():
-        if key in aliases:
-            aliases[key].add(locus)
-
-    nex_session.close()
-    for path in os.listdir('src/sgd/convert/data/microarray_05_14'):
-        if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
-            for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
-                #if file != 'README':
-                #    get_alias_info('src/sgd/convert/data/microarray_05_14/' + path + '/' + file, key_to_locus, aliases)
-                dataset_key = (file[:-4], 'DATASET')
-                print dataset_key
-                if dataset_key in dataset_key_to_id:
-                    do_conversion(make_expression_data_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14/' + path + '/' + file, dataset_key_to_id[dataset_key], dataset_key_to_channel_count[dataset_key], key_to_locus, aliases),
-                                      [Json2Obj(Bioentitydata),
-                                       Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence_id.in_([datasetcolumn_id_to_evidence_id[y] for y in dataset_id_to_columns[dataset_key_to_id[dataset_key]]])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
-                                       OutputTransformer(1000)])
+    # from src.sgd.model.nex.bioitem import Dataset, Datasetcolumn
+    # from src.sgd.model.nex.evidence import Expressionevidence
+    # from src.sgd.convert.from_bud.evidence import get_alias_info
+    # nex_session = nex_session_maker()
+    # dataset_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Dataset).all()])
+    # dataset_id_to_columns = dict([(x, []) for x in dataset_key_to_id.values()])
+    #
+    # for datasetcolumn in nex_session.query(Datasetcolumn).all():
+    #     if datasetcolumn.dataset_id in dataset_id_to_columns:
+    #         dataset_id_to_columns[datasetcolumn.dataset_id].append(datasetcolumn.id)
+    #
+    # datasetcolumn_id_to_evidence_id = dict()
+    # for expressionevidence in nex_session.query(Expressionevidence).all():
+    #     datasetcolumn_id_to_evidence_id[expressionevidence.datasetcolumn_id] = expressionevidence.id
+    #
+    #
+    # dataset_key_to_channel_count = dict([(x.unique_key(), x.channel_count) for x in nex_session.query(Dataset).all()])
+    #
+    # from src.sgd.model.nex.bioentity import Locus, Bioentityalias
+    # locuses = nex_session.query(Locus).all()
+    # key_to_locus = dict([(x.format_name, x) for x in locuses])
+    # key_to_locus.update([(x.display_name, x) for x in locuses])
+    # key_to_locus.update([('SGD:' + x.sgdid, x) for x in locuses])
+    # aliases = dict()
+    # for alias in nex_session.query(Bioentityalias).all():
+    #     if alias.display_name in aliases:
+    #         aliases[alias.display_name].add(alias.bioentity)
+    #     else:
+    #         aliases[alias.display_name] = set([alias.bioentity])
+    # for key, locus in key_to_locus.iteritems():
+    #     if key in aliases:
+    #         aliases[key].add(locus)
+    #
+    # nex_session.close()
+    # for path in os.listdir('src/sgd/convert/data/microarray_05_14'):
+    #     if os.path.isdir('src/sgd/convert/data/microarray_05_14/' + path):
+    #         for file in os.listdir('src/sgd/convert/data/microarray_05_14/' + path):
+    #             #if file != 'README':
+    #             #    get_alias_info('src/sgd/convert/data/microarray_05_14/' + path + '/' + file, key_to_locus, aliases)
+    #             dataset_key = (file[:-4], 'DATASET')
+    #             print dataset_key
+    #             if dataset_key in dataset_key_to_id:
+    #                 do_conversion(make_expression_data_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14/' + path + '/' + file, dataset_key_to_id[dataset_key], dataset_key_to_channel_count[dataset_key], key_to_locus, aliases),
+    #                                   [Json2Obj(Bioentitydata),
+    #                                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence_id.in_([datasetcolumn_id_to_evidence_id[y] for y in dataset_id_to_columns[dataset_key_to_id[dataset_key]]])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
+    #                                    OutputTransformer(1000)])
     #
     # do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Historyevidence),
@@ -869,12 +869,10 @@ if __name__ == "__main__":
 
     # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week']),
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000, )])
-    # do_conversion(make_orphan_backend_starter(nex_backend, ['all_locus']),
-    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
-    # do_conversion(make_orphan_backend_starter(nex_backend, ['go_snapshot']),
-    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
-    # do_conversion(make_orphan_backend_starter(nex_backend, ['phenotype_snapshot']),
-    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+
+
+    do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
+                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
 
     # locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', locus_types),

@@ -2,16 +2,8 @@ import json
 import pytest
 
 from src.sgd.backend.tests import check_evidence, check_obj, check_url
-from src.sgd.backend.tests.test_basic import check_protein
 
 __author__ = 'kpaskov'
-
-@pytest.mark.xfail()  ## This does nothing and there is no replacment
-def test_protein_overview_structure(model, identifier='GAL4'):
-    response = json.loads(model.protein_overview(locus_identifier=identifier))
-    assert response is not None
-    for entry in response:
-        check_protein(entry)
 
 def check_protein_domain_evidence(evidence):
     check_evidence(evidence)
@@ -83,25 +75,3 @@ def test_protein_phosphorylation_details_structure(model, identifier='GAL4'):
         assert 'locus' in entry
         assert 'site_index' in entry
         assert 'site_residue' in entry
-
-        check_protein(entry['locus'])
-
-@pytest.mark.xfail()   ## resources no longer used
-def test_protein_resources_structure(model, identifier='YFL039C'):
-    response = json.loads(model.protein_resources(locus_identifier=identifier))
-    assert response is not None
-    assert 'Domain' in response
-    assert 'Homologs' in response
-    assert 'Other' in response
-    assert 'Protein Databases' in response
-    assert 'Localization' in response
-    for entry in response['Domain']:
-        check_url(entry)
-    for entry in response['Homologs']:
-        check_url(entry)
-    for entry in response['Other']:
-        check_url(entry)
-    for entry in response['Protein Databases']:
-        check_url(entry)
-    for entry in response['Localization']:
-        check_url(entry)

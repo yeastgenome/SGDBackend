@@ -37,24 +37,6 @@ def test_literature_bioent_details_structure(model, identifier='YFL039C'):
     for entry in response['regulation']:
         check_reference(entry)
 
-def check_literature_evidence(evidence):
-    check_evidence(evidence)
-    assert 'topic' in evidence
-
-def test_literature_ref_details_structure(model, identifier='769'):
-    response = json.loads(model.literature_details(reference_identifier=identifier))
-    assert response is not None
-    #assert 'primary' in response
-    #assert 'additional' in response
-    #assert 'review' in response
-
-    for entry in response:
-        check_literature_evidence(entry)
-    #for entry in response['additional']:
-    #    check_literature_evidence(entry)
-    #for entry in response['review']:
-    #    check_literature_evidence(entry)
-
 def test_literature_graph_structure(model, identifier='YFL039C'):
     response = json.loads(model.literature_graph(locus_identifier=identifier))
     assert response is not None

@@ -44,14 +44,14 @@ def test_sequence_bioent_details_structure(model, identifier='GAL4'):
     assert 'coding_dna' in response
     assert 'genomic_dna' in response
 
-    for entry in response['protein']:
+    for entry in response['locus']:
         check_sequence_evidence(entry)
     for entry in response['coding_dna']:
         check_sequence_evidence(entry)
     for entry in response['genomic_dna']:
         check_genomic_sequence_evidence(entry)
 
-def test_sequence_contig_details_structure(model, identifier='BY4741_chr08'):
+def test_sequence_contig_details_structure(model, identifier='S288C_Chromosome_12'):
     response = json.loads(model.sequence_details(contig_identifier=identifier))
     assert response is not None
     assert 'protein' in response

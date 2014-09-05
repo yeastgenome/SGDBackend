@@ -10,15 +10,6 @@ def test_locus_structure(model, identifier='YFL039C'):
     assert response is not None
     check_locus(response)
 
-@pytest.mark.xfail()
-def test_locus_alias_structure(model, identifier='YFL039C'):
-    response = json.loads(model.locus_alias(locus_identifier=identifier))
-    assert response is not None
-    for entry in response:
-        check_obj(entry)
-        assert 'category' in entry
-        assert 'source' in entry
-
 def test_locustabs_structure(model, identifier='YFL039C'):
     response = json.loads(model.locustabs(locus_identifier=identifier))
     assert response is not None
@@ -116,13 +107,17 @@ def test_domain_structure(model, identifier='PTHR11937'):
     assert 'link' in response  ## no longer external_link
     assert 'interpro_id' in response
 
-def test_contig_structure(model, identifier='BY4741_chr08'):
+def test_contig_structure(model, identifier='S288C_Chromosome_12'):
     response = json.loads(model.contig(contig_identifier=identifier))
     assert response is not None
     check_obj(response)
     assert 'residues' in response
     ##assert 'length' in response no longer in object
     assert 'format_name' in response
+
+def test_dataset_structure(model, identifier='2010.alpha_conc'):
+    response = json.loads(model.dataset(dataset_identifier=identifier))
+    check_dataset(response)
 
 def check_reference(reference):
     check_obj(reference)
@@ -135,10 +130,17 @@ def check_reference(reference):
     for url in reference['urls']:
         check_url(url)
 
-def check_protein(protein):
-    check_obj(protein)
-    assert 'format_name' in protein
-    assert 'display_name' in protein
+def check_dataset(dataset):
+    check_obj(dataset)
+    assert 'condition_count' in dataset
+    assert 'reference' in dataset
+    check_obj(dataset['reference'])
+    assert 'tags' in dataset
+    for tag in dataset['tags']:
+        check_obj(tag)
+    assert 'pcl_filename' in dataset
+    assert 'geo_id' in dataset
+    assert 'short_description' in dataset
 
 def check_locus(locus):
     check_obj(locus)
