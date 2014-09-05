@@ -37,29 +37,6 @@ def test_phenotype_ontology_graph_structure(model, identifier='haploinsufficient
         assert 'source' in edge['data']
         assert 'target' in edge['data']
 
-def test_phenotype_bioent_overview_structure(model, identifier='YFL039C'):
-    response = json.loads(model.locus(locus_identifier=identifier))
-    assert response is not None
-    phenotypes = response['phenotype_overview']
-    # why is this not a hash/dict?
-    assert phenotypes['experiment_categories'][0] == [u'Mutant Type', u'classical genetics', u'large-scale survey']
-    assert phenotypes['strains'][0] == [u'Strain', u'Annotations']
-    #assert 'mutant_types' in phenotypes
-    #assert 'mutant_to_count' in phenotypes
-    #assert 'strain_list' in phenotypes
-    #assert 'strain_to_count' in phenotypes
-    #assert 'experiment_types' in phenotypes
-
-def test_phenotype_biocon_overview_structure(model, identifier='viable'):
-    response = json.loads(model.phenotype(phenotype_identifier=identifier))
-    assert response is not None
-    phenotypes = response['phenotype_overview']
-    assert 'mutant_types' in phenotypes
-    assert 'mutant_to_count' in phenotypes
-    assert 'strain_list' in phenotypes
-    assert 'strain_to_count' in phenotypes
-    assert 'experiment_types' in phenotypes
-
 def check_phenotype_evidence(evidence):
     check_evidence(evidence)
     assert 'phenotype' in evidence
@@ -80,13 +57,13 @@ def test_phenotype_bioent_details_structure(model, identifier='YFL039C'):
         check_phenotype_evidence(entry)
 
 def test_phenotype_biocon_details_structure(model, identifier='cytoskeleton_morphology'):
-    response = json.loads(model.phenotype_details(phenotype_identifier=identifier))
+    response = json.loads(model.phenotype_details(observable_identifier=identifier))
     assert response is not None
     for entry in response:
         check_phenotype_evidence(entry)
 
 def test_phenotype_biocon_all_details_structure(model, identifier='cytoskeleton_morphology'):
-    response = json.loads(model.phenotype_details(phenotype_identifier=identifier, with_children=True))
+    response = json.loads(model.phenotype_details(observable_identifier=identifier, with_children=True))
     assert response is not None
     for entry in response:
         check_phenotype_evidence(entry)

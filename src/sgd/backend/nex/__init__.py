@@ -130,7 +130,7 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.misc import Strain
 
         id_to_strain = dict([(x.id, x) for x in DBSession.query(Strain)])
-        good_strain_ids = [x.id for x in id_to_strain.values() if x.status != 'Other']
+        good_strain_ids = [x.id for x in id_to_strain.values() if x.status == 'Reference']
         contigs = DBSession.query(Contig).filter(Contig.strain_id.in_(good_strain_ids)).all()
         labels = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon',
                   'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette',

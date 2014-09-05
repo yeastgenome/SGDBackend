@@ -44,7 +44,7 @@ def test_sequence_bioent_details_structure(model, identifier='GAL4'):
     assert 'coding_dna' in response
     assert 'genomic_dna' in response
 
-    for entry in response['locus']:
+    for entry in response['protein']:
         check_sequence_evidence(entry)
     for entry in response['coding_dna']:
         check_sequence_evidence(entry)

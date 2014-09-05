@@ -119,6 +119,11 @@ def test_dataset_structure(model, identifier='2010.alpha_conc'):
     response = json.loads(model.dataset(dataset_identifier=identifier))
     check_dataset(response)
 
+def test_tag_structure(model, identifier='cellular_ion_homeostasis'):
+    response = json.loads(model.tag(tag_identifier=identifier))
+    check_obj(response)
+    assert 'bioitems' in response
+
 def check_reference(reference):
     check_obj(reference)
     assert 'pubmed_id' in reference

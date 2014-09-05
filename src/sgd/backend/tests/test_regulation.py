@@ -49,16 +49,12 @@ def test_regulation_graph_structure(model, identifier='GAL4'):
     assert response is not None
     assert 'edges' in response
     assert 'nodes' in response
-    assert 'max_evidence_cutoff' in response
-    assert 'max_regulator_cutoff' in response
-    assert 'max_target_cutoff' in response
 
     assert len(response['nodes']) < 100
     for entry in response['edges']:
         assert 'data' in entry
         edge_data = entry['data']
         assert 'source' in edge_data
-        assert 'class_type' in edge_data
         assert 'target' in edge_data
         assert 'evidence' in edge_data
 
@@ -66,13 +62,10 @@ def test_regulation_graph_structure(model, identifier='GAL4'):
     for entry in response['nodes']:
         assert 'data' in entry
         node_data = entry['data']
-        assert 'evidence' in node_data
         assert 'link' in node_data
         assert 'id' in node_data
         assert 'sub_type' in node_data
         assert 'name' in node_data
-        assert 'targ_evidence' in node_data
-        assert 'reg_evidence' in node_data
 
 def test_regulation_target_enrichment_structure(model, identifier='ADF1'):
     response = json.loads(model.regulation_target_enrichment(locus_identifier=identifier))
