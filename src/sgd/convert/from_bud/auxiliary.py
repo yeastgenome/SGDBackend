@@ -209,16 +209,16 @@ def make_bioentity_expression_interaction_starter(nex_session_maker):
                     if positive_score > 6:
                         bioentity = id_to_bioentity[bioentity1_id]
                         interactor = id_to_bioentity[bioentity2_id]
-                        yield {'interaction_type': 'EXPRESSION', 'coeff': positive_score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'positive'}
-                        yield {'interaction_type': 'EXPRESSION', 'coeff': positive_score, 'bioentity': interactor, 'interactor': bioentity, 'direction': 'positive'}
+                        yield {'interaction_type': 'EXPRESSION', 'evidence_count': positive_score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'positive'}
+                        yield {'interaction_type': 'EXPRESSION', 'evidence_count': positive_score, 'bioentity': interactor, 'interactor': bioentity, 'direction': 'positive'}
                     elif positive_score > 0:
                         positive_relationships_not_added[positive_score] += 2
 
                     if negative_score > 6:
                         bioentity = id_to_bioentity[bioentity1_id]
                         interactor = id_to_bioentity[bioentity2_id]
-                        yield {'interaction_type': 'EXPRESSION', 'coeff': negative_score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'negative'}
-                        yield {'interaction_type': 'EXPRESSION', 'coeff': negative_score, 'bioentity': interactor, 'interactor': bioentity, 'direction': 'negative'}
+                        yield {'interaction_type': 'EXPRESSION', 'evidence_count': negative_score, 'bioentity': bioentity, 'interactor': interactor, 'direction': 'negative'}
+                        yield {'interaction_type': 'EXPRESSION', 'evidence_count': negative_score, 'bioentity': interactor, 'interactor': bioentity, 'direction': 'negative'}
                     elif negative_score > 0:
                         negative_relationships_not_added[negative_score] += 2
 

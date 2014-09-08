@@ -109,7 +109,7 @@ def clean_paragraph(text, label, sgdid_to_reference, sgdid_to_bioentity, goid_to
             bioentity = sgdid_to_bioentity[sgdid]
             replacement = '<a href="' + bioentity.link + '">' + html_text[end_index+1:final_end_index] + '</a>'
         else:
-            print 'Feature not found: ' + sgdid + ' in ' + label
+            print 'Feature not found: ' + html_text[start_index + 10:end_index] + ' in ' + label
         html_text = html_text.replace(html_text[start_index:final_end_index+10], replacement)
 
     # Replace go

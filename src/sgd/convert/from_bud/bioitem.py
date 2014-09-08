@@ -301,48 +301,50 @@ def make_dataset_starter(nex_session_maker, expression_dir):
                 pubmed_id = None
 
                 state = 'BEGIN'
+                try:
+                    for row in make_file_starter(expression_dir + '/' + path + '/README')():
+                        if row[0].startswith('Full Description'):
+                            state = 'FULL_DESCRIPTION:'
+                            full_description = row[0][18:].strip()
+                        elif row[0].startswith('PMID:'):
+                            pubmed_id = int(row[0][6:].strip())
+                        elif row[0].startswith('GEO ID:'):
+                            geo_id = row[0][8:].strip()
+                        elif row[0].startswith('PCL filename'):
+                            state = 'OTHER'
+                        elif state == 'FULL_DESCRIPTION':
+                            full_description = full_description + row[0].strip()
+                        elif state == 'OTHER':
+                            pcl_filename = row[0].strip()
+                            short_description = row[1].strip()
+                            tag = row[3].strip()
+                            pcl_filename_to_info[pcl_filename] = (short_description, tag)
 
-                for row in make_file_starter(expression_dir + '/' + path + '/README')():
-                    if row[0].startswith('Full Description'):
-                        state = 'FULL_DESCRIPTION:'
-                        full_description = row[0][18:].strip()
-                    elif row[0].startswith('PMID:'):
-                        pubmed_id = int(row[0][6:].strip())
-                    elif row[0].startswith('GEO ID:'):
-                        geo_id = row[0][8:].strip()
-                    elif row[0].startswith('PCL filename'):
-                        state = 'OTHER'
-                    elif state == 'FULL_DESCRIPTION':
-                        full_description = full_description + row[0].strip()
-                    elif state == 'OTHER':
-                        pcl_filename = row[0].strip()
-                        short_description = row[1].strip()
-                        tag = row[3].strip()
-                        pcl_filename_to_info[pcl_filename] = (short_description, tag)
+                    if geo_id == 'N/A':
+                        geo_id = None
 
-                if geo_id == 'N/A':
-                    geo_id = None
+                    for file in os.listdir(expression_dir + '/' + path):
+                        if file != 'README':
+                            f = open(expression_dir + '/' + path + '/' + file, 'r')
+                            pieces = f.next().split('\t')
+                            f.close()
 
-                for file in os.listdir(expression_dir + '/' + path):
-                    if file != 'README':
-                        f = open(expression_dir + '/' + path + '/' + file, 'r')
-                        pieces = f.next().split('\t')
-                        f.close()
-
-                        if file in pcl_filename_to_info:
-                            yield {
-                                'description': full_description,
-                                'geo_id': geo_id,
-                                'pcl_filename': file,
-                                'short_description': pcl_filename_to_info[file][0],
-                                'tags': pcl_filename_to_info[file][1],
-                                'reference': None if pubmed_id is None or pubmed_id not in pubmed_id_to_reference else pubmed_id_to_reference[pubmed_id],
-                                'source': key_to_source['SGD'],
-                                'channel_count': 1 if file not in filename_to_channel_count else int(filename_to_channel_count[file]),
-                                'condition_count': len(pieces)-3
-                            }
-                        else:
-                            print 'Filename not in readme: ' + file
+                            if file in pcl_filename_to_info:
+                                yield {
+                                    'description': full_description,
+                                    'geo_id': geo_id,
+                                    'pcl_filename': file,
+                                    'short_description': pcl_filename_to_info[file][0],
+                                    'tags': pcl_filename_to_info[file][1],
+                                    'reference': None if pubmed_id is None or pubmed_id not in pubmed_id_to_reference else pubmed_id_to_reference[pubmed_id],
+                                    'source': key_to_source['SGD'],
+                                    'channel_count': 1 if file not in filename_to_channel_count else int(filename_to_channel_count[file]),
+                                    'condition_count': len(pieces)-3
+                                }
+                            else:
+                                print 'Filename not in readme: ' + file
+                except:
+                    print 'File ' + expression_dir + '/' + path + '/README' + ' not found.'
 
         nex_session.close()
     return dataset_starter
@@ -446,13 +448,13 @@ def make_bioitem_url_starter(nex_session_maker):
             elif bioitem_type == 'PANTHER':
                 link = "http://www.pantherdb.org/panther/family.do?clsAccession=" + display_name
             elif bioitem_type == 'TIGRFAM':
-                link = "http://cmr.tigr.org/tigr-scripts/CMR/HmmReport.cgi?hmm_acc=" + display_name
+                link = "http://www.jcvi.org/cgi-bin/tigrfams/HmmReportPage.cgi?acc=" + display_name
             elif bioitem_type == 'PRINTS':
                 link = "http:////www.bioinf.man.ac.uk/cgi-bin/dbbrowser/sprint/searchprintss.cgi?display_opts=Prints&amp;category=None&amp;queryform=false&amp;prints_accn=" + display_name
             elif bioitem_type == 'ProDom':
                 link = "http://prodom.prabi.fr/prodom/current/cgi-bin/request.pl?question=DBEN&amp;query=" + display_name
             elif bioitem_type == 'PIRSF':
-                link = "http://pir.georgetown.edu/cgi-bin/ipcSF?" + display_name
+                link = "http://pir.georgetown.edu/cgi-bin/ipcSF?id=" + display_name
             elif bioitem_type == 'PROSITE':
                 link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
             elif bioitem_type == 'PROSITE':
@@ -502,7 +504,7 @@ def make_bioitem_url_starter(nex_session_maker):
                     if file != 'README':
                         if file in pcl_filename_to_dataset:
                             dataset = pcl_filename_to_dataset[file]
-                            yield {'display_name': 'Download',
+                            yield {'display_name': 'Download Data',
                                    'link': 'http://downloads.yeastgenome.org/expression/microarray/' + path + '/',
                                    'source': key_to_source['SGD'],
                                    'category': 'Download',

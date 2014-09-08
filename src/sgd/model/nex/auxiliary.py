@@ -20,14 +20,13 @@ class Interaction(Base, EqualityByIDMixin, UpdateByJsonMixin):
     class_type = Column('class', String)
     interaction_type = Column('interaction_type', String)
     evidence_count = Column('evidence_count', Integer)
-    coeff = Column('coeff', Numeric(7, 3))
     bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
 
     #Relationships
     bioentity = relationship(Bioentity, uselist=False, backref=backref('interactions', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity':"INTERACTION"}
-    __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count', 'coeff']
+    __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count']
     __eq_fks__ = ['bioentity', 'interactor']
 
     def __init__(self, obj_json):

@@ -84,7 +84,7 @@ def make_graph(bioent_id):
     interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter_by(bioentity_id=bioent_id).all()
 
     if len(interactions) == 0:
-         return {'nodes': [], 'edges': []}
+         return {'nodes': [], 'edges': [], 'min_coeff': 0, 'max_coeff': 0}
     neighbor_id_to_coeff = dict([(x.interactor_id, x.coeff) for x in interactions])
 
     max_coeff = 0

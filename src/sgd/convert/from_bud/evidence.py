@@ -416,7 +416,24 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
         uniprot_id_to_bioentity = dict([(x.uniprotid, x) for x in id_to_bioentity.values()])
         pubmed_id_to_reference = dict([(str(x.pubmed_id), x) for x in id_to_reference.values()])
 
-        evidence_key_to_gpad_conditions = dict(filter(None, [make_go_gpad_conditions(x, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept, chebi_id_to_chemical, sgdid_to_bioentity) for x in make_file_starter('src/sgd/convert/data/gp_association.559292_sgd')()]))
+        term_id_to_role = dict()
+        ancestor_name_to_role = {'catalytic activity': 'has substrate',
+                                 'transport': 'transports',
+                                 'transporter activity': 'transports',
+                                 'binding': 'binds',
+                                 'localization': 'localizes'}
+
+        for ancestor_name, role in ancestor_name_to_role.iteritems():
+            ancestor = nex_session.query(Bioconcept).filter_by(display_name=ancestor_name).first()
+            children = [ancestor]
+            while len(children) > 0:
+                new_children = []
+                for child in children:
+                    term_id_to_role[child.id] = role
+                    new_children.extend([x.child for x in child.children if x.relation_type == 'is a'])
+                children = new_children
+
+        evidence_key_to_gpad_conditions = dict(filter(None, [make_go_gpad_conditions(x, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept, chebi_id_to_chemical, sgdid_to_bioentity, term_id_to_role) for x in make_file_starter('src/sgd/convert/data/gp_association.559292_sgd')()]))
 
         for old_go_feature in bud_session.query(GoFeature).options(joinedload(GoFeature.go_refs)).all():
             go_key = ('GO:' + str(old_go_feature.go.go_go_id).zfill(7), 'GO')
@@ -512,8 +529,39 @@ def make_go_conditions(old_dbxrefs, sgdid_to_bioentity, key_to_bioconcept, key_t
                 print 'Could not find bioitem: ' + str(bioitem_key)
     return conditions
 
+#This is a hack - we need to figure out what we're doing with these relationships, but right now it's unclear.
+condition_format_name_to_display_name = {'activated by':	                'activated by',
+                                        'dependent on':	                    'dependent on',
+                                        'during':	                        'during',
+                                        'exists during':	                'during',
+                                        'happens during':	                'during',
+                                        'has part':	                        'has part',
+                                        'has regulation_target':	        'regulates',
+                                        'in presence_of':	                'in presence of',
+                                        'independent of':	                'independent of',
+                                        'inhibited by':	                    'inhibited by',
+                                        'localization dependent on':	    'localization requires',
+                                        'modified by':	                    'modified by',
+                                        'not during':	                    'except during',
+                                        'not exists during':	            'except during',
+                                        'not happens during':	            'except during',
+                                        'not occurs at':	                'not at',
+                                        'not occurs in':	                'not in',
+                                        'occurs at':	                    'at',
+                                        'occurs in':	                    'in',
+                                        'part of':	                        'part of',
+                                        'requires direct regulator':	    'requires direct regulation by',
+                                        'requires localization':	        'only when located at',
+                                        'requires modification':	        'only with modification',
+                                        'requires regulation by':	        'requires regulation by',
+                                        'requires regulator':	            'requires',
+                                        'requires sequence feature':	    'requires',
+                                        'requires substance':	            'requires',
+                                        'requires target sequence feature':	'requires feature in target',
+                                        'stabilizes':	                    'stabilizes'}
+
 def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept,
-                              chebi_id_to_chemical, sgdid_to_bioentity):
+                              chebi_id_to_chemical, sgdid_to_bioentity, term_id_to_role):
     from src.sgd.model.nex.evidence import Bioconceptproperty, Bioentityproperty, Chemicalproperty
 
     if len(gpad) > 1 and gpad[9] == 'SGD':
@@ -536,12 +584,17 @@ def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_referenc
                     if '(' in annotation_ext:
                         pieces = annotation_ext.split('(')
                         role = pieces[0].replace('_', ' ')
+                        if role in condition_format_name_to_display_name:
+                            role = condition_format_name_to_display_name[role]
                         value = pieces[1][:-1]
 
                         if value.startswith('GO:'):
                             go_key = ('GO:' + str(int(value[3:])).zfill(7), 'GO')
                             if go_key in key_to_bioconcept:
-                                conditions.append(Bioconceptproperty({'role': role, 'bioconcept': key_to_bioconcept[go_key]}))
+                                goterm = key_to_bioconcept[go_key]
+                                if goterm.id in term_id_to_role:
+                                    role = term_id_to_role[goterm.id]
+                                conditions.append(Bioconceptproperty({'role': role, 'bioconcept': goterm}))
                             else:
                                 print 'Could not find bioconcept: ' + str(go_key)
                         elif value.startswith('CHEBI:'):

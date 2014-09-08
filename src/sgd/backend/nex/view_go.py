@@ -38,36 +38,6 @@ def make_enrichment(bioent_ids):
     return json_format
 
 # -------------------------------Details---------------------------------------
-#This is a hack - we need to figure out what we're doing with these relationships, but right now it's unclear.
-condition_format_name_to_display_name = {'activated by':	                'activated by',
-                                        'dependent on':	                    'dependent on',
-                                        'during':	                        'during',
-                                        'exists during':	                'during',
-                                        'happens during':	                'during',
-                                        'has part':	                        'has part',
-                                        'has regulation_target':	        'regulates',
-                                        'in presence_of':	                'in presence of',
-                                        'independent of':	                'independent of',
-                                        'inhibited by':	                    'inhibited by',
-                                        'localization dependent on':	    'localization requires',
-                                        'modified by':	                    'modified by',
-                                        'not during':	                    'except during',
-                                        'not exists during':	            'except during',
-                                        'not happens during':	            'except during',
-                                        'not occurs at':	                'not at',
-                                        'not occurs in':	                'not in',
-                                        'occurs at':	                    'at',
-                                        'occurs in':	                    'in',
-                                        'part of':	                        'part of',
-                                        'requires direct regulator':	    'requires direct regulation by',
-                                        'requires localization':	        'only when located at',
-                                        'requires modification':	        'only with modification',
-                                        'requires regulation by':	        'requires regulation by',
-                                        'requires regulator':	            'requires',
-                                        'requires sequence feature':	    'requires',
-                                        'requires substance':	            'requires',
-                                        'requires target sequence feature':	'requires feature in target',
-                                        'stabilizes':	                    'stabilizes'}
 
 def get_go_evidence(locus_id, go_id, reference_id, with_children):
     query = DBSession.query(Goevidence)
@@ -103,8 +73,3 @@ def make_details(locus_id=None, go_id=None, reference_id=None, with_children=Fal
         return json.dumps({'Error': 'Too much data to display.'})
 
     return '[' + ', '.join([x.json if x.json is not None else json.dumps(x.to_json()) for x in goevidences]) + ']'
-
-def fix_display_name(condition):
-    if 'role' in condition and condition['role'] in condition_format_name_to_display_name:
-        condition['role'] = condition_format_name_to_display_name[condition['role']]
-    return condition

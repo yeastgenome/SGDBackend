@@ -310,7 +310,7 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Bioitem ------------------------------------------
     # Bud -> Nex
-    from src.sgd.model.nex.bioitem import Bioitemurl, Bioitemrelation
+    from src.sgd.model.nex.bioitem import Bioitemurl, Bioitemrelation, BioitemTag
     from src.sgd.model.nex.misc import Relation, Url
     from src.sgd.convert.from_bud.bioitem import make_bioitem_url_starter, make_bioitem_relation_starter, make_bioitem_tag_starter
 
@@ -329,7 +329,7 @@ if __name__ == "__main__":
                              delete_untouched=True,
                              commit=True,
                              already_deleted=clean_up_orphans(nex_session_maker, Bioitemurl, Url, 'BIOITEM'))])
-
+    #
     do_conversion(make_bioitem_tag_starter(nex_session_maker),
                   [Json2Obj(BioitemTag),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(BioitemTag), name='convert.from_bud.bioitem.tag', delete_untouched=True, commit=True)])
