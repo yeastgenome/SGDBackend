@@ -78,54 +78,54 @@ if __name__ == "__main__":
     observable_ids = [x.id for x in nex_session.query(Observable).all()]
     nex_session.close()
 
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'interaction_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'phenotype_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'go_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'GO', locus_ids, name='convert.from_backend.go_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_domain_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PROTEIN_DOMAIN', locus_ids, name='convert.from_backend.protein_domain_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'literature_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'LITERATURE', locus_ids, name='convert.from_backend.literature_graph', commit_interval=1000)])
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'interaction_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000)])
+
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'phenotype_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_graph', commit_interval=1000)])
+
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'go_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'GO', locus_ids, name='convert.from_backend.go_graph', commit_interval=1000)])
+
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_domain_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PROTEIN_DOMAIN', locus_ids, name='convert.from_backend.protein_domain_graph', commit_interval=1000)])
+
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'literature_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'LITERATURE', locus_ids, name='convert.from_backend.literature_graph', commit_interval=1000)])
 
     do_conversion(make_locus_data_backend_starter(nex_backend, 'regulation_graph', locus_ids),
                    [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'REGULATION', locus_ids, name='convert.from_backend.regulation_graph', commit_interval=1000)])
 
-    # do_conversion(make_go_data_backend_starter(nex_backend, 'go_ontology_graph', go_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'GO_ONTOLOGY', go_ids, name='convert.from_backend.go_ontology_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_observable_data_backend_starter(nex_backend, 'phenotype_ontology_graph', observable_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'PHENOTYPE_ONTOLOGY', observable_ids, name='convert.from_backend.phenotype_ontology_graph', commit_interval=1000)])
+    do_conversion(make_go_data_backend_starter(nex_backend, 'go_ontology_graph', go_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'GO_ONTOLOGY', go_ids, name='convert.from_backend.go_ontology_graph', commit_interval=1000)])
 
-    # # ------------------------------------------ Perf2 ------------------------------------------
-    # perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
-    # perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
-    #
-    # do_conversion(make_locus_data_backend_starter(perf_backend, 'interaction_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_locus_data_backend_starter(perf_backend, 'phenotype_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_locus_data_backend_starter(perf_backend, 'go_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'GO', locus_ids, name='convert.from_backend.go_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_locus_data_backend_starter(perf_backend, 'protein_domain_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PROTEIN_DOMAIN', locus_ids, name='convert.from_backend.protein_domain_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_locus_data_backend_starter(perf_backend, 'literature_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'LITERATURE', locus_ids, name='convert.from_backend.literature_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_locus_data_backend_starter(perf_backend, 'regulation_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'REGULATION', locus_ids, name='convert.from_backend.regulation_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_go_data_backend_starter(perf_backend, 'go_ontology_graph', go_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'GO_ONTOLOGY', go_ids, name='convert.from_backend.go_ontology_graph', commit_interval=1000)])
-    #
-    # do_conversion(make_phenotype_data_backend_starter(perf_backend, 'phenotype_ontology_graph', observable_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'PHENOTYPE_ONTOLOGY', observable_ids, name='convert.from_backend.phenotype_ontology_graph', commit_interval=1000)])
+    do_conversion(make_observable_data_backend_starter(nex_backend, 'phenotype_ontology_graph', observable_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'PHENOTYPE_ONTOLOGY', observable_ids, name='convert.from_backend.phenotype_ontology_graph', commit_interval=1000)])
+
+    # ------------------------------------------ Perf2 ------------------------------------------
+    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
+
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'interaction_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000)])
+
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'phenotype_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_graph', commit_interval=1000)])
+
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'go_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'GO', locus_ids, name='convert.from_backend.go_graph', commit_interval=1000)])
+
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'protein_domain_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PROTEIN_DOMAIN', locus_ids, name='convert.from_backend.protein_domain_graph', commit_interval=1000)])
+
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'literature_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'LITERATURE', locus_ids, name='convert.from_backend.literature_graph', commit_interval=1000)])
+
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'regulation_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'REGULATION', locus_ids, name='convert.from_backend.regulation_graph', commit_interval=1000)])
+
+    do_conversion(make_go_data_backend_starter(perf_backend, 'go_ontology_graph', go_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'GO_ONTOLOGY', go_ids, name='convert.from_backend.go_ontology_graph', commit_interval=1000)])
+
+    do_conversion(make_phenotype_data_backend_starter(perf_backend, 'phenotype_ontology_graph', observable_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'PHENOTYPE_ONTOLOGY', observable_ids, name='convert.from_backend.phenotype_ontology_graph', commit_interval=1000)])
