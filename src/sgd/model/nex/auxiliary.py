@@ -54,7 +54,7 @@ class Bioentityinteraction(Interaction, EqualityByIDMixin):
 
 
     __mapper_args__ = {'polymorphic_identity': 'BIOENTITY', 'inherit_condition': id==Interaction.id}
-    __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count', 'direction', 'coeff']
+    __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count', 'direction']
 
 class Bioconceptinteraction(Interaction, EqualityByIDMixin):
     __tablename__ = "aux_bioconceptinteraction"

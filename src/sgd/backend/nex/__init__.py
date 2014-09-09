@@ -60,6 +60,7 @@ class SGDBackend(BackendInterface):
 
     def all_tags(self, chunk_size, offset):
         from src.sgd.model.nex.misc import Tag
+        from src.sgd.model.nex.bioitem import BioitemTag
         return [x.to_json() for x in DBSession.query(Tag).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
 
     def obj_list(self, list_type):
@@ -86,7 +87,8 @@ class SGDBackend(BackendInterface):
         go_relationships = [['Child', 'Parent']]
         for go_term in go_terms:
             obj_json = go_term.to_min_json()
-            obj_json['annotation_count'] = go_term.child_count
+            obj_json['descendant_annotation_gene_count'] = go_term.child_count
+            obj_json['direct_annotation_gene_count'] = go_term.count
             go_slim_terms.append(obj_json)
 
             parents = [x.parent for x in go_term.parents if x.relation_type == 'is a']
@@ -109,7 +111,8 @@ class SGDBackend(BackendInterface):
         phenotype_relationships = [['Child', 'Parent']]
         for phenotype in phenotypes:
             obj_json = phenotype.to_min_json()
-            obj_json['annotation_count'] = phenotype.child_count
+            obj_json['descendant_annotation_gene_count'] = phenotype.child_count
+            obj_json['direct_annotation_gene_count'] = phenotype.count
             phenotype_slim_terms.append(obj_json)
 
             parents = [x.parent for x in phenotype.parents if x.relation_type == 'is a']

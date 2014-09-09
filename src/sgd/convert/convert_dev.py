@@ -401,13 +401,13 @@ if __name__ == "__main__":
         make_alias_evidence_starter, make_binding_evidence_starter, make_bioentity_evidence_starter, \
         make_complex_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
         make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter, make_new_dna_sequence_evidence_starter
-
-    do_conversion(make_bioentity_evidence_starter(bud_session_maker, nex_session_maker),
-                   [Json2Obj(Bioentityevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Bioentityevidence),
-                                   name='convert.from_bud.evidence.bioentity',
-                                   delete_untouched=True,
-                                   commit_interval=1000)])
+    #
+    # do_conversion(make_bioentity_evidence_starter(bud_session_maker, nex_session_maker),
+    #                [Json2Obj(Bioentityevidence),
+    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Bioentityevidence),
+    #                                name='convert.from_bud.evidence.bioentity',
+    #                                delete_untouched=True,
+    #                                commit_interval=1000)])
 
     # do_conversion(make_alias_evidence_starter(bud_session_maker, nex_session_maker),
     #                [Json2Obj(Aliasevidence),
@@ -877,9 +877,9 @@ if __name__ == "__main__":
     # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week']),
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000, )])
 
-    #
-    # do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
-    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+
+    do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
+                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
 
     # locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', locus_types),

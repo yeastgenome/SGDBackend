@@ -17,36 +17,36 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Perf ------------------------------------------
 
-    # ------------------------------------------ Disambig ------------------------------------------
-    do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
-                   [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000)])
+    # # ------------------------------------------ Disambig ------------------------------------------
+    # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
+    #                [Json2DisambigPerfDB(perf_session_maker, commit_interval=1000)])
+    #
+    # # ------------------------------------------ Evelements ------------------------------------------
+    # from src.sgd.model.perf.core import Strain as PerfStrain
+    # do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True)])
 
-    # ------------------------------------------ Evelements ------------------------------------------
-    from src.sgd.model.perf.core import Strain as PerfStrain
-    do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True)])
-
-    # ------------------------------------------ Bioentity ------------------------------------------
+    # # ------------------------------------------ Bioentity ------------------------------------------
     from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry, Tag as PerfTag
-    do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True)])
+    # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfBioentity, name='convert.from_backend.bioentity', commit_interval=1000, delete_untouched=True)])
 
-    do_conversion(make_backend_starter(nex_backend, 'all_locustabs', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfLocustab, name='convert.from_backend.all_locustabs', commit_interval=1000, delete_untouched=True)])
-
-    do_conversion(make_backend_starter(nex_backend, 'all_locusentries', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfLocusentry, name='convert.from_backend.all_locusentries', commit_interval=1000, delete_untouched=True)])
-
-    # ------------------------------------------ Bioconcept ------------------------------------------
-    from src.sgd.model.perf.core import Bioconcept as PerfBioconcept
-    do_conversion(make_backend_starter(nex_backend, 'all_bioconcepts', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfBioconcept, name='convert.from_backend.bioconcept', delete_untouched=True, commit_interval=1000)])
-
-    # ------------------------------------------ Bioitem ------------------------------------------
-    from src.sgd.model.perf.core import Bioitem as PerfBioitem
-    do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True)])
-
+    # do_conversion(make_backend_starter(nex_backend, 'all_locustabs', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfLocustab, name='convert.from_backend.all_locustabs', commit_interval=1000, delete_untouched=True)])
+    #
+    # do_conversion(make_backend_starter(nex_backend, 'all_locusentries', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfLocusentry, name='convert.from_backend.all_locusentries', commit_interval=1000, delete_untouched=True)])
+    #
+    # # ------------------------------------------ Bioconcept ------------------------------------------
+    # from src.sgd.model.perf.core import Bioconcept as PerfBioconcept
+    # do_conversion(make_backend_starter(nex_backend, 'all_bioconcepts', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfBioconcept, name='convert.from_backend.bioconcept', delete_untouched=True, commit_interval=1000)])
+    #
+    # # ------------------------------------------ Bioitem ------------------------------------------
+    # from src.sgd.model.perf.core import Bioitem as PerfBioitem
+    # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True)])
+    #
     # ------------------------------------------ Tag ------------------------------------------
     do_conversion(make_backend_starter(nex_backend, 'all_tags', 1000),
                   [Json2CorePerfDB(perf_session_maker, PerfTag, name='convert.from_backend.tag', commit_interval=1000, delete_untouched=True)])
