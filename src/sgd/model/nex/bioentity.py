@@ -106,11 +106,12 @@ class Locus(Bioentity):
     locus_type = Column('locus_type', String)
     gene_name = Column('gene_name', String)
     qualifier = Column('qualifier', String)
+    genetic_position = Column('genetic_position', Integer)
         
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Bioentity.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'bioent_status',
                      'description',
-                     'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier',
+                     'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 

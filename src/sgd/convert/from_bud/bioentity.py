@@ -71,6 +71,7 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
                 headline = ann.headline
                 description = ann.description
                 qualifier = ann.qualifier
+                genetic_position = ann.genetic_position
 
             sgdid = bud_obj.dbxref_id
 
@@ -89,6 +90,7 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
                                       'name_description': name_description,
                                       'headline': headline,
                                       'qualifier': qualifier,
+                                      'genetic_position': genetic_position,
                                       'description': description,
                                       'gene_name': bud_obj.gene_name,
                                       'date_created': bud_obj.date_created,

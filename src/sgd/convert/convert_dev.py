@@ -87,10 +87,10 @@ if __name__ == "__main__":
         make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
-    # do_conversion(make_locus_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Locus),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locus), name='convert.from_bud.bioentity.locus', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS')
+    do_conversion(make_locus_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Locus),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Locus), name='convert.from_bud.bioentity.locus', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS')
     #
     # do_conversion(make_complex_starter(nex_session_maker),
     #               [Json2Obj(Complex),
@@ -878,8 +878,8 @@ if __name__ == "__main__":
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000, )])
 
 
-    do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
-                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+    # do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
+    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
 
     # locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', locus_types),
