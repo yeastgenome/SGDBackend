@@ -290,7 +290,8 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
 # --------------------- Convert Relation ---------------------
 def make_bioentity_relation_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.bioentity import Complex
+    from src.sgd.model.nex.bioentity import Complex, Bioentity
+    from src.sgd.model.bud.feature import FeatRel
 
     def bioentity_relation_starter():
         bud_session = bud_session_maker()
@@ -308,6 +309,12 @@ def make_bioentity_relation_starter(bud_session_maker, nex_session_maker):
                            'relation_type': 'is a',
                            'parent_id': parent.id,
                            'child_id': child.id}
+
+        for relation in bud_session.query(FeatRel).filter_by(relationship_type='pair').all():
+            yield {'source': key_to_source['SGD'],
+                           'relation_type': 'paralog',
+                           'parent_id': relation.parent_id,
+                           'child_id': relation.child_id}
 
         bud_session.close()
         nex_session.close()

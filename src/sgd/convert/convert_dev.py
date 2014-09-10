@@ -106,10 +106,10 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityalias), name='convert.from_bud.bioentity.alias', delete_untouched=True, commit=True)])
     # clean_up_orphans(nex_session_maker, Bioentityalias, Alias, 'BIOENTITY')
     #
-    # do_conversion(make_bioentity_relation_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Bioentityrelation),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityrelation), name='convert.from_bud.bioentity.relation', delete_untouched=True, commit=True)])
-    # clean_up_orphans(nex_session_maker, Bioentityrelation, Relation, 'BIOENTITY')
+    do_conversion(make_bioentity_relation_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bioentityrelation),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityrelation), name='convert.from_bud.bioentity.relation', delete_untouched=True, commit=True)])
+    clean_up_orphans(nex_session_maker, Bioentityrelation, Relation, 'BIOENTITY')
     #
     # do_conversion(make_bioentity_url_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioentityurl),
@@ -520,10 +520,10 @@ if __name__ == "__main__":
     #                    OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, DNAsequenceevidence, Evidence, 'DNASEQUENCE')
 
-    do_conversion(make_kb_sequence_starter(nex_session_maker),
-                      [Json2Obj(DNAsequenceevidence),
-                       Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.dna_type == '1KB'), name='convert.from_bud.evidence.1kb_dnasequence', delete_untouched=True, commit_interval=1000),
-                       OutputTransformer(1000)])
+    # do_conversion(make_kb_sequence_starter(nex_session_maker),
+    #                   [Json2Obj(DNAsequenceevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.dna_type == '1KB'), name='convert.from_bud.evidence.1kb_dnasequence', delete_untouched=True, commit_interval=1000),
+    #                    OutputTransformer(1000)])
     #
     #
     # protparam_data = dict([(row[0], row) for row in make_file_starter('src/sgd/convert/data/ProtParam.txt')()])
