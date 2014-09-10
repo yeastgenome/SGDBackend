@@ -85,14 +85,14 @@ def make_graph(bioent_id):
 
     if len(interactions) == 0:
          return {'nodes': [], 'edges': [], 'min_coeff': 0, 'max_coeff': 0}
-    neighbor_id_to_coeff = dict([(x.interactor_id, x.coeff) for x in interactions])
+    neighbor_id_to_coeff = dict([(x.interactor_id, x.evidence_count) for x in interactions])
 
     max_coeff = 0
 
     coeff_to_interactions = dict()
 
     for interaction in interactions:
-        coeff = interaction.coeff
+        coeff = interaction.evidence_count
         max_coeff = max_coeff if coeff <= max_coeff else coeff
 
         if coeff in coeff_to_interactions:
@@ -109,9 +109,9 @@ def make_graph(bioent_id):
     neighbor_id_to_coeff[bioent_id] = max_coeff
 
 
-    more_interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter(Bioentityinteraction.coeff > min_coeff).filter(Bioentityinteraction.bioentity_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.interactor_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.bioentity_id < Bioentityinteraction.interactor_id).all()
+    more_interactions = DBSession.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION').filter(Bioentityinteraction.evidence_count > min_coeff).filter(Bioentityinteraction.bioentity_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.interactor_id.in_(usable_neighbor_ids)).filter(Bioentityinteraction.bioentity_id < Bioentityinteraction.interactor_id).all()
     for interaction in more_interactions:
-        coeff = interaction.coeff
+        coeff = interaction.evidence_count
         if coeff >= min_coeff:
             if coeff in coeff_to_interactions:
                 coeff_to_interactions[coeff].append(interaction)
@@ -135,7 +135,7 @@ def make_graph(bioent_id):
 
     usable_neighbor_ids = set([x for x in usable_neighbor_ids if neighbor_id_to_coeff[x] >= min_coeff])
     nodes = [create_node(id_to_bioentity[x], x==bioent_id, neighbor_id_to_coeff[x]) for x in usable_neighbor_ids]
-    edges = [create_edge(x.bioentity_id, x.interactor_id, x.coeff, 'EXPRESSION', x.direction) for x in more_interactions if x.coeff >= min_coeff and x.bioentity_id in usable_neighbor_ids and x.interactor_id in usable_neighbor_ids]
+    edges = [create_edge(x.bioentity_id, x.interactor_id, x.evidence_count, 'EXPRESSION', x.direction) for x in more_interactions if x.evidence_count >= min_coeff and x.bioentity_id in usable_neighbor_ids and x.interactor_id in usable_neighbor_ids]
 
 
     return {'nodes': nodes, 'edges': edges, 'min_coeff': float(min_coeff), 'max_coeff': float(max_coeff)}
