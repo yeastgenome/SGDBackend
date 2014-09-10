@@ -247,7 +247,10 @@ class Locus(Bioentity):
         reference_ids.update([x.reference_id for x in self.physinteraction_evidences2])
         reference_ids.update([x.reference_id for x in self.regulation_evidences_targets])
         reference_ids.update([x.reference_id for x in self.regulation_evidences_regulators])
-        obj_json['literature_overview'] = {'total_count': len(reference_ids)}
+        obj_json['literature_overview'] = {'total_count': len(reference_ids),
+                                           'primary_count': len(set([x.reference_id for x in self.literature_evidences if x.topic == 'Primary Literature'])),
+                                           'additional_count': len(set([x.reference_id for x in self.literature_evidences if x.topic == 'Additional Literature'])),
+                                           'review_count': len(set([x.reference_id for x in self.literature_evidences if x.topic == 'Reviews']))}
 
         #Sequence
         obj_json['sequence_overview'] = sorted(dict([(x.strain.id, x.strain.to_min_json()) for x in self.dnasequence_evidences]).values(), key=lambda x: x['display_name'])
