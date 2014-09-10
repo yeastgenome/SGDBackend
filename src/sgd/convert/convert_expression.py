@@ -74,22 +74,22 @@ if __name__ == "__main__":
     #                                              name='convert.from_bud.evidence.expression_data',
     #                                              delete_untouched=True,
     #                                              commit_interval=1000)])
-
-    do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
-                  [Json2Obj(Bioentityinteraction),
-                   BigObj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'),
-                                name='convert.from_bud.auxilliary.bioentity_interaction_expression',
-                                delete_untouched=True,
-                                commit_interval=1000)])
+    #
+    # do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
+    #               [Json2Obj(Bioentityinteraction),
+    #                BigObj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'),
+    #                             name='convert.from_bud.auxilliary.bioentity_interaction_expression',
+    #                             delete_untouched=True,
+    #                             commit_interval=1000)])
 
     # ------------------------------------------ Perf ------------------------------------------
-    #
-    # from src.sgd.model.perf.bioentity_data import BioentityGraph, BioentityDetails
-    #
-    # from src.sgd.model.nex.bioentity import Locus
-    # nex_session = nex_session_maker()
-    # locus_ids = [x.id for x in nex_session.query(Locus).all()]
-    # nex_session.close()
+
+    from src.sgd.model.perf.bioentity_data import BioentityGraph, BioentityDetails
+
+    from src.sgd.model.nex.bioentity import Locus
+    nex_session = nex_session_maker()
+    locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    nex_session.close()
     #
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_graph', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityGraph,
@@ -102,6 +102,10 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids,
     #                                 name='convert.from_backend.expression_details',
     #                                 commit_interval=100)])
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'EXPRESSION', locus_ids,
+                                    name='convert.from_backend.expression_graph',
+                                    commit_interval=1000)])
 
 
     # ------------------------------------------ Perf2 ------------------------------------------
