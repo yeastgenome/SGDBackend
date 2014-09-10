@@ -273,7 +273,22 @@ class Locus(Bioentity):
         obj_json['paragraph'] = None if len(lsp_paragraphs) == 0 else lsp_paragraphs[0]
 
         #History
-        obj_json['history'] = [x.to_json() for x in self.history_evidences]
+        note_to_evidences = dict()
+        for historyevidence in self.history_evidences:
+            if historyevidence.note in note_to_evidences:
+                note_to_evidences[historyevidence.note].append(historyevidence)
+            else:
+                note_to_evidences[historyevidence.note] = [historyevidence]
+
+        historyevidences = []
+        for note, evidences in note_to_evidences.iteritems():
+            evidence_json = evidences[0].to_json()
+            del evidence_json['reference']
+            evidence_json['references'] = [x.reference.to_min_json() for x in evidences]
+            historyevidences.append(evidence_json)
+
+
+        obj_json['history'] = historyevidences
 
         return obj_json
 

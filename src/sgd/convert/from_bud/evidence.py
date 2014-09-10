@@ -1582,6 +1582,37 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker,
         bud_session.close()
     return ref_dna_sequence_starter
 
+def make_kb_sequence_starter(nex_session_maker):
+    from src.sgd.model.nex.evidence import DNAsequenceevidence
+    from src.sgd.model.nex.bioitem import Contig
+    from src.sgd.model.nex.misc import Source, Strain
+    from src.sgd.model.nex.bioentity import Bioentity
+    def kb_sequence_starter():
+        nex_session = nex_session_maker()
+
+        id_to_contig = dict([(x.id, x) for x in nex_session.query(Contig).all()])
+        id_to_source = dict([(x.id, x) for x in nex_session.query(Source).all()])
+        id_to_strain = dict([(x.id, x) for x in nex_session.query(Strain).all()])
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Bioentity).all()])
+
+        for dnasequenceevidence in nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').all():
+            contig = id_to_contig[dnasequenceevidence.contig_id]
+            min_coord = max(1, dnasequenceevidence.start - 1000)
+            max_coord = min(len(contig.residues), dnasequenceevidence.end + 1000)
+            residues = contig.residues[min_coord - 1:max_coord]
+            yield {'source': id_to_source[dnasequenceevidence.source_id],
+                        'strain': id_to_strain[dnasequenceevidence.strain_id],
+                        'locus': id_to_bioentity[dnasequenceevidence.locus_id],
+                        'dna_type': '1KB',
+                        'residues': residues,
+                        'contig': contig,
+                        'start': min_coord,
+                        'end': max_coord,
+                        'strand': dnasequenceevidence.strand}
+
+        nex_session.close()
+    return kb_sequence_starter
+
 def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.misc import Strain
