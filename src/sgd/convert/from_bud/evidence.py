@@ -2,7 +2,7 @@ from decimal import Decimal
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 
-from src.sgd.convert.from_bud import contains_digits, get_dna_sequence_library, get_sequence, get_sequence_library_fsa
+from src.sgd.convert.from_bud import contains_digits, get_dna_sequence_library, get_sequence, get_sequence_library_fsa, reverse_complement
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
 from src.sgd.model.nex import create_format_name
 import os
@@ -1600,6 +1600,8 @@ def make_kb_sequence_starter(nex_session_maker):
             min_coord = max(1, dnasequenceevidence.start - 1000)
             max_coord = min(len(contig.residues), dnasequenceevidence.end + 1000)
             residues = contig.residues[min_coord - 1:max_coord]
+            if dnasequenceevidence.strand == '-':
+                residues = reverse_complement(residues)
             yield {'source': id_to_source[dnasequenceevidence.source_id],
                         'strain': id_to_strain[dnasequenceevidence.strain_id],
                         'locus': id_to_bioentity[dnasequenceevidence.locus_id],
