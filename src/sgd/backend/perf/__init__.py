@@ -148,7 +148,9 @@ class PerfBackend(BackendInterface):
         from src.sgd.model.perf.core import Experiment
         return [x.to_json() for x in DBSession.query(Experiment).order_by(Experiment.id.desc()).limit(chunk_size).offset(offset).all()]
 
-
+    def all_tags(self, chunk_size, offset):
+        from src.sgd.model.perf.core import Tag
+        return [x.to_json() for x in DBSession.query(Tag).order_by(Tag.id.desc()).limit(chunk_size).offset(offset).all()]
 
     #Bioitem
     def all_bioitems(self, chunk_size, offset):
