@@ -3,6 +3,7 @@ import sys
 
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
 from src.sgd.convert import link_gene_names, link_strain_names
+from src.sgd.model.nex.misc import Source
 
 __author__ = 'kpaskov'
 
@@ -142,7 +143,6 @@ def clean_paragraph(text, label, sgdid_to_reference, sgdid_to_bioentity, goid_to
 
 def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioentity import Locus
-    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.reference import Reference
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.bioconcept import Go

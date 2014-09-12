@@ -5,7 +5,7 @@ from sqlalchemy.types import Integer, String, Date, CLOB
 
 from src.sgd.model.nex.bioentity import Bioentity
 from src.sgd.model.nex.reference import Reference
-from src.sgd.model.nex.misc import Source, Strain
+from src.sgd.model.nex.misc import Strain, Source
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateByJsonMixin
 

@@ -3,9 +3,10 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from misc import Url, Alias, Relation, Source
+from misc import Url, Alias, Relation
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
+from src.sgd.model.nex.misc import Source
 
 
 __author__ = 'kpaskov'

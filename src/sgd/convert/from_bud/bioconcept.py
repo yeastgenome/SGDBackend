@@ -1,6 +1,7 @@
 from sqlalchemy.orm import joinedload
 
 from src.sgd.convert.transformers import make_db_starter
+from src.sgd.model.nex.misc import Source
 
 
 __author__ = 'kpaskov'
@@ -9,7 +10,6 @@ __author__ = 'kpaskov'
 
 # --------------------- Convert Observable ---------------------
 def make_observable_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
     from src.sgd.model.bud.cv import CVTerm, CVTermRel
     from src.sgd.model.bud.phenotype import Phenotype, PhenotypeFeature
     def observable_starter():

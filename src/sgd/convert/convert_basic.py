@@ -1,6 +1,7 @@
 from src.sgd.model import bud, nex
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
 from src.sgd.convert.transformers import do_conversion, Obj2NexDB, Json2Obj
+
 __author__ = 'kpaskov'
 
 if __name__ == "__main__":
@@ -10,7 +11,8 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Evelements ------------------------------------------
     # Bud -> Nex
-    from src.sgd.model.nex.misc import Source, Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl
+    from src.sgd.model.nex.misc import Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl, \
+        Source
     from src.sgd.model.nex.auxiliary import Disambig
     from src.sgd.convert.from_bud.evelements import make_source_starter, make_strain_starter, make_experiment_starter, \
         make_experiment_alias_starter, make_experiment_relation_starter, make_strain_url_starter
