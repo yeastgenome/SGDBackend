@@ -54,7 +54,7 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.bioentity import Bioentity
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence
+            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').order_by(Bioentity.id.asc()).limit(chunk_size).offset(offset).all()]
 
@@ -179,7 +179,7 @@ class SGDBackend(BackendInterface):
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence
+            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         num_chunks = int(ceil(1.0*len(bioent_ids)/500))
         bioentities = []
@@ -206,7 +206,7 @@ class SGDBackend(BackendInterface):
     def locus(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence, Domainevidence, Historyevidence
+            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence, Domainevidence, Historyevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         if are_ids:
             locus_id = locus_identifier

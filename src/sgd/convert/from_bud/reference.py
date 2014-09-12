@@ -5,13 +5,13 @@ from sqlalchemy.orm import joinedload
 import requests
 
 from src.sgd.model.nex import create_format_name
-from src.sgd.model.nex.misc import Source
 
 
 __author__ = 'kpaskov'
 
 # --------------------- Convert Journal ---------------------
 def make_journal_starter(bud_session_maker, nex_session_maker):
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.bud.reference import Journal
     def journal_starter():
         bud_session = bud_session_maker()

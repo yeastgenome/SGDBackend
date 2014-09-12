@@ -8,14 +8,13 @@ from sqlalchemy.types import Integer, String, Date, Numeric
 
 from bioconcept import Bioconcept, Go, Phenotype, ECNumber
 from bioentity import Bioentity, Locus, Complex
-from misc import Strain, Experiment, Alias
+from misc import Source, Strain, Experiment, Alias
 from bioitem import Bioitem, Domain, Dataset, Datasetcolumn
 from reference import Reference
 from bioitem import Contig
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateByJsonMixin
 import json
-from src.sgd.model.nex.misc import Source
 
 __author__ = 'kpaskov'
 
@@ -362,6 +361,40 @@ class Literatureevidence(Evidence):
             reference = self.reference
         obj_json['reference'] = reference.to_semi_json()
         return obj_json
+
+class Bioentityevidence(Evidence):
+    __tablename__ = "bioentityevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
+    note = Column('note', String)
+
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    info_key = Column('info_key', String)
+    info_value = Column('info_value', String)
+
+    #Relationships
+    source = relationship(Source, backref=backref('bioentity_evidences', passive_deletes=True), uselist=False)
+    reference = relationship(Reference, backref=backref('bioentity_evidences', passive_deletes=True), uselist=False)
+    strain = relationship(Strain, backref=backref('bioentity_evidences', passive_deletes=True), uselist=False)
+    experiment = relationship(Experiment, backref=backref('bioentity_evidences', passive_deletes=True), uselist=False)
+    bioentity = relationship(Bioentity, uselist=False, backref=backref('bioentity_evidences', passive_deletes=True))
+
+    __mapper_args__ = {'polymorphic_identity': "BIOENTITY", 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['id', 'note', 'json',
+                     'info_key', 'info_value',
+                     'date_created', 'created_by', ]
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'bioentity']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
+
+    def unique_key(self):
+        return self.class_type, self.bioentity_id, self.info_key, self.reference_id, self.strain_id
         
 class Phenotypeevidence(Evidence):
     __tablename__ = "phenotypeevidence"
@@ -417,6 +450,37 @@ class Phenotypeevidence(Evidence):
         obj_json['properties'] = [x.to_json() for x in properties]
         obj_json['experiment']['category'] = experiment.category
         return obj_json
+
+class Aliasevidence(Evidence):
+    __tablename__ = "aliasevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
+    note = Column('note', String)
+
+    alias_id = Column('alias_id', Integer, ForeignKey(Alias.id))
+
+    #Relationship
+    source = relationship(Source, backref=backref('alias_evidences', passive_deletes=True), uselist=False)
+    reference = relationship(Reference, backref=backref('alias_evidences', passive_deletes=True), uselist=False)
+    strain = relationship(Strain, backref=backref('alias_evidences', passive_deletes=True), uselist=False)
+    experiment = relationship(Experiment, backref=backref('alias_evidences', passive_deletes=True), uselist=False)
+    alias = relationship(Alias, uselist=False, backref=backref('alias_evidences', passive_deletes=True))
+
+    __mapper_args__ = {'polymorphic_identity': "ALIAS", 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['id', 'note', 'json',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'alias']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
+
+    def unique_key(self):
+        return self.class_type, self.alias_id, self.reference_id
         
 class Domainevidence(Evidence):
     __tablename__ = "domainevidence"

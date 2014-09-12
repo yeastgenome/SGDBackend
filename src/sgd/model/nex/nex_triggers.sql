@@ -9,16 +9,6 @@ SELECT alias_seq.nextval INTO :new.alias_id FROM DUAL;
 END;
 /
 
-DROP TRIGGER ALIASREF_TRIGGER;
---/
-CREATE TRIGGER ALIASREF_TRIGGER
-BEFORE INSERT ON alias_reference
-FOR EACH ROW
-BEGIN
-SELECT aliasref_seq.nextval INTO :new.alias_reference_id FROM DUAL;
-END;
-/
-
 /* URL */
 DROP TRIGGER URL_TRIGGER;
 --/
@@ -30,7 +20,6 @@ SELECT url_seq.nextval INTO :new.url_id FROM DUAL;
 END;
 /
 
-/* Tag */
 DROP TRIGGER TAG_TRIGGER;
 --/
 CREATE TRIGGER TAG_TRIGGER
@@ -60,37 +49,6 @@ BEFORE INSERT ON relation
 FOR EACH ROW
 BEGIN
 SELECT relation_seq.nextval INTO :new.relation_id FROM DUAL;
-END;
-/
-
-DROP TRIGGER RELATIONREF_TRIGGER;
---/
-CREATE TRIGGER RELATIONREF_TRIGGER
-BEFORE INSERT ON relation_reference
-FOR EACH ROW
-BEGIN
-SELECT relationref_seq.nextval INTO :new.relation_reference_id FROM DUAL;
-END;
-/
-
-/* Quality */
-DROP TRIGGER QUALITY_TRIGGER;
---/
-CREATE TRIGGER QUALITY_TRIGGER
-BEFORE INSERT ON quality
-FOR EACH ROW
-BEGIN
-SELECT quality_seq.nextval INTO :new.quality_id FROM DUAL;
-END;
-/
-
-DROP TRIGGER QUALREF_TRIGGER;
---/
-CREATE TRIGGER QUALREF_TRIGGER
-BEFORE INSERT ON quality_reference
-FOR EACH ROW
-BEGIN
-SELECT qualref_seq.nextval INTO :new.quality_reference_id FROM DUAL;
 END;
 /
 

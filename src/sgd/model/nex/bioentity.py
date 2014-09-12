@@ -4,7 +4,7 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from bioconcept import Go
-from src.sgd.model.nex.misc import Alias, Url, Relation, Quality, Source
+from src.sgd.model.nex.misc import Alias, Url, Relation, Source
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from venn import calc_venn_measurements
@@ -97,24 +97,6 @@ class Bioentityrelation(Relation):
         self.format_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
         self.display_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
 
-class Bioentityquality(Quality):
-    __tablename__ = 'bioentityquality'
-
-    id = Column('quality_id', Integer, ForeignKey(Alias.id), primary_key=True)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
-
-    #Relationships
-    bioentity = relationship(Bioentity, uselist=False, backref=backref('qualities', passive_deletes=True))
-
-    __mapper_args__ = {'polymorphic_identity': 'BIOENTITY', 'inherit_condition': id == Quality.id}
-    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'value',
-                     'date_created', 'created_by']
-    __eq_fks__ = ['source', 'bioentity']
-
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = str(obj_json.get('bioentity').id)
-
 class Locus(Bioentity):
     __tablename__ = "locusbioentity"
     
@@ -124,12 +106,11 @@ class Locus(Bioentity):
     locus_type = Column('locus_type', String)
     gene_name = Column('gene_name', String)
     qualifier = Column('qualifier', String)
-    genetic_position = Column('genetic_position', Integer)
         
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Bioentity.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'bioent_status',
                      'description',
-                     'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position',
+                     'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 
@@ -188,31 +169,21 @@ class Locus(Bioentity):
 
         #Go overview
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
-        manual_mf_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'molecular function' and x.annotation_type == 'manually curated'])
-        htp_mf_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'molecular function' and x.annotation_type == 'high-throughput'])
-        manual_bp_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'biological process' and x.annotation_type == 'manually curated'])
-        htp_bp_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'biological process' and x.annotation_type == 'high-throughput'])
-        manual_cc_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'cellular component' and x.annotation_type == 'manually curated'])
-        htp_cc_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'cellular component' and x.annotation_type == 'high-throughput'])
-        term_to_evidence_codes = dict([(x, set()) for x in manual_mf_terms.keys()])
-        term_to_evidence_codes.update([(x, set()) for x in htp_mf_terms.keys()])
-        term_to_evidence_codes.update([(x, set()) for x in manual_bp_terms.keys()])
-        term_to_evidence_codes.update([(x, set()) for x in htp_bp_terms.keys()])
-        term_to_evidence_codes.update([(x, set()) for x in manual_cc_terms.keys()])
-        term_to_evidence_codes.update([(x, set()) for x in htp_cc_terms.keys()])
+        mf_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'molecular function' and x.annotation_type != 'computational'])
+        bp_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'biological process' and x.annotation_type != 'computational'])
+        cc_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'cellular component' and x.annotation_type != 'computational'])
+        term_to_evidence_codes = dict([(x, set()) for x in mf_terms.keys()])
+        term_to_evidence_codes.update([(x, set()) for x in bp_terms.keys()])
+        term_to_evidence_codes.update([(x, set()) for x in cc_terms.keys()])
         for evidence in self.go_evidences:
             if evidence.annotation_type != 'computational':
-                if evidence.experiment_id is not None:
-                    term_to_evidence_codes[evidence.go_id].add(evidence.experiment)
+                term_to_evidence_codes[evidence.go_id].add(evidence.experiment)
 
         obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name'].lower()),
                                    'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]['text'],
-                                   'manual_molecular_function_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in manual_mf_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'manual_biological_process_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in manual_bp_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'manual_ellular_component_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in manual_cc_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'htp_molecular_function_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in htp_mf_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'htp_biological_process_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in htp_bp_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'htp_ellular_component_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in htp_cc_terms.values()], key=lambda x: x['term']['display_name'].lower())}
+                                   'molecular_function_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in mf_terms.values()], key=lambda x: x['term']['display_name'].lower()),
+                                   'biological_process_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in bp_terms.values()], key=lambda x: x['term']['display_name'].lower()),
+                                   'cellular_component_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in cc_terms.values()], key=lambda x: x['term']['display_name'].lower())}
 
         #Interaction
         genetic_bioentities = set([x.locus2_id for x in self.geninteraction_evidences1])
@@ -265,6 +236,8 @@ class Locus(Bioentity):
                                             'regulator_count':len(set([x.locus1_id for x in self.regulation_evidences_regulators])),
                                             'paragraph': None if len(regulation_paragraphs) == 0 else regulation_paragraphs[0]}
 
+        obj_json['bioentity_references'] = [x.to_json() for x in self.bioentity_evidences]
+
         #Literature
         reference_ids = set([x.reference_id for x in self.literature_evidences])
         reference_ids.update([x.reference_id for x in self.geninteraction_evidences1])
@@ -273,10 +246,7 @@ class Locus(Bioentity):
         reference_ids.update([x.reference_id for x in self.physinteraction_evidences2])
         reference_ids.update([x.reference_id for x in self.regulation_evidences_targets])
         reference_ids.update([x.reference_id for x in self.regulation_evidences_regulators])
-        obj_json['literature_overview'] = {'total_count': len(reference_ids),
-                                           'primary_count': len(set([x.reference_id for x in self.literature_evidences if x.topic == 'Primary Literature'])),
-                                           'additional_count': len(set([x.reference_id for x in self.literature_evidences if x.topic == 'Additional Literature'])),
-                                           'review_count': len(set([x.reference_id for x in self.literature_evidences if x.topic == 'Reviews']))}
+        obj_json['literature_overview'] = {'total_count': len(reference_ids)}
 
         #Sequence
         obj_json['sequence_overview'] = sorted(dict([(x.strain.id, x.strain.to_min_json()) for x in self.dnasequence_evidences]).values(), key=lambda x: x['display_name'])
@@ -302,26 +272,7 @@ class Locus(Bioentity):
         obj_json['paragraph'] = None if len(lsp_paragraphs) == 0 else lsp_paragraphs[0]
 
         #History
-        note_to_evidences = dict()
-        for historyevidence in self.history_evidences:
-            if historyevidence.note in note_to_evidences:
-                note_to_evidences[historyevidence.note].append(historyevidence)
-            else:
-                note_to_evidences[historyevidence.note] = [historyevidence]
-
-        historyevidences = []
-        for note, evidences in note_to_evidences.iteritems():
-            evidence_json = evidences[0].to_json()
-            del evidence_json['reference']
-            evidence_json['references'] = [x.reference.to_min_json() for x in evidences if x.reference_id is not None]
-            historyevidences.append(evidence_json)
-
-
-        obj_json['history'] = historyevidences
-
-        obj_json['paralogs'] = [x.to_json() for x in self.children if x.relation_type == 'paralog']
-
-        obj_json['qualities'] = dict([(x.display_name.lower().replace(' ', '_'), x.to_json()) for x in self.qualities])
+        obj_json['history'] = [x.to_json() for x in self.history_evidences]
 
         return obj_json
 

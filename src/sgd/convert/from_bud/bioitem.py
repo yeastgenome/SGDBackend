@@ -5,12 +5,12 @@ from src.sgd.convert import create_format_name
 from src.sgd.convert.transformers import make_db_starter, \
     make_file_starter, make_fasta_file_starter
 import os
-from src.sgd.model.nex.misc import Source
 
 __author__ = 'kpaskov'
 
 #--------------------- Convert Orphans ---------------------
 def make_orphan_starter(bud_session_maker, nex_session_maker):
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.bud.phenotype import ExperimentProperty
     from src.sgd.model.bud.go import GorefDbxref
 
