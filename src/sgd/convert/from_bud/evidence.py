@@ -2,80 +2,14 @@ from decimal import Decimal
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 
-from src.sgd.convert.from_bud import contains_digits, get_dna_sequence_library, get_sequence, get_sequence_library_fsa
+from src.sgd.convert.from_bud import contains_digits, get_dna_sequence_library, get_sequence, get_sequence_library_fsa, reverse_complement
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
 from src.sgd.model.nex import create_format_name
 import os
 import math
+from src.sgd.model.nex.misc import Source
 
 __author__ = 'kpaskov'
-
-# --------------------- Convert Alias Evidence ---------------------
-def make_alias_evidence_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.bioentity import Bioentityalias
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.reference import Reference
-    from src.sgd.model.bud.reference import Reflink as OldReflink
-    from src.sgd.model.bud.feature import AliasFeature as OldAliasFeature
-    from src.sgd.model.bud.general import DbxrefFeat as OldDbxrefFeat
-    def alias_evidence_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        id_to_reference = dict([(x.id, x) for x in nex_session.query(Reference).all()])
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-        key_to_alias = dict([(x.unique_key(), x) for x in nex_session.query(Bioentityalias).all()])
-
-        feat_alias_id_to_reflinks = dict()
-        for reflink in bud_session.query(OldReflink).filter_by(tab_name='FEAT_ALIAS').all():
-            if reflink.primary_key in feat_alias_id_to_reflinks:
-                feat_alias_id_to_reflinks[reflink.primary_key].append(reflink)
-            else:
-                feat_alias_id_to_reflinks[reflink.primary_key] = [reflink]
-
-        dbxref_feat_id_to_reflinks = dict()
-        for reflink in bud_session.query(OldReflink).filter_by(tab_name='DBXREF_FEAT').all():
-            if reflink.primary_key in dbxref_feat_id_to_reflinks:
-                dbxref_feat_id_to_reflinks[reflink.primary_key].append(reflink)
-            else:
-                dbxref_feat_id_to_reflinks[reflink.primary_key] = [reflink]
-
-        for old_alias in bud_session.query(OldAliasFeature).options(joinedload('alias')).all():
-            bioentity_id = old_alias.feature_id
-            alias_key = 'BIOENTITY', old_alias.alias_name, str(bioentity_id), old_alias.alias_type
-
-            if old_alias.id in feat_alias_id_to_reflinks:
-                for reflink in feat_alias_id_to_reflinks[old_alias.id]:
-                    reference_id = reflink.reference_id
-                    if alias_key in key_to_alias and reference_id in id_to_reference:
-                        yield {'source': key_to_source['SGD'],
-                               'reference': id_to_reference[reference_id],
-                               'alias': key_to_alias[alias_key],
-                               'date_created': reflink.date_created,
-                               'created_by': reflink.created_by}
-                    else:
-                        print 'Reference or alias not found: ' + str(reference_id) + ' ' + str(alias_key)
-
-        for old_dbxref_feat in bud_session.query(OldDbxrefFeat).options(joinedload(OldDbxrefFeat.dbxref), joinedload('dbxref.dbxref_urls')).all():
-            if old_dbxref_feat.dbxref.dbxref_type != 'DBID Primary':
-                bioentity_id = old_dbxref_feat.feature_id
-                alias_key = 'BIOENTITY', old_dbxref_feat.dbxref.dbxref_id, str(bioentity_id), old_dbxref_feat.dbxref.dbxref_type
-
-                if old_dbxref_feat.id in dbxref_feat_id_to_reflinks:
-                    for reflink in dbxref_feat_id_to_reflinks[old_dbxref_feat.id]:
-                        reference_id = reflink.reference_id
-                        if alias_key in key_to_alias and reference_id in id_to_reference:
-                            yield {'source': key_to_source[old_dbxref_feat.dbxref.source.replace('/', '-')],
-                                   'reference': id_to_reference[reference_id],
-                                   'alias': key_to_alias[alias_key],
-                                   'date_created': reflink.date_created,
-                                   'created_by': reflink.created_by}
-                        else:
-                            print 'Reference or alias not found: ' + str(reference_id) + ' ' + str(alias_key)
-
-        bud_session.close()
-        nex_session.close()
-    return alias_evidence_starter
 
 # --------------------- Binding Evidence ---------------------
 def make_binding_evidence_starter(nex_session_maker):
@@ -109,130 +43,6 @@ def make_binding_evidence_starter(nex_session_maker):
 
         nex_session.close()
     return binding_evidence_starter
-
-# --------------------- Convert Bioentity Evidence ---------------------
-def make_bioentity_evidence_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source, Strain
-    from src.sgd.model.nex.bioentity import Bioentity
-    from src.sgd.model.nex.reference import Reference
-    from src.sgd.model.bud.reference import Reflink as OldReflink
-    from src.sgd.model.bud.feature import Annotation as OldAnnotation, FeatureProperty as OldFeatureProperty
-    def bioentity_evidence_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Bioentity).all()])
-        key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-        id_to_reference = dict([(x.id, x) for x in nex_session.query(Reference).all()])
-
-        old_reflinks = bud_session.query(OldReflink).filter_by(tab_name='FEAT_ANNOTATION').all()
-        feature_id_to_reflinks = dict()
-        for reflink in old_reflinks:
-            if reflink.primary_key in feature_id_to_reflinks:
-                feature_id_to_reflinks[reflink.primary_key].append(reflink)
-            else:
-                feature_id_to_reflinks[reflink.primary_key] = [reflink]
-
-        feature_property_id_to_reflinks = dict()
-        for reflink in bud_session.query(OldReflink).filter_by(tab_name='FEAT_PROPERTY').all():
-            if reflink.primary_key in feature_property_id_to_reflinks:
-                feature_property_id_to_reflinks[reflink.primary_key].append(reflink)
-            else:
-                feature_property_id_to_reflinks[reflink.primary_key] = [reflink]
-
-        for old_annotation in bud_session.query(OldAnnotation).all():
-            bioentity_id = old_annotation.feature_id
-
-            if bioentity_id in feature_id_to_reflinks:
-                for reflink in feature_id_to_reflinks[bioentity_id]:
-                    reference_id = reflink.reference_id
-                    info_key = None
-                    info_value = None
-                    if reflink.col_name == 'QUALIFIER':
-                        info_key = "Qualifier"
-                        info_value = str(old_annotation.qualifier)
-                    elif reflink.col_name == 'NAME_DESCRIPTION':
-                        info_key = "Name Description"
-                        info_value = str(old_annotation.name_description)
-                    elif reflink.col_name == 'DESCRIPTION':
-                        info_key = "Description"
-                        info_value = str(old_annotation.description)
-                    elif reflink.col_name == 'GENETIC_POSITION':
-                        info_key = "Genetic Position"
-                        info_value = str(old_annotation.genetic_position)
-                    elif reflink.col_name == 'HEADLINE':
-                        info_key = "Headline"
-                        info_value = str(old_annotation.headline)
-                    elif reflink.col_name == 'FEAT_ATTRIBUTE':
-                        info_key = "Silenced Gene",
-                        info_value = 'True'
-
-                    if bioentity_id in id_to_bioentity and reference_id in id_to_reference and info_key is not None:
-                        yield {'source': key_to_source['SGD'],
-                               'reference': id_to_reference[reference_id],
-                               'strain': key_to_strain['S288C'],
-                               'bioentity': id_to_bioentity[bioentity_id],
-                               'info_key': info_key,
-                               'info_value': info_value,
-                               'date_created': old_annotation.date_created,
-                               'created_by': old_annotation.created_by}
-                    else:
-                        #print 'Could not find reference or bioentity or col_name: ' + str(bioentity_id) + ' ' + str(reference_id) + ' ' + reflink.col_name
-                        yield None
-
-        for reflink in bud_session.query(OldReflink).filter_by(tab_name='FEATURE').all():
-            bioentity_id = reflink.primary_key
-            reference_id = reflink.reference_id
-            if bioentity_id in id_to_bioentity and reference_id in id_to_reference:
-                bioentity = id_to_bioentity[bioentity_id]
-                info_key = None
-                info_value = None
-                if reflink.col_name == 'GENE_NAME':
-                    info_key = "Gene Name"
-                    info_value = bioentity.gene_name
-                elif reflink.col_name == 'FEATURE_NO':
-                    info_key = '-'
-                    info_value = '-'
-                elif reflink.col_name == 'FEATURE_TYPE':
-                    info_key = "Feature Type"
-                    info_value = bioentity.locus_type
-
-                if info_key is not None:
-                    yield {'source': key_to_source['SGD'],
-                           'reference': id_to_reference[reference_id],
-                           'strain': key_to_strain['S288C'],
-                           'bioentity': bioentity,
-                           'info_key': info_key,
-                           'info_value': info_value,
-                           'date_created': reflink.date_created,
-                           'created_by': reflink.created_by}
-            else:
-                #print 'Could not find reference or bioentity or col_name: ' + str(bioentity_id) + ' ' + str(reference_id) + ' ' + reflink.col_name
-                yield None
-
-        for feature_property in bud_session.query(OldFeatureProperty).all():
-            bioentity_id = feature_property.feature_id
-
-            if feature_property.id in feature_property_id_to_reflinks:
-                for reflink in feature_property_id_to_reflinks[feature_property.id]:
-                    reference_id = reflink.reference_id
-                    if bioentity_id in id_to_bioentity and reference_id in id_to_reference:
-                        yield {'source': key_to_source[feature_property.source],
-                               'reference': id_to_reference[reference_id],
-                               'strain': key_to_strain['S288C'],
-                               'bioentity': id_to_bioentity[bioentity_id],
-                               'info_key': feature_property.property_type,
-                               'info_value': feature_property.property_value,
-                               'date_created': feature_property.date_created,
-                               'created_by': feature_property.created_by}
-                    else:
-                        #print 'Could not find reference or bioentity: ' + str(bioentity_id) + ' ' + str(reference_id)
-                        yield None
-
-        bud_session.close()
-        nex_session.close()
-    return bioentity_evidence_starter
 
 # --------------------- Convert Complex Evidence ---------------------
 def make_complex_evidence_starter(nex_session_maker):
@@ -1581,6 +1391,39 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker,
         nex_session.close()
         bud_session.close()
     return ref_dna_sequence_starter
+
+def make_kb_sequence_starter(nex_session_maker):
+    from src.sgd.model.nex.evidence import DNAsequenceevidence
+    from src.sgd.model.nex.bioitem import Contig
+    from src.sgd.model.nex.misc import Source, Strain
+    from src.sgd.model.nex.bioentity import Bioentity
+    def kb_sequence_starter():
+        nex_session = nex_session_maker()
+
+        id_to_contig = dict([(x.id, x) for x in nex_session.query(Contig).all()])
+        id_to_source = dict([(x.id, x) for x in nex_session.query(Source).all()])
+        id_to_strain = dict([(x.id, x) for x in nex_session.query(Strain).all()])
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Bioentity).all()])
+
+        for dnasequenceevidence in nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').all():
+            contig = id_to_contig[dnasequenceevidence.contig_id]
+            min_coord = max(1, dnasequenceevidence.start - 1000)
+            max_coord = min(len(contig.residues), dnasequenceevidence.end + 1000)
+            residues = contig.residues[min_coord - 1:max_coord]
+            if dnasequenceevidence.strand == '-':
+                residues = reverse_complement(residues)
+            yield {'source': id_to_source[dnasequenceevidence.source_id],
+                        'strain': id_to_strain[dnasequenceevidence.strain_id],
+                        'locus': id_to_bioentity[dnasequenceevidence.locus_id],
+                        'dna_type': '1KB',
+                        'residues': residues,
+                        'contig': contig,
+                        'start': min_coord,
+                        'end': max_coord,
+                        'strand': dnasequenceevidence.strand}
+
+        nex_session.close()
+    return kb_sequence_starter
 
 def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioentity import Locus
