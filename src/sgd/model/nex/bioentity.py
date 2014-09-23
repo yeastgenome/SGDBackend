@@ -207,6 +207,7 @@ class Locus(Bioentity):
 
         obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name'].lower()),
                                    'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]['text'],
+                                   'computational_annotation_count': len([x for x in self.go_evidences if x.annotation_type == 'computational']),
                                    'manual_molecular_function_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in manual_mf_terms.values()], key=lambda x: x['term']['display_name'].lower()),
                                    'manual_biological_process_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in manual_bp_terms.values()], key=lambda x: x['term']['display_name'].lower()),
                                    'manual_cellular_component_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in manual_cc_terms.values()], key=lambda x: x['term']['display_name'].lower()),
