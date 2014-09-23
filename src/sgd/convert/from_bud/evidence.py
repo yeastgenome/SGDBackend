@@ -439,7 +439,6 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Experiment, Source
     from src.sgd.model.nex.reference import Reference
     from src.sgd.model.nex.bioentity import Bioentity
-    from src.sgd.model.nex.evidence import Aliasevidence, Bioentityevidence
     def history_evidence_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()

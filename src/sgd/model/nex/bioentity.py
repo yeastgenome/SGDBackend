@@ -209,16 +209,21 @@ class Locus(Bioentity):
                                    'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]['text'],
                                    'manual_molecular_function_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in manual_mf_terms.values()], key=lambda x: x['term']['display_name'].lower()),
                                    'manual_biological_process_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in manual_bp_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'manual_ellular_component_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in manual_cc_terms.values()], key=lambda x: x['term']['display_name'].lower()),
+                                   'manual_cellular_component_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in manual_cc_terms.values()], key=lambda x: x['term']['display_name'].lower()),
                                    'htp_molecular_function_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in htp_mf_terms.values()], key=lambda x: x['term']['display_name'].lower()),
                                    'htp_biological_process_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in htp_bp_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'htp_ellular_component_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in htp_cc_terms.values()], key=lambda x: x['term']['display_name'].lower())}
+                                   'htp_cellular_component_terms': sorted([dict({'term': x.to_min_json(), 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes[x.id]]}) for x in htp_cc_terms.values()], key=lambda x: x['term']['display_name'].lower())}
 
         #Interaction
-        genetic_bioentities = set([x.locus2_id for x in self.geninteraction_evidences1])
-        genetic_bioentities.update([x.locus1_id for x in self.geninteraction_evidences2])
-        physical_bioentities = set([x.locus2_id for x in self.physinteraction_evidences1])
-        physical_bioentities.update([x.locus1_id for x in self.physinteraction_evidences2])
+        genetic_interactions = set()
+        physical_interactions = set()
+        genetic_interactions.update(self.geninteraction_evidences1)
+        genetic_interactions.update(self.geninteraction_evidences2)
+        physical_interactions.update(self.physinteraction_evidences1)
+        physical_interactions.update(self.physinteraction_evidences2)
+
+        genetic_bioentities = set([x.locus2_id if x.locus1_id == self.id else x.locus1_id for x in genetic_interactions])
+        physical_bioentities = set([x.locus2_id if x.locus1_id == self.id else x.locus1_id for x in physical_interactions])
 
         A = len(genetic_bioentities)
         B = len(physical_bioentities)
@@ -229,7 +234,7 @@ class Locus(Bioentity):
         genetic_experiments = dict()
         experiment_id_to_name = dict()
 
-        for genevidence in chain(self.geninteraction_evidences1, self.geninteraction_evidences2):
+        for genevidence in genetic_interactions:
             experiment_id = genevidence.experiment_id
             if experiment_id not in experiment_id_to_name:
                 experiment_id_to_name[experiment_id] = genevidence.experiment.display_name
@@ -240,7 +245,7 @@ class Locus(Bioentity):
             else:
                 genetic_experiments[experiment_name] += 1
 
-        for physevidence in chain(self.physinteraction_evidences1, self.physinteraction_evidences2):
+        for physevidence in physical_interactions:
             experiment_id = physevidence.experiment_id
             if experiment_id not in experiment_id_to_name:
                 experiment_id_to_name[experiment_id] = physevidence.experiment.display_name
@@ -253,7 +258,7 @@ class Locus(Bioentity):
 
         obj_json['interaction_overview'] = {'gen_circle_size': r, 'phys_circle_size':s, 'circle_distance': x,
                                             'num_gen_interactors': A, 'num_phys_interactors': B, 'num_both_interactors': C,
-                                            'total_interactions': len(self.geninteraction_evidences1) + len(self.geninteraction_evidences2) + len(self.physinteraction_evidences1) + len(self.physinteraction_evidences2),
+                                            'total_interactions': len(genetic_interactions) + len(physical_interactions),
                                             'total_interactors': len(genetic_bioentities | physical_bioentities),
                                             'physical_experiments': physical_experiments,
                                             'genetic_experiments': genetic_experiments
