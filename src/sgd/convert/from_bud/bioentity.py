@@ -149,77 +149,112 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
         nex_session = nex_session_maker()
 
         for locus in nex_session.query(Locus).all():
-            show_summary = 1
-            show_history = 1
-            show_wiki = 1
+            if locus.locus_type == 'ORF' and (locus.qualifier == 'Merged' or locus.qualifier == 'Deleted'):
+                yield {
+                    'id': locus.id,
+                    'summary_tab': 1,
+                    'sequence_tab': 1,
+                    'history_tab': 0,
+                    'literature_tab': 0,
+                    'go_tab': 0,
+                    'phenotype_tab': 0,
+                    'interaction_tab': 0,
+                    'expression_tab': 0,
+                    'regulation_tab': 0,
+                    'protein_tab': 0,
+                    'wiki_tab': 0
+                }
+            elif locus.locus_type == 'ORF':
+                yield {
+                    'id': locus.id,
+                    'summary_tab': 1,
+                    'sequence_tab': 1,
+                    'history_tab': 0,
+                    'literature_tab': 1,
+                    'go_tab': 1,
+                    'phenotype_tab': 1,
+                    'interaction_tab': 1,
+                    'expression_tab': 1,
+                    'regulation_tab': 1,
+                    'protein_tab': 1,
+                    'wiki_tab': 0
+                }
+            elif locus.locus_type in {'ARS', 'centromere', 'multigene_locus', 'long_terminal_repeat', 'telomere', 'mating_locus', 'gene_cassette', 'retrotransposon'}:
+                yield {
+                    'id': locus.id,
+                    'summary_tab': 1,
+                    'sequence_tab': 1,
+                    'history_tab': 0,
+                    'literature_tab': 1,
+                    'go_tab': 0,
+                    'phenotype_tab': 0,
+                    'interaction_tab': 0,
+                    'expression_tab': 0,
+                    'regulation_tab': 0,
+                    'protein_tab': 0,
+                    'wiki_tab': 0
+                }
+            elif locus.locus_type == 'transposable_element_gene':
+                yield {
+                    'id': locus.id,
+                    'summary_tab': 1,
+                    'sequence_tab': 1,
+                    'history_tab': 0,
+                    'literature_tab': 1,
+                    'go_tab': 1,
+                    'phenotype_tab': 1,
+                    'interaction_tab': 1,
+                    'expression_tab': 0,
+                    'regulation_tab': 0,
+                    'protein_tab': 1,
+                    'wiki_tab': 0
+                }
+            elif locus.locus_type == 'pseudogene':
+                yield {
+                    'id': locus.id,
+                    'summary_tab': 1,
+                    'sequence_tab': 1,
+                    'history_tab': 0,
+                    'literature_tab': 1,
+                    'go_tab': 1,
+                    'phenotype_tab': 1,
+                    'interaction_tab': 1,
+                    'expression_tab': 0,
+                    'regulation_tab': 1,
+                    'protein_tab': 1,
+                    'wiki_tab': 0
+                }
+            elif locus.locus_type in {'rRNA', 'ncRNA', 'snRNA', 'snoRNA', 'tRNA'}:
+                yield {
+                    'id': locus.id,
+                    'summary_tab': 1,
+                    'sequence_tab': 1,
+                    'history_tab': 0,
+                    'literature_tab': 1,
+                    'go_tab': 1,
+                    'phenotype_tab': 1,
+                    'interaction_tab': 1,
+                    'expression_tab': 0,
+                    'regulation_tab': 1,
+                    'protein_tab': 0,
+                    'wiki_tab': 0
+                }
+            elif locus.locus_type in {'not in systematic sequence', 'not physically mapped'}:
+                yield {
+                    'id': locus.id,
+                    'summary_tab': 1,
+                    'sequence_tab': 1,
+                    'history_tab': 0,
+                    'literature_tab': 1,
+                    'go_tab': 1,
+                    'phenotype_tab': 1,
+                    'interaction_tab': 1,
+                    'expression_tab': 0,
+                    'regulation_tab': 0,
+                    'protein_tab': 0,
+                    'wiki_tab': 0
+                }
 
-            if locus.bioent_status != 'Active':
-                yield {'id': locus.id,
-                           'summary_tab': show_summary,
-                           'sequence_tab': 0,
-                           'history_tab': show_history,
-                           'literature_tab': 0,
-                           'go_tab': 0,
-                           'phenotype_tab': 0,
-                           'interaction_tab': 0,
-                           'expression_tab': 0,
-                           'regulation_tab': 0,
-                           'protein_tab': 0,
-                           'wiki_tab': show_wiki}
-
-            yes_sequence = {'ORF', 'ncRNA', 'tRNA', 'centromere', 'mating_locus', 'gene_cassette', 'ARS', 'telomere', 'long_terminal_repeat', 'transposable_element_gene', 'rRNA', 'snoRNA ', 'snRNA'}
-            show_sequence = 1 if locus.locus_type in yes_sequence else 0
-
-            show_literature = 1
-
-            no_go = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
-                     'X_element_core_sequence', "Y'_element", 'centromere', 'long_terminal_repeat',
-                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette', 'multigene locus'}
-            show_go = 0 if locus.locus_type in no_go else 1
-
-            no_phenotype = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
-                     'X_element_core_sequence', "Y'_element", 'centromere', 'LONG_TERMINAL_REPEAT',
-                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette'}
-            show_phenotype = 0 if locus.locus_type in no_phenotype else 1
-
-            no_interactions = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
-                     'X_element_core_sequence', "Y'_element", 'centromere', 'long_terminal_repeat',
-                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette', 'multigene locus',
-                     'not in systematic sequence of S288C', 'not physically mapped'}
-            show_interactions = 0 if locus.locus_type in no_interactions else 1
-
-            no_expression = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
-                     'X_element_core_sequence', "Y'_element", 'centromere', 'long_terminal_repeat',
-                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette', 'multigene locus',
-                     'not in systematic sequence of S288C', 'not physically mapped', 'transposable_element_gene',
-                     'pseudogene', 'ncRNA', 'snoRNA', 'tRNA', 'rRNA', 'snRNA'}
-            show_expression = 0 if locus.locus_type in no_expression else 1
-
-            no_regulation = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
-                     'X_element_core_sequence', "Y'_element", 'centromere', 'long_terminal_repeat',
-                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette', 'multigene locus',
-                     'not in systematic sequence of S288C', 'not physically mapped'}
-            show_regulation = 0 if locus.locus_type in no_regulation else 1
-
-            no_protein = {'ARS', 'ARS consensus sequence', 'mating_locus', 'X_element_combinatorial_repeats',
-                     'X_element_core_sequence', "Y'_element", 'centromere', 'long_terminal_repeat',
-                     'telomere', 'telomeric_repeat', 'retrotransposon', 'gene_cassette', 'multigene locus',
-                     'not in systematic sequence of S288C', 'not physically mapped',
-                     'ncRNA', 'snoRNA', 'tRNA', 'rRNA', 'snRNA'}
-            show_protein = 0 if locus.locus_type in no_protein else 1
-
-            yield {'id': locus.id,
-                           'summary_tab': show_summary,
-                           'sequence_tab': show_sequence,
-                           'history_tab': show_history,
-                           'literature_tab': show_literature,
-                           'go_tab': show_go,
-                           'phenotype_tab': show_phenotype,
-                           'interaction_tab': show_interactions,
-                           'expression_tab': show_expression,
-                           'regulation_tab': show_regulation,
-                           'protein_tab': show_protein,
-                           'wiki_tab': show_wiki}
         bud_session.close()
         nex_session.close()
     return bioentity_tab_starter
