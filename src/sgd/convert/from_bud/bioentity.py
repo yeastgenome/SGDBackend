@@ -264,7 +264,7 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioentity import Bioentity, Complex
     from src.sgd.model.bud.feature import AliasFeature
-    from src.sgd.model.bud.general import DbxrefFeat
+    from src.sgd.model.bud.general import DbxrefFeat, Note, NoteFeat
 
     def bioentity_alias_starter():
         bud_session = bud_session_maker()
@@ -274,17 +274,18 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
         bioentity_ids = set([x.id for x in nex_session.query(Bioentity.id).all()])
 
         for bud_obj in bud_session.query(AliasFeature).options(joinedload('alias')).all():
-            bioentity_id = bud_obj.feature_id
-            if bioentity_id in bioentity_ids:
-                yield {'display_name': bud_obj.alias_name,
-                       'source': key_to_source['SGD'],
-                       'category': bud_obj.alias_type,
-                       'bioentity_id': bioentity_id,
-                       'is_external_id': 0,
-                       'date_created': bud_obj.date_created,
-                       'created_by': bud_obj.created_by}
-            else:
-                yield None
+            if bud_obj.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'}:
+                bioentity_id = bud_obj.feature_id
+                if bioentity_id in bioentity_ids:
+                    yield {'display_name': bud_obj.alias_name,
+                           'source': key_to_source['SGD'],
+                           'category': 'Alias' if bud_obj.alias_type == 'Uniform' or bud_obj.alias_type == 'Non-uniform' else bud_obj.alias_type,
+                           'bioentity_id': bioentity_id,
+                           'is_external_id': 0,
+                           'date_created': bud_obj.date_created,
+                           'created_by': bud_obj.created_by}
+                else:
+                    yield None
 
         for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).all():
             display_name = bud_obj.dbxref.dbxref_id
@@ -311,13 +312,6 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
             else:
                 yield None
 
-        for complex in nex_session.query(Complex).all():
-            for alias in complex.go.aliases:
-                yield {'display_name': alias.display_name,
-                       'source': alias.source,
-                       'category': 'SGDID',
-                       'bioentity_id': complex.id,
-                       'is_external_id': 1}
         bud_session.close()
         nex_session.close()
     return bioentity_alias_starter

@@ -48,7 +48,7 @@ strain_paragraphs = {'S288C': ('S288C is a widely used laboratory strain, design
 
 # --------------------- Convert Bioentity Paragraph ---------------------
 def create_i(reference, reference_index, extra_text, index):
-    new_i = '<a href="#" data-options="align:left;is_hover:true" data-dropdown="drop_' + str(index) + '"><sup>' + str(reference_index) + '</sup></a><span id="drop_' + str(index) + '" class="f-dropdown content small" data-dropdown-content>'
+    new_i = '<a href="#" data-options="align:left;is_hover:true" data-dropdown="drop_' + str(index) + '_' + str(reference_index) + '"><sup>' + str(reference_index) + '</sup></a><span id="drop_' + str(index) + '_' + str(reference_index) + '" class="f-dropdown content small" data-dropdown-content>'
     new_i += extra_text + (' ' if len(extra_text) > 0 else '')
     new_i += ('<a href="' + reference.link + '">' + reference.display_name + '</a></span>')
     return new_i
@@ -78,14 +78,12 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
             else:
                 print 'Reference not found: ' + sgdid
             references_removed = references_removed[0:reference_start] + references_removed[reference_end+1:]
-        references_removed.strip()
+        references_removed.replace(',', '').replace('and', '').strip()
 
         if len(references) > 0:
             replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], references_removed, start_index+reference_start) for reference in references)
             html_text = html_text[:start_index] + replacement + html_text[end_index+1:]
             end_index = start_index + len(replacement)
-        else:
-            print 'Reference not in locus list: ' + str(reference.id)
         current_index = end_index
 
     # Replace references
