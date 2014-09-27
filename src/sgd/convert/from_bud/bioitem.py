@@ -423,7 +423,7 @@ def make_bioitem_relation_starter(bud_session_maker, nex_session_maker):
 # --------------------- Convert Bioitem URL ---------------------
 def make_bioitem_url_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.bioitem import Domain, Chemical, Dataset
+    from src.sgd.model.nex.bioitem import Domain, Chemical, Dataset, Contig
 
     def bioitem_url_starter():
         nex_session = nex_session_maker()
@@ -509,6 +509,42 @@ def make_bioitem_url_starter(nex_session_maker):
                                    'source': key_to_source['SGD'],
                                    'category': 'Download',
                                    'bioitem_id': dataset.id}
+
+        s288c_chromosome_to_genbank_id = {'Chromosome I': 'NC_001133.9',
+                                          'Chromosome II': 'NC_001134.8',
+                                          'Chromosome III': 'NC_001135.5',
+                                          'Chromosome IV': 'NC_001136.10',
+                                          'Chromosome V': 'NC_001137.3',
+                                          'Chromosome VI': 'NC_001138.5',
+                                          'Chromosome VII': 'NC_001139.9',
+                                          'Chromosome VIII': 'NC_001140.6',
+                                          'Chromosome IX': 'NC_001141.2',
+                                          'Chromosome X': 'NC_001142.9',
+                                          'Chromosome XI': 'NC_001143.9',
+                                          'Chromosome XII': 'NC_001144.5',
+                                          'Chromosome XIII': 'NC_001145.3',
+                                          'Chromosome XIV': 'NC_001146.8',
+                                          'Chromosome XV': 'NC_001147.6',
+                                          'Chromosome XVI': 'NC_001148.4',
+                                          'Chromosome Mito': 'NC_001224.1'}
+
+        for contig in nex_session.query(Contig).all():
+            if contig.strain_id == 1:
+                if contig.display_name in s288c_chromosome_to_genbank_id:
+                    genbank_id = s288c_chromosome_to_genbank_id[contig.display_name]
+                    yield {'display_name': genbank_id,
+                             'link': 'http://www.ncbi.nlm.nih.gov/nuccore/' + genbank_id,
+                             'source': key_to_source['GenBank-EMBL-DDBJ'],
+                             'category': 'External',
+                             'bioitem_id': contig.id}
+
+            elif '|' in contig.format_name:
+                genbank_id = contig.format_name.split('|')[-2]
+                yield {'display_name': genbank_id,
+                             'link': 'http://www.ncbi.nlm.nih.gov/nuccore/' + genbank_id,
+                             'source': key_to_source['GenBank-EMBL-DDBJ'],
+                             'category': 'External',
+                             'bioitem_id': contig.id}
 
         nex_session.close()
     return bioitem_url_starter

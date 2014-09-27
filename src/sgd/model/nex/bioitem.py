@@ -245,6 +245,8 @@ class Contig(Bioitem):
             ['gene_cassette', (0 if 'gene_cassette' not in overview_counts else overview_counts['gene_cassette'])],
             ['mating_locus', (0 if 'mating_locus' not in overview_counts else overview_counts['mating_locus'])]]
 
+        obj_json['urls'] = [x.to_min_json() for x in self.urls]
+
         return obj_json
 
 class Dataset(Bioitem):

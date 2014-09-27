@@ -47,10 +47,8 @@ strain_paragraphs = {'S288C': ('S288C is a widely used laboratory strain, design
 }
 
 # --------------------- Convert Bioentity Paragraph ---------------------
-def create_i(reference, reference_index, extra_text, index):
-    new_i = '<a href="#" data-options="align:left;is_hover:true" data-dropdown="drop_' + str(index) + '_' + str(reference_index) + '"><sup>' + str(reference_index) + '</sup></a><span id="drop_' + str(index) + '_' + str(reference_index) + '" class="f-dropdown content small" data-dropdown-content>'
-    new_i += extra_text + (' ' if len(extra_text) > 0 else '')
-    new_i += ('<a href="' + reference.link + '">' + reference.display_name + '</a></span>')
+def create_i(reference, reference_index, extra_text):
+    new_i = '<span data-tooltip aria-haspopup="true" class="has-tip" title="' + extra_text + (' ' if len(extra_text) > 0 else '') + reference.display_name + '"><a href="#reference"><sup>' + str(reference_index) + '</sup></a></span>'
     return new_i
 
 def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
@@ -78,10 +76,10 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
             else:
                 print 'Reference not found: ' + sgdid
             references_removed = references_removed[0:reference_start] + references_removed[reference_end+1:]
-        references_removed.replace(',', '').replace('and', '').strip()
+        references_removed = references_removed.replace(',', '').replace('and', '').strip()
 
         if len(references) > 0:
-            replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], references_removed, start_index+reference_start) for reference in references)
+            replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], references_removed) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
             html_text = html_text[:start_index] + replacement + html_text[end_index+1:]
             end_index = start_index + len(replacement)
         current_index = end_index
