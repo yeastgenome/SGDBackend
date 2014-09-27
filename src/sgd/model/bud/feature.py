@@ -103,7 +103,17 @@ class FeatureProperty(Base, EqualityByIDMixin):
     property_value = Column('property_value', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
-    
+
+class GeneReservation(Base, EqualityByIDMixin):
+    __tablename__ = 'gene_reservation'
+
+    id = Column('feature_no', Integer, primary_key=True)
+    reservation_date = Column('reservation_date', Date)
+    expiration_date = Column('expiration_date', Date)
+    reserved_gene_name = Column('reserved_gene_name', String)
+    date_standardized = Column('date_standardized', Date)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
     
 
 

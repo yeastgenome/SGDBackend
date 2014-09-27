@@ -23,6 +23,7 @@ non_locus_feature_types = {
     'mRNA',
     'non_transcribed_region',
     'noncoding_exon',
+    'not physically mapped',
     'plasmid',
     'plus_1_translational_frameshift',
     'repeat_region',

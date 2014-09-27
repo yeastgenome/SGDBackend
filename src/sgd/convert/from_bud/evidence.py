@@ -543,7 +543,16 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                    'date_created': datetime(evidence.reference.year, 1, 1),
                                    'created_by': None
                                 }
-
+            if bioentity.reserved_name is not None:
+                yield {'source': key_to_source['SGD'],
+                               'reference': bioentity.reserved_name.reference,
+                               'locus': bioentity,
+                               'category': 'Nomenclature',
+                               'history_type': 'LSP',
+                               'note': 'Reserved Name: ' + bioentity.reserved_name.display_name + ' (Reserved from ' + str(bioentity.reserved_name.reservation_date) + ' - ' + str(bioentity.reserved_name.expiration_date) + ')',
+                               'date_created': bioentity.reserved_name.date_created,
+                               'created_by': bioentity.reserved_name.created_by
+                            }
 
 
         bud_session.close()

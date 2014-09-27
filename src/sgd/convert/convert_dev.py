@@ -308,11 +308,12 @@ if __name__ == "__main__":
     # # ------------------------------------------ Bioitem ------------------------------------------
     # # Bud -> Nex
     from src.sgd.model.nex.bioitem import Bioitem, Orphanbioitem, Domain, Allele, Chemical, Bioitemurl, Bioitemrelation, \
-        Bioitemalias, Contig, Dataset, Datasetcolumn, BioitemTag
+        Bioitemalias, Contig, Dataset, Datasetcolumn, BioitemTag, Reservedname
     from src.sgd.model.nex.misc import Alias, Relation, Url, Tag
     from src.sgd.model.nex.auxiliary import Disambig
     from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
-        make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter, make_dataset_starter, make_datasetcolumn_starter, make_bioitem_tag_starter, make_tag_starter
+        make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter, \
+        make_dataset_starter, make_datasetcolumn_starter, make_bioitem_tag_starter, make_tag_starter, make_reservedname_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
@@ -372,6 +373,15 @@ if __name__ == "__main__":
     # #                          commit_interval=1000,
     # #                          already_deleted=clean_up_orphans(nex_session_maker, Datasetcolumn, Bioitem, 'DATASETCOLUMN')),
     # #                OutputTransformer(1000)])
+
+    # do_conversion(make_reservedname_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Reservedname),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Reservedname),
+    #                          name='convert.from_bud.bioitem.reserved_name',
+    #                          delete_untouched=True,
+    #                          commit_interval=1000,
+    #                          already_deleted=clean_up_orphans(nex_session_maker, Reservedname, Bioitem, 'RESERVEDNAME')),
+    #                OutputTransformer(1000)])
     #
     # do_conversion(make_bioitem_relation_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioitemrelation),
@@ -437,6 +447,12 @@ if __name__ == "__main__":
     # #                          name='convert.from_bud.bioitem.disambig.dataset',
     # #                          delete_untouched=True,
     # #                          commit=True)])
+    # do_conversion(make_disambig_starter(nex_session_maker, Reservedname, ['id', 'format_name'], 'BIOITEM', 'RESERVEDNAME'),
+    #               [Json2Obj(Disambig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'RESERVEDNAME'),
+    #                          name='convert.from_bud.bioitem.disambig.reserved_name',
+    #                          delete_untouched=True,
+    #                          commit=True)])
     #
     # Nex -> Perf
     # from src.sgd.model.perf.core import Bioitem as PerfBioitem, Tag as PerfTag
@@ -750,13 +766,13 @@ if __name__ == "__main__":
     # #                              commit_interval=1000),
     # #                    OutputTransformer(1000)])
     # #
-    do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(DNAsequencetag),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag),
-                             name='convert.from_bud.evidence.dnasequence.tags',
-                             delete_untouched=True,
-                             commit_interval=1000),
-                   OutputTransformer(1000)])
+    # do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(DNAsequencetag),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag),
+    #                          name='convert.from_bud.evidence.dnasequence.tags',
+    #                          delete_untouched=True,
+    #                          commit_interval=1000),
+    #                OutputTransformer(1000)])
     # # from src.sgd.convert.from_bud import sequence_files, protein_sequence_files, new_sequence_files
     # # from src.sgd.model.nex.misc import Strain
     # # nex_session = nex_session_maker()
@@ -858,14 +874,14 @@ if __name__ == "__main__":
     # #                                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence_id.in_([datasetcolumn_id_to_evidence_id[y] for y in dataset_id_to_columns[dataset_key_to_id[dataset_key]]])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
     # #                                    OutputTransformer(1000)])
     #
-    # do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Historyevidence),
-    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Historyevidence),
-    #                               name='convert.from_bud.evidence.history',
-    #                               delete_untouched=True,
-    #                               commit_interval=1000,
-    #                               already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')),
-    #                OutputTransformer(1000)])
+    do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Historyevidence),
+                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Historyevidence),
+                                  name='convert.from_bud.evidence.history',
+                                  delete_untouched=True,
+                                  commit_interval=1000,
+                                  already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')),
+                   OutputTransformer(1000)])
     #
     # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty, Temperatureproperty, Generalproperty
     # clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')
@@ -953,8 +969,8 @@ if __name__ == "__main__":
     # make_bioconcept_count_starter(nex_session_maker)
     #
     # # ------------------------------------------ Perf ------------------------------------------
-    # from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
-    # from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
+    from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
+    from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
     from src.sgd.model.perf.bioitem_data import BioitemDetails, BioitemEnrichment
     # from src.sgd.model.perf.reference_data import ReferenceDetails
     # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
@@ -966,12 +982,12 @@ if __name__ == "__main__":
     # from src.sgd.model.nex.bioitem import Chemical, Contig, Domain, Datasetcolumn
     # from src.sgd.model.nex.reference import Reference
     nex_session = nex_session_maker()
-    # locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    locus_ids = [x.id for x in nex_session.query(Locus).all()]
     # ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     # complex_ids = [x.id for x in nex_session.query(Complex).all()]
     # go_ids = [x.id for x in nex_session.query(Go).all()]
     # datasetcolumn_ids = [x.id for x in nex_session.query(Datasetcolumn).all()]
-    domain_ids = [x.id for x in nex_session.query(Domain).all()]
+    # domain_ids = [x.id for x in nex_session.query(Domain).all()]
     # observable_ids = [x.id for x in nex_session.query(Observable).all()]
     # phenotype_ids = [x.id for x in nex_session.query(Phenotype).all()]
     # chemical_ids = [x.id for x in nex_session.query(Chemical).all()]

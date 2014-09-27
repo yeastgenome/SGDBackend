@@ -17,7 +17,7 @@ class UpdateByJsonMixin(object):
             current_value = getattr(self, key)
             new_value = None if key not in json_obj else json_obj[key]
 
-            if isinstance(new_value, str) and (key == 'seq_version' or key == 'coord_version' or key == 'date_of_run'):
+            if isinstance(new_value, str) and (key == 'seq_version' or key == 'coord_version' or key == 'date_of_run' or key == 'expiration_date' or key == 'reservation_date'):
                 new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
 
             if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
@@ -42,7 +42,7 @@ class UpdateByJsonMixin(object):
             current_value = getattr(self, key)
             new_value = json_obj[key]
 
-            if isinstance(new_value, str) and (key == 'seq_version' or key == 'coord_version' or key == 'date_of_run'):
+            if isinstance(new_value, str) and (key == 'seq_version' or key == 'coord_version' or key == 'date_of_run' or key == 'expiration_date' or key == 'reservation_date'):
                 new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
 
             if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':

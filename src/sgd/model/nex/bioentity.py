@@ -170,6 +170,11 @@ class Locus(Bioentity):
                     references.append(quality_reference.reference)
                     reference_ids.add(quality_reference.reference_id)
 
+        #Organize gene reservation references
+        if self.reserved_name is not None and self.reserved_name.reference is not None and self.reserved_name.reference_id not in reference_ids:
+            references.append(self.reserved_name.reference)
+            reference_ids.add(self.reserved_name.reference_id)
+
         # Organize paragraph references
         lsp_paragraphs = [x for x in self.paragraphs if x.category == 'LSP']
         if len(lsp_paragraphs) > 0:
@@ -374,6 +379,9 @@ class Locus(Bioentity):
             reference_mapping[reference.id] = len(reference_mapping)+1
 
         obj_json['reference_mapping'] = reference_mapping
+
+        if self.reserved_name is not None:
+            obj_json['reserved_name'] = self.reserved_name.to_json()
 
         return obj_json
 

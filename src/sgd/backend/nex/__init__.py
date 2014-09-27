@@ -314,6 +314,14 @@ class SGDBackend(BackendInterface):
             domain_id = get_obj_id(domain_identifier, class_type='BIOITEM', subclass_type='DOMAIN')
         return None if domain_id is None else json.dumps(DBSession.query(Domain).filter_by(id=domain_id).first().to_json())
 
+    def reserved_name(self, reserved_name_identifier, are_ids=False):
+        from src.sgd.model.nex.bioitem import Reservedname
+        if are_ids:
+            reserved_name_id = reserved_name_identifier
+        else:
+            reserved_name_id = get_obj_id(reserved_name_identifier, class_type='BIOITEM', subclass_type='RESERVEDNAME')
+        return None if reserved_name_id is None else json.dumps(DBSession.query(Reservedname).filter_by(id=reserved_name_id).first().to_json())
+
     def contig(self, contig_identifier, are_ids=False):
         import view_sequence
         if are_ids:

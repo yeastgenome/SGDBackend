@@ -8,6 +8,7 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from src.sgd.model.nex.misc import Relation, Strain, Url, Alias, Tag, Source
 from src.sgd.model.nex.reference import Reference
+from src.sgd.model.nex.bioentity import Locus
 from decimal import Decimal
 
 __author__ = 'kpaskov'
@@ -325,6 +326,30 @@ class Datasetcolumn(Bioitem):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['dataset'] = self.dataset.to_min_json()
         return obj_json
+
+class Reservedname(Bioitem):
+    __tablename__ = "reservednamebioitem"
+
+    id = Column('bioitem_id', Integer, primary_key=True)
+    locus_id = Column('locus_id', ForeignKey(Locus.id))
+    reference_id = Column('reference_id', ForeignKey(Reference.id))
+    reservation_date = Column('reservation_date', Date)
+    expiration_date = Column('expiration_date', Date)
+
+    #Relationships
+    locus = relationship(Locus, uselist=False, backref=backref('reserved_name', uselist=False))
+    reference = relationship(Reference, uselist=False)
+
+    __mapper_args__ = {'polymorphic_identity': "RESERVEDNAME", 'inherit_condition': id==Bioitem.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
+                     'reservation_date', 'expiration_date',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'locus', 'reference']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.format_name = self.display_name
+        self.link = '/reserved_name/' + self.format_name + '/overview'
 
 class Allele(Bioitem):
     __mapper_args__ = {'polymorphic_identity': 'ALLELE', 'inherit_condition': id == Bioitem.id}
