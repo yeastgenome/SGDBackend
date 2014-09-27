@@ -86,6 +86,16 @@ SELECT bioitem_details_seq.nextval INTO :new.bioitem_details_id FROM DUAL;
 END;
 /
 
+DROP TRIGGER BIOITEM_ENRICHMENT_TRIGGER;
+--/
+CREATE TRIGGER BIOITEM_ENRICHMENT_TRIGGER
+BEFORE INSERT ON bioitem_enrichment
+FOR EACH ROW
+BEGIN
+SELECT bioitem_enrichment_seq.nextval INTO :new.bioitem_enrichment_id FROM DUAL;
+END;
+/
+
 /* Orphan */
 DROP TRIGGER ORPHAN_TRIGGER;
 --/

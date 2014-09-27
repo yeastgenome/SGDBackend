@@ -642,6 +642,19 @@ class SGDBackend(BackendInterface):
             return json.dumps(view_go.make_enrichment(target_ids))
         else:
             return '[]'
+
+    def domain_enrichment(self, domain_identifier, are_ids=False):
+        from src.sgd.model.nex.evidence import Domainevidence
+        from src.sgd.backend.nex import view_go
+        if are_ids:
+            domain_id = domain_identifier
+        else:
+            domain_id = get_obj_id(domain_identifier, class_type='BIOITEM', subclass_type='DOMAIN')
+        target_ids = set([x.locus_id for x in DBSession.query(Domainevidence).filter_by(domain_id=domain_id).all()])
+        if len(target_ids) > 0:
+            return json.dumps(view_go.make_enrichment(target_ids))
+        else:
+            return '[]'
       
     #Binding
     def binding_site_details(self, locus_identifier=None, are_ids=False):

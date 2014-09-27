@@ -273,6 +273,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('domain'),
                     route_name='domain')
 
+    config.add_route('domain_enrichment', '/domain/{identifier}/enrichment')
+    config.add_view(lambda request: chosen_backend.response_wrapper('domain_enrichment', request)(getattr(chosen_backend, 'domain_enrichment')(domain_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('domain_enrichment'),
+                    route_name='domain_enrichment')
+
     config.add_route('protein_domain_graph', '/locus/{identifier}/protein_domain_graph')
     config.add_view(lambda request: chosen_backend.response_wrapper('protein_domain_graph', request)(getattr(chosen_backend, 'protein_domain_graph')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('protein_domain_graph'),

@@ -403,6 +403,13 @@ class PerfBackend(BackendInterface):
             bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
         return get_bioentity_enrichment(bioent_id, 'REGULATION')
 
+    def domain_enrichment(self, domain_identifier, are_ids=False):
+        if are_ids:
+            domain_id = domain_identifier
+        else:
+            domain_id = get_obj_id(str(domain_identifier).upper(), class_type='BIOITEM', subclass_type='DOMAIN')
+        return get_bioitem_enrichment(domain_id, 'ENRICHMENT')
+
     #Binding
     def binding_site_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
         if locus_identifier is not None:
@@ -638,6 +645,13 @@ def get_bioitem_details(bioitem_id, class_type):
     from src.sgd.model.perf.bioitem_data import BioitemDetails
     if bioitem_id is not None:
         data = DBSession.query(BioitemDetails).filter(BioitemDetails.obj_id == bioitem_id).filter(BioitemDetails.class_type == class_type).first()
+        return None if data is None else data.json
+    return None
+
+def get_bioitem_enrichment(bioitem_id, class_type):
+    from src.sgd.model.perf.bioitem_data import BioitemEnrichment
+    if bioitem_id is not None:
+        data = DBSession.query(BioitemEnrichment).filter(BioitemEnrichment.obj_id == bioitem_id).filter(BioitemEnrichment.class_type == class_type).first()
         return None if data is None else data.json
     return None
 
