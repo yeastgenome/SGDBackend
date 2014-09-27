@@ -314,3 +314,79 @@ def make_reference_interaction_starter(nex_session_maker):
 
         nex_session.close()
     return reference_interaction_starter
+
+
+# --------------------- Convert Bioconcept Count ---------------------
+def make_bioconcept_count_starter(nex_session_maker):
+    from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, ECNumberevidence
+    from src.sgd.model.nex.bioconcept import Bioconceptrelation
+    from src.sgd.model.nex.bioentity import Bioentity
+
+    nex_session = nex_session_maker()
+
+    id_to_bioconcept = dict([(x.id, x) for x in nex_session.query(Bioconcept).all()])
+
+    bioentity_id_to_index = dict()
+    for bioentity in nex_session.query(Bioentity).all():
+        bioentity_id_to_index[bioentity.id] = len(bioentity_id_to_index)
+    bioconcept_id_to_index = dict()
+    for bioconcept in nex_session.query(Bioconcept).all():
+        bioconcept_id_to_index[bioconcept.id] = len(bioconcept_id_to_index)
+
+    bioconcept_to_locus_descendant = [([0]*len(bioentity_id_to_index)) for _ in range(len(bioconcept_id_to_index))]
+    bioconcept_to_locus_direct = [([0]*len(bioentity_id_to_index)) for _ in range(len(bioconcept_id_to_index))]
+    bioconcept_id_to_parent_ids = dict([(x, []) for x in id_to_bioconcept.keys()])
+
+    for relation in nex_session.query(Bioconceptrelation).all():
+        bioconcept_id_to_parent_ids[relation.child_id].append(relation.parent_id)
+
+    #EC number evidence
+    for evidence in nex_session.query(ECNumberevidence):
+        bioentity_id = evidence.locus_id
+        bioconcept_id = evidence.ecnumber_id
+        bioconcept_to_locus_direct[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
+        bioconcept_ids = [bioconcept_id]
+        while len(bioconcept_ids) > 0:
+            new_bioconcept_ids = []
+            for bioconcept_id in bioconcept_ids:
+                bioconcept_to_locus_descendant[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
+            new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
+            bioconcept_ids = new_bioconcept_ids
+
+    #Go evidence
+    for evidence in nex_session.query(Goevidence):
+        bioentity_id = evidence.locus_id
+        bioconcept_id = evidence.go_id
+        bioconcept_to_locus_direct[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
+        bioconcept_ids = [bioconcept_id]
+        while len(bioconcept_ids) > 0:
+            new_bioconcept_ids = []
+            for bioconcept_id in bioconcept_ids:
+                bioconcept_to_locus_descendant[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
+            new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
+            bioconcept_ids = new_bioconcept_ids
+
+    #Phenotype evidence
+    for evidence in nex_session.query(Phenotypeevidence).options(joinedload(Phenotypeevidence.phenotype)):
+        bioentity_id = evidence.locus_id
+        bioconcept_id = evidence.phenotype_id
+        bioconcept_to_locus_direct[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
+
+        bioconcept_id = evidence.phenotype.observable_id
+        bioconcept_to_locus_direct[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
+        bioconcept_ids = [bioconcept_id]
+        while len(bioconcept_ids) > 0:
+            new_bioconcept_ids = []
+            for bioconcept_id in bioconcept_ids:
+                bioconcept_to_locus_descendant[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
+            new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
+            bioconcept_ids = new_bioconcept_ids
+
+    for bioconcept in id_to_bioconcept.values():
+        bioconcept_index = bioconcept_id_to_index[bioconcept.id]
+        bioconcept.locus_count = sum(bioconcept_to_locus_direct[bioconcept_index])
+        bioconcept.descendant_locus_count = sum(bioconcept_to_locus_descendant[bioconcept_index])
+
+    nex_session.commit()
+
+    nex_session.close()

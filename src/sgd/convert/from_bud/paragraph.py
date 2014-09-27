@@ -47,20 +47,45 @@ strain_paragraphs = {'S288C': ('S288C is a widely used laboratory strain, design
 }
 
 # --------------------- Convert Bioentity Paragraph ---------------------
-def clean_paragraph(text, label, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
+def create_i(reference, reference_index, extra_text, index):
+    new_i = '<a href="#" data-options="align:left;is_hover:true" data-dropdown="drop_' + str(index) + '"><sup>' + str(reference_index) + '</sup></a><span id="drop_' + str(index) + '" class="f-dropdown content small" data-dropdown-content>'
+    new_i += extra_text + (' ' if len(extra_text) > 0 else '')
+    new_i += ('<a href="' + reference.link + '">' + reference.display_name + '</a></span>')
+    return new_i
+
+def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
     html_text = text
+    reference_id_to_index = {}
+    for reference in locus.get_ordered_references():
+        reference_id_to_index[reference.id] = len(reference_id_to_index) + 1
 
     # Wrap reference lists in html
     current_index = 0
     while html_text.find('(', current_index) > -1:
         start_index = html_text.find('(', current_index)
         end_index = html_text.find(')', start_index)
-        if html_text.find('<reference:', start_index, end_index) > -1:
-            replacement = '<a href="#" data-options="align:left;is_hover:true" data-dropdown="drop_' + str(start_index) + '"><i class="fa fa-info-circle"></i></a><span id="drop_' + str(start_index) + '" class="f-dropdown content small" data-dropdown-content>'
-            replacement = replacement + html_text[start_index+1:end_index]
-            replacement = replacement + '</span>'
+        references_removed = html_text[start_index+1:end_index]
+        references = []
+        while references_removed.find('<reference:') > -1:
+            reference_start = references_removed.find('<reference:')
+            reference_end = references_removed.find('>', reference_start)
+            sgdid = references_removed[reference_start + 11:reference_end]
+            if sgdid in sgdid_to_reference:
+                if sgdid_to_reference[sgdid].id in reference_id_to_index:
+                    references.append(sgdid_to_reference[sgdid])
+                else:
+                    print 'Reference not in locus reference list: ' + str(sgdid_to_reference[sgdid].id)
+            else:
+                print 'Reference not found: ' + sgdid
+            references_removed = references_removed[0:reference_start] + references_removed[reference_end+1:]
+        references_removed.strip()
+
+        if len(references) > 0:
+            replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], references_removed, start_index+reference_start) for reference in references)
             html_text = html_text[:start_index] + replacement + html_text[end_index+1:]
             end_index = start_index + len(replacement)
+        else:
+            print 'Reference not in locus list: ' + str(reference.id)
         current_index = end_index
 
     # Replace references
@@ -73,19 +98,6 @@ def clean_paragraph(text, label, sgdid_to_reference, sgdid_to_bioentity, goid_to
             reference = sgdid_to_reference[sgdid]
             replacement = reference.display_name
         text = text.replace(text[start_index:end_index+1], replacement)
-
-    while html_text.find('<reference:') > -1:
-        start_index = html_text.find('<reference:')
-        end_index = html_text.find('>', start_index)
-        sgdid = html_text[start_index + 11:end_index]
-        replacement = ''
-        if sgdid in sgdid_to_reference:
-            reference = sgdid_to_reference[sgdid]
-            replacement = '<a href="' + reference.link + '">' + reference.display_name + '</a>'
-        else:
-            print 'Reference not found: ' + sgdid + ' in ' + label
-        html_text = html_text.replace(html_text[start_index:end_index+1], replacement)
-
 
     # Replace bioentities
     while text.find('<feature:') > -1:
@@ -165,7 +177,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
             paragraph_feats = feature.paragraph_feats
             if len(paragraph_feats) > 0 and feature.id in id_to_bioentity:
                 paragraph_feats.sort(key=lambda x: x.order)
-                paragraph_html, paragraph_text = clean_paragraph('<p>' + ('</p><p>'.join([x.paragraph.text for x in paragraph_feats])) + '</p>', str([x.paragraph.id for x in paragraph_feats]), sgdid_to_reference, sgdid_to_bioentity, goid_to_go)
+                paragraph_html, paragraph_text = clean_paragraph(id_to_bioentity[feature.id], '<p>' + ('</p><p>'.join([x.paragraph.text for x in paragraph_feats])) + '</p>', str([x.paragraph.id for x in paragraph_feats]), sgdid_to_reference, sgdid_to_bioentity, goid_to_go)
                 yield {
                     'bioentity': id_to_bioentity[feature.id],
                     'source': key_to_source['SGD'],
@@ -287,6 +299,7 @@ def make_paragraph_reference_starter(nex_session_maker):
 
         key_to_paragraph = dict([(x.unique_key(), x) for x in nex_session.query(Paragraph).all()])
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
+        link_to_reference_id = dict([(x.link, x.id) for x in pubmed_id_to_reference.values()])
 
         #Regulation
         for row in make_file_starter('src/sgd/convert/data/regulationSummaries')():
@@ -313,6 +326,20 @@ def make_paragraph_reference_starter(nex_session_maker):
                 else:
                     print 'Paragraph or reference not found: ' + str(paragraph_key) + ' ' + str(pubmed_id)
                     yield None
+
+        #LSP
+        for paragraph in key_to_paragraph.values():
+            if paragraph.category == 'LSP':
+                for word in paragraph.html.split(' '):
+                    if word.startswith('href="/reference'):
+                        if word[6:word.find('overview')+8] in link_to_reference_id:
+                            reference_id = link_to_reference_id[word[6:word.find('overview')+8]]
+                            yield {
+                                'paragraph_id': paragraph.id,
+                                'reference_id': reference_id
+                            }
+                        else:
+                            print 'Reference not found: ' + word
 
         nex_session.close()
     return paragraph_reference_starter

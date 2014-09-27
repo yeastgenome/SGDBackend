@@ -142,6 +142,44 @@ class Locus(Bioentity):
         obj_json['description'] = self.description
         return obj_json
 
+    def get_ordered_references(self):
+        references = []
+        reference_ids = set()
+
+        # Organize pre- quality references
+        pre_quality_order = {'Gene Name': 0, 'ID': 1, 'Feature Type': 2, 'Qualifier': 3}
+        for quality in sorted([x for x in self.qualities if x.display_name in pre_quality_order], key=lambda x: pre_quality_order[x.display_name]):
+            for quality_reference in sorted(quality.quality_references, key=lambda x: x.reference.year, reverse=True):
+                if quality_reference.reference_id not in reference_ids:
+                    references.append(quality_reference.reference)
+                    reference_ids.add(quality_reference.reference_id)
+
+        #Organize alias references
+        for alias in self.aliases:
+            if alias.category == 'Uniform':
+                for alias_reference in sorted(alias.alias_references, key=lambda x: x.reference.year, reverse=True):
+                    if alias_reference.reference_id not in reference_ids:
+                        references.append(alias_reference.reference)
+                        reference_ids.add(alias_reference.reference_id)
+
+        # Organize post- quality references
+        post_quality_order = {'Description': 4, 'Name Description': 5, 'Headline': 6, 'Genetic Position': 7}
+        for quality in sorted([x for x in self.qualities if x.display_name not in pre_quality_order], key=lambda x: 10 if x.display_name not in post_quality_order else post_quality_order[x.display_name]):
+            for quality_reference in sorted(quality.quality_references, key=lambda x: x.reference.year, reverse=True):
+                if quality_reference.reference_id not in reference_ids:
+                    references.append(quality_reference.reference)
+                    reference_ids.add(quality_reference.reference_id)
+
+        # Organize paragraph references
+        lsp_paragraphs = [x for x in self.paragraphs if x.category == 'LSP']
+        if len(lsp_paragraphs) > 0:
+            for paragraph_reference in lsp_paragraphs[0].paragraph_references:
+                if paragraph_reference.reference_id not in reference_ids:
+                    references.append(paragraph_reference.reference)
+                    reference_ids.add(paragraph_reference.reference_id)
+
+        return references
+
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
 
@@ -328,6 +366,14 @@ class Locus(Bioentity):
         obj_json['paralogs'] = [x.to_json() for x in self.children if x.relation_type == 'paralog']
 
         obj_json['qualities'] = dict([(x.display_name.lower().replace(' ', '_'), x.to_json()) for x in self.qualities])
+
+        ordered_references = self.get_ordered_references()
+        obj_json['references'] = [x.to_semi_json() for x in ordered_references]
+        reference_mapping = {}
+        for reference in ordered_references:
+            reference_mapping[reference.id] = len(reference_mapping)+1
+
+        obj_json['reference_mapping'] = reference_mapping
 
         return obj_json
 

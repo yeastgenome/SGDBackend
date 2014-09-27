@@ -22,6 +22,8 @@ class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     sgdid = Column('sgdid', String)
     description = Column('description', String)
+    locus_count = Column('locus_count', Integer)
+    descendant_locus_count = Column('descendant_locus_count', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -32,36 +34,6 @@ class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
         
     def unique_key(self):
         return self.format_name, self.class_type
-
-    def has_children(self):
-        return len(self.evidences) > 0
-
-    def has_descendants(self):
-        if self.has_children():
-            return True
-        elif len([x for x in self.children if x.relation_type == 'is a']) == 0:
-            return False
-        else:
-            for child in self.children:
-                if child.child.has_descendants():
-                    return True
-            return False
-
-    @hybrid_property
-    def count(self):
-        return len(self.related_locus_ids)
-
-    @hybrid_property
-    def child_count(self):
-        return len(self.all_related_locus_ids)
-
-    @hybrid_property
-    def related_locus_ids(self):
-        return set([x.locus_id for x in self.evidences])
-
-    @hybrid_property
-    def all_related_locus_ids(self):
-        return set(list(self.related_locus_ids) + sum([list(x.child.all_related_locus_ids) for x in self.children if x.relation_type == 'is a'], []))
 
 class Bioconceptrelation(Relation):
     __tablename__ = 'bioconceptrelation'
@@ -129,7 +101,7 @@ class Bioconceptalias(Alias):
 class ECNumber(Bioconcept):
     __mapper_args__ = {'polymorphic_identity': "EC_NUMBER", 'inherit_condition': id==Bioconcept.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
-                     'date_created', 'created_by']
+                     'locus_count', 'descendant_locus_count', 'date_created', 'created_by']
     __eq_fks__ = ['source']
      
     def __init__(self, obj_json):
@@ -152,7 +124,7 @@ class Go(Bioconcept):
     
     __mapper_args__ = {'polymorphic_identity': "GO", 'inherit_condition': id==Bioconcept.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
-                     'go_id', 'go_aspect',
+                     'locus_count', 'descendant_locus_count', 'go_id', 'go_aspect',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
      
@@ -180,8 +152,8 @@ class Go(Bioconcept):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['count'] = self.count
-        obj_json['child_count'] = self.child_count
+        obj_json['locus_count'] = self.locus_count
+        obj_json['descendant_locus_count'] = self.descendant_locus_count
 
         obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
         obj_json['aliases'] = [x.display_name for x in sorted(self.aliases, key=lambda x: x.display_name)]
@@ -211,7 +183,7 @@ class Observable(Bioconcept):
 
     __mapper_args__ = {'polymorphic_identity': "OBSERVABLE", 'inherit_condition': id==Bioconcept.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
-                     'ancestor_type',
+                     'locus_count', 'descendant_locus_count', 'ancestor_type',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 
@@ -228,12 +200,6 @@ class Observable(Bioconcept):
     @hybrid_property
     def evidences(self):
         return set(sum([x.phenotype_evidences for x in self.phenotypes], []))
-
-    def to_json(self):
-        obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['count'] = self.count
-        obj_json['child_count'] = self.child_count
-        return obj_json
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
@@ -287,8 +253,8 @@ class Observable(Bioconcept):
             obj_json['phenotypes'].append(phenotype_json)
 
         #Counts
-        obj_json['count'] = self.count
-        obj_json['child_count'] = self.child_count
+        obj_json['locus_count'] = self.locus_count
+        obj_json['descendant_locus_count'] = self.descendant_locus_count
 
         return obj_json
         
@@ -304,7 +270,7 @@ class Phenotype(Bioconcept):
        
     __mapper_args__ = {'polymorphic_identity': "PHENOTYPE", 'inherit_condition': id==Bioconcept.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
-                     'qualifier',
+                     'locus_count', 'descendant_locus_count', 'qualifier',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'observable']
 

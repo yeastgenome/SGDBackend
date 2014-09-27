@@ -87,8 +87,8 @@ class SGDBackend(BackendInterface):
         go_relationships = [['Child', 'Parent']]
         for go_term in go_terms:
             obj_json = go_term.to_min_json()
-            obj_json['descendant_annotation_gene_count'] = go_term.child_count
-            obj_json['direct_annotation_gene_count'] = go_term.count
+            obj_json['descendant_annotation_gene_count'] = go_term.descendant_locus_count
+            obj_json['direct_annotation_gene_count'] = go_term.locus_count
             go_slim_terms.append(obj_json)
 
             parents = [x.parent for x in go_term.parents if x.relation_type == 'is a']
@@ -111,8 +111,8 @@ class SGDBackend(BackendInterface):
         phenotype_relationships = [['Child', 'Parent']]
         for phenotype in phenotypes:
             obj_json = phenotype.to_min_json()
-            obj_json['descendant_annotation_gene_count'] = phenotype.child_count
-            obj_json['direct_annotation_gene_count'] = phenotype.count
+            obj_json['descendant_annotation_gene_count'] = phenotype.descendant_locus_count
+            obj_json['direct_annotation_gene_count'] = phenotype.locus_count
             phenotype_slim_terms.append(obj_json)
 
             parents = [x.parent for x in phenotype.parents if x.relation_type == 'is a']
@@ -133,8 +133,7 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.misc import Strain
 
         id_to_strain = dict([(x.id, x) for x in DBSession.query(Strain)])
-        good_strain_ids = [x.id for x in id_to_strain.values() if x.status == 'Reference']
-        contigs = DBSession.query(Contig).filter(Contig.strain_id.in_(good_strain_ids)).all()
+        contigs = DBSession.query(Contig).filter(Contig.strain_id == 1).all()
         labels = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon',
                   'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette',
                   'mating_locus', 'Verified', 'Dubious', 'Uncharacterized']
@@ -170,6 +169,7 @@ class SGDBackend(BackendInterface):
         for x in contigs:
             obj_json = x.to_min_json()
             obj_json['strain'] = id_to_strain[x.strain_id].to_min_json()
+            obj_json['length'] = len(x.residues)
             columns.append(obj_json)
 
         return json.dumps({'phenotype_slim_terms': phenotype_slim_terms, 'phenotype_slim_relationships': phenotype_relationships,
