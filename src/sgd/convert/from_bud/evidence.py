@@ -1455,8 +1455,10 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                     evidence = bioentity_strain_id_to_evidence[(bioentity_id, 1)]
                     start = bud_location.min_coord
                     end = bud_location.max_coord
+                    bioentity = None
                     if bud_location.feature.type == 'ORF' or bud_location.feature.type == 'rRNA':
                         display_name = bud_location.feature.name if bud_location.feature.gene_name is None else bud_location.feature.name + '(' + bud_location.feature.gene_name + ')'
+                        bioentity = id_to_bioentity[bud_location.feature_id]
                     else:
                         display_name = bud_location.feature.type
 
@@ -1471,7 +1473,8 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                                 'chromosomal_start': start,
                                 'chromosomal_end': end,
                                 'seq_version': bud_location.sequence.seq_version,
-                                'coord_version': bud_location.coord_version
+                                'coord_version': bud_location.coord_version,
+                                'bioentity': bioentity
                             }
                         else:
                             yield {
@@ -1483,7 +1486,8 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                                 'chromosomal_start': end,
                                 'chromosomal_end': start,
                                 'seq_version': bud_location.sequence.seq_version,
-                                'coord_version': bud_location.coord_version
+                                'coord_version': bud_location.coord_version,
+                                'bioentity': bioentity
                             }
 
         #Other strains

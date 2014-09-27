@@ -750,13 +750,13 @@ if __name__ == "__main__":
     # #                              commit_interval=1000),
     # #                    OutputTransformer(1000)])
     # #
-    # # do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
-    # #               [Json2Obj(DNAsequencetag),
-    # #                Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag),
-    # #                          name='convert.from_bud.evidence.dnasequence.tags',
-    # #                          delete_untouched=True,
-    # #                          commit_interval=1000),
-    # #                OutputTransformer(1000)])
+    do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(DNAsequencetag),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag),
+                             name='convert.from_bud.evidence.dnasequence.tags',
+                             delete_untouched=True,
+                             commit_interval=1000),
+                   OutputTransformer(1000)])
     # # from src.sgd.convert.from_bud import sequence_files, protein_sequence_files, new_sequence_files
     # # from src.sgd.model.nex.misc import Strain
     # # nex_session = nex_session_maker()
@@ -1092,9 +1092,9 @@ if __name__ == "__main__":
     # #                [Json2DataPerfDB(perf_session_maker, BioentityEnrichment, 'REGULATION', locus_ids, name='convert.from_backend.regulation_target_enrichment', commit_interval=1000),
     # #                 OutputTransformer(1000)])
 
-    do_conversion(make_domain_data_backend_starter(nex_backend, 'enrichment', domain_ids),
-                    [Json2DataPerfDB(perf_session_maker, BioitemEnrichment, 'ENRICHMENT', domain_ids, name='convert.from_backend.domain_enrichment', commit_interval=1000),
-                     OutputTransformer(1000)])
+    # do_conversion(make_domain_data_backend_starter(nex_backend, 'domain_enrichment', domain_ids),
+    #                 [Json2DataPerfDB(perf_session_maker, BioitemEnrichment, 'ENRICHMENT', domain_ids, name='convert.from_backend.domain_enrichment', commit_interval=1000),
+    #                  OutputTransformer(1000)])
 
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'binding_site_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'BINDING_SITE', locus_ids, name='convert.from_backend.binding_site_details', commit_interval=1000),

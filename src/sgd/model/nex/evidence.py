@@ -794,6 +794,7 @@ class DNAsequenceevidence(Evidence):
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['status'] = self.strain.status
         obj_json['tags'] = [x.to_json() for x in sorted(self.tags, key=lambda x:x.relative_start)]
+        obj_json['embedded_within'] = [x.evidence.locus.to_min_json() for x in self.locus.dnasequencetags if x.evidence.strain_id == self.strain_id]
         return obj_json
 
     def unique_key(self):
@@ -814,16 +815,18 @@ class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     phase = Column('phase', String)
     coord_version = Column('coord_version', Date)
     seq_version = Column('seq_version', Date)
+    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
     evidence = relationship(DNAsequenceevidence, uselist=False, backref=backref('tags', passive_deletes=True))
+    bioentity = relationship(Bioentity, uselist=False, backref=backref('dnasequencetags', passive_deletes=True))
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relative_start', 'relative_end',
                      'chromosomal_start', 'chromosomal_end', 'phase', 'evidence_id', 'coord_version', 'seq_version',
                      'date_created', 'created_by', ]
-    __eq_fks__ = []
+    __eq_fks__ = ['bioentity']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
