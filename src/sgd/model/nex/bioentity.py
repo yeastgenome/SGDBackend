@@ -385,6 +385,8 @@ class Locus(Bioentity):
 
         obj_json['pathways'] = [x.to_json() for x in self.pathway_evidences]
 
+        obj_json['ecnumber'] = None if len(self.ecnumber_evidences) == 0 else self.ecnumber_evidences[0].ecnumber.to_min_json()
+
         return obj_json
 
 class Complex(Bioentity):
