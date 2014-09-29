@@ -308,12 +308,13 @@ if __name__ == "__main__":
     # # ------------------------------------------ Bioitem ------------------------------------------
     # # Bud -> Nex
     from src.sgd.model.nex.bioitem import Bioitem, Orphanbioitem, Domain, Allele, Chemical, Bioitemurl, Bioitemrelation, \
-        Bioitemalias, Contig, Dataset, Datasetcolumn, BioitemTag, Reservedname
+        Bioitemalias, Contig, Dataset, Datasetcolumn, BioitemTag, Reservedname, Pathway
     from src.sgd.model.nex.misc import Alias, Relation, Url, Tag
     from src.sgd.model.nex.auxiliary import Disambig
     from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
         make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter, \
-        make_dataset_starter, make_datasetcolumn_starter, make_bioitem_tag_starter, make_tag_starter, make_reservedname_starter
+        make_dataset_starter, make_datasetcolumn_starter, make_bioitem_tag_starter, make_tag_starter, \
+        make_reservedname_starter, make_pathway_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
@@ -331,6 +332,14 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Allele, Bioitem, 'ALLELE'))])
+    #
+    # do_conversion(make_pathway_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Pathway),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Pathway),
+    #                          name='convert.from_bud.bioitem.pathway',
+    #                          delete_untouched=True,
+    #                          commit=True,
+    #                          already_deleted=clean_up_orphans(nex_session_maker, Pathway, Bioitem, 'PATHWAY'))])
     #
     # do_conversion(make_domain_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Domain),
@@ -633,7 +642,8 @@ if __name__ == "__main__":
     from src.sgd.model.nex.evidence import Evidence, Goevidence, DNAsequenceevidence, Regulationevidence, \
         Proteinsequenceevidence, Phosphorylationevidence, Domainevidence, Literatureevidence, Phenotypeevidence, \
         DNAsequencetag, Expressionevidence, Bioentitydata, Bindingevidence, \
-        Complexevidence, ECNumberevidence, Geninteractionevidence, Physinteractionevidence, Proteinexperimentevidence, Historyevidence
+        Complexevidence, ECNumberevidence, Geninteractionevidence, Physinteractionevidence, Proteinexperimentevidence, \
+        Historyevidence, Pathwayevidence
     from src.sgd.model.nex.archive import ArchiveLiteratureevidence
     from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_dna_sequence_evidence_starter, \
         make_regulation_evidence_starter, make_protein_sequence_evidence_starter, make_phosphorylation_evidence_starter, \
@@ -642,7 +652,8 @@ if __name__ == "__main__":
         make_binding_evidence_starter, \
         make_complex_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
         make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter, \
-        make_new_dna_sequence_evidence_starter, make_ref_dna_sequence_evidence_starter, make_kb_sequence_starter
+        make_new_dna_sequence_evidence_starter, make_ref_dna_sequence_evidence_starter, make_kb_sequence_starter, \
+        make_pathway_evidence_starter
 
     # do_conversion(make_binding_evidence_starter(nex_session_maker),
     #                [Json2Obj(Bindingevidence),
@@ -668,6 +679,15 @@ if __name__ == "__main__":
     #                                commit_interval=1000,
     #                                already_deleted=clean_up_orphans(nex_session_maker, Domainevidence, Evidence, 'DOMAIN')),
     #                 OutputTransformer(1000)])
+
+    do_conversion(make_pathway_evidence_starter(bud_session_maker, nex_session_maker),
+                   [Json2Obj(Pathwayevidence),
+                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Pathwayevidence),
+                                   name='convert.from_bud.evidence.pathway',
+                                   delete_untouched=True,
+                                   commit_interval=1000,
+                                   already_deleted=clean_up_orphans(nex_session_maker, Pathwayevidence, Evidence, 'PATHWAY')),
+                    OutputTransformer(1000)])
     #
     # do_conversion(make_ecnumber_evidence_starter(bud_session_maker, nex_session_maker),
     #                [Json2Obj(ECNumberevidence),
@@ -874,14 +894,14 @@ if __name__ == "__main__":
     # #                                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence_id.in_([datasetcolumn_id_to_evidence_id[y] for y in dataset_id_to_columns[dataset_key_to_id[dataset_key]]])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
     # #                                    OutputTransformer(1000)])
     #
-    do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Historyevidence),
-                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Historyevidence),
-                                  name='convert.from_bud.evidence.history',
-                                  delete_untouched=True,
-                                  commit_interval=1000,
-                                  already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')),
-                   OutputTransformer(1000)])
+    # do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Historyevidence),
+    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Historyevidence),
+    #                               name='convert.from_bud.evidence.history',
+    #                               delete_untouched=True,
+    #                               commit_interval=1000,
+    #                               already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')),
+    #                OutputTransformer(1000)])
     #
     # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty, Temperatureproperty, Generalproperty
     # clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')

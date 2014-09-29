@@ -315,6 +315,31 @@ def make_reservedname_starter(bud_session_maker, nex_session_maker):
         bud_session.close()
     return reservedname_starter
 
+# --------------------- Convert Pathway ---------------------
+def make_pathway_starter(bud_session_maker, nex_session_maker):
+    from src.sgd.model.nex.misc import Source
+    from src.sgd.model.bud.general import Dbxref
+
+    def pathway_starter():
+        nex_session = nex_session_maker()
+        bud_session = bud_session_maker()
+
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+
+        for dbxref in bud_session.query(Dbxref).filter_by(dbxref_type='Pathway ID').all():
+            yield {
+                'format_name': dbxref.dbxref_id,
+                'display_name': dbxref.dbxref_name,
+                'source': key_to_source[dbxref.source],
+                'link': 'http://pathway.yeastgenome.org/YEAST/new-image?type=PATHWAY&object=' + dbxref.dbxref_id + '&detail-level=2',
+                'date_created': dbxref.date_created,
+                'created_by': dbxref.created_by
+            }
+
+        nex_session.close()
+        bud_session.close()
+    return pathway_starter
+
 # --------------------- Convert Dataset ---------------------
 def make_dataset_starter(nex_session_maker, expression_dir):
     from src.sgd.model.nex.misc import Source

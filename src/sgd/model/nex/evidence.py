@@ -9,7 +9,7 @@ from sqlalchemy.types import Integer, String, Date, Numeric
 from bioconcept import Bioconcept, Go, Phenotype, ECNumber
 from bioentity import Bioentity, Locus, Complex
 from misc import Strain, Experiment, Alias
-from bioitem import Bioitem, Domain, Dataset, Datasetcolumn
+from bioitem import Bioitem, Domain, Dataset, Datasetcolumn, Pathway
 from reference import Reference
 from bioitem import Contig
 from src.sgd.model import EqualityByIDMixin
@@ -470,6 +470,38 @@ class Domainevidence(Evidence):
         obj_json['domain']['count'] = domain.count
         obj_json['domain']['source'] = domain.source.to_min_json()
         return obj_json
+
+class Pathwayevidence(Evidence):
+    __tablename__ = "pathwayevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
+    note = Column('note', String)
+
+    locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
+    pathway_id = Column('bioitem_id', Integer, ForeignKey(Pathway.id))
+
+    __mapper_args__ = {'polymorphic_identity': 'PATHWAY', 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['id', 'note', 'json', 'date_created', 'created_by', ]
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'pathway']
+
+    #Relationships
+    source = relationship(Source, backref=backref('pathway_evidences', passive_deletes=True), uselist=False)
+    reference = relationship(Reference, backref=backref('pathway_evidences', passive_deletes=True), uselist=False)
+    strain = relationship(Strain, backref=backref('pathway_evidences', passive_deletes=True), uselist=False)
+    experiment = relationship(Experiment, backref=backref('pathway_evidences', passive_deletes=True), uselist=False)
+    locus = relationship(Locus, uselist=False, backref=backref('pathway_evidences', passive_deletes=True))
+    pathway = relationship(Pathway, uselist=False, backref=backref('pathway_evidences', passive_deletes=True))
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
+
+    def unique_key(self):
+        return self.class_type, self.locus_id, self.pathway_id
         
 class Regulationevidence(Evidence):
     __tablename__ = "regulationevidence"

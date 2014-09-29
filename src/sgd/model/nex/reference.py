@@ -125,6 +125,7 @@ class Reference(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def to_min_json(self, include_description=False):
         obj_json = UpdateByJsonMixin.to_min_json(self, include_description=include_description)
         obj_json['pubmed_id'] = self.pubmed_id
+        obj_json['year'] = self.year
         return obj_json
 
     def to_semi_json(self):

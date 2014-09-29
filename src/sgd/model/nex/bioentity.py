@@ -383,6 +383,8 @@ class Locus(Bioentity):
         if self.reserved_name is not None:
             obj_json['reserved_name'] = self.reserved_name.to_json()
 
+        obj_json['pathways'] = [x.to_json() for x in self.pathway_evidences]
+
         return obj_json
 
 class Complex(Bioentity):

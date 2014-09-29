@@ -370,3 +370,12 @@ class Orphanbioitem(Bioitem):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = None if obj_json.get('display_name') is None else create_format_name(obj_json.get('display_name'))
+
+class Pathway(Bioitem):
+    __mapper_args__ = {'polymorphic_identity': 'PATHWAY', 'inherit_condition': id == Bioitem.id}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)

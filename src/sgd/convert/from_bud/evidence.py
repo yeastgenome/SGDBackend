@@ -169,6 +169,31 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
         nex_session.close()
     return domain_evidence_starter
 
+# --------------------- Convert Domain Evidence ---------------------
+def make_pathway_evidence_starter(bud_session_maker, nex_session_maker):
+    from src.sgd.model.nex.bioentity import Locus
+    from src.sgd.model.nex.bioitem import Pathway
+    from src.sgd.model.nex.misc import Source
+    from src.sgd.model.bud.general import DbxrefFeat
+    def pathway_evidence_starter():
+        bud_session = bud_session_maker()
+        nex_session = nex_session_maker()
+
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+        key_to_pathway = dict([(x.unique_key(), x) for x in nex_session.query(Pathway).all()])
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+
+        for dbxref_feat in bud_session.query(DbxrefFeat).filter(DbxrefFeat.dbxref.has(dbxref_type='Pathway ID')).all():
+            yield {'source': key_to_source[dbxref_feat.dbxref.source],
+                   'locus': id_to_bioentity[dbxref_feat.feature_id],
+                   'pathway': key_to_pathway[(dbxref_feat.dbxref.dbxref_id, 'PATHWAY')],
+                   'date_created': dbxref_feat.dbxref.date_created,
+                   'created_by': dbxref_feat.dbxref.created_by}
+
+        bud_session.close()
+        nex_session.close()
+    return pathway_evidence_starter
+
 # --------------------- Convert ECnumber Evidence ---------------------
 def make_ecnumber_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
@@ -438,12 +463,12 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.bud.reference import Reflink
     from src.sgd.model.nex.misc import Experiment, Source
     from src.sgd.model.nex.reference import Reference
-    from src.sgd.model.nex.bioentity import Bioentity
+    from src.sgd.model.nex.bioentity import Locus
     def history_evidence_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
-        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Bioentity).all()])
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
         id_to_reference = dict([(x.id, x) for x in nex_session.query(Reference).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
@@ -519,28 +544,29 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                             print 'Bioentity not found: ' + str(bioentity_id)
 
         for bioentity in id_to_bioentity.values():
-            for evidence in bioentity.bioentity_evidences:
-                if evidence.info_key == 'Gene Name':
-                    yield {'source': key_to_source['SGD'],
-                               'reference': evidence.reference,
-                               'locus': bioentity,
-                               'category': 'Nomenclature',
-                               'history_type': 'LSP',
-                               'note': 'Standard Name: ' + bioentity.display_name,
-                               'date_created': datetime(evidence.reference.year, 1, 1),
-                               'created_by': None
-                            }
+            for quality in bioentity.qualities:
+                if quality.display_name == 'Gene Name':
+                    for quality_reference in quality.quality_references:
+                        yield {'source': key_to_source['SGD'],
+                                   'reference': quality_reference.reference,
+                                   'locus': bioentity,
+                                   'category': 'Nomenclature',
+                                   'history_type': 'LSP',
+                                   'note': 'Standard Name: ' + bioentity.display_name,
+                                   'date_created': datetime(quality_reference.reference.year, 1, 1),
+                                   'created_by': None
+                                }
 
             for alias in bioentity.aliases:
-                if alias.category == 'Uniform' or alias.category == 'Gene Product':
-                    for evidence in alias.alias_evidences:
+                if alias.category == 'Alias' or alias.category == 'Gene Product':
+                    for alias_reference in alias.alias_references:
                         yield {'source': key_to_source['SGD'],
-                                   'reference': evidence.reference,
+                                   'reference': alias_reference.reference,
                                    'locus': bioentity,
                                    'category': 'Nomenclature',
                                    'history_type': 'LSP',
                                    'note': 'Alias: ' + alias.display_name,
-                                   'date_created': datetime(evidence.reference.year, 1, 1),
+                                   'date_created': datetime(alias_reference.reference.year, 1, 1),
                                    'created_by': None
                                 }
             if bioentity.reserved_name is not None:
