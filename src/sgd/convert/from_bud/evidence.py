@@ -545,7 +545,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
 
         for bioentity in id_to_bioentity.values():
             for quality in bioentity.qualities:
-                if quality.display_name == 'Gene Name':
+                if quality.display_name == 'Standard Name Assigned':
                     for quality_reference in quality.quality_references:
                         yield {'source': key_to_source['SGD'],
                                    'reference': quality_reference.reference,
@@ -1474,7 +1474,7 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in id_to_bioentity.values()])
         key_to_contig = dict([(x.unique_key(), x) for x in nex_session.query(Contig).all()])
-        feature_id_to_parent = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).all()])
+        feature_id_to_parent = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).filter_by(relationship_type='pair').all()])
         bioentity_strain_contig_id_to_evidence = dict([((x.locus_id, x.strain_id, x.contig_id), x) for x in nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').all()])
         bioentity_strain_id_to_evidence = dict([((x.locus_id, x.strain_id), x) for x in nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter_by(strain_id=1).all()])
         for bud_location in bud_session.query(Feat_Location).filter(Feat_Location.is_current == 'Y').options(joinedload('sequence'), joinedload('feature')).all():
@@ -1525,57 +1525,57 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                                 'bioentity': bioentity
                             }
 
-        #Other strains
-        from src.sgd.convert.from_bud import new_sequence_files
-        for seq_file, coding_file, strain_name in new_sequence_files:
-            strain_id = key_to_strain[strain_name].id
-
-            f = open(seq_file, 'r')
-            previous_evidence_id = None
-            previous_end = None
-            for row in f:
-                pieces = row.split(' ')
-                if len(pieces) == 9:
-                    parent_id = pieces[0]
-                    start = int(pieces[3])
-                    end = int(pieces[4])
-                    strand = pieces[6]
-                    infos = pieces[8].split(':')
-                    class_type = pieces[2]
-
-                    contig_key = (strain_name + '_' + parent_id, 'CONTIG')
-
-                    if class_type == 'CDS' and contig_key in key_to_contig:
-                        contig_id = key_to_contig[contig_key].id
-                        for info in infos:
-                            #bioentity_format_name, species, ref_chromosome, ref_start, ref_end, bioentity_display_name, evalue, similarity_score
-                            info_values = info.split(',')
-
-                            bioentity_key = (info_values[0].strip(), 'LOCUS')
-                            if bioentity_key in key_to_bioentity:
-                                bioentity_id = key_to_bioentity[bioentity_key].id
-                                if bioentity_id != 0:
-                                    if (bioentity_id, strain_id, contig_id) in bioentity_strain_contig_id_to_evidence:
-                                        evidence = bioentity_strain_contig_id_to_evidence[(bioentity_id, strain_id, contig_id)]
-
-                                        yield {
-                                                'evidence_id': evidence.id,
-                                                'class_type': class_type,
-                                                'display_name': class_type,
-                                                'relative_start': start - evidence.start + 1,
-                                                'relative_end': end - evidence.start + 1,
-                                                'chromosomal_start': start,
-                                                'chromosomal_end': end,
-                                                'seq_version': None,
-                                                'coord_version': None
-                                        }
-
-                                    else:
-                                        print 'Evidence not found: ' + str((bioentity_id, strain_id))
-                                        yield None
-                            else:
-                                print 'Bioentity not found: ' + str(bioentity_key)
-                                yield None
+        # #Other strains
+        # from src.sgd.convert.from_bud import new_sequence_files
+        # for seq_file, coding_file, strain_name in new_sequence_files:
+        #     strain_id = key_to_strain[strain_name].id
+        #
+        #     f = open(seq_file, 'r')
+        #     previous_evidence_id = None
+        #     previous_end = None
+        #     for row in f:
+        #         pieces = row.split(' ')
+        #         if len(pieces) == 9:
+        #             parent_id = pieces[0]
+        #             start = int(pieces[3])
+        #             end = int(pieces[4])
+        #             strand = pieces[6]
+        #             infos = pieces[8].split(':')
+        #             class_type = pieces[2]
+        #
+        #             contig_key = (strain_name + '_' + parent_id, 'CONTIG')
+        #
+        #             if class_type == 'CDS' and contig_key in key_to_contig:
+        #                 contig_id = key_to_contig[contig_key].id
+        #                 for info in infos:
+        #                     #bioentity_format_name, species, ref_chromosome, ref_start, ref_end, bioentity_display_name, evalue, similarity_score
+        #                     info_values = info.split(',')
+        #
+        #                     bioentity_key = (info_values[0].strip(), 'LOCUS')
+        #                     if bioentity_key in key_to_bioentity:
+        #                         bioentity_id = key_to_bioentity[bioentity_key].id
+        #                         if bioentity_id != 0:
+        #                             if (bioentity_id, strain_id, contig_id) in bioentity_strain_contig_id_to_evidence:
+        #                                 evidence = bioentity_strain_contig_id_to_evidence[(bioentity_id, strain_id, contig_id)]
+        #
+        #                                 yield {
+        #                                         'evidence_id': evidence.id,
+        #                                         'class_type': class_type,
+        #                                         'display_name': class_type,
+        #                                         'relative_start': start - evidence.start + 1,
+        #                                         'relative_end': end - evidence.start + 1,
+        #                                         'chromosomal_start': start,
+        #                                         'chromosomal_end': end,
+        #                                         'seq_version': None,
+        #                                         'coord_version': None
+        #                                 }
+        #
+        #                             else:
+        #                                 print 'Evidence not found: ' + str((bioentity_id, strain_id))
+        #                                 yield None
+        #                     else:
+        #                         print 'Bioentity not found: ' + str(bioentity_key)
+        #                         yield None
             f.close()
 
         nex_session.close()

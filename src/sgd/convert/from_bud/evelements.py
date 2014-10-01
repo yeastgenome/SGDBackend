@@ -547,6 +547,7 @@ def make_relation_reference_starter(bud_session_maker, nex_session_maker):
         nex_session.close()
     return alias_reference_starter
 
+bad_quality_references = {37408}
 def make_quality_reference_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain, Quality
     from src.sgd.model.nex.bioentity import Bioentity
@@ -564,28 +565,28 @@ def make_quality_reference_starter(bud_session_maker, nex_session_maker):
         for reflink in bud_session.query(OldReflink).filter_by(tab_name='FEAT_ANNOTATION').all():
             if reflink.primary_key in id_to_bioentity:
                 reference_id = reflink.reference_id
+                if reference_id not in bad_quality_references:
+                    quality_key = None
+                    if reflink.col_name == 'QUALIFIER':
+                        quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Qualifier')
+                    elif reflink.col_name == 'NAME_DESCRIPTION':
+                        quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Name Description')
+                    elif reflink.col_name == 'DESCRIPTION':
+                        quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Description')
+                    elif reflink.col_name == 'GENETIC_POSITION':
+                        quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Genetic Position')
+                    elif reflink.col_name == 'HEADLINE':
+                        quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Headline')
 
-                quality_key = None
-                if reflink.col_name == 'QUALIFIER':
-                    quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Qualifier')
-                elif reflink.col_name == 'NAME_DESCRIPTION':
-                    quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Name Description')
-                elif reflink.col_name == 'DESCRIPTION':
-                    quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Description')
-                elif reflink.col_name == 'GENETIC_POSITION':
-                    quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Genetic Position')
-                elif reflink.col_name == 'HEADLINE':
-                    quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Headline')
-
-                if quality_key is None:
-                    print 'Column not found: ' + reflink.col_name
-                elif quality_key in key_to_quality and reference_id in id_to_reference:
-                    yield {
-                            'quality_id': key_to_quality[quality_key].id,
-                            'reference_id': id_to_reference[reference_id].id,
-                         }
-                else:
-                    print 'Quality or reference not found: ' + str(quality_key) + ' ' + str(reference_id)
+                    if quality_key is None:
+                        print 'Column not found: ' + reflink.col_name
+                    elif quality_key in key_to_quality and reference_id in id_to_reference:
+                        yield {
+                                'quality_id': key_to_quality[quality_key].id,
+                                'reference_id': id_to_reference[reference_id].id,
+                             }
+                    else:
+                        print 'Quality or reference not found: ' + str(quality_key) + ' ' + str(reference_id)
             else:
                 #print 'Bioentity not found: ' + str(reflink.primary_key)
                 yield None
@@ -595,38 +596,40 @@ def make_quality_reference_starter(bud_session_maker, nex_session_maker):
             if reflink.primary_key in id_to_feat_property:
                 feat_property = id_to_feat_property[reflink.primary_key]
                 reference_id = reflink.reference_id
+                if reference_id not in bad_quality_references:
+                    quality_key = (str(feat_property.feature_id), 'BIOENTITY', feat_property.property_type)
 
-                quality_key = (str(feat_property.feature_id), 'BIOENTITY', feat_property.property_type)
-
-                if quality_key in key_to_quality and reference_id in id_to_reference:
-                    yield {
-                            'quality_id': key_to_quality[quality_key].id,
-                            'reference_id': id_to_reference[reference_id].id,
-                         }
-                else:
-                    print 'Quality or reference not found: ' + str(quality_key) + ' ' + str(reference_id)
+                    if quality_key in key_to_quality and reference_id in id_to_reference:
+                        yield {
+                                'quality_id': key_to_quality[quality_key].id,
+                                'reference_id': id_to_reference[reference_id].id,
+                             }
+                    else:
+                        print 'Quality or reference not found: ' + str(quality_key) + ' ' + str(reference_id)
             else:
                 print 'Feature property not found: ' + str(reflink.primary_key)
 
         for reflink in bud_session.query(OldReflink).filter_by(tab_name='FEATURE').all():
             if reflink.primary_key in id_to_bioentity:
                 quality_key = None
-                if reflink.col_name == 'GENE_NAME':
-                    quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Gene Name')
-                elif reflink.col_name == 'FEATURE_TYPE':
-                    quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Feature Type')
-                elif reflink.col_name == 'FEATURE_NO':
-                    quality_key = (str(reflink.primary_key), 'BIOENTITY', 'ID')
+                reference_id = reflink.reference_id
+                if reference_id not in bad_quality_references:
+                    if reflink.col_name == 'GENE_NAME':
+                        quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Gene Name')
+                    elif reflink.col_name == 'FEATURE_TYPE':
+                        quality_key = (str(reflink.primary_key), 'BIOENTITY', 'Feature Type')
+                    elif reflink.col_name == 'FEATURE_NO':
+                        quality_key = (str(reflink.primary_key), 'BIOENTITY', 'ID')
 
-                if quality_key is None:
-                    print 'Column not found : ' + reflink.col_name
-                elif quality_key in key_to_quality and reference_id in id_to_reference:
-                    yield {
-                            'quality_id': key_to_quality[quality_key].id,
-                            'reference_id': id_to_reference[reference_id].id,
-                         }
-                else:
-                    print 'Quality or reference not found: ' + str(quality_key) + ' ' + str(reference_id)
+                    if quality_key is None:
+                        print 'Column not found : ' + reflink.col_name
+                    elif quality_key in key_to_quality and reference_id in id_to_reference:
+                        yield {
+                                'quality_id': key_to_quality[quality_key].id,
+                                'reference_id': id_to_reference[reference_id].id,
+                             }
+                    else:
+                        print 'Quality or reference not found: ' + str(quality_key) + ' ' + str(reference_id)
             else:
                 #print 'Bioentity not found: ' + str(reflink.primary_key)
                 yield None

@@ -69,10 +69,9 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
             reference_end = references_removed.find('>', reference_start)
             sgdid = references_removed[reference_start + 11:reference_end]
             if sgdid in sgdid_to_reference:
-                if sgdid_to_reference[sgdid].id in reference_id_to_index:
-                    references.append(sgdid_to_reference[sgdid])
-                else:
-                    print 'Reference not in locus reference list: ' + str(sgdid_to_reference[sgdid].id)
+                if not sgdid_to_reference[sgdid].id in reference_id_to_index:
+                    reference_id_to_index[sgdid_to_reference[sgdid].id] = '?'
+                references.append(sgdid_to_reference[sgdid])
             else:
                 print 'Reference not found: ' + sgdid
             references_removed = references_removed[0:reference_start] + references_removed[reference_end+1:]
