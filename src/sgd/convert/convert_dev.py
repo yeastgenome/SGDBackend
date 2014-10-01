@@ -479,18 +479,18 @@ if __name__ == "__main__":
     #                                delete_untouched=True),
     #                OutputTransformer(1000)])
     #
-    # # ------------------------------------------ Reference ------------------------------------------
-    # # Bud -> Nex
-    # from src.sgd.model.nex.reference import Reference, Journal, Book, Author, Referencealias, Referenceurl, \
-    #     Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype, AliasReference, RelationReference, QualityReference
-    # from src.sgd.model.nex.misc import Alias, Relation, Url
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.reference import make_reference_starter, make_journal_starter, make_book_starter,\
-    #     make_bibentry_starter, make_reftype_starter, make_reference_alias_starter, \
-    #     make_author_reference_starter, make_author_starter, make_ref_reftype_starter, make_reference_relation_starter, \
-    #     make_reference_url_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
-    # from src.sgd.convert.from_bud.evelements import make_alias_reference_starter, make_relation_reference_starter, make_quality_reference_starter
+    # ------------------------------------------ Reference ------------------------------------------
+    # Bud -> Nex
+    from src.sgd.model.nex.reference import Reference, Journal, Book, Author, Referencealias, Referenceurl, \
+        Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype, AliasReference, RelationReference, QualityReference
+    from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.reference import make_reference_starter, make_journal_starter, make_book_starter,\
+        make_bibentry_starter, make_reftype_starter, make_reference_alias_starter, \
+        make_author_reference_starter, make_author_starter, make_ref_reftype_starter, make_reference_relation_starter, \
+        make_reference_url_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    from src.sgd.convert.from_bud.evelements import make_alias_reference_starter, make_relation_reference_starter, make_quality_reference_starter
     #
     # do_conversion(make_journal_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Journal),
@@ -513,14 +513,14 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True),
     #                OutputTransformer(1000)])
-    #
-    # do_conversion(make_alias_reference_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(AliasReference),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(AliasReference),
-    #                          name='convert.from_bud.alias_reference',
-    #                          delete_untouched=True,
-    #                          commit=True),
-    #                OutputTransformer(1000)])
+
+    do_conversion(make_alias_reference_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(AliasReference),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(AliasReference),
+                             name='convert.from_bud.alias_reference',
+                             delete_untouched=True,
+                             commit=True),
+                   OutputTransformer(1000)])
     #
     # do_conversion(make_relation_reference_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(RelationReference),
@@ -680,14 +680,14 @@ if __name__ == "__main__":
     #                                already_deleted=clean_up_orphans(nex_session_maker, Domainevidence, Evidence, 'DOMAIN')),
     #                 OutputTransformer(1000)])
 
-    do_conversion(make_pathway_evidence_starter(bud_session_maker, nex_session_maker),
-                   [Json2Obj(Pathwayevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Pathwayevidence),
-                                   name='convert.from_bud.evidence.pathway',
-                                   delete_untouched=True,
-                                   commit_interval=1000,
-                                   already_deleted=clean_up_orphans(nex_session_maker, Pathwayevidence, Evidence, 'PATHWAY')),
-                    OutputTransformer(1000)])
+    # do_conversion(make_pathway_evidence_starter(bud_session_maker, nex_session_maker),
+    #                [Json2Obj(Pathwayevidence),
+    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Pathwayevidence),
+    #                                name='convert.from_bud.evidence.pathway',
+    #                                delete_untouched=True,
+    #                                commit_interval=1000,
+    #                                already_deleted=clean_up_orphans(nex_session_maker, Pathwayevidence, Evidence, 'PATHWAY')),
+    #                 OutputTransformer(1000)])
     #
     # do_conversion(make_ecnumber_evidence_starter(bud_session_maker, nex_session_maker),
     #                [Json2Obj(ECNumberevidence),

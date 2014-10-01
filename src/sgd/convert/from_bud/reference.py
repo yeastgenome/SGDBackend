@@ -107,8 +107,7 @@ def make_reference_starter(bud_session_maker, nex_session_maker):
 
             date_revised = None
             if old_reference.date_revised is not None:
-                old_date = str(old_reference.date_revised)
-                date_revised = datetime.date(int(old_date[0:4]), int(old_date[4:6]), int(old_date[6:8]))
+                date_revised = old_reference.date_revised
 
             source_key = create_format_name(old_reference.source)
             source = None

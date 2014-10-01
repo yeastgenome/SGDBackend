@@ -467,7 +467,7 @@ def make_alias_reference_starter(bud_session_maker, nex_session_maker):
 
         for old_alias in bud_session.query(OldAliasFeature).options(joinedload('alias')).all():
             bioentity_id = old_alias.feature_id
-            alias_key = 'BIOENTITY', old_alias.alias_name, str(bioentity_id), old_alias.alias_type
+            alias_key = 'BIOENTITY', old_alias.alias_name, str(bioentity_id), 'Alias' if old_alias.alias_type == 'Uniform' or old_alias.alias_type == 'Non-uniform' else old_alias.alias_type
 
             if old_alias.id in feat_alias_id_to_reflinks:
                 for reflink in feat_alias_id_to_reflinks[old_alias.id]:

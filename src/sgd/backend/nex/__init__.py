@@ -67,8 +67,8 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.misc import Tag
         query = None
-        if list_type in set(['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']):
-            query = DBSession.query(Locus).filter_by(locus_type=list_type)
+        if list_type.lower() in set([x.lower() for x in 'ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']):
+            query = DBSession.query(Locus).filter(func.lower(Locus.locus_type) == list_type.lower())
         elif list_type == 'tag':
             query = DBSession.query(Tag)
 
