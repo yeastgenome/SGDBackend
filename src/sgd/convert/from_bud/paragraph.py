@@ -195,7 +195,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                     'category': 'GO'
                 }
             else:
-                print 'Bioentity not found: ' + str(bioentity_key)
+                #print 'Bioentity not found: ' + str(bioentity_key)
                 yield None
 
         #Regulation
@@ -212,7 +212,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                     'category': 'REGULATION'
                 }
             else:
-                print 'Bioentity not found: ' + str(bioentity_key)
+                #print 'Bioentity not found: ' + str(bioentity_key)
                 yield None
 
 

@@ -520,7 +520,8 @@ def make_go_conditions(old_dbxrefs, sgdid_to_bioentity, key_to_bioconcept, key_t
             if domain_key in key_to_bioitem:
                 conditions.append(Bioitemproperty({'role': dbxrefref.support_type, 'bioitem': key_to_bioitem[domain_key]}))
             else:
-                print 'Could not find bioitem: ' + str(domain_key)
+                #print 'Could not find bioitem: ' + str(domain_key)
+                pass
         else:
             bioitem_key = (dbxref.dbxref_id, 'ORPHAN')
             if bioitem_key in key_to_bioitem:
@@ -663,7 +664,8 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                        'created_by': note_feat.created_by
                                        }
                             else:
-                                print 'Bioentity or reference not found: ' + str(bioentity_id) + ', ' + str(reference_id)
+                                #print 'Bioentity or reference not found: ' + str(bioentity_id) + ', ' + str(reference_id)
+                                yield None
                     else:
                         if bioentity_id in id_to_bioentity:
                             yield {'source': key_to_source['SGD'],
@@ -675,7 +677,8 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                     'created_by': note_feat.created_by
                                     }
                         else:
-                            print 'Bioentity not found: ' + str(bioentity_id)
+                            # print 'Bioentity not found: ' + str(bioentity_id)
+                            yield None
 
         for note in bud_session.query(Note).filter(Note.note_type.in_({'Nomenclature conflict', 'Nomenclature history',
                                                                        'Reserved Name Note', 'Other', 'Repeated'})).all():
@@ -695,7 +698,8 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                        'created_by': note_feat.created_by
                                        }
                             else:
-                                print 'Bioentity or reference not found: ' + str(bioentity_id) + ', ' + str(reference_id)
+                                #print 'Bioentity or reference not found: ' + str(bioentity_id) + ', ' + str(reference_id)
+                                yield None
                     else:
                         if bioentity_id in id_to_bioentity:
                             yield {'source': key_to_source['SGD'],
@@ -707,7 +711,8 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                     'created_by': note_feat.created_by
                                     }
                         else:
-                            print 'Bioentity not found: ' + str(bioentity_id)
+                            #print 'Bioentity not found: ' + str(bioentity_id)
+                            yield None
 
         for bioentity in id_to_bioentity.values():
             for evidence in bioentity.bioentity_evidences:
