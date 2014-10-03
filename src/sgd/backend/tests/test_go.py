@@ -10,10 +10,10 @@ def test_go_structure(model, identifier='GO:0018706'):
     check_obj(response)
     assert 'description' in response
     #assert 'aliases' in response  Aliases not implemented
-    assert 'count' in response
+    assert 'locus_count' in response
     assert 'format_name' in response
     assert 'go_id' in response
-    assert 'child_count' in response
+    assert 'descendant_locus_count' in response
     assert 'go_aspect' in response
 
 def test_go_ontology_graph_structure(model, identifier='GO:0018706'):

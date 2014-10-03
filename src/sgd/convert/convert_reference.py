@@ -11,8 +11,8 @@ if __name__ == "__main__":
     # ------------------------------------------ Reference ------------------------------------------
     # Bud -> Nex
     from src.sgd.model.nex.reference import Reference, Journal, Book, Author, Referencealias, Referenceurl, \
-        Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype
-    from src.sgd.model.nex.misc import Alias, Relation, Url
+        Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype, QualityReference, AliasReference, RelationReference
+    from src.sgd.model.nex.misc import Alias, Relation, Url, Quality
     from src.sgd.model.nex.paragraph import Paragraph, Referenceparagraph
     from src.sgd.model.nex.auxiliary import Disambig
     from src.sgd.convert.from_bud.reference import make_reference_starter, make_journal_starter, make_book_starter,\
@@ -21,6 +21,8 @@ if __name__ == "__main__":
         make_reference_url_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     from src.sgd.convert.from_bud.paragraph import make_reference_paragraph_starter
+    from src.sgd.convert.from_bud.evelements import make_alias_reference_starter, make_relation_reference_starter, \
+        make_quality_reference_starter
 
     do_conversion(make_journal_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Journal),
@@ -116,6 +118,27 @@ if __name__ == "__main__":
                              delete_untouched=True,
                              already_deleted=clean_up_orphans(nex_session_maker, Referenceurl, Url, 'REFERENCE'))])
 
+    do_conversion(make_alias_reference_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(AliasReference),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(AliasReference),
+                             name='convert.from_bud.alias_reference',
+                             delete_untouched=True,
+                             commit=True)])
+
+    do_conversion(make_relation_reference_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(RelationReference),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(RelationReference),
+                             name='convert.from_bud.relation_reference',
+                             delete_untouched=True,
+                             commit=True)])
+
+    do_conversion(make_quality_reference_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(QualityReference),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(QualityReference),
+                             name='convert.from_bud.quality_reference',
+                             delete_untouched=True,
+                             commit=True)])
+
     do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Referenceparagraph),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph),
@@ -123,3 +146,4 @@ if __name__ == "__main__":
                              delete_untouched=True,
                              commit_interval=1000,
                              already_deleted=clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE'))])
+

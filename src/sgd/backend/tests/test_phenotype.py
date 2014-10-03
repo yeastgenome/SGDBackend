@@ -10,15 +10,12 @@ def test_phenotype_structure(model, identifier='viable'):
     response = json.loads(model.phenotype(identifier))
     assert response is not None
     check_obj(response)
-    # I think some of these were moved to graph
     assert 'description' in response
-    #assert 'ancestor_type' in response
-    #assert 'is_core' in response
     assert 'qualifier' in response
-    #assert 'count' in response
+    assert 'locus_count' in response
     assert 'observable' in response
     assert 'format_name' in response
-    #assert 'child_count' in response
+    assert 'descendant_locus_count' in response
 
 def test_phenotype_ontology_graph_structure(model, identifier='haploinsufficient'):
     response = json.loads(model.phenotype_ontology_graph(identifier))

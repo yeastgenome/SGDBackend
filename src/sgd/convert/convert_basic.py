@@ -242,11 +242,11 @@ if __name__ == "__main__":
 
     # ------------------------------------------ Bioentity ------------------------------------------
     # Bud -> Nex
-    from src.sgd.model.nex.bioentity import Bioentityalias, Bioentityrelation, Bioentityurl
-    from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.bioentity import Bioentityalias, Bioentityrelation, Bioentityurl, Bioentityquality
+    from src.sgd.model.nex.misc import Alias, Relation, Url, Quality
     from src.sgd.model.nex.auxiliary import Locustabs
     from src.sgd.convert.from_bud.bioentity import make_bioentity_tab_starter, \
-        make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter
+        make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter, make_bioentity_quality_starter
 
     do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Locustabs),
@@ -279,6 +279,14 @@ if __name__ == "__main__":
                              delete_untouched=True,
                              commit_interval=1000,
                              already_deleted=clean_up_orphans(nex_session_maker, Bioentityurl, Url, 'BIOENTITY'))])
+
+    do_conversion(make_bioentity_quality_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bioentityquality),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityquality),
+                             name='convert.from_bud.bioentity.quality',
+                             delete_untouched=True,
+                             commit_interval=1000,
+                             already_deleted=clean_up_orphans(nex_session_maker, Bioentityquality, Quality, 'BIOENTITY'))])
 
     # ------------------------------------------ Bioconcept ------------------------------------------
     # Bud -> Nex

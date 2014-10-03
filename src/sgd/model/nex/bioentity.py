@@ -135,7 +135,7 @@ class Locus(Bioentity):
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.link = None if obj_json.get('sgdid') is None else '/cgi-bin/locus.fpl?locus=' + obj_json.get('sgdid')
+        self.link = None if obj_json.get('sgdid') is None else '/locus/' + self.sgdid + '/overview'
 
     def to_semi_json(self):
         obj_json = UpdateByJsonMixin.to_min_json(self)

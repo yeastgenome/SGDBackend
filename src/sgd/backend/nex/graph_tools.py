@@ -16,7 +16,7 @@ def create_node(biocon, is_focus, sub_type):
         sub_type = 'FOCUS'
     name = biocon.display_name
     if biocon.format_name != 'ypo':
-        name = name + ' (' + str(biocon.count) + ')'
+        name = name + ' (' + str(biocon.locus_count) + ')'
     return {'data':{'id':'Node' + str(biocon.id), 'name': name, 'link': biocon.link, 'sub_type':sub_type}}
 
 def create_edge(biocon1_id, biocon2_id, label):
