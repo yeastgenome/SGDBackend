@@ -229,11 +229,29 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
     return chemical_starter
 
 # --------------------- Convert Contig ---------------------
+def update_contig_centromeres(nex_session_maker):
+    from src.sgd.model.nex.evidence import DNAsequenceevidence
+    from src.sgd.model.nex.bioitem import Contig
+
+    nex_session = nex_session_maker()
+
+    contig_to_centromere_dnasequenceevidence = dict([(x.contig_id, x) for x in nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter(DNAsequenceevidence.locus.has(locus_type='centromere')).all()])
+
+    for contig in nex_session.query(Contig).all():
+        if contig.id in contig_to_centromere_dnasequenceevidence:
+            contig.centromere_start = contig_to_centromere_dnasequenceevidence[contig.id].start
+            contig.centromere_end = contig_to_centromere_dnasequenceevidence[contig.id].end
+
+    nex_session.commit()
+    nex_session.close()
+
+strains_with_chromosomes = set(['S288C'])
 def make_contig_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.convert.from_bud import sequence_files, new_sequence_files
     from src.sgd.model.bud.sequence import Sequence
     from src.sgd.model.bud.feature import Feature
+
 
     def contig_starter():
         nex_session = nex_session_maker()
@@ -253,9 +271,10 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
                     yield {'display_name': sequence_id,
                            'source': key_to_source['SGD'],
                            'strain': key_to_strain[strain.replace('.', '')],
-                           'residues': residues}
+                           'residues': residues,
+                           'is_chromosome': strain in strains_with_chromosomes}
 
-        for sequence_filename, strain in new_sequence_files:
+        for sequence_filename, coding_sequence_filename, strain in new_sequence_files:
             filenames = []
             if isinstance(sequence_filename, list):
                 filenames = sequence_filename
@@ -266,7 +285,8 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
                     yield {'display_name': sequence_id.split(' ')[0],
                            'source': key_to_source['SGD'],
                            'strain': key_to_strain[strain.replace('.', '')],
-                           'residues': residues}
+                           'residues': residues,
+                           'is_chromosome': strain in strains_with_chromosomes}
 
         #S288C Contigs
         for feature in bud_session.query(Feature).filter(or_(Feature.type == 'chromosome', Feature.type == 'plasmid')).all():
@@ -275,7 +295,8 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
                     yield {'display_name': 'Chromosome ' + feature.name,
                            'source': key_to_source['SGD'],
                            'strain': key_to_strain['S288C'],
-                           'residues': sequence.residues}
+                           'residues': sequence.residues,
+                           'is_chromosome': 1}
 
         nex_session.close()
         bud_session.close()

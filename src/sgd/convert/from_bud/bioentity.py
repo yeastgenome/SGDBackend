@@ -116,6 +116,7 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
     return locus_starter
 
 #--------------------- Convert Complex ---------------------
+import os
 def make_complex_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioconcept import Go
@@ -124,19 +125,12 @@ def make_complex_starter(nex_session_maker):
         nex_session = nex_session_maker()
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-        key_to_go = dict([(x.unique_key(), x) for x in nex_session.query(Go).all()])
 
-        for row in make_file_starter('src/sgd/convert/data/go_complexes.txt', offset=2)():
-            go_key = (row[2], 'GO')
-            go = None if go_key not in key_to_go else key_to_go[go_key]
-            if go is None:
-                print 'Go not found: ' + str(go_key)
-                yield None
-
-            source = key_to_source['SGD']
-            yield {'source': source,
-                            'go': go,
-                            'cellular_localization': row[3]}
+        for file in os.listdir("src/sgd/convert/data/yeast_complex"):
+            yield {
+                'source': key_to_source['EBI'],
+                'display_name': file[0:-3]
+            }
 
         nex_session.close()
     return complex_starter

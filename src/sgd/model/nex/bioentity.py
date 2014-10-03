@@ -393,27 +393,17 @@ class Complex(Bioentity):
     __tablename__ = 'complexbioentity'
 
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key = True)
-    go_id = Column('go_id', Integer, ForeignKey(Go.id))
-    cellular_localization = Column('cellular_localization', String)
-
-    #Relationships
-    go = relationship(Go, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': "COMPLEX", 'inherit_condition': id==Bioentity.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'bioent_status',
                      'description',
-                     'cellular_localization',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'go']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        go = obj_json.get('go')
-        if go is not None:
-            self.display_name = go.display_name
-            self.format_name = create_format_name(go.display_name.lower())
-            self.link = '/complex/' + self.format_name + '/overview'
-            self.description = go.description
+        self.format_name = create_format_name(self.display_name)
+        self.link = '/complex/' + self.format_name + '/overview'
 
     @hybrid_property
     def genes(self):

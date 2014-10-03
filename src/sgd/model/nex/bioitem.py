@@ -198,13 +198,16 @@ class Contig(Bioitem):
     id = Column('bioitem_id', Integer, primary_key=True)
     residues = Column('residues', CLOB)
     strain_id = Column('strain_id', ForeignKey(Strain.id))
+    is_chromosome = Column('is_chromosome', Integer)
+    centromere_start = Column('centromere_start', Integer)
+    centromere_end = Column('centromere_end', Integer)
 
     #Relationships
     strain = relationship(Strain, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': "CONTIG", 'inherit_condition': id==Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
-                     'residues',
+                     'residues', 'centromere_start', 'centromere_end', 'is_chromosome',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'strain']
 
@@ -216,6 +219,13 @@ class Contig(Bioitem):
             self.display_name = 'Chromosome ' + (self.display_name[3:] if self.display_name[3:] not in number_to_roman else number_to_roman[self.display_name[3:]])
         if self.display_name.startswith('Chromosome '):
             self.display_name = 'Chromosome ' + (self.display_name[11:] if self.display_name[11:] not in number_to_roman else number_to_roman[self.display_name[11:]])
+
+    def to_min_json(self, include_description=False):
+        obj_json = UpdateByJsonMixin.to_min_json(self, include_description=include_description)
+        obj_json['is_chromosome'] = True if self.is_chromosome == 1 else False
+        obj_json['centromere_start'] = self.centromere_start
+        obj_json['centromere_end'] = self.centromere_end
+        return obj_json
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)

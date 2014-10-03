@@ -114,13 +114,13 @@ if __name__ == "__main__":
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS'))])
     #
-    # # do_conversion(make_complex_starter(nex_session_maker),
-    # #               [Json2Obj(Complex),
-    # #                Obj2NexDB(nex_session_maker, lambda x: x.query(Complex),
-    # #                          name='convert.from_bud.bioentity.complex',
-    # #                          delete_untouched=True,
-    # #                          commit=True,
-    # #                          already_deleted=clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS'))])
+    # do_conversion(make_complex_starter(nex_session_maker),
+    #               [Json2Obj(Complex),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Complex),
+    #                          name='convert.from_bud.bioentity.complex',
+    #                          delete_untouched=True,
+    #                          commit=True,
+    #                          already_deleted=clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS'))])
     #
     # do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Locustabs),
@@ -314,7 +314,7 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
         make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter, \
         make_dataset_starter, make_datasetcolumn_starter, make_bioitem_tag_starter, make_tag_starter, \
-        make_reservedname_starter, make_pathway_starter
+        make_reservedname_starter, make_pathway_starter, update_contig_centromeres
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
@@ -364,6 +364,7 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG'))])
+    # update_contig_centromeres(nex_session_maker)
     #
     # # do_conversion(make_dataset_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
     # #               [Json2Obj(Dataset),
@@ -935,10 +936,10 @@ if __name__ == "__main__":
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE')
     #
-    do_conversion(make_paragraph_reference_starter(nex_session_maker),
-                  [Json2Obj(ParagraphReference),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(ParagraphReference), name='convert.from_bud.paragraph_reference', delete_untouched=True, commit=True),
-                   OutputTransformer(1000)])
+    # do_conversion(make_paragraph_reference_starter(nex_session_maker),
+    #               [Json2Obj(ParagraphReference),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(ParagraphReference), name='convert.from_bud.paragraph_reference', delete_untouched=True, commit=True),
+    #                OutputTransformer(1000)])
     #
     # # # ------------------------------------------ Auxilliary ------------------------------------------
     from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Referenceinteraction, Bioiteminteraction
@@ -1015,9 +1016,9 @@ if __name__ == "__main__":
     # reference_ids = [x.id for x in nex_session.query(Reference).all()]
     nex_session.close()
     #
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000),
-    #                 OutputTransformer(1000)])
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000),
+                    OutputTransformer(1000)])
     #
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000),

@@ -298,7 +298,8 @@ def make_paragraph_reference_starter(nex_session_maker):
                                 'reference_id': reference.id
                             }
                     else:
-                        print 'Reference not found: ' + sgdid
+                        if sgdid != '<p':
+                            print 'Reference not found: ' + sgdid
 
         #Regulation
         for row in make_file_starter('src/sgd/convert/data/regulationSummaries')():
