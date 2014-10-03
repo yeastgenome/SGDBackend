@@ -234,27 +234,6 @@ def make_bioentity_evidence_starter(bud_session_maker, nex_session_maker):
         nex_session.close()
     return bioentity_evidence_starter
 
-# --------------------- Convert Complex Evidence ---------------------
-def make_complex_evidence_starter(nex_session_maker):
-    from src.sgd.model.nex.bioentity import Complex
-    from src.sgd.model.nex.misc import Source
-
-    def complex_evidence_starter():
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-
-        for complex in nex_session.query(Complex).all():
-            for evidence in complex.go.go_evidences:
-                if evidence.annotation_type != 'computational' and evidence.qualifier != 'colocalizes_with':
-                    yield {
-                        'source': key_to_source['GO'],
-                        'locus': evidence.locus,
-                        'complex': complex,
-                        'go': evidence.go}
-        nex_session.close()
-    return complex_evidence_starter
-
 # --------------------- Convert Domain Evidence ---------------------
 def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioentity import Locus

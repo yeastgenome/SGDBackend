@@ -7,8 +7,8 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date, Numeric
 
 from bioconcept import Bioconcept, Go, Phenotype, ECNumber
-from bioentity import Bioentity, Locus, Complex
-from misc import Strain, Experiment, Alias
+from bioentity import Bioentity, Locus
+from misc import Strain, Experiment, Alias, Source
 from bioitem import Bioitem, Domain, Dataset, Datasetcolumn, Pathway
 from reference import Reference
 from bioitem import Contig
@@ -655,53 +655,6 @@ class Bindingevidence(Evidence):
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.motif_id
-
-class Complexevidence(Evidence):
-    __tablename__ = "complexevidence"
-
-    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
-    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
-    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
-    note = Column('note', String)
-
-    locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
-    complex_id = Column('complex_id', Integer, ForeignKey(Complex.id))
-    go_id = Column('go_id', Integer, ForeignKey(Go.id))
-
-    #Relationships
-    source = relationship(Source, backref=backref('complex_evidences', passive_deletes=True), uselist=False)
-    reference = relationship(Reference, backref=backref('complex_evidences', passive_deletes=True), uselist=False)
-    strain = relationship(Strain, backref=backref('complex_evidences', passive_deletes=True), uselist=False)
-    experiment = relationship(Experiment, backref=backref('complex_evidences', passive_deletes=True), uselist=False)
-    locus = relationship(Locus, uselist=False, backref=backref('complex_evidences', passive_deletes=True))
-    complex = relationship(Complex, uselist=False, backref=backref('complex_evidences', passive_deletes=True))
-    go = relationship(Go, uselist=False, backref=backref('complex_evidences', passive_deletes=True))
-
-    __mapper_args__ = {'polymorphic_identity': 'COMPLEX', 'inherit_condition': id==Evidence.id}
-    __eq_values__ = ['id', 'note', 'json',
-                     'date_created', 'created_by']
-    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'complex', 'go']
-
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
-
-    def unique_key(self):
-        return self.class_type, self.locus_id, self.complex_id, self.go_id
-
-    def to_json(self, aux_obj_json=None):
-        obj_json = UpdateByJsonMixin.to_json(self)
-        if aux_obj_json is not None:
-            for eq_fk in self.__eq_fks__:
-                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
-                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
-            locus = aux_obj_json['locus']
-        else:
-            locus = self.locus
-        obj_json['locus']['description'] = locus.description
-        return obj_json
 
 
 class ECNumberevidence(Evidence):

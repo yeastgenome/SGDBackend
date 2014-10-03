@@ -113,26 +113,6 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
         nex_session.close()
     return locus_starter
 
-#--------------------- Convert Complex ---------------------
-import os
-def make_complex_starter(nex_session_maker):
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.bioconcept import Go
-
-    def complex_starter():
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-
-        for file in os.listdir("src/sgd/convert/data/yeast_complex"):
-            yield {
-                'source': key_to_source['EBI'],
-                'display_name': file[0:-3]
-            }
-
-        nex_session.close()
-    return complex_starter
-
 # --------------------- Convert Bioentity Tabs ---------------------
 def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioentity import Locus

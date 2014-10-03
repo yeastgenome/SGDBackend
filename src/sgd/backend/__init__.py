@@ -173,27 +173,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('locus_graph'),
                     route_name='locus_graph')
 
-    #Complex
-    config.add_route('complex', '/complex/{identifier}/overview')
-    config.add_view(lambda request: chosen_backend.response_wrapper('complex', request)(getattr(chosen_backend, 'complex')(complex_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('complex'),
-                    route_name='complex')
-
-    config.add_route('complex_complex_details', '/complex/{identifier}/locus_details')
-    config.add_view(lambda request: chosen_backend.response_wrapper('complex_details', request)(getattr(chosen_backend, 'complex_details')(complex_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('complex_details'),
-                    route_name='complex_complex_details')
-
-    config.add_route('complex_bioent_details', '/locus/{identifier}/complex_details')
-    config.add_view(lambda request: chosen_backend.response_wrapper('complex_details', request)(getattr(chosen_backend, 'complex_details')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('complex_details'),
-                    route_name='complex_bioent_details')
-
-    config.add_route('complex_graph', '/complex/{identifier}/graph')
-    config.add_view(lambda request: chosen_backend.response_wrapper('complex_graph', request)(getattr(chosen_backend, 'complex_graph')(complex_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('complex_graph'),
-                    route_name='complex_graph')
-
     #Interaction views
     config.add_route('interaction_bioent_details', '/locus/{identifier}/interaction_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('interaction_details', request)(getattr(chosen_backend, 'interaction_details')(locus_identifier=request.matchdict['identifier'])),

@@ -54,7 +54,7 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.bioentity import Bioentity
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
+            Physinteractionevidence, DNAsequenceevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         return [x.to_json() for x in DBSession.query(Bioentity).with_polymorphic('*').order_by(Bioentity.id.asc()).limit(chunk_size).offset(offset).all()]
 
@@ -179,7 +179,7 @@ class SGDBackend(BackendInterface):
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.nex.bioentity import Bioentity
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence
+            Physinteractionevidence, DNAsequenceevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         num_chunks = int(ceil(1.0*len(bioent_ids)/500))
         bioentities = []
@@ -206,22 +206,13 @@ class SGDBackend(BackendInterface):
     def locus(self, locus_identifier, are_ids=False):
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Phenotypeevidence, Goevidence, Regulationevidence, Geninteractionevidence, \
-            Physinteractionevidence, DNAsequenceevidence, Bioentityevidence, Domainevidence, Historyevidence
+            Physinteractionevidence, DNAsequenceevidence, Domainevidence, Historyevidence
         from src.sgd.model.nex.paragraph import Bioentityparagraph
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(DBSession.query(Locus).filter_by(id=locus_id).first().to_json())
-
-    def complex(self, complex_identifier, are_ids=False):
-        from src.sgd.model.nex.bioentity import Complex
-        from src.sgd.model.nex.evidence import Complexevidence
-        if are_ids:
-            complex_id = complex_identifier
-        else:
-            complex_id = get_obj_id(complex_identifier, class_type='BIOENTITY', subclass_type='COMPLEX')
-        return None if complex_id is None else json.dumps(DBSession.query(Complex).filter_by(id=complex_id).first().to_json())
 
     #Bioconcept
     def all_bioconcepts(self, chunk_size, offset):
@@ -583,33 +574,6 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else view_protein.make_protein_experiment_details(locus_id=locus_id)
-
-    #Complex
-    def complex_details(self, locus_identifier=None, complex_identifier=None, are_ids=False):
-        import view_complex
-        if are_ids:
-            complex_id = complex_identifier
-            locus_id = locus_identifier
-        else:
-            complex_id = get_obj_id(complex_identifier, class_type='BIOENTITY', subclass_type='COMPLEX')
-            locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return view_complex.make_details(locus_id=locus_id, complex_id=complex_id)
-
-    def complex_graph(self, complex_identifier, are_ids=False):
-        import graph_tools
-        from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioentityinteraction
-        from src.sgd.model.nex.bioentity import Complex
-
-        if are_ids:
-            complex_id = complex_identifier
-        else:
-            complex_id = get_obj_id(complex_identifier, class_type='BIOENTITY', subclass_type='COMPLEX')
-        if complex_id is None:
-            return None
-        else:
-            locus_ids = set([x.locus_id for x in DBSession.query(Complex).filter_by(id=complex_id).first().child_genes])
-            return json.dumps({'go_graph': graph_tools.make_graph(complex_id, Bioconceptinteraction, 'GO', 'COMPLEX'),
-                               'interaction_graph': graph_tools.make_interaction_graph(locus_ids, Bioentityinteraction, 'PHYSINTERACTION')})
 
     def history_details(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex import view_history

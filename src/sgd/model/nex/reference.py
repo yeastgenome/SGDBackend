@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date, CLOB
 
-from misc import Url, Alias, Relation, Source
+from misc import Url, Alias, Relation, Source, Quality
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 
@@ -381,5 +381,64 @@ class Referencealias(Alias):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name =str(obj_json.get('reference_id'))
 
+class QualityReference(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    __tablename__ = 'quality_reference'
+
+    id = Column('quality_reference_id', Integer, primary_key=True)
+    quality_id = Column('quality_id', Integer, ForeignKey(Quality.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+
+    #Relationships
+    paragraph = relationship(Quality, uselist=False, backref=backref('quality_references', passive_deletes=True))
+    reference = relationship(Reference, uselist=False, backref=backref('quality_references', passive_deletes=True))
+
+    __eq_values__ = ['id', 'quality_id', 'reference_id']
+    __eq_fks__ = []
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+    def unique_key(self):
+        return self.quality_id, self.reference_id
+
+class AliasReference(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    __tablename__ = 'alias_reference'
+
+    id = Column('alias_reference_id', Integer, primary_key=True)
+    alias_id = Column('alias_id', Integer, ForeignKey(Alias.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+
+    #Relationships
+    alias = relationship(Alias, uselist=False, backref=backref('alias_references', passive_deletes=True))
+    reference = relationship(Reference, uselist=False, backref=backref('alias_references', passive_deletes=True))
+
+    __eq_values__ = ['id', 'alias_id', 'reference_id']
+    __eq_fks__ = []
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+    def unique_key(self):
+        return self.alias_id, self.reference_id
+
+class RelationReference(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    __tablename__ = 'relation_reference'
+
+    id = Column('relation_reference_id', Integer, primary_key=True)
+    relation_id = Column('relation_id', Integer, ForeignKey(Relation.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+
+    #Relationships
+    relation = relationship(Relation, uselist=False, backref=backref('relation_references', passive_deletes=True))
+    reference = relationship(Reference, uselist=False, backref=backref('relation_references', passive_deletes=True))
+
+    __eq_values__ = ['id', 'relation_id', 'reference_id']
+    __eq_fks__ = []
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+    def unique_key(self):
+        return self.relation_id, self.reference_id
 
 

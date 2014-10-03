@@ -102,7 +102,7 @@ if __name__ == "__main__":
     from src.sgd.model.nex.bioentity import Bioentity, Locus, Complex, Bioentityalias, Bioentityrelation, Bioentityurl, Bioentityquality
     from src.sgd.model.nex.misc import Alias, Relation, Url, Quality
     from src.sgd.model.nex.auxiliary import Locustabs, Disambig
-    from src.sgd.convert.from_bud.bioentity import make_locus_starter, make_complex_starter, make_bioentity_tab_starter, \
+    from src.sgd.convert.from_bud.bioentity import make_locus_starter, make_bioentity_tab_starter, \
         make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter, make_bioentity_quality_starter
     from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
@@ -110,14 +110,6 @@ if __name__ == "__main__":
     #               [Json2Obj(Locus),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locus),
     #                          name='convert.from_bud.bioentity.locus',
-    #                          delete_untouched=True,
-    #                          commit=True,
-    #                          already_deleted=clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS'))])
-    #
-    # do_conversion(make_complex_starter(nex_session_maker),
-    #               [Json2Obj(Complex),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Complex),
-    #                          name='convert.from_bud.bioentity.complex',
     #                          delete_untouched=True,
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS'))])
@@ -167,13 +159,6 @@ if __name__ == "__main__":
     #               [Json2Obj(Disambig),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'LOCUS'),
     #                          name='convert.from_bud.bioentity.disambig.locus',
-    #                          delete_untouched=True,
-    #                          commit=True)])
-    #
-    # do_conversion(make_disambig_starter(nex_session_maker, Complex, ['id', 'format_name'], 'BIOENTITY', 'COMPLEX'),
-    #               [Json2Obj(Disambig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'COMPLEX'),
-    #                          name='convert.from_bud.bioentity.disambig.complex',
     #                          delete_untouched=True,
     #                          commit=True)])
     #
@@ -650,8 +635,7 @@ if __name__ == "__main__":
         make_regulation_evidence_starter, make_protein_sequence_evidence_starter, make_phosphorylation_evidence_starter, \
         make_domain_evidence_starter, make_literature_evidence_starter, make_phenotype_evidence_starter, \
         make_dna_sequence_tag_starter, make_expression_evidence_starter, make_expression_data_starter, \
-        make_binding_evidence_starter, \
-        make_complex_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
+        make_binding_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
         make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter, \
         make_new_dna_sequence_evidence_starter, make_ref_dna_sequence_evidence_starter, make_kb_sequence_starter, \
         make_pathway_evidence_starter
@@ -663,14 +647,6 @@ if __name__ == "__main__":
     #                                delete_untouched=True,
     #                                commit=True,
     #                                already_deleted=clean_up_orphans(nex_session_maker, Bindingevidence, Evidence, 'BINDING'))])
-    # #
-    # # do_conversion(make_complex_evidence_starter(nex_session_maker),
-    # #                [Json2Obj(Complexevidence),
-    # #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Complexevidence),
-    # #                                name='convert.from_bud.evidence.complex',
-    # #                                delete_untouched=True,
-    # #                                commit=True,
-    # #                                already_deleted=clean_up_orphans(nex_session_maker, Complexevidence, Evidence, 'COMPLEX'))])
     #
     # do_conversion(make_domain_evidence_starter(bud_session_maker, nex_session_maker),
     #                [Json2Obj(Domainevidence),
@@ -1005,7 +981,6 @@ if __name__ == "__main__":
     nex_session = nex_session_maker()
     locus_ids = [x.id for x in nex_session.query(Locus).all()]
     # ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
-    # complex_ids = [x.id for x in nex_session.query(Complex).all()]
     # go_ids = [x.id for x in nex_session.query(Go).all()]
     # datasetcolumn_ids = [x.id for x in nex_session.query(Datasetcolumn).all()]
     # domain_ids = [x.id for x in nex_session.query(Domain).all()]

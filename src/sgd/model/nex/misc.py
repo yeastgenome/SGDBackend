@@ -216,7 +216,7 @@ class Alias(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['evidences'] = [x.to_json() for x in self.alias_evidences]
+        obj_json['references'] = [x.reference.to_min_json() for x in self.alias_references]
         if self.category in {'PDB identifier', 'UniParc ID', 'UniProt/Swiss-Prot ID', 'UniProt/TrEMBL ID',
             'UniProtKB Subcellular Location', 'Protein version ID', 'EC number', 'InterPro', 'RefSeq protein version ID',
             'RefSeq nucleotide version ID', 'TPA protein version ID', 'DNA version ID', 'NCBI protein GI', 'TPA Accession',
@@ -250,6 +250,37 @@ class Relation(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     def unique_key(self):
         return self.format_name, self.class_type, self.relation_type
+
+class Quality(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    __tablename__ = 'quality'
+
+    id = Column('quality_id', Integer, primary_key=True)
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
+    class_type = Column('class', String)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    value = Column('value', String)
+    link = None
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    source = relationship(Source, uselist=False)
+
+    __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity': "QUALITY"}
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'value', 'date_created', 'created_by']
+    __eq_fks__ = ['source']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+    def unique_key(self):
+        return self.format_name, self.class_type, self.display_name
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['references'] = [x.reference.to_min_json() for x in self.quality_references]
+        return obj_json
 
 class Experimentrelation(Relation):
     __tablename__ = 'experimentrelation'
