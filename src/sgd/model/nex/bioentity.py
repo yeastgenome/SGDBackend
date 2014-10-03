@@ -362,7 +362,7 @@ class Locus(Bioentity):
         for note, evidences in note_to_evidences.iteritems():
             evidence_json = evidences[0].to_json()
             del evidence_json['reference']
-            evidence_json['references'] = [x.reference.to_min_json() for x in sorted(evidences, key=lambda y:y.reference.year) if x.reference_id is not None]
+            evidence_json['references'] = [x.reference.to_min_json() for x in sorted(evidences, key=lambda y:None if y.reference is None else y.reference.year) if x.reference_id is not None]
             historyevidences.append(evidence_json)
 
 

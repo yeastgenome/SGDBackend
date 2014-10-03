@@ -458,6 +458,8 @@ def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_referenc
     return None
 
 # --------------------- History Evidence ---------------------
+note_type_to_preface = {'Nomenclature history': 'Nomenclature', 'Nomenclature conflict': 'Nomenclature',
+                        'Other': 'Other', 'Mapping': 'Mapping'}
 def make_history_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.bud.general import Note
     from src.sgd.model.bud.reference import Reflink
@@ -480,7 +482,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                 note_id_to_reference_ids[note_link.primary_key] = [note_link.reference_id]
 
         for note in bud_session.query(Note).filter(Note.note_type.in_({'Alternative processing', 'Annotation change',
-                                                                       'Mapping', 'Proposed annotation change', 'Proposed sequence change', 'Sequence change', 'Other', 'Repeated'})).all():
+                                                                       'Mapping', 'Proposed annotation change', 'Proposed sequence change', 'Sequence change', 'Other'})).all():
             for note_feat in note.note_feats:
                 bioentity_id = note_feat.primary_key
                 if note_feat.tab_name == 'FEATURE':
@@ -492,7 +494,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                        'locus': id_to_bioentity[bioentity_id],
                                        'category': note.note_type,
                                        'history_type': 'SEQUENCE',
-                                       'note': note.note,
+                                       'note': ('' if note.note_type not in note_type_to_preface else '<strong>' + note_type_to_preface[note.note_type] + ':</strong> ') + note.note,
                                        'date_created': note_feat.date_created,
                                        'created_by': note_feat.created_by
                                        }
@@ -504,7 +506,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                     'locus': id_to_bioentity[bioentity_id],
                                     'category': note.note_type,
                                     'history_type': 'SEQUENCE',
-                                    'note': note.note,
+                                    'note': ('' if note.note_type not in note_type_to_preface else '<strong>' + note_type_to_preface[note.note_type] + ':</strong> ') + note.note,
                                     'date_created': note_feat.date_created,
                                     'created_by': note_feat.created_by
                                     }
@@ -512,7 +514,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                             print 'Bioentity not found: ' + str(bioentity_id)
 
         for note in bud_session.query(Note).filter(Note.note_type.in_({'Nomenclature conflict', 'Nomenclature history',
-                                                                       'Reserved Name Note', 'Other', 'Repeated'})).all():
+                                                                       'Reserved Name Note', 'Other'})).all():
             for note_feat in note.note_feats:
                 bioentity_id = note_feat.primary_key
                 if note_feat.tab_name == 'FEATURE':
@@ -524,7 +526,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                        'locus': id_to_bioentity[bioentity_id],
                                        'category': note.note_type,
                                        'history_type': 'LSP',
-                                       'note': note.note,
+                                       'note': ('' if note.note_type not in note_type_to_preface else '<strong>' + note_type_to_preface[note.note_type] + ':</strong> ') + note.note,
                                        'date_created': note_feat.date_created,
                                        'created_by': note_feat.created_by
                                        }
@@ -536,7 +538,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                     'locus': id_to_bioentity[bioentity_id],
                                     'category': note.note_type,
                                     'history_type': 'LSP',
-                                    'note': note.note,
+                                    'note': ('' if note.note_type not in note_type_to_preface else '<strong>' + note_type_to_preface[note.note_type] + ':</strong> ') + note.note,
                                     'date_created': note_feat.date_created,
                                     'created_by': note_feat.created_by
                                     }
@@ -552,7 +554,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                    'locus': bioentity,
                                    'category': 'Nomenclature',
                                    'history_type': 'LSP',
-                                   'note': 'Standard Name: ' + bioentity.display_name,
+                                   'note': '<strong>Standard Name:</strong> ' + bioentity.display_name,
                                    'date_created': datetime(quality_reference.reference.year, 1, 1),
                                    'created_by': None
                                 }
@@ -565,7 +567,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                    'locus': bioentity,
                                    'category': 'Nomenclature',
                                    'history_type': 'LSP',
-                                   'note': 'Alias: ' + alias.display_name,
+                                   'note': '<strong>Alias:</strong> ' + alias.display_name,
                                    'date_created': datetime(alias_reference.reference.year, 1, 1),
                                    'created_by': None
                                 }
@@ -575,7 +577,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                'locus': bioentity,
                                'category': 'Nomenclature',
                                'history_type': 'LSP',
-                               'note': 'Reserved Name: ' + bioentity.reserved_name.display_name + ' (Reserved from ' + str(bioentity.reserved_name.reservation_date) + ' - ' + str(bioentity.reserved_name.expiration_date) + ')',
+                               'note': '<strong>Reserved Name:</strong> ' + bioentity.reserved_name.display_name + ' (Reserved from ' + str(bioentity.reserved_name.reservation_date) + ' - ' + str(bioentity.reserved_name.expiration_date) + ')',
                                'date_created': bioentity.reserved_name.date_created,
                                'created_by': bioentity.reserved_name.created_by
                             }
@@ -1377,16 +1379,17 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker,
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
         feature_id_to_contig = dict()
-        child_id_to_parent_id = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).all()])
+        child_id_to_parent_id = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).filter_by(relationship_type='part of').all()])
         id_to_feature = dict([(x.id, x) for x in bud_session.query(Feature).all()])
         for bioentity_id in id_to_bioentity.keys():
             ancestor_id = bioentity_id
             while ancestor_id in child_id_to_parent_id:
                 ancestor_id = child_id_to_parent_id[ancestor_id]
 
-            contig_key = ('S288C_Chromosome_' + id_to_feature[ancestor_id].name, 'CONTIG')
-            if contig_key in key_to_contig:
-                feature_id_to_contig[bioentity_id] = key_to_contig[contig_key]
+            if ancestor_id in id_to_feature:
+                contig_key = ('S288C_Chromosome_' + id_to_feature[ancestor_id].name, 'CONTIG')
+                if contig_key in key_to_contig:
+                    feature_id_to_contig[bioentity_id] = key_to_contig[contig_key]
 
         for bud_location in bud_session.query(Feat_Location).all():
             bioentity_id = bud_location.feature_id
@@ -1401,6 +1404,30 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker,
                         'start': bud_location.min_coord,
                         'end': bud_location.max_coord,
                         'strand': bud_location.strand}
+
+        #Multigene Locii
+        for feature in bud_session.query(Feature).filter_by(type='multigene locus').all():
+            subfeatures = bud_session.query(FeatRel).filter_by(parent_id=feature.id).all()
+            locations = bud_session.query(Feat_Location).filter(Feat_Location.feature_id.in_([x.child_id for x in subfeatures])).filter_by(is_current='Y')
+            min_coord = min([x.min_coord for x in locations])
+            max_coord = min([x.max_coord for x in locations])
+            contig = feature_id_to_contig[subfeatures[0].id]
+            strand = locations[0].strand
+            if strand == '-':
+                residues = reverse_complement(contig.residues[min_coord-1:max_coord])
+            else:
+                residues = contig.residues[min_coord-1:max_coord]
+
+            yield {'source': key_to_source['SGD'],
+                        'strain': key_to_strain['S288C'],
+                        'locus': id_to_bioentity[feature.id],
+                        'dna_type': 'GENOMIC',
+                        'residues': residues,
+                        'contig': feature_id_to_contig[feature.id],
+                        'start': min_coord,
+                        'end': max_coord,
+                        'strand': strand}
+
 
         for coding_seq_file in coding_sequence_filenames:
             f = open(coding_seq_file, 'r')
@@ -1474,7 +1501,7 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in id_to_bioentity.values()])
         key_to_contig = dict([(x.unique_key(), x) for x in nex_session.query(Contig).all()])
-        feature_id_to_parent = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).filter_by(relationship_type='pair').all()])
+        feature_id_to_parent = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).filter_by(relationship_type='part of').all()])
         bioentity_strain_contig_id_to_evidence = dict([((x.locus_id, x.strain_id, x.contig_id), x) for x in nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').all()])
         bioentity_strain_id_to_evidence = dict([((x.locus_id, x.strain_id), x) for x in nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter_by(strain_id=1).all()])
         for bud_location in bud_session.query(Feat_Location).filter(Feat_Location.is_current == 'Y').options(joinedload('sequence'), joinedload('feature')).all():
@@ -1523,6 +1550,38 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
                                 'seq_version': bud_location.sequence.seq_version,
                                 'coord_version': bud_location.coord_version,
                                 'bioentity': bioentity
+                            }
+
+        #Five prime UTR introns:
+        for feat_rel in bud_session.query(FeatRel).filter_by(relationship_type='adjacent_to').all():
+            feat_location = bud_session.query(Feat_Location).filter_by(feature_id=feat_rel.child_id).filter_by(is_current='Y').first()
+            evidence = bioentity_strain_id_to_evidence[(feat_rel.parent_id, 1)]
+            start = feat_location.min_coord
+            end = feat_location.max_coord
+            bioentity = id_to_bioentity[feat_rel.parent_id]
+            if bud_location.strand != '-':
+                            yield {
+                                'evidence_id': evidence.id,
+                                'class_type': feat_location.feature.type,
+                                'display_name': feat_location.feature.type,
+                                'relative_start': start - evidence.start + 1,
+                                'relative_end': end - evidence.start + 1,
+                                'chromosomal_start': start,
+                                'chromosomal_end': end,
+                                'seq_version': feat_location.sequence.seq_version,
+                                'coord_version': feat_location.coord_version
+                            }
+            else:
+                            yield {
+                                'evidence_id': evidence.id,
+                                'class_type': feat_location.feature.type,
+                                'display_name': feat_location.feature.type,
+                                'relative_start': evidence.end - end + 1,
+                                'relative_end': evidence.end - start + 1,
+                                'chromosomal_start': end,
+                                'chromosomal_end': start,
+                                'seq_version': feat_location.sequence.seq_version,
+                                'coord_version': feat_location.coord_version
                             }
 
         # #Other strains
@@ -1576,7 +1635,7 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
         #                     else:
         #                         print 'Bioentity not found: ' + str(bioentity_key)
         #                         yield None
-            f.close()
+        #    f.close()
 
         nex_session.close()
         bud_session.close()

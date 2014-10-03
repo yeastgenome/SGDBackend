@@ -180,7 +180,7 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'protein_tab': 1,
                     'wiki_tab': 0
                 }
-            elif locus.locus_type in {'ARS', 'centromere', 'multigene_locus', 'long_terminal_repeat', 'telomere', 'mating_locus', 'gene_cassette', 'retrotransposon'}:
+            elif locus.locus_type in {'ARS', 'centromere', 'multigene locus', 'long_terminal_repeat', 'telomere', 'mating_locus', 'gene_cassette', 'retrotransposon'}:
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
