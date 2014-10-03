@@ -105,10 +105,6 @@ def make_reference_starter(bud_session_maker, nex_session_maker):
             if old_reference.year is not None:
                 year = int(old_reference.year)
 
-            date_revised = None
-            if old_reference.date_revised is not None:
-                date_revised = old_reference.date_revised
-
             source_key = create_format_name(old_reference.source)
             source = None
             if source_key in key_to_source:
@@ -130,7 +126,7 @@ def make_reference_starter(bud_session_maker, nex_session_maker):
                    'citation': citation,
                    'year': year,
                    'date_published': old_reference.date_published,
-                   'date_revised': date_revised,
+                   'date_revised': old_reference.date_revised,
                    'issue': old_reference.issue,
                    'page': old_reference.page,
                    'volume': old_reference.volume,

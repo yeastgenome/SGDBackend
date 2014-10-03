@@ -6,7 +6,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
-from src.sgd.model.nex.misc import Relation, Strain, Url, Alias, Tag, Source
+from src.sgd.model.nex.misc import Source, Relation, Strain, Url, Alias, Tag
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.bioentity import Locus
 from decimal import Decimal

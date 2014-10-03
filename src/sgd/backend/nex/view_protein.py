@@ -1,6 +1,7 @@
 from src.sgd.model.nex.bioentity import Locus
 from src.sgd.model.nex.bioitem import Domain
-from src.sgd.model.nex.evidence import Domainevidence, Phosphorylationevidence, Proteinexperimentevidence
+from src.sgd.model.nex.evidence import Domainevidence, Phosphorylationevidence, Proteinexperimentevidence, \
+    Bioentityevidence
 from src.sgd.backend.nex import DBSession, query_limit
 from sqlalchemy.orm import joinedload
 import json

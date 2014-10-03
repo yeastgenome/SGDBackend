@@ -3,7 +3,6 @@ import sys
 
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
 from src.sgd.convert import link_gene_names, link_strain_names
-from src.sgd.model.nex.misc import Source
 
 __author__ = 'kpaskov'
 
@@ -139,6 +138,7 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
 
 def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioentity import Locus
+    from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.reference import Reference
     from src.sgd.model.nex.bioentity import Bioentity
     from src.sgd.model.nex.bioconcept import Go
@@ -191,7 +191,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                     'category': 'GO'
                 }
             else:
-                print 'Bioentity not found: ' + str(bioentity_key)
+                #print 'Bioentity not found: ' + str(bioentity_key)
                 yield None
 
         #Regulation
@@ -208,7 +208,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                     'category': 'REGULATION'
                 }
             else:
-                print 'Bioentity not found: ' + str(bioentity_key)
+                #print 'Bioentity not found: ' + str(bioentity_key)
                 yield None
 
 

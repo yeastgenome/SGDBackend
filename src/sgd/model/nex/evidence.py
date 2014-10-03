@@ -15,7 +15,6 @@ from bioitem import Contig
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateByJsonMixin
 import json
-from src.sgd.model.nex.misc import Source
 
 __author__ = 'kpaskov'
 

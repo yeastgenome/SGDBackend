@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model.nex.bioentity import Locus
 from src.sgd.model.nex.evidence import Evidence
-from src.sgd.model.nex.misc import Strain, Experiment, Source
+from src.sgd.model.nex.misc import Strain, Source, Experiment
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex import UpdateByJsonMixin
 import json
