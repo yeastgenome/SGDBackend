@@ -1386,10 +1386,10 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker,
             while ancestor_id in child_id_to_parent_id:
                 ancestor_id = child_id_to_parent_id[ancestor_id]
 
-            if ancestor_id in id_to_feature:
-                contig_key = ('S288C_Chromosome_' + id_to_feature[ancestor_id].name, 'CONTIG')
-                if contig_key in key_to_contig:
-                    feature_id_to_contig[bioentity_id] = key_to_contig[contig_key]
+                if ancestor_id in id_to_feature:
+                    contig_key = ('S288C_Chromosome_' + id_to_feature[ancestor_id].name, 'CONTIG')
+                    if contig_key in key_to_contig:
+                        feature_id_to_contig[bioentity_id] = key_to_contig[contig_key]
 
         for bud_location in bud_session.query(Feat_Location).all():
             bioentity_id = bud_location.feature_id
@@ -1407,11 +1407,11 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker,
 
         #Multigene Locii
         for feature in bud_session.query(Feature).filter_by(type='multigene locus').all():
-            subfeatures = bud_session.query(FeatRel).filter_by(parent_id=feature.id).all()
-            locations = bud_session.query(Feat_Location).filter(Feat_Location.feature_id.in_([x.child_id for x in subfeatures])).filter_by(is_current='Y')
+            subfeature_relations = bud_session.query(FeatRel).filter_by(parent_id=feature.id).all()
+            locations = bud_session.query(Feat_Location).filter(Feat_Location.feature_id.in_([x.child_id for x in subfeature_relations])).filter_by(is_current='Y')
             min_coord = min([x.min_coord for x in locations])
-            max_coord = min([x.max_coord for x in locations])
-            contig = feature_id_to_contig[subfeatures[0].id]
+            max_coord = max([x.max_coord for x in locations])
+            contig = feature_id_to_contig[subfeature_relations[0].child_id]
             strand = locations[0].strand
             if strand == '-':
                 residues = reverse_complement(contig.residues[min_coord-1:max_coord])
@@ -1423,7 +1423,7 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker,
                         'locus': id_to_bioentity[feature.id],
                         'dna_type': 'GENOMIC',
                         'residues': residues,
-                        'contig': feature_id_to_contig[feature.id],
+                        'contig': contig,
                         'start': min_coord,
                         'end': max_coord,
                         'strand': strand}

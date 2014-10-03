@@ -156,7 +156,7 @@ class Locus(Bioentity):
 
         #Organize alias references
         for alias in self.aliases:
-            if alias.category == 'Uniform':
+            if alias.category == 'Alias':
                 for alias_reference in sorted(alias.alias_references, key=lambda x: x.reference.year, reverse=True):
                     if alias_reference.reference_id not in reference_ids:
                         references.append(alias_reference.reference)

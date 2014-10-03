@@ -281,9 +281,24 @@ def make_paragraph_reference_starter(nex_session_maker):
     def paragraph_reference_starter():
         nex_session = nex_session_maker()
 
+        references = nex_session.query(Reference).all()
         key_to_paragraph = dict([(x.unique_key(), x) for x in nex_session.query(Paragraph).all()])
-        pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
-        sgdid_to_reference = dict([(x.pubmed_id, x) for x in pubmed_id_to_reference.values()])
+        pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in references])
+        sgdid_to_reference = dict([(x.sgdid, x) for x in references])
+
+        #LSP
+        for paragraph in key_to_paragraph.values():
+            if paragraph.category == 'LSP':
+                sgdids = [x.split('>')[0] for x in paragraph.text.split('<reference:')]
+                for sgdid in sgdids:
+                    if sgdid in sgdid_to_reference:
+                        reference = sgdid_to_reference[sgdid]
+                        yield {
+                                'paragraph_id': paragraph.id,
+                                'reference_id': reference.id
+                            }
+                    else:
+                        print 'Reference not found: ' + sgdid
 
         #Regulation
         for row in make_file_starter('src/sgd/convert/data/regulationSummaries')():
@@ -311,26 +326,7 @@ def make_paragraph_reference_starter(nex_session_maker):
                     print 'Paragraph or reference not found: ' + str(paragraph_key) + ' ' + str(pubmed_id)
                     yield None
 
-        #LSP
-        for paragraph in key_to_paragraph.values():
-            if paragraph.category == 'LSP':
-                text = paragraph.text
-                # Find references
-                index = 0
-                while text.find('<reference:', index) > -1:
-                    print index
-                    start_index = text.find('<reference:')
-                    end_index = text.find('>', start_index)
-                    sgdid = text[start_index + 11:end_index]
-                    if sgdid in sgdid_to_reference:
-                        reference = sgdid_to_reference[sgdid]
-                        yield {
-                                'paragraph_id': paragraph.id,
-                                'reference_id': reference.id
-                            }
-                    else:
-                        print 'Reference not found: ' + sgdid
-                    index = end_index+1
+
 
         nex_session.close()
     return paragraph_reference_starter
