@@ -3,7 +3,7 @@ from sqlalchemy.orm import joinedload
 
 from src.sgd.convert import is_number
 from src.sgd.convert.transformers import make_db_starter
-from src.sgd.model.nex.bioentity import Locus, Complex
+from src.sgd.model.nex.bioentity import Locus
 from src.sgd.model.nex.bioconcept import Bioconcept, Go, Observable
 from src.sgd.model.nex.bioitem import Bioitem, Domain, Dataset, Datasetcolumn
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence, Regulationevidence, Goevidence, \
