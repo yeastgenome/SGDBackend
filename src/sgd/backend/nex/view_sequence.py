@@ -75,7 +75,7 @@ def make_neighbor_details(locus_id=None):
         midpoint = int(round((evidence.start + (evidence.end-evidence.start)/2)/1000))*1000
         start = max(1, midpoint - 5000)
         end = min(len(evidence.contig.residues), start + 10000)
-        neighbor_evidences = DBSession.query(DNAsequenceevidence).filter_by(contig_id=evidence.contig_id).filter(DNAsequenceevidence.end >= start).filter(DNAsequenceevidence.start <= end).options(joinedload('locus'), joinedload('strain')).all()
+        neighbor_evidences = DBSession.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter_by(contig_id=evidence.contig_id).filter(DNAsequenceevidence.end >= start).filter(DNAsequenceevidence.start <= end).options(joinedload('locus'), joinedload('strain')).all()
         neighbors[evidence.strain.format_name] = {'neighbors': [x.to_json() for x in sorted(neighbor_evidences, key=lambda x: x.start if x.strand == '+' else x.end) if x.locus.bioent_status == 'Active' or x.locus_id == locus_id], 'start': start, 'end': end}
 
     return neighbors
