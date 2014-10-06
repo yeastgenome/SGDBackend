@@ -21,31 +21,31 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud import sequence_files, protein_sequence_files
     from src.sgd.model.nex.misc import Strain
 
-    do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
-                      [Json2Obj(DNAsequenceevidence),
-                       Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1), name='convert.from_bud.evidence.reference_dnasequence', delete_untouched=True, commit_interval=1000)])
+    # do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
+    #                   [Json2Obj(DNAsequenceevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1), name='convert.from_bud.evidence.reference_dnasequence', delete_untouched=True, commit_interval=1000)])
 
     do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(DNAsequencetag),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=True, commit_interval=1000)])
 
-    nex_session = nex_session_maker()
-    strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
-    nex_session.close()
-
-    for sequence_filename, coding_sequence_filename, strain_key in sequence_files:
-        do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
-                      [Json2Obj(DNAsequenceevidence),
-                       Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000)])
-    clean_up_orphans(nex_session_maker, DNAsequenceevidence, Evidence, 'DNASEQUENCE')
-
-
-    protparam_data = dict([(row[0], row) for row in make_file_starter('src/sgd/convert/data/ProtParam.txt')()])
-    for sequence_filename, strain_key in protein_sequence_files:
-        do_conversion(make_protein_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, protparam_data),
-                      [Json2Obj(Proteinsequenceevidence),
-                       Obj2NexDB(nex_session_maker, lambda x: x.query(Proteinsequenceevidence).filter(Proteinsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.proteinsequence', delete_untouched=True, commit_interval=1000)])
-    clean_up_orphans(nex_session_maker, Proteinsequenceevidence, Evidence, 'PROTEINSEQUENCE')
+    # nex_session = nex_session_maker()
+    # strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
+    # nex_session.close()
+    #
+    # for sequence_filename, coding_sequence_filename, strain_key in sequence_files:
+    #     do_conversion(make_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename),
+    #                   [Json2Obj(DNAsequenceevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.dnasequence', delete_untouched=True, commit_interval=1000)])
+    # clean_up_orphans(nex_session_maker, DNAsequenceevidence, Evidence, 'DNASEQUENCE')
+    #
+    #
+    # protparam_data = dict([(row[0], row) for row in make_file_starter('src/sgd/convert/data/ProtParam.txt')()])
+    # for sequence_filename, strain_key in protein_sequence_files:
+    #     do_conversion(make_protein_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, protparam_data),
+    #                   [Json2Obj(Proteinsequenceevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(Proteinsequenceevidence).filter(Proteinsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.proteinsequence', delete_untouched=True, commit_interval=1000)])
+    # clean_up_orphans(nex_session_maker, Proteinsequenceevidence, Evidence, 'PROTEINSEQUENCE')
 
     # ------------------------------------------ Perf ------------------------------------------
     from src.sgd.model.perf.bioentity_data import BioentityDetails
@@ -58,24 +58,24 @@ if __name__ == "__main__":
     contig_ids = [x.id for x in nex_session.query(Contig).all()]
     nex_session.close()
 
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000)])
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000)])
 
     do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
                    [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
 
-    do_conversion(make_contig_data_backend_starter(nex_backend, 'sequence_details', contig_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'SEQUENCE', contig_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
-
-    # ------------------------------------------ Perf2 ------------------------------------------
-    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
-    perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
-
-    do_conversion(make_locus_data_backend_starter(perf_backend, 'neighbor_sequence_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000)])
-
-    do_conversion(make_locus_data_backend_starter(perf_backend, 'sequence_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
-
-    do_conversion(make_contig_data_backend_starter(perf_backend, 'sequence_details', contig_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'SEQUENCE', contig_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
+    # do_conversion(make_contig_data_backend_starter(nex_backend, 'sequence_details', contig_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'SEQUENCE', contig_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
+    #
+    # # ------------------------------------------ Perf2 ------------------------------------------
+    # perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    # perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
+    #
+    # do_conversion(make_locus_data_backend_starter(perf_backend, 'neighbor_sequence_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000)])
+    #
+    # do_conversion(make_locus_data_backend_starter(perf_backend, 'sequence_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
+    #
+    # do_conversion(make_contig_data_backend_starter(perf_backend, 'sequence_details', contig_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'SEQUENCE', contig_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
