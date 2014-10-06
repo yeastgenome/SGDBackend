@@ -88,11 +88,11 @@ if __name__ == "__main__":
                                   commit_interval=1000,
                                   already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY'))])
 
-    do_conversion(make_pathway_evidence_starter(bud_session_maker, nex_session_maker),
-                   [Json2Obj(Pathwayevidence),
-                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Pathwayevidence),
-                                   name='convert.from_bud.evidence.pathway',
-                                   delete_untouched=True,
-                                   commit_interval=1000,
-                                   already_deleted=clean_up_orphans(nex_session_maker, Pathwayevidence, Evidence, 'PATHWAY'))])
+    # do_conversion(make_pathway_evidence_starter(bud_session_maker, nex_session_maker),
+    #                [Json2Obj(Pathwayevidence),
+    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Pathwayevidence),
+    #                                name='convert.from_bud.evidence.pathway',
+    #                                delete_untouched=True,
+    #                                commit_interval=1000,
+    #                                already_deleted=clean_up_orphans(nex_session_maker, Pathwayevidence, Evidence, 'PATHWAY'))])
 

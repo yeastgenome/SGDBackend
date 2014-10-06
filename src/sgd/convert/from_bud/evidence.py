@@ -721,14 +721,14 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
 
         for bioentity in id_to_bioentity.values():
             for quality in bioentity.qualities:
-                if quality.display_name == 'Standard Name Assigned':
+                if quality.display_name == 'Gene Name':
                     for quality_reference in quality.quality_references:
                         yield {'source': key_to_source['SGD'],
                                    'reference': quality_reference.reference,
                                    'locus': bioentity,
                                    'category': 'Nomenclature',
                                    'history_type': 'LSP',
-                                   'note': '<strong>Standard Name:</strong> ' + bioentity.display_name,
+                                   'note': '<strong>Standard Name Assigned:</strong> ' + bioentity.display_name,
                                    'date_created': datetime(quality_reference.reference.year, 1, 1),
                                    'created_by': None
                                 }
