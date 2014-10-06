@@ -69,11 +69,10 @@ if __name__ == "__main__":
     from src.sgd.model.perf.bioentity_data import BioentityGraph
     from src.sgd.model.perf.bioconcept_data import BioconceptGraph
 
-    from src.sgd.model.nex.bioentity import Locus, Complex
+    from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.bioconcept import Go, Observable
     nex_session = nex_session_maker()
     locus_ids = [x.id for x in nex_session.query(Locus).all()]
-    complex_ids = [x.id for x in nex_session.query(Complex).all()]
     go_ids = [x.id for x in nex_session.query(Go).all()]
     observable_ids = [x.id for x in nex_session.query(Observable).all()]
     nex_session.close()

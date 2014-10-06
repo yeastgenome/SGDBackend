@@ -165,6 +165,8 @@ def make_graph(bioent_id, interaction_cls, interaction_type, bioentity_type, nod
         bioent_count = len(bioent_ids_in_use)
         interactor_count = len(interactor_ids_in_use)
 
+    interactions_in_use = [x for x in all_relevant_interactions if x.bioentity_id in bioent_ids_in_use and x.interactor_id in interactor_ids_in_use]
+
     if bioent_count > 0 and interactor_count > 0:
         edges = [create_interaction_edge(interaction, interaction_type) for interaction in interactions_in_use]
 
