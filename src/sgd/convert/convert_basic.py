@@ -76,10 +76,10 @@ if __name__ == "__main__":
     # from src.sgd.model.nex.misc import Tag
     # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty
     # from src.sgd.convert.from_bud.bioentity import make_locus_starter
-    # from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
-    #     make_ecnumber_starter, make_observable_starter
-    # from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
-    #     make_orphan_starter, make_dataset_starter, make_datasetcolumn_starter, make_tag_starter, make_reservedname_starter, make_pathway_starter
+    from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
+        make_ecnumber_starter, make_observable_starter
+    from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
+        make_orphan_starter, make_dataset_starter, make_datasetcolumn_starter, make_tag_starter, make_reservedname_starter, make_pathway_starter
     # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # # do_conversion(make_tag_starter(nex_session_maker),
@@ -376,13 +376,13 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Strainparagraph, Paragraph, 'STRAIN'))])
-
-    do_conversion(make_paragraph_reference_starter(nex_session_maker),
-                  [Json2Obj(ParagraphReference),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(ParagraphReference),
-                             name='convert.from_bud.paragraph_reference',
-                             delete_untouched=True,
-                             commit=True)])
+    #
+    # do_conversion(make_paragraph_reference_starter(nex_session_maker),
+    #               [Json2Obj(ParagraphReference),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(ParagraphReference),
+    #                          name='convert.from_bud.paragraph_reference',
+    #                          delete_untouched=True,
+    #                          commit=True)])
 
     do_conversion(make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Bioentityparagraph),

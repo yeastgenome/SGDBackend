@@ -97,6 +97,11 @@ class Bioentityrelation(Relation):
         self.format_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
         self.display_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['child'] = self.child.to_min_json()
+        return obj_json
+
 class Bioentityquality(Quality):
     __tablename__ = 'bioentityquality'
 
