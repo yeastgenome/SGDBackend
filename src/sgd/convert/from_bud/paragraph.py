@@ -72,7 +72,7 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
             except:
                 print 'Bad sgdid ' + block[0:end_index]
 
-            new_bioentity_text += block[final_end_index+1:]
+            new_bioentity_text += block[final_end_index+10:]
         else:
             new_bioentity_text += block
 
@@ -93,7 +93,7 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
             except:
                 print 'Bad goid ' + block[0:end_index]
 
-            new_go_text += block[final_end_index+1:]
+            new_go_text += block[final_end_index+5:]
         else:
             new_go_text += block
 
