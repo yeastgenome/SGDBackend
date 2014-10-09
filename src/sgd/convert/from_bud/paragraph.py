@@ -55,36 +55,9 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
     for reference in locus.get_ordered_references():
         reference_id_to_index[reference.id] = len(reference_id_to_index) + 1
 
-    # Replace references
-    new_reference_text = ''
-    for block in text.split('('):
-        end_index = block.find(')')
-        if end_index >= 0:
-            reference_text = ''
-            references = []
-            reference_blocks = block[:end_index].split('<reference:')
-            for reference_block in reference_blocks:
-                reference_end_index = reference_block.find('>')
-                if reference_end_index >= 0:
-                    sgdid = reference_block[0:reference_end_index]
-                    if sgdid in sgdid_to_reference:
-                        if not sgdid_to_reference[sgdid].id in reference_id_to_index:
-                            reference_id_to_index[sgdid_to_reference[sgdid].id] = '?'
-                        references.append(sgdid_to_reference[sgdid])
-                    else:
-                        print 'Reference not found: ' + sgdid
-                    rest_of_reference_block = reference_block[reference_end_index+1:]
-                    rest_of_reference_block.replace(',', '').replace('and', '').strip()
-                    reference_text += rest_of_reference_block
-
-            replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], reference_text) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
-            new_reference_text += replacement + block[end_index+1:]
-        else:
-            new_reference_text += ('' if new_reference_text == '' else '(') + block
-
     # Replace bioentities
     new_bioentity_text = ''
-    for block in new_reference_text.split('<feature:'):
+    for block in text.split('<feature:'):
         end_index = block.find('>')
         final_end_index = block.find('</feature>')
         if final_end_index > end_index >= 0:
@@ -124,7 +97,34 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
         else:
             new_go_text += block
 
-    return new_go_text, text
+    # Replace references
+    new_reference_text = ''
+    for block in new_bioentity_text.split('('):
+        end_index = block.find(')')
+        if end_index >= 0:
+            reference_text = ''
+            references = []
+            reference_blocks = block[:end_index].split('<reference:')
+            for reference_block in reference_blocks:
+                reference_end_index = reference_block.find('>')
+                if reference_end_index >= 0:
+                    sgdid = reference_block[0:reference_end_index]
+                    if sgdid in sgdid_to_reference:
+                        if not sgdid_to_reference[sgdid].id in reference_id_to_index:
+                            reference_id_to_index[sgdid_to_reference[sgdid].id] = '?'
+                        references.append(sgdid_to_reference[sgdid])
+                    else:
+                        print 'Reference not found: ' + sgdid
+                    rest_of_reference_block = reference_block[reference_end_index+1:]
+                    rest_of_reference_block.replace(',', '').replace('and', '').strip()
+                    reference_text += rest_of_reference_block
+
+            replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], reference_text) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
+            new_reference_text += replacement + block[end_index+1:]
+        else:
+            new_reference_text += ('' if new_reference_text == '' else '(') + block
+
+    return new_reference_text, text
 
 def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioentity import Locus
