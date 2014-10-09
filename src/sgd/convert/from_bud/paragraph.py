@@ -95,7 +95,7 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
                     replacement = '<a href="' + bioentity.link + '">' + block[end_index+1:final_end_index] + '</a>'
                     new_bioentity_text += replacement
                 else:
-                    print 'Feature not found: ' + str(sgdid)
+                    print 'Feature not found: ' + block[0:end_index]
             except:
                 print 'Bad sgdid ' + block[0:end_index]
 
@@ -116,7 +116,7 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
                     replacement = '<a href="' + go.link + '">' + block[end_index+1:final_end_index] + '</a>'
                     new_go_text += replacement
                 else:
-                    print 'Go not found: ' + str(goid)
+                    print 'Go not found: ' + block[0:end_index]
             except:
                 print 'Bad goid ' + block[0:end_index]
 
