@@ -51,90 +51,80 @@ def create_i(reference, reference_index, extra_text):
     return new_i
 
 def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
-    html_text = text
     reference_id_to_index = {}
     for reference in locus.get_ordered_references():
         reference_id_to_index[reference.id] = len(reference_id_to_index) + 1
 
-    # Wrap reference lists in html
-    current_index = 0
-    while html_text.find('(', current_index) > -1:
-        start_index = html_text.find('(', current_index)
-        end_index = html_text.find(')', start_index)
-        references_removed = html_text[start_index+1:end_index]
-        references = []
-        while references_removed.find('<reference:') > -1:
-            reference_start = references_removed.find('<reference:')
-            reference_end = references_removed.find('>', reference_start)
-            sgdid = references_removed[reference_start + 11:reference_end]
-            if sgdid in sgdid_to_reference:
-                if not sgdid_to_reference[sgdid].id in reference_id_to_index:
-                    reference_id_to_index[sgdid_to_reference[sgdid].id] = '?'
-                references.append(sgdid_to_reference[sgdid])
-            else:
-                print 'Reference not found: ' + sgdid
-            references_removed = references_removed[0:reference_start] + references_removed[reference_end+1:]
-        references_removed = references_removed.replace(',', '').replace('and', '').strip()
+    # Replace references
+    new_reference_text = ''
+    for block in text.split('('):
+        end_index = block.find(')')
+        if end_index >= 0:
+            reference_text = ''
+            references = []
+            reference_blocks = block[:end_index].split('<reference:')
+            for reference_block in reference_blocks:
+                reference_end_index = reference_block.find('>')
+                if reference_end_index >= 0:
+                    sgdid = reference_block[0:reference_end_index]
+                    if sgdid in sgdid_to_reference:
+                        if not sgdid_to_reference[sgdid].id in reference_id_to_index:
+                            reference_id_to_index[sgdid_to_reference[sgdid].id] = '?'
+                        references.append(sgdid_to_reference[sgdid])
+                    else:
+                        print 'Reference not found: ' + sgdid
+                    rest_of_reference_block = reference_block[reference_end_index+1:]
+                    rest_of_reference_block.replace(',', '').replace('and', '').strip()
+                    reference_text += rest_of_reference_block
 
-        if len(references) > 0:
-            replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], references_removed) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
-            html_text = html_text[:start_index] + replacement + html_text[end_index+1:]
-            end_index = start_index + len(replacement)
-        current_index = end_index
+            replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], reference_text) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
+            new_reference_text += replacement + block[end_index+1:]
+        else:
+            new_reference_text += ('' if new_reference_text == '' else '(') + block
 
     # Replace bioentities
-    while text.find('<feature:') > -1:
-        start_index = text.find('<feature:')
-        end_index = text.find('>', start_index)
-        final_end_index = text.find('</feature>', start_index)
-        replacement = text[end_index+1:final_end_index]
-        text = text.replace(text[start_index:final_end_index+10], replacement)
+    new_bioentity_text = ''
+    for block in new_reference_text.split('<feature:'):
+        end_index = block.find('>')
+        final_end_index = block.find('</feature>')
+        if final_end_index > end_index >= 0:
+            try:
+                sgdid = 'S' + str(int(block[0:end_index])).zfill(9)
+                if sgdid in sgdid_to_bioentity:
+                    bioentity = sgdid_to_bioentity[sgdid]
+                    replacement = '<a href="' + bioentity.link + '">' + block[end_index+1:final_end_index] + '</a>'
+                    new_bioentity_text += replacement
+                else:
+                    print 'Feature not found: ' + str(sgdid)
+            except:
+                print 'Bad sgdid ' + block[0:end_index]
 
-    while html_text.find('<feature:') > -1:
-        start_index = html_text.find('<feature:')
-        end_index = html_text.find('>', start_index)
-        final_end_index = html_text.find('</feature>', start_index)
-        sgdid = None
-        replacement = ''
-        try:
-            sgdid = 'S' + str(int(html_text[start_index + 10:end_index])).zfill(9)
-        except:
-            pass
-
-        if sgdid in sgdid_to_bioentity:
-            bioentity = sgdid_to_bioentity[sgdid]
-            replacement = '<a href="' + bioentity.link + '">' + html_text[end_index+1:final_end_index] + '</a>'
+            new_bioentity_text += block[final_end_index+1:]
         else:
-            print 'Feature not found: ' + html_text[start_index + 10:end_index] + ' in ' + label
-        html_text = html_text.replace(html_text[start_index:final_end_index+10], replacement)
+            new_bioentity_text += block
 
     # Replace go
-    while text.find('<go:') > -1:
-        start_index = text.find('<go:')
-        end_index = text.find('>', start_index)
-        final_end_index = text.find('</go>', start_index)
-        replacement = text[end_index+1:final_end_index]
-        text = text.replace(text[start_index:final_end_index+4], replacement)
+    new_go_text = ''
+    for block in new_bioentity_text.split('<go:'):
+        end_index = block.find('>')
+        final_end_index = block.find('</go>')
+        if final_end_index > end_index >= 0:
+            try:
+                goid = int(block[0:end_index])
+                if goid in goid_to_go:
+                    go = goid_to_go[goid]
+                    replacement = '<a href="' + go.link + '">' + block[end_index+1:final_end_index] + '</a>'
+                    new_go_text += replacement
+                else:
+                    print 'Go not found: ' + str(goid)
+            except:
+                print 'Bad goid ' + block[0:end_index]
 
-    while html_text.find('<go:') > -1:
-        start_index = html_text.find('<go:')
-        end_index = html_text.find('>', start_index)
-        final_end_index = html_text.find('</go>', start_index)
-        goid = None
-        replacement = ''
-        try:
-            goid = int(html_text[start_index + 4:end_index])
-        except:
-            print 'Goid not an integer: ' + html_text[start_index + 4:end_index] + ' in ' + label
-
-        if goid in goid_to_go:
-            go = goid_to_go[goid]
-            replacement = '<a href="' + go.link + '">' + html_text[end_index+1:final_end_index] + '</a>'
+            new_go_text += block[final_end_index+1:]
         else:
-            print 'Go not found: ' + str(goid) + ' in ' + label
-        html_text = html_text.replace(html_text[start_index:final_end_index+5], replacement)
+            new_go_text += block
 
-    return html_text, text
+    return new_go_text, text
 
 def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.bioentity import Locus

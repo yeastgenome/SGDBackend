@@ -121,7 +121,7 @@ def make_graph(bioent_id):
     all_coeffs = sorted(coeff_to_interactions.keys(), reverse=True)
     ok_interactions = set()
     cutoff_index = 0
-    while len(ok_interactions) < 200 and cutoff_index < len(all_coeffs):
+    while len(ok_interactions) < 100 and cutoff_index < len(all_coeffs):
         cutoff = all_coeffs[cutoff_index]
         ok_nodes = set([x for x, y in neighbor_id_to_coeff.iteritems() if y >= cutoff])
         ok_interactions = set()
