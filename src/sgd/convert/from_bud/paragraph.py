@@ -56,9 +56,9 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
         reference_id_to_index[reference.id] = len(reference_id_to_index) + 1
 
     # Replace bioentities
-    new_bioentity_text = ''
     feature_blocks = text.split('<feature:')
     if len(feature_blocks) > 1:
+        new_bioentity_text = feature_blocks[0]
         for block in feature_blocks[1:]:
             end_index = block.find('>')
             final_end_index = block.find('</feature>')
@@ -81,9 +81,9 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
         new_bioentity_text = text
 
     # Replace go
-    new_go_text = ''
     go_blocks = new_bioentity_text.split('<go:')
     if len(go_blocks) > 1:
+        new_go_text = go_blocks[0]
         for block in go_blocks[1:]:
             end_index = block.find('>')
             final_end_index = block.find('</go>')
