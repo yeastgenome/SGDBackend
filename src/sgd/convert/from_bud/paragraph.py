@@ -62,15 +62,15 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
         final_end_index = block.find('</feature>')
         if final_end_index > end_index >= 0:
             try:
-                sgdid = 'S' + str(int(block[0:end_index])).zfill(9)
+                sgdid = 'S' + block[1:end_index].zfill(9)
                 if sgdid in sgdid_to_bioentity:
                     bioentity = sgdid_to_bioentity[sgdid]
                     replacement = '<a href="' + bioentity.link + '">' + block[end_index+1:final_end_index] + '</a>'
                     new_bioentity_text += replacement
                 else:
-                    print 'Feature not found: ' + block[0:end_index]
+                    print 'Feature not found in ' + label + ' : ' + block[0:end_index]
             except:
-                print 'Bad sgdid ' + block[0:end_index]
+                print 'Bad sgdid in ' + label + ' : ' + block[0:end_index]
 
             new_bioentity_text += block[final_end_index+10:]
         else:
@@ -89,9 +89,9 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
                     replacement = '<a href="' + go.link + '">' + block[end_index+1:final_end_index] + '</a>'
                     new_go_text += replacement
                 else:
-                    print 'Go not found: ' + block[0:end_index]
+                    print 'Go not found in ' + label + ' : ' + block[0:end_index]
             except:
-                print 'Bad goid ' + block[0:end_index]
+                print 'Bad goid in ' + label + ' : ' + block[0:end_index]
 
             new_go_text += block[final_end_index+5:]
         else:
@@ -114,7 +114,7 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
                             reference_id_to_index[sgdid_to_reference[sgdid].id] = '?'
                         references.append(sgdid_to_reference[sgdid])
                     else:
-                        print 'Reference not found: ' + sgdid
+                        print 'Reference not found in ' + label + ' : ' + sgdid
                     rest_of_reference_block = reference_block[reference_end_index+1:]
                     rest_of_reference_block.replace(',', '').replace('and', '').strip()
                     reference_text += rest_of_reference_block
