@@ -126,9 +126,9 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
                             print 'Reference not found in ' + label + ' : ' + sgdid
                         reference_text += reference_block[reference_end_index+1:].replace(',', '').replace('and', '').strip()
                 replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], reference_text) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
-                new_reference_text += block
-            else:
                 new_reference_text += replacement + block[end_index+1:]
+            else:
+                new_reference_text += block
         else:
             new_reference_text += ('' if new_reference_text == '' else '(') + block
 
