@@ -107,7 +107,7 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
 
     # Replace references
     new_reference_text = ''
-    for block in new_bioentity_text.split('('):
+    for block in new_go_text.split('('):
         end_index = block.find(')')
         if end_index >= 0:
             reference_text = ''
