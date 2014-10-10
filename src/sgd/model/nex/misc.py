@@ -251,6 +251,13 @@ class Relation(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def unique_key(self):
         return self.format_name, self.class_type, self.relation_type
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json['references'] = [x.reference.to_min_json() for x in self.relation_references]
+        obj_json['child'] = self.child.to_min_json()
+        obj_json['parent'] = self.parent.to_min_json()
+        return obj_json
+
 class Quality(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'quality'
 
