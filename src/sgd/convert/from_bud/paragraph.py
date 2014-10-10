@@ -57,45 +57,53 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
 
     # Replace bioentities
     new_bioentity_text = ''
-    for block in text.split('<feature:'):
-        end_index = block.find('>')
-        final_end_index = block.find('</feature>')
-        if final_end_index > end_index >= 0:
-            try:
-                sgdid = 'S' + block[1:end_index].zfill(9)
-                if sgdid in sgdid_to_bioentity:
-                    bioentity = sgdid_to_bioentity[sgdid]
-                    replacement = '<a href="' + bioentity.link + '">' + block[end_index+1:final_end_index] + '</a>'
-                    new_bioentity_text += replacement
-                else:
-                    print 'Feature not found in ' + label + ' : ' + block[0:end_index]
-            except:
-                print 'Bad sgdid in ' + label + ' : ' + block[0:end_index]
+    feature_blocks = text.split('<feature:')
+    if len(feature_blocks) > 1:
+        for block in feature_blocks[1:]:
+            end_index = block.find('>')
+            final_end_index = block.find('</feature>')
+            if final_end_index > end_index >= 0:
+                try:
+                    sgdid = 'S' + block[1:end_index].zfill(9)
+                    if sgdid in sgdid_to_bioentity:
+                        bioentity = sgdid_to_bioentity[sgdid]
+                        replacement = '<a href="' + bioentity.link + '">' + block[end_index+1:final_end_index] + '</a>'
+                        new_bioentity_text += replacement
+                    else:
+                        print 'Feature not found in ' + label + ' : ' + block[0:end_index]
+                except:
+                    print 'Bad sgdid in ' + label + ' : ' + block[0:end_index]
 
-            new_bioentity_text += block[final_end_index+10:]
-        else:
-            new_bioentity_text += block
+                new_bioentity_text += block[final_end_index+10:]
+            else:
+                new_bioentity_text += block
+    else:
+        new_bioentity_text = text
 
     # Replace go
     new_go_text = ''
-    for block in new_bioentity_text.split('<go:'):
-        end_index = block.find('>')
-        final_end_index = block.find('</go>')
-        if final_end_index > end_index >= 0:
-            try:
-                goid = int(block[0:end_index])
-                if goid in goid_to_go:
-                    go = goid_to_go[goid]
-                    replacement = '<a href="' + go.link + '">' + block[end_index+1:final_end_index] + '</a>'
-                    new_go_text += replacement
-                else:
-                    print 'Go not found in ' + label + ' : ' + block[0:end_index]
-            except:
-                print 'Bad goid in ' + label + ' : ' + block[0:end_index]
+    go_blocks = new_bioentity_text.split('<go:')
+    if len(go_blocks) > 1:
+        for block in go_blocks[1:]:
+            end_index = block.find('>')
+            final_end_index = block.find('</go>')
+            if final_end_index > end_index >= 0:
+                try:
+                    goid = int(block[0:end_index])
+                    if goid in goid_to_go:
+                        go = goid_to_go[goid]
+                        replacement = '<a href="' + go.link + '">' + block[end_index+1:final_end_index] + '</a>'
+                        new_go_text += replacement
+                    else:
+                        print 'Go not found in ' + label + ' : ' + block[0:end_index]
+                except:
+                    print 'Bad goid in ' + label + ' : ' + block[0:end_index]
 
-            new_go_text += block[final_end_index+5:]
-        else:
-            new_go_text += block
+                new_go_text += block[final_end_index+5:]
+            else:
+                new_go_text += block
+    else:
+        new_go_text = new_bioentity_text
 
     # Replace references
     new_reference_text = ''
@@ -105,20 +113,22 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
             reference_text = ''
             references = []
             reference_blocks = block[:end_index].split('<reference:')
-            for reference_block in reference_blocks:
-                reference_end_index = reference_block.find('>')
-                if reference_end_index >= 0:
-                    sgdid = reference_block[0:reference_end_index]
-                    if sgdid in sgdid_to_reference:
-                        if not sgdid_to_reference[sgdid].id in reference_id_to_index:
-                            reference_id_to_index[sgdid_to_reference[sgdid].id] = '?'
-                        references.append(sgdid_to_reference[sgdid])
-                    else:
-                        print 'Reference not found in ' + label + ' : ' + sgdid
-                    reference_text += reference_block[reference_end_index+1:].replace(',', '').replace('and', '').strip()
-
-            replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], reference_text) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
-            new_reference_text += replacement + block[end_index+1:]
+            if len(reference_blocks) > 1:
+                for reference_block in reference_blocks[1:]:
+                    reference_end_index = reference_block.find('>')
+                    if reference_end_index >= 0:
+                        sgdid = reference_block[0:reference_end_index]
+                        if sgdid in sgdid_to_reference:
+                            if not sgdid_to_reference[sgdid].id in reference_id_to_index:
+                                reference_id_to_index[sgdid_to_reference[sgdid].id] = '?'
+                            references.append(sgdid_to_reference[sgdid])
+                        else:
+                            print 'Reference not found in ' + label + ' : ' + sgdid
+                        reference_text += reference_block[reference_end_index+1:].replace(',', '').replace('and', '').strip()
+                replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], reference_text) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
+                new_reference_text += block
+            else:
+                new_reference_text += replacement + block[end_index+1:]
         else:
             new_reference_text += ('' if new_reference_text == '' else '(') + block
 
