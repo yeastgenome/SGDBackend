@@ -257,16 +257,6 @@ def make_bioconcept_interaction_starter(nex_session_maker):
                                                                                                                 'vacuolar_morphology',
                                                                                                                 'inviable'})).all()])
 
-        #Complex
-        id_to_complex = dict([(x.id, x) for x in nex_session.query(Complex).all()])
-        complex_to_gene_ids = dict([(x.id, set([y.locus_id for y in x.complex_evidences])) for x in id_to_complex.values()])
-        for go in nex_session.query(Go).all():
-            gene_ids = set([x.locus_id for x in go.go_evidences])
-            for complex_id, complex_gene_ids in complex_to_gene_ids.iteritems():
-                overlap = len(gene_ids & complex_gene_ids)
-                if overlap > 1:
-                    yield {'interaction_type': 'GO', 'evidence_count': overlap, 'bioentity': id_to_complex[complex_id], 'interactor': go}
-
         #Go
         for row in nex_session.query(Goevidence.locus_id, Goevidence.go_id, func.count(Goevidence.id)).filter(Goevidence.annotation_type != 'computational').group_by(Goevidence.locus_id, Goevidence.go_id).all():
             go = id_to_bioconcept[row[1]]
