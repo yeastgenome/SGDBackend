@@ -337,7 +337,7 @@ def make_bioconcept_count_starter(nex_session_maker):
     bioconcept_to_locus_direct = [([0]*len(bioentity_id_to_index)) for _ in range(len(bioconcept_id_to_index))]
     bioconcept_id_to_parent_ids = dict([(x, []) for x in id_to_bioconcept.keys()])
 
-    for relation in nex_session.query(Bioconceptrelation).filter(relation_type = 'part of').all():
+    for relation in nex_session.query(Bioconceptrelation).filter_by(relation_type='part of').all():
         bioconcept_id_to_parent_ids[relation.child_id].append(relation.parent_id)
 
     #EC number evidence
@@ -353,6 +353,9 @@ def make_bioconcept_count_starter(nex_session_maker):
             new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
             bioconcept_ids = new_bioconcept_ids
 
+    nex_session.commit()
+    print 'EC number counts finished.'
+
     #Go evidence
     for evidence in nex_session.query(Goevidence):
         bioentity_id = evidence.locus_id
@@ -365,6 +368,9 @@ def make_bioconcept_count_starter(nex_session_maker):
                 bioconcept_to_locus_descendant[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
             new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
             bioconcept_ids = new_bioconcept_ids
+
+    nex_session.commit()
+    print 'GO counts finished.'
 
     #Phenotype evidence
     for evidence in nex_session.query(Phenotypeevidence).options(joinedload(Phenotypeevidence.phenotype)):
@@ -388,5 +394,6 @@ def make_bioconcept_count_starter(nex_session_maker):
         bioconcept.descendant_locus_count = sum(bioconcept_to_locus_descendant[bioconcept_index])
 
     nex_session.commit()
+    print 'Phenotype counts finished.'
 
     nex_session.close()
