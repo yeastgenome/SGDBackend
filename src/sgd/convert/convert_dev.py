@@ -1165,8 +1165,8 @@ if __name__ == "__main__":
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000, )])
     #
     #
-    do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
-                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+    # do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
+    #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
     #
     # locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', locus_types),
