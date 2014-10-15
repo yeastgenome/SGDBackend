@@ -728,7 +728,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                    'locus': bioentity,
                                    'category': 'Nomenclature',
                                    'history_type': 'LSP',
-                                   'note': '<strong>Standard Name Assigned:</strong> ' + bioentity.display_name,
+                                   'note': '<strong>Name:</strong> ' + bioentity.display_name,
                                    'date_created': datetime(quality_reference.reference.year, 1, 1),
                                    'created_by': None
                                 }
@@ -741,7 +741,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                    'locus': bioentity,
                                    'category': 'Nomenclature',
                                    'history_type': 'LSP',
-                                   'note': '<strong>Alias:</strong> ' + alias.display_name,
+                                   'note': '<strong>Name:</strong> ' + alias.display_name,
                                    'date_created': datetime(alias_reference.reference.year, 1, 1),
                                    'created_by': None
                                 }

@@ -870,14 +870,14 @@ if __name__ == "__main__":
     # #                                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence_id.in_([datasetcolumn_id_to_evidence_id[y] for y in dataset_id_to_columns[dataset_key_to_id[dataset_key]]])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
     # #                                    OutputTransformer(1000)])
     #
-    # do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Historyevidence),
-    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Historyevidence),
-    #                               name='convert.from_bud.evidence.history',
-    #                               delete_untouched=True,
-    #                               commit_interval=1000,
-    #                               already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')),
-    #                OutputTransformer(1000)])
+    do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Historyevidence),
+                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Historyevidence),
+                                  name='convert.from_bud.evidence.history',
+                                  delete_untouched=True,
+                                  commit_interval=1000,
+                                  already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')),
+                   OutputTransformer(1000)])
     #
     # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty, Temperatureproperty, Generalproperty
     # clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')
@@ -962,7 +962,7 @@ if __name__ == "__main__":
     # #                OutputTransformer(1000)])
     # # clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
 
-    make_bioconcept_count_starter(nex_session_maker)
+    # make_bioconcept_count_starter(nex_session_maker)
     #
     # # ------------------------------------------ Perf ------------------------------------------
     from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
