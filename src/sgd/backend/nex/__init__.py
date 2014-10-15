@@ -89,6 +89,7 @@ class SGDBackend(BackendInterface):
             obj_json = go_term.to_min_json()
             obj_json['descendant_annotation_gene_count'] = go_term.descendant_locus_count
             obj_json['direct_annotation_gene_count'] = go_term.locus_count
+            obj_json['is_root'] = go_term.is_root
             go_slim_terms.append(obj_json)
 
             parents = [x.parent for x in go_term.parents if x.relation_type == 'is a']
@@ -113,6 +114,7 @@ class SGDBackend(BackendInterface):
             obj_json = phenotype.to_min_json()
             obj_json['descendant_annotation_gene_count'] = phenotype.descendant_locus_count
             obj_json['direct_annotation_gene_count'] = phenotype.locus_count
+            obj_json['is_root'] = phenotype.is_root
             phenotype_slim_terms.append(obj_json)
 
             parents = [x.parent for x in phenotype.parents if x.relation_type == 'is a']
@@ -153,7 +155,7 @@ class SGDBackend(BackendInterface):
 
         print 'ready', len(labels), len(contigs), len(data), len(data[0])
 
-        for evidence in DBSession.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').all():
+        for evidence in DBSession.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter(DNAsequenceevidence.contig_id.in_(contig_id_to_index.keys())).all():
             locus_id = evidence.locus_id
             label_index = None if evidence.locus_id not in locus_id_to_label_index else locus_id_to_label_index[locus_id]
             contig_index = None if evidence.contig_id not in contig_id_to_index else contig_id_to_index[evidence.contig_id]
