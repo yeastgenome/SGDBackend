@@ -18,7 +18,7 @@ if __name__ == "__main__":
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
+    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
     # # ------------------------------------------ Evelements ------------------------------------------
     # # Bud -> Nex
@@ -870,14 +870,14 @@ if __name__ == "__main__":
     # #                                    Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentitydata).filter(Bioentitydata.evidence_id.in_([datasetcolumn_id_to_evidence_id[y] for y in dataset_id_to_columns[dataset_key_to_id[dataset_key]]])), name='convert.from_bud.evidence.expression_data', delete_untouched=True, commit_interval=1000),
     # #                                    OutputTransformer(1000)])
     #
-    do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Historyevidence),
-                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Historyevidence),
-                                  name='convert.from_bud.evidence.history',
-                                  delete_untouched=True,
-                                  commit_interval=1000,
-                                  already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')),
-                   OutputTransformer(1000)])
+    # do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Historyevidence),
+    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Historyevidence),
+    #                               name='convert.from_bud.evidence.history',
+    #                               delete_untouched=True,
+    #                               commit_interval=1000,
+    #                               already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')),
+    #                OutputTransformer(1000)])
     #
     # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty, Temperatureproperty, Generalproperty
     # clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')
@@ -1165,8 +1165,8 @@ if __name__ == "__main__":
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000, )])
     #
     #
-    # do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
-    #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+    do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
+                  [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
     #
     # locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', locus_types),

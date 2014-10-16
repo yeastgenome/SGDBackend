@@ -327,7 +327,7 @@ def make_bioconcept_count_starter(nex_session_maker):
     bioconcept_to_locus_direct = [([0]*len(bioentity_id_to_index)) for _ in range(len(bioconcept_id_to_index))]
     bioconcept_id_to_parent_ids = dict([(x, []) for x in id_to_bioconcept.keys()])
 
-    for relation in nex_session.query(Bioconceptrelation).filter(Bioconceptrelation.relation_type.in_({'part of', 'is a'})).all():
+    for relation in nex_session.query(Bioconceptrelation).filter(Bioconceptrelation.relation_type == 'is a').all():
         bioconcept_id_to_parent_ids[relation.child_id].append(relation.parent_id)
 
     #EC number evidence
