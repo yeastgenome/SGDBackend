@@ -3,7 +3,8 @@ from src.sgd.backend.nex import SGDBackend
 from src.sgd.backend.perf import PerfBackend
 from src.sgd.convert import prepare_schema_connection, config
 from src.sgd.convert.transformers import do_conversion, \
-    make_backend_starter, Json2CorePerfDB, Json2OrphanPerfDB, Json2DisambigPerfDB, make_orphan_arg_backend_starter
+    make_backend_starter, Json2CorePerfDB, Json2OrphanPerfDB, Json2DisambigPerfDB, make_orphan_arg_backend_starter, \
+    make_orphan_backend_starter
 
 
 __author__ = 'kpaskov'
@@ -51,7 +52,11 @@ if __name__ == "__main__":
     do_conversion(make_backend_starter(nex_backend, 'all_tags', 1000),
                   [Json2CorePerfDB(perf_session_maker, PerfTag, name='convert.from_backend.tag', commit_interval=1000, delete_untouched=True)])
 
-    do_conversion(make_orphan_arg_backend_starter(nex_backend, 'obj_list', ['tag']),
+    locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
+    do_conversion(make_orphan_arg_backend_starter(nex_backend, 'locus_list', locus_types),
+                  [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+
+    do_conversion(make_orphan_backend_starter(nex_backend, ['tag_list']),
                    [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
 
     # ------------------------------------------ Perf2 ------------------------------------------
@@ -93,4 +98,11 @@ if __name__ == "__main__":
                   [Json2CorePerfDB(perf_session_maker, PerfTag, name='convert.from_backend.tag', commit_interval=1000, delete_untouched=True)])
 
     do_conversion(make_orphan_arg_backend_starter(perf_backend, 'obj_list', ['tag']),
+                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+
+    locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
+    do_conversion(make_orphan_arg_backend_starter(perf_backend, 'locus_list', locus_types),
+                  [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+
+    do_conversion(make_orphan_backend_starter(perf_backend, ['tag_list']),
                    [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
