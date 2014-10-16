@@ -134,15 +134,16 @@ def make_graph(bioent_id):
         ok_interactions.update(new_interactions)
 
         new_cutoff_index += 1
-        new_min_coeff = all_coeffs[new_cutoff_index]
-        new_nodes = set([x for x, y in neighbor_id_to_coeff.iteritems() if y >= new_min_coeff])
-        new_interactions = set()
-        for coeff, interactions in coeff_to_interactions.iteritems():
-            if coeff >= new_min_coeff:
-                new_interactions.update([(min(x.bioentity_id, x.interactor_id), max(x.bioentity_id, x.interactor_id), x.evidence_count, x.direction) for x in interactions if x.bioentity_id in new_nodes and x.interactor_id in new_nodes])
-        new_nodes = set([x[0] for x in new_interactions if x[0] not in ok_nodes])
-        new_nodes.update([x[1] for x in new_interactions if x[1] not in ok_nodes])
-        new_interactions = new_interactions - ok_interactions
+        if new_cutoff_index < len(all_coeffs):
+            new_min_coeff = all_coeffs[new_cutoff_index]
+            new_nodes = set([x for x, y in neighbor_id_to_coeff.iteritems() if y >= new_min_coeff])
+            new_interactions = set()
+            for coeff, interactions in coeff_to_interactions.iteritems():
+                if coeff >= new_min_coeff:
+                    new_interactions.update([(min(x.bioentity_id, x.interactor_id), max(x.bioentity_id, x.interactor_id), x.evidence_count, x.direction) for x in interactions if x.bioentity_id in new_nodes and x.interactor_id in new_nodes])
+            new_nodes = set([x[0] for x in new_interactions if x[0] not in ok_nodes])
+            new_nodes.update([x[1] for x in new_interactions if x[1] not in ok_nodes])
+            new_interactions = new_interactions - ok_interactions
 
     nodes = [create_node(id_to_bioentity[x], x==bioent_id, neighbor_id_to_coeff[x]) for x in ok_nodes]
     edges = [create_edge(x[0], x[1], x[2], 'EXPRESSION', x[3]) for x in ok_interactions]
