@@ -97,9 +97,6 @@ if __name__ == "__main__":
     do_conversion(make_backend_starter(perf_backend, 'all_tags', 1000),
                   [Json2CorePerfDB(perf_session_maker, PerfTag, name='convert.from_backend.tag', commit_interval=1000, delete_untouched=True)])
 
-    do_conversion(make_orphan_arg_backend_starter(perf_backend, 'obj_list', ['tag']),
-                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
-
     locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
     do_conversion(make_orphan_arg_backend_starter(perf_backend, 'locus_list', locus_types),
                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
