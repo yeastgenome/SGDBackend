@@ -26,12 +26,12 @@ def make_ontology_graph(bioconcept_id, class_type, filter_f, subtype_f):
     full_ontology = None
     all_children = []
     bioconcept = DBSession.query(Bioconcept).filter_by(id=bioconcept_id).first()
-    parent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[bioconcept_id]) if x.relation_type != 'GO_SLIM']
-    child_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[bioconcept_id]) if x.relation_type != 'GO_SLIM']
+    parent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[bioconcept_id]) if not x.relation_type.endswith('SLIM')]
+    child_relations = [x for x in get_relations(Bioconceptrelation, None, parent_ids=[bioconcept_id]) if not x.relation_type.endswith('SLIM')]
     if len(parent_relations) > 0:
-        grandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in parent_relations]) if x.relation_type != 'GO_SLIM']
-        greatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in grandparent_relations]) if x.relation_type != 'GO_SLIM']
-        greatgreatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in greatgrandparent_relations]) if x.relation_type != 'GO_SLIM']
+        grandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in parent_relations]) if not x.relation_type.endswith('SLIM')]
+        greatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in grandparent_relations]) if not x.relation_type.endswith('SLIM')]
+        greatgreatgrandparent_relations = [x for x in get_relations(Bioconceptrelation, None, child_ids=[x.parent_id for x in greatgrandparent_relations]) if not x.relation_type.endswith('SLIM')]
 
         nodes = [create_node(bioconcept, True, subtype_f(bioconcept))]
 
@@ -116,7 +116,7 @@ def create_interaction_edge(interaction, interaction_type):
         source = 'INTERACTOR_' + interaction_type + str(interaction.interactor_id)
     return {'data':{'target': 'BIOENTITY' + str(interaction.bioentity_id), 'source': source}}
 
-def make_graph(bioent_id, interaction_cls, interaction_type, bioentity_type, node_max=100, edge_max=250, bioent_max=50, interactor_max=100):
+def make_graph(bioent_id, interaction_cls, interaction_type, bioentity_type, node_max=50, edge_max=100, bioent_max=30, interactor_max=30):
     interactions = DBSession.query(interaction_cls).filter_by(bioentity_id=bioent_id).filter_by(interaction_type=interaction_type).all()
     interactor_ids = set([x.interactor_id for x in interactions])
 

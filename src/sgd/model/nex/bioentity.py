@@ -97,11 +97,6 @@ class Bioentityrelation(Relation):
         self.format_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
         self.display_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
 
-    def to_json(self):
-        obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['child'] = self.child.to_min_json()
-        return obj_json
-
 class Bioentityquality(Quality):
     __tablename__ = 'bioentityquality'
 
@@ -174,6 +169,15 @@ class Locus(Bioentity):
                 if quality_reference.reference_id not in reference_ids:
                     references.append(quality_reference.reference)
                     reference_ids.add(quality_reference.reference_id)
+
+        #Organize paralog references
+        paralogs = [x for x in self.children if x.relation_type == 'paralog']
+        if len(paralogs) > 0:
+            for paralog in paralogs:
+                for relation_reference in sorted(paralog.relation_references, key=lambda x: x.reference.year, reverse=True):
+                    if relation_reference.reference_id not in reference_ids:
+                        references.append(relation_reference.reference)
+                        reference_ids.add(relation_reference.reference_id)
 
         #Organize gene reservation references
         if self.reserved_name is not None and self.reserved_name.reference is not None and self.reserved_name.reference_id not in reference_ids:
@@ -410,6 +414,6 @@ class Locus(Bioentity):
 
         obj_json['pathways'] = [x.to_json() for x in self.pathway_evidences]
 
-        obj_json['ecnumber'] = None if len(self.ecnumber_evidences) == 0 else self.ecnumber_evidences[0].ecnumber.to_min_json()
+        obj_json['ecnumbers'] = None if len(self.ecnumber_evidences) == 0 else [x.ecnumber.to_min_json() for x in self.ecnumber_evidences]
 
         return obj_json

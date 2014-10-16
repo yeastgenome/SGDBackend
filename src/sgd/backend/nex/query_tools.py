@@ -16,12 +16,12 @@ def get_all_bioconcept_children(parent_id):
     while len(new_parent_ids) > 0:
         all_child_ids.update(new_parent_ids)
         if len(new_parent_ids) == 1:
-            new_parent_ids = [x.child_id for x in DBSession.query(Bioconceptrelation).filter(Bioconceptrelation.parent_id == new_parent_ids[0]).all()]
+            new_parent_ids = [x.child_id for x in DBSession.query(Bioconceptrelation).filter(Bioconceptrelation.relation_type == 'is a').filter(Bioconceptrelation.parent_id == new_parent_ids[0]).all()]
         else:
             num_chunks = int(ceil(1.0*len(new_parent_ids)/500))
             latest_list = []
             for i in range(num_chunks):
-                latest_list.extend([x.child_id for x in DBSession.query(Bioconceptrelation).filter(Bioconceptrelation.parent_id.in_(new_parent_ids[i*500:(i+1)*500])).all()])
+                latest_list.extend([x.child_id for x in DBSession.query(Bioconceptrelation).filter(Bioconceptrelation.relation_type == 'is a').filter(Bioconceptrelation.parent_id.in_(new_parent_ids[i*500:(i+1)*500])).all()])
             new_parent_ids = latest_list
     return all_child_ids
 

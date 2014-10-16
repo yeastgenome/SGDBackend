@@ -5,7 +5,7 @@ import uuid
 from math import ceil
 
 from pyramid.response import Response
-from sqlalchemy import func
+from sqlalchemy import func, distinct
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -63,19 +63,21 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.bioitem import BioitemTag
         return [x.to_json() for x in DBSession.query(Tag).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
 
-    def obj_list(self, list_type):
-        from src.sgd.model.nex.bioentity import Locus
+    def tag_list(self):
         from src.sgd.model.nex.misc import Tag
-        query = None
-        if list_type.lower() in set([x.lower() for x in 'ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']):
-            query = DBSession.query(Locus).filter(func.lower(Locus.locus_type) == list_type.lower())
-        elif list_type == 'tag':
-            query = DBSession.query(Tag)
+        return json.dumps([x.to_min_json(include_description=True) for x in DBSession.query(Tag).all()])
 
-        if query is not None:
-            return json.dumps([x.to_min_json(include_description=True) for x in query.all()])
-        else:
-            return None
+    def locus_list(self, list_type):
+        from src.sgd.model.nex.bioentity import Locus
+
+        list_types = dict([(x[0].lower(), x[0]) for x in DBSession.query(distinct(Locus.locus_type)).all()])
+
+        if list_type.lower() in list_types:
+            locus_type = list_types[list_type.lower()]
+            return json.dumps({
+                                'list_name': locus_type,
+                                'locii': [x.to_min_json(include_description=True) for x in DBSession.query(Locus).filter_by(locus_type=locus_type).all()]
+            })
 
     def snapshot(self):
         #Go
@@ -89,6 +91,7 @@ class SGDBackend(BackendInterface):
             obj_json = go_term.to_min_json()
             obj_json['descendant_annotation_gene_count'] = go_term.descendant_locus_count
             obj_json['direct_annotation_gene_count'] = go_term.locus_count
+            obj_json['is_root'] = go_term.is_root
             go_slim_terms.append(obj_json)
 
             parents = [x.parent for x in go_term.parents if x.relation_type == 'is a']
@@ -113,6 +116,7 @@ class SGDBackend(BackendInterface):
             obj_json = phenotype.to_min_json()
             obj_json['descendant_annotation_gene_count'] = phenotype.descendant_locus_count
             obj_json['direct_annotation_gene_count'] = phenotype.locus_count
+            obj_json['is_root'] = phenotype.is_root
             phenotype_slim_terms.append(obj_json)
 
             parents = [x.parent for x in phenotype.parents if x.relation_type == 'is a']
@@ -153,7 +157,7 @@ class SGDBackend(BackendInterface):
 
         print 'ready', len(labels), len(contigs), len(data), len(data[0])
 
-        for evidence in DBSession.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').all():
+        for evidence in DBSession.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter(DNAsequenceevidence.contig_id.in_(contig_id_to_index.keys())).all():
             locus_id = evidence.locus_id
             label_index = None if evidence.locus_id not in locus_id_to_label_index else locus_id_to_label_index[locus_id]
             contig_index = None if evidence.contig_id not in contig_id_to_index else contig_id_to_index[evidence.contig_id]

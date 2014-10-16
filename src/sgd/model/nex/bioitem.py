@@ -222,6 +222,7 @@ class Contig(Bioitem):
 
     def to_min_json(self, include_description=False):
         obj_json = UpdateByJsonMixin.to_min_json(self, include_description=include_description)
+        obj_json['length'] = len(self.residues)
         obj_json['is_chromosome'] = True if self.is_chromosome == 1 else False
         obj_json['centromere_start'] = self.centromere_start
         obj_json['centromere_end'] = self.centromere_end

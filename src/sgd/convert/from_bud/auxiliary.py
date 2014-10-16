@@ -257,16 +257,6 @@ def make_bioconcept_interaction_starter(nex_session_maker):
                                                                                                                 'vacuolar_morphology',
                                                                                                                 'inviable'})).all()])
 
-        #Complex
-        id_to_complex = dict([(x.id, x) for x in nex_session.query(Complex).all()])
-        complex_to_gene_ids = dict([(x.id, set([y.locus_id for y in x.complex_evidences])) for x in id_to_complex.values()])
-        for go in nex_session.query(Go).all():
-            gene_ids = set([x.locus_id for x in go.go_evidences])
-            for complex_id, complex_gene_ids in complex_to_gene_ids.iteritems():
-                overlap = len(gene_ids & complex_gene_ids)
-                if overlap > 1:
-                    yield {'interaction_type': 'GO', 'evidence_count': overlap, 'bioentity': id_to_complex[complex_id], 'interactor': go}
-
         #Go
         for row in nex_session.query(Goevidence.locus_id, Goevidence.go_id, func.count(Goevidence.id)).filter(Goevidence.annotation_type != 'computational').group_by(Goevidence.locus_id, Goevidence.go_id).all():
             go = id_to_bioconcept[row[1]]
@@ -337,7 +327,7 @@ def make_bioconcept_count_starter(nex_session_maker):
     bioconcept_to_locus_direct = [([0]*len(bioentity_id_to_index)) for _ in range(len(bioconcept_id_to_index))]
     bioconcept_id_to_parent_ids = dict([(x, []) for x in id_to_bioconcept.keys()])
 
-    for relation in nex_session.query(Bioconceptrelation).all():
+    for relation in nex_session.query(Bioconceptrelation).filter(Bioconceptrelation.relation_type == 'is a').all():
         bioconcept_id_to_parent_ids[relation.child_id].append(relation.parent_id)
 
     #EC number evidence
@@ -353,6 +343,9 @@ def make_bioconcept_count_starter(nex_session_maker):
             new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
             bioconcept_ids = new_bioconcept_ids
 
+    nex_session.commit()
+    print 'EC number counts finished.'
+
     #Go evidence
     for evidence in nex_session.query(Goevidence):
         bioentity_id = evidence.locus_id
@@ -365,6 +358,9 @@ def make_bioconcept_count_starter(nex_session_maker):
                 bioconcept_to_locus_descendant[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
             new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
             bioconcept_ids = new_bioconcept_ids
+
+    nex_session.commit()
+    print 'GO counts finished.'
 
     #Phenotype evidence
     for evidence in nex_session.query(Phenotypeevidence).options(joinedload(Phenotypeevidence.phenotype)):
@@ -388,5 +384,6 @@ def make_bioconcept_count_starter(nex_session_maker):
         bioconcept.descendant_locus_count = sum(bioconcept_to_locus_descendant[bioconcept_index])
 
     nex_session.commit()
+    print 'Phenotype counts finished.'
 
     nex_session.close()

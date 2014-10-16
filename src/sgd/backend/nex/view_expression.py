@@ -119,23 +119,33 @@ def make_graph(bioent_id):
                 coeff_to_interactions[coeff] = [interaction]
 
     all_coeffs = sorted(coeff_to_interactions.keys(), reverse=True)
+
+    min_coeff = all_coeffs[0] + 1
+    ok_nodes = set()
     ok_interactions = set()
-    cutoff_index = 0
-    while len(ok_interactions) < 200 and cutoff_index < len(all_coeffs):
-        cutoff = all_coeffs[cutoff_index]
-        ok_nodes = set([x for x, y in neighbor_id_to_coeff.iteritems() if y >= cutoff])
-        ok_interactions = set()
-        for coeff, interactions in coeff_to_interactions.iteritems():
-            if coeff >= cutoff:
-                ok_interactions.update([x for x in interactions if x.bioentity_id in ok_nodes and x.interactor_id in ok_nodes])
-        cutoff_index += 1
 
-    cutoff_index -= 1
-    min_coeff = max(min_coeff, all_coeffs[cutoff_index])
+    new_cutoff_index = -1
+    new_min_coeff = all_coeffs[0] + 1
+    new_nodes = set()
+    new_interactions = set()
+    while len(ok_interactions) + len(new_interactions) < 100 and new_cutoff_index < len(all_coeffs):
+        min_coeff = new_min_coeff
+        ok_nodes.update(new_nodes)
+        ok_interactions.update(new_interactions)
 
-    usable_neighbor_ids = set([x for x in usable_neighbor_ids if neighbor_id_to_coeff[x] >= min_coeff])
-    nodes = [create_node(id_to_bioentity[x], x==bioent_id, neighbor_id_to_coeff[x]) for x in usable_neighbor_ids]
-    edges = [create_edge(x.bioentity_id, x.interactor_id, x.evidence_count, 'EXPRESSION', x.direction) for x in more_interactions if x.evidence_count >= min_coeff and x.bioentity_id in usable_neighbor_ids and x.interactor_id in usable_neighbor_ids]
+        new_cutoff_index += 1
+        if new_cutoff_index < len(all_coeffs):
+            new_min_coeff = all_coeffs[new_cutoff_index]
+            new_nodes = set([x for x, y in neighbor_id_to_coeff.iteritems() if y >= new_min_coeff])
+            new_interactions = set()
+            for coeff, interactions in coeff_to_interactions.iteritems():
+                if coeff >= new_min_coeff:
+                    new_interactions.update([(min(x.bioentity_id, x.interactor_id), max(x.bioentity_id, x.interactor_id), x.evidence_count, x.direction) for x in interactions if x.bioentity_id in new_nodes and x.interactor_id in new_nodes])
+            new_nodes = set([x[0] for x in new_interactions if x[0] not in ok_nodes])
+            new_nodes.update([x[1] for x in new_interactions if x[1] not in ok_nodes])
+            new_interactions = new_interactions - ok_interactions
 
+    nodes = [create_node(id_to_bioentity[x], x==bioent_id, neighbor_id_to_coeff[x]) for x in ok_nodes]
+    edges = [create_edge(x[0], x[1], x[2], 'EXPRESSION', x[3]) for x in ok_interactions]
 
     return {'nodes': nodes, 'edges': edges, 'min_coeff': float(min_coeff), 'max_coeff': float(max_coeff)}

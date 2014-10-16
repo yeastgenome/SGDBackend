@@ -149,6 +149,10 @@ class Go(Bioconcept):
     def evidences(self):
         return self.go_evidences
 
+    @hybrid_property
+    def is_root(self):
+        return self.format_name == 'biological_process' or self.format_name == 'molecular_function' or self.format_name == 'cellular_component'
+
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['locus_count'] = self.locus_count
@@ -199,6 +203,10 @@ class Observable(Bioconcept):
     @hybrid_property
     def evidences(self):
         return set(sum([x.phenotype_evidences for x in self.phenotypes], []))
+
+    @hybrid_property
+    def is_root(self):
+        return self.format_name == 'ypo'
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
