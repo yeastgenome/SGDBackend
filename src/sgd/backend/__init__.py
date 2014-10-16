@@ -334,10 +334,15 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('tag'),
                     route_name='tag')
 
-    config.add_route('obj_list', '/all/{list_type}')
-    config.add_view(lambda request: chosen_backend.response_wrapper('obj_list', request)(getattr(chosen_backend, 'obj_list')(list_type=request.matchdict['list_type'])),
-                    renderer=chosen_backend.get_renderer('obj_list'),
-                    route_name='obj_list')
+    config.add_route('tag_list', '/tag')
+    config.add_view(lambda request: chosen_backend.response_wrapper('tag_list', request)(getattr(chosen_backend, 'tag_list')()),
+                    renderer=chosen_backend.get_renderer('tag_list'),
+                    route_name='tag_list')
+
+    config.add_route('locus_list', '/locus/{list_type}')
+    config.add_view(lambda request: chosen_backend.response_wrapper('locus_list', request)(getattr(chosen_backend, 'locus_list')(list_type=request.matchdict['list_type'])),
+                    renderer=chosen_backend.get_renderer('locus_list'),
+                    route_name='locus_list')
 
     config.add_route('snapshot', '/snapshot')
     config.add_view(lambda request: chosen_backend.response_wrapper('snapshot', request)(getattr(chosen_backend, 'snapshot')()),

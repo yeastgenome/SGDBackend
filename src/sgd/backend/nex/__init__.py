@@ -5,7 +5,7 @@ import uuid
 from math import ceil
 
 from pyramid.response import Response
-from sqlalchemy import func
+from sqlalchemy import func, distinct
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -63,19 +63,21 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.bioitem import BioitemTag
         return [x.to_json() for x in DBSession.query(Tag).with_polymorphic('*').limit(chunk_size).offset(offset).all()]
 
-    def obj_list(self, list_type):
-        from src.sgd.model.nex.bioentity import Locus
+    def tag_list(self):
         from src.sgd.model.nex.misc import Tag
-        query = None
-        if list_type.lower() in set([x.lower() for x in 'ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']):
-            query = DBSession.query(Locus).filter(func.lower(Locus.locus_type) == list_type.lower())
-        elif list_type == 'tag':
-            query = DBSession.query(Tag)
+        return json.dumps([x.to_min_json(include_description=True) for x in DBSession.query(Tag).all()])
 
-        if query is not None:
-            return json.dumps([x.to_min_json(include_description=True) for x in query.all()])
-        else:
-            return None
+    def locus_list(self, list_type):
+        from src.sgd.model.nex.bioentity import Locus
+
+        list_types = dict([(x[0].lower(), x[0]) for x in DBSession.query(distinct(Locus.locus_type)).all()])
+
+        if list_type.lower() in list_types:
+            locus_type = list_types[list_type.lower()]
+            return json.dumps({
+                                'list_name': locus_type,
+                                'locii': [x.to_min_json(include_description=True) for x in DBSession.query(Locus).filter_by(locus_type=locus_type).all()]
+            })
 
     def snapshot(self):
         #Go
