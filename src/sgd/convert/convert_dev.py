@@ -14,11 +14,11 @@ __author__ = 'kpaskov'
 
 if __name__ == "__main__":   
 
-    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
+    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'fasolt.stanford.edu:1521', 'SDEV', config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
+    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
     # # ------------------------------------------ Evelements ------------------------------------------
     # # Bud -> Nex
@@ -121,13 +121,13 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True)])
     #
-    # do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Bioentityalias),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityalias),
-    #                          name='convert.from_bud.bioentity.alias',
-    #                          delete_untouched=True,
-    #                          commit=True,
-    #                          already_deleted=clean_up_orphans(nex_session_maker, Bioentityalias, Alias, 'BIOENTITY'))])
+    do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Bioentityalias),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityalias),
+                             name='convert.from_bud.bioentity.alias',
+                             delete_untouched=True,
+                             commit=True,
+                             already_deleted=clean_up_orphans(nex_session_maker, Bioentityalias, Alias, 'BIOENTITY'))])
     #
     # do_conversion(make_bioentity_relation_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioentityrelation),

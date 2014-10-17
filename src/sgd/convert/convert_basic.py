@@ -315,7 +315,6 @@ if __name__ == "__main__":
     from src.sgd.model.nex.misc import Alias, Relation, Url
     from src.sgd.convert.from_bud.bioconcept import make_bioconcept_alias_starter, make_bioconcept_relation_starter, \
         make_bioconcept_url_starter
-    from src.sgd.convert.from_bud.auxiliary import make_bioconcept_count_starter
 
     do_conversion(make_bioconcept_relation_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Bioconceptrelation),
@@ -340,8 +339,6 @@ if __name__ == "__main__":
                              commit_interval=1000,
                              delete_untouched=True,
                              already_deleted=clean_up_orphans(nex_session_maker, Bioconcepturl, Url, 'BIOCONCEPT'))])
-
-    make_bioconcept_count_starter(nex_session_maker)
 
     # ------------------------------------------ Bioitem ------------------------------------------
     # Bud -> Nex
