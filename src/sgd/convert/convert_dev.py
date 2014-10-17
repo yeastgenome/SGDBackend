@@ -18,7 +18,7 @@ if __name__ == "__main__":
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
+    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
     # # ------------------------------------------ Evelements ------------------------------------------
     # # Bud -> Nex
@@ -187,11 +187,11 @@ if __name__ == "__main__":
     #
     # # ------------------------------------------ Bioconcept ------------------------------------------
     # # Bud -> Nex
-    # from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation, Bioconcepturl
+    from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation, Bioconcepturl
     # from src.sgd.model.nex.misc import Alias, Relation, Url
     # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
-    #     make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
+    from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
+        make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
     # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
@@ -508,13 +508,13 @@ if __name__ == "__main__":
     #                          commit=True),
     #                OutputTransformer(1000)])
     #
-    # do_conversion(make_relation_reference_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(RelationReference),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(RelationReference),
-    #                          name='convert.from_bud.relation_reference',
-    #                          delete_untouched=True,
-    #                          commit=True),
-    #                OutputTransformer(1000)])
+    do_conversion(make_relation_reference_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(RelationReference),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(RelationReference),
+                             name='convert.from_bud.relation_reference',
+                             delete_untouched=True,
+                             commit=True),
+                   OutputTransformer(1000)])
     #
    #  do_conversion(make_quality_reference_starter(bud_session_maker, nex_session_maker),
    #                [Json2Obj(QualityReference),
@@ -962,7 +962,7 @@ if __name__ == "__main__":
     # #                OutputTransformer(1000)])
     # # clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
 
-    # make_bioconcept_count_starter(nex_session_maker)
+    make_bioconcept_count_starter(nex_session_maker)
     #
     # # ------------------------------------------ Perf ------------------------------------------
     from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
@@ -1165,12 +1165,12 @@ if __name__ == "__main__":
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000, )])
     #
     #
-    # do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
+    do_conversion(make_orphan_backend_starter(nex_backend, ['snapshot']),
+                  [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+    #
+    # locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
+    # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'locus_list', locus_types),
     #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
     #
-    locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
-    do_conversion(make_orphan_arg_backend_starter(nex_backend, 'locus_list', locus_types),
-                  [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
-
-    do_conversion(make_orphan_backend_starter(nex_backend, ['tag_list']),
-                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+    # do_conversion(make_orphan_backend_starter(nex_backend, ['tag_list']),
+    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])

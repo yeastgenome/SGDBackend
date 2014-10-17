@@ -15,6 +15,7 @@ if __name__ == "__main__":
         make_domain_evidence_starter, make_protein_experiment_evidence_starter, \
         make_ecnumber_evidence_starter, make_protein_experiment_evidence_starter, make_alias_evidence_starter, \
         make_phenotype_evidence_starter, make_history_evidence_starter, make_pathway_evidence_starter
+    from src.sgd.convert.from_bud.auxiliary import make_bioconcept_count_starter
 
     do_conversion(make_go_evidence_starter(bud_session_maker, nex_session_maker),
                    [Json2Obj(Goevidence),
@@ -79,6 +80,8 @@ if __name__ == "__main__":
                                   delete_untouched=True,
                                   commit_interval=1000,
                                   already_deleted=clean_up_orphans(nex_session_maker, Phenotypeevidence, Evidence, 'PHENOTYPE'))])
+
+    make_bioconcept_count_starter(nex_session_maker)
 
     do_conversion(make_history_evidence_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Historyevidence),
