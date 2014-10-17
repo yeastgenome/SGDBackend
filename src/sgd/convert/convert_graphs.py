@@ -33,7 +33,7 @@ if __name__ == "__main__":
                              name='convert.from_bud.auxilliary.bioentity_interaction_physical',
                              delete_untouched=True,
                              commit_interval=1000)])
-
+    #
     # do_conversion(make_bioentity_regulation_interaction_starter(nex_session_maker),
     #               [Json2Obj(Bioentityinteraction),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='REGULATION'),
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     #
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'go_graph', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'GO', locus_ids, name='convert.from_backend.go_graph', commit_interval=1000)])
-
+    #
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_domain_graph', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PROTEIN_DOMAIN', locus_ids, name='convert.from_backend.protein_domain_graph', commit_interval=1000)])
     #
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     do_conversion(make_locus_data_backend_starter(perf_backend, 'interaction_graph', locus_ids),
                    [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000)])
-
+    #
     # do_conversion(make_locus_data_backend_starter(perf_backend, 'phenotype_graph', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_graph', commit_interval=1000)])
     #
