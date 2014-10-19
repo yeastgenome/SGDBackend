@@ -340,7 +340,7 @@ def make_bioconcept_count_starter(nex_session_maker):
             new_bioconcept_ids = []
             for bioconcept_id in bioconcept_ids:
                 bioconcept_to_locus_descendant[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
-            new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
+                new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
             bioconcept_ids = new_bioconcept_ids
 
     nex_session.commit()
@@ -356,7 +356,7 @@ def make_bioconcept_count_starter(nex_session_maker):
             new_bioconcept_ids = []
             for bioconcept_id in bioconcept_ids:
                 bioconcept_to_locus_descendant[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
-            new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
+                new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
             bioconcept_ids = new_bioconcept_ids
 
     nex_session.commit()
@@ -375,7 +375,7 @@ def make_bioconcept_count_starter(nex_session_maker):
             new_bioconcept_ids = []
             for bioconcept_id in bioconcept_ids:
                 bioconcept_to_locus_descendant[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1
-            new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
+                new_bioconcept_ids.extend(bioconcept_id_to_parent_ids[bioconcept_id])
             bioconcept_ids = new_bioconcept_ids
 
     for bioconcept in id_to_bioconcept.values():
