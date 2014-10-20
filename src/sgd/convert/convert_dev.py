@@ -15,10 +15,10 @@ __author__ = 'kpaskov'
 if __name__ == "__main__":   
 
     bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
-    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
+    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
     # # ------------------------------------------ Evelements ------------------------------------------
     # # Bud -> Nex
@@ -244,14 +244,14 @@ if __name__ == "__main__":
     #
     # # ------------------------------------------ Bioitem ------------------------------------------
     # # Bud -> Nex
-    # from src.sgd.model.nex.bioitem import Bioitem, Orphanbioitem, Domain, Allele, Chemical, Bioitemurl, Bioitemrelation, \
-    #     Bioitemalias, Contig, Dataset, Datasetcolumn, BioitemTag, Reservedname, Pathway
-    # from src.sgd.model.nex.misc import Alias, Relation, Url, Tag
+    from src.sgd.model.nex.bioitem import Bioitem, Orphanbioitem, Domain, Allele, Chemical, Bioitemurl, Bioitemrelation, \
+        Bioitemalias, Contig, Dataset, Datasetcolumn, BioitemTag, Reservedname, Pathway
+    from src.sgd.model.nex.misc import Alias, Relation, Url, Tag
     # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
-    #     make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter, \
-    #     make_dataset_starter, make_datasetcolumn_starter, make_bioitem_tag_starter, make_tag_starter, \
-    #     make_reservedname_starter, make_pathway_starter, update_contig_centromeres
+    from src.sgd.convert.from_bud.bioitem import make_allele_starter, make_chemical_starter, make_domain_starter, \
+        make_orphan_starter, make_contig_starter, make_bioitem_url_starter, make_bioitem_relation_starter, \
+        make_dataset_starter, make_datasetcolumn_starter, make_bioitem_tag_starter, make_tag_starter, \
+        make_reservedname_starter, make_pathway_starter, update_contig_centromeres
     # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_orphan_starter(bud_session_maker, nex_session_maker),
@@ -294,13 +294,13 @@ if __name__ == "__main__":
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL'))])
     #
-    # do_conversion(make_contig_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Contig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Contig),
-    #                          name='convert.from_bud.bioitem.contig',
-    #                          delete_untouched=True,
-    #                          commit=True,
-    #                          already_deleted=clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG'))])
+    do_conversion(make_contig_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Contig),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Contig),
+                             name='convert.from_bud.bioitem.contig',
+                             delete_untouched=True,
+                             commit=True,
+                             already_deleted=clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG'))])
     # update_contig_centromeres(nex_session_maker)
     #
     # # do_conversion(make_dataset_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
@@ -338,13 +338,13 @@ if __name__ == "__main__":
     # #                          commit=True,
     # #                          already_deleted=clean_up_orphans(nex_session_maker, Bioitemrelation, Relation, 'BIOITEM'))])
     # #
-    # # do_conversion(make_bioitem_url_starter(nex_session_maker),
-    # #               [Json2Obj(Bioitemurl),
-    # #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioitemurl),
-    # #                          name='convert.from_bud.bioitem.url',
-    # #                          delete_untouched=True,
-    # #                          commit=True,
-    # #                          already_deleted=clean_up_orphans(nex_session_maker, Bioitemurl, Url, 'BIOITEM'))])
+    do_conversion(make_bioitem_url_starter(nex_session_maker),
+                  [Json2Obj(Bioitemurl),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioitemurl),
+                             name='convert.from_bud.bioitem.url',
+                             delete_untouched=True,
+                             commit=True,
+                             already_deleted=clean_up_orphans(nex_session_maker, Bioitemurl, Url, 'BIOITEM'))])
     #
     # # do_conversion(make_tag_starter(nex_session_maker),
     # #               [Json2Obj(Tag),
@@ -877,7 +877,7 @@ if __name__ == "__main__":
     # #                OutputTransformer(1000)])
     # # clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
     #
-    make_bioconcept_count_starter(nex_session_maker)
+    # make_bioconcept_count_starter(nex_session_maker)
     #
     # # ------------------------------------------ Perf ------------------------------------------
     # from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
@@ -1156,8 +1156,8 @@ if __name__ == "__main__":
     # #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_details', commit_interval=100),
     # #                 OutputTransformer(100)])
 
-    do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'snapshot', 'tag_list']),
-                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+    # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'snapshot', 'tag_list']),
+    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
 
     # locus_types = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon', 'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette', 'mating_locus']
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'locus_list', locus_types),

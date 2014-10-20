@@ -248,6 +248,7 @@ def update_contig_centromeres(nex_session_maker):
 strains_with_chromosomes = set(['S288C'])
 def make_contig_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain
+    from src.sgd.model.nex.bioitem import Contig
     from src.sgd.convert.from_bud import sequence_files, new_sequence_files
     from src.sgd.model.bud.sequence import Sequence
     from src.sgd.model.bud.feature import Feature
@@ -260,6 +261,11 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
 
+        new_contig_to_accessions = {}
+        for entry in make_file_starter("src/sgd/convert/data/strains/contig_accessions.txt")():
+            contig_identifiers = entry[7].split('.')
+            new_contig_to_accessions[(contig_identifiers[0], contig_identifiers[1])] = (entry[8], entry[9])
+
         for sequence_filename, coding_sequence_filename, strain in sequence_files:
             filenames = []
             if isinstance(sequence_filename, list):
@@ -268,11 +274,13 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
                 filenames.append(sequence_filename)
             for filename in filenames:
                 for sequence_id, residues in make_fasta_file_starter(filename)():
+                    genbank_accession = sequence_id.split('|')[-2]
                     yield {'display_name': sequence_id,
                            'source': key_to_source['SGD'],
                            'strain': key_to_strain[strain.replace('.', '')],
                            'residues': residues,
-                           'is_chromosome': strain in strains_with_chromosomes}
+                           'is_chromosome': strain in strains_with_chromosomes,
+                           'genbank_accession': genbank_accession}
 
         for sequence_filename, coding_sequence_filename, strain in new_sequence_files:
             filenames = []
@@ -282,21 +290,53 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
                 filenames.append(sequence_filename)
             for filename in filenames:
                 for sequence_id, residues in make_fasta_file_starter(filename)():
+                    contig_key = (strain, sequence_id.split(' ')[0])
+                    genbank_accession = None
+                    gi_number = None
+                    if contig_key in new_contig_to_accessions:
+                        ga, gi = new_contig_to_accessions[(strain, sequence_id.split(' ')[0])]
+                        genbank_accession = ga
+                        try:
+                            gi_number = int(gi)
+                        except:
+                            pass
                     yield {'display_name': sequence_id.split(' ')[0],
                            'source': key_to_source['SGD'],
                            'strain': key_to_strain[strain.replace('.', '')],
                            'residues': residues,
-                           'is_chromosome': strain in strains_with_chromosomes}
+                           'is_chromosome': strain in strains_with_chromosomes,
+                           'genbank_accession': genbank_accession,
+                           'gi_number': None if gi_number is None or gi_number == '' else int(gi_number)}
+
+        s288c_chromosome_to_genbank_id = {'Chromosome I': 'NC_001133.9',
+                                          'Chromosome II': 'NC_001134.8',
+                                          'Chromosome III': 'NC_001135.5',
+                                          'Chromosome IV': 'NC_001136.10',
+                                          'Chromosome V': 'NC_001137.3',
+                                          'Chromosome VI': 'NC_001138.5',
+                                          'Chromosome VII': 'NC_001139.9',
+                                          'Chromosome VIII': 'NC_001140.6',
+                                          'Chromosome IX': 'NC_001141.2',
+                                          'Chromosome X': 'NC_001142.9',
+                                          'Chromosome XI': 'NC_001143.9',
+                                          'Chromosome XII': 'NC_001144.5',
+                                          'Chromosome XIII': 'NC_001145.3',
+                                          'Chromosome XIV': 'NC_001146.8',
+                                          'Chromosome XV': 'NC_001147.6',
+                                          'Chromosome XVI': 'NC_001148.4',
+                                          'Chromosome Mito': 'NC_001224.1'}
 
         #S288C Contigs
         for feature in bud_session.query(Feature).filter(or_(Feature.type == 'chromosome', Feature.type == 'plasmid')).all():
             for sequence in feature.sequences:
                 if sequence.is_current == 'Y':
+                    genbank_accession = s288c_chromosome_to_genbank_id[Contig.create_contig_name('Chromosome ' + feature.name)]
                     yield {'display_name': 'Chromosome ' + feature.name,
                            'source': key_to_source['SGD'],
                            'strain': key_to_strain['S288C'],
                            'residues': sequence.residues,
-                           'is_chromosome': 1}
+                           'is_chromosome': 1,
+                           'genbank_accession': genbank_accession}
 
         nex_session.close()
         bud_session.close()
@@ -590,38 +630,10 @@ def make_bioitem_url_starter(nex_session_maker):
                                    'category': 'Download',
                                    'bioitem_id': dataset.id}
 
-        s288c_chromosome_to_genbank_id = {'Chromosome I': 'NC_001133.9',
-                                          'Chromosome II': 'NC_001134.8',
-                                          'Chromosome III': 'NC_001135.5',
-                                          'Chromosome IV': 'NC_001136.10',
-                                          'Chromosome V': 'NC_001137.3',
-                                          'Chromosome VI': 'NC_001138.5',
-                                          'Chromosome VII': 'NC_001139.9',
-                                          'Chromosome VIII': 'NC_001140.6',
-                                          'Chromosome IX': 'NC_001141.2',
-                                          'Chromosome X': 'NC_001142.9',
-                                          'Chromosome XI': 'NC_001143.9',
-                                          'Chromosome XII': 'NC_001144.5',
-                                          'Chromosome XIII': 'NC_001145.3',
-                                          'Chromosome XIV': 'NC_001146.8',
-                                          'Chromosome XV': 'NC_001147.6',
-                                          'Chromosome XVI': 'NC_001148.4',
-                                          'Chromosome Mito': 'NC_001224.1'}
-
         for contig in nex_session.query(Contig).all():
-            if contig.strain_id == 1:
-                if contig.display_name in s288c_chromosome_to_genbank_id:
-                    genbank_id = s288c_chromosome_to_genbank_id[contig.display_name]
-                    yield {'display_name': genbank_id,
-                             'link': 'http://www.ncbi.nlm.nih.gov/nuccore/' + genbank_id,
-                             'source': key_to_source['GenBank-EMBL-DDBJ'],
-                             'category': 'External',
-                             'bioitem_id': contig.id}
-
-            elif '|' in contig.format_name:
-                genbank_id = contig.format_name.split('|')[-2]
-                yield {'display_name': genbank_id,
-                             'link': 'http://www.ncbi.nlm.nih.gov/nuccore/' + genbank_id,
+            if contig.genbank_accession is not None:
+                yield {'display_name': contig.genbank_accession,
+                             'link': 'http://www.ncbi.nlm.nih.gov/nuccore/' + contig.genbank_accession,
                              'source': key_to_source['GenBank-EMBL-DDBJ'],
                              'category': 'External',
                              'bioitem_id': contig.id}

@@ -201,13 +201,15 @@ class Contig(Bioitem):
     is_chromosome = Column('is_chromosome', Integer)
     centromere_start = Column('centromere_start', Integer)
     centromere_end = Column('centromere_end', Integer)
+    genbank_accession = Column('genbank_accession', String)
+    gi_number = Column('gi_number', Integer)
 
     #Relationships
-    strain = relationship(Strain, uselist=False)
+    strain = relationship(Strain, uselist=False, backref='contigs')
 
     __mapper_args__ = {'polymorphic_identity': "CONTIG", 'inherit_condition': id==Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
-                     'residues', 'centromere_start', 'centromere_end', 'is_chromosome',
+                     'residues', 'centromere_start', 'centromere_end', 'is_chromosome', 'genbank_accession', 'gi_number',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'strain']
 
@@ -215,10 +217,15 @@ class Contig(Bioitem):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = None if obj_json.get('strain') is None or create_format_name(obj_json.get('display_name')) is None else obj_json.get('strain').format_name + '_' + create_format_name(obj_json.get('display_name'))
         self.link = None if self.format_name is None else '/contig/' + self.format_name + '/overview'
-        if self.display_name.startswith('chr'):
-            self.display_name = 'Chromosome ' + (self.display_name[3:] if self.display_name[3:] not in number_to_roman else number_to_roman[self.display_name[3:]])
-        if self.display_name.startswith('Chromosome '):
-            self.display_name = 'Chromosome ' + (self.display_name[11:] if self.display_name[11:] not in number_to_roman else number_to_roman[self.display_name[11:]])
+        self.display_name = Contig.create_contig_name(self.display_name)
+
+    @staticmethod
+    def create_contig_name(name):
+        if name.startswith('chr'):
+            name = 'Chromosome ' + (name[3:] if name[3:] not in number_to_roman else number_to_roman[name[3:]])
+        if name.startswith('Chromosome '):
+            name = 'Chromosome ' + (name[11:] if name[11:] not in number_to_roman else number_to_roman[name[11:]])
+        return name
 
     def to_min_json(self, include_description=False):
         obj_json = UpdateByJsonMixin.to_min_json(self, include_description=include_description)
