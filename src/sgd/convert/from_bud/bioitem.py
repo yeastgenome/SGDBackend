@@ -330,7 +330,8 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
         for feature in bud_session.query(Feature).filter(or_(Feature.type == 'chromosome', Feature.type == 'plasmid')).all():
             for sequence in feature.sequences:
                 if sequence.is_current == 'Y':
-                    genbank_accession = s288c_chromosome_to_genbank_id[Contig.create_contig_name('Chromosome ' + feature.name)]
+                    contig_key = Contig.create_contig_name('Chromosome ' + feature.name)
+                    genbank_accession = None if contig_key not in s288c_chromosome_to_genbank_id else s288c_chromosome_to_genbank_id[contig_key]
                     yield {'display_name': 'Chromosome ' + feature.name,
                            'source': key_to_source['SGD'],
                            'strain': key_to_strain['S288C'],
