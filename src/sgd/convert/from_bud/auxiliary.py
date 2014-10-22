@@ -9,6 +9,7 @@ from src.sgd.model.nex.bioitem import Bioitem, Domain, Dataset, Datasetcolumn
 from src.sgd.model.nex.evidence import Geninteractionevidence, Physinteractionevidence, Regulationevidence, Goevidence, \
     Phenotypeevidence, Literatureevidence, Domainevidence, Bioentitydata, Expressionevidence
 from src.sgd.model.nex.auxiliary import Bioconceptinteraction, Bioiteminteraction
+from sqlalchemy import or_
 import math
 import datetime
 import operator
@@ -327,7 +328,7 @@ def make_bioconcept_count_starter(nex_session_maker):
     bioconcept_to_locus_direct = [([0]*len(bioentity_id_to_index)) for _ in range(len(bioconcept_id_to_index))]
     bioconcept_id_to_parent_ids = dict([(x, []) for x in id_to_bioconcept.keys()])
 
-    for relation in nex_session.query(Bioconceptrelation).filter(Bioconceptrelation.relation_type == 'is a').all():
+    for relation in nex_session.query(Bioconceptrelation).filter(or_(Bioconceptrelation.relation_type == 'is a', Bioconceptrelation.relation_type == 'part of')).all():
         bioconcept_id_to_parent_ids[relation.child_id].append(relation.parent_id)
 
     #EC number evidence
@@ -347,7 +348,7 @@ def make_bioconcept_count_starter(nex_session_maker):
     print 'EC number counts finished.'
 
     #Go evidence
-    for evidence in nex_session.query(Goevidence):
+    for evidence in nex_session.query(Goevidence).filter(Goevidence.annotation_type != 'computational'):
         bioentity_id = evidence.locus_id
         bioconcept_id = evidence.go_id
         bioconcept_to_locus_direct[bioconcept_id_to_index[bioconcept_id]][bioentity_id_to_index[bioentity_id]] = 1

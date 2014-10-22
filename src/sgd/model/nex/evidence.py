@@ -821,6 +821,15 @@ class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def unique_key(self):
         return self.evidence_id, self.class_type, self.relative_start, self.relative_end
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if self.bioentity_id is None:
+            obj_json['strand'] = self.evidence.strand
+        else:
+            new_evidences = [x for x in self.bioentity.dnasequence_evidences if x.strain_id == self.evidence.strain_id and x.dna_type == self.evidence.dna_type]
+            obj_json['strand'] = new_evidences[0].strand
+        return obj_json
+
 class Proteinsequenceevidence(Evidence):
     __tablename__ = "proteinsequenceevidence"
 
