@@ -2,8 +2,7 @@ from sqlalchemy.orm import joinedload
 
 from src.sgd.convert.transformers import make_file_starter, \
     make_obo_file_starter
-from src.sgd.convert import create_format_name
-from src.sgd.model.nex.misc import Source
+from src.sgd.model.nex import create_format_name
 
 
 __author__ = 'kpaskov'

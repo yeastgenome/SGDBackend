@@ -1,7 +1,7 @@
 from sqlalchemy.sql.expression import or_
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert import create_format_name
+from src.sgd.model.nex import create_format_name
 from src.sgd.convert.transformers import make_db_starter, \
     make_file_starter, make_fasta_file_starter
 import os

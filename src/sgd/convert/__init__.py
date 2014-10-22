@@ -22,11 +22,6 @@ def prepare_schema_connection(model_cls, dbtype, dbhost, dbname, schema, dbuser,
 
     return session_maker
 
-def create_format_name(display_name):
-    format_name = display_name.replace(' ', '_')
-    format_name = format_name.replace('/', '-')
-    return format_name
-
 def float_approx_equal(x, y, tol=1e-18, rel=1e-7):
     #http://code.activestate.com/recipes/577124-approximately-equal/
     if tol is rel is None:

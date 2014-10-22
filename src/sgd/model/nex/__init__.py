@@ -1,7 +1,11 @@
 __author__ = 'kpaskov'
 
-import json
 import datetime
+from src.sgd.model import EqualityByIDMixin
+from sqlalchemy.schema import Column, ForeignKey, FetchedValue
+from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.orm import relationship, backref
+from sqlalchemy.ext.declarative import declared_attr
 
 def create_format_name(display_name):
     format_name = display_name.replace(' ', '_')
@@ -13,7 +17,7 @@ Base = None
 class UpdateByJsonMixin(object):
     def update(self, json_obj):
         anything_changed = False
-        for key in self.__eq_values__:
+        for key in self.__keys__:
             current_value = getattr(self, key)
             new_value = None if key not in json_obj else json_obj[key]
 
@@ -26,7 +30,7 @@ class UpdateByJsonMixin(object):
                 setattr(self, key, new_value)
                 anything_changed = True
 
-        for key in self.__eq_fks__:
+        for key in self.__fks__:
             current_value = getattr(self, key + '_id')
             new_value = None if (key not in json_obj or json_obj[key] is None) else json_obj[key]['id']
 
@@ -38,7 +42,7 @@ class UpdateByJsonMixin(object):
 
     def compare(self, json_obj):
         anything_changed = False
-        for key in self.__eq_values__:
+        for key in self.__keys__:
             current_value = getattr(self, key)
             new_value = json_obj[key]
 
@@ -50,7 +54,7 @@ class UpdateByJsonMixin(object):
             elif new_value != current_value:
                 anything_changed = True
 
-        for key in self.__eq_fks__:
+        for key in self.__fks__:
             current_value = getattr(self, key + '_id')
             new_value = None if (key not in json_obj or json_obj[key] is None) else json_obj[key]['id']
 
@@ -59,20 +63,9 @@ class UpdateByJsonMixin(object):
 
         return anything_changed
 
-    def to_min_json(self, include_description=False):
-        obj_json = {
-            'id': self.id,
-            'format_name': self.format_name,
-            'display_name': self.display_name,
-            'link': self.link,
-            }
-        if include_description and hasattr(self, 'description'):
-            obj_json['description'] = self.description
-        return obj_json
-
-    def to_json(self):
+    def _get_json_from_values(self, keys):
         obj_json = {}
-        for key in self.__eq_values__:
+        for key in keys:
             if key == 'json':
                 pass
             else:
@@ -81,8 +74,11 @@ class UpdateByJsonMixin(object):
                     obj_json[key] = str(value)
                 else:
                     obj_json[key] = value
+        return obj_json
 
-        for key in self.__eq_fks__:
+    def _get_json_from_fks(self, fks):
+        obj_json = {}
+        for key in fks:
             fk_obj = getattr(self, key)
             fk_id = getattr(self, key + '_id')
             if fk_obj is not None:
@@ -93,14 +89,15 @@ class UpdateByJsonMixin(object):
                 obj_json[key] = None
         return obj_json
 
-    def __init__(self, obj_json):
-        for key in self.__eq_values__:
+    def _set_values_from_json(self, keys, obj_json):
+        for key in keys:
             if key == 'class_type' and obj_json.get(key) is None:
                 self.class_type = self.__mapper_args__['polymorphic_identity']
             else:
                 setattr(self, key, obj_json.get(key))
 
-        for key in self.__eq_fks__:
+    def _set_fks_from_json(self, fks, obj_json):
+        for key in fks:
             fk_obj = obj_json.get(key)
             fk_id = obj_json.get(key + '_id')
             if fk_obj is not None:
@@ -109,3 +106,79 @@ class UpdateByJsonMixin(object):
                 setattr(self, key + '_id', fk_id)
             else:
                 setattr(self, key + '_id', None)
+    def to_min_json(self):
+        return self._get_json_from_values(self.__min_keys__)
+
+    def to_semi_json(self):
+        obj_json = self._get_json_from_values(self.__semi_keys__)
+        obj_json.update(self._get_json_from_fks(self.__semi_fks__))
+        return obj_json
+
+    def to_json(self):
+        obj_json = self._get_json_from_keys(self.__keys__)
+        obj_json.update(self._get_json_from_fks(self.__fks__))
+        return obj_json
+
+    def __init__(self, obj_json):
+        self._set_keys_from_json(self.__keys__, obj_json)
+        self._set_fks_from_json(self.__fks__, obj_json)
+
+
+class BasicObject(EqualityByIDMixin, UpdateByJsonMixin):
+
+    display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
+    link = Column('obj_url', String)
+    description = Column('description', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type']
+    __min_keys__ = ['id', 'display_name', 'format_name', 'link', 'class_type']
+    __semi_keys__ = ['id', 'display_name', 'format_name', 'link', 'class_type', 'description']
+    __fks__ = ['source']
+    __semi_fks__ = []
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+
+eco_id_to_category = {'ECO:0000000': None,
+                      'ECO:0000046': 'expression',
+                      'ECO:0000048': 'expression',
+                      'ECO:0000049': 'expression',
+                      'ECO:0000055': 'expression',
+                      'ECO:0000066': 'binding',
+                      'ECO:0000096': 'binding',
+                      'ECO:0000104': 'expression',
+                      'ECO:0000106': 'expression',
+                      'ECO:0000108': 'expression',
+                      'ECO:0000110': 'expression',
+                      'ECO:0000112': 'expression',
+                      'ECO:0000116': 'expression',
+                      'ECO:0000126': 'expression',
+                      'ECO:0000136': 'binding',
+                      'ECO:0000226': 'binding',
+                      'ECO:0000229': 'binding',
+                      'ECO:0000230': 'binding',
+                      'ECO:0000231': 'expression',
+                      'ECO:0000295': 'expression'}
+
+number_to_roman = {'01': 'I', '1': 'I',
+                   '02': 'II', '2': 'II',
+                   '03': 'III', '3': 'III',
+                   '04': 'IV', '4': 'IV',
+                   '05': 'V', '5': 'V',
+                   '06': 'VI', '6': 'VI',
+                   '07': 'VII', '7': 'VII',
+                   '08': 'VIII', '8': 'VIII',
+                   '09': 'IX', '9': 'IX',
+                   '10': 'X',
+                   '11': 'XI',
+                   '12': 'XII',
+                   '13': 'XIII',
+                   '14': 'XIV',
+                   '15': 'XV',
+                   '16': 'XVI',
+                   '17': 'Mito',
+                   }

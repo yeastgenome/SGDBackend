@@ -5,7 +5,6 @@ from sqlalchemy.orm import joinedload
 import requests
 
 from src.sgd.model.nex import create_format_name
-from src.sgd.model.nex.misc import Source
 
 
 __author__ = 'kpaskov'
