@@ -34,11 +34,6 @@ class PerfBackend(BackendInterface):
         DBSession.configure(bind=engine)
         perf.Base.metadata.bind = engine
 
-        from src.sgd.model.perf.core import Bioentity
-        self.locuses = dict()
-        self.now = datetime.datetime.now()
-
-        from src.sgd.model.perf.core import Disambig
         self.log = set_up_logging(log_directory, 'perf')
 
     #Renderer
@@ -67,24 +62,11 @@ class PerfBackend(BackendInterface):
         print len(bioent_ids)
         return get_list(Locusentry, 'json', bioent_ids)
 
-    def check_date(self):
-        new_time = datetime.datetime.now()
-        if new_time.date() != self.now.date() and new_time.hour >= 3:
-            self.locuses = dict()
-            self.now = new_time
-        return True
-
     #Locus
     def locus(self, locus_identifier):
         from src.sgd.model.perf.core import Bioentity
         bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-        if bioent_id is None:
-            bioentity = None
-        elif self.check_date() and bioent_id in self.locuses:
-            bioentity = self.locuses[bioent_id]
-        else:
-            bioentity = DBSession.query(Bioentity).filter_by(id=bioent_id).first().json
-            self.locuses[bioent_id] = bioentity
+        bioentity = DBSession.query(Bioentity).filter_by(id=bioent_id).first().json
         return bioentity
 
     def locustabs(self, locus_identifier):
