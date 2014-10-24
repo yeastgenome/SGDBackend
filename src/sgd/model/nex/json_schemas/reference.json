@@ -1,0 +1,34 @@
+{
+    "title": "Reference",
+    "id": "/profiles/reference.json",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "required": [],
+    "additionalProperties": false,
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "comment": "This value is set by the database.",
+            "type": "integer",
+            "permission": "noone"
+        },
+        "display_name": {
+            "title": "Display Name",
+            "comment": "This is the name used whenever this object is displayed.",
+            "type": "string",
+            "permission": "curator"
+        },
+        "source": {
+            "title": "Format Name",
+            "comment": "This is the name used in urls and file downloads. It is set by the database.",
+            "type": "string",
+            "permission": "noone"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "comment": "This is the name used in urls and file downloads. It is set by the database.",
+            "type": "string",
+            "permission": "noone"
+        }
+    }
+}
