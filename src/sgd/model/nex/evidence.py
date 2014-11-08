@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date, Numeric
 
-from bioconcept import Bioconcept, Go, Phenotype, ECNumber
+from secondary import Bioconcept, Go, Phenotype, ECNumber
 from bioentity import Bioentity, Locus
 from misc import Strain, Experiment, Alias, Source
 from bioitem import Bioitem, Domain, Dataset, Datasetcolumn, Pathway
@@ -215,7 +215,6 @@ class Goevidence(Evidence):
         return self.class_type, self.locus_id, self.go_id, self.go_evidence, self.reference_id, self.property_key
 
     def to_json(self, aux_obj_json=None):
-        from src.sgd.model.nex.paragraph import Bioentityparagraph
         obj_json = UpdateByJsonMixin.to_json(self)
         if aux_obj_json is not None:
             for eq_fk in self.__eq_fks__:

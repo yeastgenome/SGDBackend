@@ -30,16 +30,16 @@ if __name__ == "__main__":
 
     # # ------------------------------------------ Evelements ------------------------------------------
     # # Bud -> Nex
-    # from src.sgd.model.nex.misc import Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl, \
-    #     Source
+    from src.sgd.model.nex.misc import Strain, Experiment, Experimentalias, Experimentrelation, Url, Alias, Relation, Strainurl
+    from src.sgd.model.nex.source import Source
     # from src.sgd.model.nex.auxiliary import Disambig
     # from src.sgd.convert.from_bud.evelements import make_source_starter, make_strain_starter, make_experiment_starter, \
     #     make_experiment_alias_starter, make_experiment_relation_starter, make_strain_url_starter
     # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
-    # do_conversion(make_source_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Source),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Source), name='convert.from_bud.source', delete_untouched=True, commit=True)])
+    do_conversion(make_source_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Source),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Source), name='convert.from_bud.source', delete_untouched=True, commit=True)])
     #
     # do_conversion(make_experiment_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Experiment),

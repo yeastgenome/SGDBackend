@@ -1,12 +1,5 @@
 __author__ = 'kpaskov'
 
-import datetime
-from src.sgd.model import EqualityByIDMixin
-from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.ext.declarative import declared_attr
-
 def create_format_name(display_name):
     format_name = display_name.replace(' ', '_')
     format_name = format_name.replace('/', '-')
@@ -14,7 +7,7 @@ def create_format_name(display_name):
 
 Base = None
 
-class UpdateByJsonMixin(object):
+class UpdateByJsonMixin():
     def update(self, json_obj):
         anything_changed = False
         for key in self.__keys__:
@@ -122,25 +115,6 @@ class UpdateByJsonMixin(object):
     def __init__(self, obj_json):
         self._set_keys_from_json(self.__keys__, obj_json)
         self._set_fks_from_json(self.__fks__, obj_json)
-
-
-class BasicObject(EqualityByIDMixin, UpdateByJsonMixin):
-
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
-    link = Column('obj_url', String)
-    description = Column('description', String)
-    date_created = Column('date_created', Date, server_default=FetchedValue())
-    created_by = Column('created_by', String, server_default=FetchedValue())
-
-    __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type']
-    __min_keys__ = ['id', 'display_name', 'format_name', 'link', 'class_type']
-    __semi_keys__ = ['id', 'display_name', 'format_name', 'link', 'class_type', 'description']
-    __fks__ = ['source']
-    __semi_fks__ = []
-
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
 
 
 eco_id_to_category = {'ECO:0000000': None,

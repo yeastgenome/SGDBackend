@@ -1,4 +1,8 @@
 from pyramid.config import Configurator
+from pyramid.authentication import AuthTktAuthenticationPolicy
+from pyramid.authorization import ACLAuthorizationPolicy
+from src.sgd.backend.security import groupfinder
+from src.sgd.backend.security import login, logout
 
 import config
 
@@ -23,49 +27,97 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('experiment'),
                     route_name='experiment')
     
-    #Reference views
     config.add_route('reference', '/reference/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('reference', request)(getattr(chosen_backend, 'reference')(reference_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('reference'),
                     route_name='reference')
-
-    config.add_route('reference_list', '/reference_list')
-    config.add_view(lambda request: chosen_backend.response_wrapper('reference_list', request)(getattr(chosen_backend, 'reference_list')(None if 'reference_ids' not in request.json_body else request.json_body['reference_ids'])),
-                    renderer=chosen_backend.get_renderer('reference_list'),
-                    route_name='reference_list')
     
     config.add_route('author', '/author/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('author', request)(getattr(chosen_backend, 'author')(author_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('author'),
                     route_name='author')
 
-    config.add_route('references_this_week', '/references/this_week')
-    config.add_view(lambda request: chosen_backend.response_wrapper('references_this_week', request)(getattr(chosen_backend, 'references_this_week')()),
-                    renderer=chosen_backend.get_renderer('references_this_week'),
-                    route_name='references_this_week')
-    
-    #Bioent views
-    config.add_route('bioentity_list', '/bioentity_list')
-    config.add_view(lambda request: chosen_backend.response_wrapper('bioentity_list', request)(getattr(chosen_backend, 'bioentity_list')(None if 'bioent_ids' not in request.json_body else request.json_body['bioent_ids'])),
-                    renderer=chosen_backend.get_renderer('bioentity_list'),
-                    route_name='bioentity_list')
-
     config.add_route('locus', '/locus/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('locus', request)(getattr(chosen_backend, 'locus')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('locus'),
                     route_name='locus')
 
-    config.add_route('locustabs', '/locus/{identifier}/tabs')
-    config.add_view(lambda request: chosen_backend.response_wrapper('locustabs', request)(getattr(chosen_backend, 'locustabs')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('locustabs'),
-                    route_name='locustabs')
-    
-    #Go views
     config.add_route('go', '/go/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('go', request)(getattr(chosen_backend, 'go')(go_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('go'),
                     route_name='go')
+
+    config.add_route('phenotype', '/phenotype/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('phenotype', request)(getattr(chosen_backend, 'phenotype')(phenotype_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('phenotype'),
+                    route_name='phenotype')
+
+    config.add_route('observable', '/observable/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('observable', request)(getattr(chosen_backend, 'observable')(observable_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('observable'),
+                    route_name='observable')
+
+    config.add_route('domain', '/domain/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('domain', request)(getattr(chosen_backend, 'domain')(domain_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('domain'),
+                    route_name='domain')
+
+    config.add_route('ecnumber', '/ecnumber/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('ec_number', request)(getattr(chosen_backend, 'ec_number')(ec_number_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('ec_number'),
+                    route_name='ecnumber')
+
+    config.add_route('contig', '/contig/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('contig', request)(getattr(chosen_backend, 'contig')(contig_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('contig'),
+                    route_name='contig')
+
+    config.add_route('dataset', '/dataset/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('dataset', request)(getattr(chosen_backend, 'dataset')(dataset_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('dataset'),
+                    route_name='dataset')
+
+    config.add_route('tag', '/tag/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('tag', request)(getattr(chosen_backend, 'tag')(tag_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('tag'),
+                    route_name='tag')
+
+    config.add_route('reserved_name', '/reserved_name/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('reserved_name', request)(getattr(chosen_backend, 'reserved_name')(reserved_name_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('reserved_name'),
+                    route_name='reserved_name')
+
+    config.add_route('evidence', '/evidence/{identifier}/overview')
+    config.add_view(lambda request: chosen_backend.response_wrapper('evidence', request)(getattr(chosen_backend, 'evidence')(evidence_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('evidence'),
+                    route_name='evidence')
+
+    config.add_route('evidence_edit', '/evidence/{identifier}/edit')
+    config.add_view(lambda request: chosen_backend.response_wrapper('evidence_edit', request)(getattr(chosen_backend, 'evidence_edit')(evidence_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('evidence_edit'),
+                    route_name='evidence_edit',
+                    permission='edit')
+
+    config.add_route('reference_list', '/reference_list')
+    config.add_view(lambda request: chosen_backend.response_wrapper('reference_list', request)(getattr(chosen_backend, 'reference_list')(None if 'reference_ids' not in request.json_body else request.json_body['reference_ids'])),
+                    renderer=chosen_backend.get_renderer('reference_list'),
+                    route_name='reference_list')
+
+    config.add_route('references_this_week', '/references/this_week')
+    config.add_view(lambda request: chosen_backend.response_wrapper('references_this_week', request)(getattr(chosen_backend, 'references_this_week')()),
+                    renderer=chosen_backend.get_renderer('references_this_week'),
+                    route_name='references_this_week')
     
+    config.add_route('bioentity_list', '/bioentity_list')
+    config.add_view(lambda request: chosen_backend.response_wrapper('bioentity_list', request)(getattr(chosen_backend, 'bioentity_list')(None if 'bioent_ids' not in request.json_body else request.json_body['bioent_ids'])),
+                    renderer=chosen_backend.get_renderer('bioentity_list'),
+                    route_name='bioentity_list')
+
+    config.add_route('locustabs', '/locus/{identifier}/tabs')
+    config.add_view(lambda request: chosen_backend.response_wrapper('locustabs', request)(getattr(chosen_backend, 'locustabs')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('locustabs'),
+                    route_name='locustabs')
+
     config.add_route('go_bioent_details', '/locus/{identifier}/go_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('go_details', request)(getattr(chosen_backend, 'go_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('go_details'),
@@ -101,7 +153,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('go_ontology_graph'),
                     route_name='go_ontology_graph')
 
-    #Expression views
     config.add_route('expression_details', '/locus/{identifier}/expression_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('expression_details', request)(getattr(chosen_backend, 'expression_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('expression_details'),
@@ -111,17 +162,6 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('expression_graph', request)(getattr(chosen_backend, 'expression_graph')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('expression_graph'),
                     route_name='expression_graph')
-
-    #Phenotype views
-    config.add_route('phenotype', '/phenotype/{identifier}/overview')
-    config.add_view(lambda request: chosen_backend.response_wrapper('phenotype', request)(getattr(chosen_backend, 'phenotype')(phenotype_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('phenotype'),
-                    route_name='phenotype')
-
-    config.add_route('observable', '/observable/{identifier}/overview')
-    config.add_view(lambda request: chosen_backend.response_wrapper('observable', request)(getattr(chosen_backend, 'observable')(observable_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('observable'),
-                    route_name='observable')
 
     config.add_route('phenotype_bioent_details', '/locus/{identifier}/phenotype_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_details', request)(getattr(chosen_backend, 'phenotype_details')(locus_identifier=request.matchdict['identifier'])),
@@ -153,11 +193,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('phenotype_details'),
                     route_name='phenotype_ref_details')
 
-    config.add_route('phenotype_resources', '/locus/{identifier}/phenotype_resources')
-    config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_resources', request)(getattr(chosen_backend, 'phenotype_resources')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('phenotype_resources'),
-                    route_name='phenotype_resources')
-
     config.add_route('phenotype_graph', '/locus/{identifier}/phenotype_graph')
     config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_graph', request)(getattr(chosen_backend, 'phenotype_graph')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('phenotype_graph'),
@@ -173,7 +208,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('locus_graph'),
                     route_name='locus_graph')
 
-    #Interaction views
     config.add_route('interaction_bioent_details', '/locus/{identifier}/interaction_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('interaction_details', request)(getattr(chosen_backend, 'interaction_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('interaction_details'),
@@ -189,12 +223,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('interaction_graph'),
                     route_name='interaction_graph')
     
-    config.add_route('interaction_resources', '/locus/{identifier}/interaction_resources')
-    config.add_view(lambda request: chosen_backend.response_wrapper('interaction_resources', request)(getattr(chosen_backend, 'interaction_resources')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('interaction_resources'),
-                    route_name='interaction_resources')
-    
-    #Regulation views
     config.add_route('regulation_bioent_details', '/locus/{identifier}/regulation_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('regulation_details', request)(getattr(chosen_backend, 'regulation_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('regulation_details'),
@@ -215,7 +243,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('regulation_graph'),
                     route_name='regulation_graph')
 
-    #Literature views
     config.add_route('literature_bioent_details', '/locus/{identifier}/literature_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('literature_details', request)(getattr(chosen_backend, 'literature_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('literature_details'),
@@ -236,7 +263,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('literature_graph'),
                     route_name='literature_graph')
     
-    #Protein views
     config.add_route('protein_domain_bioent_details', '/locus/{identifier}/protein_domain_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('protein_domain_details', request)(getattr(chosen_backend, 'protein_domain_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('protein_domain_details'),
@@ -246,11 +272,6 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('protein_domain_details', request)(getattr(chosen_backend, 'protein_domain_details')(domain_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('protein_domain_details'),
                     route_name='protein_domain_bioitem_details')
-
-    config.add_route('domain', '/domain/{identifier}/overview')
-    config.add_view(lambda request: chosen_backend.response_wrapper('domain', request)(getattr(chosen_backend, 'domain')(domain_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('domain'),
-                    route_name='domain')
 
     config.add_route('domain_enrichment', '/domain/{identifier}/enrichment')
     config.add_view(lambda request: chosen_backend.response_wrapper('domain_enrichment', request)(getattr(chosen_backend, 'domain_enrichment')(domain_identifier=request.matchdict['identifier'])),
@@ -262,21 +283,10 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('protein_domain_graph'),
                     route_name='protein_domain_graph')
 
-    config.add_route('protein_resources', '/locus/{identifier}/protein_resources')
-    config.add_view(lambda request: chosen_backend.response_wrapper('protein_resources', request)(getattr(chosen_backend, 'protein_resources')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('protein_resources'),
-                    route_name='protein_resources')
-
     config.add_route('binding_site_bioent_details', '/locus/{identifier}/binding_site_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('binding_site_details', request)(getattr(chosen_backend, 'binding_site_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('binding_site_details'),
                     route_name='binding_site_bioent_details')
-
-    #EC Number views
-    config.add_route('ecnumber', '/ecnumber/{identifier}/overview')
-    config.add_view(lambda request: chosen_backend.response_wrapper('ec_number', request)(getattr(chosen_backend, 'ec_number')(ec_number_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('ec_number'),
-                    route_name='ecnumber')
 
     config.add_route('ecnumber_bioent_details', '/locus/{identifier}/ecnumber_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('ec_number_details', request)(getattr(chosen_backend, 'ec_number_details')(locus_identifier=request.matchdict['identifier'])),
@@ -319,21 +329,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('history_details'),
                     route_name='history_details')
 
-    config.add_route('contig', '/contig/{identifier}/overview')
-    config.add_view(lambda request: chosen_backend.response_wrapper('contig', request)(getattr(chosen_backend, 'contig')(contig_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('contig'),
-                    route_name='contig')
-
-    config.add_route('dataset', '/dataset/{identifier}/overview')
-    config.add_view(lambda request: chosen_backend.response_wrapper('dataset', request)(getattr(chosen_backend, 'dataset')(dataset_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('dataset'),
-                    route_name='dataset')
-
-    config.add_route('tag', '/tag/{identifier}/overview')
-    config.add_view(lambda request: chosen_backend.response_wrapper('tag', request)(getattr(chosen_backend, 'tag')(tag_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('tag'),
-                    route_name='tag')
-
     config.add_route('tag_list', '/tag')
     config.add_view(lambda request: chosen_backend.response_wrapper('tag_list', request)(getattr(chosen_backend, 'tag_list')()),
                     renderer=chosen_backend.get_renderer('tag_list'),
@@ -349,15 +344,25 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('snapshot'),
                     route_name='snapshot')
 
-    config.add_route('reserved_name', '/reserved_name/{identifier}/overview')
-    config.add_view(lambda request: chosen_backend.response_wrapper('reserved_name', request)(getattr(chosen_backend, 'reserved_name')(reserved_name_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('reserved_name'),
-                    route_name='reserved_name')
+    config.add_route('login', '/login')
+    config.add_view(login,
+                    renderer='json',
+                    route_name='login')
 
+    config.add_route('logout', '/logout')
+    config.add_view(logout,
+                    renderer='json',
+                    route_name='logout')
     
 def prepare_backend(backend_type):
     configurator = Configurator()
     configurator.add_static_view('static', 'static', cache_max_age=3600)
+
+    authn_policy = AuthTktAuthenticationPolicy(
+        'sosecret', callback=groupfinder, hashalg='sha512')
+    authz_policy = ACLAuthorizationPolicy()
+    configurator.set_authentication_policy(authn_policy)
+    configurator.set_authorization_policy(authz_policy)
 
     chosen_backend = None
     if backend_type == 'nex':

@@ -6,37 +6,17 @@ from sqlalchemy.types import Integer, String, Date, CLOB
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
 
-from src.sgd.model.nex import Base, BasicObject, create_format_name, UpdateByJsonMixin, number_to_roman, eco_id_to_category
-from src.sgd.model.nex.primary import Reference, Strain
+from src.sgd.model.nex import Base, create_format_name, number_to_roman, eco_id_to_category
+from src.sgd.model.nex.basic import BasicObject, UpdateByJsonMixin
+from src.sgd.model.nex.reference import Reference
+from src.sgd.model.nex.bioentity import Organism
 
-class Secondary(Base, BasicObject):
-    __tablename__ = 'secondaryobject'
-
-    id = Column('id', Integer, primary_key=True)
-    class_type = Column('subclass', String)
-    is_root = Column('is_root', Integer, default=False)
-    primary_count = Column('primary_count', Integer, default=0)
-    descendant_primary_count = Column('descendant_primary_count', Integer, default=0)
-    source_id = Column('source_id', Integer, ForeignKey('source.id'))
-
-    #Relationships
-    source = relationship('Source', uselist=False, lazy='joined')
-    tags = association_proxy('secondary_tags', 'tag')
-
-    __mapper_args__ = {'polymorphic_on': class_type}
-    __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root']
-    __fks__ = ['source', 'urls', 'aliases', 'relations', 'qualities', 'annotations', 'tags']
-
-    def unique_key(self):
-        return self.class_type, self.format_name
-
-
-class ECNumber(Secondary):
+class ECNumber(BasicObject):
     __tablename__ = "ecnumber"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
-    __mapper_args__ = {'polymorphic_identity': 'ECNUMBER', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'ECNUMBER', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                      'uniprotid', 'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position']
 
@@ -50,15 +30,18 @@ class ECNumber(Secondary):
         return self.ecnumber_annotations
 
 
-class Go(Secondary):
+class Go(BasicObject):
     __tablename__ = 'go'
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
     go_id = Column('go_id', String)
     go_aspect = Column('go_aspect', String)
+    is_root = Column('is_root', Integer, default=False)
+    primary_count = Column('primary_count', Integer, default=0)
+    descendant_primary_count = Column('descendant_primary_count', Integer, default=0)
 
-    __mapper_args__ = {'polymorphic_identity': 'GO', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'GO', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                      'go_id', 'go_aspect']
 
@@ -88,14 +71,16 @@ class Go(Secondary):
         return self.go_annotations
 
 
-class Observable(Secondary):
+class Observable(BasicObject):
     __tablename__ = "observable"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
-
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
     ancestor_type = Column('ancestor_type', String)
+    is_root = Column('is_root', Integer, default=False)
+    primary_count = Column('primary_count', Integer, default=0)
+    descendant_primary_count = Column('descendant_primary_count', Integer, default=0)
 
-    __mapper_args__ = {'polymorphic_identity': 'OBSERVABLE', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'OBSERVABLE', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                      'ancestor_type']
 
@@ -115,18 +100,20 @@ class Observable(Secondary):
         return set(sum([x.phenotype_annotations for x in self.phenotypes], []))
 
 
-class Phenotype(Secondary):
+class Phenotype(BasicObject):
     __tablename__ = "phenotype"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
-
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
     observable_id = Column('observable_id', Integer, ForeignKey(Observable.id))
     qualifier = Column('qualifier', String)
+    is_root = Column('is_root', Integer, default=False)
+    primary_count = Column('primary_count', Integer, default=0)
+    descendant_primary_count = Column('descendant_primary_count', Integer, default=0)
 
     #Relationships
     observable = relationship(Observable, uselist=False, foreign_keys=[observable_id], lazy='joined', backref=backref('phenotypes', passive_deletes=True))
 
-    __mapper_args__ = {'polymorphic_identity': 'PHENOTYPE', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'PHENOTYPE', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                      'qualifier']
     __fks__ = ['source', 'observable', 'urls', 'aliases', 'relations', 'qualities', 'annotations', 'tags']
@@ -159,15 +146,15 @@ class Phenotype(Secondary):
             format_name = create_format_name(qualifier.lower() + '_' + observable.lower())
         return format_name
 
-class Domain(Secondary):
+class Domain(BasicObject):
     __tablename__ = "domain"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
     interpro_id = Column('interpro_id', String)
     interpro_description = Column('interpro_description', String)
 
-    __mapper_args__ = {'polymorphic_identity': 'DOMAIN', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'DOMAIN', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                      'interpro_id', 'interpro_description']
 
@@ -182,14 +169,14 @@ class Domain(Secondary):
         return self.proteindomain_annotations
 
 
-class Chemical(Secondary):
+class Chemical(BasicObject):
     __tablename__ = "chemical"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
     chebi_id = Column('chebi_id', String)
 
-    __mapper_args__ = {'polymorphic_identity': 'CHEMICAL', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'CHEMICAL', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                      'chebi_id']
 
@@ -203,21 +190,21 @@ class Chemical(Secondary):
         return self.phenotype_annotations
 
 
-class Contig(Secondary):
+class Contig(BasicObject):
     __tablename__ = "contig"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
     residues = Column('residues', CLOB)
-    strain_id = Column('strain_id', ForeignKey(Strain.id))
+    strain_id = Column('strain_id', ForeignKey(Organism.id))
     is_chromosome = Column('is_chromosome', Integer)
     centromere_start = Column('centromere_start', Integer)
     centromere_end = Column('centromere_end', Integer)
 
     #Relationships
-    strain = relationship(Strain, uselist=False)
+    strain = relationship(Organism, uselist=False)
 
-    __mapper_args__ = {'polymorphic_identity': 'CONTIG', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'CONTIG', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                      'residues', 'centromere_start', 'centromere_end', 'is_chromosome']
     __min_keys__ = ['id', 'display_name', 'format_name', 'link', 'class_type',
@@ -242,10 +229,10 @@ class Contig(Secondary):
         return self.sequence_annotations
 
 
-class Dataset(Secondary):
+class Dataset(BasicObject):
     __tablename__ = "dataset"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
     geo_id = Column('geo_id', String)
     pcl_filename = Column('pcl_filename', String)
@@ -257,7 +244,7 @@ class Dataset(Secondary):
     #Relationships
     reference = relationship(Reference, uselist=False)
 
-    __mapper_args__ = {'polymorphic_identity': 'DATASET', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'DATASET', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                      'geo_id', 'pcl_filename', 'short_description', 'channel_count', 'condition_count']
     __min_keys__ = ['id', 'display_name', 'format_name', 'link', 'class_type',
@@ -278,10 +265,10 @@ class Dataset(Secondary):
         return None
 
 
-class Datasetcolumn(Secondary):
+class Datasetcolumn(BasicObject):
     __tablename__ = "datasetcolumn"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
     file_order = Column('file_order', Integer)
     geo_id = Column('geo_id', String)
@@ -290,7 +277,7 @@ class Datasetcolumn(Secondary):
     #Relationships
     dataset = relationship(Dataset, uselist=False, backref='datasetcolumns', foreign_keys=[dataset_id])
 
-    __mapper_args__ = {'polymorphic_identity': 'DATASETCOLUMN', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'DATASETCOLUMN', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                      'file_order', 'geo_id']
     __min_keys__ = ['id', 'display_name', 'format_name', 'link', 'class_type',
@@ -309,10 +296,10 @@ class Datasetcolumn(Secondary):
         return None
 
 
-class Reservedname(Secondary):
+class Reservedname(BasicObject):
     __tablename__ = "reservedname"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
     locus_id = Column('locus_id', Integer, ForeignKey('locus.id'))
     reference_id = Column('reference_id', Integer, ForeignKey('reference.id'))
 
@@ -320,7 +307,7 @@ class Reservedname(Secondary):
     locus = relationship('Locus', uselist=False, backref='reserved_names')
     reference_id = relationship('Reference', uselist=False)
 
-    __mapper_args__ = {'polymorphic_identity': 'RESERVEDNAME', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'RESERVEDNAME', 'inherit_condition': id == BasicObject.id}
     __fks__ = ['source', 'locus', 'reference']
 
     def __init__(self, obj_json):
@@ -333,12 +320,12 @@ class Reservedname(Secondary):
         return self.reservedname_annotations
 
 
-class Allele(Secondary):
+class Allele(BasicObject):
     __tablename__ = "allele"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
-    __mapper_args__ = {'polymorphic_identity': 'ALLELE', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'ALLELE', 'inherit_condition': id == BasicObject.id}
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -349,12 +336,12 @@ class Allele(Secondary):
         return self.allele_annotations
 
 
-class Orphan(Secondary):
+class Orphan(BasicObject):
     __tablename__ = "orphan"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
-    __mapper_args__ = {'polymorphic_identity': 'ORPHAN', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'ORPHAN', 'inherit_condition': id == BasicObject.id}
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -365,12 +352,12 @@ class Orphan(Secondary):
         return None
 
 
-class Pathway(Secondary):
+class Pathway(BasicObject):
     __tablename__ = "pathway"
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
-    __mapper_args__ = {'polymorphic_identity': 'PATHWAY', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'PATHWAY', 'inherit_condition': id == BasicObject.id}
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -380,32 +367,15 @@ class Pathway(Secondary):
         return self.pathway_annotations
 
 
-class Source(Secondary):
-    __tablename__ = 'source'
-
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
-
-    __mapper_args__ = {'polymorphic_identity': 'SOURCE', 'inherit_condition': id == Secondary.id}
-    __fks__ = ['urls', 'aliases', 'relations', 'qualities', 'annotations', 'tags']
-
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = None if self.display_name is None else create_format_name(self.display_name)
-
-    @hybrid_property
-    def annotations(self):
-        return None
-
-
-class Experiment(Secondary):
+class Experiment(BasicObject):
     __tablename__ = 'experiment'
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
     eco_id = Column('eco_id', String)
     category = Column('category', String)
 
-    __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'EXPERIMENT', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                 'eco_id', 'category']
 
@@ -418,10 +388,10 @@ class Experiment(Secondary):
     def annotations(self):
         return None
 
-class Book(Secondary):
+class Book(BasicObject):
     __tablename__ = 'book'
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
     title = Column('title', String)
     volume_title = Column('volume_title', String)
@@ -430,7 +400,7 @@ class Book(Secondary):
     publisher = Column('publisher', String)
     publisher_location = Column('publisher_location', String)
 
-    __mapper_args__ = {'polymorphic_identity': 'BOOK', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'BOOK', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                 'title', 'volume_title', 'isbn', 'total_pages', 'publisher', 'publisher_location']
 
@@ -440,17 +410,17 @@ class Book(Secondary):
         self.format_name = None if self.title is None else create_format_name(self.title + '' if self.volume_title is None else ('_' + self.volume_title))
 
 
-class Journal(Secondary):
+class Journal(BasicObject):
     __tablename__ = 'journal'
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
     title = Column('title', String)
     med_abbr = Column('med_abbr', String)
     issn_print = Column('issn_print', String)
     issn_online = Column('issn_online', String)
 
-    __mapper_args__ = {'polymorphic_identity': 'JOURNAL', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'JOURNAL', 'inherit_condition': id == BasicObject.id}
     __keys__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by', 'class_type', 'primary_count', 'descendant_primary_count', 'is_root',
                 'title', 'med_abbr', 'issn_print', 'issn_online']
 
@@ -460,12 +430,12 @@ class Journal(Secondary):
         self.format_name = None if self.display_name is None else create_format_name(self.display_name[:99] if self.med_abbr is None else self.display_name[:50] + '_' + self.med_abbr[:49])
 
 
-class Author(Secondary):
+class Author(BasicObject):
     __tablename__ = 'author'
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
-    __mapper_args__ = {'polymorphic_identity': 'AUTHOR', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'AUTHOR', 'inherit_condition': id == BasicObject.id}
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
@@ -473,12 +443,12 @@ class Author(Secondary):
         self.link = None if self.format_name is None else '/author/' + self.format_name + '/overview'
 
 
-class Reftype(Secondary):
+class Reftype(BasicObject):
     __tablename__ = 'reftype'
 
-    id = Column('id', Integer, ForeignKey(Secondary.id), primary_key=True)
+    id = Column('id', Integer, ForeignKey(BasicObject.id), primary_key=True)
 
-    __mapper_args__ = {'polymorphic_identity': 'REFTYPE', 'inherit_condition': id == Secondary.id}
+    __mapper_args__ = {'polymorphic_identity': 'REFTYPE', 'inherit_condition': id == BasicObject.id}
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
