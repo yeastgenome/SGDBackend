@@ -59,19 +59,13 @@ class PerfBackend(BackendInterface):
 
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.perf.core import Locusentry
-        print len(bioent_ids)
         return get_list(Locusentry, 'json', bioent_ids)
 
     #Locus
     def locus(self, locus_identifier):
         from src.sgd.model.perf.core import Bioentity
-        start_time = datetime.datetime.now()
         bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-        got_id_time = datetime.datetime.now()
-        print 'ID', got_id_time - start_time
         bioentity = DBSession.query(Bioentity).filter_by(id=bioent_id).first().json
-        got_object_time = datetime.datetime.now()
-        print 'Object', got_object_time - got_id_time
         return bioentity
 
     def locustabs(self, locus_identifier):
