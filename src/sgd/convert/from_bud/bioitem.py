@@ -250,7 +250,6 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.model.nex.bioitem import Contig
     from src.sgd.convert.from_bud import sequence_files, new_sequence_files
-    from src.sgd.model.bud.sequence import Sequence
     from src.sgd.model.bud.feature import Feature
 
 

@@ -696,6 +696,7 @@ if __name__ == "__main__":
     # #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == strain_key_to_id[strain_key]).filter(DNAsequenceevidence.dna_type != '1KB'),
     # #                              name='convert.from_bud.evidence.dnasequence',
     # #                              delete_untouched=True,
+    # #                              delete_untouched=True,
     # #                              commit_interval=1000),
     # #                    OutputTransformer(1000)])
     # #
