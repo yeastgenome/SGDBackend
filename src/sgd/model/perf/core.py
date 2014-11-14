@@ -127,7 +127,7 @@ class Disambig(Base, EqualityByIDMixin):
     obj_id = Column('obj_id', Integer)
                 
     def __init__(self, obj_json):
-        self.disambig_key = obj_json['disambig_key'].lower()
+        self.disambig_key = obj_json['disambig_key']
         self.class_type = obj_json['class_type']
         self.subclass_type = obj_json['subclass_type']
         self.obj_id = obj_json['identifier']

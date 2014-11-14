@@ -350,11 +350,12 @@ class Json2DisambigPerfDB(TransformerInterface):
             self.session.commit()
 
         try:
-            key = (newly_created_obj_json['class_type'], newly_created_obj_json['subclass_type'], newly_created_obj_json['disambig_key'].encode('utf-8'))
+            key = (newly_created_obj_json['class_type'], newly_created_obj_json['subclass_type'], newly_created_obj_json['disambig_key'].encode('utf-8').lower())
         except Exception:
             self.error_count += 1
             return 'Error'
         if key not in self.already_seen:
+            self.already_seen.add(key)
             identifier = newly_created_obj_json['identifier']
             if key in self.id_to_current_obj:
                 if identifier == self.id_to_current_obj[key]:
@@ -369,7 +370,9 @@ class Json2DisambigPerfDB(TransformerInterface):
                 self.session.add(Disambig(newly_created_obj_json))
                 self.added_count += 1
                 return 'Added'
-            self.already_seen.add(key)
+        else:
+            self.duplicate_count += 1
+            return 'Duplicate'
 
     def finished(self, with_error=False):
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
