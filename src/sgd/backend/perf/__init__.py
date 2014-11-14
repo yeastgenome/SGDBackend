@@ -65,8 +65,13 @@ class PerfBackend(BackendInterface):
     #Locus
     def locus(self, locus_identifier):
         from src.sgd.model.perf.core import Bioentity
+        start_time = datetime.datetime.now()
         bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
+        got_id_time = datetime.datetime.now()
+        print 'ID', got_id_time - start_time
         bioentity = DBSession.query(Bioentity).filter_by(id=bioent_id).first().json
+        got_object_time = datetime.datetime.now()
+        print 'Object', got_object_time - got_id_time
         return bioentity
 
     def locustabs(self, locus_identifier):
@@ -565,7 +570,7 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
     if identifier is None:
         return None
 
-    query = DBSession.query(Disambig).filter(func.lower(Disambig.disambig_key) == func.lower(str(identifier)))
+    query = DBSession.query(Disambig).filter(Disambig.disambig_key == str(identifier).lower())
     if class_type is not None:
         query = query.filter(class_type == Disambig.class_type)
     if subclass_type is not None:
