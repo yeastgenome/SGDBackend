@@ -332,6 +332,7 @@ class Json2DisambigPerfDB(TransformerInterface):
         self.commit_interval = commit_interval
         self.commit = commit
         self.id_to_current_obj = dict([((x.class_type, x.subclass_type, x.disambig_key), x.obj_id) for x in self.session.query(Disambig).all()])
+        self.already_seen = set()
         self.none_count = 0
         self.added_count = 0
         self.updated_count = 0
@@ -353,20 +354,22 @@ class Json2DisambigPerfDB(TransformerInterface):
         except Exception:
             self.error_count += 1
             return 'Error'
-        identifier = newly_created_obj_json['identifier']
-        if key in self.id_to_current_obj:
-            if identifier == self.id_to_current_obj[key]:
-                self.no_change_count += 1
-                return 'No Change'
+        if key not in self.already_seen:
+            identifier = newly_created_obj_json['identifier']
+            if key in self.id_to_current_obj:
+                if identifier == self.id_to_current_obj[key]:
+                    self.no_change_count += 1
+                    return 'No Change'
+                else:
+                    to_update = self.session.query(Disambig).filter_by(class_type=key[0], subclass_type=key[1], disambig_key=key[2]).first()
+                    to_update.obj_id = identifier
+                    self.updated_count += 1
+                    return 'Updated'
             else:
-                to_update = self.session.query(Disambig).filter_by(class_type=key[0], subclass_type=key[1], disambig_key=key[2]).first()
-                to_update.obj_id = identifier
-                self.updated_count += 1
-                return 'Updated'
-        else:
-            self.session.add(Disambig(newly_created_obj_json))
-            self.added_count += 1
-            return 'Added'
+                self.session.add(Disambig(newly_created_obj_json))
+                self.added_count += 1
+                return 'Added'
+            self.already_seen.add(key)
 
     def finished(self, with_error=False):
         message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
