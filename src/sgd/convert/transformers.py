@@ -349,7 +349,7 @@ class Json2DisambigPerfDB(TransformerInterface):
             self.session.commit()
 
         try:
-            key = (newly_created_obj_json['class_type'], newly_created_obj_json['subclass_type'], newly_created_obj_json['disambig_key'].encode('utf-8').lower())
+            key = (newly_created_obj_json['class_type'], newly_created_obj_json['subclass_type'], newly_created_obj_json['disambig_key'].encode('utf-8'))
         except Exception:
             self.error_count += 1
             return 'Error'

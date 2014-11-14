@@ -107,6 +107,11 @@ class Disambig(Base, EqualityByIDMixin, UpdateByJsonMixin):
         
     def unique_key(self):
         return self.disambig_key, self.class_type, self.subclass_type
+
+    def to_json(self):
+        json_obj = UpdateByJsonMixin.to_json(self)
+        json_obj['disambig_key'] = json_obj['disambig_key'].lower()
+        return json_obj
     
 class Locustabs(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'aux_locustabs'
