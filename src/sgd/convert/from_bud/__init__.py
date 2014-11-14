@@ -47,8 +47,8 @@ sequence_files = [
                       #("src/sgd/convert/data/strains/YPS163_ABPD01000000.gff", "src/sgd/convert/data/strains/YPS163_ABPD01000000_cds.fsa.txt", 'YPS163'),
                       ("src/sgd/convert/data/strains/ZTW1_AMDD00000000.gff", "src/sgd/convert/data/strains/ZTW1_AMDD00000000_cds.fsa.txt", 'ZTW1')]
 
-new_sequence_files = [("src/sgd/convert/data/strains/10560_6B.genes.gff", 'src/sgd/convert/data/strains/10560_6B.cds.fsa', '10560-6B'),
-                      ("src/sgd/convert/data/strains/BC187.genes.gff", "src/sgd/convert/data/strains/BC187.cds.fsa", 'BC187'),
+new_sequence_files = [("src/sgd/convert/data/strains/Sigma1278b-10560-6B_JRIQ00000000.gff", 'src/sgd/convert/data/strains/Sigma1278b-10560-6B_JRIQ00000000_cds.fsa', 'Sigma1278b'),
+                      ("src/sgd/convert/data/strains/BC187_JRII00000000.gff", "src/sgd/convert/data/strains/BC187_JRII00000000_cds.fsa", 'BC187'),
                       ("src/sgd/convert/data/strains/BY4741.genes.gff", "src/sgd/convert/data/strains/BY4741.cds.fsa", 'BY4741'),
                       ("src/sgd/convert/data/strains/BY4742.genes.gff", "src/sgd/convert/data/strains/BY4742.cds.fsa", 'BY4742'),
                       ("src/sgd/convert/data/strains/CEN.PK.genes.gff", "src/sgd/convert/data/strains/CEN.PK.cds.fsa", 'CENPK'),
