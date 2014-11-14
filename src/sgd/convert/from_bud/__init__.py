@@ -51,7 +51,7 @@ new_sequence_files = [("src/sgd/convert/data/strains/Sigma1278b-10560-6B_JRIQ000
                       ("src/sgd/convert/data/strains/BC187_JRII00000000.gff", "src/sgd/convert/data/strains/BC187_JRII00000000_cds.fsa", 'BC187'),
                       ("src/sgd/convert/data/strains/BY4741_JRIS00000000.gff", "src/sgd/convert/data/strains/BY4741_JRIS00000000_cds.fsa", 'BY4741'),
                       ("src/sgd/convert/data/strains/BY4742_JRIR00000000.gff", "src/sgd/convert/data/strains/BY4742_JRIR00000000_cds.fsa", 'BY4742'),
-                      ("src/sgd/convert/data/strains/CEN.PK.genes.gff", "src/sgd/convert/data/strains/CEN.PK.cds.fsa", 'CENPK'),
+                      ("src/sgd/convert/data/strains/CEN.PK2-1Ca_JRIV01000000.gff", "src/sgd/convert/data/strains/CEN.PK2-1Ca_JRIV01000000_cds.fsa", 'CENPK'),
                       ("src/sgd/convert/data/strains/D273.genes.gff", "src/sgd/convert/data/strains/D273.cds.fsa", 'D273'),
                       ("src/sgd/convert/data/strains/DBVPG6044.genes.gff", "src/sgd/convert/data/strains/DBVPG6044.cds.fsa", 'DBVPG6044'),
                       ("src/sgd/convert/data/strains/FL100.genes.gff", "src/sgd/convert/data/strains/FL100.cds.fsa", 'FL100'),
@@ -86,6 +86,7 @@ protein_sequence_files = [
                       ('src/sgd/convert/data/strains/BY4741_JRIS00000000_pep.fsa', 'BY4741'),
                       ('src/sgd/convert/data/strains/BY4742_JRIR00000000_pep.fsa', 'BY4742'),
                       ("src/sgd/convert/data/strains/CBS7960_AEWL01000000_pep.fsa.txt", 'CBS7960'),
+                      ('src/sgd/convert/data/strains/CEN.PK2-1Ca_JRIV01000000_pep.fsa', 'CENPK')
                       ("src/sgd/convert/data/strains/CLIB215_AEWP01000000_pep.fsa.txt", 'CLIB215'),
                       #("src/sgd/convert/data/strains/CLIB324_AEWM01000000_pep.fsa.txt", 'CLIB324'),
                       #("src/sgd/convert/data/strains/CLIB382_AFDG01000000_pep.fsa.txt", 'CLIB382'),
