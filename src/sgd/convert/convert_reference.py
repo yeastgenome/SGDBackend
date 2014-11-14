@@ -45,6 +45,14 @@ if __name__ == "__main__":
                              delete_untouched=True,
                              commit_interval=1000)])
 
+    do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Referenceparagraph),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph),
+                             name='convert.from_bud.paragraph.reference',
+                             delete_untouched=True,
+                             commit_interval=1000,
+                             already_deleted=clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE'))])
+
     do_conversion(make_author_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Author),
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Author),
@@ -138,12 +146,4 @@ if __name__ == "__main__":
                              name='convert.from_bud.quality_reference',
                              delete_untouched=True,
                              commit=True)])
-
-    do_conversion(make_reference_paragraph_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Referenceparagraph),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Referenceparagraph),
-                             name='convert.from_bud.paragraph.reference',
-                             delete_untouched=True,
-                             commit_interval=1000,
-                             already_deleted=clean_up_orphans(nex_session_maker, Referenceparagraph, Paragraph, 'REFERENCE'))])
 

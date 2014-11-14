@@ -20,6 +20,8 @@ __author__ = 'kpaskov'
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
+import datetime
+
 class PerfBackend(BackendInterface):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
         class Base(object):
@@ -64,7 +66,8 @@ class PerfBackend(BackendInterface):
     def locus(self, locus_identifier):
         from src.sgd.model.perf.core import Bioentity
         bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-        return DBSession.query(Bioentity).filter_by(id=bioent_id).first().json
+        bioentity = DBSession.query(Bioentity).filter_by(id=bioent_id).first().json
+        return bioentity
 
     def locustabs(self, locus_identifier):
         from src.sgd.model.perf.core import Locustab
@@ -576,9 +579,17 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
         return [(disambig.obj_id, disambig.class_type, disambig.subclass_type) for disambig in disambigs]
     return None
 
+disambig = {}
+
 def get_obj_id(identifier, class_type=None, subclass_type=None):
-    objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
-    obj_id = None if objs_ids is None or len(objs_ids) == 0 else objs_ids[0][0]
+    key = (class_type, subclass_type, identifier)
+    if key in disambig:
+        obj_id = disambig[(class_type, subclass_type, identifier)]
+    else:
+        objs_ids = get_obj_ids(identifier, class_type=class_type, subclass_type=subclass_type)
+        obj_id = None if objs_ids is None or len(objs_ids) == 0 else objs_ids[0][0]
+        if len(disambig) < 200000:
+            disambig[key] = obj_id
     return obj_id
 
 def get_all(cls, col_name, chunk_size, offset):
