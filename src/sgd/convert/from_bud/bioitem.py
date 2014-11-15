@@ -326,6 +326,7 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
                                           'Chromosome Mito': 'NC_001224.1'}
 
         #S288C Contigs
+        from src.sgd.model.bud.sequence import Sequence
         for feature in bud_session.query(Feature).filter(or_(Feature.type == 'chromosome', Feature.type == 'plasmid')).all():
             for sequence in feature.sequences:
                 if sequence.is_current == 'Y':

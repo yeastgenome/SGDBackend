@@ -83,20 +83,20 @@ if __name__ == "__main__":
     # # ------------------------------------------ Bioentity ------------------------------------------
     # # Bud -> Nex
     #
-    # from src.sgd.model.nex.bioentity import Bioentity, Locus, Bioentityalias, Bioentityrelation, Bioentityurl, Bioentityquality
-    # from src.sgd.model.nex.misc import Alias, Relation, Url, Quality
-    # from src.sgd.model.nex.auxiliary import Locustabs, Disambig
-    # from src.sgd.convert.from_bud.bioentity import make_locus_starter, make_bioentity_tab_starter, \
-    #     make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter, make_bioentity_quality_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
-    #
-    # do_conversion(make_locus_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Locus),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locus),
-    #                          name='convert.from_bud.bioentity.locus',
-    #                          delete_untouched=True,
-    #                          commit=True,
-    #                          already_deleted=clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS'))])
+    from src.sgd.model.nex.bioentity import Bioentity, Locus, Bioentityalias, Bioentityrelation, Bioentityurl, Bioentityquality
+    from src.sgd.model.nex.misc import Alias, Relation, Url, Quality
+    from src.sgd.model.nex.auxiliary import Locustabs, Disambig
+    from src.sgd.convert.from_bud.bioentity import make_locus_starter, make_bioentity_tab_starter, \
+        make_bioentity_alias_starter, make_bioentity_relation_starter, make_bioentity_url_starter, make_bioentity_quality_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+
+    do_conversion(make_locus_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Locus),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Locus),
+                             name='convert.from_bud.bioentity.locus',
+                             delete_untouched=True,
+                             commit=True,
+                             already_deleted=clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS'))])
     #
     # do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Locustabs),
@@ -294,13 +294,13 @@ if __name__ == "__main__":
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Chemical, Bioitem, 'CHEMICAL'))])
     #
-    do_conversion(make_contig_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Contig),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Contig),
-                             name='convert.from_bud.bioitem.contig',
-                             delete_untouched=True,
-                             commit=True,
-                             already_deleted=clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG'))])
+    # do_conversion(make_contig_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Contig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Contig),
+    #                          name='convert.from_bud.bioitem.contig',
+    #                          delete_untouched=True,
+    #                          commit=True,
+    #                          already_deleted=clean_up_orphans(nex_session_maker, Contig, Bioitem, 'CONTIG'))])
     # update_contig_centromeres(nex_session_maker)
     #
     # # do_conversion(make_dataset_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
@@ -338,13 +338,13 @@ if __name__ == "__main__":
     # #                          commit=True,
     # #                          already_deleted=clean_up_orphans(nex_session_maker, Bioitemrelation, Relation, 'BIOITEM'))])
     # #
-    do_conversion(make_bioitem_url_starter(nex_session_maker),
-                  [Json2Obj(Bioitemurl),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioitemurl),
-                             name='convert.from_bud.bioitem.url',
-                             delete_untouched=True,
-                             commit=True,
-                             already_deleted=clean_up_orphans(nex_session_maker, Bioitemurl, Url, 'BIOITEM'))])
+    # do_conversion(make_bioitem_url_starter(nex_session_maker),
+    #               [Json2Obj(Bioitemurl),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioitemurl),
+    #                          name='convert.from_bud.bioitem.url',
+    #                          delete_untouched=True,
+    #                          commit=True,
+    #                          already_deleted=clean_up_orphans(nex_session_maker, Bioitemurl, Url, 'BIOITEM'))])
     #
     # # do_conversion(make_tag_starter(nex_session_maker),
     # #               [Json2Obj(Tag),

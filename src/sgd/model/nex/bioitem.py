@@ -217,14 +217,16 @@ class Contig(Bioitem):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = None if obj_json.get('strain') is None or create_format_name(obj_json.get('display_name')) is None else obj_json.get('strain').format_name + '_' + create_format_name(obj_json.get('display_name'))
         self.link = None if self.format_name is None else '/contig/' + self.format_name + '/overview'
-        self.display_name = Contig.create_contig_name(self.display_name)
+        self.display_name = Contig.create_contig_name(self.display_name, self.gi_number)
 
     @staticmethod
-    def create_contig_name(name):
+    def create_contig_name(name, gi_number):
         if name.startswith('chr'):
             name = 'Chromosome ' + (name[3:] if name[3:] not in number_to_roman else number_to_roman[name[3:]])
-        if name.startswith('Chromosome '):
+        elif name.startswith('Chromosome '):
             name = 'Chromosome ' + (name[11:] if name[11:] not in number_to_roman else number_to_roman[name[11:]])
+        elif gi_number is not None:
+            name = gi_number
         return name
 
     def to_min_json(self, include_description=False):
