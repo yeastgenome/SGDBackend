@@ -76,8 +76,6 @@ new_sequence_files = [("src/sgd/convert/data/strains/Sigma1278b-10560-6B_JRIQ000
 
 protein_sequence_files = [
     ("src/sgd/convert/data/strains/orf_trans_all_R64-1-1_20110203.fasta", 'S288C'),
-                      ('src/sgd/convert/data/strains/CEN.PK.pep.fsa', 'CENPK'),
-                      ('src/sgd/convert/data/strains/W303.pep.fsa', 'W303'),
                       ('src/sgd/convert/data/strains/Sigma1278b-10560-6B_JRIQ00000000_pep.fsa', 'Sigma1278b'),
                       ("src/sgd/convert/data/strains/AWRI1631_ABSV01000000_pep.fsa.txt", 'AWRI1631'),
                       ("src/sgd/convert/data/strains/AWRI796_ADVS01000000_pep.fsa.txt", 'AWRI796'),
@@ -138,9 +136,9 @@ def get_dna_sequence_library(gff3_file, remove_spaces=False):
     current_sequence = []
     for line in gff3_file:
         line = line.replace("\r\n","").replace("\n", "")
-        if not on_sequence and line == '##FASTA':
+        if not on_sequence and line.startswith('>'):
             on_sequence = True
-        elif line.startswith('>'):
+        if line.startswith('>'):
             if current_id is not None:
                 id_to_sequence[current_id] = ''.join(current_sequence)
             current_id = line[1:]

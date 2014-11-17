@@ -108,13 +108,20 @@ class Strain(Base, EqualityByIDMixin, UpdateByJsonMixin):
     description = Column('description', String)
     status = Column('status', String)
     genotype = Column('genotype', String)
+    genbank_id = Column('genbank_id', String)
+    assembly_size = Column('assembly_size', Integer)
+    fold_coverage = Column('fold_coverage', Integer)
+    scaffold_number = Column('scaffold_number', Integer)
+    longest_scaffold = Column('longest_scaffold', Integer)
+    scaffold_n50 = Column('scaffold_nfifty', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'status', 'genotype',
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'status', 'genotype', 'genbank_id', 'assembly_size',
+                     'fold_coverage', 'scaffold_number', 'longest_scaffold', 'scaffold_n50',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 

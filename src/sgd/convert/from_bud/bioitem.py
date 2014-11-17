@@ -245,6 +245,23 @@ def update_contig_centromeres(nex_session_maker):
     nex_session.commit()
     nex_session.close()
 
+def update_contig_reference_alignment(nex_session_maker):
+    from src.sgd.model.nex.evidence import DNAsequenceevidence
+    from src.sgd.model.nex.bioitem import Contig
+
+    contig_genbank_id_to_reference_alignment = dict()
+
+
+    nex_session = nex_session_maker()
+    for contig in nex_session.query(Contig).all():
+        if contig.genbank_accession in contig_genbank_id_to_reference_alignment:
+            reference_alignment = contig_genbank_id_to_reference_alignment[contig.genbank_accession]
+            contig.centromere_start = contig_to_centromere_dnasequenceevidence[contig.id].start
+            contig.centromere_end = contig_to_centromere_dnasequenceevidence[contig.id].end
+
+    nex_session.commit()
+    nex_session.close()
+
 strains_with_chromosomes = set(['S288C'])
 def make_contig_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source, Strain

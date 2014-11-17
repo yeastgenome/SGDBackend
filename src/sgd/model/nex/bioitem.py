@@ -203,9 +203,15 @@ class Contig(Bioitem):
     centromere_end = Column('centromere_end', Integer)
     genbank_accession = Column('genbank_accession', String)
     gi_number = Column('gi_number', Integer)
+    reference_chromosome_id = Column('reference_chromosome_id', Integer, ForeignKey('contigbioitem.bioitem_id'))
+    reference_start = Column('reference_start', Integer)
+    reference_end = Column('reference_end', Integer)
+    reference_percent_identity = Column('reference_percent_identity', Decimal)
+    reference_alignment_length = Column('reference_alignment_length', Integer)
 
     #Relationships
     strain = relationship(Strain, uselist=False, backref='contigs')
+    reference_chromosome = relationship('Contig', primaryjoin = ('Contig.reference_chromosome_id == Contig.id'), use_list=False)
 
     __mapper_args__ = {'polymorphic_identity': "CONTIG", 'inherit_condition': id==Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',

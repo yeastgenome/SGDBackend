@@ -1368,6 +1368,7 @@ def make_regulation_evidence_starter(nex_session_maker):
 
 # --------------------- Convert DNA Sequence Evidence ---------------------
 def make_new_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, coding_sequence_filename):
+    print strain_key
     from src.sgd.model.nex.misc import Source, Strain
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.bioitem import Contig
@@ -1386,7 +1387,7 @@ def make_new_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequen
         f = open(sequence_filename, 'r')
         for row in f:
             pieces = row.split(' ')
-            if len(pieces) == 9:
+            if len(pieces) == 9 and not row.startswith('>'):
                 parent_id = pieces[0]
                 start = int(pieces[3])
                 end = int(pieces[4])
