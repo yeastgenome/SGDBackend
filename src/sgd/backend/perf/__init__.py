@@ -564,7 +564,7 @@ def get_obj_ids(identifier, class_type=None, subclass_type=None, print_query=Fal
     if identifier is None:
         return None
 
-    query = DBSession.query(Disambig).filter(Disambig.disambig_key == str(identifier).lower())
+    query = DBSession.query(Disambig).filter(func.lower(Disambig.disambig_key) == func.lower(str(identifier)))
     if class_type is not None:
         query = query.filter(class_type == Disambig.class_type)
     if subclass_type is not None:
