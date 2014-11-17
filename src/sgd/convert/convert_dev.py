@@ -37,9 +37,9 @@ if __name__ == "__main__":
     #               [Json2Obj(Experiment),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Experiment), name='convert.from_bud.experiment', delete_untouched=True, commit=True)])
     #
-    do_conversion(make_strain_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Strain),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Strain), name='convert.from_bud.strain', delete_untouched=True, commit=True)])
+    # do_conversion(make_strain_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Strain),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strain), name='convert.from_bud.strain', delete_untouched=True, commit=True)])
     #
     # do_conversion(make_strain_url_starter(nex_session_maker),
     #               [Json2Obj(Strainurl),
@@ -891,13 +891,13 @@ if __name__ == "__main__":
     #                 OutputTransformer(1000)])
     #
     # # Nex -> Perf
-    # from src.sgd.model.perf.core import Strain as PerfStrain, Experiment as PerfExperiment
-    # do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfStrain,
-    #                                name='convert.from_backend.strain',
-    #                                commit_interval=1000,
-    #                                delete_untouched=True),
-    #                OutputTransformer(1000)])
+    from src.sgd.model.perf.core import Strain as PerfStrain, Experiment as PerfExperiment
+    do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfStrain,
+                                   name='convert.from_backend.strain',
+                                   commit_interval=1000,
+                                   delete_untouched=True),
+                   OutputTransformer(1000)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_experiments', 100),
     #               [Json2CorePerfDB(perf_session_maker, PerfExperiment,
