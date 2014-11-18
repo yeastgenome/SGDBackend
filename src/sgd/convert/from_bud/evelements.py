@@ -243,7 +243,8 @@ strain_to_genbank = {
     'SEY6210': 'JRIW00000000',
     'X2180': 'JRIX00000000',
     'D273': 'JRIY00000000',
-    'JK9': 'JRIZ00000000'}
+    'JK9': 'JRIZ00000000',
+    'S288C': 'GCF_000146045.2'}
 
 #Name Fold coverage, Number of scaffolds, Assembly size, Longest scaffold, Scaffold N50
 strain_to_assembly_stats = {
@@ -270,7 +271,8 @@ strain_to_assembly_stats = {
     'CENPK': [89, 850, 11651483, 334215, 115163],
     'SEY6210': [106, 805, 11664136, 389964, 122714],
     'X2180': [112, 904, 11693006, 298290, 105189],
-    'D273': [112, 866, 11708626, 343062, 108887]
+    'D273': [112, 866, 11708626, 343062, 108887],
+    'S288C': [None, 17, 12157105, 1531933, None]
 }
 
 def make_strain_starter(bud_session_maker, nex_session_maker):

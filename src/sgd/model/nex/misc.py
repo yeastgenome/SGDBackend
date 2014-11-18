@@ -137,13 +137,7 @@ class Strain(Base, EqualityByIDMixin, UpdateByJsonMixin):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['paragraph'] = None if len(self.paragraphs) != 1 else self.paragraphs[0].to_json(linkit=True)
         obj_json['urls'] = [x.to_min_json() for x in self.urls]
-        all_contigs = []
-        for contig in self.contigs:
-            contig_json = contig.to_min_json()
-            contig_json['urls'] = [x.to_min_json() for x in contig.urls]
-            contig_json['length'] = len(contig.residues)
-            all_contigs.append(contig_json)
-        obj_json['contigs'] = all_contigs
+        obj_json['contigs'] = [contig.to_semi_json() for contig in self.contigs]
         return obj_json
        
 class Url(Base, EqualityByIDMixin, UpdateByJsonMixin):

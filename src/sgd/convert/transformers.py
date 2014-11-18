@@ -720,6 +720,7 @@ def make_fasta_file_starter(filename):
             if not on_sequence and line == '##FASTA':
                 on_sequence = True
             elif line.startswith('>'):
+                on_sequence = True
                 if current_id is not None:
                     yield current_id, ''.join(current_sequence)
                 current_id = line[1:]
