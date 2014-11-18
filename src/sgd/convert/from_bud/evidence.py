@@ -1387,22 +1387,21 @@ def make_new_dna_sequence_evidence_starter(nex_session_maker, strain_key, sequen
         f = open(sequence_filename, 'r')
         for row in f:
             pieces = row.split(' ')
-            if len(pieces) == 9 and not row.startswith('>'):
+            if len(pieces) >= 9 and not row.startswith('>'):
                 parent_id = pieces[0]
                 start = int(pieces[3])
                 end = int(pieces[4])
                 strand = pieces[6]
-                infos = pieces[8].split(':')
+                infos = pieces[8].split(',')
                 residues = get_sequence(parent_id, start, end, strand, sequence_library)
                 class_type = pieces[2]
 
                 if class_type != 'CDS':
                     for info in infos:
                         #bioentity_format_name, species, ref_chromosome, ref_start, ref_end, bioentity_display_name, evalue, similarity_score
-                        info_values = info.split(',')
 
-                        bioentity_key = (info_values[0].strip(), 'LOCUS')
-                        contig_key = (strain_key + '_' + parent_id, 'CONTIG')
+                        bioentity_key = (infos[0].strip(), 'LOCUS')
+                        contig_key = (parent_id.split('|')[3], 'CONTIG')
 
                         if bioentity_key in key_to_bioentity and contig_key in key_to_bioitem and residues is not None:
                             yield {'source': key_to_source['SGD'],

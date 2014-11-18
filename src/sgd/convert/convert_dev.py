@@ -895,9 +895,9 @@ if __name__ == "__main__":
     do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
                   [Json2CorePerfDB(perf_session_maker, PerfStrain,
                                    name='convert.from_backend.strain',
-                                   commit_interval=1000,
+                                   commit_interval=1,
                                    delete_untouched=True),
-                   OutputTransformer(1000)])
+                   OutputTransformer(1)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_experiments', 100),
     #               [Json2CorePerfDB(perf_session_maker, PerfExperiment,
