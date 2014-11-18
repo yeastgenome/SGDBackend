@@ -891,13 +891,13 @@ if __name__ == "__main__":
     #                 OutputTransformer(1000)])
     #
     # # Nex -> Perf
-    from src.sgd.model.perf.core import Strain as PerfStrain, Experiment as PerfExperiment
-    do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfStrain,
-                                   name='convert.from_backend.strain',
-                                   commit_interval=1,
-                                   delete_untouched=True),
-                   OutputTransformer(1)])
+    # from src.sgd.model.perf.core import Strain as PerfStrain, Experiment as PerfExperiment
+    # do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfStrain,
+    #                                name='convert.from_backend.strain',
+    #                                commit_interval=1,
+    #                                delete_untouched=True),
+    #                OutputTransformer(1)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_experiments', 100),
     #               [Json2CorePerfDB(perf_session_maker, PerfExperiment,
@@ -908,7 +908,7 @@ if __name__ == "__main__":
     #
     #
     # # Nex -> Perf
-    # from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
+    from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
     # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioentity,
     #                                name='convert.from_backend.bioentity',
@@ -916,12 +916,12 @@ if __name__ == "__main__":
     #                                delete_untouched=True),
     #                OutputTransformer(10)])
     #
-    # do_conversion(make_backend_starter(nex_backend, 'all_locustabs', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfLocustab,
-    #                                name='convert.from_backend.all_locustabs',
-    #                                commit_interval=1000,
-    #                                delete_untouched=True),
-    #                OutputTransformer(1000)])
+    do_conversion(make_backend_starter(nex_backend, 'all_locustabs', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfLocustab,
+                                   name='convert.from_backend.all_locustabs',
+                                   commit_interval=1000,
+                                   delete_untouched=True),
+                   OutputTransformer(1000)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_locusentries', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfLocusentry,

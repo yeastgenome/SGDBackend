@@ -111,11 +111,11 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
         nex_session = nex_session_maker()
 
         for locus in nex_session.query(Locus).all():
-            if locus.locus_type == 'ORF' and (locus.bioent_status == 'Merged' or locus.bioent_status == 'Deleted'):
+            if locus.bioent_status == 'Merged' or locus.bioent_status == 'Deleted':
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
-                    'sequence_tab': 1,
+                    'sequence_tab': 0,
                     'history_tab': 0,
                     'literature_tab': 0,
                     'go_tab': 0,
