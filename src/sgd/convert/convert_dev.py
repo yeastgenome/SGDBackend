@@ -877,7 +877,7 @@ if __name__ == "__main__":
     # #                OutputTransformer(1000)])
     # # clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
     #
-    make_bioconcept_count_starter(nex_session_maker)
+    make_bioconcept_count_starter(bud_session_maker, nex_session_maker)
     #
     # # ------------------------------------------ Perf ------------------------------------------
     # from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment

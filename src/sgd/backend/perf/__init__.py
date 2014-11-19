@@ -33,6 +33,8 @@ class PerfBackend(BackendInterface):
 
         DBSession.configure(bind=engine)
         perf.Base.metadata.bind = engine
+        self.session_maker = sessionmaker(bind=engine)
+        self.session = self.session_maker()
 
         self.log = set_up_logging(log_directory, 'perf')
 
@@ -63,10 +65,20 @@ class PerfBackend(BackendInterface):
 
     #Locus
     def locus(self, locus_identifier):
-        from src.sgd.model.perf.core import Bioentity
-        bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-        bioentity = DBSession.query(Bioentity).filter_by(id=bioent_id).first().json
-        return bioentity
+        from src.sgd.model.perf.core import Bioentity, Disambig
+        start = datetime.datetime.now()
+
+        disambig = self.session.query(Disambig).filter_by(disambig_key=locus_identifier.upper()).filter_by(class_type='BIOENTITY').filter_by(subclass_type='LOCUS').first()
+        bioent_id = None if disambig is None else disambig.obj_id
+        if bioent_id is None:
+            return None
+        midway = datetime.datetime.now()
+        print midway - start
+        bioentity = self.session.query(Bioentity).filter_by(id=bioent_id).first()
+        if bioentity is None:
+            return None
+        print datetime.datetime.now() - midway
+        return bioentity.json
 
     def locustabs(self, locus_identifier):
         from src.sgd.model.perf.core import Locustab
