@@ -83,6 +83,25 @@ def clean_up_orphans(nex_session_maker, child_cls, parent_cls, class_type):
 
 word_to_bioent_id = None
 
+number_to_roman = {'01': 'I', '1': 'I',
+                   '02': 'II', '2': 'II',
+                   '03': 'III', '3': 'III',
+                   '04': 'IV', '4': 'IV',
+                   '05': 'V', '5': 'V',
+                   '06': 'VI', '6': 'VI',
+                   '07': 'VII', '7': 'VII',
+                   '08': 'VIII', '8': 'VIII',
+                   '09': 'IX', '9': 'IX',
+                   '10': 'X',
+                   '11': 'XI',
+                   '12': 'XII',
+                   '13': 'XIII',
+                   '14': 'XIV',
+                   '15': 'XV',
+                   '16': 'XVI',
+                   '17': 'Mito',
+                   }
+
 def get_word_to_bioent_id(word, nex_session):
     from src.sgd.model.nex.bioentity import Locus
 

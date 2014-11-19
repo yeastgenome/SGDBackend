@@ -779,7 +779,6 @@ class DNAsequenceevidence(Evidence):
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['status'] = self.strain.status
         obj_json['tags'] = [x.to_json() for x in sorted(self.tags, key=lambda x:x.relative_start)]
-        obj_json['embedded_within'] = [x.evidence.locus.to_min_json() for x in self.locus.dnasequencetags if x.evidence.strain_id == self.strain_id]
         return obj_json
 
     def unique_key(self):
