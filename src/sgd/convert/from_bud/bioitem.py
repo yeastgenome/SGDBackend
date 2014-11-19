@@ -1,7 +1,7 @@
 from sqlalchemy.sql.expression import or_
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert import create_format_name
+from src.sgd.convert import create_format_name, number_to_roman
 from src.sgd.convert.transformers import make_db_starter, \
     make_file_starter, make_fasta_file_starter
 import os
@@ -354,24 +354,6 @@ def make_contig_starter(bud_session_maker, nex_session_maker):
                                           'Chromosome XVI': ('BK006949.2', 'NC_001148.4'),
                                           'Chromosome Mito': ('AJ011856.1', 'NC_001224.1')}
 
-        number_to_roman = {'01': 'I', '1': 'I',
-                   '02': 'II', '2': 'II',
-                   '03': 'III', '3': 'III',
-                   '04': 'IV', '4': 'IV',
-                   '05': 'V', '5': 'V',
-                   '06': 'VI', '6': 'VI',
-                   '07': 'VII', '7': 'VII',
-                   '08': 'VIII', '8': 'VIII',
-                   '09': 'IX', '9': 'IX',
-                   '10': 'X',
-                   '11': 'XI',
-                   '12': 'XII',
-                   '13': 'XIII',
-                   '14': 'XIV',
-                   '15': 'XV',
-                   '16': 'XVI',
-                   '17': 'Mito',
-                   }
 
         #S288C Contigs
         from src.sgd.model.bud.sequence import Sequence

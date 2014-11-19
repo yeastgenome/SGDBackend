@@ -5,6 +5,7 @@ from datetime import datetime
 from src.sgd.convert.from_bud import contains_digits, get_dna_sequence_library, get_sequence, get_sequence_library_fsa, reverse_complement
 from src.sgd.convert.transformers import make_db_starter, make_file_starter
 from src.sgd.model.nex import create_format_name
+from src.sgd.convert import number_to_roman
 import os
 import math
 
@@ -1561,9 +1562,10 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker,
                 ancestor_id = child_id_to_parent_id[ancestor_id]
 
                 if ancestor_id in id_to_feature:
-                    contig_key = ('S288C_Chromosome_' + id_to_feature[ancestor_id].name, 'CONTIG')
-                    if contig_key in key_to_contig:
-                        feature_id_to_contig[bioentity_id] = key_to_contig[contig_key]
+                    if id_to_feature[ancestor_id].name in number_to_roman:
+                        contig_key = ('Chromosome_' + number_to_roman[id_to_feature[ancestor_id].name], 'CONTIG')
+                        if contig_key in key_to_contig:
+                            feature_id_to_contig[bioentity_id] = key_to_contig[contig_key]
 
         for bud_location in bud_session.query(Feat_Location).all():
             bioentity_id = bud_location.feature_id
