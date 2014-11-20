@@ -75,7 +75,7 @@ new_sequence_files = [("src/sgd/convert/data/strains/Sigma1278b-10560-6B_JRIQ000
 ]
 
 protein_sequence_files = [
-    ("src/sgd/convert/data/strains/orf_trans_all_R64-1-1_20110203.fasta", 'S288C'),
+    ("src/sgd/convert/data/strains/orf_trans_all_R64-2-1_20141118.fasta", 'S288C'),
                       ('src/sgd/convert/data/strains/Sigma1278b-10560-6B_JRIQ00000000_pep.fsa', 'Sigma1278b'),
                       ("src/sgd/convert/data/strains/AWRI1631_ABSV01000000_pep.fsa.txt", 'AWRI1631'),
                       ("src/sgd/convert/data/strains/AWRI796_ADVS01000000_pep.fsa.txt", 'AWRI796'),
