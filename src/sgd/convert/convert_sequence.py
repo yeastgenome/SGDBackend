@@ -87,14 +87,14 @@ if __name__ == "__main__":
     #update_contig_centromeres(nex_session_maker)
     #update_contig_reference_alignment(nex_session_maker)
 
-    #
+
     # protparam_data = dict([(row[0], row) for row in make_file_starter('src/sgd/convert/data/ProtParam.txt')()])
-    # for sequence_filename, strain_key in protein_sequence_files[4:]:
+    # for sequence_filename, strain_key in protein_sequence_files:
     #     do_conversion(make_protein_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, protparam_data),
     #                   [Json2Obj(Proteinsequenceevidence),
     #                    Obj2NexDB(nex_session_maker, lambda x: x.query(Proteinsequenceevidence).filter(Proteinsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.proteinsequence', delete_untouched=True, commit_interval=1000)])
     # clean_up_orphans(nex_session_maker, Proteinsequenceevidence, Evidence, 'PROTEINSEQUENCE')
-    #
+
     # do_conversion(make_kb_sequence_starter(nex_session_maker),
     #                   [Json2Obj(DNAsequenceevidence),
     #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.dna_type == '1KB'),
@@ -104,22 +104,23 @@ if __name__ == "__main__":
 
 
 
-    # # ------------------------------------------ Perf ------------------------------------------
-    # from src.sgd.model.perf.bioentity_data import BioentityDetails
-    # from src.sgd.model.perf.bioitem_data import BioitemDetails
-    #
-    # from src.sgd.model.nex.bioentity import Locus
-    # from src.sgd.model.nex.bioitem import Contig
-    # nex_session = nex_session_maker()
-    # locus_ids = [x.id for x in nex_session.query(Locus).all()]
-    # contig_ids = [x.id for x in nex_session.query(Contig).all()]
-    # nex_session.close()
+    # ------------------------------------------ Perf ------------------------------------------
+    from src.sgd.model.perf.bioentity_data import BioentityDetails
+    from src.sgd.model.perf.bioitem_data import BioitemDetails
+
+    from src.sgd.model.nex.bioentity import Locus
+    from src.sgd.model.nex.bioitem import Contig
+    #nex_session = nex_session_maker()
+    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    #contig_ids = [x.id for x in nex_session.query(Contig).all()]
+    #nex_session.close()
 
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
     #               [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000)])
     #
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
+    locus_ids = [58, 79, 140, 374, 399, 448, 572, 1015, 1236, 2195, 2273, 2515, 2791, 3187, 3292, 3414, 4177, 4706, 4752, 6190, 6543, 6759, 6832, 7023];
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
 
     # do_conversion(make_contig_data_backend_starter(nex_backend, 'sequence_details', contig_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'SEQUENCE', contig_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
