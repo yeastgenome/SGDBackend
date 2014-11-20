@@ -105,11 +105,11 @@ if __name__ == "__main__":
 
 
     # ------------------------------------------ Perf ------------------------------------------
-    from src.sgd.model.perf.bioentity_data import BioentityDetails
-    from src.sgd.model.perf.bioitem_data import BioitemDetails
-
-    from src.sgd.model.nex.bioentity import Locus
-    from src.sgd.model.nex.bioitem import Contig
+    # from src.sgd.model.perf.bioentity_data import BioentityDetails
+    # from src.sgd.model.perf.bioitem_data import BioitemDetails
+    #
+    # from src.sgd.model.nex.bioentity import Locus
+    # from src.sgd.model.nex.bioitem import Contig
     #nex_session = nex_session_maker()
     #locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #contig_ids = [x.id for x in nex_session.query(Contig).all()]
@@ -118,9 +118,9 @@ if __name__ == "__main__":
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
     #               [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000)])
     #
-    locus_ids = [58, 79, 140, 374, 399, 448, 572, 1015, 1236, 2195, 2273, 2515, 2791, 3187, 3292, 3414, 4177, 4706, 4752, 6190, 6543, 6759, 6832, 7023];
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
+    # locus_ids = [58, 79, 140, 374, 399, 448, 572, 1015, 1236, 2195, 2273, 2515, 2791, 3187, 3292, 3414, 4177, 4706, 4752, 6190, 6543, 6759, 6832, 7023];
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
 
     # do_conversion(make_contig_data_backend_starter(nex_backend, 'sequence_details', contig_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'SEQUENCE', contig_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])

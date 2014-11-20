@@ -1582,7 +1582,7 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker,
                         'strand': bud_location.strand}
 
         #Multigene Locii
-        for feature in bud_session.query(Feature).filter_by(type='multigene locus').all():
+        for feature in bud_session.query(Feature).filter_by(type='gene_group').all():
             subfeature_relations = bud_session.query(FeatRel).filter_by(parent_id=feature.id).all()
             locations = bud_session.query(Feat_Location).filter(Feat_Location.feature_id.in_([x.child_id for x in subfeature_relations])).filter_by(is_current='Y')
             min_coord = min([x.min_coord for x in locations])
