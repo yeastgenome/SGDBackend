@@ -88,8 +88,8 @@ if __name__ == "__main__":
     #update_contig_reference_alignment(nex_session_maker)
 
 
-    protparam_data = dict([(row[0], row) for row in make_file_starter('src/sgd/convert/data/protparam.txt')()])
-    for sequence_filename, strain_key in protein_sequence_files[4:]:
+    protparam_data = dict([(row[0], row) for row in make_file_starter('src/sgd/convert/data/ProtParam.txt')()])
+    for sequence_filename, strain_key in protein_sequence_files:
         do_conversion(make_protein_sequence_evidence_starter(nex_session_maker, strain_key, sequence_filename, protparam_data),
                       [Json2Obj(Proteinsequenceevidence),
                        Obj2NexDB(nex_session_maker, lambda x: x.query(Proteinsequenceevidence).filter(Proteinsequenceevidence.strain_id == strain_key_to_id[strain_key]), name='convert.from_bud.evidence.proteinsequence', delete_untouched=True, commit_interval=1000)])
