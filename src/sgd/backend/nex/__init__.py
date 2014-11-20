@@ -264,6 +264,7 @@ class SGDBackend(BackendInterface):
     def all_bioitems(self, chunk_size, offset):
         from src.sgd.model.nex.bioitem import Bioitem
         from src.sgd.model.nex.paragraph import Referenceparagraph
+        from src.sgd.model.nex.evidence import DNAsequenceevidence
         return [x.to_json() for x in DBSession.query(Bioitem).with_polymorphic('*').order_by(Bioitem.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def chemical(self, chemical_identifier, are_ids=False):
@@ -286,6 +287,7 @@ class SGDBackend(BackendInterface):
     def all_strains(self, chunk_size, offset):
         from src.sgd.model.nex.misc import Strain
         from src.sgd.model.nex.paragraph import Strainparagraph
+        from src.sgd.model.nex.bioitem import Contig
         return [x.to_json() for x in DBSession.query(Strain).order_by(Strain.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def experiment(self, experiment_identifier, are_ids=False):

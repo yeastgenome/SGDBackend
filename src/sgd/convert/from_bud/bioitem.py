@@ -233,15 +233,20 @@ def make_chemical_starter(bud_session_maker, nex_session_maker):
 def update_contig_centromeres(nex_session_maker):
     from src.sgd.model.nex.evidence import DNAsequenceevidence
     from src.sgd.model.nex.bioitem import Contig
+    from src.sgd.model.nex.bioentity import Locus
 
     nex_session = nex_session_maker()
 
-    contig_to_centromere_dnasequenceevidence = dict([(x.contig_id, x) for x in nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter(DNAsequenceevidence.locus.has(locus_type='centromere')).all()])
+    centromere_ids = [x.id for x in nex_session.query(Locus).filter_by(locus_type='centromere').all()]
+    contig_id_to_start_end = dict()
+    for dnasequenceevidence in nex_session.query(DNAsequenceevidence).filter(DNAsequenceevidence.locus_id.in_(centromere_ids)).all():
+        contig_id_to_start_end[dnasequenceevidence.contig_id] = (dnasequenceevidence.start, dnasequenceevidence.end)
 
-    for contig in nex_session.query(Contig).all():
-        if contig.id in contig_to_centromere_dnasequenceevidence:
-            contig.centromere_start = contig_to_centromere_dnasequenceevidence[contig.id].start
-            contig.centromere_end = contig_to_centromere_dnasequenceevidence[contig.id].end
+    for contig in nex_session.query(Contig).filter(Contig.id.in_(contig_id_to_start_end.keys())).all():
+        centromere_start, centromere_end = contig_id_to_start_end[contig.id]
+        contig.centromere_start = centromere_start
+        contig.centromere_end = centromere_end
+        print contig.id
 
     nex_session.commit()
     nex_session.close()
