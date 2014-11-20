@@ -1855,15 +1855,19 @@ def make_protein_sequence_evidence_starter(nex_session_maker, strain_key, protei
                     basic_info['cai'] = ppdata[8]
                     basic_info['codon_bias'] = ppdata[9]
                     basic_info['fop_score'] = ppdata[10]
-                    basic_info['carbon'] = int(ppdata[31])
-                    basic_info['hydrogen'] = int(ppdata[32])
-                    basic_info['nitrogen'] = int(ppdata[33])
-                    basic_info['oxygen'] = int(ppdata[34])
-                    basic_info['sulfur'] = int(ppdata[35])
+                    try:
+                        basic_info['carbon'] = int(ppdata[31])
+                        basic_info['hydrogen'] = int(ppdata[32])
+                        basic_info['nitrogen'] = int(ppdata[33])
+                        basic_info['oxygen'] = int(ppdata[34])
+                        basic_info['sulfur'] = int(ppdata[35])
+                    except:
+                        print 'Trouble with protparam: ' + str(ppdata)
                     basic_info['instability_index'] = ppdata[36]
                     basic_info['all_cys_ext_coeff'] = ppdata[37]
                     basic_info['no_cys_ext_coeff'] = ppdata[38]
                     basic_info['aliphatic_index'] = ppdata[39].strip()
+
                 else:
                     print 'Protparam not found: ' + str(protparam_key)
 
