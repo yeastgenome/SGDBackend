@@ -384,7 +384,7 @@ class Json2DataPerfDB(TransformerInterface):
         self.commit_interval = commit_interval
         self.commit = commit
 
-        self.id_to_obj = dict([(x.obj_id, x) for x in self.session.query(cls).filter_by(class_type=class_type).all()])
+        self.id_to_obj = dict([(x.obj_id, x) for x in self.session.query(cls).filter_by(class_type=class_type).filter(cls.obj_id.in_(obj_ids)).all()])
         current_ids = set(self.id_to_obj.keys())
         obj_ids = set(obj_ids)
         to_be_added = obj_ids - current_ids
@@ -395,7 +395,7 @@ class Json2DataPerfDB(TransformerInterface):
             self.session.add(new_obj)
             self.id_to_obj[obj_id] = new_obj
         for obj_id in to_be_deleted:
-            self.session.delete(self.id_to_obj[obj_id])
+            #self.session.delete(self.id_to_obj[obj_id])
             del self.id_to_obj[obj_id]
 
         if self.commit_interval is not None or self.commit:

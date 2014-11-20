@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
-    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
     nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
@@ -61,9 +61,9 @@ if __name__ == "__main__":
     #                   [Json2Obj(DNAsequenceevidence),
     #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1), name='convert.from_bud.evidence.reference_dnasequence', delete_untouched=True, commit_interval=1000)])
     #
-    do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(DNAsequencetag),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag).filter_by(format_name='five_prime_UTR_intron'), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=False, commit_interval=1000)])
+    # do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(DNAsequencetag),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequencetag).filter_by(format_name='five_prime_UTR_intron'), name='convert.from_bud.evidence.dnasequence.tags', delete_untouched=False, commit_interval=1000)])
 
     # nex_session = nex_session_maker()
     # strain_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Strain).all()])
@@ -110,16 +110,17 @@ if __name__ == "__main__":
 
     from src.sgd.model.nex.bioentity import Locus
     from src.sgd.model.nex.bioitem import Contig
-    nex_session = nex_session_maker()
-    locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    #nex_session = nex_session_maker()
+    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
     #contig_ids = [x.id for x in nex_session.query(Contig).all()]
-    nex_session.close()
+    #nex_session.close()
 
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
     #               [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000)])
     #
-    #do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
-    #               [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
+    locus_ids = [58, 79, 140, 374, 399, 448, 572, 1015, 1236, 2195, 2273, 2515, 2791, 3187, 3292, 3414, 4177, 4706, 4752, 6190, 6543, 6759, 6832, 7023];
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'sequence_details', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
 
     # do_conversion(make_contig_data_backend_starter(nex_backend, 'sequence_details', contig_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'SEQUENCE', contig_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
