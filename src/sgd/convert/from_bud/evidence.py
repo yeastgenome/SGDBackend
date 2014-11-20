@@ -1674,11 +1674,7 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
         bud_session = bud_session_maker()
 
         id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
-        key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
-        key_to_bioentity = dict([(x.unique_key(), x) for x in id_to_bioentity.values()])
-        key_to_contig = dict([(x.unique_key(), x) for x in nex_session.query(Contig).all()])
         feature_id_to_parent = dict([(x.child_id, x.parent_id) for x in bud_session.query(FeatRel).filter_by(relationship_type='part of').all()])
-        bioentity_strain_contig_id_to_evidence = dict([((x.locus_id, x.strain_id, x.contig_id), x) for x in nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').all()])
         bioentity_strain_id_to_evidence = dict([((x.locus_id, x.strain_id), x) for x in nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter_by(strain_id=1).all()])
         for bud_location in bud_session.query(Feat_Location).filter(Feat_Location.is_current == 'Y').options(joinedload('sequence'), joinedload('feature')).all():
             if bud_location.sequence.is_current == 'Y' and bud_location.feature.status == 'Active':
@@ -1731,34 +1727,35 @@ def make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker):
         #Five prime UTR introns:
         for feat_rel in bud_session.query(FeatRel).filter_by(relationship_type='adjacent_to').all():
             feat_location = bud_session.query(Feat_Location).filter_by(feature_id=feat_rel.child_id).filter_by(is_current='Y').first()
-            evidence = bioentity_strain_id_to_evidence[(feat_rel.parent_id, 1)]
-            start = feat_location.min_coord
-            end = feat_location.max_coord
-            bioentity = id_to_bioentity[feat_rel.parent_id]
-            if bud_location.strand != '-':
-                            yield {
-                                'evidence_id': evidence.id,
-                                'class_type': feat_location.feature.type,
-                                'display_name': feat_location.feature.type,
-                                'relative_start': start - evidence.start,
-                                'relative_end': end - evidence.start,
-                                'chromosomal_start': start,
-                                'chromosomal_end': end,
-                                'seq_version': feat_location.sequence.seq_version,
-                                'coord_version': feat_location.coord_version
-                            }
-            else:
-                            yield {
-                                'evidence_id': evidence.id,
-                                'class_type': feat_location.feature.type,
-                                'display_name': feat_location.feature.type,
-                                'relative_start': evidence.end - end,
-                                'relative_end': evidence.end - start,
-                                'chromosomal_start': end,
-                                'chromosomal_end': start,
-                                'seq_version': feat_location.sequence.seq_version,
-                                'coord_version': feat_location.coord_version
-                            }
+            if (feat_rel.parent_id, 1) in bioentity_strain_id_to_evidence:
+                evidence = bioentity_strain_id_to_evidence[(feat_rel.parent_id, 1)]
+                start = feat_location.min_coord
+                end = feat_location.max_coord
+                print feat_location.strand, start, end, start - evidence.start, end - evidence.start
+                if feat_location.strand != '-':
+                    yield {
+                        'evidence_id': evidence.id,
+                        'class_type': feat_location.feature.type,
+                        'display_name': feat_location.feature.type,
+                        'relative_start': start - evidence.start,
+                        'relative_end': end - evidence.start,
+                        'chromosomal_start': start,
+                        'chromosomal_end': end,
+                        'seq_version': feat_location.sequence.seq_version,
+                        'coord_version': feat_location.coord_version
+                    }
+                else:
+                    yield {
+                        'evidence_id': evidence.id,
+                        'class_type': feat_location.feature.type,
+                        'display_name': feat_location.feature.type,
+                        'relative_start': evidence.end - end,
+                        'relative_end': evidence.end - start,
+                        'chromosomal_start': end,
+                        'chromosomal_end': start,
+                        'seq_version': feat_location.sequence.seq_version,
+                        'coord_version': feat_location.coord_version
+                    }
 
         # #Other strains
         # from src.sgd.convert.from_bud import new_sequence_files
