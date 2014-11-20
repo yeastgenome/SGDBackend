@@ -261,8 +261,8 @@ if __name__ == "__main__":
     # clean_up_orphans(nex_session_maker, Bioitemproperty, Property, 'BIOITEM')
     # clean_up_orphans(nex_session_maker, Chemicalproperty, Property, 'CHEMICAL')
     #
-    # # ------------------------------------------ Bioentity ------------------------------------------
-    # # Bud -> Nex
+    # ------------------------------------------ Bioentity ------------------------------------------
+    # Bud -> Nex
     # from src.sgd.model.nex.bioentity import Bioentityalias, Bioentityrelation, Bioentityurl, Bioentityquality
     # from src.sgd.model.nex.misc import Alias, Relation, Url, Quality
     # from src.sgd.model.nex.auxiliary import Locustabs

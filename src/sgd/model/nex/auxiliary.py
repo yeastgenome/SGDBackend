@@ -128,9 +128,10 @@ class Locustabs(Base, EqualityByIDMixin, UpdateByJsonMixin):
     regulation_tab = Column('regulation', Integer)
     protein_tab = Column('protein', Integer)
     wiki_tab = Column('wiki', Integer)
+    sequence_section = Column('seq_section', Integer)
 
     __eq_values__ = ['id', 'summary_tab', 'history_tab', 'literature_tab', 'go_tab', 'phenotype_tab', 'interaction_tab',
-                     'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab']
+                     'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab', 'sequence_section']
     __eq_fks__ = []
 
     def __init__(self, obj_json):
