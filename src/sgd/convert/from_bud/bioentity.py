@@ -7,11 +7,11 @@ __author__ = 'kpaskov'
 
 # --------------------- Convert Locus ---------------------
 non_locus_feature_types = {
-    'ARS consensus sequence',
+    'ARS_consensus_sequence',
     'binding_site',
-    'CDEI',
-    'CDEII',
-    'CDEIII',
+    'centromere_DNA_Element_I',
+    'centromere_DNA_Element_II',
+    'centromere_DNA_Element_III',
     'CDS',
     'chromosome',
     'external_transcribed_spacer_region',
@@ -29,9 +29,9 @@ non_locus_feature_types = {
     'TF_binding_site',
     'TF_binding_sites',
     'telomeric_repeat',
-    'X_element_combinatorial_repeats',
-    'X_element_core_sequence',
-    "Y'_element",
+    'X_element_combinatorial_repeat',
+    'X_element',
+    "Y_prime_element",
     'uORF',
     'W_region',
     'X_region',

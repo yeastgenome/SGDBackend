@@ -465,6 +465,14 @@ class PerfBackend(BackendInterface):
             bioitem_id = get_obj_id(str(contig_identifier).lower(), class_type='BIOITEM', subclass_type='CONTIG')
         return get_obj(Bioitem, 'json', bioitem_id)
 
+    def reserved_name(self, reserved_name_identifier, are_ids=False):
+        from src.sgd.model.perf.core import Bioitem
+        if are_ids:
+            bioitem_id = reserved_name_identifier
+        else:
+            bioitem_id = get_obj_id(str(reserved_name_identifier).lower(), class_type='BIOITEM', subclass_type='RESERVEDNAME')
+        return get_obj(Bioitem, 'json', bioitem_id)
+
     def protein_experiment_details(self, locus_identifier=None, are_ids=False):
         if locus_identifier is not None:
             if are_ids:
