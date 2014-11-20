@@ -1847,6 +1847,7 @@ def make_protein_sequence_evidence_starter(nex_session_maker, strain_key, protei
 
                 protparam_key = bioentity_name if strain_key == 'S288C' else bioentity_name + '_' + (strain_key if strain_key != 'CENPK' else 'CEN.PK2-1Ca')
                 if protparam_key in protparam_data:
+                    print protparam_data
                     ppdata = protparam_data[protparam_key]
                     basic_info['molecular_weight'] = ppdata[1]
                     basic_info['pi'] = ppdata[2]
