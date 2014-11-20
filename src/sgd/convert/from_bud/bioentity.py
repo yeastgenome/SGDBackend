@@ -126,7 +126,7 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'protein_tab': 0,
                     'wiki_tab': 0
                 }
-            elif locus.locus_type == 'ORF':
+            elif locus.locus_type == 'ORF' or locus.locus_type == 'blocked_reading_frame':
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
@@ -141,7 +141,9 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'protein_tab': 1,
                     'wiki_tab': 0
                 }
-            elif locus.locus_type in {'ARS', 'centromere', 'multigene locus', 'long_terminal_repeat', 'telomere', 'mating_locus', 'gene_cassette', 'retrotransposon'}:
+            elif locus.locus_type in {'ARS', 'origin_of_replication', 'matrix_attachment_site', 'centromere',
+                                      'gene_group', 'long_terminal_repeat', 'telomere', 'mating_type_region',
+                                      'silent_mating_type_cassette_array', 'LTR_retrotransposon'}:
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
@@ -186,7 +188,7 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'protein_tab': 1,
                     'wiki_tab': 0
                 }
-            elif locus.locus_type in {'rRNA', 'ncRNA', 'snRNA', 'snoRNA', 'tRNA'}:
+            elif locus.locus_type in {'rRNA_gene', 'ncRNA_gene', 'snRNA_gene', 'snoRNA_gene', 'tRNA_gene', 'telomerase_RNA_gene'}:
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
