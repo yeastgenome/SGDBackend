@@ -753,8 +753,8 @@ class DNAsequenceevidence(Evidence):
     start = Column('start_index', Integer)
     end = Column('end_index', Integer)
     strand = Column('strand', String)
-    header = Column('header', String)
-    filename = Column('filename', String)
+    #header = Column('header', String)
+    #filename = Column('filename', String)
 
     #Relationships
     source = relationship(Source, backref=backref('dnasequence_evidences', passive_deletes=True), uselist=False)
@@ -766,7 +766,8 @@ class DNAsequenceevidence(Evidence):
 
     __mapper_args__ = {'polymorphic_identity': "DNASEQUENCE", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
-                     'dna_type', 'residues', 'start', 'end', 'strand', 'header', 'filename',
+                     'dna_type', 'residues', 'start', 'end', 'strand',
+                     #'header', 'filename',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'contig']
 
@@ -884,8 +885,8 @@ class Proteinsequenceevidence(Evidence):
     all_half_cys_ext_coeff = Column('all_half_cys_ext_coeff', String)
     all_pairs_cys_ext_coeff = Column('all_pairs_cys_ext_coeff', String)
 
-    header = Column('header', String)
-    filename = Column('filename', String)
+    #header = Column('header', String)
+    #filename = Column('filename', String)
 
     #Relationships
     source = relationship(Source, backref=backref('proteinsequence_evidences', passive_deletes=True), uselist=False)
@@ -901,7 +902,8 @@ class Proteinsequenceevidence(Evidence):
                      'instability_index', 'ala', 'arg', 'asn', 'asp', 'cys', 'gln', 'glu', 'gly', 'his', 'ile', 'leu',
                      'lys', 'met', 'phe', 'pro', 'thr', 'ser', 'trp', 'tyr', 'val', 'hydrogen', 'sulfur', 'nitrogen',
                      'oxygen', 'carbon', 'yeast_half_life', 'ecoli_half_life', 'mammal_half_life', 'no_cys_ext_coeff',
-                     'all_cys_ext_coeff', 'all_half_cys_ext_coeff', 'all_pairs_cys_ext_coeff', 'header', 'filename',
+                     'all_cys_ext_coeff', 'all_half_cys_ext_coeff', 'all_pairs_cys_ext_coeff',
+                     #'header', 'filename',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus']
 

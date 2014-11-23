@@ -189,8 +189,8 @@ class Contig(Bioitem):
     reference_end = Column('reference_end', Integer)
     reference_percent_identity = Column('reference_percent_identity', Numeric(7, 3))
     reference_alignment_length = Column('reference_alignment_length', Integer)
-    header = Column('header', String)
-    filename = Column('filename', String)
+    #header = Column('header', String)
+    #filename = Column('filename', String)
 
     #Relationships
     strain = relationship(Strain, uselist=False, backref='contigs')
@@ -198,7 +198,8 @@ class Contig(Bioitem):
 
     __mapper_args__ = {'polymorphic_identity': "CONTIG", 'inherit_condition': id==Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
-                     'residues', 'centromere_start', 'centromere_end', 'is_chromosome', 'genbank_accession', 'gi_number', 'refseq_id', 'header', 'filename',
+                     'residues', 'centromere_start', 'centromere_end', 'is_chromosome', 'genbank_accession', 'gi_number', 'refseq_id',
+                     #'header', 'filename',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'strain']
 
