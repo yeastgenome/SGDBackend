@@ -10,6 +10,30 @@ def create_format_name(display_name):
 
 Base = None
 
+locus_types = [
+    'ORF',
+    'long_terminal_repeat',
+    'ARS',
+    'tRNA_gene',
+    'transposable_element_gene',
+    'snoRNA_gene',
+    'not in systematic sequence of S288C',
+    'LTR_retrotransposon',
+    'telomere',
+    'rRNA_gene',
+    'ncRNA_gene',
+    'centromere',
+    'pseudogene',
+    'origin_of_replication',
+    'matrix_attachment_site',
+    'snRNA_gene',
+    'blocked_reading_frame',
+    'gene_group',
+    'silent_mating_type_cassette_array',
+    'mating_type_region',
+    'intein_encoding_region',
+    'telomerase_RNA_gene']
+
 class UpdateByJsonMixin(object):
     def update(self, json_obj):
         anything_changed = False

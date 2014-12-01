@@ -97,13 +97,13 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS'))])
-    #
-    # do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Locustabs),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locustabs),
-    #                          name='convert.from_bud.bioentity.locustabs',
-    #                          delete_untouched=True,
-    #                          commit=True)])
+
+    do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Locustabs),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Locustabs),
+                             name='convert.from_bud.bioentity.locustabs',
+                             delete_untouched=True,
+                             commit=True)])
     #
     # do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioentityalias),
@@ -146,14 +146,14 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True)])
     #
-    # # ------------------------------------------ Bioconcept ------------------------------------------
-    # # Bud -> Nex
-    # from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation, Bioconcepturl
-    # from src.sgd.model.nex.misc import Alias, Relation, Url
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
-    #     make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    # ------------------------------------------ Bioconcept ------------------------------------------
+    # Bud -> Nex
+    from src.sgd.model.nex.bioconcept import Bioconcept, Observable, Phenotype, Go, ECNumber, Bioconceptalias, Bioconceptrelation, Bioconcepturl
+    from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.bioconcept import make_phenotype_starter, make_go_starter, \
+        make_ecnumber_starter, make_bioconcept_alias_starter, make_bioconcept_relation_starter, make_observable_starter, make_bioconcept_url_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
     #
     # do_conversion(make_observable_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Observable),
@@ -537,21 +537,21 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True)])
     #
-    # # ------------------------------------------ Evidence ------------------------------------------
-    # # Bud -> Nex
-    # from src.sgd.model.nex.evidence import Evidence, Goevidence, DNAsequenceevidence, Regulationevidence, \
-    #     Proteinsequenceevidence, Phosphorylationevidence, Domainevidence, Literatureevidence, Phenotypeevidence, \
-    #     DNAsequencetag, Expressionevidence, Bioentitydata, Bindingevidence, ECNumberevidence, Geninteractionevidence, Physinteractionevidence, Proteinexperimentevidence, \
-    #     Historyevidence, Pathwayevidence
-    # from src.sgd.model.nex.archive import ArchiveLiteratureevidence
-    # from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_dna_sequence_evidence_starter, \
-    #     make_regulation_evidence_starter, make_protein_sequence_evidence_starter, make_phosphorylation_evidence_starter, \
-    #     make_domain_evidence_starter, make_literature_evidence_starter, make_phenotype_evidence_starter, \
-    #     make_dna_sequence_tag_starter, make_expression_evidence_starter, make_expression_data_starter, \
-    #     make_binding_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
-    #     make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter, \
-    #     make_new_dna_sequence_evidence_starter, make_ref_dna_sequence_evidence_starter, make_kb_sequence_starter, \
-    #     make_pathway_evidence_starter
+    # ------------------------------------------ Evidence ------------------------------------------
+    # Bud -> Nex
+    from src.sgd.model.nex.evidence import Evidence, Goevidence, DNAsequenceevidence, Regulationevidence, \
+        Proteinsequenceevidence, Phosphorylationevidence, Domainevidence, Literatureevidence, Phenotypeevidence, \
+        DNAsequencetag, Expressionevidence, Bioentitydata, Bindingevidence, ECNumberevidence, Geninteractionevidence, Physinteractionevidence, Proteinexperimentevidence, \
+        Historyevidence, Pathwayevidence, Goslimevidence
+    from src.sgd.model.nex.archive import ArchiveLiteratureevidence
+    from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_go_slim_evidence_starter, make_dna_sequence_evidence_starter, \
+        make_regulation_evidence_starter, make_protein_sequence_evidence_starter, make_phosphorylation_evidence_starter, \
+        make_domain_evidence_starter, make_literature_evidence_starter, make_phenotype_evidence_starter, \
+        make_dna_sequence_tag_starter, make_expression_evidence_starter, make_expression_data_starter, \
+        make_binding_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
+        make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter, \
+        make_new_dna_sequence_evidence_starter, make_ref_dna_sequence_evidence_starter, make_kb_sequence_starter, \
+        make_pathway_evidence_starter
     #
     # do_conversion(make_binding_evidence_starter(nex_session_maker),
     #                [Json2Obj(Bindingevidence),
@@ -594,6 +594,14 @@ if __name__ == "__main__":
     #                                delete_untouched=True,
     #                                commit_interval=1000,
     #                                already_deleted=clean_up_orphans(nex_session_maker, Goevidence, Evidence, 'GO')),
+    #                 OutputTransformer(1000)])
+    # do_conversion(make_go_slim_evidence_starter(nex_session_maker),
+    #                [Json2Obj(Goslimevidence),
+    #                 Evidence2NexDB(nex_session_maker, lambda x: x.query(Goslimevidence),
+    #                                name='convert.from_bud.evidence.goslim',
+    #                                delete_untouched=True,
+    #                                commit_interval=1000,
+    #                                already_deleted=clean_up_orphans(nex_session_maker, Goslimevidence, Evidence, 'GOSLIM')),
     #                 OutputTransformer(1000)])
     #
     # do_conversion(make_interaction_evidence_starter(bud_session_maker, nex_session_maker, 'genetic interactions'),
@@ -916,12 +924,12 @@ if __name__ == "__main__":
     #                                delete_untouched=True),
     #                OutputTransformer(10)])
     #
-    do_conversion(make_backend_starter(nex_backend, 'all_locustabs', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfLocustab,
-                                   name='convert.from_backend.all_locustabs',
-                                   commit_interval=1000,
-                                   delete_untouched=True),
-                   OutputTransformer(1000)])
+    # do_conversion(make_backend_starter(nex_backend, 'all_locustabs', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfLocustab,
+    #                                name='convert.from_backend.all_locustabs',
+    #                                commit_interval=1000,
+    #                                delete_untouched=True),
+    #                OutputTransformer(1000)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_locusentries', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfLocusentry,

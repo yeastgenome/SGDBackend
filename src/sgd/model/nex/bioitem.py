@@ -5,7 +5,7 @@ from sqlalchemy.types import Integer, String, Date, Numeric
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
+from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin, locus_types
 from src.sgd.model.nex.misc import Source, Relation, Strain, Url, Alias, Tag
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.bioentity import Locus
@@ -245,23 +245,10 @@ class Contig(Bioitem):
                     overview_counts[evidence.locus.locus_type] = 1
 
         obj_json['overview'] = [
-            ['Feature Type', 'Count'],
-            ['ORF', (0 if 'ORF' not in overview_counts else overview_counts['ORF'])],
-            ['long_terminal_repeat', (0 if 'long_terminal_repeat' not in overview_counts else overview_counts['long_terminal_repeat'])],
-            ['ARS', (0 if 'ARS' not in overview_counts else overview_counts['ARS'])],
-            ['tRNA', (0 if 'tRNA' not in overview_counts else overview_counts['tRNA'])],
-            ['transposable_element_gene', (0 if 'transposable_element_gene' not in overview_counts else overview_counts['transposable_element_gene'])],
-            ['snoRNA', (0 if 'snoRNA' not in overview_counts else overview_counts['snoRNA'])],
-            ['retrotransposon', (0 if 'retrotransposon' not in overview_counts else overview_counts['retrotransposon'])],
-            ['telomere', (0 if 'telomere' not in overview_counts else overview_counts['telomere'])],
-            ['rRNA', (0 if 'rRNA' not in overview_counts else overview_counts['rRNA'])],
-            ['pseudogene', (0 if 'pseudogene' not in overview_counts else overview_counts['pseudogene'])],
-            ['ncRNA', (0 if 'ncRNA' not in overview_counts else overview_counts['ncRNA'])],
-            ['centromere', (0 if 'centromere' not in overview_counts else overview_counts['centromere'])],
-            ['snRNA', (0 if 'snRNA' not in overview_counts else overview_counts['snRNA'])],
-            ['multigene locus', (0 if 'multigene locus' not in overview_counts else overview_counts['multigene locus'])],
-            ['gene_cassette', (0 if 'gene_cassette' not in overview_counts else overview_counts['gene_cassette'])],
-            ['mating_locus', (0 if 'mating_locus' not in overview_counts else overview_counts['mating_locus'])]]
+            ['Feature Type', 'Count']]
+
+        for locus_type in locus_types:
+            obj_json['overview'].append([locus_type, (0 if locus_type not in overview_counts else overview_counts[locus_type])])
 
         obj_json['urls'] = [x.to_min_json() for x in self.urls]
 

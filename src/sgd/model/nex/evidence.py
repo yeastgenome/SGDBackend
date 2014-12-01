@@ -237,6 +237,39 @@ class Goevidence(Evidence):
                 obj_json['date_created'] = go_paragraphs[0].text
         return obj_json
 
+class Goslimevidence(Evidence):
+    __tablename__ = "goslimevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
+    note = Column('note', String)
+
+    locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
+    go_id = Column('bioconcept_id', Integer, ForeignKey(Go.id))
+
+    #Relationships
+    source = relationship(Source, backref=backref('goslim_evidences', passive_deletes=True), uselist=False)
+    reference = relationship(Reference, backref=backref('goslim_evidences', passive_deletes=True), uselist=False)
+    strain = relationship(Strain, backref=backref('goslim_evidences', passive_deletes=True), uselist=False)
+    experiment = relationship(Experiment, backref=backref('goslim_evidences', passive_deletes=True), uselist=False)
+    locus = relationship(Locus, uselist=False, backref=backref('goslim_evidences', passive_deletes=True))
+    go = relationship(Go, uselist=False, backref=backref('goslim_evidences', passive_deletes=True))
+
+    __mapper_args__ = {'polymorphic_identity': "GOSLIM", 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['id', 'note', 'json',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'go']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
+
+    def unique_key(self):
+        return self.class_type, self.locus_id, self.go_id
+
 class Geninteractionevidence(Evidence, UpdateByJsonMixin):
     __tablename__ = "geninteractionevidence"
     

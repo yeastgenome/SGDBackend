@@ -83,13 +83,14 @@ class SGDBackend(BackendInterface):
         #Go
         from src.sgd.model.nex.bioconcept import Go, Bioconceptrelation
         from src.sgd.model.nex.evidence import Goevidence
+        from src.sgd.model.nex import locus_types
         go_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='GO_SLIM').all()])
         go_terms = DBSession.query(Go).filter(Go.id.in_(go_slim_ids)).all()
         go_slim_terms = []
         go_relationships = [['Child', 'Parent']]
         for go_term in go_terms:
             obj_json = go_term.to_min_json()
-            obj_json['descendant_annotation_gene_count'] = go_term.descendant_locus_count
+            obj_json['descendant_annotation_gene_count'] = len(go_term.goslim_evidences)
             obj_json['direct_annotation_gene_count'] = go_term.locus_count
             obj_json['is_root'] = go_term.is_root
             go_slim_terms.append(obj_json)
@@ -138,9 +139,10 @@ class SGDBackend(BackendInterface):
 
         id_to_strain = dict([(x.id, x) for x in DBSession.query(Strain)])
         contigs = DBSession.query(Contig).filter(Contig.strain_id == 1).all()
-        labels = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon',
-                  'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette',
-                  'mating_locus', 'Verified', 'Dubious', 'Uncharacterized']
+        labels = list(locus_types)
+        labels.append('Verified')
+        labels.append('Dubious')
+        labels.append('Uncharacterized')
 
         contig_id_to_index = {}
         label_to_index = {}

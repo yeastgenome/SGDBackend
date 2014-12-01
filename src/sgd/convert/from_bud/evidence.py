@@ -628,6 +628,35 @@ def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_referenc
             return evidence_key, conditions
     return None
 
+def make_go_slim_evidence_starter(nex_session_maker):
+    from src.sgd.model.nex.misc import Source
+    from src.sgd.model.nex.bioentity import Bioentity
+    from src.sgd.model.nex.bioconcept import Go
+
+    def go_slim_evidence_starter():
+        nex_session = nex_session_maker()
+
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+        goid_to_go = dict([(x.go_id, x) for x in nex_session.query(Go).all()])
+        sgdid_to_bioentity = dict([(x.sgdid, x) for x in nex_session.query(Bioentity).all()])
+
+        for pieces in make_file_starter('src/sgd/convert/data/go_slim_mapping.tab.txt')():
+            if len(pieces) >= 6:
+                goid = pieces[5]
+                sgdid = pieces[2]
+                if goid in goid_to_go and sgdid in sgdid_to_bioentity:
+                    yield {'source': key_to_source['SGD'],
+                           'locus': sgdid_to_bioentity[sgdid],
+                            'go': goid_to_go[goid]}
+                elif sgdid in sgdid_to_bioentity:
+                    yield {'source': key_to_source['SGD'],
+                           'locus': sgdid_to_bioentity[sgdid]}
+                else:
+                    print 'Could not find bioentity or bioconcept: ' + sgdid + ' ' + goid
+
+        nex_session.close()
+    return go_slim_evidence_starter
+
 # --------------------- History Evidence ---------------------
 note_type_to_preface = {'Nomenclature history': 'Nomenclature', 'Nomenclature conflict': 'Nomenclature',
                         'Other': 'Other', 'Mapping': 'Mapping'}
