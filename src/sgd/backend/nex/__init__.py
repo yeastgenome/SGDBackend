@@ -82,7 +82,7 @@ class SGDBackend(BackendInterface):
     def snapshot(self):
         #Go
         from src.sgd.model.nex.bioconcept import Go, Bioconceptrelation
-        from src.sgd.model.nex.evidence import Goevidence
+        from src.sgd.model.nex.evidence import Goevidence, Goslimevidence
         from src.sgd.model.nex import locus_types
         go_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='GO_SLIM').all()])
         go_terms = DBSession.query(Go).filter(Go.id.in_(go_slim_ids)).all()
@@ -105,6 +105,9 @@ class SGDBackend(BackendInterface):
                     else:
                         new_parents.extend([x.parent for x in parent.parents if x.relation_type == 'is a'])
                 parents = new_parents
+        annotated_to_other_bp = DBSession.query(Goslimevidence).filter_by(go_id=None).filter_by(aspect='P').count()
+        annotated_to_other_mf = DBSession.query(Goslimevidence).filter_by(go_id=None).filter_by(aspect='F').count()
+        annotated_to_other_cc = DBSession.query(Goslimevidence).filter_by(go_id=None).filter_by(aspect='C').count()
 
         #Phenotype
         from src.sgd.model.nex.bioconcept import Observable, Bioconceptrelation
@@ -180,6 +183,9 @@ class SGDBackend(BackendInterface):
 
         return json.dumps({'phenotype_slim_terms': phenotype_slim_terms, 'phenotype_slim_relationships': phenotype_relationships,
                            'go_slim_terms': go_slim_terms, 'go_slim_relationships': go_relationships,
+                           'go_annotated_to_other_bp': annotated_to_other_bp,
+                           'go_annotated_to_other_mf': annotated_to_other_mf,
+                           'go_annotated_to_other_cc': annotated_to_other_cc,
                            'data': data, 'columns': columns, 'rows': labels})
 
     def bioentity_list(self, bioent_ids):

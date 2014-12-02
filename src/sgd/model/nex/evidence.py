@@ -247,6 +247,7 @@ class Goslimevidence(Evidence):
     experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
     note = Column('note', String)
 
+    aspect = Column('aspect', String)
     locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
     go_id = Column('bioconcept_id', Integer, ForeignKey(Go.id))
 
@@ -260,6 +261,7 @@ class Goslimevidence(Evidence):
 
     __mapper_args__ = {'polymorphic_identity': "GOSLIM", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note', 'json',
+                     'aspect',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'go']
 

@@ -17,7 +17,6 @@ locus_types = [
     'tRNA_gene',
     'transposable_element_gene',
     'snoRNA_gene',
-    'not in systematic sequence of S288C',
     'LTR_retrotransposon',
     'telomere',
     'rRNA_gene',

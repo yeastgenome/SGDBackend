@@ -644,13 +644,16 @@ def make_go_slim_evidence_starter(nex_session_maker):
             if len(pieces) >= 6:
                 goid = pieces[5]
                 sgdid = pieces[2]
+                aspect = pieces[3]
                 if goid in goid_to_go and sgdid in sgdid_to_bioentity:
                     yield {'source': key_to_source['SGD'],
                            'locus': sgdid_to_bioentity[sgdid],
-                            'go': goid_to_go[goid]}
+                            'go': goid_to_go[goid],
+                            'aspect': aspect}
                 elif sgdid in sgdid_to_bioentity:
                     yield {'source': key_to_source['SGD'],
-                           'locus': sgdid_to_bioentity[sgdid]}
+                           'locus': sgdid_to_bioentity[sgdid],
+                           'aspect': aspect}
                 else:
                     print 'Could not find bioentity or bioconcept: ' + sgdid + ' ' + goid
 
