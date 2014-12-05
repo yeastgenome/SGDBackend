@@ -817,11 +817,11 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.paragraph import make_paragraph_reference_starter, make_bioentity_paragraph_starter, \
         make_strain_paragraph_starter, make_reference_paragraph_starter
 
-    do_conversion(make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Bioentityparagraph),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit_interval=1000),
-                   OutputTransformer(1000)])
-    clean_up_orphans(nex_session_maker, Bioentityparagraph, Paragraph, 'BIOENTITY')
+    # do_conversion(make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Bioentityparagraph),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit_interval=1000),
+    #                OutputTransformer(1000)])
+    # clean_up_orphans(nex_session_maker, Bioentityparagraph, Paragraph, 'BIOENTITY')
     #
     # # do_conversion(make_strain_paragraph_starter(nex_session_maker),
     # #               [Json2Obj(Strainparagraph),
@@ -886,7 +886,7 @@ if __name__ == "__main__":
     # #                OutputTransformer(1000)])
     # # clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
     #
-    # make_bioconcept_count_starter(nex_session_maker)
+    make_bioconcept_count_starter(nex_session_maker)
     #
     # # ------------------------------------------ Perf ------------------------------------------
     # from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
@@ -916,7 +916,7 @@ if __name__ == "__main__":
     #
     #
     # # Nex -> Perf
-    from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
+    # from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
     # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioentity,
     #                                name='convert.from_backend.bioentity',

@@ -197,20 +197,21 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                 sgdid = pieces[8]
                 if sgdid.startswith('SGD:'):
                     sgdid = sgdid[4:]
-                    go_annotation = [x[21:] for x in pieces[9].split('|') if x.startswith('go_annotation_summary')]
-                    if sgdid in sgdid_to_bioentity:
-                        yield {
-                            'bioentity': sgdid_to_bioentity[sgdid],
-                            'source': key_to_source['SGD'],
-                            'text': go_annotation,
-                            'html': go_annotation,
-                            'date_created': None,
-                            'created_by': None,
-                            'category': 'GO'
-                        }
-                    else:
-                        print 'Bioentity not found: ' + sgdid
-                        yield None
+                    go_annotation = [x[22:].strip() for x in pieces[9].split('|') if x.startswith('go_annotation_summary')]
+                    if len(go_annotation) == 1:
+                        if sgdid in sgdid_to_bioentity:
+                            yield {
+                                'bioentity': sgdid_to_bioentity[sgdid],
+                                'source': key_to_source['SGD'],
+                                'text': go_annotation[0],
+                                'html': go_annotation[0],
+                                'date_created': None,
+                                'created_by': None,
+                                'category': 'GO'
+                            }
+                        else:
+                            print 'Bioentity not found: ' + sgdid
+                            yield None
 
         #Regulation
         for row in make_file_starter('src/sgd/convert/data/regulationSummaries')():

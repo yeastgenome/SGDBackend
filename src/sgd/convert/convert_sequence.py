@@ -57,9 +57,9 @@ if __name__ == "__main__":
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Bioitemurl, Url, 'BIOITEM'))])
     #
-    # do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
-    #                   [Json2Obj(DNAsequenceevidence),
-    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1), name='convert.from_bud.evidence.reference_dnasequence', delete_untouched=True, commit_interval=1000)])
+    do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
+                      [Json2Obj(DNAsequenceevidence),
+                       Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1), name='convert.from_bud.evidence.reference_dnasequence', delete_untouched=True, commit_interval=1000)])
 
     # do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(DNAsequencetag),
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     # from src.sgd.model.perf.bioentity_data import BioentityDetails
     # from src.sgd.model.perf.bioitem_data import BioitemDetails
     # from src.sgd.model.perf.core import Bioitem as PerfBioitem
-    from src.sgd.model.perf.core import Strain as PerfStrain
+    # from src.sgd.model.perf.core import Strain as PerfStrain
     #
     # from src.sgd.model.nex.bioentity import Locus
     # from src.sgd.model.nex.bioitem import Contig
@@ -129,12 +129,12 @@ if __name__ == "__main__":
     # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True)])
     #
-    do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True)])
+    # do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True)])
 
     # ------------------------------------------ Perf2 ------------------------------------------
-    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
-    perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
+    # perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    # perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
 
     # do_conversion(make_locus_data_backend_starter(perf_backend, 'neighbor_sequence_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000)])
@@ -148,5 +148,5 @@ if __name__ == "__main__":
     # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioitem, name='convert.from_backend.bioitem', commit_interval=1000, delete_untouched=True)])
     #
-    do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
-                  [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True)])
+    # do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True)])
