@@ -1,6 +1,6 @@
 from sqlalchemy.orm import joinedload
 
-from src.sgd.convert.transformers import make_db_starter
+from src.sgd.convert.transformers import make_db_starter, make_file_starter
 
 
 __author__ = 'kpaskov'
@@ -165,14 +165,22 @@ def make_go_starter(bud_session_maker, nex_session_maker):
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
 
+        slim_ids = set()
+        for pieces in make_file_starter('src/sgd/convert/data/go_slim_mapping.tab.txt')():
+            if len(pieces) >= 6:
+                goid = pieces[5]
+                slim_ids.add(goid)
+
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
         for bud_obj in bud_session.query(Go).all():
+            go_id = 'GO:' + str(bud_obj.go_go_id).zfill(7)
             yield {'display_name': bud_obj.go_term,
                    'source': key_to_source['GO'],
                    'description': bud_obj.go_definition,
-                   'go_id': 'GO:' + str(bud_obj.go_go_id).zfill(7),
+                   'go_id': go_id,
                    'go_aspect': abbrev_to_go_aspect[bud_obj.go_aspect],
+                   'is_slim': 1 if go_id in slim_ids else 0,
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
 

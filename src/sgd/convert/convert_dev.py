@@ -886,7 +886,7 @@ if __name__ == "__main__":
     # #                OutputTransformer(1000)])
     # # clean_up_orphans(nex_session_maker, Bioiteminteraction, Interaction, 'BIOITEM')
     #
-    make_bioconcept_count_starter(nex_session_maker)
+    # make_bioconcept_count_starter(nex_session_maker)
     #
     # # ------------------------------------------ Perf ------------------------------------------
     # from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
@@ -915,7 +915,7 @@ if __name__ == "__main__":
     #                OutputTransformer(100)])
     #
     #
-    # # Nex -> Perf
+    # Nex -> Perf
     # from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
     # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfBioentity,
@@ -1165,8 +1165,8 @@ if __name__ == "__main__":
     # #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_details', commit_interval=100),
     # #                 OutputTransformer(100)])
     #
-    # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'snapshot', 'tag_list']),
-    #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+    do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'snapshot', 'tag_list']),
+                   [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
     #
     # from src.sgd.model.nex import locus_types
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'locus_list', locus_types),

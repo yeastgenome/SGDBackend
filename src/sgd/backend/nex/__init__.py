@@ -84,11 +84,10 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.bioconcept import Go, Bioconceptrelation
         from src.sgd.model.nex.evidence import Goevidence, Goslimevidence
         from src.sgd.model.nex import locus_types
-        go_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='GO_SLIM').all()])
-        go_terms = DBSession.query(Go).filter(Go.id.in_(go_slim_ids)).all()
+        id_to_go_slim = dict([(x.id, x) for x in DBSession.query(Go).filter_by(is_slim=1).all()])
         go_slim_terms = []
         go_relationships = [['Child', 'Parent']]
-        for go_term in go_terms:
+        for go_term in id_to_go_slim.values():
             obj_json = go_term.to_min_json()
             obj_json['descendant_annotation_gene_count'] = len(go_term.goslim_evidences)
             obj_json['direct_annotation_gene_count'] = go_term.locus_count
@@ -99,7 +98,7 @@ class SGDBackend(BackendInterface):
             while parents is not None and len(parents) > 0:
                 new_parents = []
                 for parent in parents:
-                    if parent.id in go_slim_ids:
+                    if parent.id in id_to_go_slim:
                         go_relationships.append([go_term.id, parent.id])
                         break
                     else:
