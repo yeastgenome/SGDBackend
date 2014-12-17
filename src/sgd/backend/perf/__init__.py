@@ -134,6 +134,7 @@ class PerfBackend(BackendInterface):
 
     def locus_list(self, list_type):
         from src.sgd.model.perf.core import Orphan
+        print 'locus_list.' + list_type.lower()
         return DBSession.query(Orphan).filter(func.lower(Orphan.url) == 'locus_list.' + list_type.lower()).first().json
 
     def strain(self, strain_identifier):

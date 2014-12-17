@@ -69,14 +69,14 @@ class SGDBackend(BackendInterface):
 
     def locus_list(self, list_type):
         from src.sgd.model.nex.bioentity import Locus
+        from src.sgd.model.nex import locus_types
 
-        list_types = dict([(x[0].lower(), x[0]) for x in DBSession.query(distinct(Locus.locus_type)).all()])
-
+        list_types = dict([(x.lower(), x) for x in locus_types])
         if list_type.lower() in list_types:
             locus_type = list_types[list_type.lower()]
             return json.dumps({
                                 'list_name': locus_type,
-                                'locii': [x.to_min_json(include_description=True) for x in DBSession.query(Locus).filter_by(locus_type=locus_type).all()]
+                                'locii': [x.to_min_json(include_description=True) for x in DBSession.query(Locus).filter_by(bioent_status='Active').filter_by(locus_type=locus_type).all()]
             })
 
     def snapshot(self):

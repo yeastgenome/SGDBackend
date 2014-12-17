@@ -1596,8 +1596,10 @@ def make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker,
                 if ancestor_id in id_to_feature:
                     if id_to_feature[ancestor_id].name in number_to_roman:
                         contig_key = ('Chromosome_' + number_to_roman[id_to_feature[ancestor_id].name], 'CONTIG')
-                        if contig_key in key_to_contig:
-                            feature_id_to_contig[bioentity_id] = key_to_contig[contig_key]
+                    else:
+                        contig_key = ('Chromosome_' + id_to_feature[ancestor_id].name, 'CONTIG')
+                    if contig_key in key_to_contig:
+                        feature_id_to_contig[bioentity_id] = key_to_contig[contig_key]
 
         for bud_location in bud_session.query(Feat_Location).all():
             bioentity_id = bud_location.feature_id
