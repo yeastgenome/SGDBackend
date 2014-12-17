@@ -178,7 +178,7 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Go, Bioconcept, 'GO'))])
-    #
+    # #
     # do_conversion(make_ecnumber_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(ECNumber),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(ECNumber),
@@ -822,7 +822,7 @@ if __name__ == "__main__":
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityparagraph), name='convert.from_bud.paragraph.bioentity', delete_untouched=True, commit_interval=1000),
     #                OutputTransformer(1000)])
     # clean_up_orphans(nex_session_maker, Bioentityparagraph, Paragraph, 'BIOENTITY')
-    #
+
     # # do_conversion(make_strain_paragraph_starter(nex_session_maker),
     # #               [Json2Obj(Strainparagraph),
     # #                Obj2NexDB(nex_session_maker, lambda x: x.query(Strainparagraph), name='convert.from_bud.paragraph.strain', delete_untouched=True, commit=True),
@@ -952,7 +952,7 @@ if __name__ == "__main__":
     #               [Json2CorePerfDB(perf_session_maker, PerfBioitem,
     #                                name='convert.from_backend.bioitem',
     #                                commit_interval=1000,
-    #                                delete_untouched=True),
+    #                                delete_untouched=False),
     #                OutputTransformer(1000)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_tags', 1000),
@@ -1164,7 +1164,7 @@ if __name__ == "__main__":
     # #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids, name='convert.from_backend.expression_details', commit_interval=100),
     # #                 OutputTransformer(100)])
     #
-    #do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'snapshot', 'tag_list']),
+    # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'snapshot', 'tag_list']),
     #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
     #
     # from src.sgd.model.nex import locus_types
