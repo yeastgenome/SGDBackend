@@ -1,3 +1,10 @@
+__author__ = 'kpaskov'
+
+'''
+This file contains all auxilliary classes. These classes do not contain primary data. Instead, they contain quantites
+and aggregations of primary data. These classes are used purely to improve performance.
+'''
+
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Numeric
@@ -10,9 +17,13 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateByJsonMixin
 
 
-__author__ = 'kpaskov'
-    
 class Interaction(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    '''
+    An interaction is a relationship between a bioentity and another type of object. Interactions aggregate evidence.
+    So for example, there may be several pieces of evidence indicating that Bioentity A is associated with Go Term B.
+    In that case, we would have a single interaction stating that Bioentity A is associated with Go Term B, and this
+    interaction would be used to more quickly generate network diagrams or go enrichment results.
+    '''
     __tablename__ = "aux_interaction"
     
     id = Column('aux_interaction_id', Integer, primary_key=True)
@@ -37,6 +48,12 @@ class Interaction(Base, EqualityByIDMixin, UpdateByJsonMixin):
         return self.bioentity_id, self.class_type, self.interaction_type, self.format_name
     
 class Bioentityinteraction(Interaction, EqualityByIDMixin):
+    '''
+    A bioentity interaction is an interaction between two bioentities. For example, there may be multiple pieces
+    of physical interaction evidence indicating that Bioentity A physically interacts with Bioentity B. In that case
+    we would have a single bioentity interaction between Bioentity A and Bioentity B with interaction_type 'Physical
+    Interaction'.
+    '''
     __tablename__ = "aux_bioentityinteraction"
 
     id = Column('aux_interaction_id', Integer, primary_key=True)
@@ -57,6 +74,12 @@ class Bioentityinteraction(Interaction, EqualityByIDMixin):
     __eq_values__ = ['id', 'format_name', 'class_type', 'interaction_type', 'evidence_count', 'direction']
 
 class Bioconceptinteraction(Interaction, EqualityByIDMixin):
+    '''
+    A bioconcept interaction is an interaction between a bioentity and a bioconcept. For example, there may be several
+    pieces of evidence indicating that Bioentity A is associated with Go Term B.
+    In that case, we would have a single interaction stating that Bioentity A is associated with Go Term B, and this
+    interaction would be used to more quickly generate network diagrams or go enrichment results.
+    '''
     __tablename__ = "aux_bioconceptinteraction"
 
     id = Column('aux_interaction_id', Integer, primary_key=True)
@@ -68,6 +91,12 @@ class Bioconceptinteraction(Interaction, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_identity': 'BIOCONCEPT', 'inherit_condition': id==Interaction.id}
 
 class Bioiteminteraction(Interaction, EqualityByIDMixin):
+    '''
+    A bioitem interaction is an interaction between a bioentity and a bioitem. For example, there may be several pieces
+    of evidence indicating that Bioentity A is associated with Protein Domain B. In that case, we would have a single
+    interaction stating that Bioentity A is associated with Protein Domain B, and that interaction would be used
+    to more quickly generate network diagrams.
+    '''
     __tablename__ = "aux_bioiteminteraction"
 
     id = Column('aux_interaction_id', Integer, primary_key=True)
@@ -79,6 +108,12 @@ class Bioiteminteraction(Interaction, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_identity': 'BIOITEM', 'inherit_condition': id==Interaction.id}
 
 class Referenceinteraction(Interaction, EqualityByIDMixin):
+    '''
+    A reference interaction is an interaction between a bioentity and a reference. For example, there may be several
+    pieces of evidence associating Bioentity A with Reference B. In that case, we would have a single interaction
+    stating that Bioentity A is associated with Reference B, and that interaction would be used to more quickly generate
+    network diagrams.
+    '''
     __tablename__ = "aux_referenceinteraction"
 
     id = Column('aux_interaction_id', Integer, primary_key=True)
@@ -90,6 +125,12 @@ class Referenceinteraction(Interaction, EqualityByIDMixin):
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE', 'inherit_condition': id==Interaction.id}
     
 class Disambig(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    '''
+    The disambig class is used to disambiguate urls. Given a disambig_key (the identifier in a url) and a class_type
+    or subclass_type, we query the disambig table for the object's identifier. For example, the disambig_key might be
+    'ACT1', and the class_type might be 'BIOENTITY' and subclass_type 'LOCUS'. In this case, the identifier would be
+    the id for the ACT1 locus in the locusbioentity table.
+    '''
     __tablename__ = 'aux_disambig'
     
     id = Column('aux_disambig_id', Integer, primary_key=True)
@@ -114,6 +155,9 @@ class Disambig(Base, EqualityByIDMixin, UpdateByJsonMixin):
         return json_obj
     
 class Locustabs(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    '''
+    The locus tabs class indicates which tabs should be showing for a given locus.
+    '''
     __tablename__ = 'aux_locustabs'
     
     id = Column('bioentity_id', Integer, primary_key=True)

@@ -1,14 +1,12 @@
+__author__ = 'kpaskov'
+
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
-
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.bud import Base
 from general import Dbxref
-
-
-__author__ = 'kpaskov'
 
 class CVTerm(Base, EqualityByIDMixin):
     __tablename__ = 'cv_term'

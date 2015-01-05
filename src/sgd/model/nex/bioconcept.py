@@ -1,3 +1,9 @@
+__author__ = 'kpaskov'
+
+'''
+This file contains all of the bioconcept classes. Bioconcepts are conceptual ideas that may be associated with a locus.
+'''
+
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
@@ -7,8 +13,6 @@ from misc import Url, Alias, Relation, Source
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 
-
-__author__ = 'kpaskov'
 
 class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = "bioconcept"

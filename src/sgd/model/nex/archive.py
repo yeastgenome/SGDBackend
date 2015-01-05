@@ -1,3 +1,10 @@
+__author__ = 'kpaskov'
+
+'''
+This file contains archived classes in the nex schema. These classes and associated database tables contain information
+that we wish to store, but that is never displayed on the SGD website.
+'''
+
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship, backref
 
@@ -8,9 +15,12 @@ from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex import UpdateByJsonMixin
 import json
 
-__author__ = 'kpaskov'
 
 class ArchiveLiteratureevidence(Evidence):
+    '''
+    Archived literature evidence represents the litguide information that we used to curate.
+    '''
+
     __tablename__ = "arch_literatureevidence"
 
     id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
