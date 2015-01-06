@@ -668,6 +668,14 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return json.dumps(view_sequence.make_neighbor_details(locus_id=locus_id))
+
+    def alignment_details(self, locus_identifier=None, are_ids=False):
+        import view_sequence
+        if are_ids:
+            locus_id = locus_identifier
+        else:
+            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return json.dumps(view_sequence.make_alignment_details(locus_id=locus_id))
     
     #Misc
     def all_disambigs(self, chunk_size, offset):

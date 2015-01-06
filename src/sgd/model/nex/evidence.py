@@ -833,8 +833,8 @@ class Alignmentevidence(Evidence):
     note = Column('note', String)
 
     locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
-    residues_with_gaps = Column('residues_with_gaps', String)
-    similarity_score = Column('similarity_score', CLOB)
+    residues_with_gaps = Column('residues_with_gaps', CLOB)
+    similarity_score = Column('similarity_score', Float)
 
     #Relationships
     source = relationship(Source, backref=backref('alignment_evidences', passive_deletes=True), uselist=False)

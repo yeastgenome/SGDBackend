@@ -304,6 +304,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('neighbor_sequence_details'),
                     route_name='sequence_neighbor_details')
 
+    config.add_route('alignment_details', '/locus/{identifier}/alignment_details')
+    config.add_view(lambda request: chosen_backend.response_wrapper('alignment_details', request)(getattr(chosen_backend, 'alignment_details')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('alignment_details'),
+                    route_name='alignment_details')
+
     config.add_route('protein_phosphorylation_details', '/locus/{identifier}/protein_phosphorylation_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('protein_phosphorylation_details', request)(getattr(chosen_backend, 'protein_phosphorylation_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('protein_phosphorylation_details'),

@@ -2071,19 +2071,25 @@ def make_alignment_evidence_starter(nex_session_maker):
                         residues += line.strip()
                 f.close()
 
-                for strain_key, strain_residues in strain_key_to_residues:
+                for strain_key, strain_residues in strain_key_to_residues.iteritems():
+                    if strain_key == 'CEN.PK':
+                        strain_key = 'CENPK'
                     if strain_key not in key_to_strain:
                         print 'Strain not found: ' + strain_key
                     else:
                         strain = key_to_strain[strain_key]
 
                         #Calculate similarity score
-                        reference_residues = strain_key_to_residues['S288C']
-                        same_count = 0
-                        for i in range(len(reference_residues)):
-                            if reference_residues[i] == strain_residues[i]:
-                                same_count += 1
-                        similarity_score = 1.0*same_count/len(reference_residues)
+                        if 'S288C' in strain_key_to_residues:
+                            reference_residues = strain_key_to_residues['S288C']
+                            same_count = 0
+                            for i in range(len(reference_residues)):
+                                if reference_residues[i] == strain_residues[i]:
+                                    same_count += 1
+                            similarity_score = 1.0*same_count/len(reference_residues)
+                        else:
+                            print filename + 'does not contain S288C'
+                            similarity_score = 0
 
                         yield {
                             'locus': bioentity,
