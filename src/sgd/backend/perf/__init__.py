@@ -490,6 +490,14 @@ class PerfBackend(BackendInterface):
                 bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
             return get_bioentity_details(bioent_id, 'PROTEIN_PHOSPHORYLATION')
 
+    def posttranslational_details(self, locus_identifier=None, are_ids=False):
+        if locus_identifier is not None:
+            if are_ids:
+                bioent_id = locus_identifier
+            else:
+                bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
+            return get_bioentity_details(bioent_id, 'POSTTRANSLATIONAL')
+
     def sequence_details(self, locus_identifier=None, contig_identifier=None, are_ids=False):
         if locus_identifier is not None:
             if are_ids:
