@@ -2050,11 +2050,13 @@ def make_alignment_evidence_starter(nex_session_maker):
             try:
                 bioentity_id = int(filename[:-4])
                 if bioentity_id not in id_to_bioentity:
-                    print str(bioentity_id) + ' not a locus id.'
+                    #print str(bioentity_id) + ' not a locus id.'
+                    pass
                 else:
                     bioentity = id_to_bioentity[bioentity_id]
             except:
-                print filename + ' not a locus id.'
+                #print filename + ' not a locus id.'
+                pass
 
             if bioentity_id is not None:
                 f = open('src/sgd/convert/alignments/' + filename)
@@ -2070,6 +2072,8 @@ def make_alignment_evidence_starter(nex_session_maker):
                     else:
                         residues += line.strip()
                 f.close()
+                if strain_key is not None:
+                    strain_key_to_residues[strain_key] = residues
 
                 for strain_key, strain_residues in strain_key_to_residues.iteritems():
                     if strain_key == 'CEN.PK':
