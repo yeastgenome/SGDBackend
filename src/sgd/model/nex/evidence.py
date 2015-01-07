@@ -835,6 +835,7 @@ class Alignmentevidence(Evidence):
     locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
     residues_with_gaps = Column('residues_with_gaps', CLOB)
     similarity_score = Column('similarity_score', Float)
+    sequence_type = Column('sequence_type', String)
 
     #Relationships
     source = relationship(Source, backref=backref('alignment_evidences', passive_deletes=True), uselist=False)
@@ -845,7 +846,7 @@ class Alignmentevidence(Evidence):
 
     __mapper_args__ = {'polymorphic_identity': "ALIGNMENT", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
-                     'residues_with_gaps', 'similarity_score',
+                     'residues_with_gaps', 'similarity_score', 'sequence_type',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus']
 
@@ -857,7 +858,7 @@ class Alignmentevidence(Evidence):
         return obj_json
 
     def unique_key(self):
-        return self.class_type, self.locus_id, self.strain_id
+        return self.class_type, self.locus_id, self.strain_id, self.sequence_type
 
 class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'dnasequencetag'

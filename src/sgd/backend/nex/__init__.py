@@ -79,6 +79,39 @@ class SGDBackend(BackendInterface):
                                 'locii': [x.to_min_json(include_description=True) for x in DBSession.query(Locus).filter_by(bioent_status='Active').filter_by(locus_type=locus_type).all()]
             })
 
+    def alignments(self):
+        from src.sgd.model.nex.misc import Strain
+        from src.sgd.model.nex.bioentity import Locus
+        from src.sgd.model.nex.evidence import Alignmentevidence
+
+        strains = [x.to_min_json() for x in DBSession.query(Strain).filter_by(status='Reference').all()]
+        strains.extend([x.to_min_json() for x in DBSession.query(Strain).filter_by(status='Alternative Reference').all()])
+
+        id_to_locus = dict([(x.id, x.to_min_json()) for x in DBSession.query(Locus).all()])
+
+        for locus in id_to_locus.values():
+            locus['dna_scores'] = []
+            locus['protein_scores'] = []
+
+        for strain in strains:
+            alignment_evidences = DBSession.query(Alignmentevidence).filter_by(strain_id=strain['id']).all()
+            locus_id_to_dna_score = dict()
+            locus_id_to_protein_score = dict()
+
+            for alignment_evidence in alignment_evidences:
+                if alignment_evidence.sequence_type == 'Genomic DNA':
+                    locus_id_to_dna_score[alignment_evidence.locus_id] = alignment_evidence.similarity_score
+                elif alignment_evidence.sequence_type == 'Protein':
+                    locus_id_to_protein_score[alignment_evidence.locus_id] = alignment_evidence.similarity_score
+
+            for locus_id, locus in id_to_locus.iteritems():
+                locus['dna_scores'].append(None if locus_id not in locus_id_to_dna_score else locus_id_to_dna_score[locus_id])
+                locus['protein_scores'].append(None if locus_id not in locus_id_to_protein_score else locus_id_to_protein_score[locus_id])
+
+        return json.dumps({'loci': id_to_locus.values(),
+                           'strains': strains,
+                           'graph_data': {}})
+
     def snapshot(self):
         #Go
         from src.sgd.model.nex.bioconcept import Go, Bioconceptrelation
