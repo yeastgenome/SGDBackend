@@ -2079,3 +2079,87 @@ def make_expression_data_starter(nex_session_maker, expression_file, dataset_id,
 
         nex_session.close()
     return expression_evidence_starter
+
+from os import listdir
+def make_alignment_evidence_starter(nex_session_maker):
+    from src.sgd.model.nex.misc import Source, Strain
+    from src.sgd.model.nex.bioentity import Locus
+    def alignment_evidence_starter():
+        nex_session = nex_session_maker()
+
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
+        key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
+
+        for filename in listdir('src/sgd/convert/alignments'):
+            bioentity_id = None
+            sequence_type = None
+            bioentity = None
+            try:
+                bioentity_id = int(filename[:-4])
+                sequence_type = 'Genomic DNA'
+            except:
+                pass
+
+            if bioentity_id is None:
+                try:
+                    bioentity_id = int(filename[:-5])
+                    sequence_type = 'Protein'
+                except:
+                    pass
+
+            if bioentity_id is None:
+                pass
+            elif bioentity_id not in id_to_bioentity:
+                print str(bioentity_id) + ' not a locus id.'
+            else:
+                bioentity = id_to_bioentity[bioentity_id]
+
+            if bioentity is not None:
+                f = open('src/sgd/convert/alignments/' + filename)
+                strain_key_to_residues = dict()
+                strain_key = None
+                residues = ''
+                for line in f:
+                    if line.startswith('>'):
+                        if strain_key is not None:
+                            strain_key_to_residues[strain_key] = residues
+                        strain_key = line.strip()[1:]
+                        residues = ''
+                    else:
+                        residues += line.strip()
+                f.close()
+                if strain_key is not None:
+                    strain_key_to_residues[strain_key] = residues
+
+                for strain_key, strain_residues in strain_key_to_residues.iteritems():
+                    if strain_key == 'CEN.PK':
+                        strain_key = 'CENPK'
+                    if strain_key not in key_to_strain:
+                        print 'Strain not found: ' + strain_key
+                    else:
+                        strain = key_to_strain[strain_key]
+
+                        #Calculate similarity score
+                        if 'S288C' in strain_key_to_residues:
+                            reference_residues = strain_key_to_residues['S288C']
+                            same_count = 0
+                            for i in range(len(reference_residues)):
+                                if reference_residues[i] == strain_residues[i]:
+                                    same_count += 1
+                            similarity_score = 1.0*same_count/len(reference_residues)
+                        else:
+                            print filename + 'does not contain S288C'
+                            similarity_score = 0
+
+                        yield {
+                            'locus': bioentity,
+                            'source': key_to_source['SGD'],
+                            'strain': strain,
+                            'residues_with_gaps': strain_residues,
+                            'similarity_score': similarity_score,
+                            'sequence_type': sequence_type
+                        }
+
+        nex_session.close()
+    return alignment_evidence_starter
