@@ -324,6 +324,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('history_details'),
                     route_name='history_details')
 
+    config.add_route('alignment_bioent', '/alignments/{identifier}')
+    config.add_view(lambda request: chosen_backend.response_wrapper('alignment_bioent', request)(getattr(chosen_backend, 'alignment_bioent')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('alignment_bioent'),
+                    route_name='alignment_bioent')
+
     config.add_route('contig', '/contig/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('contig', request)(getattr(chosen_backend, 'contig')(contig_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('contig'),
@@ -353,6 +358,11 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('snapshot', request)(getattr(chosen_backend, 'snapshot')()),
                     renderer=chosen_backend.get_renderer('snapshot'),
                     route_name='snapshot')
+
+    config.add_route('alignments', '/alignments')
+    config.add_view(lambda request: chosen_backend.response_wrapper('alignments', request)(getattr(chosen_backend, 'alignments')()),
+                    renderer=chosen_backend.get_renderer('alignments'),
+                    route_name='alignments')
 
     config.add_route('reserved_name', '/reserved_name/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('reserved_name', request)(getattr(chosen_backend, 'reserved_name')(reserved_name_identifier=request.matchdict['identifier'])),

@@ -128,6 +128,10 @@ class PerfBackend(BackendInterface):
         from src.sgd.model.perf.core import Orphan
         return DBSession.query(Orphan).filter_by(url='snapshot').first().json
 
+    def alignments(self):
+        from src.sgd.model.perf.core import Orphan
+        return DBSession.query(Orphan).filter_by(url='alignments').first().json
+
     def tag_list(self):
         from src.sgd.model.perf.core import Orphan
         return DBSession.query(Orphan).filter_by(url='tag_list').first().json

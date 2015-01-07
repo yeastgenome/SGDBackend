@@ -1187,6 +1187,9 @@ if __name__ == "__main__":
     #
     # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'snapshot', 'tag_list']),
     #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+
+    do_conversion(make_orphan_backend_starter(nex_backend, ['alignments']),
+                  [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
     #
     # from src.sgd.model.nex import locus_types
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'locus_list', locus_types),

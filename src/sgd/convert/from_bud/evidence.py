@@ -2141,16 +2141,29 @@ def make_alignment_evidence_starter(nex_session_maker):
 
         for filename in listdir('src/sgd/convert/alignments'):
             bioentity_id = None
+            sequence_type = None
+            bioentity = None
             try:
                 bioentity_id = int(filename[:-4])
-                if bioentity_id not in id_to_bioentity:
-                    print str(bioentity_id) + ' not a locus id.'
-                else:
-                    bioentity = id_to_bioentity[bioentity_id]
+                sequence_type = 'Genomic DNA'
             except:
-                print filename + ' not a locus id.'
+                pass
 
-            if bioentity_id is not None:
+            if bioentity_id is None:
+                try:
+                    bioentity_id = int(filename[:-5])
+                    sequence_type = 'Protein'
+                except:
+                    pass
+
+            if bioentity_id is None:
+                pass
+            elif bioentity_id not in id_to_bioentity:
+                print str(bioentity_id) + ' not a locus id.'
+            else:
+                bioentity = id_to_bioentity[bioentity_id]
+
+            if bioentity is not None:
                 f = open('src/sgd/convert/alignments/' + filename)
                 strain_key_to_residues = dict()
                 strain_key = None
@@ -2164,6 +2177,8 @@ def make_alignment_evidence_starter(nex_session_maker):
                     else:
                         residues += line.strip()
                 f.close()
+                if strain_key is not None:
+                    strain_key_to_residues[strain_key] = residues
 
                 for strain_key, strain_residues in strain_key_to_residues.iteritems():
                     if strain_key == 'CEN.PK':
@@ -2190,7 +2205,8 @@ def make_alignment_evidence_starter(nex_session_maker):
                             'source': key_to_source['SGD'],
                             'strain': strain,
                             'residues_with_gaps': strain_residues,
-                            'similarity_score': similarity_score
+                            'similarity_score': similarity_score,
+                            'sequence_type': sequence_type
                         }
 
         nex_session.close()
