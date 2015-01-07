@@ -1,5 +1,5 @@
 from sqlalchemy.orm import joinedload
-from src.sgd.model.nex.evidence import DNAsequenceevidence, Proteinsequenceevidence, Bindingevidence
+from src.sgd.model.nex.evidence import DNAsequenceevidence, Proteinsequenceevidence, Bindingevidence, Alignmentevidence
 from src.sgd.model.nex.bioitem import Contig
 from src.sgd.backend.nex import DBSession, query_limit
 import json
@@ -20,6 +20,15 @@ def get_dnasequence_evidence(locus_id=None, contig_id=None):
     query = DBSession.query(DNAsequenceevidence).options(joinedload('locus'), joinedload('strain'), joinedload('contig'))
     if contig_id is not None:
         query = query.filter_by(contig_id=contig_id)
+    if locus_id is not None:
+        query = query.filter_by(locus_id=locus_id)
+    if query.count() > query_limit:
+        return None
+
+    return query.all()
+
+def get_alignment_evidence(locus_id=None):
+    query = DBSession.query(Alignmentevidence).options(joinedload('locus'), joinedload('strain'))
     if locus_id is not None:
         query = query.filter_by(locus_id=locus_id)
     if query.count() > query_limit:
@@ -81,6 +90,17 @@ def make_neighbor_details(locus_id=None):
         neighbors[evidence.strain.format_name] = {'neighbors': [x.to_json() for x in sorted(neighbor_evidences, key=lambda x: x.start if x.strand == '+' else x.end) if x.locus.bioent_status == 'Active' or x.locus_id == locus_id], 'start': start, 'end': end}
 
     return neighbors
+
+def make_alignment_details(locus_id=None):
+    if locus_id is None:
+        return {'Error': 'No locus_id given.'}
+
+    evidences = get_alignment_evidence(locus_id=locus_id)
+
+    if evidences is None:
+        return {'Error': 'Too much data to display.'}
+
+    return [evidence.to_json() for evidence in evidences]
 
 # -------------------------------Details---------------------------------------
 def get_binding_evidence(locus_id):
