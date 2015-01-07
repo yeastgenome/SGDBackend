@@ -542,7 +542,7 @@ if __name__ == "__main__":
     from src.sgd.model.nex.evidence import Evidence, Goevidence, DNAsequenceevidence, Regulationevidence, \
         Proteinsequenceevidence, Phosphorylationevidence, Domainevidence, Literatureevidence, Phenotypeevidence, \
         DNAsequencetag, Expressionevidence, Bioentitydata, Bindingevidence, ECNumberevidence, Geninteractionevidence, Physinteractionevidence, Proteinexperimentevidence, \
-        Historyevidence, Pathwayevidence, Goslimevidence
+        Historyevidence, Pathwayevidence, Goslimevidence, Posttranslationalevidence
     from src.sgd.model.nex.archive import ArchiveLiteratureevidence
     from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_go_slim_evidence_starter, make_dna_sequence_evidence_starter, \
         make_regulation_evidence_starter, make_protein_sequence_evidence_starter, make_phosphorylation_evidence_starter, \
@@ -551,7 +551,7 @@ if __name__ == "__main__":
         make_binding_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
         make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter, \
         make_new_dna_sequence_evidence_starter, make_ref_dna_sequence_evidence_starter, make_kb_sequence_starter, \
-        make_pathway_evidence_starter
+        make_pathway_evidence_starter, make_posttranslational_evidence_starter
     #
     # do_conversion(make_binding_evidence_starter(nex_session_maker),
     #                [Json2Obj(Bindingevidence),
@@ -657,6 +657,15 @@ if __name__ == "__main__":
     #                               commit=True,
     #                               already_deleted=clean_up_orphans(nex_session_maker, Phosphorylationevidence, Evidence, 'PHOSPHORYLATION')),
     #                OutputTransformer(1000)])
+
+    do_conversion(make_posttranslational_evidence_starter(nex_session_maker),
+                  [Json2Obj(Posttranslationalevidence),
+                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Posttranslationalevidence),
+                                  name='convert.from_bud.evidence.posttranslationsl',
+                                  delete_untouched=True,
+                                  commit_interval=1000,
+                                  already_deleted=clean_up_orphans(nex_session_maker, Posttranslationalevidence, Evidence, 'POSTTRANSLATIONAL')),
+                   OutputTransformer(1000)])
     #
     # do_conversion(make_protein_experiment_evidence_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Proteinexperimentevidence),
