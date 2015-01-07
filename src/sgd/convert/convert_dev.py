@@ -658,14 +658,14 @@ if __name__ == "__main__":
     #                               already_deleted=clean_up_orphans(nex_session_maker, Phosphorylationevidence, Evidence, 'PHOSPHORYLATION')),
     #                OutputTransformer(1000)])
 
-    do_conversion(make_posttranslational_evidence_starter(nex_session_maker),
-                  [Json2Obj(Posttranslationalevidence),
-                   Evidence2NexDB(nex_session_maker, lambda x: x.query(Posttranslationalevidence),
-                                  name='convert.from_bud.evidence.posttranslationsl',
-                                  delete_untouched=True,
-                                  commit_interval=1000,
-                                  already_deleted=clean_up_orphans(nex_session_maker, Posttranslationalevidence, Evidence, 'POSTTRANSLATIONAL')),
-                   OutputTransformer(1000)])
+    # do_conversion(make_posttranslational_evidence_starter(nex_session_maker),
+    #               [Json2Obj(Posttranslationalevidence),
+    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Posttranslationalevidence),
+    #                               name='convert.from_bud.evidence.posttranslationsl',
+    #                               delete_untouched=True,
+    #                               commit_interval=1000,
+    #                               already_deleted=clean_up_orphans(nex_session_maker, Posttranslationalevidence, Evidence, 'POSTTRANSLATIONAL')),
+    #                OutputTransformer(1000)])
     #
     # do_conversion(make_protein_experiment_evidence_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Proteinexperimentevidence),
@@ -906,10 +906,10 @@ if __name__ == "__main__":
     # make_bioconcept_count_starter(nex_session_maker)
     #
     # # ------------------------------------------ Perf ------------------------------------------
-    # from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
-    # from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
+    from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
+    from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
     from src.sgd.model.perf.bioitem_data import BioitemDetails, BioitemEnrichment
-    # from src.sgd.model.perf.reference_data import ReferenceDetails
+    from src.sgd.model.perf.reference_data import ReferenceDetails
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
     #                [Json2DisambigPerfDB(perf_session_maker, commit_interval=100),
@@ -1002,12 +1002,12 @@ if __name__ == "__main__":
     #                                delete_untouched=True),
     #                OutputTransformer(1000)])
     #
-    # from src.sgd.model.nex.bioentity import Locus
-    # from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
+    from src.sgd.model.nex.bioentity import Locus
+    from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
     from src.sgd.model.nex.bioitem import Chemical, Contig, Domain, Datasetcolumn
-    # from src.sgd.model.nex.reference import Reference
-    #nex_session = nex_session_maker()
-    # locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    from src.sgd.model.nex.reference import Reference
+    nex_session = nex_session_maker()
+    locus_ids = [x.id for x in nex_session.query(Locus).all()]
     # ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     # go_ids = [x.id for x in nex_session.query(Go).all()]
     # datasetcolumn_ids = [x.id for x in nex_session.query(Datasetcolumn).all()]
@@ -1017,7 +1017,7 @@ if __name__ == "__main__":
     # chemical_ids = [x.id for x in nex_session.query(Chemical).all()]
     #contig_ids = [x.id for x in nex_session.query(Contig).all()]
     # reference_ids = [x.id for x in nex_session.query(Reference).all()]
-    #nex_session.close()
+    nex_session.close()
     #
     # # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
     # #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000),
@@ -1084,6 +1084,10 @@ if __name__ == "__main__":
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_phosphorylation_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_PHOSPHORYLATION', locus_ids, name='convert.from_backend.protein_phosphorylation_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
+    #
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details', commit_interval=1000),
+                    OutputTransformer(1000)])
     #
     #
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_experiment_details', locus_ids),
