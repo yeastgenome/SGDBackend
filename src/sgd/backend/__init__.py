@@ -324,6 +324,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('history_details'),
                     route_name='history_details')
 
+    config.add_route('alignment_bioent', '/alignments/{identifier}')
+    config.add_view(lambda request: chosen_backend.response_wrapper('alignment_bioent', request)(getattr(chosen_backend, 'alignment_bioent')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('alignment_bioent'),
+                    route_name='alignment_bioent')
+
     config.add_route('contig', '/contig/{identifier}/overview')
     config.add_view(lambda request: chosen_backend.response_wrapper('contig', request)(getattr(chosen_backend, 'contig')(contig_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('contig'),

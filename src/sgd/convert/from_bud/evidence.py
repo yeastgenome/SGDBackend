@@ -2053,10 +2053,18 @@ def make_alignment_evidence_starter(nex_session_maker):
                 bioentity_id = int(filename[:-4])
                 sequence_type = 'Genomic DNA'
             except:
-                bioentity_id = int(filename[:-5])
-                sequence_type = 'Protein'
+                pass
 
-            if bioentity_id not in id_to_bioentity:
+            if bioentity_id is None:
+                try:
+                    bioentity_id = int(filename[:-5])
+                    sequence_type = 'Protein'
+                except:
+                    pass
+
+            if bioentity_id is None:
+                pass
+            elif bioentity_id not in id_to_bioentity:
                 print str(bioentity_id) + ' not a locus id.'
             else:
                 bioentity = id_to_bioentity[bioentity_id]

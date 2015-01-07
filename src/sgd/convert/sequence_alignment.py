@@ -9,17 +9,36 @@ def get_sequences(nex_session_maker):
     from src.sgd.model.nex.evidence import DNAsequenceevidence, Proteinsequenceevidence
 
     nex_session = nex_session_maker()
-    id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Bioentity).all()])
-    id_to_strain = dict([(x.id, x) for x in nex_session.query(Strain).all()])
+    id_to_strain = dict([(x.id, x) for x in nex_session.query(Strain).filter_by(status='Alternative Reference').all()])
+    id_to_strain[1] = nex_session.query(Strain).filter_by(id=1).first()
 
-    for i, bioentity in enumerate(id_to_bioentity.values()):
-        dnasequenceevidences = nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter_by(locus_id=bioentity.id).all()
-        f = open('src/sgd/convert/strain_sequences/' + str(bioentity.id) + '.txt', 'w+')
-        f.write('\n'.join(['>' + id_to_strain[dnasequenceevidence.strain_id].display_name + '\n' + dnasequenceevidence.residues for dnasequenceevidence in dnasequenceevidences]))
+    locus_id_to_dnasequences = dict()
+    locus_id_to_proteinsequences = dict()
+
+    for strain_id in id_to_strain.keys():
+        print strain_id
+        dnasequenceevidences = nex_session.query(DNAsequenceevidence).filter_by(dna_type='GENOMIC').filter_by(strain_id=strain_id).all()
+        proteinsequenceevidences = nex_session.query(Proteinsequenceevidence).filter_by(strain_id=strain_id).all()
+
+        for dnasequenceevidence in dnasequenceevidences:
+            if dnasequenceevidence.locus_id not in locus_id_to_dnasequences:
+                locus_id_to_dnasequences[dnasequenceevidence.locus_id] = []
+            locus_id_to_dnasequences[dnasequenceevidence.locus_id].append((strain_id, dnasequenceevidence.residues))
+
+        for proteinsequenceevidence in proteinsequenceevidences:
+            if proteinsequenceevidence.locus_id not in locus_id_to_proteinsequences:
+                locus_id_to_proteinsequences[proteinsequenceevidence.locus_id] = []
+            locus_id_to_proteinsequences[proteinsequenceevidence.locus_id].append((strain_id, proteinsequenceevidence.residues))
+
+    for locus_id, sequences in locus_id_to_dnasequences.iteritems():
+        f = open('src/sgd/convert/strain_sequences/' + str(locus_id) + '.txt', 'w+')
+        f.write('\n'.join(['>' + id_to_strain[strain_id].display_name + '\n' + residues for strain_id, residues in sequences]))
         f.close()
 
-        if i%100 == 0:
-            print i
+    for locus_id, sequences in locus_id_to_proteinsequences.iteritems():
+        f = open('src/sgd/convert/strain_sequences/' + str(locus_id) + 'p.txt', 'w+')
+        f.write('\n'.join(['>' + id_to_strain[strain_id].display_name + '\n' + residues for strain_id, residues in sequences]))
+        f.close()
 
     nex_session.close()
 
