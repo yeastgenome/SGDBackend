@@ -237,6 +237,41 @@ class Goevidence(Evidence):
                 obj_json['date_created'] = go_paragraphs[0].text
         return obj_json
 
+class Goslimevidence(Evidence):
+    __tablename__ = "goslimevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
+    note = Column('note', String)
+
+    aspect = Column('aspect', String)
+    locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
+    go_id = Column('bioconcept_id', Integer, ForeignKey(Go.id))
+
+    #Relationships
+    source = relationship(Source, backref=backref('goslim_evidences', passive_deletes=True), uselist=False)
+    reference = relationship(Reference, backref=backref('goslim_evidences', passive_deletes=True), uselist=False)
+    strain = relationship(Strain, backref=backref('goslim_evidences', passive_deletes=True), uselist=False)
+    experiment = relationship(Experiment, backref=backref('goslim_evidences', passive_deletes=True), uselist=False)
+    locus = relationship(Locus, uselist=False, backref=backref('goslim_evidences', passive_deletes=True))
+    go = relationship(Go, uselist=False, backref=backref('goslim_evidences', passive_deletes=True))
+
+    __mapper_args__ = {'polymorphic_identity': "GOSLIM", 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['id', 'note', 'json',
+                     'aspect',
+                     'date_created', 'created_by']
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'go']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
+
+    def unique_key(self):
+        return self.class_type, self.locus_id, self.go_id
+
 class Geninteractionevidence(Evidence, UpdateByJsonMixin):
     __tablename__ = "geninteractionevidence"
     
@@ -753,6 +788,8 @@ class DNAsequenceevidence(Evidence):
     start = Column('start_index', Integer)
     end = Column('end_index', Integer)
     strand = Column('strand', String)
+    #header = Column('header', String)
+    #filename = Column('filename', String)
 
     #Relationships
     source = relationship(Source, backref=backref('dnasequence_evidences', passive_deletes=True), uselist=False)
@@ -765,6 +802,7 @@ class DNAsequenceevidence(Evidence):
     __mapper_args__ = {'polymorphic_identity': "DNASEQUENCE", 'inherit_condition': id==Evidence.id}
     __eq_values__ = ['id', 'note',
                      'dna_type', 'residues', 'start', 'end', 'strand',
+                     #'header', 'filename',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus', 'contig']
 
@@ -779,11 +817,47 @@ class DNAsequenceevidence(Evidence):
         obj_json['strain']['description'] = self.strain.description
         obj_json['strain']['status'] = self.strain.status
         obj_json['tags'] = [x.to_json() for x in sorted(self.tags, key=lambda x:x.relative_start)]
-        obj_json['embedded_within'] = [x.evidence.locus.to_min_json() for x in self.locus.dnasequencetags if x.evidence.strain_id == self.strain_id]
         return obj_json
 
     def unique_key(self):
         return self.class_type, self.locus_id, self.strain_id, self.dna_type, self.contig_id, self.start, self.end
+
+class Alignmentevidence(Evidence):
+    __tablename__ = "alignmentevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
+    note = Column('note', String)
+
+    locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
+    residues_with_gaps = Column('residues_with_gaps', CLOB)
+    similarity_score = Column('similarity_score', Float)
+
+    #Relationships
+    source = relationship(Source, backref=backref('alignment_evidences', passive_deletes=True), uselist=False)
+    reference = relationship(Reference, backref=backref('alignment_evidences', passive_deletes=True), uselist=False)
+    strain = relationship(Strain, backref=backref('alignment_evidences', passive_deletes=True), uselist=False)
+    experiment = relationship(Experiment, backref=backref('alignment_evidences', passive_deletes=True), uselist=False)
+    locus = relationship(Locus, uselist=False, backref=backref('alignment_evidences', passive_deletes=True))
+
+    __mapper_args__ = {'polymorphic_identity': "ALIGNMENT", 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['id', 'note',
+                     'residues_with_gaps', 'similarity_score',
+                     'date_created', 'created_by', ]
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        return obj_json
+
+    def unique_key(self):
+        return self.class_type, self.locus_id, self.strain_id
 
 class DNAsequencetag(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'dnasequencetag'
@@ -883,6 +957,9 @@ class Proteinsequenceevidence(Evidence):
     all_half_cys_ext_coeff = Column('all_half_cys_ext_coeff', String)
     all_pairs_cys_ext_coeff = Column('all_pairs_cys_ext_coeff', String)
 
+    #header = Column('header', String)
+    #filename = Column('filename', String)
+
     #Relationships
     source = relationship(Source, backref=backref('proteinsequence_evidences', passive_deletes=True), uselist=False)
     reference = relationship(Reference, backref=backref('proteinsequence_evidences', passive_deletes=True), uselist=False)
@@ -898,6 +975,7 @@ class Proteinsequenceevidence(Evidence):
                      'lys', 'met', 'phe', 'pro', 'thr', 'ser', 'trp', 'tyr', 'val', 'hydrogen', 'sulfur', 'nitrogen',
                      'oxygen', 'carbon', 'yeast_half_life', 'ecoli_half_life', 'mammal_half_life', 'no_cys_ext_coeff',
                      'all_cys_ext_coeff', 'all_half_cys_ext_coeff', 'all_pairs_cys_ext_coeff',
+                     #'header', 'filename',
                      'date_created', 'created_by', ]
     __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus']
 

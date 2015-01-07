@@ -23,6 +23,7 @@ class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
     description = Column('description', String)
     locus_count = Column('locus_count', Integer)
     descendant_locus_count = Column('descendant_locus_count', Integer)
+    is_slim = Column('is_slim', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -123,7 +124,7 @@ class Go(Bioconcept):
     
     __mapper_args__ = {'polymorphic_identity': "GO", 'inherit_condition': id==Bioconcept.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
-                     'locus_count', 'descendant_locus_count', 'go_id', 'go_aspect',
+                     'locus_count', 'descendant_locus_count', 'go_id', 'go_aspect', 'is_slim',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
      

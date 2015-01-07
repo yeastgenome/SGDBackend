@@ -239,6 +239,7 @@ class Locus(Bioentity):
                                           }
 
         #Go overview
+        go_date_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GODATE']
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
         manual_mf_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'molecular function' and x.annotation_type == 'manually curated'])
         htp_mf_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'molecular function' and x.annotation_type == 'high-throughput'])
@@ -259,8 +260,9 @@ class Locus(Bioentity):
                 if evidence.qualifier is not None:
                     term_to_evidence_codes_qualifiers[evidence.go_id][1].add(evidence.qualifier)
 
-        obj_json['go_overview'] = {'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name'].lower()),
-                                   'date_last_reviewed': None if len(go_paragraphs) == 0 else go_paragraphs[0]['text'],
+        obj_json['go_overview'] = {'paragraph': None if len(go_paragraphs) == 0 else go_paragraphs[0]['text'],
+                                   'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name'].lower()),
+                                   'date_last_reviewed': None if len(go_date_paragraphs) == 0 else go_date_paragraphs[0]['text'],
                                    'computational_annotation_count': len([x for x in self.go_evidences if x.annotation_type == 'computational']),
                                    'manual_molecular_function_terms': sorted([dict({'term': x.to_min_json(),
                                                                                     'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes_qualifiers[x.id][0]],

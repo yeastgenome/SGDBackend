@@ -14,25 +14,25 @@ if __name__ == "__main__":
 
     nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
-    # ------------------------------------------ Auxilliary ------------------------------------------
-    from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Referenceinteraction, Bioiteminteraction
-    from src.sgd.convert.from_bud.auxiliary import make_bioconcept_interaction_starter, make_reference_interaction_starter, \
-        make_bioitem_interaction_starter, make_bioentity_physinteraction_starter, make_bioentity_geninteraction_starter, make_bioentity_regulation_interaction_starter
-
-    do_conversion(make_bioentity_geninteraction_starter(nex_session_maker),
-                  [Json2Obj(Bioentityinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='GENINTERACTION'),
-                             name='convert.from_bud.auxilliary.bioentity_interaction_genetic',
-                             delete_untouched=True,
-                             commit_interval=1000,
-                             already_deleted=clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY'))])
-
-    do_conversion(make_bioentity_physinteraction_starter(nex_session_maker),
-                  [Json2Obj(Bioentityinteraction),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='PHYSINTERACTION'),
-                             name='convert.from_bud.auxilliary.bioentity_interaction_physical',
-                             delete_untouched=True,
-                             commit_interval=1000)])
+    # # ------------------------------------------ Auxilliary ------------------------------------------
+    # from src.sgd.model.nex.auxiliary import Interaction, Bioentityinteraction, Bioconceptinteraction, Referenceinteraction, Bioiteminteraction
+    # from src.sgd.convert.from_bud.auxiliary import make_bioconcept_interaction_starter, make_reference_interaction_starter, \
+    #     make_bioitem_interaction_starter, make_bioentity_physinteraction_starter, make_bioentity_geninteraction_starter, make_bioentity_regulation_interaction_starter
+    #
+    # do_conversion(make_bioentity_geninteraction_starter(nex_session_maker),
+    #               [Json2Obj(Bioentityinteraction),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='GENINTERACTION'),
+    #                          name='convert.from_bud.auxilliary.bioentity_interaction_genetic',
+    #                          delete_untouched=True,
+    #                          commit_interval=1000,
+    #                          already_deleted=clean_up_orphans(nex_session_maker, Bioentityinteraction, Interaction, 'BIOENTITY'))])
+    #
+    # do_conversion(make_bioentity_physinteraction_starter(nex_session_maker),
+    #               [Json2Obj(Bioentityinteraction),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='PHYSINTERACTION'),
+    #                          name='convert.from_bud.auxilliary.bioentity_interaction_physical',
+    #                          delete_untouched=True,
+    #                          commit_interval=1000)])
     #
     # do_conversion(make_bioentity_regulation_interaction_starter(nex_session_maker),
     #               [Json2Obj(Bioentityinteraction),
@@ -77,8 +77,8 @@ if __name__ == "__main__":
     observable_ids = [x.id for x in nex_session.query(Observable).all()]
     nex_session.close()
 
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'interaction_graph', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000)])
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'interaction_graph', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000)])
 
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'phenotype_graph', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_graph', commit_interval=1000)])
@@ -105,8 +105,8 @@ if __name__ == "__main__":
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
     perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
 
-    do_conversion(make_locus_data_backend_starter(perf_backend, 'interaction_graph', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000)])
+    # do_conversion(make_locus_data_backend_starter(perf_backend, 'interaction_graph', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'INTERACTION', locus_ids, name='convert.from_backend.interaction_graph', commit_interval=1000)])
     #
     # do_conversion(make_locus_data_backend_starter(perf_backend, 'phenotype_graph', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'PHENOTYPE', locus_ids, name='convert.from_backend.phenotype_graph', commit_interval=1000)])
@@ -120,8 +120,8 @@ if __name__ == "__main__":
     # do_conversion(make_locus_data_backend_starter(perf_backend, 'literature_graph', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'LITERATURE', locus_ids, name='convert.from_backend.literature_graph', commit_interval=1000)])
     #
-    # do_conversion(make_locus_data_backend_starter(perf_backend, 'regulation_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'REGULATION', locus_ids, name='convert.from_backend.regulation_graph', commit_interval=1000)])
+    do_conversion(make_locus_data_backend_starter(perf_backend, 'regulation_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'REGULATION', locus_ids, name='convert.from_backend.regulation_graph', commit_interval=1000)])
     #
     # do_conversion(make_go_data_backend_starter(perf_backend, 'go_ontology_graph', go_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptGraph, 'GO_ONTOLOGY', go_ids, name='convert.from_backend.go_ontology_graph', commit_interval=1000)])
