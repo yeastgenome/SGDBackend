@@ -676,13 +676,13 @@ if __name__ == "__main__":
     # #                               already_deleted=clean_up_orphans(nex_session_maker, Regulationevidence, Evidence, 'REGULATION')),
     # #                OutputTransformer(1000)])
     # #
-    do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
-                      [Json2Obj(DNAsequenceevidence),
-                       Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1).filter(DNAsequenceevidence.dna_type != '1KB'),
-                                 name='convert.from_bud.evidence.reference_dnasequence',
-                                 delete_untouched=True,
-                                 commit_interval=1000),
-                       OutputTransformer(1000)])
+    # do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
+    #                   [Json2Obj(DNAsequenceevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1).filter(DNAsequenceevidence.dna_type != '1KB'),
+    #                              name='convert.from_bud.evidence.reference_dnasequence',
+    #                              delete_untouched=True,
+    #                              commit_interval=1000),
+    #                    OutputTransformer(1000)])
     # #
     # # do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
     # #               [Json2Obj(DNAsequencetag),
