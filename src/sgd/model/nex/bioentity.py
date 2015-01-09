@@ -1,3 +1,11 @@
+'''
+This file contains all of the bioentities and related classes. Bioentities are central to the nex model. They
+represent biological objects which we wish to curate. For example, locii are bioentities.
+'''
+
+__author__ = 'kpaskov'
+
+
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
@@ -10,9 +18,11 @@ from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from venn import calc_venn_measurements
 from itertools import chain
 
-__author__ = 'kpaskov'
 
 class Bioentity(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    '''
+    The central component of the nex model. Bioentities are biological objects which we wish to curate.
+    '''
     __tablename__ = 'bioentity'
     
     id = Column('bioentity_id', Integer, primary_key=True)
@@ -37,6 +47,9 @@ class Bioentity(Base, EqualityByIDMixin, UpdateByJsonMixin):
         return self.format_name, self.class_type
     
 class Bioentityurl(Url):
+    '''
+    Bioentity urls are urls that are associated with bioentities.
+    '''
     __tablename__ = 'bioentityurl'
     
     id = Column('url_id', Integer, ForeignKey(Url.id), primary_key=True)
@@ -56,6 +69,9 @@ class Bioentityurl(Url):
         self.format_name = str(obj_json.get('bioentity_id'))
 
 class Bioentityalias(Alias):
+    '''
+    Bioentity aliases are aliases that are associated with bioentities.
+    '''
     __tablename__ = 'bioentityalias'
     
     id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
@@ -76,6 +92,9 @@ class Bioentityalias(Alias):
         self.format_name = str(obj_json.get('bioentity_id'))
 
 class Bioentityrelation(Relation):
+    '''
+    Bioentity relations are relationships between bioentities.
+    '''
     __tablename__ = 'bioentityrelation'
 
     id = Column('relation_id', Integer, ForeignKey(Relation.id), primary_key=True)
@@ -98,6 +117,9 @@ class Bioentityrelation(Relation):
         self.display_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
 
 class Bioentityquality(Quality):
+    '''
+    Bioentity qualities are one-to-many values associated with bioentities.
+    '''
     __tablename__ = 'bioentityquality'
 
     id = Column('quality_id', Integer, ForeignKey(Alias.id), primary_key=True)
@@ -116,6 +138,10 @@ class Bioentityquality(Quality):
         self.format_name = str(obj_json.get('bioentity').id)
 
 class Locus(Bioentity):
+    '''
+    These are the central units of the nex schema. Almost all of our current information is associated with one or
+    more locii.
+    '''
     __tablename__ = "locusbioentity"
     
     id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id), primary_key=True)
@@ -143,6 +169,11 @@ class Locus(Bioentity):
         return obj_json
 
     def get_ordered_references(self):
+        '''
+        Creates an ordered list of references so that they can be numbered in the order they will appear on the locus
+        summary page.
+        :return: An ordered list of references.
+        '''
         references = []
         reference_ids = set()
 
@@ -195,6 +226,11 @@ class Locus(Bioentity):
         return references
 
     def to_json(self):
+        '''
+        This to_json method is quite complex because it generates an intricate summary of all of the data we have
+        for this locus. This information is used by the locus summary page.
+        :return: Json representing this object.
+        '''
         obj_json = UpdateByJsonMixin.to_json(self)
 
         #Phenotype overview

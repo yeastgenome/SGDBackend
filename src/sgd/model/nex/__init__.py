@@ -1,5 +1,3 @@
-__author__ = 'kpaskov'
-
 '''
 This package contains the complete nex model. The model is defined as a group of SQLAlchemy classes which are meant
 to be used to query the nex database schema. The schema is contained in the two sql files nex_schema.sql and
@@ -7,6 +5,8 @@ nex_triggers.sql. This model is used by both the covert and backend packages, bu
 
 This file contains core methods and base classes for the nex model.
 '''
+
+__author__ = 'kpaskov'
 
 import datetime
 

@@ -1,3 +1,11 @@
+'''
+This file contains all of the evidence classes for the nex schema. Evidence associates bioentities with bioconcepts,
+bioitems, and references. Each piece of evidence must have a source, reference, strain, experiment, note, date_created,
+and created_by fields.
+'''
+
+__author__ = 'kpaskov'
+
 from decimal import Decimal
 import hashlib
 
@@ -16,9 +24,12 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateByJsonMixin
 import json
 
-__author__ = 'kpaskov'
 
 class Evidence(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    '''
+    Evidence associates bioentities with bioconcepts, bioitems, and references. Each piece of evidence must have a
+    source, reference, strain, experiment, note, date_created, and created_by fields.
+    '''
     __tablename__ = "evidence"
     
     id = Column('evidence_id', Integer, primary_key=True)
@@ -38,6 +49,9 @@ class Evidence(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity':"EVIDENCE"}
 
 class Property(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    '''
+    A property is a one to many
+    '''
     __tablename__ = 'condition'
 
     id = Column('condition_id', Integer, primary_key=True)

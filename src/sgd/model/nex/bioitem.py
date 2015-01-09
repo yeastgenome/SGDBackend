@@ -1,3 +1,11 @@
+'''
+This file contains all of the bioitems and associated classes. Bioitems are secondary classes that are used throughout
+the nex schema. We don't directly curate bioitems, but we collect basic information on them. For example, chemicals
+are bioitems.
+'''
+
+__author__ = 'kpaskov'
+
 from sqlalchemy import ForeignKey, CLOB
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, FetchedValue
@@ -9,11 +17,13 @@ from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin, locus
 from src.sgd.model.nex.misc import Source, Relation, Strain, Url, Alias, Tag
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.bioentity import Locus
-from decimal import Decimal
 
-__author__ = 'kpaskov'
 
 class Bioitem(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    '''
+    A secondary class used throughout the nex schema. We don't directly curate bioitems but we do collect basic
+    information about them.
+    '''
     __tablename__ = 'bioitem'
     
     id = Column('bioitem_id', Integer, primary_key=True)
@@ -44,6 +54,9 @@ class Bioitem(Base, EqualityByIDMixin, UpdateByJsonMixin):
         return obj_json
 
 class Bioitemrelation(Relation):
+    '''
+    Bioitem relations are relationships between bioitems.
+    '''
     __tablename__ = 'bioitemrelation'
 
     id = Column('relation_id', Integer, primary_key=True)
@@ -66,6 +79,9 @@ class Bioitemrelation(Relation):
         self.display_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
 
 class Bioitemurl(Url):
+    '''
+    Bioitem urls are urls that are associated with bioitems.
+    '''
     __tablename__ = 'bioitemurl'
 
     id = Column('url_id', Integer, ForeignKey(Url.id), primary_key=True)
@@ -85,6 +101,9 @@ class Bioitemurl(Url):
         self.format_name = str(obj_json.get('bioitem_id'))
 
 class Bioitemalias(Alias):
+    '''
+    Bioitem aliases are aliases that are associated with bioitems.
+    '''
     __tablename__ = 'bioitemalias'
 
     id = Column('alias_id', Integer, ForeignKey(Alias.id), primary_key=True)
@@ -104,6 +123,10 @@ class Bioitemalias(Alias):
         self.format_name = str(obj_json.get('bioitem_id'))
 
 class BioitemTag(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    '''
+    Bioitem tags are relationships between tags and bioitems. Tags are general biological terms used to group a wide
+    array of objects from expression datasets to pieces of evidence.
+    '''
     __tablename__ = 'bioitem_tag'
 
     id = Column('bioitem_tag_id', Integer, primary_key=True)
@@ -124,6 +147,9 @@ class BioitemTag(Base, EqualityByIDMixin, UpdateByJsonMixin):
         return self.bioitem_id, self.tag_id
 
 class Domain(Bioitem):
+    '''
+    These are protein domains. They are generally associated with an interpro id.
+    '''
     __tablename__ = "domainbioitem"
     
     id = Column('bioitem_id', Integer, primary_key=True)
@@ -151,6 +177,9 @@ class Domain(Bioitem):
         return obj_json
 
 class Chemical(Bioitem):
+    '''
+    These are chemicals. They are generally associated with the CHEBI ontology.
+    '''
     __tablename__ = "chemicalbioitem"
 
     id = Column('bioitem_id', Integer, primary_key=True)
@@ -173,6 +202,9 @@ class Chemical(Bioitem):
         return obj_json
 
 class Contig(Bioitem):
+    '''
+    These are contigs and chromosomes. They are often associated with sequence data.
+    '''
     __tablename__ = "contigbioitem"
 
     id = Column('bioitem_id', Integer, primary_key=True)
@@ -255,6 +287,10 @@ class Contig(Bioitem):
         return obj_json
 
 class Dataset(Bioitem):
+    '''
+    These are expression datasets. A dataset represents a single pcl file. Each datasets may contain multiple
+    dataset columns.
+    '''
     __tablename__ = "datasetbioitem"
 
     id = Column('bioitem_id', Integer, primary_key=True)
@@ -300,6 +336,10 @@ class Dataset(Bioitem):
         return obj_json
 
 class Datasetcolumn(Bioitem):
+    '''
+    These are dataset columns. They are associated with expression datasets. Each dataset column represents a single
+    column of data from a dataset.
+    '''
     __tablename__ = "datasetcolumnbioitem"
 
     id = Column('bioitem_id', Integer, primary_key=True)
@@ -332,6 +372,10 @@ class Datasetcolumn(Bioitem):
         return obj_json
 
 class Reservedname(Bioitem):
+    '''
+    These are names that have been reserved by the community members, but are not yet official names. They may or may
+    not be associated with a locus.
+    '''
     __tablename__ = "reservednamebioitem"
 
     id = Column('bioitem_id', Integer, primary_key=True)
@@ -356,6 +400,9 @@ class Reservedname(Bioitem):
         self.link = '/reserved_name/' + self.format_name + '/overview'
 
 class Allele(Bioitem):
+    '''
+    These are alleles. They are generally used for phenotype evidence.
+    '''
     __mapper_args__ = {'polymorphic_identity': 'ALLELE', 'inherit_condition': id == Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
                      'date_created', 'created_by']
@@ -366,6 +413,10 @@ class Allele(Bioitem):
         self.format_name = None if obj_json.get('display_name') is None else create_format_name(obj_json.get('display_name'))
 
 class Orphanbioitem(Bioitem):
+    '''
+    These bioitems don't belong to a particular category. They are usually assocaited with go evidence and need to be
+    cleaned up. Many of them were originally stored in the dbxref table.
+    '''
     __mapper_args__ = {'polymorphic_identity': 'ORPHAN', 'inherit_condition': id == Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
                      'date_created', 'created_by']
@@ -376,6 +427,9 @@ class Orphanbioitem(Bioitem):
         self.format_name = None if obj_json.get('display_name') is None else create_format_name(obj_json.get('display_name'))
 
 class Pathway(Bioitem):
+    '''
+    These are biological pathways.
+    '''
     __mapper_args__ = {'polymorphic_identity': 'PATHWAY', 'inherit_condition': id == Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
                      'date_created', 'created_by']

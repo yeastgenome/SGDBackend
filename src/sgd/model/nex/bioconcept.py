@@ -1,8 +1,9 @@
-__author__ = 'kpaskov'
+'''
+This file contains all of the bioconcept classes. Bioconcepts are conceptual ideas that may be associated with a locus
+through evidences. A bioconcept may be a part of an ontology.
+'''
 
-'''
-This file contains all of the bioconcept classes. Bioconcepts are conceptual ideas that may be associated with a locus.
-'''
+__author__ = 'kpaskov'
 
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
@@ -15,6 +16,9 @@ from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 
 
 class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    '''
+    A conceptual id that may be associated with a locus through evidences.
+    '''
     __tablename__ = "bioconcept"
         
     id = Column('bioconcept_id', Integer, primary_key=True)
@@ -25,8 +29,12 @@ class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     sgdid = Column('sgdid', String)
     description = Column('description', String)
+    # the number of locii associated with this bioconcept, directly
     locus_count = Column('locus_count', Integer)
+    # the number of locii associated with this bioconcept or any of its descendents
     descendant_locus_count = Column('descendant_locus_count', Integer)
+    # 1 if this bioconcept is a member of the "slim" set, 0 if not. We have selected a set of "slim" bioconcepts in many
+    # areas - for example, go and phenotype, in order to simplify the ontology when displaying overview information
     is_slim = Column('is_slim', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
@@ -40,6 +48,9 @@ class Bioconcept(Base, EqualityByIDMixin, UpdateByJsonMixin):
         return self.format_name, self.class_type
 
 class Bioconceptrelation(Relation):
+    '''
+    Bioconcept relations are relationships between bioconcepts. This is where ontologies are stored.
+    '''
     __tablename__ = 'bioconceptrelation'
 
     id = Column('relation_id', Integer, primary_key=True)
@@ -65,6 +76,9 @@ class Bioconceptrelation(Relation):
             self.display_name = self.display_name + ' - ' + self.relation_type
     
 class Bioconcepturl(Url):
+    '''
+    Bioconcept urls are urls that are associated with bioconcepts.
+    '''
     __tablename__ = 'bioconcepturl'
     
     id = Column('url_id', Integer, primary_key=True)
@@ -84,6 +98,9 @@ class Bioconcepturl(Url):
         self.format_name = str(obj_json.get('bioconcept_id'))
     
 class Bioconceptalias(Alias):
+    '''
+    Bioconcept aliases are aliases that are associated with bioconcepts.
+    '''
     __tablename__ = 'bioconceptalias'
     
     id = Column('alias_id', Integer, primary_key=True)
@@ -103,6 +120,9 @@ class Bioconceptalias(Alias):
         self.format_name = str(obj_json.get('bioconcept_id'))
 
 class ECNumber(Bioconcept):
+    '''
+    These objects represent enzyme commision numbers (chemical reactions).
+    '''
     __mapper_args__ = {'polymorphic_identity': "EC_NUMBER", 'inherit_condition': id==Bioconcept.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'description',
                      'locus_count', 'descendant_locus_count', 'date_created', 'created_by']
@@ -120,6 +140,9 @@ class ECNumber(Bioconcept):
         return obj_json
 
 class Go(Bioconcept):
+    '''
+    These objects represent go terms.
+    '''
     __tablename__ = 'gobioconcept'
     
     id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key = True)
@@ -156,6 +179,10 @@ class Go(Bioconcept):
 
     @hybrid_property
     def is_root(self):
+        '''
+        :return: True if this term is one of the three root go terms (biological process, molecular function, or
+        cellular component).
+        '''
         return self.format_name == 'biological_process' or self.format_name == 'molecular_function' or self.format_name == 'cellular_component'
 
     def to_json(self):
@@ -168,6 +195,12 @@ class Go(Bioconcept):
         return obj_json
         
 def create_phenotype_display_name(observable, qualifier):
+    '''
+    Phenotype display names are a combination of the observable and qualifier.
+    :param observable: observable defining this phenotype
+    :param qualifier: qualifier defining this phenotype (can be null for certain phenotypes)
+    :return: the display name for this phenotype
+    '''
     if qualifier is None:
         display_name = observable
     else:
@@ -175,6 +208,13 @@ def create_phenotype_display_name(observable, qualifier):
     return display_name
 
 def create_phenotype_format_name(observable, qualifier):
+    '''
+    Phenotype format names are used in urls and filenames. They are made up of a combination of the phenotype's
+    observable and qualifier.
+    :param observable: observable defining this phenotype
+    :param qualifier: qualifier defining this phenotype (can be null for certain phenotypes)
+    :return: the format name for this phenotype
+    '''
     if qualifier is None:
         format_name = create_format_name(observable.lower())
     else:
@@ -184,6 +224,11 @@ def create_phenotype_format_name(observable, qualifier):
     return format_name
 
 class Observable(Bioconcept):
+    '''
+    These are observables. A phenotype is made up of an observable and a qualifier. It is useful to also have a class
+    for each observable as well as phenotype because we sometimes want to display all of the locii associated with
+    a particular observable regardless of qualifier. Observables form an ontology.
+    '''
     __tablename__ = "observablebioconcept"
 
     id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key=True)
@@ -211,9 +256,17 @@ class Observable(Bioconcept):
 
     @hybrid_property
     def is_root(self):
+        '''
+        :return: True if this term is the root term of the observable ontology (ypo).
+        '''
         return self.format_name == 'ypo'
 
     def to_json(self):
+        '''
+        This to_json method is quite complex because it constructs several overview counts, slicing the evidene
+        in different ways.
+        :return: json representing this object
+        '''
         obj_json = UpdateByJsonMixin.to_json(self)
 
         #Phenotype overview
@@ -271,6 +324,9 @@ class Observable(Bioconcept):
         return obj_json
         
 class Phenotype(Bioconcept):
+    '''
+    A phenotype is made up of an observable and a qualifier.
+    '''
     __tablename__ = "phenotypebioconcept"
     
     id = Column('bioconcept_id', Integer, ForeignKey(Bioconcept.id), primary_key=True)
@@ -297,6 +353,11 @@ class Phenotype(Bioconcept):
         return self.phenotype_evidences
 
     def to_json(self):
+        '''
+        This to_json method is quite complex because it constructs several overview counts, slicing the evidene
+        in different ways.
+        :return: json representing this object
+        '''
         obj_json = UpdateByJsonMixin.to_json(self)
 
         #Phenotype overview

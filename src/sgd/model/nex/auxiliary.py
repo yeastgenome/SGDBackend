@@ -1,9 +1,9 @@
-__author__ = 'kpaskov'
-
 '''
 This file contains all auxilliary classes. These classes do not contain primary data. Instead, they contain quantites
 and aggregations of primary data. These classes are used purely to improve performance.
 '''
+
+__author__ = 'kpaskov'
 
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey

@@ -1,9 +1,9 @@
-__author__ = 'kpaskov'
-
 '''
 This file contains archived classes in the nex schema. These classes and associated database tables contain information
 that we wish to store, but that is never displayed on the SGD website.
 '''
+
+__author__ = 'kpaskov'
 
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship, backref
