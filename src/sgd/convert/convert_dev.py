@@ -98,12 +98,12 @@ if __name__ == "__main__":
     #                          commit=True,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Locus, Bioentity, 'LOCUS'))])
     #
-    # do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
-    #               [Json2Obj(Locustabs),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Locustabs),
-    #                          name='convert.from_bud.bioentity.locustabs',
-    #                          delete_untouched=True,
-    #                          commit=True)])
+    do_conversion(make_bioentity_tab_starter(bud_session_maker, nex_session_maker),
+                  [Json2Obj(Locustabs),
+                   Obj2NexDB(nex_session_maker, lambda x: x.query(Locustabs),
+                             name='convert.from_bud.bioentity.locustabs',
+                             delete_untouched=True,
+                             commit=True)])
     #
     # do_conversion(make_bioentity_alias_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Bioentityalias),
