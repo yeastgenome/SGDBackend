@@ -1057,7 +1057,7 @@ class Posttranslationalevidence(Evidence):
         self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
-        return self.class_type, self.locus_id, type, self.site_residue, self.site_index
+        return self.class_type, self.locus_id, self.type, self.site_residue, self.site_index, self.reference_id
 
     def to_json(self, aux_obj_json=None):
         obj_json = UpdateByJsonMixin.to_json(self)
