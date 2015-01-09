@@ -923,12 +923,12 @@ if __name__ == "__main__":
     #                                commit_interval=100),
     #                OutputTransformer(10)])
     #
-    # do_conversion(make_backend_starter(nex_backend, 'all_locustabs', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfLocustab,
-    #                                name='convert.from_backend.all_locustabs',
-    #                                commit_interval=1000,
-    #                                delete_untouched=True),
-    #                OutputTransformer(1000)])
+    do_conversion(make_backend_starter(nex_backend, 'all_locustabs', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfLocustab,
+                                   name='convert.from_backend.all_locustabs',
+                                   commit_interval=1000,
+                                   delete_untouched=True),
+                   OutputTransformer(1000)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_locusentries', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfLocusentry,

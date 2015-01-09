@@ -213,8 +213,8 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
-                    'sequence_tab': 1,
-                    'sequence_section': 1,
+                    'sequence_tab': 0,
+                    'sequence_section': 0,
                     'history_tab': 0,
                     'literature_tab': 1,
                     'go_tab': 1,
