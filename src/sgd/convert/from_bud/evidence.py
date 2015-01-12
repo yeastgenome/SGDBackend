@@ -2070,7 +2070,7 @@ def make_alignment_evidence_starter(nex_session_maker):
                 bioentity = id_to_bioentity[bioentity_id]
 
             if bioentity is not None:
-                f = open('src/sgd/convert/alignments/' + filename)
+                f = open('src/sgd/convert/alignments/' + filename, 'rU')
                 strain_key_to_residues = dict()
                 strain_key = None
                 residues = ''
@@ -2086,9 +2086,12 @@ def make_alignment_evidence_starter(nex_session_maker):
                 if strain_key is not None:
                     strain_key_to_residues[strain_key] = residues
 
+                print bioentity_id, strain_key_to_residues.keys()
+
                 for strain_key, strain_residues in strain_key_to_residues.iteritems():
                     if strain_key == 'CEN.PK':
                         strain_key = 'CENPK'
+
                     if strain_key not in key_to_strain:
                         print 'Strain not found: ' + strain_key
                     else:

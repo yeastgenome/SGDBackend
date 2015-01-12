@@ -65,7 +65,7 @@ def get_sequences(nex_session_maker):
 if __name__ == '__main__':
     from src.sgd.model import nex
     from src.sgd.convert import prepare_schema_connection, config
-    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
     get_sequences(nex_session_maker)
 
     # import numpy as np
