@@ -2086,7 +2086,24 @@ def make_alignment_evidence_starter(nex_session_maker):
                 if strain_key is not None:
                     strain_key_to_residues[strain_key] = residues
 
-                print bioentity_id, strain_key_to_residues.keys()
+                #Load original sequence if alignment is empty
+                if len(strain_key_to_residues) == 0:
+                    f = open('src/sgd/convert/strain_sequences/' + filename, 'rU')
+                    strain_key_to_residues = dict()
+                    strain_key = None
+                    residues = ''
+                    for line in f:
+                        if line.startswith('>'):
+                            if strain_key is not None:
+                                strain_key_to_residues[strain_key] = residues
+                            strain_key = line.strip()[1:]
+                            residues = ''
+                        else:
+                            residues += line.strip()
+                    f.close()
+                    if strain_key is not None:
+                        strain_key_to_residues[strain_key] = residues
+
 
                 for strain_key, strain_residues in strain_key_to_residues.iteritems():
                     if strain_key == 'CEN.PK':
