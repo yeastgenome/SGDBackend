@@ -624,6 +624,14 @@ class SGDBackend(BackendInterface):
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else view_protein.make_phosphorylation_details(locus_id=locus_id)
 
+    def posttranslational_details(self, locus_identifier, are_ids=False):
+        from src.sgd.backend.nex import view_protein
+        if are_ids:
+            locus_id = locus_identifier
+        else:
+            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else view_protein.make_posttranslational_details(locus_id=locus_id)
+
     def protein_experiment_details(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex import view_protein
         if are_ids:

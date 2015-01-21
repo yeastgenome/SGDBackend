@@ -369,6 +369,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('reserved_name'),
                     route_name='reserved_name')
 
+    config.add_route('posttranslational_details', '/locus/{identifier}/posttranslational_details')
+    config.add_view(lambda request: chosen_backend.response_wrapper('posttranslational_details', request)(getattr(chosen_backend, 'posttranslational_details')(locus_identifier=request.matchdict['identifier'])),
+                    renderer=chosen_backend.get_renderer('posttranslational_details'),
+                    route_name='posttranslational_details')
+
     
 def prepare_backend(backend_type):
     configurator = Configurator()
