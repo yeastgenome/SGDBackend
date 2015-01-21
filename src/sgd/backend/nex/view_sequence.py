@@ -144,10 +144,28 @@ def make_alignment(locus_id=None):
     if len(reference_alignment) == 1:
         obj_json['variant_data_dna'] = []
         reference_alignment = reference_alignment[0]
+        current_interval_start = None
+        current_interval = 0
         for i, letter in enumerate(reference_alignment):
             num_differ = len([x for x in obj_json['aligned_dna_sequences'] if x['sequence'][i] != letter])
-            if num_differ > 0:
-                obj_json['variant_data_dna'].append({'coordinate': i+1, 'differ_score': num_differ})
+
+            if num_differ == 0:
+                new_interval = 0
+            elif num_differ < 3:
+                new_interval = 1
+            elif num_differ < 7:
+                new_interval = 2
+            else:
+                new_interval = 3
+
+            if new_interval != current_interval:
+                if current_interval != 0:
+                    obj_json['variant_data_dna'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
+                current_interval_start = i+1
+                current_interval = new_interval
+
+        if current_interval != 0:
+            obj_json['variant_data_dna'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
     else:
         obj_json['variant_data_dna'] = None
 
@@ -155,10 +173,28 @@ def make_alignment(locus_id=None):
     if len(reference_alignment) == 1:
         obj_json['variant_data_protein'] = []
         reference_alignment = reference_alignment[0]
+        current_interval_start = None
+        current_interval = 0
         for i, letter in enumerate(reference_alignment):
             num_differ = len([x for x in obj_json['aligned_protein_sequences'] if x['sequence'][i] != letter])
-            if num_differ > 0:
-                obj_json['variant_data_protein'].append({'coordinate': i+1, 'differ_score': num_differ})
+
+            if num_differ == 0:
+                new_interval = 0
+            elif num_differ < 3:
+                new_interval = 1
+            elif num_differ < 7:
+                new_interval = 2
+            else:
+                new_interval = 3
+
+            if new_interval != current_interval:
+                if current_interval != 0:
+                    obj_json['variant_data_protein'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
+                current_interval_start = i+1
+                current_interval = new_interval
+        if current_interval != 0:
+            obj_json['variant_data_protein'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
+
     else:
         obj_json['variant_data_protein'] = None
 

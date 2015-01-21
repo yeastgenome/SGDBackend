@@ -812,13 +812,13 @@ if __name__ == "__main__":
     #                               already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')),
     #                OutputTransformer(1000)])
 
-    do_conversion(make_alignment_evidence_starter(nex_session_maker),
-                      [Json2Obj(Alignmentevidence),
-                       Obj2NexDB(nex_session_maker, lambda x: x.query(Alignmentevidence),
-                                 name='convert.from_bud.evidence.alignment_evidence',
-                                 delete_untouched=True,
-                                 commit_interval=1000),
-                       OutputTransformer(1000)])
+    # do_conversion(make_alignment_evidence_starter(nex_session_maker),
+    #                   [Json2Obj(Alignmentevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(Alignmentevidence),
+    #                              name='convert.from_bud.evidence.alignment_evidence',
+    #                              delete_untouched=True,
+    #                              commit_interval=1000),
+    #                    OutputTransformer(1000)])
     #
     # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty, Temperatureproperty, Generalproperty
     # clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')

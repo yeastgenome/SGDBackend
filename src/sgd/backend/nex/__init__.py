@@ -82,7 +82,7 @@ class SGDBackend(BackendInterface):
     def alignments(self):
         from src.sgd.model.nex.misc import Strain
         from src.sgd.model.nex.bioentity import Locus
-        from src.sgd.model.nex.evidence import Alignmentevidence
+        from src.sgd.model.nex.evidence import Alignmentevidence, DNASequenceevidence
 
         strains = [x.to_min_json() for x in DBSession.query(Strain).filter_by(status='Reference').all()]
         strains.extend([x.to_min_json() for x in DBSession.query(Strain).filter_by(status='Alternative Reference').all()])
@@ -108,7 +108,10 @@ class SGDBackend(BackendInterface):
                 locus['dna_scores'].append(None if locus_id not in locus_id_to_dna_score else locus_id_to_dna_score[locus_id])
                 locus['protein_scores'].append(None if locus_id not in locus_id_to_protein_score else locus_id_to_protein_score[locus_id])
 
-        return json.dumps({'loci': id_to_locus.values(),
+        locus_id_to_reference_position = dict([(x.locus_id, (x.contig_id, x.start)) for x in DBSession.query(DNASequenceevidence).filter_by(strain_id=1).filter_by(dna_type='GENOMIC').all()])
+
+
+        return json.dumps({'loci': sorted(id_to_locus.values(), key=lambda x: locus_id_to_reference_position[x.id]),
                            'strains': strains,
                            'graph_data': {}})
 
