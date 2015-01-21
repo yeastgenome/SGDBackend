@@ -521,7 +521,7 @@ def make_datasetcolumn_starter(nex_session_maker, expression_dir):
         key_to_dataset = dict([(x.unique_key(), x) for x in nex_session.query(Dataset).all()])
 
 
-        key_to_GSM = dict([((x[0], x[1]), x[2]) for x in make_file_starter('src/sgd/convert/data/GSM_to_GSE.txt')()])
+        key_to_GSM = dict([((x[0], x[1]), x[2]) for x in make_file_starter('src/sgd/convert/data/microarray_05_14/GSM_to_GSE.txt')()])
 
         for path in os.listdir(expression_dir):
             if os.path.isdir(expression_dir + '/' + path):
@@ -692,7 +692,7 @@ def make_bioitem_tag_starter(nex_session_maker):
         key_to_dataset = dict([(x.unique_key(), x) for x in nex_session.query(Dataset).all()])
         key_to_tag = dict([(x.unique_key(), x) for x in nex_session.query(Tag).all()])
 
-        for row in make_file_starter('src/sgd/convert/data/SPELL-tags.txt')():
+        for row in make_file_starter('src/sgd/convert/data/microarray_05_14/SPELL-tags.txt')():
             dataset_key = (row[1].strip()[:-4], 'DATASET')
             tags = row[2].strip()
             for t in [x.strip() for x in tags.split('|')]:
@@ -761,7 +761,7 @@ def make_tag_starter(nex_session_maker):
     def tag_starter():
         nex_session = nex_session_maker()
 
-        for row in make_file_starter('src/sgd/convert/data/SPELL-tags.txt')():
+        for row in make_file_starter('src/sgd/convert/data/microarray_05_14/SPELL-tags.txt')():
             tag = row[2].strip()
             for t in [x.strip() for x in tag.split('|')]:
                 if t != '':
