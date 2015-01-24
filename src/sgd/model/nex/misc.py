@@ -114,6 +114,7 @@ class Strain(Base, EqualityByIDMixin, UpdateByJsonMixin):
     scaffold_number = Column('scaffold_number', Integer)
     longest_scaffold = Column('longest_scaffold', Integer)
     scaffold_n50 = Column('scaffold_nfifty', Integer)
+    feature_count = Column('feature_count', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -121,7 +122,7 @@ class Strain(Base, EqualityByIDMixin, UpdateByJsonMixin):
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'status', 'genotype', 'genbank_id', 'assembly_size',
-                     'fold_coverage', 'scaffold_number', 'longest_scaffold', 'scaffold_n50',
+                     'fold_coverage', 'scaffold_number', 'longest_scaffold', 'scaffold_n50', 'feature_count',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 
