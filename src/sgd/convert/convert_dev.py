@@ -139,12 +139,12 @@ if __name__ == "__main__":
     #                          already_deleted=clean_up_orphans(nex_session_maker, Bioentityquality, Quality, 'BIOENTITY')),
     #                OutputTransformer(10000)])
     #
-    do_conversion(make_disambig_starter(nex_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS'),
-                  [Json2Obj(Disambig),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'LOCUS'),
-                             name='convert.from_bud.bioentity.disambig.locus',
-                             delete_untouched=True,
-                             commit=True)])
+    # do_conversion(make_disambig_starter(nex_session_maker, Locus, ['id', 'format_name', 'display_name', 'sgdid'], 'BIOENTITY', 'LOCUS'),
+    #               [Json2Obj(Disambig),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOENTITY').filter(Disambig.subclass_type == 'LOCUS'),
+    #                          name='convert.from_bud.bioentity.disambig.locus',
+    #                          delete_untouched=True,
+    #                          commit=True)])
     #
     # ------------------------------------------ Bioconcept ------------------------------------------
     # Bud -> Nex
@@ -899,13 +899,13 @@ if __name__ == "__main__":
     #                 OutputTransformer(1000)])
     # #
     # # Nex -> Perf
-    # from src.sgd.model.perf.core import Strain as PerfStrain, Experiment as PerfExperiment
-    # do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfStrain,
-    #                                name='convert.from_backend.strain',
-    #                                commit_interval=1,
-    #                                delete_untouched=True),
-    #                OutputTransformer(1)])
+    from src.sgd.model.perf.core import Strain as PerfStrain, Experiment as PerfExperiment
+    do_conversion(make_backend_starter(nex_backend, 'all_strains', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfStrain,
+                                   name='convert.from_backend.strain',
+                                   commit_interval=1,
+                                   delete_untouched=True),
+                   OutputTransformer(1)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_experiments', 100),
     #               [Json2CorePerfDB(perf_session_maker, PerfExperiment,
