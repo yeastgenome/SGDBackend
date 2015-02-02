@@ -25,22 +25,22 @@ if __name__ == "__main__":
     from src.sgd.convert.from_bud.auxiliary import make_bioentity_expression_interaction_starter, make_disambig_starter
     import os
 
-    do_conversion(make_dataset_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
-                  [Json2Obj(Dataset),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Dataset),
-                             name='convert.from_bud.bioitem.dataset',
-                             delete_untouched=True,
-                             commit_interval=1000,
-                             already_deleted=clean_up_orphans(nex_session_maker, Dataset, Bioitem, 'DATASET'))])
-
-
-    do_conversion(make_datasetcolumn_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
-                  [Json2Obj(Datasetcolumn),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Datasetcolumn),
-                             name='convert.from_bud.bioitem.datasetcolumn',
-                             delete_untouched=True,
-                             commit_interval=1000,
-                             already_deleted=clean_up_orphans(nex_session_maker, Datasetcolumn, Bioitem, 'DATASETCOLUMN'))])
+    # do_conversion(make_dataset_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
+    #               [Json2Obj(Dataset),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Dataset),
+    #                          name='convert.from_bud.bioitem.dataset',
+    #                          delete_untouched=True,
+    #                          commit_interval=1000,
+    #                          already_deleted=clean_up_orphans(nex_session_maker, Dataset, Bioitem, 'DATASET'))])
+    #
+    #
+    # do_conversion(make_datasetcolumn_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
+    #               [Json2Obj(Datasetcolumn),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Datasetcolumn),
+    #                          name='convert.from_bud.bioitem.datasetcolumn',
+    #                          delete_untouched=True,
+    #                          commit_interval=1000,
+    #                          already_deleted=clean_up_orphans(nex_session_maker, Datasetcolumn, Bioitem, 'DATASETCOLUMN'))])
 
 #     do_conversion(make_tag_starter(nex_session_maker),
 #                   [Json2Obj(Tag),
@@ -150,10 +150,10 @@ if __name__ == "__main__":
     locus_ids = [x.id for x in nex_session.query(Locus).all()]
     nex_session.close()
 
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'EXPRESSION', locus_ids,
-    #                                 name='convert.from_backend.expression_graph',
-    #                                 commit_interval=1000)])
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'EXPRESSION', locus_ids,
+                                    name='convert.from_backend.expression_graph',
+                                    commit_interval=1000)])
     #
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids,
