@@ -537,6 +537,7 @@ def make_datasetcolumn_starter(nex_session_maker, expression_dir):
                         i = 0
                         for piece in pieces[3:]:
                             column_name = piece.strip().decode('ascii','ignore')
+                            #print (geo_id, column_name)
                             col_geo_id = None if (geo_id, column_name) not in key_to_GSM else key_to_GSM[(geo_id, column_name)]
                             link = None if col_geo_id is None else 'http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=' + col_geo_id
                             yield {
