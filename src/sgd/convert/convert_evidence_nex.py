@@ -10,11 +10,11 @@ if __name__ == "__main__":
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
 
     from src.sgd.model.nex.evidence import Evidence, Goevidence, Literatureevidence, Domainevidence, ECNumberevidence, \
-        Proteinexperimentevidence, Phenotypeevidence, Historyevidence, Pathwayevidence
+        Proteinexperimentevidence, Phenotypeevidence, Historyevidence, Pathwayevidence, Goslimevidence, Posttranslationalevidence
     from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_literature_evidence_starter, \
         make_domain_evidence_starter, make_protein_experiment_evidence_starter, \
-        make_ecnumber_evidence_starter, make_protein_experiment_evidence_starter, make_alias_evidence_starter, \
-        make_phenotype_evidence_starter, make_history_evidence_starter, make_pathway_evidence_starter
+        make_ecnumber_evidence_starter, make_protein_experiment_evidence_starter, make_go_slim_evidence_starter, \
+        make_phenotype_evidence_starter, make_history_evidence_starter, make_pathway_evidence_starter, make_posttranslational_evidence_starter
     from src.sgd.convert.from_bud.auxiliary import make_bioconcept_count_starter
 
     do_conversion(make_go_evidence_starter(bud_session_maker, nex_session_maker),
@@ -24,6 +24,14 @@ if __name__ == "__main__":
                                    delete_untouched=True,
                                    commit_interval=1000,
                                    already_deleted=clean_up_orphans(nex_session_maker, Goevidence, Evidence, 'GO'))])
+
+    do_conversion(make_go_slim_evidence_starter(nex_session_maker),
+                   [Json2Obj(Goslimevidence),
+                    Evidence2NexDB(nex_session_maker, lambda x: x.query(Goslimevidence),
+                                   name='convert.from_bud.evidence.goslim',
+                                   delete_untouched=True,
+                                   commit_interval=1000,
+                                   already_deleted=clean_up_orphans(nex_session_maker, Goslimevidence, Evidence, 'GOSLIM'))])
 
     do_conversion(make_literature_evidence_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Literatureevidence),
@@ -98,4 +106,12 @@ if __name__ == "__main__":
                                    delete_untouched=True,
                                    commit_interval=1000,
                                    already_deleted=clean_up_orphans(nex_session_maker, Pathwayevidence, Evidence, 'PATHWAY'))])
+
+    # do_conversion(make_posttranslational_evidence_starter(nex_session_maker),
+    #               [Json2Obj(Posttranslationalevidence),
+    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Posttranslationalevidence),
+    #                               name='convert.from_bud.evidence.posttranslationsl',
+    #                               delete_untouched=True,
+    #                               commit_interval=1000,
+    #                               already_deleted=clean_up_orphans(nex_session_maker, Posttranslationalevidence, Evidence, 'POSTTRANSLATIONAL'))])
 

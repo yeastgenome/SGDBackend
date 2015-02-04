@@ -72,6 +72,9 @@ if __name__ == "__main__":
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'binding_site_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'BINDING_SITE', locus_ids, name='convert.from_backend.binding_site_details', commit_interval=1000)])
 
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details', commit_interval=1000)])
+
     # ------------------------------------------  Perf 2------------------------------------------
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
     perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
@@ -110,3 +113,7 @@ if __name__ == "__main__":
 
     # do_conversion(make_locus_data_backend_starter(perf_backend, 'binding_site_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'BINDING_SITE', locus_ids, name='convert.from_backend.binding_site_details', commit_interval=1000)])
+
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details', commit_interval=1000)])
+

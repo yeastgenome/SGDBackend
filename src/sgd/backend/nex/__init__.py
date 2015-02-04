@@ -69,27 +69,27 @@ class SGDBackend(BackendInterface):
 
     def locus_list(self, list_type):
         from src.sgd.model.nex.bioentity import Locus
+        from src.sgd.model.nex import locus_types
 
-        list_types = dict([(x[0].lower(), x[0]) for x in DBSession.query(distinct(Locus.locus_type)).all()])
-
+        list_types = dict([(x.lower(), x) for x in locus_types])
         if list_type.lower() in list_types:
             locus_type = list_types[list_type.lower()]
             return json.dumps({
                                 'list_name': locus_type,
-                                'locii': [x.to_min_json(include_description=True) for x in DBSession.query(Locus).filter_by(locus_type=locus_type).all()]
+                                'locii': [x.to_min_json(include_description=True) for x in DBSession.query(Locus).filter_by(bioent_status='Active').filter_by(locus_type=locus_type).all()]
             })
 
     def snapshot(self):
         #Go
         from src.sgd.model.nex.bioconcept import Go, Bioconceptrelation
-        from src.sgd.model.nex.evidence import Goevidence
-        go_slim_ids = set([x.parent_id for x in DBSession.query(Bioconceptrelation).filter_by(relation_type='GO_SLIM').all()])
-        go_terms = DBSession.query(Go).filter(Go.id.in_(go_slim_ids)).all()
+        from src.sgd.model.nex.evidence import Goevidence, Goslimevidence
+        from src.sgd.model.nex import locus_types
+        id_to_go_slim = dict([(x.id, x) for x in DBSession.query(Go).filter_by(is_slim=1).all()])
         go_slim_terms = []
         go_relationships = [['Child', 'Parent']]
-        for go_term in go_terms:
+        for go_term in id_to_go_slim.values():
             obj_json = go_term.to_min_json()
-            obj_json['descendant_annotation_gene_count'] = go_term.descendant_locus_count
+            obj_json['descendant_annotation_gene_count'] = len(go_term.goslim_evidences)
             obj_json['direct_annotation_gene_count'] = go_term.locus_count
             obj_json['is_root'] = go_term.is_root
             go_slim_terms.append(obj_json)
@@ -98,12 +98,15 @@ class SGDBackend(BackendInterface):
             while parents is not None and len(parents) > 0:
                 new_parents = []
                 for parent in parents:
-                    if parent.id in go_slim_ids:
+                    if parent.id in id_to_go_slim:
                         go_relationships.append([go_term.id, parent.id])
                         break
                     else:
                         new_parents.extend([x.parent for x in parent.parents if x.relation_type == 'is a'])
                 parents = new_parents
+        annotated_to_other_bp = DBSession.query(Goslimevidence).filter_by(go_id=None).filter_by(aspect='P').count()
+        annotated_to_other_mf = DBSession.query(Goslimevidence).filter_by(go_id=None).filter_by(aspect='F').count()
+        annotated_to_other_cc = DBSession.query(Goslimevidence).filter_by(go_id=None).filter_by(aspect='C').count()
 
         #Phenotype
         from src.sgd.model.nex.bioconcept import Observable, Bioconceptrelation
@@ -138,9 +141,10 @@ class SGDBackend(BackendInterface):
 
         id_to_strain = dict([(x.id, x) for x in DBSession.query(Strain)])
         contigs = DBSession.query(Contig).filter(Contig.strain_id == 1).all()
-        labels = ['ORF', 'long_terminal_repeat', 'ARS', 'tRNA', 'transposable_element_gene', 'snoRNA', 'retrotransposon',
-                  'telomere', 'rRNA', 'pseudogene', 'ncRNA', 'centromere', 'snRNA', 'multigene locus', 'gene_cassette',
-                  'mating_locus', 'Verified', 'Dubious', 'Uncharacterized']
+        labels = list(locus_types)
+        labels.append('Verified')
+        labels.append('Dubious')
+        labels.append('Uncharacterized')
 
         contig_id_to_index = {}
         label_to_index = {}
@@ -178,6 +182,9 @@ class SGDBackend(BackendInterface):
 
         return json.dumps({'phenotype_slim_terms': phenotype_slim_terms, 'phenotype_slim_relationships': phenotype_relationships,
                            'go_slim_terms': go_slim_terms, 'go_slim_relationships': go_relationships,
+                           'go_annotated_to_other_bp': annotated_to_other_bp,
+                           'go_annotated_to_other_mf': annotated_to_other_mf,
+                           'go_annotated_to_other_cc': annotated_to_other_cc,
                            'data': data, 'columns': columns, 'rows': labels})
 
     def bioentity_list(self, bioent_ids):
@@ -264,6 +271,7 @@ class SGDBackend(BackendInterface):
     def all_bioitems(self, chunk_size, offset):
         from src.sgd.model.nex.bioitem import Bioitem
         from src.sgd.model.nex.paragraph import Referenceparagraph
+        from src.sgd.model.nex.evidence import DNAsequenceevidence
         return [x.to_json() for x in DBSession.query(Bioitem).with_polymorphic('*').order_by(Bioitem.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def chemical(self, chemical_identifier, are_ids=False):
@@ -286,6 +294,7 @@ class SGDBackend(BackendInterface):
     def all_strains(self, chunk_size, offset):
         from src.sgd.model.nex.misc import Strain
         from src.sgd.model.nex.paragraph import Strainparagraph
+        from src.sgd.model.nex.bioitem import Contig
         return [x.to_json() for x in DBSession.query(Strain).order_by(Strain.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def experiment(self, experiment_identifier, are_ids=False):
@@ -570,6 +579,14 @@ class SGDBackend(BackendInterface):
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else view_protein.make_phosphorylation_details(locus_id=locus_id)
+
+    def posttranslational_details(self, locus_identifier, are_ids=False):
+        from src.sgd.backend.nex import view_protein
+        if are_ids:
+            locus_id = locus_identifier
+        else:
+            locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
+        return None if locus_id is None else view_protein.make_posttranslational_details(locus_id=locus_id)
 
     def protein_experiment_details(self, locus_identifier, are_ids=False):
         from src.sgd.backend.nex import view_protein

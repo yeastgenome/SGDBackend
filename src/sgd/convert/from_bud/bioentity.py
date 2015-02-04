@@ -7,11 +7,11 @@ __author__ = 'kpaskov'
 
 # --------------------- Convert Locus ---------------------
 non_locus_feature_types = {
-    'ARS consensus sequence',
+    'ARS_consensus_sequence',
     'binding_site',
-    'CDEI',
-    'CDEII',
-    'CDEIII',
+    'centromere_DNA_Element_I',
+    'centromere_DNA_Element_II',
+    'centromere_DNA_Element_III',
     'CDS',
     'chromosome',
     'external_transcribed_spacer_region',
@@ -29,9 +29,9 @@ non_locus_feature_types = {
     'TF_binding_site',
     'TF_binding_sites',
     'telomeric_repeat',
-    'X_element_combinatorial_repeats',
-    'X_element_core_sequence',
-    "Y'_element",
+    'X_element_combinatorial_repeat',
+    'X_element',
+    "Y_prime_element",
     'uORF',
     'W_region',
     'X_region',
@@ -98,20 +98,6 @@ def make_locus_starter(bud_session_maker, nex_session_maker):
                                       'date_created': bud_obj.date_created,
                                       'created_by': bud_obj.created_by}
 
-        # yield {'id': 0,
-        #                               'display_name': 'UNDEF',
-        #                               'format_name':'UNDEF',
-        #                               'source': source,
-        #                               'sgdid': '0',
-        #                               'uniprotid': None,
-        #                               'bioent_status': 'Active',
-        #                               'locus_type': 'ORF',
-        #                               'name_description': 'Represents undefined locii in sequence.',
-        #                               'headline': 'Represents undefined locii in sequence.',
-        #                               'description': 'Represents undefined locii in sequence.',
-        #                               'gene_name': 'UNDEF',
-        #                               'date_created': bud_obj.date_created,
-        #                               'created_by': bud_obj.created_by}
         bud_session.close()
         nex_session.close()
     return locus_starter
@@ -125,11 +111,12 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
         nex_session = nex_session_maker()
 
         for locus in nex_session.query(Locus).all():
-            if locus.locus_type == 'ORF' and (locus.bioent_status == 'Merged' or locus.bioent_status == 'Deleted'):
+            if locus.bioent_status == 'Merged' or locus.bioent_status == 'Deleted':
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
-                    'sequence_tab': 1,
+                    'sequence_tab': 0,
+                    'sequence_section': 1,
                     'history_tab': 0,
                     'literature_tab': 0,
                     'go_tab': 0,
@@ -140,11 +127,12 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'protein_tab': 0,
                     'wiki_tab': 0
                 }
-            elif locus.locus_type == 'ORF':
+            elif locus.locus_type == 'ORF' or locus.locus_type == 'blocked_reading_frame':
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
                     'sequence_tab': 1,
+                    'sequence_section': 1,
                     'history_tab': 0,
                     'literature_tab': 1,
                     'go_tab': 1,
@@ -155,11 +143,14 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'protein_tab': 1,
                     'wiki_tab': 0
                 }
-            elif locus.locus_type in {'ARS', 'centromere', 'multigene locus', 'long_terminal_repeat', 'telomere', 'mating_locus', 'gene_cassette', 'retrotransposon'}:
+            elif locus.locus_type in {'ARS', 'origin_of_replication', 'matrix_attachment_site', 'centromere',
+                                      'gene_group', 'long_terminal_repeat', 'telomere', 'mating_type_region',
+                                      'silent_mating_type_cassette_array', 'LTR_retrotransposon'}:
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
                     'sequence_tab': 1,
+                    'sequence_section': 1,
                     'history_tab': 0,
                     'literature_tab': 1,
                     'go_tab': 0,
@@ -175,6 +166,7 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'id': locus.id,
                     'summary_tab': 1,
                     'sequence_tab': 1,
+                    'sequence_section': 1,
                     'history_tab': 0,
                     'literature_tab': 1,
                     'go_tab': 1,
@@ -190,6 +182,7 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'id': locus.id,
                     'summary_tab': 1,
                     'sequence_tab': 1,
+                    'sequence_section': 1,
                     'history_tab': 0,
                     'literature_tab': 1,
                     'go_tab': 1,
@@ -200,11 +193,12 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'protein_tab': 1,
                     'wiki_tab': 0
                 }
-            elif locus.locus_type in {'rRNA', 'ncRNA', 'snRNA', 'snoRNA', 'tRNA'}:
+            elif locus.locus_type in {'rRNA_gene', 'ncRNA_gene', 'snRNA_gene', 'snoRNA_gene', 'tRNA_gene', 'telomerase_RNA_gene'}:
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
                     'sequence_tab': 1,
+                    'sequence_section': 1,
                     'history_tab': 0,
                     'literature_tab': 1,
                     'go_tab': 1,
@@ -215,16 +209,33 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'protein_tab': 0,
                     'wiki_tab': 0
                 }
-            elif locus.locus_type in {'not in systematic sequence', 'not physically mapped'}:
+            elif locus.locus_type in {'not in systematic sequence of S288C', 'not physically mapped'}:
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
-                    'sequence_tab': 1,
+                    'sequence_tab': 0,
+                    'sequence_section': 0,
                     'history_tab': 0,
                     'literature_tab': 1,
                     'go_tab': 1,
                     'phenotype_tab': 1,
                     'interaction_tab': 1,
+                    'expression_tab': 0,
+                    'regulation_tab': 0,
+                    'protein_tab': 0,
+                    'wiki_tab': 0
+                }
+            elif locus.locus_type in {'intein_encoding_region'}:
+                yield {
+                    'id': locus.id,
+                    'summary_tab': 1,
+                    'sequence_tab': 0,
+                    'sequence_section': 0,
+                    'history_tab': 0,
+                    'literature_tab': 1,
+                    'go_tab': 0,
+                    'phenotype_tab': 0,
+                    'interaction_tab': 0,
                     'expression_tab': 0,
                     'regulation_tab': 0,
                     'protein_tab': 0,

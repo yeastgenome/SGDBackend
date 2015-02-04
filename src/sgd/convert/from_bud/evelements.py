@@ -218,6 +218,64 @@ strain_to_genotype = {'S288C': '<i>MAT&alpha; SUC2 gal2 mal2 mel flo1 flo8-1 hap
 strain_to_description = {'S288C': 'Reference Genome',
                         'Other': 'Strain background is designated "Other" when the genetic background of the strain used in an experiment supporting a particular annotation is either not traceable or is not one of the twelve most commonly used backgrounds that are recorded in SGD curation.'}
 
+strain_to_genbank = {
+    'YS9': 'JRIB00000000',
+    'YPS163': 'JRIC00000000',
+    'YPS128': 'JRIC00000000',
+    'YJM339': 'JRIF00000000',
+    'Y55': 'JRIF00000000',
+    'DBVPG6044': 'JRIG00000000',
+    'SK1': 'JRIH00000000',
+    'BC187': 'JRII00000000',
+    'K11': 'JRIJ00000000',
+    'L1528': 'JRIK00000000',
+    'RedStar': 'JRIL00000000',
+    'UWOPSS': 'JRIM00000000',
+    'FY1679': 'JRIN00000000',
+    'YPH499': 'JRIO00000000',
+    'RM11-1a': 'JRIP00000000',
+    'Sigma1278b': 'JRIQ00000000',
+    'BY4742': 'JRIR00000000',
+    'BY4741': 'JRIS00000000',
+    'FL100': 'JRIT00000000',
+    'W303': 'JRIU00000000',
+    'CENPK': 'JRIV00000000',
+    'SEY6210': 'JRIW00000000',
+    'X2180-1A': 'JRIX00000000',
+    'D273-10B': 'JRIY00000000',
+    'JK9-3d': 'JRIZ00000000',
+    'S288C': 'GCF_000146045.2'}
+
+#Name Fold coverage, Number of scaffolds, Assembly size, Longest scaffold, Scaffold N50
+strain_to_assembly_stats = {
+    'YS9': [100, 1972, 11750421, 142656, 30314, 5271],
+    'YPS163': [96, 959, 11692983, 170627, 39876, 5263],
+    'YPS128': [95, 1067, 11608384, 143401, 39695, 5241],
+    'YJM339': [102, 994, 11683869, 216801, 47674, 5317],
+    'Y55': [112, 829, 11700636, 406493, 107844, 5359],
+    'DBVPG6044': [176, 819, 11642411, 134064, 36171, 5297],
+    'SK1': [261, 978, 11687249, 326823, 103064, 5350],
+    'BC187': [177, 853, 11539626, 135217, 36331, 5254],
+    'K11': [189, 692, 11532471, 244353, 47234, 5267],
+    'L1528': [186, 692, 11640535, 150051, 42013, 5361],
+    'RedStar': [180, 1812, 12003693, 319971, 98298, 5440],
+    'UWOPSS': [57, 1508, 11398116, 57541, 13931, 4788],
+    'FY1679': [329, 886, 11701731, 454382, 122764, 5370],
+    'YPH499': [69, 749, 11721435, 462932, 125709, 5421],
+    'RM11-1a': [197, 615, 11571262, 540496, 114595, 5323],
+    'Sigma1278b': [191, 875, 11642710, 458709, 109268, 5358],
+    'BY4742': [103, 868, 11674767, 341843, 108974, 5391],
+    'BY4741': [209, 864, 11678362, 454112, 112644, 5404],
+    'FL100': [184, 942, 11667748, 580633, 118714, 5366],
+    'W303': [301, 967, 11704989, 336272, 102309, 5397],
+    'CENPK': [89, 850, 11651483, 334215, 115163, 5379],
+    'SEY6210': [106, 805, 11664136, 389964, 122714, 5400],
+    'X2180-1A': [112, 904, 11693006, 298290, 105189, 5387],
+    'D273-10B': [112, 866, 11708626, 343062, 108887, 5383],
+    'S288C': [None, 17, 12157105, 1531933, None, None],
+    'JK9-3d': [154, 933, 11669230, 320854, 103867, 5385]
+}
+
 def make_strain_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.bud.cv import CVTerm
@@ -228,13 +286,24 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
 
         for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no==10).all():
-            yield {'display_name': bud_obj.name,
+            format_name = bud_obj.name.replace('.', '')
+            obj_json ={'display_name': bud_obj.name,
                    'source': key_to_source['SGD'],
                    'description': bud_obj.definition if bud_obj.name not in strain_to_description else strain_to_description[bud_obj.name],
                    'status': 'Reference' if bud_obj.name == 'S288C' else ('Alternative Reference' if bud_obj.name in alternative_reference_strains else (None if bud_obj.name == 'Other' else 'Other')),
                    'genotype': None if bud_obj.name not in strain_to_genotype else strain_to_genotype[bud_obj.name],
+                   'genbank_id': None if format_name not in strain_to_genbank else strain_to_genbank[format_name],
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
+            if format_name in strain_to_assembly_stats:
+                assembly_stats = strain_to_assembly_stats[format_name]
+                obj_json['fold_coverage'] = assembly_stats[0]
+                obj_json['scaffold_number'] = assembly_stats[1]
+                obj_json['assembly_size'] = assembly_stats[2]
+                obj_json['longest_scaffold'] = assembly_stats[3]
+                obj_json['scaffold_n50'] = assembly_stats[4]
+                obj_json['feature_count'] = assembly_stats[5]
+            yield obj_json
 
         other_strains = [('10560-6B', 'Sigma1278b-derivative laboratory strain'),
                                    ('AB972', 'Isogenic to S288C; used in the systematic sequencing project, the sequence stored in SGD. AB972 is an ethidium bromide-induced rho- derivative of the strain X2180-1B-trp1.'),
@@ -306,11 +375,21 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
                                    ('ZTW1', 'Chinese corn mash bioethanol isolate')]
 
         for strain, description in other_strains:
-            yield {'display_name': strain,
+            obj_json = {'display_name': strain,
                    'source': key_to_source['SGD'],
                    'description': description,
                    'genotype': None if strain not in strain_to_genotype else strain_to_genotype[strain],
+                   'genbank_id': None if strain not in strain_to_genbank else strain_to_genbank[strain],
                    'status': 'Reference' if bud_obj.name == 'S288C' else ('Alternative Reference' if strain in alternative_reference_strains else 'Other')}
+            if strain in strain_to_assembly_stats:
+                assembly_stats = strain_to_assembly_stats[strain]
+                obj_json['fold_coverage'] = assembly_stats[0]
+                obj_json['scaffold_number'] = assembly_stats[1]
+                obj_json['assembly_size'] = assembly_stats[2]
+                obj_json['longest_scaffold'] = assembly_stats[3]
+                obj_json['scaffold_n50'] = assembly_stats[4]
+                obj_json['feature_count'] = assembly_stats[5]
+            yield obj_json
 
         bud_session.close()
         nex_session.close()
@@ -397,6 +476,14 @@ def make_strain_url_starter(nex_session_maker):
                     'source': key_to_source['SGD'],
                     'category': 'pubmed',
                     'strain': strain}
+
+            if strain.genbank_id is not None:
+                link = 'http://www.ncbi.nlm.nih.gov/nuccore/' + strain.genbank_id if strain.id != 1 else 'http://www.ncbi.nlm.nih.gov/assembly/GCF_000146045.2/'
+                yield {'display_name': strain.genbank_id,
+                        'link': link,
+                        'source': key_to_source['SGD'],
+                        'category': 'genbank',
+                        'strain': strain}
 
         yield {'display_name': 'Download Sequence',
                                'link': 'http://www.yeastgenome.org/download-data/sequence',

@@ -28,7 +28,7 @@ if __name__ == "__main__":
                    Obj2NexDB(nex_session_maker, lambda x: x.query(Experiment),
                              name='convert.from_bud.experiment',
                              delete_untouched=True,
-                             commit=True)])
+                              commit=True)])
 
     do_conversion(make_strain_starter(bud_session_maker, nex_session_maker),
                   [Json2Obj(Strain),
@@ -213,23 +213,6 @@ if __name__ == "__main__":
                              commit=True,
                              already_deleted=clean_up_orphans(nex_session_maker, Pathway, Bioitem, 'PATHWAY'))])
 
-    # do_conversion(make_dataset_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
-    #               [Json2Obj(Dataset),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Dataset),
-    #                          name='convert.from_bud.bioitem.dataset',
-    #                          delete_untouched=True,
-    #                          commit_interval=1000,
-    #                          already_deleted=clean_up_orphans(nex_session_maker, Dataset, Bioitem, 'DATASET'))])
-    #
-    #
-    # do_conversion(make_datasetcolumn_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
-    #               [Json2Obj(Datasetcolumn),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Datasetcolumn),
-    #                          name='convert.from_bud.bioitem.datasetcolumn',
-    #                          delete_untouched=True,
-    #                          commit_interval=1000,
-    #                          already_deleted=clean_up_orphans(nex_session_maker, Datasetcolumn, Bioitem, 'DATASETCOLUMN'))])
-
 
     do_conversion(make_disambig_starter(nex_session_maker, Domain, ['id', 'format_name'], 'BIOITEM', 'DOMAIN'),
                   [Json2Obj(Disambig),
@@ -244,10 +227,6 @@ if __name__ == "__main__":
                              name='convert.from_bud.bioitem.disambig.chemical',
                              delete_untouched=True,
                              commit=True)])
-
-    # do_conversion(make_disambig_starter(nex_session_maker, Dataset, ['id', 'format_name'], 'BIOITEM', 'DATASET'),
-    #               [Json2Obj(Disambig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DATASET'), name='convert.from_bud.bioitem.disambig.dataset', delete_untouched=True, commit=True)])
 
     do_conversion(make_disambig_starter(nex_session_maker, Reservedname, ['id', 'format_name'], 'BIOITEM', 'RESERVEDNAME'),
                   [Json2Obj(Disambig),

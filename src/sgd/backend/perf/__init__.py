@@ -59,7 +59,6 @@ class PerfBackend(BackendInterface):
 
     def bioentity_list(self, bioent_ids):
         from src.sgd.model.perf.core import Locusentry
-        print len(bioent_ids)
         return get_list(Locusentry, 'json', bioent_ids)
 
     #Locus
@@ -135,6 +134,7 @@ class PerfBackend(BackendInterface):
 
     def locus_list(self, list_type):
         from src.sgd.model.perf.core import Orphan
+        print 'locus_list.' + list_type.lower()
         return DBSession.query(Orphan).filter(func.lower(Orphan.url) == 'locus_list.' + list_type.lower()).first().json
 
     def strain(self, strain_identifier):
@@ -466,6 +466,14 @@ class PerfBackend(BackendInterface):
             bioitem_id = get_obj_id(str(contig_identifier).lower(), class_type='BIOITEM', subclass_type='CONTIG')
         return get_obj(Bioitem, 'json', bioitem_id)
 
+    def reserved_name(self, reserved_name_identifier, are_ids=False):
+        from src.sgd.model.perf.core import Bioitem
+        if are_ids:
+            bioitem_id = reserved_name_identifier
+        else:
+            bioitem_id = get_obj_id(str(reserved_name_identifier).lower(), class_type='BIOITEM', subclass_type='RESERVEDNAME')
+        return get_obj(Bioitem, 'json', bioitem_id)
+
     def protein_experiment_details(self, locus_identifier=None, are_ids=False):
         if locus_identifier is not None:
             if are_ids:
@@ -481,6 +489,14 @@ class PerfBackend(BackendInterface):
             else:
                 bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
             return get_bioentity_details(bioent_id, 'PROTEIN_PHOSPHORYLATION')
+
+    def posttranslational_details(self, locus_identifier=None, are_ids=False):
+        if locus_identifier is not None:
+            if are_ids:
+                bioent_id = locus_identifier
+            else:
+                bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
+            return get_bioentity_details(bioent_id, 'POSTTRANSLATIONAL')
 
     def sequence_details(self, locus_identifier=None, contig_identifier=None, are_ids=False):
         if locus_identifier is not None:

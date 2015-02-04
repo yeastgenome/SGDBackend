@@ -107,6 +107,11 @@ class Disambig(Base, EqualityByIDMixin, UpdateByJsonMixin):
         
     def unique_key(self):
         return self.disambig_key, self.class_type, self.subclass_type
+
+    def to_json(self):
+        json_obj = UpdateByJsonMixin.to_json(self)
+        json_obj['disambig_key'] = json_obj['disambig_key'].lower()
+        return json_obj
     
 class Locustabs(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'aux_locustabs'
@@ -123,9 +128,10 @@ class Locustabs(Base, EqualityByIDMixin, UpdateByJsonMixin):
     regulation_tab = Column('regulation', Integer)
     protein_tab = Column('protein', Integer)
     wiki_tab = Column('wiki', Integer)
+    sequence_section = Column('seq_section', Integer)
 
     __eq_values__ = ['id', 'summary_tab', 'history_tab', 'literature_tab', 'go_tab', 'phenotype_tab', 'interaction_tab',
-                     'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab']
+                     'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab', 'sequence_section']
     __eq_fks__ = []
 
     def __init__(self, obj_json):

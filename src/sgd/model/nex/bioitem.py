@@ -1,11 +1,11 @@
 from sqlalchemy import ForeignKey, CLOB
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, FetchedValue
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String, Date, Numeric
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
+from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin, locus_types
 from src.sgd.model.nex.misc import Source, Relation, Strain, Url, Alias, Tag
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.bioentity import Locus
@@ -172,26 +172,6 @@ class Chemical(Bioitem):
         obj_json['urls'] = [x.to_min_json() for x in self.urls]
         return obj_json
 
-
-number_to_roman = {'01': 'I', '1': 'I',
-                   '02': 'II', '2': 'II',
-                   '03': 'III', '3': 'III',
-                   '04': 'IV', '4': 'IV',
-                   '05': 'V', '5': 'V',
-                   '06': 'VI', '6': 'VI',
-                   '07': 'VII', '7': 'VII',
-                   '08': 'VIII', '8': 'VIII',
-                   '09': 'IX', '9': 'IX',
-                   '10': 'X',
-                   '11': 'XI',
-                   '12': 'XII',
-                   '13': 'XIII',
-                   '14': 'XIV',
-                   '15': 'XV',
-                   '16': 'XVI',
-                   '17': 'Mito',
-                   }
-
 class Contig(Bioitem):
     __tablename__ = "contigbioitem"
 
@@ -201,24 +181,35 @@ class Contig(Bioitem):
     is_chromosome = Column('is_chromosome', Integer)
     centromere_start = Column('centromere_start', Integer)
     centromere_end = Column('centromere_end', Integer)
+    genbank_accession = Column('genbank_accession', String)
+    gi_number = Column('gi_number', String)
+    refseq_id = Column('refseq_id', String)
+    reference_chromosome_id = Column('reference_chromosome_id', Integer, ForeignKey('nex.contigbioitem.bioitem_id'))
+    reference_start = Column('reference_start', Integer)
+    reference_end = Column('reference_end', Integer)
+    reference_percent_identity = Column('reference_percent_identity', Numeric(7, 3))
+    reference_alignment_length = Column('reference_alignment_length', Integer)
+    #header = Column('header', String)
+    #filename = Column('filename', String)
 
     #Relationships
-    strain = relationship(Strain, uselist=False)
+    strain = relationship(Strain, uselist=False, backref='contigs')
+    reference_chromosome = relationship('Contig', remote_side=[id])
 
     __mapper_args__ = {'polymorphic_identity': "CONTIG", 'inherit_condition': id==Bioitem.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'description', 'bioitem_type',
-                     'residues', 'centromere_start', 'centromere_end', 'is_chromosome',
+                     'residues', 'centromere_start', 'centromere_end', 'is_chromosome', 'genbank_accession', 'gi_number', 'refseq_id',
+                     #'header', 'filename',
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'strain']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = None if obj_json.get('strain') is None or create_format_name(obj_json.get('display_name')) is None else obj_json.get('strain').format_name + '_' + create_format_name(obj_json.get('display_name'))
+        if self.format_name is None:
+            self.format_name = self.genbank_accession
+        if self.display_name is None:
+            self.display_name = self.genbank_accession
         self.link = None if self.format_name is None else '/contig/' + self.format_name + '/overview'
-        if self.display_name.startswith('chr'):
-            self.display_name = 'Chromosome ' + (self.display_name[3:] if self.display_name[3:] not in number_to_roman else number_to_roman[self.display_name[3:]])
-        if self.display_name.startswith('Chromosome '):
-            self.display_name = 'Chromosome ' + (self.display_name[11:] if self.display_name[11:] not in number_to_roman else number_to_roman[self.display_name[11:]])
 
     def to_min_json(self, include_description=False):
         obj_json = UpdateByJsonMixin.to_min_json(self, include_description=include_description)
@@ -226,6 +217,21 @@ class Contig(Bioitem):
         obj_json['is_chromosome'] = True if self.is_chromosome == 1 else False
         obj_json['centromere_start'] = self.centromere_start
         obj_json['centromere_end'] = self.centromere_end
+        return obj_json
+
+    def to_semi_json(self):
+        obj_json = self.to_min_json()
+        obj_json['reference_alignment'] = None if self.reference_chromosome_id is None else \
+            {'chromosome': self.reference_chromosome.to_min_json(),
+             'start': self.reference_start,
+             'end': self.reference_end,
+             'percent_identity': str(self.reference_percent_identity),
+             'alignment_length': self.reference_alignment_length
+            }
+        obj_json['genbank_accession'] = self.genbank_accession
+        obj_json['refseq_id'] = self.refseq_id
+        obj_json['urls'] = [x.to_min_json() for x in self.urls]
+        obj_json['length'] = len(self.residues)
         return obj_json
 
     def to_json(self):
@@ -239,23 +245,10 @@ class Contig(Bioitem):
                     overview_counts[evidence.locus.locus_type] = 1
 
         obj_json['overview'] = [
-            ['Feature Type', 'Count'],
-            ['ORF', (0 if 'ORF' not in overview_counts else overview_counts['ORF'])],
-            ['long_terminal_repeat', (0 if 'long_terminal_repeat' not in overview_counts else overview_counts['long_terminal_repeat'])],
-            ['ARS', (0 if 'ARS' not in overview_counts else overview_counts['ARS'])],
-            ['tRNA', (0 if 'tRNA' not in overview_counts else overview_counts['tRNA'])],
-            ['transposable_element_gene', (0 if 'transposable_element_gene' not in overview_counts else overview_counts['transposable_element_gene'])],
-            ['snoRNA', (0 if 'snoRNA' not in overview_counts else overview_counts['snoRNA'])],
-            ['retrotransposon', (0 if 'retrotransposon' not in overview_counts else overview_counts['retrotransposon'])],
-            ['telomere', (0 if 'telomere' not in overview_counts else overview_counts['telomere'])],
-            ['rRNA', (0 if 'rRNA' not in overview_counts else overview_counts['rRNA'])],
-            ['pseudogene', (0 if 'pseudogene' not in overview_counts else overview_counts['pseudogene'])],
-            ['ncRNA', (0 if 'ncRNA' not in overview_counts else overview_counts['ncRNA'])],
-            ['centromere', (0 if 'centromere' not in overview_counts else overview_counts['centromere'])],
-            ['snRNA', (0 if 'snRNA' not in overview_counts else overview_counts['snRNA'])],
-            ['multigene locus', (0 if 'multigene locus' not in overview_counts else overview_counts['multigene locus'])],
-            ['gene_cassette', (0 if 'gene_cassette' not in overview_counts else overview_counts['gene_cassette'])],
-            ['mating_locus', (0 if 'mating_locus' not in overview_counts else overview_counts['mating_locus'])]]
+            ['Feature Type', 'Count']]
+
+        for locus_type in locus_types:
+            obj_json['overview'].append([locus_type, (0 if locus_type not in overview_counts else overview_counts[locus_type])])
 
         obj_json['urls'] = [x.to_min_json() for x in self.urls]
 
@@ -284,7 +277,7 @@ class Dataset(Bioitem):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = obj_json.get('pcl_filename')[:-4]
-        self.display_name = self.format_name
+        self.display_name = obj_json.get('pcl_filename')
         self.link = '/dataset/' + self.format_name + '/overview'
 
     def to_semi_json(self):
