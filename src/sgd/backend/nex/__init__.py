@@ -129,6 +129,7 @@ class SGDBackend(BackendInterface):
         else:
             try:
                 strain_ids = [int(strain_id) for strain_id in strain_ids]
+                strain_ids.append(1)
             except Exception:
                 return None
             alignment = json.loads(alignment)
