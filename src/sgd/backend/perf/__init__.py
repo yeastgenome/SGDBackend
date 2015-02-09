@@ -128,9 +128,26 @@ class PerfBackend(BackendInterface):
         from src.sgd.model.perf.core import Orphan
         return DBSession.query(Orphan).filter_by(url='snapshot').first().json
 
-    def alignments(self):
+    def alignments(self, strain_ids):
         from src.sgd.model.perf.core import Orphan
-        return DBSession.query(Orphan).filter_by(url='alignments').first().json
+        alignment = DBSession.query(Orphan).filter_by(url='alignments').first().json
+        if strain_ids is None:
+            return alignment
+        else:
+            try:
+                strain_ids = [int(strain_id) for strain_id in strain_ids]
+            except Exception:
+                return None
+            alignment = json.loads(alignment)
+            good_indices = []
+            for i, strain in enumerate(alignment['strains']):
+                if strain['id'] in strain_ids:
+                    good_indices.append(i)
+
+            for locus in alignment['loci']:
+                locus['dna_scores'] = [locus['dna_scores'][i] for i in good_indices]
+                locus['protein_scores'] = [locus['protein_scores'][i] for i in good_indices]
+            return json.dumps(alignment)
 
     def tag_list(self):
         from src.sgd.model.perf.core import Orphan

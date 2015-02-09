@@ -103,6 +103,38 @@ def make_alignment_details(locus_id=None):
 
     return [evidence.to_json() for evidence in evidences]
 
+def calculate_variant_data(aligned_sequences):
+    #Variant data
+    reference_alignment = [x['sequence'] for x in aligned_sequences if x['strain_id'] == 1]
+    if len(reference_alignment) == 1:
+        variant_data = []
+        reference_alignment = reference_alignment[0]
+        current_interval_start = None
+        current_interval = 0
+        for i, letter in enumerate(reference_alignment):
+            num_differ = len([x for x in aligned_sequences if x['sequence'][i] != letter])
+
+            if num_differ == 0:
+                new_interval = 0
+            elif num_differ < 3:
+                new_interval = 1
+            elif num_differ < 7:
+                new_interval = 2
+            else:
+                new_interval = 3
+
+            if new_interval != current_interval:
+                if current_interval != 0:
+                    variant_data.append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
+                current_interval_start = i+1
+                current_interval = new_interval
+
+        if current_interval != 0:
+            variant_data.append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
+    else:
+        variant_data = None
+    return variant_data
+
 def make_alignment(locus_id=None):
     if locus_id is None:
         return {'Error': 'No locus_id given.'}
@@ -140,64 +172,8 @@ def make_alignment(locus_id=None):
                                           'sequence': x.residues_with_gaps} for x in alignment_evidences if x.sequence_type == 'Protein']
 
     #Variant data
-    reference_alignment = [x['sequence'] for x in obj_json['aligned_dna_sequences'] if x['strain_id'] == 1]
-    if len(reference_alignment) == 1:
-        obj_json['variant_data_dna'] = []
-        reference_alignment = reference_alignment[0]
-        current_interval_start = None
-        current_interval = 0
-        for i, letter in enumerate(reference_alignment):
-            num_differ = len([x for x in obj_json['aligned_dna_sequences'] if x['sequence'][i] != letter])
-
-            if num_differ == 0:
-                new_interval = 0
-            elif num_differ < 3:
-                new_interval = 1
-            elif num_differ < 7:
-                new_interval = 2
-            else:
-                new_interval = 3
-
-            if new_interval != current_interval:
-                if current_interval != 0:
-                    obj_json['variant_data_dna'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
-                current_interval_start = i+1
-                current_interval = new_interval
-
-        if current_interval != 0:
-            obj_json['variant_data_dna'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
-    else:
-        obj_json['variant_data_dna'] = None
-
-    reference_alignment = [x['sequence'] for x in obj_json['aligned_protein_sequences'] if x['strain_id'] == 1]
-    if len(reference_alignment) == 1:
-        obj_json['variant_data_protein'] = []
-        reference_alignment = reference_alignment[0]
-        current_interval_start = None
-        current_interval = 0
-        for i, letter in enumerate(reference_alignment):
-            num_differ = len([x for x in obj_json['aligned_protein_sequences'] if x['sequence'][i] != letter])
-
-            if num_differ == 0:
-                new_interval = 0
-            elif num_differ < 3:
-                new_interval = 1
-            elif num_differ < 7:
-                new_interval = 2
-            else:
-                new_interval = 3
-
-            if new_interval != current_interval:
-                if current_interval != 0:
-                    obj_json['variant_data_protein'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
-                current_interval_start = i+1
-                current_interval = new_interval
-        if current_interval != 0:
-            obj_json['variant_data_protein'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
-
-    else:
-        obj_json['variant_data_protein'] = None
-
+    obj_json['variant_data_dna'] = calculate_variant_data(obj_json['aligned_dna_sequences'])
+    obj_json['variant_data_protein'] = calculate_variant_data(obj_json['aligned_protein_sequences'])
 
     return obj_json
 
