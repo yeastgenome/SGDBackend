@@ -13,7 +13,8 @@ requires = [
     'requests',
     'mpmath',
     'cx_oracle',
-    'sqlalchemy'
+    'sqlalchemy',
+    'elasticsearch>=1.0.0,<2.0.0'
     ]
 
 tests_require = [

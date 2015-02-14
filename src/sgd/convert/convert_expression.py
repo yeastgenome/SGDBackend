@@ -3,17 +3,17 @@ from src.sgd.backend.nex import SGDBackend
 from src.sgd.backend.perf import PerfBackend
 from src.sgd.convert import prepare_schema_connection, config, clean_up_orphans
 from src.sgd.convert.transformers import do_conversion, Json2Obj, Json2DataPerfDB, \
-    make_locus_data_backend_starter, make_reference_data_backend_starter, Evidence2NexDB, BigObj2NexDB
-from src.sgd.convert.transformers import do_conversion, Json2Obj, Obj2NexDB
+    make_locus_data_backend_starter, make_reference_data_backend_starter, Evidence2NexDB, BigObj2NexDB, Json2CorePerfDB, Json2DisambigPerfDB, Json2CorePerfDBOneByOne
+from src.sgd.convert.transformers import do_conversion, Json2Obj, Obj2NexDB, make_backend_starter
 
 __author__ = 'kpaskov'
 
 if __name__ == "__main__":
 
-    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
-    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
+    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
     # ------------------------------------------ Evidence ------------------------------------------
     from src.sgd.model.nex.bioitem import Dataset, Datasetcolumn, Bioitem, BioitemTag
@@ -42,40 +42,40 @@ if __name__ == "__main__":
     #                          commit_interval=1000,
     #                          already_deleted=clean_up_orphans(nex_session_maker, Datasetcolumn, Bioitem, 'DATASETCOLUMN'))])
 
-    # do_conversion(make_tag_starter(nex_session_maker),
-    #               [Json2Obj(Tag),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Tag),
-    #                          name='convert.from_bud.tag',
-    #                          delete_untouched=True,
-    #                          commit=True)])
-    #
-    # do_conversion(make_disambig_starter(nex_session_maker, Tag, ['id', 'format_name'], 'TAG', None),
-    #               [Json2Obj(Disambig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'TAG'),
-    #                          name='convert.from_bud.bioitem.disambig.tag',
-    #                          delete_untouched=True,
-    #                          commit=True)])
-    #
-    # do_conversion(make_bioitem_tag_starter(nex_session_maker),
-    #               [Json2Obj(BioitemTag),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(BioitemTag),
-    #                          name='convert.from_bud.bioitem.tag',
-    #                          delete_untouched=True,
-    #                          commit=True)])
-    #
-    # do_conversion(make_disambig_starter(nex_session_maker, Dataset, ['id', 'format_name'], 'BIOITEM', 'DATASET'),
-    #               [Json2Obj(Disambig),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DATASET'), name='convert.from_bud.bioitem.disambig.dataset', delete_untouched=True, commit=True)])
-
-
-    # do_conversion(make_expression_evidence_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
-    #               [Json2Obj(Expressionevidence),
-    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Expressionevidence),
-    #                          name='convert.from_bud.evidence.expression',
-    #                          delete_untouched=False,
-    #                          commit_interval=1000,
-    #                          already_deleted=clean_up_orphans(nex_session_maker, Expressionevidence, Evidence, 'EXPRESSION'))])
-
+#     do_conversion(make_tag_starter(nex_session_maker),
+#                   [Json2Obj(Tag),
+#                    Obj2NexDB(nex_session_maker, lambda x: x.query(Tag),
+#                              name='convert.from_bud.tag',
+#                              delete_untouched=True,
+#                              commit=True)])
+#
+#     do_conversion(make_disambig_starter(nex_session_maker, Tag, ['id', 'format_name'], 'TAG', None),
+#                   [Json2Obj(Disambig),
+#                    Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'TAG'),
+#                              name='convert.from_bud.bioitem.disambig.tag',
+#                              delete_untouched=True,
+#                              commit=True)])
+#
+#     do_conversion(make_bioitem_tag_starter(nex_session_maker),
+#                   [Json2Obj(BioitemTag),
+#                    Obj2NexDB(nex_session_maker, lambda x: x.query(BioitemTag),
+#                              name='convert.from_bud.bioitem.tag',
+#                              delete_untouched=True,
+#                              commit=True)])
+#
+#     do_conversion(make_disambig_starter(nex_session_maker, Dataset, ['id', 'format_name'], 'BIOITEM', 'DATASET'),
+#                   [Json2Obj(Disambig),
+#                    Obj2NexDB(nex_session_maker, lambda x: x.query(Disambig).filter(Disambig.class_type == 'BIOITEM').filter(Disambig.subclass_type == 'DATASET'), name='convert.from_bud.bioitem.disambig.dataset', delete_untouched=True, commit=True)])
+#
+#
+#     do_conversion(make_expression_evidence_starter(nex_session_maker, 'src/sgd/convert/data/microarray_05_14'),
+#                   [Json2Obj(Expressionevidence),
+#                    Obj2NexDB(nex_session_maker, lambda x: x.query(Expressionevidence),
+#                              name='convert.from_bud.evidence.expression',
+#                              delete_untouched=False,
+#                              commit_interval=1000,
+#                              already_deleted=clean_up_orphans(nex_session_maker, Expressionevidence, Evidence, 'EXPRESSION'))])
+#
 #     nex_session = nex_session_maker()
 #     dataset_key_to_id = dict([(x.unique_key(), x.id) for x in nex_session.query(Dataset).all()])
 #     dataset_id_to_columns = dict([(x, []) for x in dataset_key_to_id.values()])
@@ -132,32 +132,47 @@ if __name__ == "__main__":
 #                                                      name='convert.from_bud.evidence.expression_data',
 #                                                      delete_untouched=True,
 #                                                      commit_interval=1000)])
-
-    # do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
-    #               [Json2Obj(Bioentityinteraction),
-    #                BigObj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'),
-    #                             name='convert.from_bud.auxilliary.bioentity_interaction_expression',
-    #                             delete_untouched=True,
-    #                             commit_interval=1000)])
+#
+#     do_conversion(make_bioentity_expression_interaction_starter(nex_session_maker),
+#                   [Json2Obj(Bioentityinteraction),
+#                    BigObj2NexDB(nex_session_maker, lambda x: x.query(Bioentityinteraction).filter_by(interaction_type='EXPRESSION'),
+#                                 name='convert.from_bud.auxilliary.bioentity_interaction_expression',
+#                                 delete_untouched=True,
+#                                 commit_interval=1000)])
     #
     # # ------------------------------------------ Perf ------------------------------------------
     #
     from src.sgd.model.perf.bioentity_data import BioentityGraph, BioentityDetails
+    from src.sgd.model.perf.core import Bioitem as PerfBioitem, Tag as PerfTag
 
     from src.sgd.model.nex.bioentity import Locus
     nex_session = nex_session_maker()
     locus_ids = [x.id for x in nex_session.query(Locus).all()]
     nex_session.close()
+
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_graph', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'EXPRESSION', locus_ids,
+                                    name='convert.from_backend.expression_graph',
+                                    commit_interval=1000)])
     #
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_graph', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityGraph, 'EXPRESSION', locus_ids,
-    #                                 name='convert.from_backend.expression_graph',
-    #                                 commit_interval=1000)])
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids,
+    #                                 name='convert.from_backend.expression_details',
+    #                                 commit_interval=100)])
     #
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'expression_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'EXPRESSION', locus_ids,
-                                    name='convert.from_backend.expression_details',
-                                    commit_interval=100)])
+    # do_conversion(make_backend_starter(nex_backend, 'all_bioitems', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfBioitem,
+    #                                name='convert.from_backend.bioitem',
+    #                                commit_interval=1000)])
+    #
+    # do_conversion(make_backend_starter(nex_backend, 'all_tags', 1000),
+    #               [Json2CorePerfDB(perf_session_maker, PerfTag,
+    #                                name='convert.from_backend.tag',
+    #                                commit_interval=1000,
+    #                                delete_untouched=True)])
+
+    # do_conversion(make_backend_starter(nex_backend, 'all_disambigs', 1000),
+    #                [Json2DisambigPerfDB(perf_session_maker, commit_interval=100)])
 
 
     # # ------------------------------------------ Perf2 ------------------------------------------

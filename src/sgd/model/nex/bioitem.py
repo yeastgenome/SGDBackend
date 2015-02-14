@@ -277,7 +277,7 @@ class Dataset(Bioitem):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = obj_json.get('pcl_filename')[:-4]
-        self.display_name = self.format_name
+        self.display_name = obj_json.get('pcl_filename')
         self.link = '/dataset/' + self.format_name + '/overview'
 
     def to_semi_json(self):

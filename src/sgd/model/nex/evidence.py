@@ -1023,6 +1023,54 @@ class Phosphorylationevidence(Evidence):
         obj_json['properties'] = [x.to_json() for x in properties]
         return obj_json
 
+class Posttranslationalevidence(Evidence):
+    __tablename__ = "posttranslationalevidence"
+
+    id = Column('evidence_id', Integer, ForeignKey(Evidence.id), primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    strain_id = Column('strain_id', Integer, ForeignKey(Strain.id))
+    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id))
+    note = Column('note', String)
+
+    locus_id = Column('bioentity_id', Integer, ForeignKey(Locus.id))
+    type = Column('type', String)
+    site_index = Column('site_index', Integer)
+    site_residue = Column('site_residue', String)
+
+    #Relationships
+    source = relationship(Source, backref=backref('posttranslational_evidences', passive_deletes=True), uselist=False)
+    reference = relationship(Reference, backref=backref('posttranslational_evidences', passive_deletes=True), uselist=False)
+    strain = relationship(Strain, backref=backref('posttranslational_evidences', passive_deletes=True), uselist=False)
+    experiment = relationship(Experiment, backref=backref('posttranslational_evidences', passive_deletes=True), uselist=False)
+    locus = relationship(Locus, uselist=False, backref=backref('posttranslational_evidences', passive_deletes=True))
+
+    __mapper_args__ = {'polymorphic_identity': "POSTTRANSLATIONAL", 'inherit_condition': id==Evidence.id}
+    __eq_values__ = ['id', 'note', 'json',
+                     'site_index', 'site_residue', 'type',
+                     'date_created', 'created_by', ]
+    __eq_fks__ = ['source', 'reference', 'strain', 'experiment', 'locus']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+        self.properties = obj_json['properties']
+        self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
+
+    def unique_key(self):
+        return self.class_type, self.locus_id, self.type, self.site_residue, self.site_index, self.reference_id
+
+    def to_json(self, aux_obj_json=None):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        if aux_obj_json is not None:
+            for eq_fk in self.__eq_fks__:
+                if eq_fk in aux_obj_json and aux_obj_json[eq_fk] is not None:
+                    obj_json[eq_fk] = aux_obj_json[eq_fk].to_min_json()
+            properties = aux_obj_json['properties']
+        else:
+            properties = self.properties
+        obj_json['properties'] = [x.to_json() for x in properties]
+        return obj_json
+
 class Historyevidence(Evidence):
     __tablename__ = "historyevidence"
 

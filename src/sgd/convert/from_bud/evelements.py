@@ -388,6 +388,7 @@ def make_strain_starter(bud_session_maker, nex_session_maker):
                 obj_json['assembly_size'] = assembly_stats[2]
                 obj_json['longest_scaffold'] = assembly_stats[3]
                 obj_json['scaffold_n50'] = assembly_stats[4]
+                obj_json['feature_count'] = assembly_stats[5]
             yield obj_json
 
         bud_session.close()

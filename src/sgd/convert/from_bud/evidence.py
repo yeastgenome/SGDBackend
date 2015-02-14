@@ -1111,6 +1111,100 @@ def make_phosphorylation_evidence_starter(nex_session_maker):
         nex_session.close()
     return phosphorylation_evidence_starter
 
+def make_posttranslational_evidence_starter(nex_session_maker):
+    from src.sgd.model.nex.misc import Source
+    from src.sgd.model.nex.bioentity import Bioentity
+    from src.sgd.model.nex.reference import Reference
+    from src.sgd.model.nex.evidence import Generalproperty, Bioentityproperty
+    def posttranslational_evidence_starter():
+        nex_session = nex_session_maker()
+
+        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
+        key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Bioentity).all()])
+        pmid_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
+
+        #Phosphorylation
+        for row in make_file_starter('src/sgd/convert/data/phosphosites.txt')():
+            if len(row) == 19:
+                bioentity_key = (row[0], 'LOCUS')
+
+                conditions = {}
+
+                site_functions = row[7]
+                if site_functions != '-':
+                    for site_function in site_functions.split('|'):
+                        condition = Generalproperty({'note': site_function.capitalize()})
+                        conditions[condition.unique_key()] = condition
+
+                kinases = row[9]
+                if kinases != '-':
+                    for kinase in kinases.split('|'):
+                        bioent_key = (kinase, 'LOCUS')
+                        if bioent_key in key_to_bioentity:
+                            condition = Bioentityproperty({'role': 'Kinase', 'bioentity': key_to_bioentity[bioent_key]})
+                            conditions[condition.unique_key()] = condition
+                        else:
+                            print 'Bioentity not found: ' + str(bioent_key)
+
+                if bioentity_key in key_to_bioentity:
+                    yield {'source': key_to_source['PhosphoGRID'],
+                           'locus': key_to_bioentity[bioentity_key],
+                           'site_index': int(row[2][1:]),
+                           'site_residue': row[2][0],
+                           'type': 'phosphorylation',
+                           'properties': conditions.values()}
+                else:
+                    print 'Bioentity not found: ' + str(bioentity_key)
+
+        #Other sites
+        file_names = ['src/sgd/convert/data/methylationSitesPMID25109467.txt',
+                      'src/sgd/convert/data/ubiquitinationSites090314.txt',
+                      'src/sgd/convert/data/phosphorylationUbiquitinationPMID23749301.txt',
+                      'src/sgd/convert/data/succinylationAcetylation090914.txt']
+
+        for file_name in file_names:
+            print file_name
+            f = open(file_name, 'rU')
+            header = True
+            for line in f:
+                if header:
+                    header = False
+                else:
+                    pieces = line.split('\t')
+                    bioentity_key = (pieces[0], 'LOCUS')
+                    site = pieces[1].strip()
+                    site_residue = site[0]
+                    site_index = int(site[1:])
+                    site_functions = pieces[2]
+                    modification_type = pieces[3]
+                    modifier = pieces[4]
+                    source_key = pieces[5]
+                    pmid = int(pieces[6].replace('PMID:', ''))
+
+                    if modifier is not '':
+                        print modifier
+                    if site_functions is not '':
+                        print site_functions
+
+                    if bioentity_key in key_to_bioentity and source_key in key_to_source and pmid in pmid_to_reference:
+                        yield {
+                           'source': key_to_source[source_key],
+                           'locus': key_to_bioentity[bioentity_key],
+                           'site_index': site_index,
+                           'site_residue': site_residue,
+                           'type': modification_type,
+                           'reference': pmid_to_reference[pmid],
+                           'properties': []
+                        }
+                    else:
+                        print 'Bioentity or source or pmid not found: ' + str(bioentity_key) + ' ' + str(source_key) + ' ' + str(pmid)
+
+            f.close()
+
+
+        nex_session.close()
+    return posttranslational_evidence_starter
+
 def get_phosphorylation_pubmed_ids():
     pubmed_ids = set()
     for row in make_file_starter('src/sgd/convert/data/phosphosites.txt')():
