@@ -1,3 +1,9 @@
+from sqlalchemy.schema import Column, ForeignKey, FetchedValue
+from sqlalchemy.types import Integer, String, Date
+
+from src.sgd.model import EqualityByIDMixin
+from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
+
 __author__ = 'kelley'
 
 class Source(Base, EqualityByIDMixin, UpdateByJsonMixin):
@@ -11,9 +17,8 @@ class Source(Base, EqualityByIDMixin, UpdateByJsonMixin):
     description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
-    link = None
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'description', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by']
     __eq_fks__ = []
 
     def __init__(self, obj_json):
@@ -22,20 +27,3 @@ class Source(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     def unique_key(self):
         return self.format_name
-
-
-DROP TABLE SOURCE CASCADE CONSTRAINTS;
-CREATE TABLE SOURCE (
-SOURCE_ID INTEGER NOT NULL,
-FORMAT_NAME VARCHAR2(100) NOT NULL,
-DISPLAY_NAME VARCHAR2(500) NOT NULL,
-OBJ_URL VARCHAR2(500),
-BUD_ID INTEGER NULL,
-DESCRIPTION VARCHAR2(400) NULL,
-DATE_CREATED DATE DEFAULT SYSDATE NOT NULL,
-CREATED_BY VARCHAR2(12) DEFAULT SUBSTR(USER,1,12) NOT NULL,
-CONSTRAINT SOURCE_PK PRIMARY KEY (SOURCE_ID),
-CONSTRAINT SOURCE_UK UNIQUE (FORMAT_NAME) ) TABLESPACE DATA01;
-GRANT SELECT ON SOURCE TO DBSELECT;
-GRANT INSERT, SELECT, UPDATE ON SOURCE TO CURATOR;
-GRANT DELETE, INSERT, SELECT, UPDATE ON SOURCE TO AUXILIARY;

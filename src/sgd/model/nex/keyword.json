@@ -1,0 +1,69 @@
+{
+    "title": "Keyword",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "display_name": {
+            "type": "string"
+        },
+        "format_name": {
+            "type": "string"
+        },
+        "link": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "source": {
+            "type": "object",
+            "properties": {
+                "id": {"type": "integer"},
+                "display_name": {"type": "string"},
+                "format_name": {"type": "string"},
+                "link": {"type": "string"}
+             },
+            "required": ["id"]
+        },
+        "bud_id": {
+            "type": "integer"
+        },
+        "date_created": {
+            "type": "date-time",
+        },
+        "created_by": {
+            "type": "string",
+        },
+        "datasets": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "integer"},
+                    "display_name": {"type": "string"},
+                    "format_name": {"type": "string"},
+                    "link": {"type": "string"}
+                 },
+                "required": ["id"]
+            },
+            "uniqueItems": true
+        },
+        "colleagues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "integer"},
+                    "display_name": {"type": "string"},
+                    "format_name": {"type": "string"},
+                    "link": {"type": "string"}
+                 },
+                "required": ["id"]
+            },
+            "uniqueItems": true
+        },
+    },
+    "required": ["id", "display_name", "source"]
+}

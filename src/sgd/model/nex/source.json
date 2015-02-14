@@ -1,0 +1,31 @@
+{
+    "title": "Source",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "display_name": {
+            "type": "string"
+        },
+        "format_name": {
+            "type": "string"
+        },
+        "link": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "bud_id": {
+            "type": "integer"
+        },
+        "date_created": {
+            "type": "date-time",
+        },
+        "created_by": {
+            "type": "string",
+        }
+    },
+    "required": ["id", "display_name"]
+}

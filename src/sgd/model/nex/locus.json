@@ -1,0 +1,143 @@
+{
+    "title": "Dbentity",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "display_name": {
+            "type": "string"
+        },
+        "format_name": {
+            "type": "string"
+        },
+        "link": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "source": {
+            "type": "object",
+            "properties": {
+                "id": {"type": "integer"},
+                "display_name": {"type": "string"},
+                "format_name": {"type": "string"},
+                "link": {"type": "string"}
+             },
+            "required": ["id"]
+        },
+        "bud_id": {
+            "type": "integer"
+        },
+        "date_created": {
+            "type": "date-time",
+        },
+        "created_by": {
+            "type": "string",
+        },
+        "sgdid": {
+            "type": "string"
+        },
+        "uniprotid": {
+            "type": "string"
+        },
+        "dbent_status": {
+            "type": "string"
+        },
+        "locus_type": {
+            "type": "string"
+        },
+        "name_description": {
+            "type": "string"
+        },
+        "headline": {
+            "type": "string"
+        },
+        "gene_name": {
+            "type": "string"
+        },
+        "qualifier": {
+            "type": "string"
+        },
+        "genetic_position": {
+            "type": "string"
+        },
+        "summary": {
+            "type": "boolean"
+        },
+        "sequence": {
+            "type": "boolean"
+        },
+        "history": {
+            "type": "boolean"
+        },
+        "literature": {
+            "type": "boolean"
+        },
+        "go": {
+            "type": "boolean"
+        },
+        "phenotype": {
+            "type": "boolean"
+        },
+        "interaction": {
+            "type": "boolean"
+        },
+        "expression": {
+            "type": "boolean"
+        },
+        "regulation": {
+            "type": "boolean"
+        },
+        "protein": {
+            "type": "boolean"
+        },
+        "seq_section": {
+            "type": "boolean"
+        },
+        "urls": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "integer"},
+                    "display_name": {"type": "string"},
+                    "format_name": {"type": "string"},
+                    "link": {"type": "string"}
+                 },
+                "required": ["id"]
+            },
+            "uniqueItems": true
+        },
+        "aliases": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "integer"},
+                    "display_name": {"type": "string"},
+                    "format_name": {"type": "string"},
+                    "link": {"type": "string"}
+                 },
+                "required": ["id"]
+            },
+            "uniqueItems": true
+        },
+        "relations": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "integer"},
+                    "display_name": {"type": "string"},
+                    "format_name": {"type": "string"},
+                    "link": {"type": "string"}
+                 },
+                "required": ["id"]
+            },
+            "uniqueItems": true
+        },
+    },
+    "required": ["id", "display_name", "source", "sgdid"]
+}
