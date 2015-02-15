@@ -1,9 +1,11 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from src.sgd.model.nex.dbentity import Dbentity
+from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
 
@@ -31,7 +33,7 @@ class Locus(Dbentity):
     wiki_tab = Column('wiki', Integer)
     sequence_section = Column('seq_section', Integer)
 
-    __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Bioentity.id}
+    __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Dbentity.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'dbent_status',
                      'description',
                      'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position',
@@ -331,16 +333,15 @@ class Locus(Dbentity):
 
         return obj_json
 
-class Bioentityurl(Url):
-    __tablename__ = 'bioentityurl'
+class Locusurl(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    __tablename__ = 'locus_url'
 
-    id = Column('url_id', Integer, ForeignKey(Url.id), primary_key=True)
-    bioentity_id = Column('bioentity_id', Integer, ForeignKey(Bioentity.id))
+    id = Column('url_id', Integer, primary_key=True)
+    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
 
     #Relationships
-    bioentity = relationship(Bioentity, uselist=False, backref=backref('urls', passive_deletes=True))
+    locus = relationship(Locus, uselist=False, backref=backref('urls', passive_deletes=True))
 
-    __mapper_args__ = {'polymorphic_identity': 'BIOENTITY', 'inherit_condition': id == Url.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category',
                      'bioentity_id',
                      'date_created', 'created_by']
@@ -350,43 +351,6 @@ class Bioentityurl(Url):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json.get('bioentity_id'))
 
-class Alias(Base, EqualityByIDMixin, UpdateByJsonMixin):
-    __tablename__ = 'alias'
-
-    id = Column('alias_id', Integer, primary_key=True)
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
-    class_type = Column('class', String)
-    link = Column('obj_url', String)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    category = Column('category', String)
-    date_created = Column('date_created', Date, server_default=FetchedValue())
-    created_by = Column('created_by', String, server_default=FetchedValue())
-
-    #Relationships
-    source = relationship(Source, uselist=False)
-
-    __mapper_args__ = {'polymorphic_on': class_type, 'polymorphic_identity': "ALIAS"}
-    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category', 'date_created', 'created_by']
-    __eq_fks__ = ['source']
-
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-
-    def unique_key(self):
-        return self.class_type, self.display_name, self.format_name, self.category
-
-    def to_json(self):
-        obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['references'] = [x.reference.to_min_json() for x in self.alias_references]
-        if self.category in {'PDB identifier', 'UniParc ID', 'UniProt/Swiss-Prot ID', 'UniProt/TrEMBL ID',
-            'UniProtKB Subcellular Location', 'Protein version ID', 'EC number', 'InterPro', 'RefSeq protein version ID',
-            'RefSeq nucleotide version ID', 'TPA protein version ID', 'DNA version ID', 'NCBI protein GI', 'TPA Accession',
-            'PDB ID', 'RefSeq Accession', 'TC number', 'PANTHER'}:
-            obj_json['protein'] = True
-        else:
-            obj_json['protein'] = False
-        return obj_json
 class LocusAlias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'locus_alias'
 
@@ -402,9 +366,8 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    bioentity = relationship(Bioentity, uselist=False, backref=backref('aliases', passive_deletes=True))
+    locus = relationship(Locus, uselist=False, backref=backref('aliases', passive_deletes=True))
 
-    __mapper_args__ = {'polymorphic_identity': 'BIOENTITY', 'inherit_condition': id == Alias.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category',
                      'bioentity_id', 'is_external_id',
                      'date_created', 'created_by']
@@ -416,18 +379,17 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def unique_key(self):
         return self.id, self.display_name, self.alias_type
 
-class Bioentityrelation(Relation):
-    __tablename__ = 'bioentityrelation'
+class Bioentityrelation(Base, EqualityByIDMixin, UpdateByJsonMixin):
+    __tablename__ = 'locus_relation'
 
-    id = Column('relation_id', Integer, ForeignKey(Relation.id), primary_key=True)
-    parent_id = Column('parent_id', Integer, ForeignKey(Bioentity.id))
-    child_id = Column('child_id', Integer, ForeignKey(Bioentity.id))
+    id = Column('relation_id', Integer, primary_key=True)
+    parent_id = Column('parent_id', Integer, ForeignKey(Locus.id))
+    child_id = Column('child_id', Integer, ForeignKey(Locus.id))
 
     #Relationships
-    parent = relationship(Bioentity, backref=backref("children", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
-    child = relationship(Bioentity, backref=backref("parents", passive_deletes=True), uselist=False, foreign_keys=[child_id])
+    parent = relationship(Locus, backref=backref("children", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
+    child = relationship(Locus, backref=backref("parents", passive_deletes=True), uselist=False, foreign_keys=[child_id])
 
-    __mapper_args__ = {'polymorphic_identity': 'BIOENTITY', 'inherit_condition': id == Relation.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relation_type',
                      'parent_id', 'child_id',
                      'date_created', 'created_by']
@@ -437,66 +399,3 @@ class Bioentityrelation(Relation):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
         self.display_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
-
-
-
-
-
-
-
-DROP TABLE LOCUS_RELATION CASCADE CONSTRAINTS;
-CREATE TABLE LOCUS_RELATION (
-RELATION_ID INTEGER NOT NULL,
-FORMAT_NAME VARCHAR2(100) NOT NULL,
-DISPLAY_NAME VARCHAR2(500) NOT NULL,
-OBJ_URL VARCHAR2(500) NOT NULL,
-SOURCE_ID INTEGER NOT NULL,
-BUD_ID INTEGER,
-PARENT_ID INTEGER NOT NULL,
-CHILD_ID INTEGER NOT NULL,
-RELATION_TYPE VARCHAR2(40),
-DATE_CREATED DATE DEFAULT SYSDATE NOT NULL,
-CREATED_BY VARCHAR2(12) DEFAULT SUBSTR(USER,1,12) NOT NULL,
-CONSTRAINT LOCUS_RELATION_PK PRIMARY KEY (RELATION_ID),
-CONSTRAINT LOCUS_RELATION_UK UNIQUE(RELATION_TYPE, PARENT_ID, CHILD_ID)) TABLESPACE DATA02;
-CREATE INDEX LOCUS_REL_PARENT_FK_INDEX ON LOCUS_RELATION (PARENT_ID) TABLESPACE DATA02;
-CREATE INDEX LOCUS_REL_CHILD_FK_INDEX ON LOCUS_RELATION (CHILD_ID) TABLESPACE DATA02;
-CREATE INDEX LOCUS_REL_SOURCE_FK_INDEX ON LOCUS_RELATION (SOURCE_ID) TABLESPACE DATA02;
-ALTER TABLE LOCUS_RELATION
-ADD CONSTRAINT LOCUS_REL_CHILD_FK FOREIGN KEY (CHILD_ID) REFERENCES LOCUSDBENTITY (DBENTITY_ID)
-ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE VALIDATE;
-ALTER TABLE LOCUS_RELATION
-ADD CONSTRAINT LOCUS_REL_PARENT_FK FOREIGN KEY (PARENT_ID) REFERENCES LOCUSDBENTITY (DBENTITY_ID)
-ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE VALIDATE;
-ALTER TABLE LOCUS_RELATION
-ADD CONSTRAINT LOCUS_REL_SOURCE_FK FOREIGN KEY (SOURCE_ID) REFERENCES SOURCE (SOURCE_ID)
-ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE VALIDATE;
-GRANT SELECT ON LOCUS_RELATION TO DBSELECT;
-GRANT DELETE, INSERT, SELECT, UPDATE ON LOCUS_RELATION TO CURATOR;
-GRANT DELETE, INSERT, SELECT, UPDATE ON LOCUS_RELATION TO AUXILIARY;
-
-DROP TABLE LOCUS_URL CASCADE CONSTRAINTS;
-CREATE TABLE LOCUS_URL (
-URL_ID INTEGER NOT NULL,
-FORMAT_NAME VARCHAR2(100) NOT NULL,
-DISPLAY_NAME VARCHAR2(500) NOT NULL,
-OBJ_URL VARCHAR2(500) NOT NULL,
-SOURCE_ID INTEGER NOT NULL,
-BUD_ID INTEGER,
-LOCUS_ID INTEGER NOT NULL,
-URL_TYPE VARCHAR2(40),
-DATE_CREATED DATE DEFAULT SYSDATE NOT NULL,
-CREATED_BY VARCHAR2(12) DEFAULT SUBSTR(USER,1,12) NOT NULL,
-CONSTRAINT LOCUS_URL_PK PRIMARY KEY (URL_ID),
-CONSTRAINT LOCUS_URL_UK UNIQUE (LOCUS_ID, DISPLAY_NAME, URL_TYPE) ) TABLESPACE DATA02;
-CREATE INDEX LOCUS_URL_SOURCE_FK_INDEX ON LOCUS_URL (SOURCE_ID) TABLESPACE DATA02;
-CREATE INDEX LOCUS_URL_LOCUS_FK_INDEX ON LOCUS_URL (LOCUS_ID) TABLESPACE DATA02;
-ALTER TABLE LOCUS_URL
-ADD CONSTRAINT LOCUS_URL_SOURCE_FK FOREIGN KEY (SOURCE_ID) REFERENCES SOURCE (SOURCE_ID)
-ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE VALIDATE;
-ALTER TABLE LOCUS_URL
-ADD CONSTRAINT LOCUS_URL_LOCUS_FK FOREIGN KEY (LOCUS_ID) REFERENCES LOCUSDBENTITY (DBENTITY_ID)
-ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE VALIDATE;
-GRANT SELECT ON LOCUS_URL TO DBSELECT;
-GRANT DELETE, INSERT, SELECT, UPDATE ON LOCUS_URL TO CURATOR;
-GRANT DELETE, INSERT, SELECT, UPDATE ON LOCUS_URL TO AUXILIARY;

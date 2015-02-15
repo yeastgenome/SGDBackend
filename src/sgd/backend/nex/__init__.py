@@ -2,6 +2,8 @@ from datetime import datetime
 import json
 import logging
 import uuid
+import glob
+import os
 from math import ceil
 
 from pyramid.response import Response
@@ -31,11 +33,16 @@ class SGDBackend(BackendInterface):
 
         DBSession.configure(bind=engine)
         nex.Base.metadata.bind = engine
-        
+
+        #Load classes
+        self.classes = dict()
+        for module in glob.glob("src/sgd/model/nex/*.json"):
+            module = os.path.basename(module)[:-5]
+            mod = __import__('src.sgd.model.nex.' + module, fromlist=[module.title()])
+            if hasattr(mod, module.title()):
+                self.classes[module] = getattr(mod, module.title())
+
         self.log = set_up_logging(log_directory, 'nex')
-        
-    def get_renderer(self, method_name):
-        return 'string'
     
     def response_wrapper(self, method_name, request):
         request_id = str(uuid.uuid4())
@@ -48,6 +55,36 @@ class SGDBackend(BackendInterface):
             else:
                 return Response(body=data, content_type='application/json')
         return f
+
+    def get_object(self, class_name, identifier):
+        try:
+            identifier = int(identifier)
+        except:
+            pass
+
+        #Get class
+        if class_name in self.classes:
+            cls = self.classes[class_name]
+        else:
+            return None
+
+        obj = None
+        query = DBSession.query(cls)
+        for id_value in cls.__id_values__:
+            obj = query.filter(getattr(cls, id_value) == identifier).first()
+            if obj is not None:
+                break
+
+        return None if obj is None else json.dumps(obj.to_json())
+
+    def get_all_objects(self, class_name):
+        #Get class
+        if class_name in self.classes:
+            cls = self.classes[class_name]
+        else:
+            return None
+
+        return json.dumps([obj.to_json() for obj in DBSession.query(cls).all()])
 
     #Bioentity
     def all_bioentities(self, chunk_size, offset):

@@ -1,4 +1,5 @@
 {
+    "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Source",
     "type": "object",
     "properties": {
@@ -21,11 +22,15 @@
             "type": "integer"
         },
         "date_created": {
-            "type": "date-time",
+            "type": "string",
+            "anyOf": [
+                {"format": "date-time"},
+                {"format": "date"}
+            ]
         },
         "created_by": {
-            "type": "string",
+            "type": "string"
         }
     },
-    "required": ["id", "display_name"]
+    "required": ["display_name"]
 }

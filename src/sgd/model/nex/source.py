@@ -20,6 +20,7 @@ class Source(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by']
     __eq_fks__ = []
+    __id_values__ = ['id', 'format_name']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)

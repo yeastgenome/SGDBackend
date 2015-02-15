@@ -36,10 +36,6 @@ class PerfBackend(BackendInterface):
 
         self.log = set_up_logging(log_directory, 'perf')
 
-    #Renderer
-    def get_renderer(self, method_name):
-        return 'string'
-
     def response_wrapper(self, method_name, request):
         request_id = str(uuid.uuid4())
         callback = None if 'callback' not in request.GET else request.GET['callback']
@@ -489,14 +485,6 @@ class PerfBackend(BackendInterface):
             else:
                 bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
             return get_bioentity_details(bioent_id, 'PROTEIN_PHOSPHORYLATION')
-
-    def posttranslational_details(self, locus_identifier=None, are_ids=False):
-        if locus_identifier is not None:
-            if are_ids:
-                bioent_id = locus_identifier
-            else:
-                bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
-            return get_bioentity_details(bioent_id, 'POSTTRANSLATIONAL')
 
     def sequence_details(self, locus_identifier=None, contig_identifier=None, are_ids=False):
         if locus_identifier is not None:

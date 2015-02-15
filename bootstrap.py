@@ -12,7 +12,6 @@
 #
 ##############################################################################
 """Bootstrap a buildout-based project
-
 Simply run this script in a directory containing a buildout.cfg.
 The script accepts buildout command-line options, so you can
 use the -c option to specify an alternate configuration file.
@@ -29,12 +28,9 @@ tmpeggs = tempfile.mkdtemp()
 
 usage = '''\
 [DESIRED PYTHON FOR BUILDOUT] bootstrap.py [options]
-
 Bootstraps a buildout-based project.
-
 Simply run this script in a directory containing a buildout.cfg, using the
 Python that you want bin/buildout to use.
-
 Note that by using --find-links to point to local resources, you can keep
 this script from going over the network.
 '''
@@ -77,7 +73,11 @@ except ImportError:
     from urllib2 import urlopen
 
 ez = {}
-exec(urlopen('https://bootstrap.pypa.io/ez_setup.py').read(), ez)
+ez_setup_path = os.path.join(os.path.dirname(__file__), 'ez_setup.py')
+if os.path.exists(ez_setup_path):
+    exec(open(ez_setup_path).read(), ez)
+else:
+    exec(urlopen('https://bootstrap.pypa.io/ez_setup.py').read(), ez)
 
 if not options.allow_site_packages:
     # ez_setup imports site, which adds site packages
@@ -110,7 +110,12 @@ for path in sys.path:
 
 ws = pkg_resources.working_set
 
+setuptools_path = ws.find(
+    pkg_resources.Requirement.parse('setuptools')).location
+
+# Fix sys.path here as easy_install.pth added before PYTHONPATH
 cmd = [sys.executable, '-c',
+       'import sys; sys.path[0:0] = [%r]; ' % setuptools_path +
        'from setuptools.command.easy_install import main; main()',
        '-mZqNxd', tmpeggs]
 
@@ -122,9 +127,6 @@ find_links = os.environ.get(
     )
 if find_links:
     cmd.extend(['-f', find_links])
-
-setuptools_path = ws.find(
-    pkg_resources.Requirement.parse('setuptools')).location
 
 requirement = 'zc.buildout'
 version = options.version
@@ -167,7 +169,7 @@ if version:
 cmd.append(requirement)
 
 import subprocess
-if subprocess.call(cmd, env=dict(os.environ, PYTHONPATH=setuptools_path)) != 0:
+if subprocess.call(cmd) != 0:
     raise Exception(
         "Failed to execute command:\n%s" % repr(cmd)[1:-1])
 

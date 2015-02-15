@@ -31,10 +31,10 @@
             "type": "integer"
         },
         "date_created": {
-            "type": "date-time",
+            "type": "date-time"
         },
         "created_by": {
-            "type": "string",
+            "type": "string"
         },
         "sgdid": {
             "type": "string"
@@ -44,7 +44,7 @@
         },
         "dbent_status": {
             "type": "string"
-        },
+        }
     },
     "required": ["id", "display_name", "source", "sgdid"]
 }

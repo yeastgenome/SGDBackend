@@ -14,7 +14,8 @@ requires = [
     'mpmath',
     'cx_oracle',
     'sqlalchemy',
-    'elasticsearch>=1.0.0,<2.0.0'
+    'elasticsearch>=1.0.0,<2.0.0',
+    'jsonschema'
     ]
 
 tests_require = [
@@ -50,5 +51,6 @@ setup(name='SGDBackend',
       [paste.app_factory]
       sgdbackend = src:nexbackend
       perfbackend = src:perfbackend
+      curatebackend = src:curatebackend
       """,
       )

@@ -2,6 +2,8 @@ __author__ = 'kpaskov'
 
 import json
 import datetime
+import glob
+import os
 
 def create_format_name(display_name):
     format_name = display_name.replace(' ', '_')
@@ -38,16 +40,17 @@ class UpdateByJsonMixin(object):
         anything_changed = False
         for key in self.__eq_values__:
             current_value = getattr(self, key)
-            new_value = None if key not in json_obj else json_obj[key]
+            if key in json_obj:
+                new_value = None if key not in json_obj else json_obj[key]
 
-            if isinstance(new_value, str) and (key == 'seq_version' or key == 'coord_version' or key == 'date_of_run' or key == 'expiration_date' or key == 'reservation_date'):
-                new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
+                if isinstance(new_value, datetime.date):
+                    new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
 
-            if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
-                pass
-            elif new_value != current_value:
-                setattr(self, key, new_value)
-                anything_changed = True
+                if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
+                    pass
+                elif new_value != current_value:
+                    setattr(self, key, new_value)
+                    anything_changed = True
 
         for key in self.__eq_fks__:
             current_value = getattr(self, key + '_id')
@@ -63,15 +66,16 @@ class UpdateByJsonMixin(object):
         anything_changed = False
         for key in self.__eq_values__:
             current_value = getattr(self, key)
-            new_value = json_obj[key]
+            if key in json_obj:
+                new_value = json_obj[key]
 
-            if isinstance(new_value, str) and (key == 'seq_version' or key == 'coord_version' or key == 'date_of_run' or key == 'expiration_date' or key == 'reservation_date'):
-                new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
+                if isinstance(new_value, datetime.date):
+                    new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
 
-            if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
-                pass
-            elif new_value != current_value:
-                anything_changed = True
+                if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
+                    pass
+                elif new_value != current_value:
+                    anything_changed = True
 
         for key in self.__eq_fks__:
             current_value = getattr(self, key + '_id')
@@ -121,7 +125,11 @@ class UpdateByJsonMixin(object):
             if key == 'class_type' and obj_json.get(key) is None:
                 self.class_type = self.__mapper_args__['polymorphic_identity']
             else:
-                setattr(self, key, obj_json.get(key))
+                if key in obj_json:
+                    if key == 'date_created':
+                        setattr(self, key, datetime.datetime.strptime(obj_json.get(key), "%Y-%m-%d").date())
+                    else:
+                        setattr(self, key, obj_json.get(key))
 
         for key in self.__eq_fks__:
             fk_obj = obj_json.get(key)

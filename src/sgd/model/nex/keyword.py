@@ -1,11 +1,12 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 from src.sgd.model.nex.source import Source
-from src.sgd.model.nex.colleague import Colleague
-from src.sgd.model.nex.dataset import Dataset
+#from src.sgd.model.nex.colleague import Colleague
+#from src.sgd.model.nex.dataset import Dataset
 
 __author__ = 'kelley'
 
@@ -44,11 +45,11 @@ class ColleagueKeyword(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     id = Column('colleague_keyword_id', Integer, primary_key=True)
     keyword_id = Column('keyword_id', Integer, ForeignKey(Keyword.id))
-    colleague_id = Column('colleague_id', Integer, ForeignKey(Colleague.id))
+    #colleague_id = Column('colleague_id', Integer, ForeignKey(Colleague.id))
 
     #Relationships
     keyword = relationship(Keyword, uselist=False, backref=backref('colleage_keywords', passive_deletes=True))
-    colleagues = relationship(Colleague, uselist=False, backref=backref('colleague_keywords', passive_deletes=True))
+    #colleagues = relationship(Colleague, uselist=False, backref=backref('colleague_keywords', passive_deletes=True))
 
     __eq_values__ = ['id']
     __eq_fks__ = ['keyword', 'colleague']
@@ -64,11 +65,11 @@ class DatasetKeyword(Base, EqualityByIDMixin, UpdateByJsonMixin):
 
     id = Column('dataset_keyword_id', Integer, primary_key=True)
     keyword_id = Column('keyword_id', Integer, ForeignKey(Keyword.id))
-    dataset_id = Column('dataset_id', Integer, ForeignKey(Colleague.id))
+    #dataset_id = Column('dataset_id', Integer, ForeignKey(Colleague.id))
 
     #Relationships
     keyword = relationship(Keyword, uselist=False, backref=backref('dataset_keywords', passive_deletes=True))
-    dataset = relationship(Colleague, uselist=False, backref=backref('dataset_keywords', passive_deletes=True))
+    #dataset = relationship(Colleague, uselist=False, backref=backref('dataset_keywords', passive_deletes=True))
 
     __eq_values__ = ['id']
     __eq_fks__ = ['keyword', 'dataset']

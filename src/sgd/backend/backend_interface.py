@@ -4,12 +4,7 @@ __author__ = 'kpaskov'
 
 class BackendInterface:
     __metaclass__ = ABCMeta
-    
-    #Renderer
-    @abstractmethod
-    def get_renderer(self, method_name):
-        return None
-    
+
     #Response
     @abstractmethod
     def response_wrapper(self, method_name, request):

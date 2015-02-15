@@ -1,3 +1,14 @@
+DROP TRIGGER SOURCE_TRIGGER;
+--/
+CREATE TRIGGER SOURCE_TRIGGER
+BEFORE INSERT ON source
+FOR EACH ROW
+BEGIN
+SELECT object_seq.nextval INTO :new.source_id FROM DUAL;
+END;
+/
+
+
 /* Alias */
 DROP TRIGGER ALIAS_TRIGGER;
 --/
@@ -73,16 +84,7 @@ SELECT pararef_seq.nextval INTO :new.paragraph_reference_id FROM DUAL;
 END;
 /
 
-/* Evelements */
-DROP TRIGGER SOURCE_TRIGGER;
---/
-CREATE TRIGGER SOURCE_TRIGGER
-BEFORE INSERT ON source
-FOR EACH ROW
-BEGIN
-SELECT source_seq.nextval INTO :new.source_id FROM DUAL;
-END;
-/
+
 
 DROP TRIGGER STRAIN_TRIGGER;
 --/

@@ -31,10 +31,10 @@
             "type": "integer"
         },
         "date_created": {
-            "type": "date-time",
+            "type": "date-time"
         },
         "created_by": {
-            "type": "string",
+            "type": "string"
         },
         "datasets": {
             "type": "array",
@@ -63,7 +63,7 @@
                 "required": ["id"]
             },
             "uniqueItems": true
-        },
+        }
     },
     "required": ["id", "display_name", "source"]
 }
