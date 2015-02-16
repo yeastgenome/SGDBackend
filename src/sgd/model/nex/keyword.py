@@ -23,21 +23,24 @@ class Keyword(Base, EqualityByIDMixin, UpdateByJsonMixin):
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
+    source = relationship(Source, uselist=False, lazy='joined')
+
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'description', 'date_created', 'created_by']
     __eq_fks__ = ['source']
+    __id_values__ = ['format_name', 'id']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = create_format_name(obj_json['display_name'])
-        self.link = '/tag/' + self.format_name + '/overview'
+        self.format_name = create_format_name(self.display_name)
+        self.link = '/keyword/' + self.format_name
 
     def unique_key(self):
         return self.format_name
 
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['datasets'] = [x.dataset.to_semi_json() for x in self.dataset_keywords]
-        obj_json['colleagues'] = [x.colleague.to_semi_json() for x in self.colleague_keywords]
+        #obj_json['datasets'] = [x.dataset.to_semi_json() for x in self.dataset_keywords]
+        #obj_json['colleagues'] = [x.colleague.to_semi_json() for x in self.colleague_keywords]
         return obj_json
 
 class ColleagueKeyword(Base, EqualityByIDMixin, UpdateByJsonMixin):

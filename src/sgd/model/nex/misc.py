@@ -7,26 +7,26 @@ from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
 
 __author__ = 'kpaskov'
 
-class Source(Base, EqualityByIDMixin, UpdateByJsonMixin):
-    __tablename__ = 'source'
-
-    id = Column('source_id', Integer, primary_key = True)
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
-    description = Column('description', String)
-    date_created = Column('date_created', Date, server_default=FetchedValue())
-    created_by = Column('created_by', String, server_default=FetchedValue())
-    link = None
-
-    __eq_values__ = ['id', 'display_name', 'format_name', 'description', 'date_created', 'created_by']
-    __eq_fks__ = []
-
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = create_format_name(self.display_name)
-
-    def unique_key(self):
-        return self.format_name
+# class Source(Base, EqualityByIDMixin, UpdateByJsonMixin):
+#     __tablename__ = 'source'
+#
+#     id = Column('source_id', Integer, primary_key = True)
+#     display_name = Column('display_name', String)
+#     format_name = Column('format_name', String)
+#     description = Column('description', String)
+#     date_created = Column('date_created', Date, server_default=FetchedValue())
+#     created_by = Column('created_by', String, server_default=FetchedValue())
+#     link = None
+#
+#     __eq_values__ = ['id', 'display_name', 'format_name', 'description', 'date_created', 'created_by']
+#     __eq_fks__ = []
+#
+#     def __init__(self, obj_json):
+#         UpdateByJsonMixin.__init__(self, obj_json)
+#         self.format_name = create_format_name(self.display_name)
+#
+#     def unique_key(self):
+#         return self.format_name
 
 eco_id_to_category = {'ECO:0000000': None,
                       'ECO:0000046': 'expression',
@@ -171,31 +171,31 @@ class Url(Base, EqualityByIDMixin, UpdateByJsonMixin):
         obj_json['category'] = self.category
         return obj_json
 
-class Tag(Base, EqualityByIDMixin, UpdateByJsonMixin):
-    __tablename__ = 'tag'
-    id = Column('tag_id', Integer, primary_key=True)
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
-    link = Column('obj_url', String)
-    description = Column('description', String)
-    date_created = Column('date_created', Date, server_default=FetchedValue())
-    created_by = Column('created_by', String, server_default=FetchedValue())
-
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by']
-    __eq_fks__ = []
-
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = create_format_name(obj_json['display_name'])
-        self.link = '/tag/' + self.format_name + '/overview'
-
-    def unique_key(self):
-        return self.format_name
-
-    def to_json(self):
-        obj_json = UpdateByJsonMixin.to_json(self)
-        obj_json['bioitems'] = [x.bioitem.to_semi_json() for x in self.bioitem_tags]
-        return obj_json
+# class Tag(Base, EqualityByIDMixin, UpdateByJsonMixin):
+#     __tablename__ = 'tag'
+#     id = Column('tag_id', Integer, primary_key=True)
+#     display_name = Column('display_name', String)
+#     format_name = Column('format_name', String)
+#     link = Column('obj_url', String)
+#     description = Column('description', String)
+#     date_created = Column('date_created', Date, server_default=FetchedValue())
+#     created_by = Column('created_by', String, server_default=FetchedValue())
+#
+#     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'date_created', 'created_by']
+#     __eq_fks__ = []
+#
+#     def __init__(self, obj_json):
+#         UpdateByJsonMixin.__init__(self, obj_json)
+#         self.format_name = create_format_name(obj_json['display_name'])
+#         self.link = '/tag/' + self.format_name + '/overview'
+#
+#     def unique_key(self):
+#         return self.format_name
+#
+#     def to_json(self):
+#         obj_json = UpdateByJsonMixin.to_json(self)
+#         obj_json['bioitems'] = [x.bioitem.to_semi_json() for x in self.bioitem_tags]
+#         return obj_json
 
 class Alias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'alias'

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 
@@ -24,8 +24,6 @@ class Feature(Base, EqualityByIDMixin):
     gene_name = Column('gene_name', String)
     
     #Relationships
-    annotation = relationship('Annotation', uselist=False)
-   
     taxonomy = relationship(Taxonomy, uselist=False)
 
     aliases = relationship("AliasFeature", lazy='subquery')
@@ -88,6 +86,8 @@ class Annotation(Base, EqualityByIDMixin):
     genetic_position = Column('genetic_position', String)
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
+
+    feature = relationship(Feature, backref=backref('annotation', uselist=False))
     
     def __repr__(self):
         data = self.headline, self.qualifier

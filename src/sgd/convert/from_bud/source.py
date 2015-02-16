@@ -1,4 +1,5 @@
 __author__ = 'kpaskov'
+import json
 
 other_sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAM', 'Pfam', 'PRINTS',
                                         'PIRSF', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI',
@@ -16,8 +17,10 @@ def source_starter(bud_session_maker):
     for bud_obj in bud_session.query(Code).all():
         if (bud_obj.tab_name, bud_obj.col_name) in ok_codes:
             obj_json = {'display_name': bud_obj.code_value,
-                   'date_created': str(bud_obj.date_created),
-                   'created_by': bud_obj.created_by}
+                        'bud_id': bud_obj.id,
+                        'date_created': str(bud_obj.date_created),
+                        'created_by': bud_obj.created_by}
+
             if bud_obj.description is not None:
                 obj_json['description'] = bud_obj.description
 
@@ -38,6 +41,11 @@ if __name__ == '__main__':
     bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
     curate_backend = CurateBackend(config.NEX_DBTYPE, 'curator-dev-db', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
 
-    for json in source_starter(bud_session_maker):
-        print curate_backend.update_object('source', json)
+    accumulated_status = dict()
+    for obj_json in source_starter(bud_session_maker):
+        status = json.loads(curate_backend.update_object('source', None, obj_json))['status']
+        if status not in accumulated_status:
+            accumulated_status[status] = 0
+        accumulated_status[status] += 1
+    print 'convert.source', accumulated_status
 

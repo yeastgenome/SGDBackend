@@ -1,5 +1,5 @@
 {
-    "title": "Dbentity",
+    "title": "Locus",
     "type": "object",
     "properties": {
         "id": {
@@ -15,7 +15,7 @@
             "type": "string"
         },
         "description": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "source": {
             "type": "object",
@@ -23,15 +23,29 @@
                 "id": {"type": "integer"},
                 "display_name": {"type": "string"},
                 "format_name": {"type": "string"},
-                "link": {"type": "string"}
+                "link": {"type": "string"},
+                "date_created": {
+                    "type": "string",
+                    "anyOf": [
+                        {"format": "date-time"},
+                        {"format": "date"}
+                    ]
+                },
+                "created_by": {
+                    "type": "string"
+                }
              },
-            "required": ["id"]
+            "required": ["format_name"]
         },
         "bud_id": {
-            "type": "integer"
+            "type": ["integer", "null"]
         },
         "date_created": {
-            "type": "date-time"
+            "type": "string",
+            "anyOf": [
+                {"format": "date-time"},
+                {"format": "date"}
+            ]
         },
         "created_by": {
             "type": "string"
@@ -40,7 +54,7 @@
             "type": "string"
         },
         "uniprotid": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "dbent_status": {
             "type": "string"
@@ -49,51 +63,54 @@
             "type": "string"
         },
         "name_description": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "headline": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "gene_name": {
+            "type": ["string", "null"]
+        },
+        "systematic_name": {
             "type": "string"
         },
         "qualifier": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "genetic_position": {
-            "type": "string"
+            "type": ["string", "null"]
         },
-        "summary": {
+        "summary_tab": {
             "type": "boolean"
         },
-        "sequence": {
+        "sequence_tab": {
             "type": "boolean"
         },
-        "history": {
+        "history_tab": {
             "type": "boolean"
         },
-        "literature": {
+        "literature_tab": {
             "type": "boolean"
         },
-        "go": {
+        "go_tab": {
             "type": "boolean"
         },
-        "phenotype": {
+        "phenotype_tab": {
             "type": "boolean"
         },
-        "interaction": {
+        "interaction_tab": {
             "type": "boolean"
         },
-        "expression": {
+        "expression_tab": {
             "type": "boolean"
         },
-        "regulation": {
+        "regulation_tab": {
             "type": "boolean"
         },
-        "protein": {
+        "protein_tab": {
             "type": "boolean"
         },
-        "seq_section": {
+        "sequence_section": {
             "type": "boolean"
         },
         "urls": {
@@ -103,10 +120,40 @@
                 "properties": {
                     "id": {"type": "integer"},
                     "display_name": {"type": "string"},
-                    "format_name": {"type": "string"},
-                    "link": {"type": "string"}
+                    "link": {"type": "string"},
+                    "url_type": {"type": "string"},
+                    "source": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "integer"},
+                            "display_name": {"type": "string"},
+                            "format_name": {"type": "string"},
+                            "link": {"type": "string"},
+                            "date_created": {
+                                "type": "string",
+                                "anyOf": [
+                                    {"format": "date-time"},
+                                    {"format": "date"}
+                                ]
+                            },
+                            "created_by": {
+                                "type": "string"
+                            }
+                         },
+                        "required": ["format_name"]
+                    },
+                    "date_created": {
+                        "type": "string",
+                        "anyOf": [
+                            {"format": "date-time"},
+                            {"format": "date"}
+                        ]
+                    },
+                    "created_by": {
+                        "type": "string"
+                    }
                  },
-                "required": ["id"]
+                "required": ["display_name", "link", "url_type", "source"]
             },
             "uniqueItems": true
         },
@@ -115,29 +162,53 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "id": {"type": "integer"},
-                    "display_name": {"type": "string"},
-                    "format_name": {"type": "string"},
-                    "link": {"type": "string"}
-                 },
-                "required": ["id"]
-            },
-            "uniqueItems": true
-        },
-        "relations": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "integer"},
-                    "display_name": {"type": "string"},
-                    "format_name": {"type": "string"},
-                    "link": {"type": "string"}
-                 },
-                "required": ["id"]
+                    "id": {
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "type": "string"
+                    },
+                    "link": {
+                        "type":["string", "null"]
+                    },
+                    "alias_type": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "integer"},
+                            "display_name": {"type": "string"},
+                            "format_name": {"type": "string"},
+                            "link": {"type": "string"},
+                            "date_created": {
+                                "type": "string",
+                                "anyOf": [
+                                    {"format": "date-time"},
+                                    {"format": "date"}
+                                ]
+                            },
+                            "created_by": {
+                                "type": "string"
+                            }
+                         },
+                        "required": ["format_name"]
+                    },
+                    "date_created": {
+                        "type": "string",
+                        "anyOf": [
+                            {"format": "date-time"},
+                            {"format": "date"}
+                        ]
+                    },
+                    "created_by": {
+                        "type": "string"
+                    }
+                },
+                "required": ["display_name", "link", "alias_type", "source"]
             },
             "uniqueItems": true
         }
     },
-    "required": ["id", "display_name", "source", "sgdid"]
+    "required": ["systematic_name", "source", "sgdid", "locus_type", "dbent_status"]
 }

@@ -36,7 +36,8 @@ locus_types = [
     'telomerase_RNA_gene']
 
 class UpdateByJsonMixin(object):
-    def update(self, json_obj):
+
+    def update(self, json_obj, make_changes=True):
         anything_changed = False
         for key in self.__eq_values__:
             current_value = getattr(self, key)
@@ -49,7 +50,8 @@ class UpdateByJsonMixin(object):
                 if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
                     pass
                 elif new_value != current_value:
-                    setattr(self, key, new_value)
+                    if make_changes:
+                        setattr(self, key, new_value)
                     anything_changed = True
 
         for key in self.__eq_fks__:
@@ -57,34 +59,14 @@ class UpdateByJsonMixin(object):
             new_value = None if (key not in json_obj or json_obj[key] is None) else json_obj[key]['id']
 
             if new_value != current_value:
-                setattr(self, key + '_id', new_value)
+                if make_changes:
+                    setattr(self, key + '_id', new_value)
                 anything_changed = True
 
         return anything_changed
 
     def compare(self, json_obj):
-        anything_changed = False
-        for key in self.__eq_values__:
-            current_value = getattr(self, key)
-            if key in json_obj:
-                new_value = json_obj[key]
-
-                if isinstance(new_value, datetime.date):
-                    new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
-
-                if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
-                    pass
-                elif new_value != current_value:
-                    anything_changed = True
-
-        for key in self.__eq_fks__:
-            current_value = getattr(self, key + '_id')
-            new_value = None if (key not in json_obj or json_obj[key] is None) else json_obj[key]['id']
-
-            if new_value != current_value:
-                anything_changed = True
-
-        return anything_changed
+        return self.update(json_obj, make_changes=False)
 
     def to_min_json(self, include_description=False):
         obj_json = {
@@ -135,7 +117,7 @@ class UpdateByJsonMixin(object):
             fk_obj = obj_json.get(key)
             fk_id = obj_json.get(key + '_id')
             if fk_obj is not None:
-                setattr(self, key + '_id', fk_obj.id)
+                setattr(self, key + '_id', fk_obj['id'])
             elif fk_id is not None:
                 setattr(self, key + '_id', fk_id)
             else:

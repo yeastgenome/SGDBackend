@@ -16,10 +16,10 @@
             "type": "string"
         },
         "description": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "bud_id": {
-            "type": "integer"
+            "type": ["integer", "null"]
         },
         "date_created": {
             "type": "string",

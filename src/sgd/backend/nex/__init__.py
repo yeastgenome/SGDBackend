@@ -42,6 +42,10 @@ class SGDBackend(BackendInterface):
             if hasattr(mod, module.title()):
                 self.classes[module] = getattr(mod, module.title())
 
+        self.schemas = dict()
+        for schema in glob.glob("src/sgd/model/nex/*.json"):
+            self.schemas[os.path.basename(schema)[:-5]] = json.load(open(schema, 'r'))
+
         self.log = set_up_logging(log_directory, 'nex')
     
     def response_wrapper(self, method_name, request):
@@ -56,26 +60,48 @@ class SGDBackend(BackendInterface):
                 return Response(body=data, content_type='application/json')
         return f
 
+    def all_classes(self):
+        return json.dumps(sorted(self.schemas.keys()))
+
+    def schema(self, class_type):
+        return None if class_type not in self.schemas else json.dumps(self.schemas[class_type])
+
     def get_object(self, class_name, identifier):
-        try:
-            identifier = int(identifier)
-        except:
-            pass
 
         #Get class
+        cls = self._get_class_from_class_name(class_name)
+        if cls is None:
+            return None
+
+        #Get object
+        obj = self._get_object_from_identifier(cls, identifier)
+
+        return None if obj is None else json.dumps(obj.to_json())
+
+    def _get_class_from_class_name(self, class_name):
         if class_name in self.classes:
-            cls = self.classes[class_name]
+            return self.classes[class_name]
         else:
             return None
+
+    def _get_object_from_identifier(self, cls, identifier):
+        int_identifier = None
+        try:
+            int_identifier = int(identifier)
+        except:
+            pass
 
         obj = None
         query = DBSession.query(cls)
         for id_value in cls.__id_values__:
-            obj = query.filter(getattr(cls, id_value) == identifier).first()
+            if id_value == 'id':
+                if int_identifier is not None:
+                    obj = query.filter(getattr(cls, id_value) == int_identifier).first()
+            else:
+                obj = query.filter(getattr(cls, id_value) == identifier).first()
             if obj is not None:
-                break
-
-        return None if obj is None else json.dumps(obj.to_json())
+                return obj
+        return None
 
     def get_all_objects(self, class_name):
         #Get class
@@ -84,7 +110,7 @@ class SGDBackend(BackendInterface):
         else:
             return None
 
-        return json.dumps([obj.to_json() for obj in DBSession.query(cls).all()])
+        return json.dumps([obj.to_min_json() for obj in DBSession.query(cls).all()])
 
     #Bioentity
     def all_bioentities(self, chunk_size, offset):

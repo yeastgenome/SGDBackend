@@ -16,9 +16,10 @@ class Locus(Dbentity):
     name_description = Column('name_description', String)
     headline = Column('headline', String)
     locus_type = Column('locus_type', String)
+    systematic_name = Column('systematic_name', String)
     gene_name = Column('gene_name', String)
     qualifier = Column('qualifier', String)
-    genetic_position = Column('genetic_position', Integer)
+    genetic_position = Column('genetic_position', String)
 
     summary_tab = Column('summary', Integer)
     sequence_tab = Column('seq', Integer)
@@ -35,16 +36,37 @@ class Locus(Dbentity):
 
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Dbentity.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'dbent_status',
-                     'description',
+                     'description', 'systematic_name',
                      'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position',
                      'date_created', 'created_by',
                      'summary_tab', 'history_tab', 'literature_tab', 'go_tab', 'phenotype_tab', 'interaction_tab',
                      'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab', 'sequence_section']
     __eq_fks__ = ['source']
+    __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.link = None if obj_json.get('sgdid') is None else '/locus/' + self.sgdid + '/overview'
+
+        self.link = '/locus/' + self.sgdid
+        self.display_name = self.systematic_name if self.gene_name is None else self.gene_name
+        self.format_name = self.systematic_name
+        tabs = tab_information(self.dbent_status, self.locus_type)
+        for tab in tabs:
+            setattr(self, tab, tabs[tab])
+
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+
+        #Aliases
+        obj_json['aliases'] = [x.to_json() for x in self.aliases]
+
+        #Urls
+        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
+
+        #Relations
+        obj_json['children'] = [x.to_json() for x in self.children]
+        obj_json['parents'] = [x.to_json() for x in self.parents]
+        return obj_json
 
     def to_semi_json(self):
         obj_json = UpdateByJsonMixin.to_min_json(self)
@@ -103,8 +125,9 @@ class Locus(Dbentity):
 
         return references
 
-    def to_json(self):
-        obj_json = UpdateByJsonMixin.to_json(self)
+
+    def to_full_json(self):
+        obj_json = self.to_json()
 
         for key in ['summary_tab', 'history_tab', 'literature_tab', 'go_tab', 'phenotype_tab', 'interaction_tab',
                      'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab', 'sequence_section']:
@@ -333,23 +356,31 @@ class Locus(Dbentity):
 
         return obj_json
 
-class Locusurl(Base, EqualityByIDMixin, UpdateByJsonMixin):
+class LocusUrl(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'locus_url'
 
     id = Column('url_id', Integer, primary_key=True)
+    display_name = Column('display_name', String)
+    link = Column('obj_url', String)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    bud_id = Column('bud_id', Integer)
     locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
+    url_type = Column('url_type', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
     locus = relationship(Locus, uselist=False, backref=backref('urls', passive_deletes=True))
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category',
-                     'bioentity_id',
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'locus_id', 'url_type',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = str(obj_json.get('bioentity_id'))
+
+    def unique_key(self):
+        return self.locus_id, self.display_name, self.url_type
 
 class LocusAlias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'locus_alias'
@@ -368,8 +399,7 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     #Relationships
     locus = relationship(Locus, uselist=False, backref=backref('aliases', passive_deletes=True))
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'category',
-                     'bioentity_id', 'is_external_id',
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'locus_id', 'is_exteral_id', 'alias_type',
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 
@@ -377,25 +407,157 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateByJsonMixin):
         UpdateByJsonMixin.__init__(self, obj_json)
 
     def unique_key(self):
-        return self.id, self.display_name, self.alias_type
+        return self.locus_id, self.display_name, self.alias_type
 
-class Bioentityrelation(Base, EqualityByIDMixin, UpdateByJsonMixin):
+class LocusRelation(Base, EqualityByIDMixin, UpdateByJsonMixin):
     __tablename__ = 'locus_relation'
 
     id = Column('relation_id', Integer, primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    bud_id = Column('bud_id', Integer)
     parent_id = Column('parent_id', Integer, ForeignKey(Locus.id))
     child_id = Column('child_id', Integer, ForeignKey(Locus.id))
+    relation_type = Column('relation_type', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
 
     #Relationships
     parent = relationship(Locus, backref=backref("children", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
     child = relationship(Locus, backref=backref("parents", passive_deletes=True), uselist=False, foreign_keys=[child_id])
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'relation_type',
-                     'parent_id', 'child_id',
+    __eq_values__ = ['id', 'bud_id', 'relation_type',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source']
+    __eq_fks__ = ['source', 'parent', 'child']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.format_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
-        self.display_name = str(obj_json.get('parent_id')) + ' - ' + str(obj_json.get('child_id'))
+
+    def unique_key(self):
+        return self.relation_type, self.parent_id, self.child_id
+
+def tab_information(status, locus_type):
+    if status == 'Merged' or status == 'Deleted':
+        return {
+            'summary_tab': 1,
+            'sequence_tab': 0,
+            'sequence_section': 1,
+            'history_tab': 0,
+            'literature_tab': 0,
+            'go_tab': 0,
+            'phenotype_tab': 0,
+            'interaction_tab': 0,
+            'expression_tab': 0,
+            'regulation_tab': 0,
+            'protein_tab': 0,
+            'wiki_tab': 0
+        }
+    elif locus_type == 'ORF' or locus_type == 'blocked_reading_frame':
+        return {
+            'summary_tab': 1,
+            'sequence_tab': 1,
+            'sequence_section': 1,
+            'history_tab': 0,
+            'literature_tab': 1,
+            'go_tab': 1,
+            'phenotype_tab': 1,
+            'interaction_tab': 1,
+            'expression_tab': 1,
+            'regulation_tab': 1,
+            'protein_tab': 1,
+            'wiki_tab': 0
+        }
+    elif locus_type in {'ARS', 'origin_of_replication', 'matrix_attachment_site', 'centromere',
+                              'gene_group', 'long_terminal_repeat', 'telomere', 'mating_type_region',
+                              'silent_mating_type_cassette_array', 'LTR_retrotransposon'}:
+        return {
+            'summary_tab': 1,
+            'sequence_tab': 1,
+            'sequence_section': 1,
+            'history_tab': 0,
+            'literature_tab': 1,
+            'go_tab': 0,
+            'phenotype_tab': 0,
+            'interaction_tab': 0,
+            'expression_tab': 0,
+            'regulation_tab': 0,
+            'protein_tab': 0,
+            'wiki_tab': 0
+        }
+    elif locus_type == 'transposable_element_gene':
+        return {
+            'summary_tab': 1,
+            'sequence_tab': 1,
+            'sequence_section': 1,
+            'history_tab': 0,
+            'literature_tab': 1,
+            'go_tab': 1,
+            'phenotype_tab': 1,
+            'interaction_tab': 1,
+            'expression_tab': 0,
+            'regulation_tab': 0,
+            'protein_tab': 1,
+            'wiki_tab': 0
+        }
+    elif locus_type == 'pseudogene':
+        return {
+            'summary_tab': 1,
+            'sequence_tab': 1,
+            'sequence_section': 1,
+            'history_tab': 0,
+            'literature_tab': 1,
+            'go_tab': 1,
+            'phenotype_tab': 1,
+            'interaction_tab': 1,
+            'expression_tab': 0,
+            'regulation_tab': 1,
+            'protein_tab': 1,
+            'wiki_tab': 0
+        }
+    elif locus_type in {'rRNA_gene', 'ncRNA_gene', 'snRNA_gene', 'snoRNA_gene', 'tRNA_gene', 'telomerase_RNA_gene'}:
+        return {
+            'summary_tab': 1,
+            'sequence_tab': 1,
+            'sequence_section': 1,
+            'history_tab': 0,
+            'literature_tab': 1,
+            'go_tab': 1,
+            'phenotype_tab': 1,
+            'interaction_tab': 1,
+            'expression_tab': 0,
+            'regulation_tab': 1,
+            'protein_tab': 0,
+            'wiki_tab': 0
+        }
+    elif locus_type in {'not in systematic sequence of S288C', 'not physically mapped'}:
+        return {
+            'summary_tab': 1,
+            'sequence_tab': 0,
+            'sequence_section': 0,
+            'history_tab': 0,
+            'literature_tab': 1,
+            'go_tab': 1,
+            'phenotype_tab': 1,
+            'interaction_tab': 1,
+            'expression_tab': 0,
+            'regulation_tab': 0,
+            'protein_tab': 0,
+            'wiki_tab': 0
+        }
+    elif locus_type in {'intein_encoding_region'}:
+        return {
+            'summary_tab': 1,
+            'sequence_tab': 0,
+            'sequence_section': 0,
+            'history_tab': 0,
+            'literature_tab': 1,
+            'go_tab': 0,
+            'phenotype_tab': 0,
+            'interaction_tab': 0,
+            'expression_tab': 0,
+            'regulation_tab': 0,
+            'protein_tab': 0,
+            'wiki_tab': 0
+        }
+    else:
+        raise Exception('Locus type is invalid.')

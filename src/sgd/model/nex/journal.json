@@ -1,5 +1,5 @@
 {
-    "title": "Dbentity",
+    "title": "Journal",
     "type": "object",
     "properties": {
         "id": {
@@ -23,7 +23,17 @@
                 "id": {"type": "integer"},
                 "display_name": {"type": "string"},
                 "format_name": {"type": "string"},
-                "link": {"type": "string"}
+                "link": {"type": "string"},
+                "date_created": {
+                    "type": "string",
+                    "anyOf": [
+                        {"format": "date-time"},
+                        {"format": "date"}
+                    ]
+                },
+                "created_by": {
+                    "type": "string"
+                }
              },
             "required": ["format_name"]
         },
@@ -40,15 +50,18 @@
         "created_by": {
             "type": "string"
         },
-        "sgdid": {
+        "title": {
             "type": "string"
         },
-        "uniprotid": {
+        "med_abbr": {
             "type": ["string", "null"]
         },
-        "dbent_status": {
-            "type": "string"
+        "issn_print": {
+            "type": ["string", "null"]
+        },
+        "issn_online": {
+            "type": ["string", "null"]
         }
     },
-    "required": ["source", "sgdid", "dbent_status"]
+    "required": ["title", "med_abbr", "source"]
 }

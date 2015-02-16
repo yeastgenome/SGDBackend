@@ -1,5 +1,5 @@
 {
-    "title": "Dbentity",
+    "title": "Book",
     "type": "object",
     "properties": {
         "id": {
@@ -23,7 +23,17 @@
                 "id": {"type": "integer"},
                 "display_name": {"type": "string"},
                 "format_name": {"type": "string"},
-                "link": {"type": "string"}
+                "link": {"type": "string"},
+                "date_created": {
+                    "type": "string",
+                    "anyOf": [
+                        {"format": "date-time"},
+                        {"format": "date"}
+                    ]
+                },
+                "created_by": {
+                    "type": "string"
+                }
              },
             "required": ["format_name"]
         },
@@ -40,15 +50,24 @@
         "created_by": {
             "type": "string"
         },
-        "sgdid": {
+        "title": {
             "type": "string"
         },
-        "uniprotid": {
+        "volume_title": {
             "type": ["string", "null"]
         },
-        "dbent_status": {
-            "type": "string"
+        "isbn": {
+            "type": ["string", "null"]
+        },
+        "total_pages": {
+            "type": ["integer", "null"]
+        },
+        "publisher": {
+            "type": ["string", "null"]
+        },
+        "publisher_location": {
+            "type": ["string", "null"]
         }
     },
-    "required": ["source", "sgdid", "dbent_status"]
+    "required": ["title", "volume_title", "source"]
 }

@@ -6,6 +6,7 @@ import logging
 import uuid
 import glob
 import os
+import traceback
 from math import ceil
 
 from pyramid.response import Response
@@ -33,56 +34,82 @@ class CurateBackend(SGDBackend):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
         SGDBackend.__init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory)
 
-        self.schemas = dict()
-        for schema in glob.glob("src/sgd/model/nex/*.json"):
-            self.schemas[os.path.basename(schema)[:-5]] = json.load(open(schema, 'r'))
+    def update_object(self, class_name, identifier, new_json_obj):
+        try:
+            #Validate json
+            if class_name in self.schemas:
+                validate(new_json_obj, self.schemas[class_name])
+            else:
+                raise Exception('Schema not found: ' + class_name)
 
-    def update_object(self, class_name, json):
+            #Get class
+            cls = self._get_class_from_class_name(class_name)
+            if cls is None:
+                raise Exception('Class not found: ' + class_name)
 
-        #Validate json
-        if class_name in self.schemas:
-            try:
-                validate(json, self.schemas[class_name])
-            except ValidationError as e:
-                return {'status': 'Error',
-                        'message': e.message,
-                        'json': json,
-                        'id': None}
-        else:
-            return None
+            #Convert foreign key format_names to ids
+            for fk in cls.__eq_fks__:
+                if fk in new_json_obj:
+                    fk_cls = self._get_class_from_class_name(fk)
+                    if fk_cls is None:
+                        raise Exception('Could not find class ' + fk_cls)
+                    fk_obj = self._get_object_from_identifier(fk_cls, new_json_obj[fk]['format_name'])
+                    if fk_obj is None:
+                        raise Exception(fk_cls.title() + ' ' + new_json_obj[fk]['format_name'] + ' does not exist.')
+                    new_json_obj[fk]['id'] = fk_obj.id
 
-        #Get class
-        if class_name in self.classes:
-            cls = self.classes[class_name]
-        else:
-            return None
+            newly_created_obj = cls(new_json_obj)
+            format_name = newly_created_obj.format_name
 
-        #Make new object
-        newly_created_obj = cls(json)
+            #Get object if one already exists
+            if identifier is not None and identifier != 'None':
+                current_obj = self._get_object_from_identifier(cls, identifier)
+            else:
+                #If identifier is None we're doing an add, but if an object already exists send message
+                #that we should be doing an update
+                current_obj = self._get_object_from_identifier(cls, format_name)
+                if current_obj is not None:
+                    edit_url = current_obj.link.replace(current_obj.format_name, str(current_obj.id)) + '/edit'
+                    return json.dumps({'status': 'No Change',
+                                'message': 'This ' + class_name + ' already exists. You can update it <a href="' + edit_url + '">here</a>.',
+                                'json': new_json_obj,
+                                'id': None})
 
-        #Get object if one already exists
-        current_obj = DBSession.query(cls).filter_by(format_name=newly_created_obj.format_name).first()
+            if current_obj is None:
+                #Make new object
+                DBSession.add(newly_created_obj)
+                transaction.commit()
 
-        if current_obj is None:
-            DBSession.add(newly_created_obj)
-            transaction.commit()
-            return {'status': 'Added',
-                    'message': None,
-                    'json': newly_created_obj.to_json(),
-                    'id': newly_created_obj.id}
+                #Get new ID
+                newly_created_obj = self._get_object_from_identifier(cls, format_name)
+                return json.dumps({'status': 'Added',
+                        'message': None,
+                        'json': newly_created_obj.to_json(),
+                        'id': newly_created_obj.id})
+            else:
+                #IDs much match - you can't edit an ID
+                if 'id' in new_json_obj and new_json_obj['id'] is not None and new_json_obj['id'] != current_obj.id:
+                    raise Exception('ID field cannot be edited.')
 
-        elif newly_created_obj.compare(json):
-            current_obj.update(json)
-            transaction.commit()
-            return {'status': 'Updated',
-                    'message': None,
-                    'json': current_obj.to_json(),
-                    'id': current_obj.id}
+                obj_json = current_obj.to_json()
+                updated = current_obj.update(new_json_obj)
 
-        else:
-            return {'status': 'No Change',
-                    'message': None,
-                    'json': current_obj.to_json(),
-                    'id': current_obj.id}
-
-        return None if obj is None else json.dumps(obj.to_json())
+                if updated:
+                    obj_json = current_obj.to_json()
+                    transaction.commit()
+                    return json.dumps({'status': 'Updated',
+                            'message': None,
+                            'json': obj_json,
+                            'id': obj_json['id']})
+                else:
+                    return json.dumps({'status': 'No Change',
+                            'message': None,
+                            'json': obj_json,
+                            'id': obj_json['id']})
+        except Exception as e:
+            return json.dumps({'status': 'Error',
+                            'message': e.message,
+                            'traceback': traceback.format_exc(),
+                            'json': str(new_json_obj),
+                            'id': None
+                            })

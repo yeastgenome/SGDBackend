@@ -25,6 +25,7 @@ class Source(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
         self.format_name = create_format_name(self.display_name)
+        self.link = '/source/' + self.format_name
 
     def unique_key(self):
         return self.format_name

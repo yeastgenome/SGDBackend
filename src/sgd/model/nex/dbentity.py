@@ -32,6 +32,14 @@ class Dbentity(Base, EqualityByIDMixin, UpdateByJsonMixin):
                      'bud_id', 'date_created', 'created_by', 'sgdid', 'uniprotid', 'dbent_status']
     __eq_fks__ = ['source']
     __mapper_args__ = {'polymorphic_on': class_type}
+    __id_values__ = ['sgdid', 'format_name', 'id']
+
+    def __init__(self, obj_json):
+        UpdateByJsonMixin.__init__(self, obj_json)
+
+        self.link = '/locus/' + self.sgdid
+        self.display_name = self.display_name
+        self.format_name = create_format_name(self.display_name)
 
     def unique_key(self):
         return self.format_name, self.class_type
