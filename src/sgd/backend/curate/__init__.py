@@ -69,7 +69,7 @@ class CurateBackend(SGDBackend):
                 #that we should be doing an update
                 current_obj = self._get_object_from_identifier(cls, format_name)
                 if current_obj is not None:
-                    edit_url = current_obj.link.replace(current_obj.format_name, str(current_obj.id)) + '/edit'
+                    edit_url = '/' + class_name.lower() + '/' + str(current_obj.id) + '/edit'
                     return json.dumps({'status': 'No Change',
                                 'message': 'This ' + class_name + ' already exists. You can update it <a href="' + edit_url + '">here</a>.',
                                 'json': new_json_obj,
