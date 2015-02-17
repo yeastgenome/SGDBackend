@@ -55,7 +55,7 @@ class CurateBackend(SGDBackend):
                         raise Exception('Could not find class ' + fk_cls)
                     fk_obj = self._get_object_from_identifier(fk_cls, new_json_obj[fk]['format_name'])
                     if fk_obj is None:
-                        raise Exception(fk_cls.title() + ' ' + new_json_obj[fk]['format_name'] + ' does not exist.')
+                        raise Exception(fk.title() + ' "' + new_json_obj[fk]['format_name'] + '" does not exist.')
                     new_json_obj[fk]['id'] = fk_obj.id
 
             newly_created_obj = cls(new_json_obj)
