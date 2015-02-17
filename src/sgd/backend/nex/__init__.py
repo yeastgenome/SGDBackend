@@ -2,8 +2,8 @@ from datetime import datetime
 import json
 import logging
 import uuid
-import glob
 import os
+import imp
 from math import ceil
 
 from pyramid.response import Response
@@ -36,15 +36,15 @@ class SGDBackend(BackendInterface):
 
         #Load classes
         self.classes = dict()
-        for module in glob.glob("src/sgd/model/nex/*.json"):
-            module = os.path.basename(module)[:-5]
-            mod = __import__('src.sgd.model.nex.' + module, fromlist=[module.title()])
-            if hasattr(mod, module.title()):
-                self.classes[module] = getattr(mod, module.title())
-
         self.schemas = dict()
-        for schema in glob.glob("src/sgd/model/nex/*.json"):
-            self.schemas[os.path.basename(schema)[:-5]] = json.load(open(schema, 'r'))
+        pathname = os.path.dirname(nex.__file__)
+        for file in os.listdir(pathname):
+            if file.endswith('.json'):
+                module = os.path.basename(file)[:-5]
+                mod = __import__('src.sgd.model.nex.' + module, fromlist=[module.title()])
+                if hasattr(mod, module.title()):
+                    self.classes[module] = getattr(mod, module.title())
+                self.schemas[module] = json.load(open(pathname + '/' + file, 'r'))
 
         self.log = set_up_logging(log_directory, 'nex')
     
