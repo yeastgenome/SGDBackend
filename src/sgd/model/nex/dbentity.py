@@ -3,12 +3,12 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
 from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
 
-class Dbentity(Base, EqualityByIDMixin, ToJsonMixin):
+class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'dbentity'
 
     id = Column('dbentity_id', Integer, primary_key=True)
@@ -34,8 +34,8 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin):
     __mapper_args__ = {'polymorphic_on': class_type}
     __id_values__ = ['sgdid', 'format_name', 'id']
 
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
+    def __init__(self, obj_json, foreign_key_converter):
+        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_converter)
 
         self.link = '/locus/' + self.sgdid
         self.display_name = self.display_name

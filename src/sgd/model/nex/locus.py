@@ -2,7 +2,10 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
+from src.sgd.model import EqualityByIDMixin
+from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin
 from src.sgd.model.nex.dbentity import Dbentity
+from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
 
@@ -38,11 +41,11 @@ class Locus(Dbentity):
                      'date_created', 'created_by',
                      'summary_tab', 'history_tab', 'literature_tab', 'go_tab', 'phenotype_tab', 'interaction_tab',
                      'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab', 'sequence_section']
-    __eq_fks__ = ['source']
+    __eq_fks__ = [('source', Source, False)]#, ('aliases', LocusAlias, True), ('urls', LocusUrl, True)]
     __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
 
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
+    def __init__(self, obj_json, foreign_key_converter):
+        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_converter)
 
         self.link = '/locus/' + self.sgdid
         self.display_name = self.systematic_name if self.gene_name is None else self.gene_name
@@ -52,7 +55,7 @@ class Locus(Dbentity):
             setattr(self, tab, tabs[tab])
 
     def to_json(self):
-        obj_json = UpdateByJsonMixin.to_json(self)
+        obj_json = ToJsonMixin.to_json(self)
 
         #Aliases
         obj_json['aliases'] = [x.to_json() for x in self.aliases]
@@ -66,7 +69,7 @@ class Locus(Dbentity):
         return obj_json
 
     def to_semi_json(self):
-        obj_json = UpdateByJsonMixin.to_min_json(self)
+        obj_json = ToJsonMixin.to_min_json(self)
         obj_json['description'] = self.description
         return obj_json
 
@@ -353,7 +356,7 @@ class Locus(Dbentity):
 
         return obj_json
 
-class LocusUrl(Base, EqualityByIDMixin, UpdateByJsonMixin):
+class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'locus_url'
 
     id = Column('url_id', Integer, primary_key=True)
@@ -373,13 +376,10 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateByJsonMixin):
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-
     def unique_key(self):
-        return self.locus_id, self.display_name, self.url_type
+        return self.locus.unique_key(), self.display_name, self.url_type
 
-class LocusAlias(Base, EqualityByIDMixin, UpdateByJsonMixin):
+class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'locus_alias'
 
     id = Column('alias_id', Integer, primary_key=True)
@@ -400,13 +400,10 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateByJsonMixin):
                      'date_created', 'created_by']
     __eq_fks__ = ['source']
 
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-
     def unique_key(self):
-        return self.locus_id, self.display_name, self.alias_type
+        return self.locus.unique_key(), self.display_name, self.alias_type
 
-class LocusRelation(Base, EqualityByIDMixin, UpdateByJsonMixin):
+class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'locus_relation'
 
     id = Column('relation_id', Integer, primary_key=True)
@@ -427,11 +424,8 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateByJsonMixin):
                      'date_created', 'created_by']
     __eq_fks__ = ['source', 'parent', 'child']
 
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-
     def unique_key(self):
-        return self.relation_type, self.parent_id, self.child_id
+        return self.relation_type, self.parent.unique_key(), self.child.unique_key()
 
 def tab_information(status, locus_type):
     if status == 'Merged' or status == 'Deleted':

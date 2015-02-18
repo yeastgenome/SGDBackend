@@ -34,6 +34,28 @@ class CurateBackend(SGDBackend):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
         SGDBackend.__init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory)
 
+    def foreign_key_retriever(self, obj_json, cls, allow_updates):
+        if obj_json is None:
+            return None
+
+        newly_created_obj = cls(obj_json)
+        format_name = newly_created_obj.format_name
+
+        #Get object if one already exists
+        current_obj = self._get_object_from_identifier(cls, format_name)
+
+        if current_obj is None:
+            return newly_created_obj
+        else:
+            if allow_updates:
+                current_obj.update(obj_json, self.foreign_key_retriever, make_changes=True)
+                return current_obj
+            else:
+                was_different = current_obj.update(obj_json, self.foreign_key_retriever, make_changes=False)
+                if was_different:
+                    raise Exception('Cannot make changes to ' + cls.__name__ + ' from this interface. Please update from here: <a href="/' + cls.__name__.lower() + '/' + current_obj.id + '/edit">' + current_obj.display_name + '</a>')
+
+
     def update_object(self, class_name, identifier, new_json_obj, allow_update_for_add=False):
         try:
             #Validate json
@@ -108,6 +130,7 @@ class CurateBackend(SGDBackend):
                             'json': obj_json,
                             'id': obj_json['id']})
         except Exception as e:
+            print traceback.format_exc()
             return json.dumps({'status': 'Error',
                             'message': e.message,
                             'traceback': traceback.format_exc(),

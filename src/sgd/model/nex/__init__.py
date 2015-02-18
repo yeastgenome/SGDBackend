@@ -30,14 +30,19 @@ locus_types = [
     'intein_encoding_region',
     'telomerase_RNA_gene']
 
+def create_format_name(display_name):
+    format_name = display_name.replace(' ', '_')
+    format_name = format_name.replace('/', '-')
+    return format_name
+
 class UpdateWithJsonMixin(object):
-    def update(self, json_obj, make_changes=True):
+    def update(self, obj_json, foreign_key_retriever, make_changes=True):
         anything_changed = False
         for key in self.__eq_values__:
             current_value = getattr(self, key)
 
-            if key in json_obj:
-                new_value = None if key not in json_obj else json_obj[key]
+            if key in obj_json:
+                new_value = None if key not in obj_json else obj_json[key]
 
                 if isinstance(new_value, datetime.date):
                     new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
@@ -49,14 +54,35 @@ class UpdateWithJsonMixin(object):
                         setattr(self, key, new_value)
                     anything_changed = True
 
-        for key in self.__eq_fks__:
-            current_value = getattr(self, key + '_id')
-            new_value = None if (key not in json_obj or json_obj[key] is None) else json_obj[key]['id']
+        for key, cls, allow_updates in self.__eq_fks__:
+            current_value = getattr(self, key)
 
-            if new_value != current_value:
-                if make_changes:
-                    setattr(self, key + '_id', new_value)
-                anything_changed = True
+            if isinstance(current_value, list):
+                key_to_current_value = dict([(x.unique_key(), x) for x in current_value])
+                keys_not_seen = set(key_to_current_value)
+
+                for new_entry in obj_json[key]:
+                    new_object = foreign_key_retriever(new_entry, cls, allow_updates)
+                    if new_object.unique_key() in keys_not_seen:
+                        keys_not_seen.remove(new_entry)
+                    elif new_object.unique_key() in key_to_current_value:
+                        raise Exception('Duplicate ' + key)
+                    else:
+                        if make_changes:
+                            current_value.append(new_object)
+                        anything_changed = True
+
+                for key in keys_not_seen:
+                    if make_changes:
+                        current_value.remove(key_to_current_value[key])
+                    anything_changed = True
+
+            else:
+                new_value = foreign_key_retriever(obj_json[key], cls, allow_updates)
+                if new_value.unique_key() != current_value.unique_key():
+                    if make_changes:
+                        setattr(self, key, new_value)
+                    anything_changed = True
 
         return anything_changed
 
@@ -71,7 +97,7 @@ class UpdateWithJsonMixin(object):
                     else:
                         setattr(self, key, obj_json.get(key))
 
-        for key in self.__eq_fks__:
+        for key, cls, allow_updates in self.__eq_fks__:
             fk_obj = obj_json.get(key)
             fk_id = obj_json.get(key + '_id')
             if fk_obj is not None:
@@ -106,13 +132,8 @@ class ToJsonMixin(object):
                 else:
                     obj_json[key] = value
 
-        for key in self.__eq_fks__:
+        for key, cls, allow_updates in self.__eq_fks__:
             fk_obj = getattr(self, key)
-            fk_id = getattr(self, key + '_id')
-            if fk_obj is not None:
-                obj_json[key] = fk_obj.to_min_json()
-            elif fk_id is not None:
-                obj_json[key] = {'id': fk_id}
-            else:
-                obj_json[key] = None
+            obj_json[key] = None if fk_obj is None else fk_obj.to_min_json()
+
         return obj_json

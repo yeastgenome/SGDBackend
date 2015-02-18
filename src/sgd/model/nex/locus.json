@@ -17,26 +17,7 @@
         "description": {
             "type": ["string", "null"]
         },
-        "source": {
-            "type": "object",
-            "properties": {
-                "id": {"type": "integer"},
-                "display_name": {"type": "string"},
-                "format_name": {"type": "string"},
-                "link": {"type": "string"},
-                "date_created": {
-                    "type": "string",
-                    "anyOf": [
-                        {"format": "date-time"},
-                        {"format": "date"}
-                    ]
-                },
-                "created_by": {
-                    "type": "string"
-                }
-             },
-            "required": ["format_name"]
-        },
+        "source": { "$ref": "source.json#/source" },
         "bud_id": {
             "type": ["integer", "null"]
         },
@@ -81,37 +62,37 @@
             "type": ["string", "null"]
         },
         "summary_tab": {
-            "type": "boolean"
+            "type": "integer"
         },
         "sequence_tab": {
-            "type": "boolean"
+            "type": "integer"
         },
         "history_tab": {
-            "type": "boolean"
+            "type": "integer"
         },
         "literature_tab": {
-            "type": "boolean"
+            "type": "integer"
         },
         "go_tab": {
-            "type": "boolean"
+            "type": "integer"
         },
         "phenotype_tab": {
-            "type": "boolean"
+            "type": "integer"
         },
         "interaction_tab": {
-            "type": "boolean"
+            "type": "integer"
         },
         "expression_tab": {
-            "type": "boolean"
+            "type": "integer"
         },
         "regulation_tab": {
-            "type": "boolean"
+            "type": "integer"
         },
         "protein_tab": {
-            "type": "boolean"
+            "type": "integer"
         },
         "sequence_section": {
-            "type": "boolean"
+            "type": "integer"
         },
         "urls": {
             "type": "array",
