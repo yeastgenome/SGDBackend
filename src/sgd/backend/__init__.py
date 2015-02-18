@@ -325,7 +325,7 @@ def prep_views(chosen_backend, config):
                     route_name='history_details')
 
     config.add_route('alignment_bioent', '/alignments/{identifier}')
-    config.add_view(lambda request: chosen_backend.response_wrapper('alignment_bioent', request)(getattr(chosen_backend, 'alignment_bioent')(locus_identifier=request.matchdict['identifier'])),
+    config.add_view(lambda request: chosen_backend.response_wrapper('alignment_bioent', request)(getattr(chosen_backend, 'alignment_bioent')(locus_identifier=request.matchdict['identifier'], strain_ids=None if 'strain_id' not in request.GET else request.GET.getall('strain_id'))),
                     renderer=chosen_backend.get_renderer('alignment_bioent'),
                     route_name='alignment_bioent')
 
@@ -360,7 +360,7 @@ def prep_views(chosen_backend, config):
                     route_name='snapshot')
 
     config.add_route('alignments', '/alignments')
-    config.add_view(lambda request: chosen_backend.response_wrapper('alignments', request)(getattr(chosen_backend, 'alignments')()),
+    config.add_view(lambda request: chosen_backend.response_wrapper('alignments', request)(getattr(chosen_backend, 'alignments')(None if 'strain_id' not in request.GET else request.GET.getall('strain_id'))),
                     renderer=chosen_backend.get_renderer('alignments'),
                     route_name='alignments')
 
