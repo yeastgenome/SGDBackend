@@ -5,11 +5,6 @@ import datetime
 import glob
 import os
 
-def create_format_name(display_name):
-    format_name = display_name.replace(' ', '_')
-    format_name = format_name.replace('/', '-')
-    return format_name
-
 Base = None
 
 locus_types = [
@@ -35,12 +30,12 @@ locus_types = [
     'intein_encoding_region',
     'telomerase_RNA_gene']
 
-class UpdateByJsonMixin(object):
-
+class UpdateWithJsonMixin(object):
     def update(self, json_obj, make_changes=True):
         anything_changed = False
         for key in self.__eq_values__:
             current_value = getattr(self, key)
+
             if key in json_obj:
                 new_value = None if key not in json_obj else json_obj[key]
 
@@ -65,8 +60,28 @@ class UpdateByJsonMixin(object):
 
         return anything_changed
 
-    def compare(self, json_obj):
-        return self.update(json_obj, make_changes=False)
+    def __init__(self, obj_json):
+        for key in self.__eq_values__:
+            if key == 'class_type' and obj_json.get(key) is None:
+                self.class_type = self.__mapper_args__['polymorphic_identity']
+            else:
+                if key in obj_json:
+                    if key == 'date_created':
+                        setattr(self, key, datetime.datetime.strptime(obj_json.get(key), "%Y-%m-%d").date())
+                    else:
+                        setattr(self, key, obj_json.get(key))
+
+        for key in self.__eq_fks__:
+            fk_obj = obj_json.get(key)
+            fk_id = obj_json.get(key + '_id')
+            if fk_obj is not None:
+                setattr(self, key + '_id', fk_obj['id'])
+            elif fk_id is not None:
+                setattr(self, key + '_id', fk_id)
+            else:
+                setattr(self, key + '_id', None)
+
+class ToJsonMixin(object):
 
     def to_min_json(self, include_description=False):
         obj_json = {
@@ -101,24 +116,3 @@ class UpdateByJsonMixin(object):
             else:
                 obj_json[key] = None
         return obj_json
-
-    def __init__(self, obj_json):
-        for key in self.__eq_values__:
-            if key == 'class_type' and obj_json.get(key) is None:
-                self.class_type = self.__mapper_args__['polymorphic_identity']
-            else:
-                if key in obj_json:
-                    if key == 'date_created':
-                        setattr(self, key, datetime.datetime.strptime(obj_json.get(key), "%Y-%m-%d").date())
-                    else:
-                        setattr(self, key, obj_json.get(key))
-
-        for key in self.__eq_fks__:
-            fk_obj = obj_json.get(key)
-            fk_id = obj_json.get(key + '_id')
-            if fk_obj is not None:
-                setattr(self, key + '_id', fk_obj['id'])
-            elif fk_id is not None:
-                setattr(self, key + '_id', fk_id)
-            else:
-                setattr(self, key + '_id', None)

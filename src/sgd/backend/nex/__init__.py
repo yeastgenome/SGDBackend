@@ -110,7 +110,7 @@ class SGDBackend(BackendInterface):
         else:
             return None
 
-        return json.dumps([obj.to_min_json() for obj in DBSession.query(cls).all()])
+        return json.dumps([(obj.id, obj.display_name) for obj in DBSession.query(cls).all()])
 
     #Bioentity
     def all_bioentities(self, chunk_size, offset):

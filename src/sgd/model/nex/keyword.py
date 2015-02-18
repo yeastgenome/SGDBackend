@@ -3,14 +3,14 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin
 from src.sgd.model.nex.source import Source
 #from src.sgd.model.nex.colleague import Colleague
 #from src.sgd.model.nex.dataset import Dataset
 
 __author__ = 'kelley'
 
-class Keyword(Base, EqualityByIDMixin, UpdateByJsonMixin):
+class Keyword(Base, EqualityByIDMixin, ToJsonMixin):
     __tablename__ = 'keyword'
 
     id = Column('keyword_id', Integer, primary_key=True)
@@ -43,7 +43,7 @@ class Keyword(Base, EqualityByIDMixin, UpdateByJsonMixin):
         #obj_json['colleagues'] = [x.colleague.to_semi_json() for x in self.colleague_keywords]
         return obj_json
 
-class ColleagueKeyword(Base, EqualityByIDMixin, UpdateByJsonMixin):
+class ColleagueKeyword(Base, EqualityByIDMixin, ToJsonMixin):
     __tablename__ = 'colleague_keyword'
 
     id = Column('colleague_keyword_id', Integer, primary_key=True)
@@ -63,7 +63,7 @@ class ColleagueKeyword(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def unique_key(self):
         return self.keyword_id, self.colleague_id
 
-class DatasetKeyword(Base, EqualityByIDMixin, UpdateByJsonMixin):
+class DatasetKeyword(Base, EqualityByIDMixin, ToJsonMixin):
     __tablename__ = 'dataset_keyword'
 
     id = Column('dataset_keyword_id', Integer, primary_key=True)

@@ -8,36 +8,35 @@ from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
 
-class Journal(Base, EqualityByIDMixin, ToJsonMixin):
-    __tablename__ = 'journal'
+class Author(Base, EqualityByIDMixin, ToJsonMixin):
+    __tablename__ = 'author'
 
-    id = Column('journal_id', Integer, primary_key = True)
-    format_name = Column('format_name', String)
+    id = Column('author_id', Integer, primary_key = True)
     display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
-    title = Column('title', String)
-    med_abbr = Column('med_abbr', String)
-    issn_print = Column('issn_print', String)
-    issn_online = Column('issn_online', String)
     created_by = Column('created_by', String, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
 
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'bud_id', 'link', 'title', 'med_abbr', 'issn_print', 'issn_online',
-                     'date_created', 'created_by']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id',  'created_by', 'date_created']
     __eq_fks__ = ['source']
     __id_values__ = ['format_name', 'id']
 
     def __init__(self, obj_json):
         UpdateByJsonMixin.__init__(self, obj_json)
-        self.display_name = self.title if self.title is not None else self.med_abbr
-        self.format_name = create_format_name(self.display_name[:99] if self.med_abbr is None else self.display_name[:50] + '_' + self.med_abbr[:49])
-        self.link = '/journal/' + self.format_name
+        self.format_name = create_format_name(self.display_name)
+        self.link = '/author/' + self.format_name
 
     def unique_key(self):
-        return self.title, self.med_abbr
+        return self.format_name
 
+    def to_json(self):
+        obj_json = UpdateByJsonMixin.to_json(self)
+        #references = set([x.reference for x in self.author_references])
+        #obj_json['references'] = [x.to_semi_json() for x in sorted(references, key=lambda x: (x.year, x.date_published), reverse=True)]
+        return obj_json

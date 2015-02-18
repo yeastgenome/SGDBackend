@@ -118,7 +118,6 @@ def locus_starter(bud_session_maker):
 
             if bud_obj.id in bud_id_to_aliases:
                 obj_json['aliases'] = bud_id_to_aliases[bud_id]
-                print 'Has aliases'
 
             yield obj_json
 
@@ -136,7 +135,7 @@ if __name__ == '__main__':
 
     accumulated_status = dict()
     for obj_json in locus_starter(bud_session_maker):
-        output = curate_backend.update_object('locus', None, obj_json)
+        output = curate_backend.update_object('locus', None, obj_json, allow_update_for_add=True)
         status = json.loads(output)['status']
         if status == 'Error':
             print output

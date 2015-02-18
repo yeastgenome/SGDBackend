@@ -34,7 +34,7 @@ class CurateBackend(SGDBackend):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
         SGDBackend.__init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory)
 
-    def update_object(self, class_name, identifier, new_json_obj):
+    def update_object(self, class_name, identifier, new_json_obj, allow_update_for_add=False):
         try:
             #Validate json
             if class_name in self.schemas:
@@ -47,12 +47,13 @@ class CurateBackend(SGDBackend):
             if cls is None:
                 raise Exception('Class not found: ' + class_name)
 
-            #Convert foreign key format_names to ids
+            #Convert foreign keys
             for fk in cls.__eq_fks__:
                 if fk in new_json_obj:
                     fk_cls = self._get_class_from_class_name(fk)
                     if fk_cls is None:
                         raise Exception('Could not find class ' + fk_cls)
+
                     fk_obj = self._get_object_from_identifier(fk_cls, new_json_obj[fk]['format_name'])
                     if fk_obj is None:
                         raise Exception(fk.title() + ' "' + new_json_obj[fk]['format_name'] + '" does not exist.')
@@ -68,7 +69,7 @@ class CurateBackend(SGDBackend):
                 #If identifier is None we're doing an add, but if an object already exists send message
                 #that we should be doing an update
                 current_obj = self._get_object_from_identifier(cls, format_name)
-                if current_obj is not None:
+                if current_obj is not None and not allow_update_for_add:
                     edit_url = '/' + class_name.lower() + '/' + str(current_obj.id) + '/edit'
                     return json.dumps({'status': 'No Change',
                                 'message': 'This ' + class_name + ' already exists. You can update it <a href="' + edit_url + '">here</a>.',

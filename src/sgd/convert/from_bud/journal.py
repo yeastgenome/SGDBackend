@@ -18,6 +18,7 @@ def journal_starter(bud_session_maker):
                    'med_abbr': abbreviation,
                    'issn_print': old_journal.issn,
                    'issn_online': old_journal.essn,
+                   'bud_id': old_journal.id,
                    'date_created': str(old_journal.date_created),
                    'created_by': old_journal.created_by}
 
@@ -35,7 +36,7 @@ if __name__ == '__main__':
 
     accumulated_status = dict()
     for obj_json in journal_starter(bud_session_maker):
-        output = curate_backend.update_object('journal', None, obj_json)
+        output = curate_backend.update_object('journal', None, obj_json, allow_update_for_add=True)
         status = json.loads(output)['status']
         if status == 'Error':
             print output

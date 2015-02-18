@@ -1,5 +1,5 @@
 {
-    "title": "Journal",
+    "title": "Reftype",
     "type": "object",
     "properties": {
         "id": {
@@ -20,24 +20,10 @@
         "source": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "display_name": {
-                    "type": "string"
-                },
-                "format_name": {
-                    "type": "string"
-                },
-                "link": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": ["string", "null"]
-                },
-                "bud_id": {
-                    "type": ["integer", "null"]
-                },
+                "id": {"type": "integer"},
+                "display_name": {"type": "string"},
+                "format_name": {"type": "string"},
+                "link": {"type": "string"},
                 "date_created": {
                     "type": "string",
                     "anyOf": [
@@ -48,8 +34,8 @@
                 "created_by": {
                     "type": "string"
                 }
-            },
-            "required": ["display_name"]
+             },
+            "required": ["format_name"]
         },
         "bud_id": {
             "type": ["integer", "null"]
@@ -63,19 +49,7 @@
         },
         "created_by": {
             "type": "string"
-        },
-        "title": {
-            "type": ["string", "null"]
-        },
-        "med_abbr": {
-            "type": ["string", "null"]
-        },
-        "issn_print": {
-            "type": ["string", "null"]
-        },
-        "issn_online": {
-            "type": ["string", "null"]
         }
     },
-    "required": ["title", "med_abbr", "source"]
+    "required": ["display_name", "source"]
 }

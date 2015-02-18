@@ -20,10 +20,24 @@
         "source": {
             "type": "object",
             "properties": {
-                "id": {"type": "integer"},
-                "display_name": {"type": "string"},
-                "format_name": {"type": "string"},
-                "link": {"type": "string"},
+                "id": {
+                    "type": "integer"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "format_name": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": ["string", "null"]
+                },
+                "bud_id": {
+                    "type": ["integer", "null"]
+                },
                 "date_created": {
                     "type": "string",
                     "anyOf": [
@@ -34,8 +48,8 @@
                 "created_by": {
                     "type": "string"
                 }
-             },
-            "required": ["format_name"]
+            },
+            "required": ["display_name"]
         },
         "bud_id": {
             "type": ["integer", "null"]

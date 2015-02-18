@@ -1,5 +1,5 @@
 {
-    "title": "Journal",
+    "title": "Author",
     "type": "object",
     "properties": {
         "id": {
@@ -63,19 +63,7 @@
         },
         "created_by": {
             "type": "string"
-        },
-        "title": {
-            "type": ["string", "null"]
-        },
-        "med_abbr": {
-            "type": ["string", "null"]
-        },
-        "issn_print": {
-            "type": ["string", "null"]
-        },
-        "issn_online": {
-            "type": ["string", "null"]
         }
     },
-    "required": ["title", "med_abbr", "source"]
+    "required": ["display_name", "source"]
 }

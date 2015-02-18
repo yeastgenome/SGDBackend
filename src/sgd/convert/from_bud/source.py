@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     accumulated_status = dict()
     for obj_json in source_starter(bud_session_maker):
-        status = json.loads(curate_backend.update_object('source', None, obj_json))['status']
+        status = json.loads(curate_backend.update_object('source', None, obj_json, allow_update_for_add=True))['status']
         if status not in accumulated_status:
             accumulated_status[status] = 0
         accumulated_status[status] += 1

@@ -4,83 +4,18 @@ from mpmath import ceil
 from sqlalchemy.orm import joinedload
 import requests
 
-from src.sgd.model.nex import create_format_name
-from src.sgd.model.nex.misc import Source
-
 
 __author__ = 'kpaskov'
 
-# --------------------- Convert Journal ---------------------
-def make_journal_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.bud.reference import Journal
-    def journal_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-
-        for old_journal in bud_session.query(Journal).all():
-            abbreviation = old_journal.abbreviation
-            if old_journal.issn == '0948-5023':
-                abbreviation = 'J Mol Model (Online)'
-
-            title = old_journal.full_name
-            if title is not None or abbreviation is not None:
-                yield {'source': key_to_source['PubMed'],
-                       'title': title,
-                       'med_abbr': abbreviation,
-                       'issn_print': old_journal.issn,
-                       'issn_online': old_journal.essn,
-                       'date_created': old_journal.date_created,
-                       'created_by': old_journal.created_by}
-
-        bud_session.close()
-        nex_session.close()
-    return journal_starter
-
-# --------------------- Convert Book ---------------------
-def make_book_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.bud.reference import Book
-    def book_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-
-        for old_book in bud_session.query(Book).all():
-            yield {'source': key_to_source['PubMed'],
-                   'title': old_book.title,
-                   'volume_title': old_book.volume_title,
-                   'isbn': old_book.isbn,
-                   'total_pages': old_book.total_pages,
-                   'publisher': old_book.publisher,
-                   'publisher_location': old_book.publisher_location,
-                   'date_created': old_book.date_created,
-                   'created_by': old_book.created_by}
-
-        bud_session.close()
-        nex_session.close()
-    return book_starter
-
-# --------------------- Convert Reference ---------------------
-def make_reference_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.reference import Journal, Book
+def make_reference_starter(bud_session_maker):
     from src.sgd.model.bud.reference import Reference, Ref_URL
     def reference_starter():
         bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
 
-        key_to_journal = dict([(x.unique_key(), x) for x in nex_session.query(Journal).all()])
-        key_to_book = dict([(x.unique_key(), x) for x in nex_session.query(Book).all()])
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         reference_id_to_doi = dict([(x.reference_id, x.url.url[18:]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'DOI full text'])
         reference_id_to_pmcid = dict([(x.reference_id, x.url.url.replace('http://www.ncbi.nlm.nih.gov/pmc/articles/', '')[:-1]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'PMC full text'])
 
         for old_reference in bud_session.query(Reference).order_by(Reference.id.desc()).options(joinedload('book'), joinedload('journal')).all():
-            citation = create_citation(old_reference.citation)
-            display_name = create_display_name(citation)
 
             new_journal = None
             old_journal = old_reference.journal
@@ -117,13 +52,12 @@ def make_reference_starter(bud_session_maker, nex_session_maker):
             pmcid = None if old_reference.id not in reference_id_to_pmcid else reference_id_to_pmcid[old_reference.id]
 
             yield {'id': old_reference.id,
-                   'display_name': display_name,
                    'sgdid': old_reference.dbxref_id,
                    'source': source,
                    'ref_status': old_reference.status,
                    'pubmed_id': pubmed_id,
                    'fulltext_status': old_reference.pdf_status,
-                   'citation': citation,
+                   'citation': old_reference.citation.replace('()', ''),
                    'year': year,
                    'date_published': old_reference.date_published,
                    'date_revised': old_reference.date_revised,
@@ -141,23 +75,6 @@ def make_reference_starter(bud_session_maker, nex_session_maker):
         bud_session.close()
         nex_session.close()
     return reference_starter
-
-def create_citation(citation):
-    #end_of_name = citation.find(")")+1
-    #name = citation[:end_of_name]
-    #words_in_name = name.split()
-    #for i in range(0, len(words_in_name)):
-    #    word = words_in_name[i]
-    #    if len(word) > 3:
-    #        words_in_name[i] = word.title()
-    #name = ' '.join(words_in_name)
-    #new_citation = name + citation[end_of_name:]
-    new_citation = citation.replace('()', '')
-    return new_citation
-
-def create_display_name(citation):
-    display_name = citation[:citation.find(")")+1]
-    return display_name
 
 def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
     pubmed_id_to_central_id = {}
@@ -186,6 +103,27 @@ def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
             pass
         min_id = min_id + chunk_size
     return pubmed_id_to_central_id
+
+if __name__ == '__main__':
+
+    from src.sgd.backend.curate import CurateBackend
+    from src.sgd.model import bud
+    from src.sgd.convert import config
+    from src.sgd.convert import prepare_schema_connection
+
+    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
+    curate_backend = CurateBackend(config.NEX_DBTYPE, 'curator-dev-db', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
+
+    accumulated_status = dict()
+    for obj_json in author_starter(bud_session_maker):
+        output = curate_backend.update_object('author', None, obj_json, allow_update_for_add=True)
+        status = json.loads(output)['status']
+        if status == 'Error':
+            print output
+        if status not in accumulated_status:
+            accumulated_status[status] = 0
+        accumulated_status[status] += 1
+    print 'convert.author', accumulated_status
 
 # -------------------- Convert Bibentry ---------------------
 def make_bibentry_starter(bud_session_maker, nex_session_maker):
@@ -253,26 +191,6 @@ def add_entry(entries, reference, value_f, label):
     except:
         pass
 
-# --------------------- Convert Author ---------------------
-def make_author_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.bud.reference import Author
-    def author_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
-
-        for old_author in bud_session.query(Author).all():
-            yield {'display_name': old_author.name,
-                   'source': key_to_source['PubMed'],
-                   'date_created': old_author.date_created,
-                   'created_by': old_author.created_by}
-
-        bud_session.close()
-        nex_session.close()
-    return author_starter
-
 # --------------------- Convert Author Reference ---------------------
 def make_author_reference_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source
@@ -304,29 +222,6 @@ def make_author_reference_starter(bud_session_maker, nex_session_maker):
         bud_session.close()
         nex_session.close()
     return author_reference_starter
-
-# --------------------- Convert Reftype ---------------------
-def make_reftype_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.bud.reference import RefType
-    def reftype_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
-
-        for old_reftype in bud_session.query(RefType).all():
-            source_key = create_format_name(old_reftype.source)
-            source = None if source_key not in key_to_source else key_to_source[source_key]
-            yield {'id': old_reftype.id,
-                   'display_name': old_reftype.name,
-                   'source': source,
-                   'date_created': old_reftype.date_created,
-                   'created_by': old_reftype.created_by}
-
-        bud_session.close()
-        nex_session.close()
-    return reftype_starter
 
 # --------------------- Convert ReferenceReftype ---------------------
 def make_ref_reftype_starter(bud_session_maker, nex_session_maker):

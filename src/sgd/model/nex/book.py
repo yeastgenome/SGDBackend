@@ -3,12 +3,12 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, create_format_name, UpdateByJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin
 from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
 
-class Book(Base, EqualityByIDMixin, UpdateByJsonMixin):
+class Book(Base, EqualityByIDMixin, ToJsonMixin):
     __tablename__ = 'book'
 
     id = Column('book_id', Integer, primary_key=True)
