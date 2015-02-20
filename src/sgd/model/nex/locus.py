@@ -41,7 +41,7 @@ class Locus(Dbentity):
                      'date_created', 'created_by',
                      'summary_tab', 'history_tab', 'literature_tab', 'go_tab', 'phenotype_tab', 'interaction_tab',
                      'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab', 'sequence_section']
-    __eq_fks__ = [('source', Source, False)]#, ('aliases', LocusAlias, True), ('urls', LocusUrl, True)]
+    __eq_fks__ = [('source', Source, False), ('aliases', 'locus.LocusAlias', True), ('urls', 'locus.LocusUrl', True)]
     __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
 
     def __init__(self, obj_json, foreign_key_converter):
@@ -361,6 +361,7 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     id = Column('url_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
@@ -371,11 +372,17 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     #Relationships
     locus = relationship(Locus, uselist=False, backref=backref('urls', passive_deletes=True))
+    source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'locus_id', 'url_type',
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'locus_id', 'url_type',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source']
+    __eq_fks__ = [('source', Source, False), ('locus', Locus, False)]
+    __id_values__ = ['format_name']
 
+    def __init__(self, obj_json, foreign_key_converter):
+        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_converter)
+        self.format_name = str(self.locus_id) + '.' + self.display_name + '.' + self.url_type
+        print self.to_json()
     def unique_key(self):
         return self.locus.unique_key(), self.display_name, self.url_type
 
@@ -384,6 +391,7 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     id = Column('alias_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
+    format_name = Column('format_name', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
@@ -395,10 +403,16 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     #Relationships
     locus = relationship(Locus, uselist=False, backref=backref('aliases', passive_deletes=True))
+    source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'locus_id', 'is_exteral_id', 'alias_type',
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'locus_id', 'is_exteral_id', 'alias_type',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source']
+    __eq_fks__ = [('source', Source, False)]
+    __id_values__ = ['format_name']
+
+    def __init__(self, obj_json, foreign_key_converter):
+        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_converter)
+        self.format_name = str(self.locus_id) + '.' + self.display_name + '.' + self.alias_type
 
     def unique_key(self):
         return self.locus.unique_key(), self.display_name, self.alias_type
@@ -407,6 +421,7 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'locus_relation'
 
     id = Column('relation_id', Integer, primary_key=True)
+    format_name = Column('format_name', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
     parent_id = Column('parent_id', Integer, ForeignKey(Locus.id))
@@ -419,10 +434,16 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     #Relationships
     parent = relationship(Locus, backref=backref("children", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
     child = relationship(Locus, backref=backref("parents", passive_deletes=True), uselist=False, foreign_keys=[child_id])
+    source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'bud_id', 'relation_type',
+    __eq_values__ = ['id', 'bud_id', 'relation_type', 'format_name',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source', 'parent', 'child']
+    __eq_fks__ = [('source', Source, False), ('parent', Locus, False), ('child', Locus, False)]
+    __id_values__ = ['format_name']
+
+    def __init__(self, obj_json, foreign_key_converter):
+        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_converter)
+        self.format_name = str(self.child_id) + '.' + str(self.parent_id) + '.' + self.relation_type
 
     def unique_key(self):
         return self.relation_type, self.parent.unique_key(), self.child.unique_key()

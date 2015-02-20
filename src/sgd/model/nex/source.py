@@ -2,11 +2,11 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
 
 __author__ = 'kelley'
 
-class Source(Base, EqualityByIDMixin, ToJsonMixin):
+class Source(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'source'
 
     id = Column('source_id', Integer, primary_key = True)
@@ -22,8 +22,8 @@ class Source(Base, EqualityByIDMixin, ToJsonMixin):
     __eq_fks__ = []
     __id_values__ = ['id', 'format_name']
 
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
+    def __init__(self, obj_json, foreign_key_convert):
+        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_convert)
         self.format_name = create_format_name(self.display_name)
         self.link = '/source/' + self.format_name
 

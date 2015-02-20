@@ -67,7 +67,8 @@ class SGDBackend(BackendInterface):
         return None if class_type not in self.schemas else json.dumps(self.schemas[class_type])
 
     def get_object(self, class_name, identifier):
-
+        from jsonschema import validate
+        from jsonschema.exceptions import ValidationError
         #Get class
         cls = self._get_class_from_class_name(class_name)
         if cls is None:
@@ -75,6 +76,11 @@ class SGDBackend(BackendInterface):
 
         #Get object
         obj = self._get_object_from_identifier(cls, identifier)
+
+        if class_name in self.schemas:
+            validate(obj.to_json(), self.schemas[class_name])
+        else:
+            raise Exception('Schema not found: ' + class_name)
 
         return None if obj is None else json.dumps(obj.to_json())
 

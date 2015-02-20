@@ -79,33 +79,17 @@ class UpdateWithJsonMixin(object):
 
             else:
                 new_value = foreign_key_retriever(obj_json[key], cls, allow_updates)
-                if new_value.unique_key() != current_value.unique_key():
+                if new_value is None and current_value is None:
+                    pass
+                elif new_value is None or current_value is not None or new_value.unique_key() != current_value.unique_key():
                     if make_changes:
                         setattr(self, key, new_value)
                     anything_changed = True
 
         return anything_changed
 
-    def __init__(self, obj_json):
-        for key in self.__eq_values__:
-            if key == 'class_type' and obj_json.get(key) is None:
-                self.class_type = self.__mapper_args__['polymorphic_identity']
-            else:
-                if key in obj_json:
-                    if key == 'date_created':
-                        setattr(self, key, datetime.datetime.strptime(obj_json.get(key), "%Y-%m-%d").date())
-                    else:
-                        setattr(self, key, obj_json.get(key))
-
-        for key, cls, allow_updates in self.__eq_fks__:
-            fk_obj = obj_json.get(key)
-            fk_id = obj_json.get(key + '_id')
-            if fk_obj is not None:
-                setattr(self, key + '_id', fk_obj['id'])
-            elif fk_id is not None:
-                setattr(self, key + '_id', fk_id)
-            else:
-                setattr(self, key + '_id', None)
+    def __init__(self, obj_json, foreign_key_converter):
+        self.update(obj_json, foreign_key_converter, make_changes=True)
 
 class ToJsonMixin(object):
 
@@ -134,6 +118,12 @@ class ToJsonMixin(object):
 
         for key, cls, allow_updates in self.__eq_fks__:
             fk_obj = getattr(self, key)
-            obj_json[key] = None if fk_obj is None else fk_obj.to_min_json()
+
+            if fk_obj is None:
+                obj_json[key] = None
+            elif isinstance(fk_obj, list):
+                obj_json[key] = [x.to_min_json() for x in fk_obj]
+            else:
+                obj_json[key] = fk_obj.to_min_json()
 
         return obj_json

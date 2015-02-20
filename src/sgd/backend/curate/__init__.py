@@ -38,11 +38,16 @@ class CurateBackend(SGDBackend):
         if obj_json is None:
             return None
 
-        newly_created_obj = cls(obj_json)
-        format_name = newly_created_obj.format_name
+        if isinstance(cls, str):
+            mod = __import__('src.sgd.model.nex.' + cls.split('.')[0], fromlist=[cls.split('.')[1]])
+            if hasattr(mod, cls.split('.')[1]):
+                cls = getattr(mod, cls.split('.')[1])
+            else:
+                raise Exception('Class not found: ' + cls)
 
-        #Get object if one already exists
-        current_obj = self._get_object_from_identifier(cls, format_name)
+        newly_created_obj = cls(obj_json, self.foreign_key_retriever)
+
+        current_obj =
 
         if current_obj is None:
             return newly_created_obj
@@ -81,7 +86,7 @@ class CurateBackend(SGDBackend):
                         raise Exception(fk.title() + ' "' + new_json_obj[fk]['format_name'] + '" does not exist.')
                     new_json_obj[fk]['id'] = fk_obj.id
 
-            newly_created_obj = cls(new_json_obj)
+            newly_created_obj = cls(new_json_obj, self.foreign_key_retriever)
             format_name = newly_created_obj.format_name
 
             #Get object if one already exists

@@ -1,195 +1,185 @@
 {
     "title": "Locus",
-    "type": "object",
-    "properties": {
-        "id": {
-            "type": "integer"
-        },
-        "display_name": {
-            "type": "string"
-        },
-        "format_name": {
-            "type": "string"
-        },
-        "link": {
-            "type": "string"
-        },
-        "description": {
-            "type": ["string", "null"]
-        },
-        "source": { "$ref": "source.json#/source" },
-        "bud_id": {
-            "type": ["integer", "null"]
-        },
-        "date_created": {
-            "type": "string",
-            "anyOf": [
-                {"format": "date-time"},
-                {"format": "date"}
-            ]
-        },
-        "created_by": {
-            "type": "string"
-        },
-        "sgdid": {
-            "type": "string"
-        },
-        "uniprotid": {
-            "type": ["string", "null"]
-        },
-        "dbent_status": {
-            "type": "string"
-        },
-        "locus_type": {
-            "type": "string"
-        },
-        "name_description": {
-            "type": ["string", "null"]
-        },
-        "headline": {
-            "type": ["string", "null"]
-        },
-        "gene_name": {
-            "type": ["string", "null"]
-        },
-        "systematic_name": {
-            "type": "string"
-        },
-        "qualifier": {
-            "type": ["string", "null"]
-        },
-        "genetic_position": {
-            "type": ["string", "null"]
-        },
-        "summary_tab": {
-            "type": "integer"
-        },
-        "sequence_tab": {
-            "type": "integer"
-        },
-        "history_tab": {
-            "type": "integer"
-        },
-        "literature_tab": {
-            "type": "integer"
-        },
-        "go_tab": {
-            "type": "integer"
-        },
-        "phenotype_tab": {
-            "type": "integer"
-        },
-        "interaction_tab": {
-            "type": "integer"
-        },
-        "expression_tab": {
-            "type": "integer"
-        },
-        "regulation_tab": {
-            "type": "integer"
-        },
-        "protein_tab": {
-            "type": "integer"
-        },
-        "sequence_section": {
-            "type": "integer"
-        },
-        "urls": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "integer"},
-                    "display_name": {"type": "string"},
-                    "link": {"type": "string"},
-                    "url_type": {"type": "string"},
-                    "source": {
-                        "type": "object",
-                        "properties": {
-                            "id": {"type": "integer"},
-                            "display_name": {"type": "string"},
-                            "format_name": {"type": "string"},
-                            "link": {"type": "string"},
-                            "date_created": {
-                                "type": "string",
-                                "anyOf": [
-                                    {"format": "date-time"},
-                                    {"format": "date"}
-                                ]
-                            },
-                            "created_by": {
-                                "type": "string"
-                            }
-                         },
-                        "required": ["format_name"]
-                    },
-                    "date_created": {
-                        "type": "string",
-                        "anyOf": [
-                            {"format": "date-time"},
-                            {"format": "date"}
-                        ]
-                    },
-                    "created_by": {
-                        "type": "string"
-                    }
-                 },
-                "required": ["display_name", "link", "url_type", "source"]
+    "locus": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer"
             },
-            "uniqueItems": true
-        },
-        "aliases": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
+            "display_name": {
+                "type": "string"
+            },
+            "format_name": {
+                "type": "string"
+            },
+            "link": {
+                "type": "string"
+            },
+            "description": {
+                "type": ["string", "null"]
+            },
+            "source": {
+                "$ref": "source.json#/source"
+            },
+            "bud_id": {
+                "type": ["integer", "null"]
+            },
+            "date_created": {
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "date-time"
                     },
-                    "display_name": {
-                        "type": "string"
-                    },
-                    "link": {
-                        "type":["string", "null"]
-                    },
-                    "alias_type": {
-                        "type": "string"
-                    },
-                    "source": {
-                        "type": "object",
-                        "properties": {
-                            "id": {"type": "integer"},
-                            "display_name": {"type": "string"},
-                            "format_name": {"type": "string"},
-                            "link": {"type": "string"},
-                            "date_created": {
-                                "type": "string",
-                                "anyOf": [
-                                    {"format": "date-time"},
-                                    {"format": "date"}
-                                ]
-                            },
-                            "created_by": {
-                                "type": "string"
-                            }
-                         },
-                        "required": ["format_name"]
-                    },
-                    "date_created": {
-                        "type": "string",
-                        "anyOf": [
-                            {"format": "date-time"},
-                            {"format": "date"}
-                        ]
-                    },
-                    "created_by": {
-                        "type": "string"
+                    {
+                        "format": "date"
                     }
+                ]
+            },
+            "created_by": {
+                "type": "string"
+            },
+            "sgdid": {
+                "type": "string"
+            },
+            "uniprotid": {
+                "type": ["string", "null"]
+            },
+            "dbent_status": {
+                "type": "string"
+            },
+            "locus_type": {
+                "type": "string"
+            },
+            "name_description": {
+                "type": ["string", "null"]
+            },
+            "headline": {
+                "type": ["string", "null"]
+            },
+            "gene_name": {
+                "type": ["string", "null"]
+            },
+            "systematic_name": {
+                "type": "string"
+            },
+            "qualifier": {
+                "type": ["string", "null"]
+            },
+            "genetic_position": {
+                "type": ["string", "null"]
+            },
+            "summary_tab": {
+                "type": "integer"
+            },
+            "sequence_tab": {
+                "type": "integer"
+            },
+            "history_tab": {
+                "type": "integer"
+            },
+            "literature_tab": {
+                "type": "integer"
+            },
+            "go_tab": {
+                "type": "integer"
+            },
+            "phenotype_tab": {
+                "type": "integer"
+            },
+            "interaction_tab": {
+                "type": "integer"
+            },
+            "expression_tab": {
+                "type": "integer"
+            },
+            "regulation_tab": {
+                "type": "integer"
+            },
+            "protein_tab": {
+                "type": "integer"
+            },
+            "sequence_section": {
+                "type": "integer"
+            },
+            "urls": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "integer"
+                        },
+                        "display_name": {
+                            "type": "string"
+                        },
+                        "link": {
+                            "type": "string"
+                        },
+                        "url_type": {
+                            "type": "string"
+                        },
+                        "source": {
+                            "$ref": "source.json#/source"
+                        },
+                        "date_created": {
+                            "type": "string",
+                            "anyOf": [
+                                {
+                                    "format": "date-time"
+                                },
+                                {
+                                    "format": "date"
+                                }
+                            ]
+                        },
+                        "created_by": {
+                            "type": "string"
+                        }
+                    },
+                    "required": ["display_name", "link", "url_type", "source"]
                 },
-                "required": ["display_name", "link", "alias_type", "source"]
+                "uniqueItems": true
             },
-            "uniqueItems": true
-        }
-    },
-    "required": ["systematic_name", "source", "sgdid", "locus_type", "dbent_status"]
+            "aliases": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "integer"
+                        },
+                        "display_name": {
+                            "type": "string"
+                        },
+                        "link": {
+                            "type": ["string", "null"]
+                        },
+                        "alias_type": {
+                            "type": "string"
+                        },
+                        "source": {
+                            "$ref": "source.json#/source"
+                        },
+                        "date_created": {
+                            "type": "string",
+                            "anyOf": [
+                                {
+                                    "format": "date-time"
+                                },
+                                {
+                                    "format": "date"
+                                }
+                            ]
+                        },
+                        "created_by": {
+                            "type": "string"
+                        }
+                    },
+                    "required": ["display_name", "link", "alias_type", "source"]
+                },
+                "uniqueItems": true
+            }
+        },
+        "required": ["systematic_name", "source", "sgdid", "locus_type", "dbent_status"]
+    }
 }
