@@ -35,8 +35,35 @@ def create_format_name(display_name):
     format_name = format_name.replace('/', '-')
     return format_name
 
+def get_class_from_string(class_string):
+    module = class_string.split('.')[0]
+    class_name = class_string.split('.')[1]
+    mod = __import__('src.sgd.model.nex.' + module, fromlist=[class_name])
+    if hasattr(mod, class_name):
+        return getattr(mod, class_name)
+    else:
+        raise Exception('Class not found: ' + class_string)
+
 class UpdateWithJsonMixin(object):
-    def update(self, obj_json, foreign_key_retriever, make_changes=True):
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        newly_created_obj = cls(obj_json, session)
+
+        if hasattr(cls, 'format_name'):
+            current_obj = session.query(cls).filter_by(format_name=newly_created_obj.format_name).first()
+
+            if current_obj is None:
+                return newly_created_obj, 'Created'
+            else:
+                return current_obj, 'Found'
+        else:
+            raise Exception('Class ' + cls.__name__ + ' doesn\'t have format name. You need to implement the create_or_find method.')
+
+    def update(self, obj_json, session, make_changes=True):
         anything_changed = False
         for key in self.__eq_values__:
             current_value = getattr(self, key)
@@ -55,51 +82,89 @@ class UpdateWithJsonMixin(object):
                     anything_changed = True
 
         for key, cls, allow_updates in self.__eq_fks__:
-            current_value = getattr(self, key)
+            current_fk_value = getattr(self, key)
 
-            if isinstance(current_value, list):
-                key_to_current_value = dict([(x.unique_key(), x) for x in current_value])
-                keys_not_seen = set(key_to_current_value)
+            if isinstance(cls, str):
+                #We've been given the class as a string due to cyclic dependencies, so find the actual class
+                cls = get_class_from_string(cls)
 
-                for new_entry in obj_json[key]:
-                    new_object = foreign_key_retriever(new_entry, cls, allow_updates)
-                    if new_object.unique_key() in keys_not_seen:
-                        keys_not_seen.remove(new_entry)
-                    elif new_object.unique_key() in key_to_current_value:
-                        raise Exception('Duplicate ' + key)
-                    else:
+            if key not in obj_json:
+                #Do nothing if we haven't been given any information about this foreign key
+                pass
+            else:
+                new_fk_json_obj = obj_json[key]
+
+                if isinstance(current_fk_value, list):
+                    #This foreign key is actually a list of objects
+
+                    if not isinstance(new_fk_json_obj, list):
+                        raise Exception('Expected a list for key ' + key)
+
+                    key_to_current_value = dict([(x.unique_key(), x) for x in current_fk_value])
+                    keys_not_seen = set(key_to_current_value)
+
+                    for new_fk_json_obj_entry in new_fk_json_obj:
+                        new_fk_obj, status = cls.create_or_find(new_fk_json_obj_entry, session, parent_obj=self)
+                        if make_changes and allow_updates:
+                            #If we find an object, and we allow updates, then we update it.
+                            updated = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=True)
+                            if updated:
+                                anything_changed = True
+                        else:
+                            #If we find an object, and we don't allow updates, and it differs from the object we've been given, exception
+                            should_be_updated = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=False)
+                            if should_be_updated:
+                                raise Exception('Updated not allowed, but fk differs.')
+
+                        if new_fk_obj.unique_key() in keys_not_seen:
+                            #We already have this object, and we've done our update so we're all set. Just a little bit of bookkeeping
+                            keys_not_seen.remove(new_fk_obj.unique_key())
+                        elif new_fk_obj.unique_key() in key_to_current_value:
+                            #We already have this object AND we've already seen it before, so we've been given duplicates - not allowed.
+                            raise Exception('Duplicate foreign key ' + key)
+                        else:
+                            if make_changes:
+                                #We haven't seen this object, so add it.
+                                current_fk_value.append(new_fk_obj)
+                            anything_changed = True
+
+                    for key in keys_not_seen:
+                        #We didn't see these keys, so they need to be deleted.
                         if make_changes:
-                            current_value.append(new_object)
+                            current_fk_value.remove(key_to_current_value[key])
                         anything_changed = True
 
-                for key in keys_not_seen:
-                    if make_changes:
-                        current_value.remove(key_to_current_value[key])
-                    anything_changed = True
+                else:
+                    #This foreign key is just a single object
+                    new_fk_obj, status = cls.create_or_find(new_fk_json_obj, session, parent_obj=self)
+                    if make_changes and allow_updates:
+                        #If we find an object, and we allow updates, then we update it.
+                        new_fk_obj.update(new_fk_json_obj, session, make_changes=True)
+                    else:
+                        #If we find an object, and we don't allow updates, and it differs from the object we've been given, exception
+                        should_be_updated = new_fk_obj.update(new_fk_json_obj, session, make_changes=False)
+                        if should_be_updated:
+                            raise Exception('Updated not allowed, but fk differs.')
 
-            else:
-                new_value = foreign_key_retriever(obj_json[key], cls, allow_updates)
-                if new_value is None and current_value is None:
-                    pass
-                elif new_value is None or current_value is not None or new_value.unique_key() != current_value.unique_key():
-                    if make_changes:
-                        setattr(self, key, new_value)
-                    anything_changed = True
+                    if current_fk_value is None or new_fk_obj.unique_key() != current_fk_value.unique_key():
+                        #Change the foreign key object
+                        if make_changes:
+                            setattr(self, key, new_fk_obj)
+                        anything_changed = True
 
         return anything_changed
 
-    def __init__(self, obj_json, foreign_key_converter):
-        self.update(obj_json, foreign_key_converter, make_changes=True)
+    def __init__(self, obj_json, session):
+        self.update(obj_json, session, make_changes=True)
 
 class ToJsonMixin(object):
 
     def to_min_json(self, include_description=False):
-        obj_json = {
-            'id': self.id,
-            'format_name': self.format_name,
-            'display_name': self.display_name,
-            'link': self.link,
-            }
+        obj_json = dict()
+        for key in {'id', 'format_name', 'display_name', 'link'}:
+            if hasattr(self, key):
+                obj_json[key] = getattr(self, key)
+
         if include_description and hasattr(self, 'description'):
             obj_json['description'] = self.description
         return obj_json

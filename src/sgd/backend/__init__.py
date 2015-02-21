@@ -27,7 +27,7 @@ def prep_views(chosen_backend, config):
 
     #Update object
     config.add_route('update', '/{class_type}/{identifier}/update', request_method="POST")
-    config.add_view(lambda request: chosen_backend.response_wrapper('update', request)(chosen_backend.update_object(request.matchdict['class_type'], request.matchdict['identifier'], request.json_body)),
+    config.add_view(lambda request: chosen_backend.response_wrapper('update', request)(chosen_backend.update_object(request.matchdict['class_type'], request.json_body)),
                 renderer='string', route_name='update')
 
 

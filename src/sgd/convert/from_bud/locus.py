@@ -52,15 +52,16 @@ def locus_starter(bud_session_maker):
     #Load aliases
     bud_id_to_aliases = dict()
     for bud_obj in bud_session.query(AliasFeature).options(joinedload('alias')).all():
+        bud_id = bud_obj.feature_id
+        if bud_id not in bud_id_to_aliases:
+            bud_id_to_aliases[bud_id] = []
+
         if bud_obj.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'}:
-            bud_id = bud_obj.feature_id
-            if bud_id not in bud_id_to_aliases:
-                bud_id_to_aliases[bud_id] = []
             bud_id_to_aliases[bud_id].append(
                 {'display_name': bud_obj.alias_name,
-                 'source': {"format_name": 'SGD'},
+                 'source': {'display_name': 'SGD'},
+                 'bud_id': bud_obj.id,
                  'alias_type': bud_obj.alias_type,
-                 'is_external_id': 0,
                  'date_created': str(bud_obj.date_created),
                  'created_by': bud_obj.created_by})
 
@@ -83,9 +84,9 @@ def locus_starter(bud_session_maker):
         bud_id_to_aliases[bud_id].append(
             {'display_name': display_name,
              'link': link,
-             'source': {"format_name": bud_obj.dbxref.source.replace('/', '-')},
+             'source': {'display_name': bud_obj.dbxref.source},
              'alias_type': bud_obj.dbxref.dbxref_type,
-             'is_external_id': 1,
+             'bud_id': bud_obj.id,
              'date_created': str(bud_obj.dbxref.date_created),
              'created_by': bud_obj.dbxref.created_by})
 
@@ -97,7 +98,7 @@ def locus_starter(bud_session_maker):
                         'gene_name': bud_obj.gene_name,
                         'systematic_name':bud_obj.name,
                         'source': {
-                            'format_name': bud_obj.source
+                            'display_name': bud_obj.source
                         },
                         'sgdid': sgdid,
                         'uniprotid': None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid],
@@ -117,7 +118,7 @@ def locus_starter(bud_session_maker):
                 obj_json['genetic_position'] = str(ann.genetic_position)
 
             if bud_obj.id in bud_id_to_aliases:
-                obj_json['aliases'] = bud_id_to_aliases[bud_id]
+                obj_json['aliases'] = bud_id_to_aliases[bud_obj.id]
 
             yield obj_json
 
@@ -135,7 +136,7 @@ if __name__ == '__main__':
 
     accumulated_status = dict()
     for obj_json in locus_starter(bud_session_maker):
-        output = curate_backend.update_object('locus', None, obj_json, allow_update_for_add=True)
+        output = curate_backend.update_object('locus', obj_json)
         status = json.loads(output)['status']
         if status == 'Error':
             print output

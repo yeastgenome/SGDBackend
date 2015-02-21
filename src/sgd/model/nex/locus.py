@@ -361,7 +361,6 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     id = Column('url_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
@@ -374,24 +373,41 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     locus = relationship(Locus, uselist=False, backref=backref('urls', passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'locus_id', 'url_type',
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'locus_id', 'url_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('locus', Locus, False)]
     __id_values__ = ['format_name']
 
-    def __init__(self, obj_json, foreign_key_converter):
-        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_converter)
-        self.format_name = str(self.locus_id) + '.' + self.display_name + '.' + self.url_type
-        print self.to_json()
+    def __init__(self, obj_json, session):
+        self.update(obj_json, session)
+
     def unique_key(self):
         return self.locus.unique_key(), self.display_name, self.url_type
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            newly_created_object.locus_id = parent_obj.id
+
+        current_obj = session.query(cls)\
+            .filter_by(locus_id=newly_created_object.locus_id)\
+            .filter_by(display_name=newly_created_object.display_name)\
+            .filter_by(url_type=newly_created_object.url_type).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
 
 class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'locus_alias'
 
     id = Column('alias_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
@@ -402,26 +418,45 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    locus = relationship(Locus, uselist=False, backref=backref('aliases', passive_deletes=True))
+    locus = relationship(Locus, uselist=False, backref=backref('aliases', cascade="all, delete, delete-orphan"))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'locus_id', 'is_exteral_id', 'alias_type',
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'locus_id', 'is_external_id', 'alias_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name']
 
-    def __init__(self, obj_json, foreign_key_converter):
-        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_converter)
-        self.format_name = str(self.locus_id) + '.' + self.display_name + '.' + self.alias_type
+    def __init__(self, obj_json, session):
+        self.update(obj_json, session)
+        self.is_external_id = 0 if self.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'} else 1
 
     def unique_key(self):
-        return self.locus.unique_key(), self.display_name, self.alias_type
+        return None if self.locus is None else self.locus.unique_key(), self.display_name, self.alias_type
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            newly_created_object.locus_id = parent_obj.id
+
+        current_obj = session.query(cls)\
+            .filter_by(locus_id=newly_created_object.locus_id)\
+            .filter_by(display_name=newly_created_object.display_name)\
+            .filter_by(alias_type=newly_created_object.alias_type).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
+
 
 class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'locus_relation'
 
     id = Column('relation_id', Integer, primary_key=True)
-    format_name = Column('format_name', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
     parent_id = Column('parent_id', Integer, ForeignKey(Locus.id))
@@ -436,17 +471,38 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     child = relationship(Locus, backref=backref("parents", passive_deletes=True), uselist=False, foreign_keys=[child_id])
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'bud_id', 'relation_type', 'format_name',
+    __eq_values__ = ['id', 'bud_id', 'relation_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('parent', Locus, False), ('child', Locus, False)]
     __id_values__ = ['format_name']
 
-    def __init__(self, obj_json, foreign_key_converter):
-        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_converter)
-        self.format_name = str(self.child_id) + '.' + str(self.parent_id) + '.' + self.relation_type
+    def __init__(self, obj_json, session):
+        self.update(obj_json, session)
 
     def unique_key(self):
         return self.relation_type, self.parent.unique_key(), self.child.unique_key()
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            if newly_created_object.parent is None:
+                newly_created_object.parent_id = parent_obj.id
+            elif newly_created_object.child is None:
+                newly_created_object.child_id = parent_obj.id
+
+        current_obj = session.query(cls)\
+            .filter_by(parent_id=newly_created_object.parent_id)\
+            .filter_by(child_id=newly_created_object.child_id)\
+            .filter_by(relation_type=newly_created_object.relation_type).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
 
 def tab_information(status, locus_type):
     if status == 'Merged' or status == 'Deleted':
