@@ -3,12 +3,12 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
 from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
 
-class Book(Base, EqualityByIDMixin, ToJsonMixin):
+class Book(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'book'
 
     id = Column('book_id', Integer, primary_key=True)
@@ -32,11 +32,11 @@ class Book(Base, EqualityByIDMixin, ToJsonMixin):
     __eq_values__ = ['id', 'display_name', 'format_name', 'bud_id', 'link', 'title', 'volume_title', 'isbn', 'total_pages',
                      'publisher', 'publisher_location',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source']
+    __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name', 'id']
 
     def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
+        UpdateWithJsonMixin.__init__(self, obj_json)
         self.display_name = self.title
         self.format_name = create_format_name(self.title + '' if self.volume_title is None else ('_' + self.volume_title))
         self.link = '/book/' + self.format_name

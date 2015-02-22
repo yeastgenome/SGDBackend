@@ -24,7 +24,7 @@ class Reftype(Base, EqualityByIDMixin, ToJsonMixin):
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'created_by', 'date_created']
-    __eq_fks__ = ['source']
+    __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name', 'id']
 
     def __init__(self, obj_json):

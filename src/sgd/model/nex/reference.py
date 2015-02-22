@@ -4,25 +4,19 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date, CLOB
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.nex.dbentity import Dbentity
 from src.sgd.model.nex.source import Source
 from src.sgd.model.nex.journal import Journal
 from src.sgd.model.nex.book import Book
 
 __author__ = 'kpaskov'
 
-class Reference(Base, EqualityByIDMixin, ToJsonMixin):
-    __tablename__ = 'reference'
+class Reference(Dbentity):
+    __tablename__ = 'referencedbentity'
 
-    id = Column('reference_id', Integer, primary_key = True)
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
-    sgdid = Column('sgdid', String)
-    link = Column('obj_url', String)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    bud_id = Column('bud_id', Integer)
+    id = Column('dbentity_id', Integer, ForeignKey(Dbentity.id), primary_key = True)
 
-    ref_status = Column('ref_status', String)
     pubmed_id = Column('pubmed_id', Integer)
     pubmed_central_id = Column('pubmed_central_id', String)
     fulltext_status = Column('fulltext_status', String)
@@ -37,12 +31,9 @@ class Reference(Base, EqualityByIDMixin, ToJsonMixin):
     journal_id = Column('journal_id', Integer, ForeignKey(Journal.id))
     book_id = Column('book_id', Integer, ForeignKey(Book.id))
     doi = Column('doi', String)
-    created_by = Column('created_by', String, server_default=FetchedValue())
-    date_created = Column('date_created', Date, server_default=FetchedValue())
 
     book = relationship(Book, uselist=False)
     journal = relationship(Journal, uselist=False)
-    source = relationship(Source, uselist=False, lazy='joined')
 
     author_names = association_proxy('author_references', 'author_name')
     related_references = association_proxy('refrels', 'child_ref')
@@ -51,11 +42,11 @@ class Reference(Base, EqualityByIDMixin, ToJsonMixin):
                      'pubmed_central_id', 'fulltext_status', 'citation', 'year', 'date_published', 'date_revised',
                      'issue', 'page', 'volume', 'title', 'doi', 'bud_id',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source', 'journal', 'book']
+    __eq_fks__ = [('source', Source, False), ('journal', Journal, False), ('book', Book, False)]
     __id_values__ = ['format_name', 'id', 'sgdid', 'pubmed_id']
 
     def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
+        UpdateWithJsonMixin.__init__(self, obj_json)
         self.display_name = citation[:citation.find(")")+1]
         self.format_name = self.sgdid if self.pubmed_id is None else str(self.pubmed_id)
         self.link = '/reference/' + self.sgdid
@@ -64,7 +55,7 @@ class Reference(Base, EqualityByIDMixin, ToJsonMixin):
         return self.format_name
 
     def to_min_json(self, include_description=False):
-        obj_json = UpdateByJsonMixin.to_min_json(self, include_description=include_description)
+        obj_json = ToJsonMixin.to_min_json(self, include_description=include_description)
         obj_json['pubmed_id'] = self.pubmed_id
         obj_json['year'] = self.year
         return obj_json

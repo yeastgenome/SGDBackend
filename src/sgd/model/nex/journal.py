@@ -3,12 +3,12 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
 from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
 
-class Journal(Base, EqualityByIDMixin, ToJsonMixin):
+class Journal(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'journal'
 
     id = Column('journal_id', Integer, primary_key = True)
@@ -29,11 +29,11 @@ class Journal(Base, EqualityByIDMixin, ToJsonMixin):
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'bud_id', 'link', 'title', 'med_abbr', 'issn_print', 'issn_online',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source']
+    __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name', 'id']
 
     def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
+        UpdateWithJsonMixin.__init__(self, obj_json)
         self.display_name = self.title if self.title is not None else self.med_abbr
         self.format_name = create_format_name(self.display_name[:99] if self.med_abbr is None else self.display_name[:50] + '_' + self.med_abbr[:49])
         self.link = '/journal/' + self.format_name
