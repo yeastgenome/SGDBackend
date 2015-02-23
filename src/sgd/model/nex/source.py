@@ -21,9 +21,10 @@ class Source(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by']
     __eq_fks__ = []
     __id_values__ = ['id', 'format_name']
+    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
-    def __init__(self, obj_json, foreign_key_convert):
-        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_convert)
+    def __init__(self, obj_json, session):
+        UpdateWithJsonMixin.__init__(self, obj_json, session)
         self.format_name = create_format_name(self.display_name)
         self.link = '/source/' + self.format_name
 

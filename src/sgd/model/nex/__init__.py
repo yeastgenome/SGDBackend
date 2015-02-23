@@ -72,14 +72,19 @@ class UpdateWithJsonMixin(object):
                 new_value = None if key not in obj_json else obj_json[key]
 
                 if isinstance(new_value, datetime.date):
-                    new_value = None if new_value is None else datetime.datetime.strptime(new_value, "%Y-%m-%d")
+                    new_value = None if new_value is None else datetime.datetime.strftime(new_value, "%Y-%m-%d")
 
-                if key == 'id' or key == 'date_created' or key == 'created_by' or key == 'json':
-                    pass
-                elif new_value != current_value:
-                    if make_changes:
-                        setattr(self, key, new_value)
-                    anything_changed = True
+                if isinstance(current_value, datetime.date):
+                    current_value = None if current_value is None else datetime.datetime.strftime(current_value, "%Y-%m-%d")
+
+                if key in self.__no_edit_values__:
+                    if current_value is not None and current_value != new_value:
+                        raise Exception(key + ' cannot be edited.')
+                else:
+                    if new_value != current_value:
+                        if make_changes:
+                            setattr(self, key, new_value)
+                        anything_changed = True
 
         for key, cls, allow_updates in self.__eq_fks__:
             current_fk_value = getattr(self, key)
@@ -114,7 +119,7 @@ class UpdateWithJsonMixin(object):
                             #If we find an object, and we don't allow updates, and it differs from the object we've been given, exception
                             should_be_updated = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=False)
                             if should_be_updated:
-                                raise Exception('Updated not allowed, but fk differs.')
+                                raise Exception('Update not allowed, but fk differs.')
 
                         if new_fk_obj.unique_key() in keys_not_seen:
                             #We already have this object, and we've done our update so we're all set. Just a little bit of bookkeeping
@@ -144,7 +149,7 @@ class UpdateWithJsonMixin(object):
                         #If we find an object, and we don't allow updates, and it differs from the object we've been given, exception
                         should_be_updated = new_fk_obj.update(new_fk_json_obj, session, make_changes=False)
                         if should_be_updated:
-                            raise Exception('Updated not allowed, but fk differs.')
+                            raise Exception('Update not allowed, but fk differs.')
 
                     if current_fk_value is None or new_fk_obj.unique_key() != current_fk_value.unique_key():
                         #Change the foreign key object
@@ -156,6 +161,14 @@ class UpdateWithJsonMixin(object):
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session, make_changes=True)
+        self.format_name = self.__create_format_name__()
+        self.link = self.__create_link__()
+
+    def __create_format_name__(self):
+        return create_format_name(self.display_name)
+
+    def __create_link__(self):
+        return '/' + self.__class__.__name__.lower() + '/' + self.format_name
 
 class ToJsonMixin(object):
 

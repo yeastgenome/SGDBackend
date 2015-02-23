@@ -15,6 +15,11 @@ def prep_views(chosen_backend, config):
     config.add_route('schema', '/schema/{class_type}')
     config.add_view(lambda request: chosen_backend.response_wrapper('schema', request)(chosen_backend.schema(request.matchdict['class_type'])),
                 renderer='string', route_name='schema')
+
+    #Add
+    config.add_route('add', '/{class_type}/add', request_method="POST")
+    config.add_view(lambda request: chosen_backend.response_wrapper('add', request)(chosen_backend.add_object(request.matchdict['class_type'], request.json_body)),
+                renderer='string', route_name='add')
     #Get object
     config.add_route('get', '/{class_type}/{identifier}')
     config.add_view(lambda request: chosen_backend.response_wrapper('get', request)(chosen_backend.get_object(request.matchdict['class_type'], request.matchdict['identifier'])),

@@ -1,6 +1,5 @@
 {
     "title": "Reference",
-    "reference": {
         "type": "object",
         "properties": {
             "id": {
@@ -19,7 +18,7 @@
                 "type": ["string", "null"]
             },
             "source": {
-                "$ref": "source.json#/source"
+                "$ref": "source.json"
             },
             "bud_id": {
                 "type": ["integer", "null"]
@@ -75,12 +74,12 @@
                 "type": ["string", "null"]
             },
             "journal": {
-                "$ref": "journal.json#/journal"
+                "$ref": "journal.json"
             },
             "book": {
-                "$ref": "book.json#/book"
+                "$ref": "book.json"
             }
         },
         "required": ["display_name", "source", "sgdid", "citation"]
-    }
+
 }
