@@ -33,11 +33,12 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __eq_fks__ = ['source']
     __mapper_args__ = {'polymorphic_on': class_type}
     __id_values__ = ['sgdid', 'format_name', 'id']
+    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
-    def __init__(self, obj_json, foreign_key_converter):
-        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_converter)
+    def __init__(self, obj_json, session):
+        UpdateWithJsonMixin.__init__(self, obj_json, session)
 
-        self.link = '/locus/' + self.sgdid
+        self.link = '/dbentity/' + self.sgdid
         self.display_name = self.display_name
         self.format_name = create_format_name(self.display_name)
 

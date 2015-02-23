@@ -2,7 +2,7 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
-from src.sgd.model.nex import UpdateWithJsonMixin
+from src.sgd.model.nex import UpdateWithJsonMixin, create_format_name
 from src.sgd.model.nex.dbentity import Dbentity
 from src.sgd.model.nex.source import Source
 
@@ -18,8 +18,9 @@ class Pathway(Dbentity):
                      'description', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['sgdid', 'format_name', 'id']
+    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
-    def __init__(self, obj_json):
-        UpdateWithJsonMixin.__init__(self, obj_json)
+    def __init__(self, obj_json, session):
+        UpdateWithJsonMixin.__init__(self, obj_json, session)
         self.link = '/pathway/' + self.sgdid
         self.format_name = create_format_name(self.display_name)

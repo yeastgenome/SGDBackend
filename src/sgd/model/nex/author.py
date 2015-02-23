@@ -3,7 +3,7 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
 from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
@@ -26,11 +26,10 @@ class Author(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id',  'created_by', 'date_created']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name', 'id']
+    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
-    def __init__(self, obj_json):
-        UpdateWithJsonMixin.__init__(self, obj_json)
-        self.format_name = create_format_name(self.display_name)
-        self.link = '/author/' + self.format_name
+    def __init__(self, obj_json, session):
+        UpdateWithJsonMixin.__init__(self, obj_json, session)
 
     def unique_key(self):
         return self.format_name

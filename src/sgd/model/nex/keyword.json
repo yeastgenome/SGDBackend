@@ -1,39 +1,37 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Keyword",
-    "keyword": {
-        "type": "object",
-        "properties": {
-            "id": {
-                "type": "integer"
-            },
-            "display_name": {
-                "type": "string"
-            },
-            "format_name": {
-                "type": "string"
-            },
-            "link": {
-                "type": "string"
-            },
-            "description": {
-                "type": ["string", "null"]
-            },
-            "source": { "$ref": "source.json#/source" },
-            "bud_id": {
-                "type": ["integer", "null"]
-            },
-            "date_created": {
-                "type": "string",
-                "anyOf": [
-                    {"format": "date-time"},
-                    {"format": "date"}
-                ]
-            },
-            "created_by": {
-                "type": "string"
-            }
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
         },
-        "required": ["display_name", "source"]
-    }
+        "display_name": {
+            "type": "string"
+        },
+        "format_name": {
+            "type": "string"
+        },
+        "link": {
+            "type": "string"
+        },
+        "description": {
+            "type": ["string", "null"]
+        },
+        "source": { "$ref": "source.json" },
+        "bud_id": {
+            "type": ["integer", "null"]
+        },
+        "date_created": {
+            "type": "string",
+            "anyOf": [
+                {"format": "date-time"},
+                {"format": "date"}
+            ]
+        },
+        "created_by": {
+            "type": "string"
+        }
+    },
+    "required": ["display_name", "source"]
 }

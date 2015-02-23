@@ -44,10 +44,11 @@ class Reference(Dbentity):
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('journal', Journal, False), ('book', Book, False)]
     __id_values__ = ['format_name', 'id', 'sgdid', 'pubmed_id']
+    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
-    def __init__(self, obj_json):
-        UpdateWithJsonMixin.__init__(self, obj_json)
-        self.display_name = citation[:citation.find(")")+1]
+    def __init__(self, obj_json, session):
+        UpdateWithJsonMixin.__init__(self, obj_json, session)
+        self.display_name = self.citation[:self.citation.find(")")+1]
         self.format_name = self.sgdid if self.pubmed_id is None else str(self.pubmed_id)
         self.link = '/reference/' + self.sgdid
 

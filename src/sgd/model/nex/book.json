@@ -1,6 +1,5 @@
 {
     "title": "Book",
-    "book": {
         "type": "object",
         "properties": {
             "id": {
@@ -19,7 +18,7 @@
                 "type": ["string", "null"]
             },
             "source": {
-                "$ref": "source.json#/source"
+                "$ref": "source.json"
             },
             "bud_id": {
                 "type": ["integer", "null"]
@@ -58,5 +57,5 @@
             }
         },
         "required": ["title", "volume_title", "source"]
-    }
+
 }

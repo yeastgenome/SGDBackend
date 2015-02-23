@@ -3,11 +3,10 @@ import json
 import logging
 import uuid
 import os
-import imp
 from math import ceil
 
 from pyramid.response import Response
-from sqlalchemy import func, distinct
+from sqlalchemy import func
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -15,13 +14,15 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 from src.sgd.backend.backend_interface import BackendInterface
 from src.sgd.model import nex
+from src.sgd.model.schema_utils import load_schema
 import random
-from sqlalchemy.orm import joinedload
+
 
 __author__ = 'kpaskov'
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 query_limit = 25000
+
 
 class SGDBackend(BackendInterface):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
@@ -38,12 +39,11 @@ class SGDBackend(BackendInterface):
         self.classes = dict()
         self.schemas = dict()
         pathname = os.path.dirname(nex.__file__) + '/'
-        self.resolver_path = 'file://' + pathname
         for file in os.listdir(pathname):
             if file.endswith('.json'):
                 module = os.path.basename(file)[:-5]
                 self.classes[module] = nex.get_class_from_string(module + '.' + module.title())
-                self.schemas[module] = json.load(open(pathname + '/' + file, 'r'))
+                self.schemas[module] = load_schema(module + '.json')
 
         self.log = set_up_logging(log_directory, 'nex')
     
@@ -63,11 +63,10 @@ class SGDBackend(BackendInterface):
         return json.dumps(sorted(self.schemas.keys()))
 
     def schema(self, class_type):
+        schema = load_schema
         return None if class_type not in self.schemas else json.dumps(self.schemas[class_type])
 
     def get_object(self, class_name, identifier):
-        from jsonschema import validate
-        from jsonschema.exceptions import ValidationError
         #Get class
         cls = self._get_class_from_class_name(class_name)
         if cls is None:
@@ -75,11 +74,6 @@ class SGDBackend(BackendInterface):
 
         #Get object
         obj = self._get_object_from_identifier(cls, identifier)
-
-        if class_name in self.schemas:
-            validate(obj.to_json(), self.schemas[class_name])
-        else:
-            raise Exception('Schema not found: ' + class_name)
 
         return None if obj is None else json.dumps(obj.to_json())
 
@@ -103,7 +97,7 @@ class SGDBackend(BackendInterface):
                 if int_identifier is not None:
                     obj = query.filter(getattr(cls, id_value) == int_identifier).first()
             else:
-                obj = query.filter(getattr(cls, id_value) == identifier).first()
+                obj = query.filter(func.lower(getattr(cls, id_value)) == identifier.lower()).first()
             if obj is not None:
                 return obj
         return None

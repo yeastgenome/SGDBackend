@@ -1,6 +1,5 @@
 {
     "title": "Locus",
-    "locus": {
         "type": "object",
         "properties": {
             "id": {
@@ -19,7 +18,7 @@
                 "type": ["string", "null"]
             },
             "source": {
-                "$ref": "source.json#/source"
+                "$ref": "source.json"
             },
             "bud_id": {
                 "type": ["integer", "null"]
@@ -181,5 +180,5 @@
             }
         },
         "required": ["systematic_name", "source", "sgdid", "locus_type", "dbent_status"]
-    }
+
 }

@@ -43,9 +43,10 @@ class Locus(Dbentity):
                      'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab', 'sequence_section']
     __eq_fks__ = [('source', Source, False), ('aliases', 'locus.LocusAlias', True), ('urls', 'locus.LocusUrl', True)]
     __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
+    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
-    def __init__(self, obj_json, foreign_key_converter):
-        UpdateWithJsonMixin.__init__(self, obj_json, foreign_key_converter)
+    def __init__(self, obj_json, session):
+        UpdateWithJsonMixin.__init__(self, obj_json, session)
 
         self.link = '/locus/' + self.sgdid
         self.display_name = self.systematic_name if self.gene_name is None else self.gene_name
