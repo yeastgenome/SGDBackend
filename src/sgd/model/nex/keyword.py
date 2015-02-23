@@ -3,14 +3,14 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
 from src.sgd.model.nex.source import Source
 #from src.sgd.model.nex.colleague import Colleague
 #from src.sgd.model.nex.dataset import Dataset
 
 __author__ = 'kelley'
 
-class Keyword(Base, EqualityByIDMixin, ToJsonMixin):
+class Keyword(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'keyword'
 
     id = Column('keyword_id', Integer, primary_key=True)
@@ -29,8 +29,8 @@ class Keyword(Base, EqualityByIDMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name', 'id']
 
-    def __init__(self, obj_json):
-        ToJsonMixin.__init__(self, obj_json)
+    def __init__(self, obj_json, session):
+        UpdateWithJsonMixin.__init__(self, obj_json, session)
         self.format_name = create_format_name(self.display_name)
         self.link = '/keyword/' + self.format_name
 

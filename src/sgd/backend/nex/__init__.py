@@ -37,7 +37,8 @@ class SGDBackend(BackendInterface):
         #Load classes
         self.classes = dict()
         self.schemas = dict()
-        pathname = os.path.dirname(nex.__file__)
+        pathname = os.path.dirname(nex.__file__) + '/'
+        self.resolver_path = 'file://' + pathname
         for file in os.listdir(pathname):
             if file.endswith('.json'):
                 module = os.path.basename(file)[:-5]
