@@ -17,6 +17,15 @@
             "description": {
                 "type": ["string", "null"]
             },
+            "uniprotid": {
+                "type": ["string", "null"]
+            },
+            "dbentity_status": {
+                "type": "string"
+            },
+            "sgdid": {
+                "type": "string"
+            },
             "source": {
                 "$ref": "source.json"
             },

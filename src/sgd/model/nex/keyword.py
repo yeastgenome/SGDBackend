@@ -32,11 +32,6 @@ class Keyword(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
-        self.format_name = create_format_name(self.display_name)
-        self.link = '/keyword/' + self.format_name
-
-    def unique_key(self):
-        return self.format_name
 
     def to_json(self):
         obj_json = ToJsonMixin.to_json(self)

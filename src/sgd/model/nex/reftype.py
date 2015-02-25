@@ -30,8 +30,3 @@ class Reftype(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
-        self.format_name = create_format_name(self.display_name)
-        self.link = '/reftype/' + self.format_name
-
-    def unique_key(self):
-        return self.format_name

@@ -1,6 +1,7 @@
-__author__ = 'kpaskov'
-import json
 from src.sgd.convert.transformers import make_file_starter
+from src.sgd.convert.from_bud import basic_convert
+
+__author__ = 'kpaskov'
 
 definitions = {
     'amino acid metabolism':        'The cellular reactions and pathways used in the biosynthesis and catabolism of amino acids.',
@@ -54,8 +55,8 @@ definitions = {
     'not yet curated':              'The dataset has not yet been assigned a tag or tags.'
 }
 
-def keyword_starter(bud_session_maker):
 
+def keyword_starter(bud_session_maker):
     for row in make_file_starter('src/sgd/convert/data/microarray_05_14/SPELL-tags.txt')():
         tag = row[2].strip()
         for t in [x.strip() for x in tag.split('|')]:
@@ -63,24 +64,14 @@ def keyword_starter(bud_session_maker):
                 yield {
                     'display_name': t,
                     'description': definitions.get(t),
-                    'source': {'format_name': 'SGD'}
+                    'source': {'display_name': 'SGD'}
                 }
 
+
+def convert(bud_db, nex_db):
+    basic_convert(bud_db, nex_db, keyword_starter, 'keyword', lambda x: x['display_name'])
+
+
 if __name__ == '__main__':
-
-    from src.sgd.backend.curate import CurateBackend
-    from src.sgd.model import bud
-    from src.sgd.convert import config
-    from src.sgd.convert import prepare_schema_connection
-
-    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
-    curate_backend = CurateBackend(config.NEX_DBTYPE, 'curator-dev-db', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
-
-    accumulated_status = dict()
-    for obj_json in keyword_starter(bud_session_maker):
-        status = json.loads(curate_backend.update_object('keyword', None, obj_json, allow_update_for_add=True))['status']
-        if status not in accumulated_status:
-            accumulated_status[status] = 0
-        accumulated_status[status] += 1
-    print 'convert.keyword', accumulated_status
+    convert('pastry.stanford.edu:1521', 'curator-dev-db')
 

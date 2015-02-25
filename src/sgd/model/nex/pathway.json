@@ -43,7 +43,7 @@
             "uniprotid": {
                 "type": ["string", "null"]
             },
-            "dbent_status": {
+            "dbentity_status": {
                 "type": "string"
             }
         },

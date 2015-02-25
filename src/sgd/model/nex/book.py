@@ -39,8 +39,9 @@ class Book(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
         self.display_name = self.title
-        self.format_name = create_format_name(self.title + '' if self.volume_title is None else ('_' + self.volume_title))
-        self.link = '/book/' + self.format_name
 
     def unique_key(self):
         return self.title, self.volume_title
+
+    def __create_format_name__(self):
+        return self.title + '' if self.volume_title is None else ('_' + self.volume_title)

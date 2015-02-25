@@ -35,7 +35,7 @@ class Locus(Dbentity):
     sequence_section = Column('seq_section', Integer)
 
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Dbentity.id}
-    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'dbent_status',
+    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'dbentity_status',
                      'description', 'systematic_name',
                      'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position',
                      'date_created', 'created_by',
@@ -47,13 +47,14 @@ class Locus(Dbentity):
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
-
-        self.link = '/locus/' + self.sgdid
         self.display_name = self.systematic_name if self.gene_name is None else self.gene_name
-        self.format_name = self.systematic_name
-        tabs = tab_information(self.dbent_status, self.locus_type)
+
+        tabs = tab_information(self.dbentity_status, self.locus_type)
         for tab in tabs:
             setattr(self, tab, tabs[tab])
+
+    def __create_format_name__(self):
+        return self.systematic_name
 
     def to_json(self):
         obj_json = ToJsonMixin.to_json(self)

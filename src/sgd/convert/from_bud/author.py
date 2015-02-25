@@ -15,19 +15,18 @@ def author_starter(bud_session_maker):
 
     bud_session.close()
 
-if __name__ == '__main__':
-
+def convert(bud_db, nex_db):
     from src.sgd.backend.curate import CurateBackend
     from src.sgd.model import bud
     from src.sgd.convert import config
     from src.sgd.convert import prepare_schema_connection
 
-    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
-    curate_backend = CurateBackend(config.NEX_DBTYPE, 'curator-dev-db', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
+    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, bud_db, config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
+    curate_backend = CurateBackend(config.NEX_DBTYPE, nex_db, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
 
     accumulated_status = dict()
     for obj_json in author_starter(bud_session_maker):
-        output = curate_backend.update_object('author', None, obj_json, allow_update_for_add=True)
+        output = curate_backend.add_object('author', obj_json, update_ok=True)
         status = json.loads(output)['status']
         if status == 'Error':
             print output
@@ -35,4 +34,7 @@ if __name__ == '__main__':
             accumulated_status[status] = 0
         accumulated_status[status] += 1
     print 'convert.author', accumulated_status
+
+if __name__ == '__main__':
+    convert('pastry.stanford.edu:1521', 'curator-dev-db')
 

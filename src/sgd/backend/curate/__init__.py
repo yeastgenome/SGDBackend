@@ -88,7 +88,7 @@ class CurateBackend(SGDBackend):
 
             if status == 'Found':
                 if update_ok:
-                    return self.update(class_name, new_obj.id, new_json_obj)
+                    return self.update_object(class_name, new_obj.id, new_json_obj)
                 else:
                     raise Exception('A ' + class_name + ' like this already exists <a href="/' + class_name.lower() + "/" + str(new_obj.id) + '/edit"> here</a>.')
             elif status == 'Created':

@@ -31,9 +31,6 @@ class Author(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
 
-    def unique_key(self):
-        return self.format_name
-
     def to_json(self):
         obj_json = ToJsonMixin.to_json(self)
         #references = set([x.reference for x in self.author_references])

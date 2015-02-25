@@ -1,10 +1,7 @@
 __author__ = 'kpaskov'
 
-import codecs
-import collections
 import json
 from pkg_resources import resource_stream
-from jsonschema import RefResolver, Draft4Validator
 
 def local_handler(filename):
     schema = json.load(resource_stream(__name__, 'nex/' + filename))
@@ -12,9 +9,14 @@ def local_handler(filename):
 
 def resolve_references(schema):
     for prop, value in schema['properties'].iteritems():
-        if isinstance(value, dict) and '$ref' in value:
-            subschema = local_handler(value['$ref'])
-            schema['properties'][prop] = subschema
+        if isinstance(value, dict):
+            if '$ref' in value:
+                subschema = local_handler(value['$ref'])
+                schema['properties'][prop] = subschema
+            elif value["type"] == "object":
+                schema['properties'][prop] = resolve_references(schema['properties'][prop])
+            elif "items" in value:
+                schema["properties"][prop]["items"] = resolve_references(schema["properties"][prop]["items"])
 
     return schema
 

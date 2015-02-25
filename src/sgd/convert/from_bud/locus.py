@@ -1,7 +1,9 @@
-__author__ = 'kpaskov'
-import json
 from src.sgd.convert import break_up_file
 from sqlalchemy.orm import joinedload
+from src.sgd.convert.from_bud import basic_convert
+
+__author__ = 'kpaskov'
+
 
 non_locus_feature_types = {
     'ARS_consensus_sequence',
@@ -62,6 +64,7 @@ def locus_starter(bud_session_maker):
                  'source': {'display_name': 'SGD'},
                  'bud_id': bud_obj.id,
                  'alias_type': bud_obj.alias_type,
+                 'link': None,
                  'date_created': str(bud_obj.date_created),
                  'created_by': bud_obj.created_by})
 
@@ -94,8 +97,7 @@ def locus_starter(bud_session_maker):
     for bud_obj in bud_session.query(Feature).options(joinedload('annotation')).all():
         if bud_obj.type not in non_locus_feature_types:
             sgdid = bud_obj.dbxref_id
-            obj_json = {'bud_id': bud_obj.id,
-                        'gene_name': bud_obj.gene_name,
+            obj_json = {'gene_name': bud_obj.gene_name,
                         'systematic_name':bud_obj.name,
                         'source': {
                             'display_name': bud_obj.source
@@ -124,24 +126,10 @@ def locus_starter(bud_session_maker):
 
     bud_session.close()
 
+
+def convert(bud_db, nex_db):
+    basic_convert(bud_db, nex_db, locus_starter, 'locus', lambda x: x['systematic_name'])
+
 if __name__ == '__main__':
-
-    from src.sgd.backend.curate import CurateBackend
-    from src.sgd.model import bud
-    from src.sgd.convert import config
-    from src.sgd.convert import prepare_schema_connection
-
-    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
-    curate_backend = CurateBackend(config.NEX_DBTYPE, 'curator-dev-db', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
-
-    accumulated_status = dict()
-    for obj_json in locus_starter(bud_session_maker):
-        output = curate_backend.update_object('locus', obj_json)
-        status = json.loads(output)['status']
-        if status == 'Error':
-            print output
-        if status not in accumulated_status:
-            accumulated_status[status] = 0
-        accumulated_status[status] += 1
-    print 'convert.locus', accumulated_status
+    convert('pastry.stanford.edu:1521', 'curator-dev-db')
 

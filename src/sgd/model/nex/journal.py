@@ -3,7 +3,7 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
 from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
@@ -36,9 +36,10 @@ class Journal(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
         self.display_name = self.title if self.title is not None else self.med_abbr
-        self.format_name = create_format_name(self.display_name[:99] if self.med_abbr is None else self.display_name[:50] + '_' + self.med_abbr[:49])
-        self.link = '/journal/' + self.format_name
 
     def unique_key(self):
         return self.title, self.med_abbr
+
+    def __create_format_name__(self):
+        return self.title[:99] if self.med_abbr is None else self.med_abbr[:99] if self.title is None else self.title[:50] + '_' + self.med_abbr[:49]
 

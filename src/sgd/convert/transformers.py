@@ -3,8 +3,6 @@ import sys
 import traceback
 import datetime
 
-from src.sgd.model.nex import UpdateByJsonMixin
-
 __author__ = 'kpaskov'
 
 # ------------------------------------------ Transformers ------------------------------------------

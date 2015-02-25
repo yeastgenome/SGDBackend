@@ -1,5 +1,6 @@
+from src.sgd.convert.from_bud import basic_convert
+
 __author__ = 'kpaskov'
-import json
 
 other_sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAM', 'Pfam', 'PRINTS',
                                         'PIRSF', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI',
@@ -9,6 +10,7 @@ other_sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAM', 'Pf
 ok_codes = {('ALIAS', 'ALIAS_TYPE'), ('DBXREF', 'SOURCE'), ('EXPERIMENT', 'SOURCE'), ('FEATURE', 'SOURCE'),
                 ('GO_ANNOTATION', 'SOURCE'), ('HOMOLOG', 'SOURCE'), ('INTERACTION', 'SOURCE'), ('PHENOTYPE', 'SOURCE'),
                 ('REFTYPE', 'SOURCE'), ('REFERENCE', 'SOURCE'), ('URL', 'SOURCE')}
+
 
 def source_starter(bud_session_maker):
     from src.sgd.model.bud.cv import Code
@@ -31,21 +33,11 @@ def source_starter(bud_session_maker):
 
     bud_session.close()
 
+
+def convert(bud_db, nex_db):
+    basic_convert(bud_db, nex_db, source_starter, 'source', lambda x: x['display_name'])
+
+
 if __name__ == '__main__':
-
-    from src.sgd.backend.curate import CurateBackend
-    from src.sgd.model import bud
-    from src.sgd.convert import config
-    from src.sgd.convert import prepare_schema_connection
-
-    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
-    curate_backend = CurateBackend(config.NEX_DBTYPE, 'curator-dev-db', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
-
-    accumulated_status = dict()
-    for obj_json in source_starter(bud_session_maker):
-        status = json.loads(curate_backend.update_object('source', None, obj_json, allow_update_for_add=True))['status']
-        if status not in accumulated_status:
-            accumulated_status[status] = 0
-        accumulated_status[status] += 1
-    print 'convert.source', accumulated_status
+    convert('pastry.stanford.edu:1521', 'curator-dev-db')
 

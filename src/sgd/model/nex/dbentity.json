@@ -39,9 +39,9 @@
         "uniprotid": {
             "type": ["string", "null"]
         },
-        "dbent_status": {
+        "dbentity_status": {
             "type": "string"
         }
     },
-    "required": ["source", "sgdid", "dbent_status"]
+    "required": ["source", "sgdid", "dbentity_status"]
 }

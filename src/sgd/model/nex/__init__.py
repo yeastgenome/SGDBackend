@@ -71,18 +71,17 @@ class UpdateWithJsonMixin(object):
             if key in obj_json:
                 new_value = None if key not in obj_json else obj_json[key]
 
-                if isinstance(new_value, datetime.date):
-                    new_value = None if new_value is None else datetime.datetime.strftime(new_value, "%Y-%m-%d")
-
                 if isinstance(current_value, datetime.date):
-                    current_value = None if current_value is None else datetime.datetime.strftime(current_value, "%Y-%m-%d")
+                    current_value = datetime.datetime.strftime(current_value, "%Y-%m-%d")
 
-                if key in self.__no_edit_values__:
+                if self.id is not None and key in self.__no_edit_values__:
                     if current_value is not None and current_value != new_value:
-                        raise Exception(key + ' cannot be edited.')
+                        raise Exception(key + ' cannot be edited. (Tried to change from ' + str(current_value) + ' to ' + str(new_value) + '.)')
                 else:
                     if new_value != current_value:
                         if make_changes:
+                            if str(getattr(self.__class__, key).property.columns[0].type) == 'DATE' and new_value is not None:
+                                new_value = datetime.datetime.strptime(new_value, "%Y-%m-%d")
                             setattr(self, key, new_value)
                         anything_changed = True
 
@@ -161,11 +160,11 @@ class UpdateWithJsonMixin(object):
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session, make_changes=True)
-        self.format_name = self.__create_format_name__()
+        self.format_name = create_format_name(self.__create_format_name__())
         self.link = self.__create_link__()
 
     def __create_format_name__(self):
-        return create_format_name(self.display_name)
+        return self.display_name
 
     def __create_link__(self):
         return '/' + self.__class__.__name__.lower() + '/' + self.format_name
@@ -205,3 +204,6 @@ class ToJsonMixin(object):
                 obj_json[key] = fk_obj.to_min_json()
 
         return obj_json
+
+    def unique_key(self):
+        return self.format_name
