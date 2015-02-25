@@ -22,7 +22,7 @@ class Locus(Dbentity):
     genetic_position = Column('genetic_position', String)
 
     has_summary = Column('has_summary', Integer)
-    has_sequence = Column('has_seq', Integer)
+    has_sequence = Column('has_sequence', Integer)
     has_history = Column('has_history', Integer)
     has_literature = Column('has_literature', Integer)
     has_go = Column('has_go', Integer)
@@ -32,7 +32,7 @@ class Locus(Dbentity):
     has_regulation = Column('has_regulation', Integer)
     has_protein = Column('has_protein', Integer)
     has_wiki = Column('has_wiki', Integer)
-    has_sequence_section = Column('has_seq_section', Integer)
+    has_sequence_section = Column('has_seuence_section', Integer)
 
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Dbentity.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'dbentity_status',
