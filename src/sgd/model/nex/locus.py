@@ -21,26 +21,26 @@ class Locus(Dbentity):
     qualifier = Column('qualifier', String)
     genetic_position = Column('genetic_position', String)
 
-    summary_tab = Column('summary', Integer)
-    sequence_tab = Column('seq', Integer)
-    history_tab = Column('history', Integer)
-    literature_tab = Column('literature', Integer)
-    go_tab = Column('go', Integer)
-    phenotype_tab = Column('phenotype', Integer)
-    interaction_tab = Column('interactions', Integer)
-    expression_tab = Column('expression', Integer)
-    regulation_tab = Column('regulation', Integer)
-    protein_tab = Column('protein', Integer)
-    wiki_tab = Column('wiki', Integer)
-    sequence_section = Column('seq_section', Integer)
+    has_summary = Column('has_summary', Integer)
+    has_sequence = Column('has_seq', Integer)
+    has_history = Column('has_history', Integer)
+    has_literature = Column('has_literature', Integer)
+    has_go = Column('has_go', Integer)
+    has_phenotype = Column('has_phenotype', Integer)
+    has_interaction = Column('has_interaction', Integer)
+    has_expression = Column('has_expression', Integer)
+    has_regulation = Column('has_regulation', Integer)
+    has_protein = Column('has_protein', Integer)
+    has_wiki = Column('has_wiki', Integer)
+    has_sequence_section = Column('has_seq_section', Integer)
 
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Dbentity.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'dbentity_status',
                      'description', 'systematic_name',
                      'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position',
                      'date_created', 'created_by',
-                     'summary_tab', 'history_tab', 'literature_tab', 'go_tab', 'phenotype_tab', 'interaction_tab',
-                     'expression_tab', 'regulation_tab', 'protein_tab', 'sequence_tab', 'wiki_tab', 'sequence_section']
+                     'has_summary', 'has_history', 'has_literature', 'has_go', 'has_phenotype', 'has_interaction',
+                     'has_expression', 'has_regulation', 'has_protein', 'has_sequence', 'has_wiki', 'has_sequence_section']
     __eq_fks__ = [('source', Source, False), ('aliases', 'locus.LocusAlias', True), ('urls', 'locus.LocusUrl', True)]
     __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
@@ -509,125 +509,125 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 def tab_information(status, locus_type):
     if status == 'Merged' or status == 'Deleted':
         return {
-            'summary_tab': 1,
-            'sequence_tab': 0,
-            'sequence_section': 1,
-            'history_tab': 0,
-            'literature_tab': 0,
-            'go_tab': 0,
-            'phenotype_tab': 0,
-            'interaction_tab': 0,
-            'expression_tab': 0,
-            'regulation_tab': 0,
-            'protein_tab': 0,
-            'wiki_tab': 0
+            'has_summary': 1,
+            'has_sequence': 0,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 0,
+            'has_go': 0,
+            'has_phenotype': 0,
+            'has_interaction': 0,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 0,
+            'has_wiki_tab': 0
         }
     elif locus_type == 'ORF' or locus_type == 'blocked_reading_frame':
         return {
-            'summary_tab': 1,
-            'sequence_tab': 1,
-            'sequence_section': 1,
-            'history_tab': 0,
-            'literature_tab': 1,
-            'go_tab': 1,
-            'phenotype_tab': 1,
-            'interaction_tab': 1,
-            'expression_tab': 1,
-            'regulation_tab': 1,
-            'protein_tab': 1,
-            'wiki_tab': 0
+            'has_summary': 1,
+            'has_sequence': 1,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 1,
+            'has_phenotype_': 1,
+            'has_interaction': 1,
+            'has_expression': 1,
+            'has_regulation': 1,
+            'has_protein': 1,
+            'has_wiki': 0
         }
     elif locus_type in {'ARS', 'origin_of_replication', 'matrix_attachment_site', 'centromere',
                               'gene_group', 'long_terminal_repeat', 'telomere', 'mating_type_region',
                               'silent_mating_type_cassette_array', 'LTR_retrotransposon'}:
         return {
-            'summary_tab': 1,
-            'sequence_tab': 1,
-            'sequence_section': 1,
-            'history_tab': 0,
-            'literature_tab': 1,
-            'go_tab': 0,
-            'phenotype_tab': 0,
-            'interaction_tab': 0,
-            'expression_tab': 0,
-            'regulation_tab': 0,
-            'protein_tab': 0,
-            'wiki_tab': 0
+            'has_summary': 1,
+            'has_sequence': 1,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 0,
+            'has_phenotype': 0,
+            'has_interaction': 0,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 0,
+            'has_wiki': 0
         }
     elif locus_type == 'transposable_element_gene':
         return {
-            'summary_tab': 1,
-            'sequence_tab': 1,
-            'sequence_section': 1,
-            'history_tab': 0,
-            'literature_tab': 1,
-            'go_tab': 1,
-            'phenotype_tab': 1,
-            'interaction_tab': 1,
-            'expression_tab': 0,
-            'regulation_tab': 0,
-            'protein_tab': 1,
-            'wiki_tab': 0
+            'has_summary': 1,
+            'has_sequence': 1,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 1,
+            'has_phenotype': 1,
+            'has_interaction': 1,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 1,
+            'has_wiki': 0
         }
     elif locus_type == 'pseudogene':
         return {
-            'summary_tab': 1,
-            'sequence_tab': 1,
-            'sequence_section': 1,
-            'history_tab': 0,
-            'literature_tab': 1,
-            'go_tab': 1,
-            'phenotype_tab': 1,
-            'interaction_tab': 1,
-            'expression_tab': 0,
-            'regulation_tab': 1,
-            'protein_tab': 1,
-            'wiki_tab': 0
+            'has_summary': 1,
+            'has_sequence': 1,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 1,
+            'has_phenotype': 1,
+            'has_interaction': 1,
+            'has_expression': 0,
+            'has_regulation': 1,
+            'has_protein': 1,
+            'has_wiki': 0
         }
     elif locus_type in {'rRNA_gene', 'ncRNA_gene', 'snRNA_gene', 'snoRNA_gene', 'tRNA_gene', 'telomerase_RNA_gene'}:
         return {
-            'summary_tab': 1,
-            'sequence_tab': 1,
-            'sequence_section': 1,
-            'history_tab': 0,
-            'literature_tab': 1,
-            'go_tab': 1,
-            'phenotype_tab': 1,
-            'interaction_tab': 1,
-            'expression_tab': 0,
-            'regulation_tab': 1,
-            'protein_tab': 0,
-            'wiki_tab': 0
+            'has_summary': 1,
+            'has_sequence': 1,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 1,
+            'has_phenotype': 1,
+            'has_interaction': 1,
+            'has_expression': 0,
+            'has_regulation': 1,
+            'has_protein': 0,
+            'has_wiki': 0
         }
     elif locus_type in {'not in systematic sequence of S288C', 'not physically mapped'}:
         return {
-            'summary_tab': 1,
-            'sequence_tab': 0,
-            'sequence_section': 0,
-            'history_tab': 0,
-            'literature_tab': 1,
-            'go_tab': 1,
-            'phenotype_tab': 1,
-            'interaction_tab': 1,
-            'expression_tab': 0,
-            'regulation_tab': 0,
-            'protein_tab': 0,
-            'wiki_tab': 0
+            'has_summary': 1,
+            'has_sequence': 0,
+            'has_sequence_section': 0,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 1,
+            'has_phenotype': 1,
+            'has_interaction': 1,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 0,
+            'has_wiki': 0
         }
     elif locus_type in {'intein_encoding_region'}:
         return {
-            'summary_tab': 1,
-            'sequence_tab': 0,
-            'sequence_section': 0,
-            'history_tab': 0,
-            'literature_tab': 1,
-            'go_tab': 0,
-            'phenotype_tab': 0,
-            'interaction_tab': 0,
-            'expression_tab': 0,
-            'regulation_tab': 0,
-            'protein_tab': 0,
-            'wiki_tab': 0
+            'has_summary': 1,
+            'has_sequence': 0,
+            'has_sequence_section': 0,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 0,
+            'has_phenotype': 0,
+            'has_interaction': 0,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 0,
+            'has_wiki': 0
         }
     else:
         raise Exception('Locus type is invalid.')

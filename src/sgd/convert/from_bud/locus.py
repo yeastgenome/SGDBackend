@@ -104,7 +104,7 @@ def locus_starter(bud_session_maker):
                         },
                         'sgdid': sgdid,
                         'uniprotid': None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid],
-                        'dbent_status': bud_obj.status,
+                        'dbentity_status': bud_obj.status,
                         'locus_type': bud_obj.type,
                         'gene_name': bud_obj.gene_name,
                         'bud_id': bud_obj.id,

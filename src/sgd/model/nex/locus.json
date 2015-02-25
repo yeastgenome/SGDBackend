@@ -67,37 +67,37 @@
         "genetic_position": {
             "type": ["string", "null"]
         },
-        "summary_tab": {
+        "has_summary": {
             "type": "integer"
         },
-        "sequence_tab": {
+        "has_sequence": {
             "type": "integer"
         },
-        "history_tab": {
+        "has_history": {
             "type": "integer"
         },
-        "literature_tab": {
+        "has_literature": {
             "type": "integer"
         },
-        "go_tab": {
+        "has_go": {
             "type": "integer"
         },
-        "phenotype_tab": {
+        "has_phenotype": {
             "type": "integer"
         },
-        "interaction_tab": {
+        "has_interaction": {
             "type": "integer"
         },
-        "expression_tab": {
+        "has_expression": {
             "type": "integer"
         },
-        "regulation_tab": {
+        "has_regulation": {
             "type": "integer"
         },
-        "protein_tab": {
+        "has_protein": {
             "type": "integer"
         },
-        "sequence_section": {
+        "has_sequence_section": {
             "type": "integer"
         },
         "urls": {
