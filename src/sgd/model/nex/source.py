@@ -24,4 +24,27 @@ class Source(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
+        if obj_json['display_name'] in to_change:
+            obj_json['display_name'] = to_change[obj_json['display_name']]
         UpdateWithJsonMixin.__init__(self, obj_json, session)
+
+to_change = {
+    'Colleague submission': 'Colleague',
+    'Curator': 'SGD',
+    'Curator non-PubMed reference': 'SGD',
+    'Curator PubMed reference': 'SGD',
+    'Curator Triage': 'SGD',
+    'FLYBASE': 'FlyBase',
+    'GO Consortium': 'GOC',
+    'MRC': 'SUPERFAMILY',
+    'NCBI protein name': 'NCBI',
+    'Non-uniform': 'SGD',
+    'Protein Data Bank': 'PDB',
+    'PDB script': 'PDB',
+    'PubMed script': 'PubMed',
+    'Retired name': 'SGD',
+    'S. pombe GeneDB': 'PomBase',
+    'Transferred from SacchDB': 'SacchDB',
+    'Uniform': 'SGD',
+    'WB': 'WormBase'
+}

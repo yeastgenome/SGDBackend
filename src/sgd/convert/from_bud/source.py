@@ -17,7 +17,7 @@ def source_starter(bud_session_maker):
     bud_session = bud_session_maker()
 
     for bud_obj in bud_session.query(Code).all():
-        if (bud_obj.tab_name, bud_obj.col_name) in ok_codes:
+        if (bud_obj.tab_name, bud_obj.col_name) in ok_codes and bud_obj.code_value != 'Publication':
             obj_json = {'display_name': bud_obj.code_value,
                         'bud_id': bud_obj.id,
                         'date_created': str(bud_obj.date_created),

@@ -31,8 +31,7 @@ class Locus(Dbentity):
     has_expression = Column('has_expression', Integer)
     has_regulation = Column('has_regulation', Integer)
     has_protein = Column('has_protein', Integer)
-    has_wiki = Column('has_wiki', Integer)
-    has_sequence_section = Column('has_seuence_section', Integer)
+    has_sequence_section = Column('has_sequence_section', Integer)
 
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Dbentity.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'dbentity_status',
@@ -40,7 +39,7 @@ class Locus(Dbentity):
                      'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position',
                      'date_created', 'created_by',
                      'has_summary', 'has_history', 'has_literature', 'has_go', 'has_phenotype', 'has_interaction',
-                     'has_expression', 'has_regulation', 'has_protein', 'has_sequence', 'has_wiki', 'has_sequence_section']
+                     'has_expression', 'has_regulation', 'has_protein', 'has_sequence', 'has_sequence_section']
     __eq_fks__ = [('source', Source, False), ('aliases', 'locus.LocusAlias', True), ('urls', 'locus.LocusUrl', True)]
     __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
@@ -379,6 +378,7 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('locus', Locus, False)]
     __id_values__ = ['format_name']
+    __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -427,6 +427,7 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name']
+    __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -467,7 +468,6 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
-
     #Relationships
     parent = relationship(Locus, backref=backref("children", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
     child = relationship(Locus, backref=backref("parents", passive_deletes=True), uselist=False, foreign_keys=[child_id])
@@ -477,6 +477,7 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('parent', Locus, False), ('child', Locus, False)]
     __id_values__ = ['format_name']
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -520,7 +521,6 @@ def tab_information(status, locus_type):
             'has_expression': 0,
             'has_regulation': 0,
             'has_protein': 0,
-            'has_wiki_tab': 0
         }
     elif locus_type == 'ORF' or locus_type == 'blocked_reading_frame':
         return {
@@ -530,12 +530,11 @@ def tab_information(status, locus_type):
             'has_history': 0,
             'has_literature': 1,
             'has_go': 1,
-            'has_phenotype_': 1,
+            'has_phenotype': 1,
             'has_interaction': 1,
             'has_expression': 1,
             'has_regulation': 1,
             'has_protein': 1,
-            'has_wiki': 0
         }
     elif locus_type in {'ARS', 'origin_of_replication', 'matrix_attachment_site', 'centromere',
                               'gene_group', 'long_terminal_repeat', 'telomere', 'mating_type_region',
@@ -552,7 +551,6 @@ def tab_information(status, locus_type):
             'has_expression': 0,
             'has_regulation': 0,
             'has_protein': 0,
-            'has_wiki': 0
         }
     elif locus_type == 'transposable_element_gene':
         return {
@@ -567,7 +565,6 @@ def tab_information(status, locus_type):
             'has_expression': 0,
             'has_regulation': 0,
             'has_protein': 1,
-            'has_wiki': 0
         }
     elif locus_type == 'pseudogene':
         return {
@@ -582,7 +579,6 @@ def tab_information(status, locus_type):
             'has_expression': 0,
             'has_regulation': 1,
             'has_protein': 1,
-            'has_wiki': 0
         }
     elif locus_type in {'rRNA_gene', 'ncRNA_gene', 'snRNA_gene', 'snoRNA_gene', 'tRNA_gene', 'telomerase_RNA_gene'}:
         return {
@@ -597,7 +593,6 @@ def tab_information(status, locus_type):
             'has_expression': 0,
             'has_regulation': 1,
             'has_protein': 0,
-            'has_wiki': 0
         }
     elif locus_type in {'not in systematic sequence of S288C', 'not physically mapped'}:
         return {
@@ -612,7 +607,6 @@ def tab_information(status, locus_type):
             'has_expression': 0,
             'has_regulation': 0,
             'has_protein': 0,
-            'has_wiki': 0
         }
     elif locus_type in {'intein_encoding_region'}:
         return {
@@ -627,7 +621,6 @@ def tab_information(status, locus_type):
             'has_expression': 0,
             'has_regulation': 0,
             'has_protein': 0,
-            'has_wiki': 0
         }
     else:
         raise Exception('Locus type is invalid.')

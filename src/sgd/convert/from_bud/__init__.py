@@ -33,7 +33,7 @@ def basic_convert(bud_db, nex_db, starter, class_name, key_f):
 
     end = datetime.datetime.now()
     print end.date(), 'convert.from_bud.' + class_name, accumulated_status, 'Start-End/Duration:', \
-        datetime.datetime.strftime(start, '%X') + '-' + datetime.datetime.strftime(end, '%X') + '/' + end-start
+        datetime.datetime.strftime(start, '%X') + '-' + datetime.datetime.strftime(end, '%X') + '/' + str(end-start)
 
 
 _digits = re.compile('\d')
