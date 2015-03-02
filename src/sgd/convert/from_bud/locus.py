@@ -39,7 +39,7 @@ non_locus_feature_types = {
     'Z2_region'
 }
 
-category_mapping = {
+url_placement_mapping = {
     'Mutant Strains': 'LOCUS_PHENOTYPE_MUTANT_STRAINS',
     'Phenotype Resources': 'LOCUS_PHENOTYPE_PHENOTYPE_RESOURCES',
     'Interaction Resources': 'LOCUS_INTERACTION',
@@ -56,138 +56,131 @@ category_mapping = {
     'Resources External Links': 'LOCUS_LSP'
 }
 
-def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex import create_format_name
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.bioentity import Bioentity, Locus
+
+def load_urls(bud_locus, bud_session):
     from src.sgd.model.bud.general import FeatUrl, DbxrefFeat
-    def bioentity_url_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
 
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Bioentity).all()])
+    urls = []
 
-        for bud_obj in make_db_starter(bud_session.query(FeatUrl).options(joinedload('url')), 1000)():
-            old_url = bud_obj.url
-            url_type = old_url.url_type
-            link = old_url.url
+    for bud_obj in bud_session.query(FeatUrl).options(joinedload('url')).filter_by(feature_id=bud_locus.id).all():
+        old_url = bud_obj.url
+        url_type = old_url.url_type
+        link = old_url.url
 
-            bioentity_id = bud_obj.feature_id
+        for old_webdisplay in old_url.displays:
+            if url_type == 'query by SGDID':
+                link = link.replace('_SUBSTITUTE_THIS_', bud_locus.dbxref_id)
+            elif url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name' or url_type == 'query by ID assigned by database':
+                link = link.replace('_SUBSTITUTE_THIS_', bud_locus.name)
+            else:
+                print "Can't handle this url. " + str(old_url.url_type)
 
+            urls.append(
+                {'display_name': old_webdisplay.label_name,
+                 'source': {'display_name': old_url.source},
+                 'bud_id': old_url.id,
+                 'url_type': url_type,
+                 'placement': None if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
+                 'link': link,
+                 'date_created': str(old_url.date_created),
+                 'created_by': old_url.created_by})
+
+
+    for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).filter_by(feature_id=bud_locus.id).all():
+        old_urls = bud_obj.dbxref.urls
+        dbxref_id = bud_obj.dbxref.dbxref_id
+
+        for old_url in old_urls:
             for old_webdisplay in old_url.displays:
-                if bioentity_id in id_to_bioentity:
-                    bioentity = id_to_bioentity[bioentity_id]
-                    if url_type == 'query by SGDID':
-                        link = link.replace('_SUBSTITUTE_THIS_', str(bioentity.sgdid))
-                    elif url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name' or url_type == 'query by ID assigned by database':
-                        link = link.replace('_SUBSTITUTE_THIS_', str(bioentity.format_name))
-                    else:
-                        print "Can't handle this url. " + str(old_url.url_type)
-                        yield None
+                url_type = old_url.url_type
+                link = old_url.url
 
-                    category = None if old_webdisplay.label_location not in category_mapping else category_mapping[old_webdisplay.label_location]
-
-                    yield {'display_name': old_webdisplay.label_name,
-                           'link': link,
-                           'source': key_to_source[create_format_name(old_url.source)],
-                           'category': category,
-                           'bioentity_id': bioentity_id,
-                           'date_created': old_url.date_created,
-                           'created_by': old_url.created_by}
+                if url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name':
+                    link = link.replace('_SUBSTITUTE_THIS_', bud_locus.name)
+                elif url_type == 'query by ID assigned by database':
+                    link = link.replace('_SUBSTITUTE_THIS_', str(dbxref_id))
+                elif url_type == 'query by SGDID':
+                    link = link.replace('_SUBSTITUTE_THIS_', bud_locus.dbxref_id)
                 else:
-                    #print 'Bioentity not found: ' + str(bioentity_id)
-                    yield None
+                    print "Can't handle this url. " + str(old_url.url_type)
 
-        for bud_obj in make_db_starter(bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')), 1000)():
-            old_urls = bud_obj.dbxref.urls
-            dbxref_id = bud_obj.dbxref.dbxref_id
+                urls.append(
+                    {'display_name': old_webdisplay.label_name,
+                     'source': {'display_name': old_url.source},
+                     'bud_id': old_url.id,
+                     'link': link,
+                     'url_type': url_type,
+                     'placement': None if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
+                     'date_created': str(old_url.date_created),
+                     'created_by': old_url.created_by})
 
-            bioentity_id = bud_obj.feature_id
-            for old_url in old_urls:
-                for old_webdisplay in old_url.displays:
-                    if bioentity_id in id_to_bioentity:
-                        bioentity = id_to_bioentity[bioentity_id]
-                        url_type = old_url.url_type
-                        link = old_url.url
+    urls.append(
+        {'display_name': 'SPELL',
+         'source': {'display_name': 'SGD'},
+         'bud_id': bud_locus.id,
+         'link': 'http://spell.yeastgenome.org/search/show_results?search_string=' + bud_locus.name,
+         'url_type': None,
+         'placement': 'LOCUS_EXPRESSION'})
 
-                        if url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name':
-                            link = link.replace('_SUBSTITUTE_THIS_', bioentity.format_name)
-                        elif url_type == 'query by ID assigned by database':
-                            link = link.replace('_SUBSTITUTE_THIS_', str(dbxref_id))
-                        elif url_type == 'query by SGDID':
-                            link = link.replace('_SUBSTITUTE_THIS_', bioentity.sgdid)
-                        else:
-                            print "Can't handle this url. " + str(old_url.url_type)
-                            yield None
+    urls.append(
+        {'display_name': 'Gene/Sequence Resources',
+         'source': {'display_name': 'SGD'},
+         'bud_id': bud_locus.id,
+         'link': '/cgi-bin/seqTools?back=1&seqname=' + bud_locus.name,
+         'url_type': None,
+         'placement': 'LOCUS_SEQUENCE'})
 
-                        category = None if old_webdisplay.label_location not in category_mapping else category_mapping[old_webdisplay.label_location]
+    urls.append(
+        {'display_name': 'ORF Map',
+         'source': {'display_name': 'SGD'},
+         'bud_id': bud_locus.id,
+         'link': '/cgi-bin/ORFMAP/ORFmap?dbid=' + bud_locus.dbxref_id,
+         'url_type': None,
+         'placement': 'LOCUS_SEQUENCE'})
 
-                        yield {'display_name': old_webdisplay.label_name,
-                                   'link': link,
-                                   'source': key_to_source[create_format_name(old_url.source)],
-                                   'category': category,
-                                   'bioentity_id': bioentity_id,
-                                   'date_created': old_url.date_created,
-                                   'created_by': old_url.created_by}
-                    else:
-                        #print 'Bioentity not found: ' + str(bioentity_id)
-                        yield None
+    urls.append(
+        {'display_name': 'GBrowse',
+         'source': {'display_name': 'SGD'},
+         'bud_id': bud_locus.id,
+         'link': 'http://browse.yeastgenome.org/fgb2/gbrowse/scgenome/?name=' + bud_locus.name,
+         'url_type': None,
+         'placement': 'LOCUS_SEQUENCE'})
 
-        for locus in nex_session.query(Locus).all():
-            yield {'display_name': 'SPELL',
-                        'link': 'http://spell.yeastgenome.org/search/show_results?search_string=' + locus.format_name,
-                        'source': key_to_source['SGD'],
-                        'category': 'LOCUS_EXPRESSION',
-                        'bioentity_id': locus.id}
-            yield {'display_name': 'Gene/Sequence Resources',
-                        'link': '/cgi-bin/seqTools?back=1&seqname=' + locus.format_name,
-                        'source': key_to_source['SGD'],
-                        'category': 'LOCUS_SEQUENCE',
-                        'bioentity_id': locus.id}
-            yield {'display_name': 'ORF Map',
-                        'link': '/cgi-bin/ORFMAP/ORFmap?dbid=' + locus.sgdid,
-                        'source': key_to_source['SGD'],
-                        'category': 'LOCUS_SEQUENCE',
-                        'bioentity_id': locus.id}
-            yield {'display_name': 'GBrowse',
-                        'link': 'http://browse.yeastgenome.org/fgb2/gbrowse/scgenome/?name=' + locus.format_name,
-                        'source': key_to_source['SGD'],
-                        'category': 'LOCUS_SEQUENCE',
-                        'bioentity_id': locus.id}
+    urls.append(
+        {'display_name': 'BLASTN',
+         'source': {'display_name': 'SGD'},
+         'bud_id': bud_locus.id,
+         'link': '/cgi-bin/blast-sgd.pl?name=' + bud_locus.name,
+         'url_type': None,
+         'placement': 'LOCUS_SEQUENCE_SECTION'})
 
-            yield {'display_name': 'BLASTN',
-                        'link': '/cgi-bin/blast-sgd.pl?name=' + locus.format_name,
-                        'source': key_to_source['SGD'],
-                        'category': 'LOCUS_SEQUENCE_SECTION',
-                        'bioentity_id': locus.id}
-            yield {'display_name': 'BLASTP',
-                        'link': '/cgi-bin/blast-sgd.pl?name=' + locus.format_name + '&suffix=prot',
-                        'source': key_to_source['SGD'],
-                        'category': 'LOCUS_SEQUENCE_SECTION',
-                        'bioentity_id': locus.id}
-            yield {'display_name': 'Yeast Phenotype Ontology',
-                        'link': '/ontology/phenotype/ypo/overview',
-                        'source': key_to_source['SGD'],
-                        'category': 'LOCUS_PHENOTYPE_ONTOLOGY',
-                        'bioentity_id': locus.id}
+    urls.append(
+        {'display_name': 'BLASTP',
+         'source': {'display_name': 'SGD'},
+         'bud_id': bud_locus.id,
+         'link': '/cgi-bin/blast-sgd.pl?name=' + bud_locus.name + '&suffix=prot',
+         'url_type': None,
+         'placement': 'LOCUS_SEQUENCE_SECTION'})
 
-        bud_session.close()
-        nex_session.close()
-    return bioentity_url_starter
+    urls.append(
+        {'display_name': 'Yeast Phenotype Ontology',
+         'source': {'display_name': 'SGD'},
+         'bud_id': bud_locus.id,
+         'link': '/ontology/phenotype/ypo/overview',
+         'url_type': None,
+         'placement': 'LOCUS_PHENOTYPE_ONTOLOGY'})
 
-def load_aliases(bud_session):
+    return urls
+
+
+def load_aliases(bud_locus, bud_session):
     from src.sgd.model.bud.feature import Feature, Annotation, AliasFeature
     from src.sgd.model.bud.general import DbxrefFeat, Note, NoteFeat
 
-    bud_id_to_aliases = dict()
-    for bud_obj in bud_session.query(AliasFeature).options(joinedload('alias')).all():
-        bud_id = bud_obj.feature_id
-        if bud_id not in bud_id_to_aliases:
-            bud_id_to_aliases[bud_id] = []
-
+    aliases = []
+    for bud_obj in bud_session.query(AliasFeature).options(joinedload('alias')).filter_by(feature_id=bud_locus.id).all():
         if bud_obj.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'}:
-            bud_id_to_aliases[bud_id].append(
+            aliases.append(
                 {'display_name': bud_obj.alias_name,
                  'source': {'display_name': 'SGD'},
                  'bud_id': bud_obj.id,
@@ -196,11 +189,7 @@ def load_aliases(bud_session):
                  'date_created': str(bud_obj.date_created),
                  'created_by': bud_obj.created_by})
 
-    for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).all():
-        bud_id = bud_obj.feature_id
-        if bud_id not in bud_id_to_aliases:
-            bud_id_to_aliases[bud_id] = []
-
+    for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).filter_by(feature_id=bud_locus.id).all():
         display_name = bud_obj.dbxref.dbxref_id
         link = None
         if len(bud_obj.dbxref.urls) > 0:
@@ -212,7 +201,7 @@ def load_aliases(bud_session):
                         if display.label_location == 'Resources External Links':
                             link = url.url.replace('_SUBSTITUTE_THIS_', display_name)
 
-        bud_id_to_aliases[bud_id].append(
+        aliases.append(
             {'display_name': display_name,
              'link': link,
              'source': {'display_name': bud_obj.dbxref.source},
@@ -220,7 +209,8 @@ def load_aliases(bud_session):
              'bud_id': bud_obj.id,
              'date_created': str(bud_obj.dbxref.date_created),
              'created_by': bud_obj.dbxref.created_by})
-    return bud_id_to_aliases
+    return aliases
+
 
 def locus_starter(bud_session_maker):
     from src.sgd.model.bud.feature import Feature
@@ -232,9 +222,6 @@ def locus_starter(bud_session_maker):
     for line in break_up_file('src/sgd/convert/data/YEAST_559292_idmapping.dat'):
         if line[1].strip() == 'SGD':
             sgdid_to_uniprotid[line[2].strip()] = line[0].strip()
-
-    #Load aliases
-    bud_id_to_aliases = load_aliases(bud_session)
 
     #Create features
     for bud_obj in bud_session.query(Feature).options(joinedload('annotation')).all():
@@ -262,8 +249,11 @@ def locus_starter(bud_session_maker):
                 obj_json['description'] = ann.description
                 obj_json['genetic_position'] = None if ann.genetic_position is None else str(ann.genetic_position)
 
-            if bud_obj.id in bud_id_to_aliases:
-                obj_json['aliases'] = bud_id_to_aliases[bud_obj.id]
+            #Load aliases
+            obj_json['aliases'] = load_aliases(bud_obj, bud_session)
+
+            #Load urls
+            obj_json['urls'] = load_urls(bud_obj, bud_session)
 
             yield obj_json
 

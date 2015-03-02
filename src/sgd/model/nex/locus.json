@@ -115,7 +115,10 @@
                         "type": "string"
                     },
                     "url_type": {
-                        "type": "string"
+                        "type": ["string", "null"]
+                    },
+                    "placement": {
+                        "type": ["string", "null"]
                     },
                     "source": {
                         "$ref": "source.json"
@@ -136,8 +139,7 @@
                     }
                 },
                 "required": ["display_name", "link", "url_type", "source"]
-            },
-            "uniqueItems": true
+            }
         },
         "aliases": {
             "type": "array",
@@ -175,8 +177,7 @@
                     }
                 },
                 "required": ["display_name", "link", "alias_type", "source"]
-            },
-            "uniqueItems": true
+            }
         }
     },
     "required": ["systematic_name", "source", "sgdid", "locus_type", "dbentity_status"]

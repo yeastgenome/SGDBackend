@@ -367,6 +367,7 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     bud_id = Column('bud_id', Integer)
     locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
     url_type = Column('url_type', String)
+    placement = Column('placement', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -374,7 +375,7 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     locus = relationship(Locus, uselist=False, backref=backref('urls', passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'locus_id', 'url_type',
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'locus_id', 'url_type', 'placement',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('locus', Locus, False)]
     __id_values__ = ['format_name']
@@ -384,7 +385,7 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return self.locus.unique_key(), self.display_name, self.url_type
+        return (None if self.locus is None else self.locus.unique_key()), self.display_name, self.url_type, self.placement
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -434,7 +435,7 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.is_external_id = 0 if self.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'} else 1
 
     def unique_key(self):
-        return None if self.locus is None else self.locus.unique_key(), self.display_name, self.alias_type
+        return (None if self.locus is None else self.locus.unique_key()), self.display_name, self.alias_type
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):

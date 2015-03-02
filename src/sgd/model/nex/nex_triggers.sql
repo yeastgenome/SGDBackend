@@ -80,6 +80,16 @@ SELECT alias_seq.nextval INTO :new.alias_id FROM DUAL;
 END;
 /
 
+DROP TRIGGER LOCUS_URL_TRIGGER;
+--/
+CREATE TRIGGER LOCUS_URL_TRIGGER
+BEFORE INSERT ON locus_url
+FOR EACH ROW
+BEGIN
+SELECT url_seq.nextval INTO :new.url_id FROM DUAL;
+END;
+/
+
 /* URL */
 DROP TRIGGER URL_TRIGGER;
 --/
