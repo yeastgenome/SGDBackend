@@ -79,7 +79,7 @@ class SGDBackend(BackendInterface):
                                 'locii': [x.to_min_json(include_description=True) for x in DBSession.query(Locus).filter_by(bioent_status='Active').filter_by(locus_type=locus_type).all()]
             })
 
-    def alignments(self, strain_ids):
+    def alignments(self):
         from src.sgd.model.nex.misc import Strain
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Alignmentevidence, DNAsequenceevidence
@@ -87,7 +87,13 @@ class SGDBackend(BackendInterface):
         strains = [x.to_min_json() for x in DBSession.query(Strain).filter_by(status='Reference').all()]
         strains.extend([x.to_min_json() for x in DBSession.query(Strain).filter_by(status='Alternative Reference').all()])
 
-        id_to_locus = dict([(x.id, x.to_min_json()) for x in DBSession.query(Locus).all() if x.locus_type == 'ORF' or x.locus_type == 'blocked_reading_frame'])
+        id_to_locus = dict()
+        for x in DBSession.query(Locus).all():
+            if x.locus_type == 'ORF' or x.locus_type == 'blocked_reading_frame':
+                obj_json = x.to_min_json()
+                obj_json['headline'] = x.headline
+                obj_json['qualifier'] = x.qualifier
+                id_to_locus[x.id] = obj_json
 
         for locus in id_to_locus.values():
             locus['dna_scores'] = []

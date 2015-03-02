@@ -16,9 +16,10 @@ if __name__ == "__main__":
 
     bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
-    #perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-    #nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
+    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
+
 
     # # ------------------------------------------ Evelements ------------------------------------------
     # # Bud -> Nex
@@ -428,13 +429,13 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True)])
     #
-    do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Reference),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Reference),
-                             name='convert.from_bud.reference',
-                             delete_untouched=True,
-                             commit=True),
-                   OutputTransformer(1000)])
+    # do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Reference),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Reference),
+    #                          name='convert.from_bud.reference',
+    #                          delete_untouched=True,
+    #                          commit=True),
+    #                OutputTransformer(1000)])
     #
     # do_conversion(make_alias_reference_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(AliasReference),
@@ -1184,3 +1185,37 @@ if __name__ == "__main__":
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'locus_list', locus_types),
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
     #
+    #do_conversion(make_orphan_backend_starter(nex_backend, ['alignments']),
+    #              [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+
+    id_to_dataset_values = dict()
+    nex_session = nex_session_maker()
+
+    from src.sgd.model.nex.bioitem import Datasetcolumn, Dataset
+    from src.sgd.model.nex.evidence import Expressionevidence, Bioentitydata
+    from src.sgd.model.nex.bioentity import Bioentity
+
+    id_to_dataset = dict([(x.id, x) for x in nex_session.query(Dataset).all()])
+
+    for dc in nex_session.query(Datasetcolumn).all():
+        dataset = id_to_dataset[dc.dataset_id]
+        dataset_id = (str(dataset.id) if dataset.geo_id is None else dataset.geo_id).strip()
+        dc_id = (str(dc.id) if dc.geo_id is None else dc.geo_id).strip()
+        dataset_description = dataset.description if dataset.short_description is None else dataset.short_description
+        id_to_dataset_values[dc.id] = [dataset_id + '__' + dc_id, dataset_id, dc_id, dataset_description, '', dc.description, str(dataset.channel_count)]
+
+    #with open('/Users/kpaskov/sample_info.txt', 'w+') as f:
+    #    f.write('\n'.join(['\t'.join(x) for x in id_to_dataset_values.values()]))
+
+    dc_id_to_evidence_id = dict([(x.datasetcolumn_id, x.id) for x in nex_session.query(Expressionevidence).all()])
+
+    id_to_bioentity_name = dict([(x.id, x.display_name) for x in nex_session.query(Bioentity).all()])
+
+    for id, dataset_value in id_to_dataset_values.iteritems():
+        data = nex_session.query(Bioentitydata).filter_by(evidence_id=dc_id_to_evidence_id[id]).all()
+        with open('/Users/kpaskov/expression_data/' + dataset_value[0], 'w+') as f:
+            f.write('\n'.join([id_to_bioentity_name[x.locus_id] + '\t' + str(x.value) for x in data]))
+
+    nex_session.close()
+
+
