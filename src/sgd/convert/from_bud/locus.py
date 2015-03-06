@@ -80,11 +80,10 @@ def load_urls(bud_locus, bud_session):
                  'source': {'display_name': old_url.source},
                  'bud_id': old_url.id,
                  'url_type': url_type,
-                 'placement': None if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
+                 'placement': old_webdisplay.label_location if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
                  'link': link,
                  'date_created': str(old_url.date_created),
                  'created_by': old_url.created_by})
-
 
     for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).filter_by(feature_id=bud_locus.id).all():
         old_urls = bud_obj.dbxref.urls
@@ -110,7 +109,7 @@ def load_urls(bud_locus, bud_session):
                      'bud_id': old_url.id,
                      'link': link,
                      'url_type': url_type,
-                     'placement': None if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
+                     'placement': old_webdisplay.label_location if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
                      'date_created': str(old_url.date_created),
                      'created_by': old_url.created_by})
 
@@ -170,7 +169,10 @@ def load_urls(bud_locus, bud_session):
          'url_type': None,
          'placement': 'LOCUS_PHENOTYPE_ONTOLOGY'})
 
-    return urls
+    make_unique = dict([((x['display_name'], x['placement'], x['link']), x) for x in urls])
+    if len(make_unique) != len(urls):
+        print len(urls) - len(make_unique), 'duplicate urls'
+    return make_unique.values()
 
 
 def load_aliases(bud_locus, bud_session):
@@ -179,15 +181,15 @@ def load_aliases(bud_locus, bud_session):
 
     aliases = []
     for bud_obj in bud_session.query(AliasFeature).options(joinedload('alias')).filter_by(feature_id=bud_locus.id).all():
-        if bud_obj.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'}:
-            aliases.append(
-                {'display_name': bud_obj.alias_name,
-                 'source': {'display_name': 'SGD'},
-                 'bud_id': bud_obj.id,
-                 'alias_type': bud_obj.alias_type,
-                 'link': None,
-                 'date_created': str(bud_obj.date_created),
-                 'created_by': bud_obj.created_by})
+        #if bud_obj.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'}:
+        aliases.append(
+            {'display_name': bud_obj.alias_name,
+             'source': {'display_name': 'SGD'},
+             'bud_id': bud_obj.id,
+             'alias_type': bud_obj.alias_type,
+             'link': None,
+             'date_created': str(bud_obj.date_created),
+             'created_by': bud_obj.created_by})
 
     for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).filter_by(feature_id=bud_locus.id).all():
         display_name = bud_obj.dbxref.dbxref_id
@@ -255,6 +257,7 @@ def locus_starter(bud_session_maker):
             #Load urls
             obj_json['urls'] = load_urls(bud_obj, bud_session)
 
+            print obj_json['systematic_name']
             yield obj_json
 
     bud_session.close()

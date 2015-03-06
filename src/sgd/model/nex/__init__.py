@@ -76,6 +76,10 @@ class UpdateWithJsonMixin(object):
 
                 if self.id is not None and key in self.__no_edit_values__:
                     if current_value is not None and current_value != new_value:
+                        print self.__class__.__name__
+                        print self.unique_key()
+                        print ToJsonMixin.to_json(self)
+                        print obj_json
                         raise Exception(key + ' cannot be edited. (Tried to change from ' + str(current_value) + ' to ' + str(new_value) + '.)')
                 else:
                     if new_value != current_value:

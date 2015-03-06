@@ -375,17 +375,17 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     locus = relationship(Locus, uselist=False, backref=backref('urls', passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'locus_id', 'url_type', 'placement',
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type', 'placement',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('locus', Locus, False)]
     __id_values__ = ['format_name']
-    __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return (None if self.locus is None else self.locus.unique_key()), self.display_name, self.url_type, self.placement
+        return (None if self.locus is None else self.locus.unique_key()), self.display_name, self.placement, self.link
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -399,7 +399,8 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         current_obj = session.query(cls)\
             .filter_by(locus_id=newly_created_object.locus_id)\
             .filter_by(display_name=newly_created_object.display_name)\
-            .filter_by(url_type=newly_created_object.url_type).first()
+            .filter_by(placement=newly_created_object.placement)\
+            .filter_by(link=newly_created_object.link).first()
 
         if current_obj is None:
             return newly_created_object, 'Created'
@@ -424,7 +425,7 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     locus = relationship(Locus, uselist=False, backref=backref('aliases', cascade="all, delete, delete-orphan"))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'locus_id', 'is_external_id', 'alias_type',
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'is_external_id', 'alias_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name']
