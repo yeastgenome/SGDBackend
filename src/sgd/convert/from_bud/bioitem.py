@@ -1,3 +1,5 @@
+import traceback
+
 from sqlalchemy.sql.expression import or_
 from sqlalchemy.orm import joinedload
 
@@ -452,13 +454,13 @@ def make_dataset_starter(nex_session_maker, expression_dir):
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
-        filename_to_channel_count = dict([(x[0], x[1].strip()) for x in make_file_starter(expression_dir + '/channel_count.txt')()])
+        #Filename to pubmed_id, geo_id, channel_count, tags, and short description
+        filename_to_info = dict([(x[1], (int(x[0]), x[2], x[3], x[6], None)) for x in make_file_starter(expression_dir + '/pmid_filename_gse_conds_tags_file_20150204.txt')()])
 
         for path in os.listdir(expression_dir):
             if os.path.isdir(expression_dir + '/' + path):
                 full_description = None
                 geo_id = None
-                pcl_filename_to_info = {}
                 pubmed_id = None
 
                 state = 'BEGIN'
@@ -479,10 +481,12 @@ def make_dataset_starter(nex_session_maker, expression_dir):
                             pcl_filename = row[0].strip()
                             short_description = row[1].strip()
                             tag = row[3].strip()
-                            pcl_filename_to_info[pcl_filename] = (short_description, tag)
-
-                    if geo_id == 'N/A':
-                        geo_id = None
+                            if pcl_filename in filename_to_info:
+                                filename_to_info[pcl_filename] = (filename_to_info[pcl_filename][0], filename_to_info[pcl_filename][1], filename_to_info[pcl_filename][2], filename_to_info[pcl_filename][3], short_description)
+                            else:
+                                if geo_id == 'N/A':
+                                    geo_id = None
+                                filename_to_info[pcl_filename] = (pubmed_id, geo_id, 1, tag, short_description)
 
                     for file in os.listdir(expression_dir + '/' + path):
                         if file != 'README':
@@ -490,25 +494,28 @@ def make_dataset_starter(nex_session_maker, expression_dir):
                             pieces = f.next().split('\t')
                             f.close()
 
-                            if pubmed_id not in pubmed_id_to_reference:
-                                print 'Warning: pubmed_id not found ' + str(pubmed_id)
+                            if file in filename_to_info:
+                                pubmed_id, geo_id, channel_count, tags, short_description = filename_to_info[file]
 
-                            if file in pcl_filename_to_info:
+                                if pubmed_id not in pubmed_id_to_reference:
+                                    print 'Warning: pubmed_id not found ' + str(pubmed_id)
+
                                 yield {
                                     'description': full_description,
                                     'geo_id': geo_id,
                                     'pcl_filename': file,
-                                    'short_description': pcl_filename_to_info[file][0],
-                                    'tags': pcl_filename_to_info[file][1],
+                                    'short_description': short_description,
+                                    'tags': tags,
                                     'reference': None if pubmed_id is None or pubmed_id not in pubmed_id_to_reference else pubmed_id_to_reference[pubmed_id],
                                     'source': key_to_source['SGD'],
-                                    'channel_count': 1 if file not in filename_to_channel_count else int(filename_to_channel_count[file]),
+                                    'channel_count': channel_count,
                                     'condition_count': len(pieces)-3
                                 }
                             else:
                                 print 'Filename not in readme: ' + file
                 except:
                     print 'File ' + expression_dir + '/' + path + '/README' + ' not found.'
+                    print traceback.format_exc()
 
         nex_session.close()
     return dataset_starter
@@ -524,7 +531,9 @@ def make_datasetcolumn_starter(nex_session_maker, expression_dir):
         key_to_dataset = dict([(x.unique_key(), x) for x in nex_session.query(Dataset).all()])
 
 
-        key_to_GSM = dict([((x[0], x[1].strip().decode('ascii','ignore')), x[2]) for x in make_file_starter('src/sgd/convert/data/microarray_05_14/GSM_to_GSE.txt')()])
+        #Filename to pubmed_id, geo_id, channel_count, tags, and short description
+        key_to_GSM = dict([((x[2], x[4].replace('delta', '').replace('sigma', '').strip()), x[5]) for x in make_file_starter(expression_dir + '/pmid_filename_gse_conds_tags_file_20150204.txt')()])
+        key_to_GSM.update([((x[2], x[4].strip()), x[5]) for x in make_file_starter(expression_dir + '/pmid_filename_gse_conds_tags_file_20150204.txt')()])
 
         for path in os.listdir(expression_dir):
             if os.path.isdir(expression_dir + '/' + path):
@@ -536,8 +545,6 @@ def make_datasetcolumn_starter(nex_session_maker, expression_dir):
                         f.close()
 
                         geo_id = key_to_dataset[dataset_key].geo_id
-
-
 
                         i = 0
                         for piece in pieces[3:]:
