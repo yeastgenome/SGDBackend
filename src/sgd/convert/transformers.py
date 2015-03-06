@@ -323,6 +323,61 @@ class Json2CorePerfDB(TransformerInterface):
         self.session.close()
         return message if self.name is None else self.name + ': ' + str(message)
 
+class Json2CorePerfDBOneByOne(TransformerInterface):
+
+    def __init__(self, session_maker, cls, name=None, commit_interval=None, commit=False):
+        self.session = session_maker()
+        self.cls = cls
+        self.name = name
+        self.commit_interval = commit_interval
+        self.commit = commit
+        self.ids_already_seen = set()
+        self.none_count = 0
+        self.added_count = 0
+        self.updated_count = 0
+        self.no_change_count = 0
+        self.duplicate_count = 0
+        self.error_count = 0
+        self.deleted_count = 0
+
+    def convert(self, newly_created_obj_json):
+        if newly_created_obj_json is None:
+            self.none_count += 1
+            return 'None'
+        if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
+            self.session.commit()
+
+        identifier = newly_created_obj_json['id']
+        if identifier not in self.ids_already_seen:
+            self.ids_already_seen.add(identifier)
+            current_obj = self.session.query(self.cls).filter_by(id=identifier).first()
+            if current_obj is None:
+                self.session.add(self.cls(newly_created_obj_json))
+                self.added_count += 1
+                return 'Added'
+            else:
+                updated = current_obj.update(newly_created_obj_json)
+                if updated:
+                    self.updated_count += 1
+                    return 'Updated'
+                else:
+                    self.no_change_count += 1
+                    return 'No Change'
+        else:
+            self.duplicate_count += 1
+            return 'Duplicate'
+
+    def finished(self, with_error=False):
+        message = {'Added': self.added_count, 'Updated': self.updated_count, 'Deleted': self.deleted_count,
+                   'No Change': self.no_change_count, 'Duplicate': self.duplicate_count, 'Error': self.error_count,
+                   'None': self.none_count}
+        if self.commit_interval is not None or self.commit:
+            self.session.commit()
+        else:
+            message['Warning'] = 'Changes not committed!'
+        self.session.close()
+        return message if self.name is None else self.name + ': ' + str(message)
+
 class Json2DisambigPerfDB(TransformerInterface):
 
     def __init__(self, session_maker, commit_interval=None, commit=False):
