@@ -470,7 +470,7 @@ def make_dataset_starter(nex_session_maker, expression_dir):
                         elif row[0].startswith('PMID:'):
                             pubmed_id = int(row[0][6:].strip())
                         elif row[0].startswith('GEO ID:'):
-                            geo_id = row[0][8:].strip()
+                            geo_id = row[0][8:].strip().split('.')[0].split('GPL')[0]
                         elif row[0].startswith('PCL filename'):
                             state = 'OTHER'
                         elif state == 'FULL_DESCRIPTION':
@@ -489,6 +489,9 @@ def make_dataset_starter(nex_session_maker, expression_dir):
                             f = open(expression_dir + '/' + path + '/' + file, 'r')
                             pieces = f.next().split('\t')
                             f.close()
+
+                            if pubmed_id not in pubmed_id_to_reference:
+                                print 'Warning: pubmed_id not found ' + str(pubmed_id)
 
                             if file in pcl_filename_to_info:
                                 yield {
@@ -521,7 +524,7 @@ def make_datasetcolumn_starter(nex_session_maker, expression_dir):
         key_to_dataset = dict([(x.unique_key(), x) for x in nex_session.query(Dataset).all()])
 
 
-        key_to_GSM = dict([((x[0], x[1]), x[2]) for x in make_file_starter('src/sgd/convert/data/GSM_to_GSE.txt')()])
+        key_to_GSM = dict([((x[0], x[1].strip().decode('ascii','ignore')), x[2]) for x in make_file_starter('src/sgd/convert/data/microarray_05_14/GSM_to_GSE.txt')()])
 
         for path in os.listdir(expression_dir):
             if os.path.isdir(expression_dir + '/' + path):
@@ -534,9 +537,15 @@ def make_datasetcolumn_starter(nex_session_maker, expression_dir):
 
                         geo_id = key_to_dataset[dataset_key].geo_id
 
+
+
                         i = 0
                         for piece in pieces[3:]:
                             column_name = piece.strip().decode('ascii','ignore')
+
+                            if (geo_id, column_name) not in key_to_GSM and geo_id is not None:
+                                print (geo_id, column_name)
+                            #print (geo_id, column_name)
                             col_geo_id = None if (geo_id, column_name) not in key_to_GSM else key_to_GSM[(geo_id, column_name)]
                             link = None if col_geo_id is None else 'http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=' + col_geo_id
                             yield {
@@ -692,7 +701,7 @@ def make_bioitem_tag_starter(nex_session_maker):
         key_to_dataset = dict([(x.unique_key(), x) for x in nex_session.query(Dataset).all()])
         key_to_tag = dict([(x.unique_key(), x) for x in nex_session.query(Tag).all()])
 
-        for row in make_file_starter('src/sgd/convert/data/SPELL-tags.txt')():
+        for row in make_file_starter('src/sgd/convert/data/microarray_05_14/SPELL-tags.txt')():
             dataset_key = (row[1].strip()[:-4], 'DATASET')
             tags = row[2].strip()
             for t in [x.strip() for x in tags.split('|')]:
@@ -761,7 +770,7 @@ def make_tag_starter(nex_session_maker):
     def tag_starter():
         nex_session = nex_session_maker()
 
-        for row in make_file_starter('src/sgd/convert/data/SPELL-tags.txt')():
+        for row in make_file_starter('src/sgd/convert/data/microarray_05_14/SPELL-tags.txt')():
             tag = row[2].strip()
             for t in [x.strip() for x in tag.split('|')]:
                 if t != '':
