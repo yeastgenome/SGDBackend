@@ -82,12 +82,20 @@ class SGDBackend(BackendInterface):
     def alignments(self):
         from src.sgd.model.nex.misc import Strain
         from src.sgd.model.nex.bioentity import Locus
-        from src.sgd.model.nex.evidence import Alignmentevidence
+        from src.sgd.model.nex.evidence import Alignmentevidence, DNAsequenceevidence
 
+        ordered_strains = ['S288C', 'X2180-1A', 'SEY6210', 'W303', 'JK9-3d', 'FL100', 'CEN.PK', 'D273-10B', 'Sigma1278b', 'RM11-1a', 'SK1', 'Y55']
         strains = [x.to_min_json() for x in DBSession.query(Strain).filter_by(status='Reference').all()]
         strains.extend([x.to_min_json() for x in DBSession.query(Strain).filter_by(status='Alternative Reference').all()])
+        strains.sort(key=lambda x: float('infinity') if x['display_name'] not in ordered_strains else ordered_strains.index(x['display_name']))
 
-        id_to_locus = dict([(x.id, x.to_min_json()) for x in DBSession.query(Locus).all()])
+        id_to_locus = dict()
+        for x in DBSession.query(Locus).all():
+            if x.locus_type == 'ORF' or x.locus_type == 'blocked_reading_frame':
+                obj_json = x.to_min_json()
+                obj_json['headline'] = x.headline
+                obj_json['qualifier'] = x.qualifier
+                id_to_locus[x.id] = obj_json
 
         for locus in id_to_locus.values():
             locus['dna_scores'] = []
@@ -108,17 +116,37 @@ class SGDBackend(BackendInterface):
                 locus['dna_scores'].append(None if locus_id not in locus_id_to_dna_score else locus_id_to_dna_score[locus_id])
                 locus['protein_scores'].append(None if locus_id not in locus_id_to_protein_score else locus_id_to_protein_score[locus_id])
 
-        return json.dumps({'loci': id_to_locus.values(),
+        locus_id_to_reference_position = dict([(x.locus_id, (x.contig_id, x.start)) for x in DBSession.query(DNAsequenceevidence).filter_by(strain_id=1).filter_by(dna_type='GENOMIC').all()])
+
+
+        return json.dumps({'loci': sorted(id_to_locus.values(), key=lambda x: (float('inf'), float('inf')) if x['id'] not in locus_id_to_reference_position else locus_id_to_reference_position[x['id']]),
                            'strains': strains,
                            'graph_data': {}})
+        return None
 
-    def alignment_bioent(self, locus_identifier=None, are_ids=False):
+    def alignment_bioent(self, locus_identifier=None, strain_ids=None, are_ids=False):
         import view_sequence
         if are_ids:
             locus_id = locus_identifier
         else:
             locus_id = None if locus_identifier is None else get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
-        return json.dumps(view_sequence.make_alignment(locus_id=locus_id))
+        alignment = json.dumps(view_sequence.make_alignment(locus_id=locus_id))
+
+        if strain_ids is None:
+            return alignment
+        else:
+            try:
+                strain_ids = [int(strain_id) for strain_id in strain_ids]
+                strain_ids.append(1)
+            except Exception:
+                return None
+            alignment = json.loads(alignment)
+            alignment['aligned_dna_sequences'] = [x for x in alignment['aligned_dna_sequences'] if x['strain_id'] in strain_ids]
+            alignment['aligned_protein_sequences'] = [x for x in alignment['aligned_protein_sequences'] if x['strain_id'] in strain_ids]
+
+            alignment['variant_data_dna'] = view_sequence.calculate_variant_data(alignment['aligned_dna_sequences'])
+            alignment['variant_data_protein'] = view_sequence.calculate_variant_data(alignment['aligned_protein_sequences'])
+            return json.dumps(alignment)
 
     def snapshot(self):
         #Go
