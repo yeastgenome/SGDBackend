@@ -129,6 +129,9 @@ def make_alignment(locus_id=None):
     if evidences is None:
         return {'Error': 'Too much data to display.'}
 
+    ordered_strains = ['S288C', 'X2180-1A', 'SEY6210', 'W303', 'JK9-3d', 'FL100', 'CEN.PK', 'D273-10B', 'Sigma1278b', 'RM11-1a', 'SK1', 'Y55']
+    alignment_evidences.sort(key=lambda x: float('infinity') if x.strain.display_name not in ordered_strains else ordered_strains.index(x.strain.display_name))
+
     obj_json['aligned_dna_sequences'] = [{'strain_id': x.strain_id,
                                           'strain_display_name': x.strain.display_name,
                                           'strain_link': x.strain.link,
