@@ -16,9 +16,9 @@ if __name__ == "__main__":
 
     bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
-    #perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-    #nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
+    nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-dev-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
     # # ------------------------------------------ Evelements ------------------------------------------
     # # Bud -> Nex
@@ -427,14 +427,14 @@ if __name__ == "__main__":
     #                          name='convert.from_bud.book',
     #                          delete_untouched=True,
     #                          commit=True)])
-    #
-    do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
-                  [Json2Obj(Reference),
-                   Obj2NexDB(nex_session_maker, lambda x: x.query(Reference),
-                             name='convert.from_bud.reference',
-                             delete_untouched=True,
-                             commit=True),
-                   OutputTransformer(1000)])
+    # #
+    # do_conversion(make_reference_starter(bud_session_maker, nex_session_maker),
+    #               [Json2Obj(Reference),
+    #                Obj2NexDB(nex_session_maker, lambda x: x.query(Reference),
+    #                          name='convert.from_bud.reference',
+    #                          delete_untouched=True,
+    #                          commit=True),
+    #                OutputTransformer(1000)])
     #
     # do_conversion(make_alias_reference_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(AliasReference),
@@ -661,8 +661,8 @@ if __name__ == "__main__":
     # do_conversion(make_posttranslational_evidence_starter(nex_session_maker),
     #               [Json2Obj(Posttranslationalevidence),
     #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Posttranslationalevidence),
-    #                               name='convert.from_bud.evidence.posttranslationsl',
-    #                               delete_untouched=True,
+    #                               name='convert.from_bud.evidence.posttranslational',
+    #                               delete_untouched=False,
     #                               commit_interval=1000,
     #                               already_deleted=clean_up_orphans(nex_session_maker, Posttranslationalevidence, Evidence, 'POSTTRANSLATIONAL')),
     #                OutputTransformer(1000)])
@@ -1077,9 +1077,9 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_PHOSPHORYLATION', locus_ids, name='convert.from_backend.protein_phosphorylation_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    # do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details', commit_interval=1000),
-    #                 OutputTransformer(1000)])
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details', commit_interval=1000),
+                    OutputTransformer(1000)])
     #
     #
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_experiment_details', locus_ids),

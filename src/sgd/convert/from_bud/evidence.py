@@ -1157,10 +1157,11 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                     print 'Bioentity not found: ' + str(bioentity_key)
 
         #Other sites
-        file_names = ['src/sgd/convert/data/methylationSitesPMID25109467.txt',
-                      'src/sgd/convert/data/ubiquitinationSites090314.txt',
-                      'src/sgd/convert/data/phosphorylationUbiquitinationPMID23749301.txt',
-                      'src/sgd/convert/data/succinylationAcetylation090914.txt']
+        file_names = [#'src/sgd/convert/data/methylationSitesPMID25109467.txt',
+                      #'src/sgd/convert/data/ubiquitinationSites090314.txt',
+                      #'src/sgd/convert/data/phosphorylationUbiquitinationPMID23749301.txt',
+                      #'src/sgd/convert/data/succinylationAcetylation090914.txt',
+                      'src/sgd/convert/data/PTMsitesPMID25344756.txt']
 
         for file_name in file_names:
             print file_name
@@ -1188,13 +1189,13 @@ def make_posttranslational_evidence_starter(nex_session_maker):
 
                     if bioentity_key in key_to_bioentity and source_key in key_to_source and pmid in pmid_to_reference:
                         yield {
-                           'source': key_to_source[source_key],
-                           'locus': key_to_bioentity[bioentity_key],
-                           'site_index': site_index,
-                           'site_residue': site_residue,
-                           'type': modification_type,
-                           'reference': pmid_to_reference[pmid],
-                           'properties': []
+                            'source': key_to_source[source_key],
+                            'locus': key_to_bioentity[bioentity_key],
+                            'site_index': site_index,
+                            'site_residue': site_residue,
+                            'type': modification_type,
+                            'reference': pmid_to_reference[pmid],
+                            'properties': []
                         }
                     else:
                         print 'Bioentity or source or pmid not found: ' + str(bioentity_key) + ' ' + str(source_key) + ' ' + str(pmid)
