@@ -94,11 +94,9 @@ class SGDBackend(BackendInterface):
 
         strain_id_to_index = dict([(x['id'], i) for i, x in enumerate(strains)])
         strain_ids = [x['id'] for x in strains]
-        print 'Strains done'
+
         locus_ids = [x.locus_id for x in DBSession.query(DNAsequenceevidence).filter_by(strain_id=1).filter_by(dna_type='GENOMIC').order_by(DNAsequenceevidence.contig_id, DNAsequenceevidence.start).limit(limit).offset(offset).all()]
         locuses = []
-
-        print 'Locus ids done'
 
         chunk_size = 500
         for i in range(0, len(locus_ids), chunk_size):
@@ -114,8 +112,6 @@ class SGDBackend(BackendInterface):
                     obj_json['protein_scores'] = [None for _ in strains]
                     id_to_new_locus[x.id] = obj_json
 
-            print 'locus info done'
-
             alignment_evidences = DBSession.query(Alignmentevidence).filter(Alignmentevidence.locus_id.in_(set(new_locus_ids))).all()
 
             for alignment_evidence in alignment_evidences:
@@ -126,8 +122,6 @@ class SGDBackend(BackendInterface):
                     elif alignment_evidence.sequence_type == 'Protein':
                         id_to_new_locus[alignment_evidence.locus_id]['protein_scores'][strain_index] = alignment_evidence.similarity_score
 
-            print 'alignment info done'
-
             locuses.extend([id_to_new_locus[locus_id] for locus_id in new_locus_ids if locus_id in id_to_new_locus])
 
         return json.dumps({'loci': locuses,
@@ -136,7 +130,7 @@ class SGDBackend(BackendInterface):
         return None
 
     def alignment_bioent(self, locus_identifier=None, strain_ids=None, are_ids=False):
-        import view_sequence
+        from src.sgd.backend import calculate_variant_data
         if are_ids:
             locus_id = locus_identifier
         else:
@@ -155,8 +149,8 @@ class SGDBackend(BackendInterface):
             alignment['aligned_dna_sequences'] = [x for x in alignment['aligned_dna_sequences'] if x['strain_id'] in strain_ids]
             alignment['aligned_protein_sequences'] = [x for x in alignment['aligned_protein_sequences'] if x['strain_id'] in strain_ids]
 
-            alignment['variant_data_dna'] = view_sequence.calculate_variant_data(alignment['aligned_dna_sequences'])
-            alignment['variant_data_protein'] = view_sequence.calculate_variant_data(alignment['aligned_protein_sequences'])
+            alignment['variant_data_dna'] = calculate_variant_data(alignment['aligned_dna_sequences'])
+            alignment['variant_data_protein'] = calculate_variant_data(alignment['aligned_protein_sequences'])
             return json.dumps(alignment)
 
     def snapshot(self):

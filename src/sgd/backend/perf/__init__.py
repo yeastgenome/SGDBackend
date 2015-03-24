@@ -181,20 +181,20 @@ class PerfBackend(BackendInterface):
             if strain_ids is None:
                 return alignment
             else:
-                alignment = json.loads(alignment)
 
+                alignment = json.loads(alignment)
                 try:
                     strain_ids = set([int(strain_id) for strain_id in strain_ids])
-                    strain_ids.append(1)
+                    strain_ids.add(1)
                 except Exception:
                     return None
 
-                alignment['aligned_dna_sequences'] = [x for x in alignment['aligned_dna_sequences'] if x['id'] in strain_ids]
-                alignment['aligned_protein_sequences'] = [x for x in alignment['aligned_protein_sequences'] if x['id'] in strain_ids]
+                alignment['aligned_dna_sequences'] = [x for x in alignment['aligned_dna_sequences'] if x['strain_id'] in strain_ids]
+                alignment['aligned_protein_sequences'] = [x for x in alignment['aligned_protein_sequences'] if x['strain_id'] in strain_ids]
 
-                from src.sgd.backend.nex.view_sequence import calculate_variant_data
-                alignment['variant_data_dna'] = calculate_variant_data(obj_json['aligned_dna_sequences'])
-                alignment['variant_data_protein'] = calculate_variant_data(obj_json['aligned_protein_sequences'])
+                from src.sgd.backend import calculate_variant_data
+                alignment['variant_data_dna'] = calculate_variant_data(alignment['aligned_dna_sequences'])
+                alignment['variant_data_protein'] = calculate_variant_data(alignment['aligned_protein_sequences'])
 
                 return json.dumps(alignment)
         return None

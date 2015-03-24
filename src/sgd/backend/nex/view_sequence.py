@@ -3,6 +3,7 @@ from src.sgd.model.nex.evidence import DNAsequenceevidence, Proteinsequenceevide
 from src.sgd.model.nex.bioitem import Contig
 from src.sgd.model.nex.bioentity import Locus
 from src.sgd.backend.nex import DBSession, query_limit
+from src.sgd.backend import calculate_variant_data
 import json
 
 __author__ = 'kpaskov'
@@ -207,46 +208,6 @@ def make_alignment(locus_id=None):
 
 
     return obj_json
-
-def calculate_variant_data(aligned_sequences):
-    variants = dict()
-    reference_alignment = [x['sequence'] for x in aligned_sequences if x['strain_id'] == 1]
-    if len(reference_alignment) == 1:
-        reference_alignment = reference_alignment[0]
-
-        for strain in aligned_sequences:
-            aligned_sequence = strain['sequence']
-            state = 'No difference'
-            state_start_index = 0
-            for i, letter in enumerate(reference_alignment):
-                #Figure out new state
-                new_state = 'No difference'
-                if aligned_sequence[i] != letter:
-                    if letter == '-':
-                        new_state = 'Insertion'
-                    elif aligned_sequence[i] == '-':
-                        new_state = 'Deletion'
-                    else:
-                        new_state = 'SNP'
-
-                if state != new_state:
-                    if state != 'No difference':
-                        variant_key = (state_start_index+1, i+1, state)
-                        if variant_key not in variants:
-                            variants[variant_key] = 0
-                        variants[variant_key] += 1
-
-                    state = new_state
-                    state_start_index = i
-
-            if state != 'No difference':
-                variant_key = (state_start_index+1, i+1, state)
-                if variant_key not in variants:
-                    variants[variant_key] = 0
-                variants[variant_key] += 1
-
-    return [{'start': variant[0], 'end': variant[1], 'score': score, 'variant_type': variant[2]} for variant, score in variants.iteritems()]
-
 
 # -------------------------------Details---------------------------------------
 def get_binding_evidence(locus_id):
