@@ -79,7 +79,7 @@ class SGDBackend(BackendInterface):
                                 'locii': [x.to_min_json(include_description=True) for x in DBSession.query(Locus).filter_by(bioent_status='Active').filter_by(locus_type=locus_type).all()]
             })
 
-    def alignments(self):
+    def alignments(self, strain_ids=None, limit=None, offset=None):
         from src.sgd.model.nex.misc import Strain
         from src.sgd.model.nex.bioentity import Locus
         from src.sgd.model.nex.evidence import Alignmentevidence, DNAsequenceevidence
@@ -89,37 +89,48 @@ class SGDBackend(BackendInterface):
         strains.extend([x.to_min_json() for x in DBSession.query(Strain).filter_by(status='Alternative Reference').all()])
         strains.sort(key=lambda x: float('infinity') if x['display_name'] not in ordered_strains else ordered_strains.index(x['display_name']))
 
-        id_to_locus = dict()
-        for x in DBSession.query(Locus).all():
-            if x.locus_type == 'ORF' or x.locus_type == 'blocked_reading_frame':
-                obj_json = x.to_min_json()
-                obj_json['headline'] = x.headline
-                obj_json['qualifier'] = x.qualifier
-                id_to_locus[x.id] = obj_json
+        if strain_ids is not None:
+            strains = [x for x in strains if str(x['id']) in strain_ids]
 
-        for locus in id_to_locus.values():
-            locus['dna_scores'] = []
-            locus['protein_scores'] = []
+        strain_id_to_index = dict([(x['id'], i) for i, x in enumerate(strains)])
+        strain_ids = [x['id'] for x in strains]
+        print 'Strains done'
+        locus_ids = [x.locus_id for x in DBSession.query(DNAsequenceevidence).filter_by(strain_id=1).filter_by(dna_type='GENOMIC').order_by(DNAsequenceevidence.contig_id, DNAsequenceevidence.start).limit(limit).offset(offset).all()]
+        locuses = []
 
-        for strain in strains:
-            alignment_evidences = DBSession.query(Alignmentevidence).filter_by(strain_id=strain['id']).all()
-            locus_id_to_dna_score = dict()
-            locus_id_to_protein_score = dict()
+        print 'Locus ids done'
+
+        chunk_size = 500
+        for i in range(0, len(locus_ids), chunk_size):
+            new_locus_ids = locus_ids[i*chunk_size: (i+1)*chunk_size]
+            id_to_new_locus = dict()
+
+            for x in DBSession.query(Locus).filter(Locus.id.in_(set(new_locus_ids))):
+                if x.locus_type == 'ORF' or x.locus_type == 'blocked_reading_frame':
+                    obj_json = x.to_min_json()
+                    obj_json['headline'] = x.headline
+                    obj_json['qualifier'] = x.qualifier
+                    obj_json['dna_scores'] = [None for _ in strains]
+                    obj_json['protein_scores'] = [None for _ in strains]
+                    id_to_new_locus[x.id] = obj_json
+
+            print 'locus info done'
+
+            alignment_evidences = DBSession.query(Alignmentevidence).filter(Alignmentevidence.locus_id.in_(set(new_locus_ids))).all()
 
             for alignment_evidence in alignment_evidences:
-                if alignment_evidence.sequence_type == 'Genomic DNA':
-                    locus_id_to_dna_score[alignment_evidence.locus_id] = alignment_evidence.similarity_score
-                elif alignment_evidence.sequence_type == 'Protein':
-                    locus_id_to_protein_score[alignment_evidence.locus_id] = alignment_evidence.similarity_score
+                if alignment_evidence.strain_id in strain_id_to_index and alignment_evidence.locus_id in id_to_new_locus.keys():
+                    strain_index = strain_id_to_index[alignment_evidence.strain_id]
+                    if alignment_evidence.sequence_type == 'Genomic DNA':
+                        id_to_new_locus[alignment_evidence.locus_id]['dna_scores'][strain_index] = alignment_evidence.similarity_score
+                    elif alignment_evidence.sequence_type == 'Protein':
+                        id_to_new_locus[alignment_evidence.locus_id]['protein_scores'][strain_index] = alignment_evidence.similarity_score
 
-            for locus_id, locus in id_to_locus.iteritems():
-                locus['dna_scores'].append(None if locus_id not in locus_id_to_dna_score else locus_id_to_dna_score[locus_id])
-                locus['protein_scores'].append(None if locus_id not in locus_id_to_protein_score else locus_id_to_protein_score[locus_id])
+            print 'alignment info done'
 
-        locus_id_to_reference_position = dict([(x.locus_id, (x.contig_id, x.start)) for x in DBSession.query(DNAsequenceevidence).filter_by(strain_id=1).filter_by(dna_type='GENOMIC').all()])
+            locuses.extend([id_to_new_locus[locus_id] for locus_id in new_locus_ids if locus_id in id_to_new_locus])
 
-
-        return json.dumps({'loci': sorted(id_to_locus.values(), key=lambda x: (float('inf'), float('inf')) if x['id'] not in locus_id_to_reference_position else locus_id_to_reference_position[x['id']]),
+        return json.dumps({'loci': locuses,
                            'strains': strains,
                            'graph_data': {}})
         return None

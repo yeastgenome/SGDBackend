@@ -128,26 +128,42 @@ class PerfBackend(BackendInterface):
         from src.sgd.model.perf.core import Orphan
         return DBSession.query(Orphan).filter_by(url='snapshot').first().json
 
-    def alignments(self, strain_ids):
+    def alignments(self, strain_ids=None, limit=None, offset=None):
         from src.sgd.model.perf.core import Orphan
         alignment = DBSession.query(Orphan).filter_by(url='alignments').first().json
-        if strain_ids is None:
+        if strain_ids is None and limit is None:
             return alignment
         else:
-            try:
-                strain_ids = [int(strain_id) for strain_id in strain_ids]
-                strain_ids.append(1)
-            except Exception:
-                return None
             alignment = json.loads(alignment)
-            good_indices = []
-            for i, strain in enumerate(alignment['strains']):
-                if strain['id'] in strain_ids:
-                    good_indices.append(i)
 
-            for locus in alignment['loci']:
-                locus['dna_scores'] = [locus['dna_scores'][i] for i in good_indices]
-                locus['protein_scores'] = [locus['protein_scores'][i] for i in good_indices]
+            if strain_ids is not None:
+                try:
+                    strain_ids = [int(strain_id) for strain_id in strain_ids]
+                    strain_ids.append(1)
+                except Exception:
+                    return None
+
+                good_indices = []
+                for i, strain in enumerate(alignment['strains']):
+                    if strain['id'] in strain_ids:
+                        good_indices.append(i)
+
+                for locus in alignment['loci']:
+                    locus['dna_scores'] = [locus['dna_scores'][i] for i in good_indices]
+                    locus['protein_scores'] = [locus['protein_scores'][i] for i in good_indices]
+
+            if limit is not None:
+                try:
+                    limit = int(limit)
+                    if offset is not None:
+                        offset = int(offset)
+                    else:
+                        offset = 0
+                except Exception:
+                    return None
+
+                alignment['loci'] = [x for i, x in enumerate(alignment['loci']) if i >= offset and i <= offset + limit]
+
             return json.dumps(alignment)
 
     def tag_list(self):
