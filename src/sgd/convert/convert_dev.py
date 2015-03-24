@@ -542,7 +542,7 @@ if __name__ == "__main__":
     from src.sgd.model.nex.evidence import Evidence, Goevidence, DNAsequenceevidence, Regulationevidence, \
         Proteinsequenceevidence, Phosphorylationevidence, Domainevidence, Literatureevidence, Phenotypeevidence, \
         DNAsequencetag, Expressionevidence, Bioentitydata, Bindingevidence, ECNumberevidence, Geninteractionevidence, Physinteractionevidence, Proteinexperimentevidence, \
-        Historyevidence, Pathwayevidence, Goslimevidence, Alignmentevidence, Posttranslationalevidence
+        Historyevidence, Pathwayevidence, Goslimevidence, Alignmentevidence
     from src.sgd.model.nex.archive import ArchiveLiteratureevidence
     from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_go_slim_evidence_starter, make_dna_sequence_evidence_starter, \
         make_regulation_evidence_starter, make_protein_sequence_evidence_starter, make_phosphorylation_evidence_starter, \
@@ -551,7 +551,7 @@ if __name__ == "__main__":
         make_binding_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
         make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter, \
         make_new_dna_sequence_evidence_starter, make_ref_dna_sequence_evidence_starter, make_kb_sequence_starter, \
-        make_pathway_evidence_starter, make_alignment_evidence_starter, make_posttranslational_evidence_starter
+        make_pathway_evidence_starter, make_alignment_evidence_starter
     #
     # do_conversion(make_binding_evidence_starter(nex_session_maker),
     #                [Json2Obj(Bindingevidence),
@@ -657,15 +657,6 @@ if __name__ == "__main__":
     #                               commit=True,
     #                               already_deleted=clean_up_orphans(nex_session_maker, Phosphorylationevidence, Evidence, 'PHOSPHORYLATION')),
     #                OutputTransformer(1000)])
-
-    # do_conversion(make_posttranslational_evidence_starter(nex_session_maker),
-    #               [Json2Obj(Posttranslationalevidence),
-    #                Evidence2NexDB(nex_session_maker, lambda x: x.query(Posttranslationalevidence),
-    #                               name='convert.from_bud.evidence.posttranslationsl',
-    #                               delete_untouched=True,
-    #                               commit_interval=1000,
-    #                               already_deleted=clean_up_orphans(nex_session_maker, Posttranslationalevidence, Evidence, 'POSTTRANSLATIONAL')),
-    #                OutputTransformer(1000)])
     #
     # do_conversion(make_protein_experiment_evidence_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Proteinexperimentevidence),
@@ -685,13 +676,13 @@ if __name__ == "__main__":
     # #                               already_deleted=clean_up_orphans(nex_session_maker, Regulationevidence, Evidence, 'REGULATION')),
     # #                OutputTransformer(1000)])
     # #
-    # # do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
-    # #                   [Json2Obj(DNAsequenceevidence),
-    # #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1).filter(DNAsequenceevidence.dna_type != '1KB'),
-    # #                              name='convert.from_bud.evidence.reference_dnasequence',
-    # #                              delete_untouched=True,
-    # #                              commit_interval=1000),
-    # #                    OutputTransformer(1000)])
+    # do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
+    #                   [Json2Obj(DNAsequenceevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1).filter(DNAsequenceevidence.dna_type != '1KB'),
+    #                              name='convert.from_bud.evidence.reference_dnasequence',
+    #                              delete_untouched=True,
+    #                              commit_interval=1000),
+    #                    OutputTransformer(1000)])
     # #
     # # do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
     # #               [Json2Obj(DNAsequencetag),
@@ -812,13 +803,13 @@ if __name__ == "__main__":
     #                               already_deleted=clean_up_orphans(nex_session_maker, Historyevidence, Evidence, 'HISTORY')),
     #                OutputTransformer(1000)])
 
-    do_conversion(make_alignment_evidence_starter(nex_session_maker),
-                      [Json2Obj(Alignmentevidence),
-                       Obj2NexDB(nex_session_maker, lambda x: x.query(Alignmentevidence),
-                                 name='convert.from_bud.evidence.alignment_evidence',
-                                 delete_untouched=True,
-                                 commit_interval=1000),
-                       OutputTransformer(1000)])
+    # do_conversion(make_alignment_evidence_starter(nex_session_maker),
+    #                   [Json2Obj(Alignmentevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(Alignmentevidence),
+    #                              name='convert.from_bud.evidence.alignment_evidence',
+    #                              delete_untouched=True,
+    #                              commit_interval=1000),
+    #                    OutputTransformer(1000)])
     #
     # from src.sgd.model.nex.evidence import Property, Bioentityproperty, Bioconceptproperty, Bioitemproperty, Chemicalproperty, Temperatureproperty, Generalproperty
     # clean_up_orphans(nex_session_maker, Bioentityproperty, Property, 'BIOENTITY')
@@ -906,7 +897,7 @@ if __name__ == "__main__":
     # make_bioconcept_count_starter(nex_session_maker)
     #
     # # ------------------------------------------ Perf ------------------------------------------
-    # from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
+    from src.sgd.model.perf.bioentity_data import BioentityDetails, BioentityGraph, BioentityEnrichment
     # from src.sgd.model.perf.bioconcept_data import BioconceptDetails, BioconceptGraph
     from src.sgd.model.perf.bioitem_data import BioitemDetails, BioitemEnrichment
     # from src.sgd.model.perf.reference_data import ReferenceDetails
@@ -1006,8 +997,8 @@ if __name__ == "__main__":
     # from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
     from src.sgd.model.nex.bioitem import Chemical, Contig, Domain, Datasetcolumn
     # from src.sgd.model.nex.reference import Reference
-    #nex_session = nex_session_maker()
-    # locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    nex_session = nex_session_maker()
+    locus_ids = [x.id for x in nex_session.query(Locus).all()]
     # ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     # go_ids = [x.id for x in nex_session.query(Go).all()]
     # datasetcolumn_ids = [x.id for x in nex_session.query(Datasetcolumn).all()]
@@ -1017,7 +1008,7 @@ if __name__ == "__main__":
     # chemical_ids = [x.id for x in nex_session.query(Chemical).all()]
     #contig_ids = [x.id for x in nex_session.query(Contig).all()]
     # reference_ids = [x.id for x in nex_session.query(Reference).all()]
-    #nex_session.close()
+    nex_session.close()
     #
     # # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
     # #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000),
@@ -1084,10 +1075,6 @@ if __name__ == "__main__":
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_phosphorylation_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_PHOSPHORYLATION', locus_ids, name='convert.from_backend.protein_phosphorylation_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
-
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details', commit_interval=1000),
-                    OutputTransformer(1000)])
     #
     #
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_experiment_details', locus_ids),
@@ -1188,8 +1175,12 @@ if __name__ == "__main__":
     # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'snapshot', 'tag_list']),
     #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
 
-    do_conversion(make_orphan_backend_starter(nex_backend, ['alignments']),
-                  [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+    do_conversion(make_locus_data_backend_starter(nex_backend, 'alignment_bioent', locus_ids),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'ALIGNMENT', locus_ids, name='convert.from_backend.alignment_details', commit_interval=10),
+                    OutputTransformer(100)])
+
+    #do_conversion(make_orphan_backend_starter(nex_backend, ['alignments']),
+    #              [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
     #
     # from src.sgd.model.nex import locus_types
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'locus_list', locus_types),

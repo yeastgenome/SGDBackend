@@ -129,6 +129,9 @@ def make_alignment(locus_id=None):
     if evidences is None:
         return {'Error': 'Too much data to display.'}
 
+    ordered_strains = ['S288C', 'X2180-1A', 'SEY6210', 'W303', 'JK9-3d', 'FL100', 'CEN.PK', 'D273-10B', 'Sigma1278b', 'RM11-1a', 'SK1', 'Y55']
+    alignment_evidences.sort(key=lambda x: float('infinity') if x.strain.display_name not in ordered_strains else ordered_strains.index(x.strain.display_name))
+
     obj_json['aligned_dna_sequences'] = [{'strain_id': x.strain_id,
                                           'strain_display_name': x.strain.display_name,
                                           'strain_link': x.strain.link,
@@ -140,30 +143,110 @@ def make_alignment(locus_id=None):
                                           'sequence': x.residues_with_gaps} for x in alignment_evidences if x.sequence_type == 'Protein']
 
     #Variant data
-    reference_alignment = [x['sequence'] for x in obj_json['aligned_dna_sequences'] if x['strain_id'] == 1]
-    if len(reference_alignment) == 1:
-        obj_json['variant_data_dna'] = []
-        reference_alignment = reference_alignment[0]
-        for i, letter in enumerate(reference_alignment):
-            num_differ = len([x for x in obj_json['aligned_dna_sequences'] if x['sequence'][i] != letter])
-            if num_differ > 0:
-                obj_json['variant_data_dna'].append({'coordinate': i+1, 'differ_score': num_differ})
-    else:
-        obj_json['variant_data_dna'] = None
+    #reference_alignment = [x['sequence'] for x in obj_json['aligned_dna_sequences'] if x['strain_id'] == 1]
+    # Groups variation into none/low/medium/high groups
+    # if len(reference_alignment) == 1:
+    #     obj_json['variant_data_dna'] = []
+    #     reference_alignment = reference_alignment[0]
+    #     current_interval_start = None
+    #     current_interval = 0
+    #     for i, letter in enumerate(reference_alignment):
+    #         num_differ = len([x for x in obj_json['aligned_dna_sequences'] if x['sequence'][i] != letter])
+    #
+    #         if num_differ == 0:
+    #             new_interval = 0
+    #         elif num_differ < 3:
+    #             new_interval = 1
+    #         elif num_differ < 7:
+    #             new_interval = 2
+    #         else:
+    #             new_interval = 3
+    #
+    #         if new_interval != current_interval:
+    #             if current_interval != 0:
+    #                 obj_json['variant_data_dna'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
+    #             current_interval_start = i+1
+    #             current_interval = new_interval
+    #
+    #     if current_interval != 0:
+    #         obj_json['variant_data_dna'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
+    # else:
+    #     obj_json['variant_data_dna'] = None
 
-    reference_alignment = [x['sequence'] for x in obj_json['aligned_protein_sequences'] if x['strain_id'] == 1]
-    if len(reference_alignment) == 1:
-        obj_json['variant_data_protein'] = []
-        reference_alignment = reference_alignment[0]
-        for i, letter in enumerate(reference_alignment):
-            num_differ = len([x for x in obj_json['aligned_protein_sequences'] if x['sequence'][i] != letter])
-            if num_differ > 0:
-                obj_json['variant_data_protein'].append({'coordinate': i+1, 'differ_score': num_differ})
-    else:
-        obj_json['variant_data_protein'] = None
+    # reference_alignment = [x['sequence'] for x in obj_json['aligned_protein_sequences'] if x['strain_id'] == 1]
+    # if len(reference_alignment) == 1:
+    #     obj_json['variant_data_protein'] = []
+    #     reference_alignment = reference_alignment[0]
+    #     current_interval_start = None
+    #     current_interval = 0
+    #     for i, letter in enumerate(reference_alignment):
+    #         num_differ = len([x for x in obj_json['aligned_protein_sequences'] if x['sequence'][i] != letter])
+    #
+    #         if num_differ == 0:
+    #             new_interval = 0
+    #         elif num_differ < 3:
+    #             new_interval = 1
+    #         elif num_differ < 7:
+    #             new_interval = 2
+    #         else:
+    #             new_interval = 3
+    #
+    #         if new_interval != current_interval:
+    #             if current_interval != 0:
+    #                 obj_json['variant_data_protein'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
+    #             current_interval_start = i+1
+    #             current_interval = new_interval
+    #     if current_interval != 0:
+    #         obj_json['variant_data_protein'].append({'start': current_interval_start, 'end': i+1, 'score': current_interval})
+    #
+    # else:
+    #     obj_json['variant_data_protein'] = None
+
+    obj_json['variant_data_dna'] = calculate_variant_data(obj_json['aligned_dna_sequences'])
+    obj_json['variant_data_protein'] = calculate_variant_data(obj_json['aligned_protein_sequences'])
 
 
     return obj_json
+
+def calculate_variant_data(aligned_sequences):
+    variants = dict()
+    reference_alignment = [x['sequence'] for x in aligned_sequences if x['strain_id'] == 1]
+    if len(reference_alignment) == 1:
+        reference_alignment = reference_alignment[0]
+
+        for strain in aligned_sequences:
+            aligned_sequence = strain['sequence']
+            state = 'No difference'
+            state_start_index = 0
+            for i, letter in enumerate(reference_alignment):
+                #Figure out new state
+                new_state = 'No difference'
+                if aligned_sequence[i] != letter:
+                    if letter == '-':
+                        new_state = 'Insertion'
+                    elif aligned_sequence[i] == '-':
+                        new_state = 'Deletion'
+                    else:
+                        new_state = 'SNP'
+
+                if state != new_state:
+                    if state != 'No difference':
+                        variant_key = (state_start_index+1, i+1, state)
+                        if variant_key not in variants:
+                            variants[variant_key] = 0
+                        variants[variant_key] += 1
+
+                    state = new_state
+                    state_start_index = i
+
+            if state != 'No difference':
+                variant_key = (state_start_index+1, i+1, state)
+                if variant_key not in variants:
+                    variants[variant_key] = 0
+                variants[variant_key] += 1
+
+    return [{'start': variant[0], 'end': variant[1], 'score': score, 'variant_type': variant[2]} for variant, score in variants.iteritems()]
+
 
 # -------------------------------Details---------------------------------------
 def get_binding_evidence(locus_id):

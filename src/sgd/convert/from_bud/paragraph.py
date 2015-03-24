@@ -64,13 +64,17 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
             final_end_index = block.find('</feature>')
             if final_end_index > end_index >= 0:
                 try:
-                    sgdid = 'S' + block[1:end_index].zfill(9)
-                    if sgdid in sgdid_to_bioentity:
-                        bioentity = sgdid_to_bioentity[sgdid]
-                        replacement = '<a href="' + bioentity.link + '">' + block[end_index+1:final_end_index] + '</a>'
+                    if block[1:end_index].endswith('*'):
+                        replacement = '<a href="/cgi-bin/search/luceneQS.fpl?query=' + block[1:end_index] + '">' + block[end_index+1:final_end_index] + '</a>'
                         new_bioentity_text += replacement
                     else:
-                        print 'Feature not found in ' + label + ' : ' + block[0:end_index]
+                        sgdid = 'S' + block[1:end_index].zfill(9)
+                        if sgdid in sgdid_to_bioentity:
+                            bioentity = sgdid_to_bioentity[sgdid]
+                            replacement = '<a href="' + bioentity.link + '">' + block[end_index+1:final_end_index] + '</a>'
+                            new_bioentity_text += replacement
+                        else:
+                            print 'Feature not found in ' + label + ' : ' + block[0:end_index]
                 except:
                     print 'Bad sgdid in ' + label + ' : ' + block[0:end_index]
 
@@ -105,9 +109,41 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
     else:
         new_go_text = new_bioentity_text
 
+    # Replace MetaCyc
+    metacyc_blocks = new_go_text.split('<MetaCyc:')
+    if len(metacyc_blocks) > 1:
+        new_metacyc_text = metacyc_blocks[0]
+        for block in metacyc_blocks[1:]:
+            end_index = block.find('>')
+            final_end_index = block.find('</MetaCyc>')
+            if final_end_index > end_index >= 0:
+                replacement = '<a href="http://pathway.yeastgenome.org/YEAST/NEW-IMAGE?type=PATHWAY&object=' + block[0:end_index] + '">' + block[end_index+1:final_end_index] + '</a>'
+                new_metacyc_text += replacement
+                new_metacyc_text += block[final_end_index+10:]
+            else:
+                new_metacyc_text += block
+    else:
+        new_metacyc_text = new_go_text
+
+    # Replace OMIM
+    omim_blocks = new_metacyc_text.split('<OMIM:')
+    if len(omim_blocks) > 1:
+        new_omim_text = omim_blocks[0]
+        for block in omim_blocks[1:]:
+            end_index = block.find('>')
+            final_end_index = block.find('</OMIM>')
+            if final_end_index > end_index >= 0:
+                replacement = '<a href="http://www.omim.org/entry/' + block[0:end_index] + '">' + block[end_index+1:final_end_index] + '</a>'
+                new_omim_text += replacement
+                new_omim_text += block[final_end_index+7:]
+            else:
+                new_omim_text += block
+    else:
+        new_omim_text = new_metacyc_text
+
     # Replace references
     new_reference_text = ''
-    for block in new_go_text.split('('):
+    for block in new_omim_text.split('('):
         end_index = block.find(')')
         if end_index >= 0:
             reference_text = ''
@@ -128,7 +164,7 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
                 replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], reference_text) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
                 new_reference_text += replacement + block[end_index+1:]
             else:
-                new_reference_text += block
+                new_reference_text += ('' if new_reference_text == '' else '(') + block
         else:
             new_reference_text += ('' if new_reference_text == '' else '(') + block
 

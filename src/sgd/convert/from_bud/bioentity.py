@@ -209,17 +209,33 @@ def make_bioentity_tab_starter(bud_session_maker, nex_session_maker):
                     'protein_tab': 0,
                     'wiki_tab': 0
                 }
-            elif locus.locus_type in {'not in systematic sequence', 'not physically mapped'}:
+            elif locus.locus_type in {'not in systematic sequence of S288C', 'not physically mapped'}:
                 yield {
                     'id': locus.id,
                     'summary_tab': 1,
-                    'sequence_tab': 1,
-                    'sequence_section': 1,
+                    'sequence_tab': 0,
+                    'sequence_section': 0,
                     'history_tab': 0,
                     'literature_tab': 1,
                     'go_tab': 1,
                     'phenotype_tab': 1,
                     'interaction_tab': 1,
+                    'expression_tab': 0,
+                    'regulation_tab': 0,
+                    'protein_tab': 0,
+                    'wiki_tab': 0
+                }
+            elif locus.locus_type in {'intein_encoding_region'}:
+                yield {
+                    'id': locus.id,
+                    'summary_tab': 1,
+                    'sequence_tab': 0,
+                    'sequence_section': 0,
+                    'history_tab': 0,
+                    'literature_tab': 1,
+                    'go_tab': 0,
+                    'phenotype_tab': 0,
+                    'interaction_tab': 0,
                     'expression_tab': 0,
                     'regulation_tab': 0,
                     'protein_tab': 0,
