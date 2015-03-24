@@ -202,84 +202,51 @@ def make_alignment(locus_id=None):
     # else:
     #     obj_json['variant_data_protein'] = None
 
-    dna_variants = dict()
-    reference_alignment = [x['sequence'] for x in obj_json['aligned_dna_sequences'] if x['strain_id'] == 1]
-    if len(reference_alignment) == 1:
-        reference_alignment = reference_alignment[0]
-
-        for strain in obj_json['aligned_dna_sequences']:
-            aligned_sequence = strain['sequence']
-            state = 'No difference'
-            state_start_index = 0
-            for i, letter in enumerate(reference_alignment):
-                #Figure out new state
-                new_state = 'No difference'
-                if aligned_sequence[i] != letter:
-                    if letter == '-':
-                        new_state = 'Insertion'
-                    elif aligned_sequence[i] == '-':
-                        new_state = 'Deletion'
-                    else:
-                        new_state = 'SNP'
-
-                if state != new_state:
-                    if state != 'No difference':
-                        variant_key = (state_start_index+1, i+1, state)
-                        if variant_key not in dna_variants:
-                            dna_variants[variant_key] = 0
-                        dna_variants[variant_key] += 1
-
-                    state = new_state
-                    state_start_index = i
-
-            if state != 'No difference':
-                variant_key = (state_start_index+1, i+1, state)
-                if variant_key not in dna_variants:
-                    dna_variants[variant_key] = 0
-                dna_variants[variant_key] += 1
-
-    obj_json['variant_data_dna'] = [{'start': dna_variant[0], 'end': dna_variant[1], 'score': score, 'variant_type': dna_variant[2]} for dna_variant, score in dna_variants.iteritems()]
-
-    protein_variants = dict()
-    reference_alignment = [x['sequence'] for x in obj_json['aligned_protein_sequences'] if x['strain_id'] == 1]
-    if len(reference_alignment) == 1:
-        reference_alignment = reference_alignment[0]
-
-        for strain in obj_json['aligned_protein_sequences']:
-            aligned_sequence = strain['sequence']
-            state = 'No difference'
-            state_start_index = 0
-            for i, letter in enumerate(reference_alignment):
-                #Figure out new state
-                new_state = 'No difference'
-                if aligned_sequence[i] != letter:
-                    if letter == '-':
-                        new_state = 'Insertion'
-                    elif aligned_sequence[i] == '-':
-                        new_state = 'Deletion'
-                    else:
-                        new_state = 'SNP'
-
-                if state != new_state:
-                    if state != 'No difference':
-                        variant_key = (state_start_index+1, i+1, state)
-                        if variant_key not in protein_variants:
-                            protein_variants[variant_key] = 0
-                        protein_variants[variant_key] += 1
-
-                    state = new_state
-                    state_start_index = i
-
-            if state != 'No difference':
-                variant_key = (state_start_index+1, i+1, state)
-                if variant_key not in protein_variants:
-                    protein_variants[variant_key] = 0
-                protein_variants[variant_key] += 1
-
-    obj_json['variant_data_protein'] = [{'start': protein_variant[0], 'end': protein_variant[1], 'score': score, 'variant_type': protein_variant[2]} for protein_variant, score in protein_variants.iteritems()]
+    obj_json['variant_data_dna'] = calculate_variant_data(obj_json['aligned_dna_sequences'])
+    obj_json['variant_data_protein'] = calculate_variant_data(obj_json['aligned_protein_sequences'])
 
 
     return obj_json
+
+def calculate_variant_data(aligned_sequences):
+    variants = dict()
+    reference_alignment = [x['sequence'] for x in aligned_sequences if x['strain_id'] == 1]
+    if len(reference_alignment) == 1:
+        reference_alignment = reference_alignment[0]
+
+        for strain in aligned_sequences:
+            aligned_sequence = strain['sequence']
+            state = 'No difference'
+            state_start_index = 0
+            for i, letter in enumerate(reference_alignment):
+                #Figure out new state
+                new_state = 'No difference'
+                if aligned_sequence[i] != letter:
+                    if letter == '-':
+                        new_state = 'Insertion'
+                    elif aligned_sequence[i] == '-':
+                        new_state = 'Deletion'
+                    else:
+                        new_state = 'SNP'
+
+                if state != new_state:
+                    if state != 'No difference':
+                        variant_key = (state_start_index+1, i+1, state)
+                        if variant_key not in variants:
+                            variants[variant_key] = 0
+                        variants[variant_key] += 1
+
+                    state = new_state
+                    state_start_index = i
+
+            if state != 'No difference':
+                variant_key = (state_start_index+1, i+1, state)
+                if variant_key not in variants:
+                    variants[variant_key] = 0
+                variants[variant_key] += 1
+
+    return [{'start': variant[0], 'end': variant[1], 'score': score, 'variant_type': variant[2]} for variant, score in variants.iteritems()]
+
 
 # -------------------------------Details---------------------------------------
 def get_binding_evidence(locus_id):

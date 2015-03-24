@@ -166,6 +166,39 @@ class PerfBackend(BackendInterface):
 
             return json.dumps(alignment)
 
+    def alignment_bioent(self, locus_identifier=None, strain_ids=None, are_ids=False):
+        if locus_identifier is not None:
+            if are_ids:
+                bioent_id = locus_identifier
+            else:
+                bioent_id = get_obj_id(str(locus_identifier).upper(), class_type='BIOENTITY', subclass_type='LOCUS')
+
+            alignment = get_bioentity_details(bioent_id, 'ALIGNMENT')
+
+            if alignment is None:
+                return alignment
+
+            if strain_ids is None:
+                return alignment
+            else:
+                alignment = json.loads(alignment)
+
+                try:
+                    strain_ids = set([int(strain_id) for strain_id in strain_ids])
+                    strain_ids.append(1)
+                except Exception:
+                    return None
+
+                alignment['aligned_dna_sequences'] = [x for x in alignment['aligned_dna_sequences'] if x['id'] in strain_ids]
+                alignment['aligned_protein_sequences'] = [x for x in alignment['aligned_protein_sequences'] if x['id'] in strain_ids]
+
+                from src.sgd.backend.nex.view_sequence import calculate_variant_data
+                alignment['variant_data_dna'] = calculate_variant_data(obj_json['aligned_dna_sequences'])
+                alignment['variant_data_protein'] = calculate_variant_data(obj_json['aligned_protein_sequences'])
+
+                return json.dumps(alignment)
+        return None
+
     def tag_list(self):
         from src.sgd.model.perf.core import Orphan
         return DBSession.query(Orphan).filter_by(url='tag_list').first().json
