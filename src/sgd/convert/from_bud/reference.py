@@ -1,129 +1,68 @@
-import datetime
+from src.sgd.convert.from_bud import basic_convert
 
-from mpmath import ceil
 from sqlalchemy.orm import joinedload
-import requests
-
 
 __author__ = 'kpaskov'
 
-def make_reference_starter(bud_session_maker):
+def reference_starter(bud_session_maker):
     from src.sgd.model.bud.reference import Reference, Ref_URL
-    def reference_starter():
-        bud_session = bud_session_maker()
 
-        reference_id_to_doi = dict([(x.reference_id, x.url.url[18:]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'DOI full text'])
-        reference_id_to_pmcid = dict([(x.reference_id, x.url.url.replace('http://www.ncbi.nlm.nih.gov/pmc/articles/', '')[:-1]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'PMC full text'])
+    bud_session = bud_session_maker()
 
-        for old_reference in bud_session.query(Reference).order_by(Reference.id.desc()).options(joinedload('book'), joinedload('journal')).all():
+    reference_id_to_doi = dict([(x.reference_id, x.url.url[18:]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'DOI full text'])
+    reference_id_to_pmcid = dict([(x.reference_id, x.url.url.replace('http://www.ncbi.nlm.nih.gov/pmc/articles/', '')[:-1]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'PMC full text'])
 
-            new_journal = None
-            old_journal = old_reference.journal
-            if old_journal is not None:
-                abbreviation = old_journal.abbreviation
-                if old_journal.issn == '0948-5023':
-                    abbreviation = 'J Mol Model (Online)'
-                journal_key = (old_journal.full_name, abbreviation)
-                new_journal = None if journal_key not in key_to_journal else key_to_journal[journal_key]
+    for old_reference in bud_session.query(Reference).order_by(Reference.id.desc()).options(joinedload('book'), joinedload('journal')).all():
+        new_journal = None
+        old_journal = old_reference.journal
+        if old_journal is not None:
+            abbreviation = old_journal.abbreviation
+            if old_journal.issn == '0948-5023':
+                abbreviation = 'J Mol Model (Online)'
+            new_journal = {'title': old_journal.full_name,
+                          'med_abbr': abbreviation,
+                          'source': {'display_name': old_reference.source}}
 
-            new_book = None
-            old_book = old_reference.book
-            if old_book is not None:
-                book_key = (old_book.title, old_book.volume_title)
-                new_book = None if book_key not in key_to_book else key_to_book[book_key]
+        new_book = None
+        old_book = old_reference.book
+        if old_book is not None:
+            new_book = {'title': old_book.title,
+                        'volume_title': old_book.volume_title,
+                        'source': {'display_name': old_reference.source}}
 
-            pubmed_id = None
-            if old_reference.pubmed_id is not None:
-                pubmed_id = old_reference.pubmed_id
+        pubmed_id = None
+        if old_reference.pubmed_id is not None:
+            pubmed_id = old_reference.pubmed_id
 
-            year = None
-            if old_reference.year is not None:
-                year = int(old_reference.year)
+        year = None
+        if old_reference.year is not None:
+            year = int(old_reference.year)
 
-            source_key = create_format_name(old_reference.source)
-            source = None
-            if source_key in key_to_source:
-                source = key_to_source[source_key]
-            else:
-                print 'Source not found: ' + source_key
-                yield None
+        doi = None if old_reference.id not in reference_id_to_doi else reference_id_to_doi[old_reference.id]
+        pmcid = None if old_reference.id not in reference_id_to_pmcid else reference_id_to_pmcid[old_reference.id]
 
-            doi = None if old_reference.id not in reference_id_to_doi else reference_id_to_doi[old_reference.id]
-            pmcid = None if old_reference.id not in reference_id_to_pmcid else reference_id_to_pmcid[old_reference.id]
-
-            yield {'id': old_reference.id,
-                   'sgdid': old_reference.dbxref_id,
-                   'source': source,
-                   'ref_status': old_reference.status,
-                   'pubmed_id': pubmed_id,
-                   'fulltext_status': old_reference.pdf_status,
-                   'citation': old_reference.citation.replace('()', ''),
-                   'year': year,
-                   'date_published': old_reference.date_published,
-                   'date_revised': old_reference.date_revised,
-                   'issue': old_reference.issue,
-                   'page': old_reference.page,
-                   'volume': old_reference.volume,
-                   'title': old_reference.title,
-                   'journal': new_journal,
-                   'book': new_book,
-                   'doi': doi,
-                   'pubmed_central_id': pmcid,
-                   'date_created': old_reference.date_created,
-                   'created_by': old_reference.created_by}
+        yield {'id': old_reference.id,
+               'sgdid': old_reference.dbxref_id,
+               'source': {'display_name': old_reference.source},
+               'ref_status': old_reference.status,
+               'pubmed_id': pubmed_id,
+               'fulltext_status': old_reference.pdf_status,
+               'citation': old_reference.citation.replace('()', ''),
+               'year': year,
+               'date_published': old_reference.date_published,
+               'date_revised': old_reference.date_revised,
+               'issue': old_reference.issue,
+               'page': old_reference.page,
+               'volume': old_reference.volume,
+               'title': old_reference.title,
+               'journal': new_journal,
+               'book': new_book,
+               'doi': doi,
+               'pubmed_central_id': pmcid,
+               'date_created': old_reference.date_created,
+               'created_by': old_reference.created_by}
 
         bud_session.close()
-        nex_session.close()
-    return reference_starter
-
-def get_pubmed_central_ids(pubmed_ids, chunk_size=200):
-    pubmed_id_to_central_id = {}
-    count = len(pubmed_ids)
-    num_chunks = ceil(1.0*count/chunk_size)
-    min_id = 0
-    for _ in range(0, num_chunks):
-        try:
-            chunk_of_pubmed_ids = pubmed_ids[min_id:min_id+chunk_size]
-            url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&db=pmc&id='
-            url = url + '&id='.join([str(x) for x in chunk_of_pubmed_ids])
-            r = requests.get(url)
-            xml = str(r.text)
-            pieces = xml.split('<LinkSet>')
-            j = 0
-            for piece in pieces[1:]:
-                pubmed_id = chunk_of_pubmed_ids[j]
-                linksets = piece.split('<LinkSetDb>')
-                pubmed_id_to_central_id[pubmed_id] = None
-                for linkset in linksets[1:]:
-                    if '<LinkName>pubmed_pmc</LinkName>' in linkset:
-                        pubmed_central_id = int(linkset[linkset.index('<Id>')+4:linkset.index('</Id>')])
-                        pubmed_id_to_central_id[pubmed_id] = pubmed_central_id
-                j = j+1
-        except:
-            pass
-        min_id = min_id + chunk_size
-    return pubmed_id_to_central_id
-
-if __name__ == '__main__':
-
-    from src.sgd.backend.curate import CurateBackend
-    from src.sgd.model import bud
-    from src.sgd.convert import config
-    from src.sgd.convert import prepare_schema_connection
-
-    bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, 'pastry.stanford.edu:1521', config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
-    curate_backend = CurateBackend(config.NEX_DBTYPE, 'curator-dev-db', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
-
-    accumulated_status = dict()
-    for obj_json in author_starter(bud_session_maker):
-        output = curate_backend.update_object('author', None, obj_json, allow_update_for_add=True)
-        status = json.loads(output)['status']
-        if status == 'Error':
-            print output
-        if status not in accumulated_status:
-            accumulated_status[status] = 0
-        accumulated_status[status] += 1
-    print 'convert.author', accumulated_status
 
 # -------------------- Convert Bibentry ---------------------
 def make_bibentry_starter(bud_session_maker, nex_session_maker):
@@ -346,3 +285,9 @@ def make_reference_url_starter(bud_session_maker, nex_session_maker):
         bud_session.close()
         nex_session.close()
     return reference_url_starter
+
+def convert(bud_db, nex_db):
+    basic_convert(bud_db, nex_db, reference_starter, 'reference', lambda x: (x['sgdid']))
+
+if __name__ == '__main__':
+    convert('pastry.stanford.edu:1521', 'curator-dev-db')

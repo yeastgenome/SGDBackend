@@ -42,15 +42,16 @@ class Reference(Dbentity):
                      'pubmed_central_id', 'fulltext_status', 'citation', 'year', 'date_published', 'date_revised',
                      'issue', 'page', 'volume', 'title', 'doi', 'bud_id',
                      'date_created', 'created_by']
-    __eq_fks__ = [('source', Source, False), ('journal', Journal, False), ('book', Book, False)]
+    __eq_fks__ = [('source', Source, False), ('journal', Journal, False), ('book', Book, False), ('aliases', 'reference.ReferenceAlias', True), ('urls', 'reference.ReferenceUrl', True)]
     __id_values__ = ['format_name', 'id', 'sgdid', 'pubmed_id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
         self.display_name = self.citation[:self.citation.find(")")+1]
-        self.format_name = self.sgdid if self.pubmed_id is None else str(self.pubmed_id)
-        self.link = '/reference/' + self.sgdid
+
+    def __create_format_name__(self):
+        return self.sgdid if self.pubmed_id is None else str(self.pubmed_id)
 
     def unique_key(self):
         return self.format_name
@@ -112,3 +113,151 @@ class Reference(Dbentity):
                 id_to_dataset[expression_evidence.datasetcolumn.dataset_id] = expression_evidence.datasetcolumn.dataset
         obj_json['expression_datasets'] = [x.to_semi_json() for x in id_to_dataset.values()]
         return obj_json
+
+class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'reference_url'
+
+    id = Column('url_id', Integer, primary_key=True)
+    display_name = Column('display_name', String)
+    link = Column('obj_url', String)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    bud_id = Column('bud_id', Integer)
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    url_type = Column('url_type', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    locus = relationship(Reference, uselist=False, backref=backref('urls', passive_deletes=True))
+    source = relationship(Source, uselist=False)
+
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type',
+                     'date_created', 'created_by']
+    __eq_fks__ = [('source', Source, False), ('locus', Reference, False)]
+    __id_values__ = ['format_name']
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
+
+    def __init__(self, obj_json, session):
+        self.update(obj_json, session)
+
+    def unique_key(self):
+        return (None if self.reference is None else self.reference.unique_key()), self.display_name, self.link
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            newly_created_object.reference_id = parent_obj.id
+
+        current_obj = session.query(cls)\
+            .filter_by(reference_id=newly_created_object.reference_id)\
+            .filter_by(display_name=newly_created_object.display_name)\
+            .filter_by(link=newly_created_object.link).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
+
+class ReferenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'reference_alias'
+
+    id = Column('alias_id', Integer, primary_key=True)
+    display_name = Column('display_name', String)
+    link = Column('obj_url', String)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    bud_id = Column('bud_id', Integer)
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
+    alias_type = Column('alias_type', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    reference = relationship(Reference, uselist=False, backref=backref('aliases', cascade="all, delete, delete-orphan"))
+    source = relationship(Source, uselist=False)
+
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'alias_type',
+                     'date_created', 'created_by']
+    __eq_fks__ = [('source', Source, False)]
+    __id_values__ = ['format_name']
+    __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
+
+    def __init__(self, obj_json, session):
+        self.update(obj_json, session)
+
+    def unique_key(self):
+        return (None if self.reference is None else self.reference.unique_key()), self.display_name, self.alias_type
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            newly_created_object.reference_id = parent_obj.id
+
+        current_obj = session.query(cls)\
+            .filter_by(reference_id=newly_created_object.reference_id)\
+            .filter_by(display_name=newly_created_object.display_name)\
+            .filter_by(alias_type=newly_created_object.alias_type).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
+
+
+class ReferenceRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'reference_relation'
+
+    id = Column('relation_id', Integer, primary_key=True)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    bud_id = Column('bud_id', Integer)
+    parent_id = Column('parent_id', Integer, ForeignKey(Reference.id))
+    child_id = Column('child_id', Integer, ForeignKey(Reference.id))
+    relation_type = Column('relation_type', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    parent = relationship(Reference, backref=backref("children", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
+    child = relationship(Reference, backref=backref("parents", passive_deletes=True), uselist=False, foreign_keys=[child_id])
+    source = relationship(Source, uselist=False)
+
+    __eq_values__ = ['id', 'bud_id', 'relation_type',
+                     'date_created', 'created_by']
+    __eq_fks__ = [('source', Source, False), ('parent', Reference, False), ('child', Reference, False)]
+    __id_values__ = ['format_name']
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
+
+    def __init__(self, obj_json, session):
+        self.update(obj_json, session)
+
+    def unique_key(self):
+        return self.relation_type, self.parent.unique_key(), self.child.unique_key()
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            if newly_created_object.parent is None:
+                newly_created_object.parent_id = parent_obj.id
+            elif newly_created_object.child is None:
+                newly_created_object.child_id = parent_obj.id
+
+        current_obj = session.query(cls)\
+            .filter_by(parent_id=newly_created_object.parent_id)\
+            .filter_by(child_id=newly_created_object.child_id)\
+            .filter_by(relation_type=newly_created_object.relation_type).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
