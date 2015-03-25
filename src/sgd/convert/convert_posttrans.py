@@ -32,12 +32,14 @@ if __name__ == "__main__":
 
     from src.sgd.model.perf.bioentity_data import BioentityDetails
     do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details', commit_interval=1000),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details',
+                                    commit_interval=1000, delete_untouched=False),
                     OutputTransformer(1000)])
 
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
     perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
 
     do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details', commit_interval=1000),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details',
+                                    commit_interval=1000, delete_untouched=False),
                     OutputTransformer(1000)])
