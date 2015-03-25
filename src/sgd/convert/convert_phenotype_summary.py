@@ -13,6 +13,7 @@ if __name__ == "__main__":
 
     nex_backend = SGDBackend(config.NEX_DBTYPE, 'sgd-master-db.stanford.edu:1521', config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, None)
 
+    from src.sgd.model.nex.bioitem import Reservedname
     from src.sgd.model.nex.paragraph import Paragraph, Bioentityparagraph, ParagraphReference
     from src.sgd.convert.from_bud.paragraph import make_bioentity_paragraph_starter, make_paragraph_reference_starter
 
