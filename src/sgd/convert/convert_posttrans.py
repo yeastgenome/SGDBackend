@@ -33,7 +33,7 @@ if __name__ == "__main__":
     from src.sgd.model.perf.bioentity_data import BioentityDetails
     do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
                    [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details',
-                                    commit_interval=1000, delete_untouched=False),
+                                    commit_interval=1000, sure=True),
                     OutputTransformer(1000)])
 
     perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
@@ -41,5 +41,5 @@ if __name__ == "__main__":
 
     do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
                    [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details',
-                                    commit_interval=1000, delete_untouched=False),
+                                    commit_interval=1000, sure=True),
                     OutputTransformer(1000)])
