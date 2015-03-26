@@ -125,8 +125,10 @@ def calculate_variant_data(type, aligned_sequences, introns):
             'start': variant[0],
             'end': variant[1],
             'score': score,
-            'variant_type': variant[2]
+            'variant_type': 'SNP' if variant[2].endswith('SNP') else variant[2]
         }
+        if variant[2].endswith('SNP'):
+            obj_json['snp_type'] = variant[2][0:-4]
         #obj_json['sequence'] = []
         #for strain in aligned_sequences:
         #    obj_json['sequence'].append(strain['sequence'][variant[0]-1:variant[1]-1])
