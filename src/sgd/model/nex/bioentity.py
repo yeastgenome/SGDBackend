@@ -198,6 +198,7 @@ class Locus(Bioentity):
         obj_json = UpdateByJsonMixin.to_json(self)
 
         #Phenotype overview
+        phenotype_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'PHENOTYPE']
         classical_groups = dict()
         large_scale_groups = dict()
         strain_groups = dict()
@@ -232,7 +233,8 @@ class Locus(Bioentity):
         experiment_categories.insert(0, ['Mutant Type', 'classical genetics', 'large-scale survey'])
         strains.sort(key=lambda x: x[1], reverse=True)
         strains.insert(0, ['Strain', 'Annotations'])
-        obj_json['phenotype_overview'] = {'experiment_categories': experiment_categories,
+        obj_json['phenotype_overview'] = {'paragraph': None if len(phenotype_paragraphs) == 0 else phenotype_paragraphs[0]['text'],
+                                          'experiment_categories': experiment_categories,
                                           'strains': strains,
                                           'classical_phenotypes': dict([(x, [phenotype.to_min_json() for phenotype in y.values()]) for x, y in classical_groups.iteritems()]),
                                           'large_scale_phenotypes': dict([(x, [phenotype.to_min_json() for phenotype in y.values()]) for x, y in large_scale_groups.iteritems()])
