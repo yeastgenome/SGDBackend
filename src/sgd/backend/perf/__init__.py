@@ -193,8 +193,8 @@ class PerfBackend(BackendInterface):
                 alignment['aligned_protein_sequences'] = [x for x in alignment['aligned_protein_sequences'] if x['strain_id'] in strain_ids]
 
                 from src.sgd.backend import calculate_variant_data
-                alignment['variant_data_dna'] = calculate_variant_data(alignment['aligned_dna_sequences'])
-                alignment['variant_data_protein'] = calculate_variant_data(alignment['aligned_protein_sequences'])
+                alignment['variant_data_dna'] = ('DNA', alignment['aligned_dna_sequences'], alignment['introns'])
+                alignment['variant_data_protein'] = ('Protein', alignment['aligned_protein_sequences'], alignment['introns'])
 
                 return json.dumps(alignment)
         return None

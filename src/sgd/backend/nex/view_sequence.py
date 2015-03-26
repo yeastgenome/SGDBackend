@@ -104,6 +104,19 @@ def make_alignment_details(locus_id=None):
 
     return [evidence.to_json() for evidence in evidences]
 
+def switch_to_alignment_coord(ref_align_seq, indices):
+    ref_index_to_alignment_index = dict()
+    ref_indices = set([x-1 for x in indices])
+    ref_coord = 0
+    for i, residue in enumerate(ref_align_seq):
+        if residue != '-':
+            ref_coord += 1
+
+        if ref_coord in ref_indices:
+            ref_index_to_alignment_index[ref_coord] = i
+    return [ref_index_to_alignment_index[ref_index-1]+1 for ref_index in indices]
+
+
 def make_alignment(locus_id=None):
     if locus_id is None:
         return {'Error': 'No locus_id given.'}
@@ -124,6 +137,7 @@ def make_alignment(locus_id=None):
         }
         obj_json['contig'] = dnasequenceevidence.contig.to_min_json()
         obj_json['strand'] = dnasequenceevidence.strand
+        obj_json['introns'] = []
 
     #Alignment data
     alignment_evidences = get_alignment_evidence(locus_id=locus_id)
@@ -132,6 +146,13 @@ def make_alignment(locus_id=None):
 
     ordered_strains = ['S288C', 'X2180-1A', 'SEY6210', 'W303', 'JK9-3d', 'FL100', 'CEN.PK', 'D273-10B', 'Sigma1278b', 'RM11-1a', 'SK1', 'Y55']
     alignment_evidences.sort(key=lambda x: float('infinity') if x.strain.display_name not in ordered_strains else ordered_strains.index(x.strain.display_name))
+
+    reference_aligment = alignment_evidences[0]
+    if dnasequenceevidence is not None:
+        for tag in dnasequenceevidence.tags:
+            if tag.class_type == 'INTRON':
+                coords = switch_to_alignment_coord(reference_aligment.residues_with_gaps, [tag.relative_start, tag.relative_end])
+                obj_json['introns'].append({'start': coords[0], 'end': coords[1]})
 
     obj_json['aligned_dna_sequences'] = [{'strain_id': x.strain_id,
                                           'strain_display_name': x.strain.display_name,
@@ -203,8 +224,8 @@ def make_alignment(locus_id=None):
     # else:
     #     obj_json['variant_data_protein'] = None
 
-    obj_json['variant_data_dna'] = calculate_variant_data(obj_json['aligned_dna_sequences'])
-    obj_json['variant_data_protein'] = calculate_variant_data(obj_json['aligned_protein_sequences'])
+    obj_json['variant_data_dna'] = calculate_variant_data('DNA', obj_json['aligned_dna_sequences'], obj_json['introns'])
+    obj_json['variant_data_protein'] = calculate_variant_data('Protein', obj_json['aligned_protein_sequences'], obj_json['introns'])
 
 
     return obj_json

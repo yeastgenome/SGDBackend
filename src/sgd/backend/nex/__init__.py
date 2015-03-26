@@ -130,6 +130,7 @@ class SGDBackend(BackendInterface):
         return None
 
     def alignment_bioent(self, locus_identifier=None, strain_ids=None, are_ids=False):
+        import view_sequence
         from src.sgd.backend import calculate_variant_data
         if are_ids:
             locus_id = locus_identifier
@@ -149,8 +150,8 @@ class SGDBackend(BackendInterface):
             alignment['aligned_dna_sequences'] = [x for x in alignment['aligned_dna_sequences'] if x['strain_id'] in strain_ids]
             alignment['aligned_protein_sequences'] = [x for x in alignment['aligned_protein_sequences'] if x['strain_id'] in strain_ids]
 
-            alignment['variant_data_dna'] = calculate_variant_data(alignment['aligned_dna_sequences'])
-            alignment['variant_data_protein'] = calculate_variant_data(alignment['aligned_protein_sequences'])
+            alignment['variant_data_dna'] = calculate_variant_data('DNA', alignment['aligned_dna_sequences'], alignment['introns'])
+            alignment['variant_data_protein'] = calculate_variant_data('Protein', alignment['aligned_protein_sequences'], alignment['introns'])
             return json.dumps(alignment)
 
     def snapshot(self):
