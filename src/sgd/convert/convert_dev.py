@@ -401,19 +401,19 @@ if __name__ == "__main__":
     #                          delete_untouched=True,
     #                          commit=True)])
     #
-    # # ------------------------------------------ Reference ------------------------------------------
-    # # Bud -> Nex
-    # from src.sgd.model.nex.reference import Reference, Journal, Book, Author, Referencealias, Referenceurl, \
-    #     Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype, AliasReference, RelationReference, QualityReference
-    # from src.sgd.model.nex.misc import Alias, Relation, Url
-    # from src.sgd.model.nex.auxiliary import Disambig
-    # from src.sgd.convert.from_bud.reference import make_reference_starter, make_journal_starter, make_book_starter,\
-    #     make_bibentry_starter, make_reftype_starter, make_reference_alias_starter, \
-    #     make_author_reference_starter, make_author_starter, make_ref_reftype_starter, make_reference_relation_starter, \
-    #     make_reference_url_starter
-    # from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
-    # from src.sgd.convert.from_bud.evelements import make_alias_reference_starter, make_relation_reference_starter, make_quality_reference_starter
-    #
+    # ------------------------------------------ Reference ------------------------------------------
+    # Bud -> Nex
+    from src.sgd.model.nex.reference import Reference, Journal, Book, Author, Referencealias, Referenceurl, \
+        Referencerelation, Bibentry, AuthorReference, ReferenceReftype, Reftype, AliasReference, RelationReference, QualityReference
+    from src.sgd.model.nex.misc import Alias, Relation, Url
+    from src.sgd.model.nex.auxiliary import Disambig
+    from src.sgd.convert.from_bud.reference import make_reference_starter, make_journal_starter, make_book_starter,\
+        make_bibentry_starter, make_reftype_starter, make_reference_alias_starter, \
+        make_author_reference_starter, make_author_starter, make_ref_reftype_starter, make_reference_relation_starter, \
+        make_reference_url_starter
+    from src.sgd.convert.from_bud.auxiliary import make_disambig_starter
+    from src.sgd.convert.from_bud.evelements import make_alias_reference_starter, make_relation_reference_starter, make_quality_reference_starter
+
     # do_conversion(make_journal_starter(bud_session_maker, nex_session_maker),
     #               [Json2Obj(Journal),
     #                Obj2NexDB(nex_session_maker, lambda x: x.query(Journal),
@@ -542,7 +542,11 @@ if __name__ == "__main__":
     from src.sgd.model.nex.evidence import Evidence, Goevidence, DNAsequenceevidence, Regulationevidence, \
         Proteinsequenceevidence, Phosphorylationevidence, Domainevidence, Literatureevidence, Phenotypeevidence, \
         DNAsequencetag, Expressionevidence, Bioentitydata, Bindingevidence, ECNumberevidence, Geninteractionevidence, Physinteractionevidence, Proteinexperimentevidence, \
-        Historyevidence, Pathwayevidence, Goslimevidence, Posttranslationalevidence, Alignmentevidence
+<<<<<<< Temporary merge branch 1
+        Historyevidence, Pathwayevidence, Goslimevidence, Posttranslationalevidence
+=======
+        Historyevidence, Pathwayevidence, Goslimevidence, Alignmentevidence
+>>>>>>> Temporary merge branch 2
     from src.sgd.model.nex.archive import ArchiveLiteratureevidence
     from src.sgd.convert.from_bud.evidence import make_go_evidence_starter, make_go_slim_evidence_starter, make_dna_sequence_evidence_starter, \
         make_regulation_evidence_starter, make_protein_sequence_evidence_starter, make_phosphorylation_evidence_starter, \
@@ -551,7 +555,11 @@ if __name__ == "__main__":
         make_binding_evidence_starter, make_ecnumber_evidence_starter, make_interaction_evidence_starter, \
         make_archive_literature_evidence_starter, make_protein_experiment_evidence_starter, make_history_evidence_starter, \
         make_new_dna_sequence_evidence_starter, make_ref_dna_sequence_evidence_starter, make_kb_sequence_starter, \
-        make_pathway_evidence_starter, make_alignment_evidence_starter, make_posttranslational_evidence_starter
+<<<<<<< Temporary merge branch 1
+        make_pathway_evidence_starter, make_posttranslational_evidence_starter
+=======
+        make_pathway_evidence_starter, make_alignment_evidence_starter
+>>>>>>> Temporary merge branch 2
     #
     # do_conversion(make_binding_evidence_starter(nex_session_maker),
     #                [Json2Obj(Bindingevidence),
@@ -685,13 +693,13 @@ if __name__ == "__main__":
     # #                               already_deleted=clean_up_orphans(nex_session_maker, Regulationevidence, Evidence, 'REGULATION')),
     # #                OutputTransformer(1000)])
     # #
-    # # do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
-    # #                   [Json2Obj(DNAsequenceevidence),
-    # #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1).filter(DNAsequenceevidence.dna_type != '1KB'),
-    # #                              name='convert.from_bud.evidence.reference_dnasequence',
-    # #                              delete_untouched=True,
-    # #                              commit_interval=1000),
-    # #                    OutputTransformer(1000)])
+    # do_conversion(make_ref_dna_sequence_evidence_starter(bud_session_maker, nex_session_maker, ["src/sgd/convert/data/strains/orf_coding_all.fasta", "src/sgd/convert/data/strains/rna_coding.fasta"]),
+    #                   [Json2Obj(DNAsequenceevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(DNAsequenceevidence).filter(DNAsequenceevidence.strain_id == 1).filter(DNAsequenceevidence.dna_type != '1KB'),
+    #                              name='convert.from_bud.evidence.reference_dnasequence',
+    #                              delete_untouched=True,
+    #                              commit_interval=1000),
+    #                    OutputTransformer(1000)])
     # #
     # # do_conversion(make_dna_sequence_tag_starter(bud_session_maker, nex_session_maker),
     # #               [Json2Obj(DNAsequencetag),
@@ -1085,9 +1093,9 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'PROTEIN_PHOSPHORYLATION', locus_ids, name='convert.from_backend.protein_phosphorylation_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details', commit_interval=1000),
-                    OutputTransformer(1000)])
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'posttranslational_details', locus_ids),
+     #              [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'POSTTRANSLATIONAL', locus_ids, name='convert.from_backend.posttranslational_details', commit_interval=1000),
+     #               OutputTransformer(1000)])
     #
     #
     # do_conversion(make_locus_data_backend_starter(nex_backend, 'protein_experiment_details', locus_ids),

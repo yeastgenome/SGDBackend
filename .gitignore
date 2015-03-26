@@ -16,5 +16,6 @@ src/sgd/convert/logs/*
 src/sgd/convert/data/*
 src/sgd/convert/alignments/*
 src/sgd/convert/strain_sequences/*
+.idea/*
 
 

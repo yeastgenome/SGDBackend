@@ -5,6 +5,136 @@ import config
 
 __author__ = 'kpaskov'
 
+codon_table = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L',
+               'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L',
+               'ATT': 'I', 'ATC': 'I', 'ATA': 'I', 'ATG': 'M',
+               'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V',
+               'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S',
+               'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
+               'ACT': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T',
+               'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A',
+               'TAT': 'Y', 'TAC': 'Y', 'TAA': '*', 'TAG': '*',
+               'CAT': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q',
+               'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K',
+               'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
+               'TGT': 'C', 'TGC': 'C', 'TGA': '*', 'TGG': 'W',
+               'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
+               'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R',
+               'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G'}
+def translate(codon):
+    if codon in codon_table:
+        return codon_table[codon]
+    else:
+        return None
+
+
+def check_snp_type(index, intron_indices, ref_seq, aligned_seq):
+    #Check if SNP is in intron
+    pre_introns = []
+    post_introns = []
+    aligned_seq_coding = ''
+    ref_seq_coding = ''
+    seq_index = 0
+    for start, end in intron_indices:
+        aligned_seq_coding += aligned_seq[seq_index:start]
+        ref_seq_coding += ref_seq[seq_index:start]
+        seq_index = end+1
+        if index < start:
+            post_introns.append((start, end))
+        elif index > end:
+            pre_introns.append((start, end))
+        else:
+            return 'Intron SNP'
+    aligned_seq_coding += aligned_seq[seq_index:len(aligned_seq)]
+    ref_seq_coding += ref_seq[seq_index:len(ref_seq)]
+    index_coding = index - sum([end-start+1 for start, end in pre_introns])
+
+    #Introns have been removed, now deal with insertions/deletions and find frame
+    index_to_frame = {}
+    codon = []
+    for i, letter in enumerate(ref_seq_coding):
+        if letter == '-':
+            pass
+        else:
+            codon.append(i)
+        if len(codon) == 3:
+            for index in codon:
+                index_to_frame[index] = codon
+            codon = []
+
+    codon = index_to_frame[index_coding]
+    ref_amino_acid = translate(''.join([ref_seq_coding[i] for i in codon]))
+    aligned_amino_acid = translate(''.join([aligned_seq_coding[i] for i in codon]))
+
+    if ref_amino_acid is None or aligned_amino_acid is None:
+        return 'Untranslatable SNP'
+    elif ref_amino_acid == aligned_amino_acid:
+        return 'Synonymous SNP'
+    else:
+        return 'Nonsynonymous SNP'
+
+
+def calculate_variant_data(type, aligned_sequences, introns):
+    intron_indices = [(int(x['start']), int(x['end'])) for x in introns]
+    variants = dict()
+    reference_alignment = [x['sequence'] for x in aligned_sequences if x['strain_id'] == 1]
+    if len(reference_alignment) == 1:
+        reference_alignment = reference_alignment[0]
+
+        for strain in aligned_sequences:
+            aligned_sequence = strain['sequence']
+
+
+            #print aligned_sequence[0:int(introns[0]['start'])] + aligned_sequence[int(introns[0]['end'])+1:len(aligned_sequence)]
+
+            state = 'No difference'
+            state_start_index = 0
+            for i, letter in enumerate(reference_alignment):
+                #Figure out new state
+                new_state = 'No difference'
+                if aligned_sequence[i] != letter:
+                    if letter == '-':
+                        new_state = 'Insertion'
+                    elif aligned_sequence[i] == '-':
+                        new_state = 'Deletion'
+                    else:
+                        if type == 'DNA':
+                            new_state = check_snp_type(i, intron_indices, reference_alignment, aligned_sequence)
+                        else:
+                            new_state = 'SNP'
+
+                if state != new_state:
+                    if state != 'No difference':
+                        variant_key = (state_start_index+1, i+1, state)
+                        if variant_key not in variants:
+                            variants[variant_key] = 0
+                        variants[variant_key] += 1
+
+                    state = new_state
+                    state_start_index = i
+
+            if state != 'No difference':
+                variant_key = (state_start_index+1, i+1, state)
+                if variant_key not in variants:
+                    variants[variant_key] = 0
+                variants[variant_key] += 1
+
+    variant_data = []
+    for variant, score in variants.iteritems():
+        obj_json = {
+            'start': variant[0],
+            'end': variant[1],
+            'score': score,
+            'variant_type': variant[2]
+        }
+        #obj_json['sequence'] = []
+        #for strain in aligned_sequences:
+        #    obj_json['sequence'].append(strain['sequence'][variant[0]-1:variant[1]-1])
+
+        variant_data.append(obj_json)
+    return variant_data
+
+
 def prep_views(chosen_backend, config):
     
     #Chemical views
@@ -325,7 +455,7 @@ def prep_views(chosen_backend, config):
                     route_name='history_details')
 
     config.add_route('alignment_bioent', '/alignments/{identifier}')
-    config.add_view(lambda request: chosen_backend.response_wrapper('alignment_bioent', request)(getattr(chosen_backend, 'alignment_bioent')(locus_identifier=request.matchdict['identifier'])),
+    config.add_view(lambda request: chosen_backend.response_wrapper('alignment_bioent', request)(getattr(chosen_backend, 'alignment_bioent')(locus_identifier=request.matchdict['identifier'], strain_ids=None if 'strain_id' not in request.GET else request.GET.getall('strain_id'))),
                     renderer=chosen_backend.get_renderer('alignment_bioent'),
                     route_name='alignment_bioent')
 
@@ -360,7 +490,9 @@ def prep_views(chosen_backend, config):
                     route_name='snapshot')
 
     config.add_route('alignments', '/alignments')
-    config.add_view(lambda request: chosen_backend.response_wrapper('alignments', request)(getattr(chosen_backend, 'alignments')()),
+    config.add_view(lambda request: chosen_backend.response_wrapper('alignments', request)(getattr(chosen_backend, 'alignments')(strain_ids=None if 'strain_id' not in request.GET else request.GET.getall('strain_id'),
+                                                                                                                                 limit=None if 'limit' not in request.GET else request.GET['limit'],
+                                                                                                                                 offset=None if 'offset' not in request.GET else request.GET['offset'])),
                     renderer=chosen_backend.get_renderer('alignments'),
                     route_name='alignments')
 
