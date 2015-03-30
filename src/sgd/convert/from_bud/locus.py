@@ -118,7 +118,7 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': 'http://spell.yeastgenome.org/search/show_results?search_string=' + bud_locus.name,
-         'url_type': None,
+         'url_type': 'Unknown',
          'placement': 'LOCUS_EXPRESSION'})
 
     urls.append(
@@ -126,7 +126,7 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/cgi-bin/seqTools?back=1&seqname=' + bud_locus.name,
-         'url_type': None,
+         'url_type': 'Unknown',
          'placement': 'LOCUS_SEQUENCE'})
 
     urls.append(
@@ -134,7 +134,7 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/cgi-bin/ORFMAP/ORFmap?dbid=' + bud_locus.dbxref_id,
-         'url_type': None,
+         'url_type': 'Unknown',
          'placement': 'LOCUS_SEQUENCE'})
 
     urls.append(
@@ -142,7 +142,7 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': 'http://browse.yeastgenome.org/fgb2/gbrowse/scgenome/?name=' + bud_locus.name,
-         'url_type': None,
+         'url_type': 'Unknown',
          'placement': 'LOCUS_SEQUENCE'})
 
     urls.append(
@@ -150,7 +150,7 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/cgi-bin/blast-sgd.pl?name=' + bud_locus.name,
-         'url_type': None,
+         'url_type': 'Unknown',
          'placement': 'LOCUS_SEQUENCE_SECTION'})
 
     urls.append(
@@ -158,7 +158,7 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/cgi-bin/blast-sgd.pl?name=' + bud_locus.name + '&suffix=prot',
-         'url_type': None,
+         'url_type': 'Unknown',
          'placement': 'LOCUS_SEQUENCE_SECTION'})
 
     urls.append(
@@ -166,16 +166,14 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/ontology/phenotype/ypo/overview',
-         'url_type': None,
+         'url_type': 'Unknown',
          'placement': 'LOCUS_PHENOTYPE_ONTOLOGY'})
 
     make_unique = dict([((x['display_name'], x['placement'], x['link']), x) for x in urls])
-    if len(make_unique) != len(urls):
-        print len(urls) - len(make_unique), 'duplicate urls'
     return make_unique.values()
 
 
-def load_aliases(bud_locus, bud_session):
+def load_aliases(bud_locus, bud_session, uniprot_id):
     from src.sgd.model.bud.feature import Feature, Annotation, AliasFeature
     from src.sgd.model.bud.general import DbxrefFeat, Note, NoteFeat
 
@@ -211,6 +209,17 @@ def load_aliases(bud_locus, bud_session):
              'bud_id': bud_obj.id,
              'date_created': str(bud_obj.dbxref.date_created),
              'created_by': bud_obj.dbxref.created_by})
+
+    if uniprot_id is not None:
+        aliases.append(
+            {'display_name': uniprot_id,
+             'link': None,
+             'source': {'display_name': 'Uniprot'},
+             'alias_type': 'Uniprot ID',
+             'bud_id': None,
+             'date_created': None,
+             'created_by': None})
+
     return aliases
 
 
@@ -234,8 +243,8 @@ def locus_starter(bud_session_maker):
                         'source': {
                             'display_name': bud_obj.source
                         },
+                        'bud_id': bud_obj.id,
                         'sgdid': sgdid,
-                        'uniprotid': None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid],
                         'dbentity_status': bud_obj.status,
                         'locus_type': bud_obj.type,
                         'gene_name': bud_obj.gene_name,
@@ -252,7 +261,7 @@ def locus_starter(bud_session_maker):
                 obj_json['genetic_position'] = None if ann.genetic_position is None else str(ann.genetic_position)
 
             #Load aliases
-            obj_json['aliases'] = load_aliases(bud_obj, bud_session)
+            obj_json['aliases'] = load_aliases(bud_obj, bud_session, None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid])
 
             #Load urls
             obj_json['urls'] = load_urls(bud_obj, bud_session)
@@ -264,7 +273,7 @@ def locus_starter(bud_session_maker):
 
 
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, locus_starter, 'locus', lambda x: x['systematic_name'])
+    basic_convert(bud_db, nex_db, locus_starter, 'locus', lambda x: x['sgdid'])
 
 if __name__ == '__main__':
     convert('pastry.stanford.edu:1521', 'curator-dev-db')

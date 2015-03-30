@@ -1,6 +1,6 @@
 {
     "title": "Journal",
-        "type": "object",
+        "type": ["object", "null"],
         "properties": {
             "id": {
                 "type": "integer"

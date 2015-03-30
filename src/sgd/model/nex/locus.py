@@ -34,10 +34,10 @@ class Locus(Dbentity):
     has_sequence_section = Column('has_sequence_section', Integer)
 
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Dbentity.id}
-    __eq_values__ = ['id', 'display_name', 'format_name', 'class_type', 'link', 'sgdid', 'uniprotid', 'dbentity_status',
-                     'description', 'systematic_name',
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
+                     'bud_id', 'sgdid', 'dbentity_status', 'date_created', 'created_by',
+                     'systematic_name',
                      'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position',
-                     'date_created', 'created_by',
                      'has_summary', 'has_history', 'has_literature', 'has_go', 'has_phenotype', 'has_interaction',
                      'has_expression', 'has_regulation', 'has_protein', 'has_sequence', 'has_sequence_section']
     __eq_fks__ = [('source', Source, False), ('aliases', 'locus.LocusAlias', True), ('urls', 'locus.LocusUrl', True)]
@@ -365,14 +365,14 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
-    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
+    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
     url_type = Column('url_type', String)
     placement = Column('placement', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    locus = relationship(Locus, uselist=False, backref=backref('urls', passive_deletes=True))
+    locus = relationship(Locus, uselist=False, backref=backref('urls', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type', 'placement',
@@ -415,14 +415,14 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
-    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
+    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
     is_external_id = Column('is_external_id', Integer)
     alias_type = Column('alias_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    locus = relationship(Locus, uselist=False, backref=backref('aliases', cascade="all, delete, delete-orphan"))
+    locus = relationship(Locus, uselist=False, backref=backref('aliases', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'is_external_id', 'alias_type',

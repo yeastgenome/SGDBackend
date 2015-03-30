@@ -18,7 +18,6 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     sgdid = Column('sgdid', String)
-    uniprotid = Column('uniprotid', String)
     bud_id = Column('bud_id', Integer)
     dbentity_status = Column('dbentity_status', String)
     description = Column('description', String)
@@ -29,7 +28,7 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     source = relationship(Source, uselist=False, lazy='joined')
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
-                     'bud_id', 'date_created', 'created_by', 'sgdid', 'uniprotid', 'dbentity_status']
+                     'bud_id', 'sgdid', 'dbentity_status', 'date_created', 'created_by']
     __eq_fks__ = ['source']
     __mapper_args__ = {'polymorphic_on': class_type}
     __id_values__ = ['sgdid', 'format_name', 'id']

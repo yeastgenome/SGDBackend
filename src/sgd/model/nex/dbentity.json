@@ -36,9 +36,6 @@
         "sgdid": {
             "type": "string"
         },
-        "uniprotid": {
-            "type": ["string", "null"]
-        },
         "dbentity_status": {
             "type": "string"
         }

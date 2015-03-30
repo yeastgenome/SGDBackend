@@ -1,6 +1,6 @@
 {
     "title": "Book",
-        "type": "object",
+        "type": ["object", "null"],
         "properties": {
             "id": {
                 "type": "integer"

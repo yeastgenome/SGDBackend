@@ -1,12 +1,6 @@
 __author__ = 'kpaskov'
 
-import author
-import book
-import journal
-import keyword
-import locus
-import reftype
-import source
+from src.sgd.convert.from_bud import author, book, journal, keyword, locus, reftype, source
 
 if __name__ == '__main__':
     bud_db = 'pastry.stanford.edu:1521'

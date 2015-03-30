@@ -4,6 +4,7 @@ from sqlalchemy.orm import joinedload
 
 __author__ = 'kpaskov'
 
+
 def reference_starter(bud_session_maker):
     from src.sgd.model.bud.reference import Reference, Ref_URL
 
@@ -20,8 +21,8 @@ def reference_starter(bud_session_maker):
             if old_journal.issn == '0948-5023':
                 abbreviation = 'J Mol Model (Online)'
             new_journal = {'title': old_journal.full_name,
-                          'med_abbr': abbreviation,
-                          'source': {'display_name': old_reference.source}}
+                           'med_abbr': abbreviation,
+                           'source': {'display_name': old_reference.source}}
 
         new_book = None
         old_book = old_reference.book
@@ -38,13 +39,10 @@ def reference_starter(bud_session_maker):
         if old_reference.year is not None:
             year = int(old_reference.year)
 
-        doi = None if old_reference.id not in reference_id_to_doi else reference_id_to_doi[old_reference.id]
-        pmcid = None if old_reference.id not in reference_id_to_pmcid else reference_id_to_pmcid[old_reference.id]
-
         yield {'id': old_reference.id,
                'sgdid': old_reference.dbxref_id,
                'source': {'display_name': old_reference.source},
-               'ref_status': old_reference.status,
+               'dbentity_status': old_reference.status,
                'pubmed_id': pubmed_id,
                'fulltext_status': old_reference.pdf_status,
                'citation': old_reference.citation.replace('()', ''),
@@ -57,9 +55,9 @@ def reference_starter(bud_session_maker):
                'title': old_reference.title,
                'journal': new_journal,
                'book': new_book,
-               'doi': doi,
-               'pubmed_central_id': pmcid,
-               'date_created': old_reference.date_created,
+               'doi': None if old_reference.id not in reference_id_to_doi else reference_id_to_doi[old_reference.id],
+               'pubmed_central_id': None if old_reference.id not in reference_id_to_pmcid else reference_id_to_pmcid[old_reference.id],
+               'date_created': str(old_reference.date_created),
                'created_by': old_reference.created_by}
 
         bud_session.close()
@@ -286,8 +284,9 @@ def make_reference_url_starter(bud_session_maker, nex_session_maker):
         nex_session.close()
     return reference_url_starter
 
+
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, reference_starter, 'reference', lambda x: (x['sgdid']))
+    basic_convert(bud_db, nex_db, reference_starter, 'reference', lambda x: x['sgdid'])
 
 if __name__ == '__main__':
     convert('pastry.stanford.edu:1521', 'curator-dev-db')

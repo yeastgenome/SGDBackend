@@ -24,7 +24,7 @@
             "type": ["integer", "null"]
         },
         "date_created": {
-            "type": "string",
+            "type": ["string", "null"],
             "anyOf": [
                 {
                     "format": "date-time"
@@ -35,13 +35,10 @@
             ]
         },
         "created_by": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "sgdid": {
             "type": "string"
-        },
-        "uniprotid": {
-            "type": ["string", "null"]
         },
         "dbentity_status": {
             "type": "string"
@@ -124,7 +121,7 @@
                         "$ref": "source.json"
                     },
                     "date_created": {
-                        "type": "string",
+                        "type": ["string", "null"],
                         "anyOf": [
                             {
                                 "format": "date-time"
@@ -135,7 +132,7 @@
                         ]
                     },
                     "created_by": {
-                        "type": "string"
+                        "type": ["string", "null"]
                     }
                 },
                 "required": ["display_name", "link", "url_type", "source"]
@@ -162,7 +159,7 @@
                         "$ref": "source.json"
                     },
                     "date_created": {
-                        "type": "string",
+                        "type": ["string", "null"],
                         "anyOf": [
                             {
                                 "format": "date-time"
@@ -173,7 +170,7 @@
                         ]
                     },
                     "created_by": {
-                        "type": "string"
+                        "type": ["string", "null"]
                     }
                 },
                 "required": ["display_name", "link", "alias_type", "source"]

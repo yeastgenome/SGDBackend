@@ -13,7 +13,7 @@ def resolve_references(schema):
             if '$ref' in value:
                 subschema = local_handler(value['$ref'])
                 schema['properties'][prop] = subschema
-            elif value["type"] == "object":
+            elif value["type"] == "object" or (isinstance(value["type"], list) and "object" in value["type"]):
                 schema['properties'][prop] = resolve_references(schema['properties'][prop])
             elif "items" in value:
                 schema["properties"][prop]["items"] = resolve_references(schema["properties"][prop]["items"])

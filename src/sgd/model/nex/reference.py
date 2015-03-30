@@ -17,11 +17,12 @@ class Reference(Dbentity):
 
     id = Column('dbentity_id', Integer, ForeignKey(Dbentity.id), primary_key = True)
 
-    pubmed_id = Column('pubmed_id', Integer)
-    pubmed_central_id = Column('pubmed_central_id', String)
+    method_obtained = Column('method_obtained', String)
     fulltext_status = Column('fulltext_status', String)
     citation = Column('citation', String)
     year = Column('year', Integer)
+    pubmed_id = Column('pubmed_id', Integer)
+    pubmed_central_id = Column('pubmed_central_id', String)
     date_published = Column('date_published', String)
     date_revised = Column('date_revised', String)
     issue = Column('issue', String)
@@ -38,10 +39,10 @@ class Reference(Dbentity):
     author_names = association_proxy('author_references', 'author_name')
     related_references = association_proxy('refrels', 'child_ref')
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'sgdid', 'ref_status', 'pubmed_id',
-                     'pubmed_central_id', 'fulltext_status', 'citation', 'year', 'date_published', 'date_revised',
-                     'issue', 'page', 'volume', 'title', 'doi', 'bud_id',
-                     'date_created', 'created_by']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
+                     'bud_id', 'sgdid', 'dbentity_status', 'date_created', 'created_by'
+                     'method_obtained', 'fulltext_status', 'citation', 'year', 'pubmed_id', 'pubmed_central_id', 'date_published', 'date_revised',
+                     'issue', 'page', 'volume', 'title', 'doi']
     __eq_fks__ = [('source', Source, False), ('journal', Journal, False), ('book', Book, False), ('aliases', 'reference.ReferenceAlias', True), ('urls', 'reference.ReferenceUrl', True)]
     __id_values__ = ['format_name', 'id', 'sgdid', 'pubmed_id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']

@@ -75,7 +75,10 @@ class UpdateWithJsonMixin(object):
                     current_value = datetime.datetime.strftime(current_value, "%Y-%m-%d")
 
                 if self.id is not None and key in self.__no_edit_values__:
-                    if current_value is not None and current_value != new_value:
+                    if (key == 'date_created' or key == 'created_by') and current_value is not None and new_value is None:
+                        #Ok because it's either date_created or created_by
+                        pass
+                    elif current_value is not None and current_value != new_value:
                         print self.__class__.__name__
                         print self.unique_key()
                         print ToJsonMixin.to_json(self)

@@ -17,9 +17,6 @@
         "description": {
             "type": ["string", "null"]
         },
-        "uniprotid": {
-            "type": ["string", "null"]
-        },
         "dbentity_status": {
             "type": "string"
         },
