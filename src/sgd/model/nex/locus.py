@@ -396,11 +396,15 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         if parent_obj is not None:
             newly_created_object.locus_id = parent_obj.id
 
-        current_obj = session.query(cls)\
-            .filter_by(locus_id=newly_created_object.locus_id)\
-            .filter_by(display_name=newly_created_object.display_name)\
-            .filter_by(placement=newly_created_object.placement)\
-            .filter_by(link=newly_created_object.link).first()
+            matching_urls = [url for url in parent_obj.urls if url.display_name == newly_created_object.display_name and url.placement == newly_created_object.placement and url.link == newly_created_object.link]
+            current_obj = None if len(matching_urls) != 1 else matching_urls[0]
+
+        else:
+            current_obj = session.query(cls)\
+                .filter_by(locus_id=newly_created_object.locus_id)\
+                .filter_by(display_name=newly_created_object.display_name)\
+                .filter_by(placement=newly_created_object.placement)\
+                .filter_by(link=newly_created_object.link).first()
 
         if current_obj is None:
             return newly_created_object, 'Created'
@@ -446,11 +450,14 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         newly_created_object = cls(obj_json, session)
         if parent_obj is not None:
             newly_created_object.locus_id = parent_obj.id
+            matching_aliases = [alias for alias in parent_obj.aliases if alias.display_name == newly_created_object.display_name and alias.alias_type == newly_created_object.alias_type]
+            current_obj = None if len(matching_aliases) != 1 else matching_aliases[0]
 
-        current_obj = session.query(cls)\
-            .filter_by(locus_id=newly_created_object.locus_id)\
-            .filter_by(display_name=newly_created_object.display_name)\
-            .filter_by(alias_type=newly_created_object.alias_type).first()
+        else:
+            current_obj = session.query(cls)\
+                .filter_by(locus_id=newly_created_object.locus_id)\
+                .filter_by(display_name=newly_created_object.display_name)\
+                .filter_by(alias_type=newly_created_object.alias_type).first()
 
         if current_obj is None:
             return newly_created_object, 'Created'
