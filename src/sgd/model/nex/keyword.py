@@ -36,28 +36,9 @@ class Keyword(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     def to_json(self):
         obj_json = ToJsonMixin.to_json(self)
         #obj_json['datasets'] = [x.dataset.to_semi_json() for x in self.dataset_keywords]
-        #obj_json['colleagues'] = [x.colleague.to_semi_json() for x in self.colleague_keywords]
+        obj_json['colleagues'] = [x.colleague.to_semi_json() for x in self.colleague_keywords]
         return obj_json
 
-class ColleagueKeyword(Base, EqualityByIDMixin, ToJsonMixin):
-    __tablename__ = 'colleague_keyword'
-
-    id = Column('colleague_keyword_id', Integer, primary_key=True)
-    keyword_id = Column('keyword_id', Integer, ForeignKey(Keyword.id))
-    #colleague_id = Column('colleague_id', Integer, ForeignKey(Colleague.id))
-
-    #Relationships
-    keyword = relationship(Keyword, uselist=False, backref=backref('colleage_keywords', passive_deletes=True))
-    #colleagues = relationship(Colleague, uselist=False, backref=backref('colleague_keywords', passive_deletes=True))
-
-    __eq_values__ = ['id']
-    __eq_fks__ = ['keyword', 'colleague']
-
-    def __init__(self, obj_json):
-        UpdateByJsonMixin.__init__(self, obj_json)
-
-    def unique_key(self):
-        return self.keyword_id, self.colleague_id
 
 class DatasetKeyword(Base, EqualityByIDMixin, ToJsonMixin):
     __tablename__ = 'dataset_keyword'

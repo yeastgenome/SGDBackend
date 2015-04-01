@@ -3,7 +3,7 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
 from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'

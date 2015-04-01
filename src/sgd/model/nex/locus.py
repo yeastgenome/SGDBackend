@@ -464,15 +464,15 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     id = Column('relation_id', Integer, primary_key=True)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
-    parent_id = Column('parent_id', Integer, ForeignKey(Locus.id))
-    child_id = Column('child_id', Integer, ForeignKey(Locus.id))
+    parent_id = Column('parent_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
+    child_id = Column('child_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
     relation_type = Column('relation_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    parent = relationship(Locus, backref=backref("children", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
-    child = relationship(Locus, backref=backref("parents", passive_deletes=True), uselist=False, foreign_keys=[child_id])
+    parent = relationship(Locus, backref=backref("children", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
+    child = relationship(Locus, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'bud_id', 'relation_type',

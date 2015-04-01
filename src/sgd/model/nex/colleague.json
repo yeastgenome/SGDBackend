@@ -1,0 +1,158 @@
+{
+    "title": "Colleague",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "display_name": {
+            "type": "string"
+        },
+        "format_name": {
+            "type": "string"
+        },
+        "link": {
+            "type": "string"
+        },
+        "description": {
+            "type": ["string", "null"]
+        },
+        "source": {
+            "$ref": "source.json"
+        },
+        "bud_id": {
+            "type": ["integer", "null"]
+        },
+        "date_created": {
+            "type": ["string", "null"],
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "type": ["string", "null"]
+        },
+        "last_name": {
+            "type": "string"
+        },
+        "first_name": {
+            "type": "string"
+        },
+        "suffix": {
+            "type": ["string", "null"]
+        },
+        "other_last_name": {
+            "type": ["string", "null"]
+        },
+        "profession": {
+            "type": ["string", "null"]
+        },
+        "job_title": {
+            "type": ["string", "null"]
+        },
+        "institution": {
+            "type": ["string", "null"]
+        },
+        "full_address": {
+            "type": ["string", "null"]
+        },
+        "city": {
+            "type": ["string", "null"]
+        },
+        "state": {
+            "type": ["string", "null"]
+        },
+        "country": {
+            "type": ["string", "null"]
+        },
+        "work_phone": {
+            "type": ["string", "null"]
+        },
+        "other_phone": {
+            "type": ["string", "null"]
+        },
+        "fax": {
+            "type": ["string", "null"]
+        },
+        "email": {
+            "type": ["string", "null"]
+        },
+        "is_pi": {
+            "type": "integer"
+        },
+        "is_contact": {
+            "type": "integer"
+        },
+        "display_email": {
+            "type": "integer"
+        },
+        "date_last_modified": {
+            "type": ["string", "null"],
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "urls": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "type": "string"
+                    },
+                    "link": {
+                        "type": "string"
+                    },
+                    "url_type": {
+                        "type": ["string", "null"]
+                    },
+                    "source": {
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "type": ["string", "null"],
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "type": ["string", "null"]
+                    }
+                },
+                "required": ["display_name", "link", "url_type", "source"]
+            }
+        },
+        "keywords": {
+            "type": "array",
+            "items": {
+                "$ref": "keyword.json"
+            }
+        },
+        "loci": {
+            "type": "array",
+            "items": {
+                "$ref": "locus.json"
+            }
+        }
+    },
+    "required": ["first_name", "last_name", "source", "is_pi", "is_contact", "display_email"]
+
+}

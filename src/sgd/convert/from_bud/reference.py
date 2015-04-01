@@ -1,17 +1,85 @@
 from src.sgd.convert.from_bud import basic_convert
 
 from sqlalchemy.orm import joinedload
+from datetime import datetime
 
 __author__ = 'kpaskov'
+
+
+def load_urls(bud_reference, pubmed_id, bud_session):
+    urls = []
+
+    from src.sgd.model.bud.reference import Ref_URL
+
+    doi = None
+    pubmed_central_id = None
+    for ref_url in bud_session.query(Ref_URL).options(joinedload('url')).filter_by(reference_id=bud_reference.id).all():
+        urls.append({'display_name': ref_url.url.url_type,
+                     'link': ref_url.url.url,
+                     'source': {'display_name': ref_url.url.source},
+                     'url_type': ref_url.url.url_type,
+                     'bud_id': ref_url.id})
+
+        if ref_url.url.url_type == 'PMC full text':
+            pubmed_central_id = ref_url.url.url.replace('http://www.ncbi.nlm.nih.gov/pmc/articles/', '')[:-1]
+        elif ref_url.url.url_type == 'DOI full text':
+            doi = ref_url.url.url[18:]
+
+    if pubmed_id is not None:
+        urls.append({'display_name': 'PubMed',
+                     'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(pubmed_id),
+                     'source': {'display_name': 'PubMed'},
+                     'url_type': 'PUBMED',
+                     'bud_id': None})
+    if doi is not None:
+        urls.append({'display_name': 'Full-Text',
+                     'link': 'http://dx.doi.org/' + doi,
+                     'source': {'display_name': 'DOI'},
+                     'url_type': 'FULLTEXT',
+                     'bud_id': None})
+    if pubmed_central_id is not None:
+        urls.append({'display_name': 'PMC',
+                     'link': 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(pubmed_central_id),
+                     'source': {'display_name': 'PubMedCentral'},
+                     'url_type': 'PUBMEDCENTRAL',
+                     'bud_id': None})
+    return urls, pubmed_central_id, doi
+
+
+def load_aliases(bud_reference, bud_session):
+    aliases = []
+
+    from src.sgd.model.bud.reference import DbxrefRef
+
+    for ref_dbxref in bud_session.query(DbxrefRef).options(joinedload(DbxrefRef.dbxref)).filter_by(reference_id=bud_reference.id).all():
+        aliases.append({'display_name': ref_dbxref.dbxref.dbxref_id,
+                        'source': {'display_name': 'SGD'},
+                        'alias_type': ref_dbxref.dbxref.dbxref_type,
+                        'link': None,
+                        'bud_id': ref_dbxref.dbxref.id,
+                        'date_created': str(ref_dbxref.dbxref.date_created),
+                        'created_by': ref_dbxref.dbxref.created_by})
+
+    return aliases
+
+
+def load_reference_reftypes(bud_reference, bud_session):
+    reference_reftypes = []
+
+    from src.sgd.model.bud.reference import RefReftype
+    for old_refreftype in bud_session.query(RefReftype).options(joinedload(RefReftype.reftype)).filter_by(reference_id=bud_reference.id).all():
+        reference_reftypes.append({'source': {'display_name': old_refreftype.reftype.source},
+                                   'reftype': {'display_name': old_refreftype.reftype.name,
+                                               'source': {'display_name': old_refreftype.reftype.source}},
+                                   'date_created': str(old_refreftype.reftype.date_created),
+                                   'created_by': old_refreftype.reftype.created_by})
+    return reference_reftypes
 
 
 def reference_starter(bud_session_maker):
     from src.sgd.model.bud.reference import Reference, Ref_URL
 
     bud_session = bud_session_maker()
-
-    reference_id_to_doi = dict([(x.reference_id, x.url.url[18:]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'DOI full text'])
-    reference_id_to_pmcid = dict([(x.reference_id, x.url.url.replace('http://www.ncbi.nlm.nih.gov/pmc/articles/', '')[:-1]) for x in bud_session.query(Ref_URL).options(joinedload('url')).all() if x.url.url_type == 'PMC full text'])
 
     for old_reference in bud_session.query(Reference).order_by(Reference.id.desc()).options(joinedload('book'), joinedload('journal')).all():
         new_journal = None
@@ -39,28 +107,43 @@ def reference_starter(bud_session_maker):
         if old_reference.year is not None:
             year = int(old_reference.year)
 
-        yield {'id': old_reference.id,
-               'sgdid': old_reference.dbxref_id,
-               'source': {'display_name': old_reference.source},
-               'dbentity_status': old_reference.status,
-               'pubmed_id': pubmed_id,
-               'fulltext_status': old_reference.pdf_status,
-               'citation': old_reference.citation.replace('()', ''),
-               'year': year,
-               'date_published': old_reference.date_published,
-               'date_revised': old_reference.date_revised,
-               'issue': old_reference.issue,
-               'page': old_reference.page,
-               'volume': old_reference.volume,
-               'title': old_reference.title,
-               'journal': new_journal,
-               'book': new_book,
-               'doi': None if old_reference.id not in reference_id_to_doi else reference_id_to_doi[old_reference.id],
-               'pubmed_central_id': None if old_reference.id not in reference_id_to_pmcid else reference_id_to_pmcid[old_reference.id],
-               'date_created': str(old_reference.date_created),
-               'created_by': old_reference.created_by}
+        urls, pubmed_central_id, doi = load_urls(old_reference, pubmed_id, bud_session)
 
-        bud_session.close()
+        obj_json = {'bud_id': old_reference.id,
+                    'sgdid': old_reference.dbxref_id,
+                    'source': {'display_name': old_reference.source},
+                    'method_obtained': old_reference.status,
+                    'dbentity_status': 'Active',
+                    'pubmed_id': pubmed_id,
+                    'fulltext_status': old_reference.pdf_status,
+                    'citation': old_reference.citation.replace('()', ''),
+                    'year': year,
+                    'date_published': old_reference.date_published,
+                    'date_revised': None if old_reference.date_revised is None else str(datetime.strptime(str(old_reference.date_revised), '%Y%m%d').date()),
+                    'issue': old_reference.issue,
+                    'page': old_reference.page,
+                    'volume': old_reference.volume,
+                    'title': old_reference.title,
+                    'journal': new_journal,
+                    'book': new_book,
+                    'doi': doi,
+                    'pubmed_central_id': pubmed_central_id,
+                    'date_created': str(old_reference.date_created),
+                    'created_by': old_reference.created_by}
+
+        #Load aliases
+        obj_json['aliases'] = load_aliases(old_reference, bud_session)
+
+        #Load urls
+        obj_json['urls'] = urls
+
+        #Load Reference Reftypes
+        obj_json['reference_reftypes'] = []#load_reference_reftypes(old_reference, bud_session)
+
+        print obj_json['sgdid']
+        yield obj_json
+
+    bud_session.close()
 
 # -------------------- Convert Bibentry ---------------------
 def make_bibentry_starter(bud_session_maker, nex_session_maker):
@@ -160,38 +243,6 @@ def make_author_reference_starter(bud_session_maker, nex_session_maker):
         nex_session.close()
     return author_reference_starter
 
-# --------------------- Convert ReferenceReftype ---------------------
-def make_ref_reftype_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.reference import Reference, Reftype
-    from src.sgd.model.bud.reference import RefReftype
-    def ref_reftype_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
-        id_to_reference = dict([(x.id, x) for x in nex_session.query(Reference).all()])
-        id_to_reftype = dict([(x.id, x) for x in nex_session.query(Reftype).all()])
-
-        for old_refreftype in bud_session.query(RefReftype).all():
-            reference_id = old_refreftype.reference_id
-            reftype_id = old_refreftype.reftype_id
-            if reference_id in id_to_reference and reftype_id in id_to_reftype:
-                reftype = id_to_reftype[reftype_id]
-                source = key_to_source[reftype.source.unique_key()]
-
-                yield {'id': old_refreftype.id,
-                       'source': source,
-                       'reference': id_to_reference[reference_id],
-                       'reftype': reftype,
-                       'date_created': reftype.date_created,
-                       'created_by': reftype.created_by}
-            else:
-                print 'Reference not found: ' + str(reference_id)
-
-        bud_session.close()
-        nex_session.close()
-    return ref_reftype_starter
 
 # --------------------- Convert Reference Relation ---------------------
 def make_reference_relation_starter(bud_session_maker, nex_session_maker):
@@ -220,69 +271,6 @@ def make_reference_relation_starter(bud_session_maker, nex_session_maker):
         bud_session.close()
         nex_session.close()
     return reference_relation_starter
-
-# --------------------- Convert Reference Alias ---------------------
-def make_reference_alias_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.reference import Reference
-    from src.sgd.model.bud.reference import Reference as OldReference
-    def reference_alias_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
-        reference_ids = set(x.id for x in nex_session.query(Reference.id).all())
-
-        for old_reference in bud_session.query(OldReference).options(joinedload('dbxrefrefs')).all():
-            reference_id = old_reference.id
-            if reference_id in reference_ids:
-                for dbxref in old_reference.dbxrefs:
-                    altid_name = dbxref.dbxref_type
-                    yield {'display_name': dbxref.dbxref_id,
-                            'source': key_to_source['SGD'],
-                            'category': altid_name,
-                            'reference_id': reference_id,
-                            'date_created': old_reference.date_created,
-                            'created_by': old_reference.created_by}
-            else:
-                print 'Reference not found: ' + str(reference_id)
-        bud_session.close()
-        nex_session.close()
-    return reference_alias_starter
-
-# --------------------- Convert Reference URL ---------------------
-def make_reference_url_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.reference import Reference
-    def reference_url_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
-
-        for reference in nex_session.query(Reference).all():
-            if reference.pubmed_id is not None:
-                yield {'display_name': 'PubMed',
-                       'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(reference.pubmed_id),
-                       'source': key_to_source['PubMed'],
-                       'category': 'PUBMED',
-                       'reference_id': reference.id}
-            if reference.doi is not None:
-                yield {'display_name': 'Full-Text',
-                       'link': 'http://dx.doi.org/' + reference.doi,
-                       'source': key_to_source['DOI'],
-                       'category': 'FULLTEXT',
-                       'reference_id': reference.id}
-            if reference.pubmed_central_id is not None:
-                yield {'display_name': 'PMC',
-                       'link': 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(reference.pubmed_central_id),
-                       'source': key_to_source['PubMedCentral'],
-                       'category': 'PUBMEDCENTRAL',
-                       'reference_id': reference.id}
-
-        bud_session.close()
-        nex_session.close()
-    return reference_url_starter
 
 
 def convert(bud_db, nex_db):

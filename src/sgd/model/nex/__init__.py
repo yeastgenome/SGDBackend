@@ -49,7 +49,7 @@ class UpdateWithJsonMixin(object):
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
         if obj_json is None:
-            return None
+            return None, 'Found'
 
         newly_created_obj = cls(obj_json, session)
 
@@ -148,16 +148,18 @@ class UpdateWithJsonMixin(object):
                 else:
                     #This foreign key is just a single object
                     new_fk_obj, status = cls.create_or_find(new_fk_json_obj, session, parent_obj=self)
-                    if make_changes and allow_updates:
+                    if make_changes and allow_updates and new_fk_obj is not None:
                         #If we find an object, and we allow updates, then we update it.
                         new_fk_obj.update(new_fk_json_obj, session, make_changes=True)
-                    else:
+                    elif new_fk_obj is not None:
                         #If we find an object, and we don't allow updates, and it differs from the object we've been given, exception
                         should_be_updated = new_fk_obj.update(new_fk_json_obj, session, make_changes=False)
                         if should_be_updated:
                             raise Exception('Update not allowed, but fk differs.')
 
-                    if current_fk_value is None or new_fk_obj.unique_key() != current_fk_value.unique_key():
+                    if current_fk_value is None and new_fk_obj is None:
+                        pass
+                    elif (current_fk_value is None and new_fk_obj is not None) or (current_fk_value is not None and new_fk_obj is None) or new_fk_obj.unique_key() != current_fk_value.unique_key():
                         #Change the foreign key object
                         if make_changes:
                             setattr(self, key, new_fk_obj)
