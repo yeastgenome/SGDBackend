@@ -6,7 +6,7 @@
                 "type": "integer"
             },
             "pubmed_id": {
-                "type": "string"
+                "type": "integer"
             },
             "citation": {
                 "type": "string"
