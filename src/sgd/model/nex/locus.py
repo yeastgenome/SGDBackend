@@ -395,9 +395,9 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         newly_created_object = cls(obj_json, session)
         if parent_obj is not None:
             newly_created_object.locus_id = parent_obj.id
-
-            matching_urls = [url for url in parent_obj.urls if url.display_name == newly_created_object.display_name and url.placement == newly_created_object.placement and url.link == newly_created_object.link]
-            current_obj = None if len(matching_urls) != 1 else matching_urls[0]
+            if not hasattr(parent_obj, 'url_map'):
+                parent_obj.url_map = dict([((x.display_name, x.placement, x.link), x) for x in parent_obj.urls])
+            current_obj = None if (newly_created_object.display_name, newly_created_object.placement, newly_created_object.link) not in parent_obj.url_map else parent_obj.url_map[(newly_created_object.display_name, newly_created_object.placement, newly_created_object.link)]
 
         else:
             current_obj = session.query(cls)\
@@ -450,8 +450,9 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         newly_created_object = cls(obj_json, session)
         if parent_obj is not None:
             newly_created_object.locus_id = parent_obj.id
-            matching_aliases = [alias for alias in parent_obj.aliases if alias.display_name == newly_created_object.display_name and alias.alias_type == newly_created_object.alias_type]
-            current_obj = None if len(matching_aliases) != 1 else matching_aliases[0]
+            if not hasattr(parent_obj, 'alias_map'):
+                parent_obj.alias_map = dict([((x.display_name, x.alias_type), x) for x in parent_obj.aliases])
+            current_obj = None if (newly_created_object.display_name, newly_created_object.alias_type) not in parent_obj.alias_map else parent_obj.alias_map[(newly_created_object.display_name, newly_created_object.alias_type)]
 
         else:
             current_obj = session.query(cls)\
