@@ -138,5 +138,13 @@ SELECT url_seq.nextval INTO :new.url_id FROM DUAL;
 END;
 /
 
-
+DROP TRIGGER AUTHOR_RESPONSE_TRIGGER;
+--/
+CREATE TRIGGER AUTHOR_RESPONSE_TRIGGER
+BEFORE INSERT ON author_response
+FOR EACH ROW
+BEGIN
+SELECT author_response_seq.nextval INTO :new.author_response_id FROM DUAL;
+END;
+/
 

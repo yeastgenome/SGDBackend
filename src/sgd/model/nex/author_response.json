@@ -5,6 +5,21 @@
             "id": {
                 "type": "integer"
             },
+            "display_name": {
+                "type": "string"
+            },
+            "format_name": {
+                "type": "string"
+            },
+            "link": {
+                "type": "string"
+            },
+            "source": {
+                "$ref": "source.json"
+            },
+            "bud_id": {
+                "type": ["integer", "null"]
+            },
             "pubmed_id": {
                 "type": "integer"
             },
@@ -32,7 +47,7 @@
             "other_description": {
                 "type": ["string", "null"]
             },
-            "no_action_requred": {
+            "no_action_required": {
                 "type": "integer"
             },
             "is_fast_tracked": {
@@ -59,6 +74,6 @@
                 "type": "string"
             }
         },
-        "required": ["pubmed_id", "citation", "author_email", "has_novel_research", "has_large_scale_data", "no_action_requred", "is_fast_tracked", "curator_checked_datasets", "curator_checked_genelist"]
+        "required": ["pubmed_id", "source", "citation", "author_email", "has_novel_research", "has_large_scale_data", "no_action_required", "is_fast_tracked", "curator_checked_datasets", "curator_checked_genelist"]
 
 }
