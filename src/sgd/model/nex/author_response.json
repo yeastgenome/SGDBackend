@@ -1,0 +1,64 @@
+{
+    "title": "AuthorResponse",
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer"
+            },
+            "pubmed_id": {
+                "type": "string"
+            },
+            "citation": {
+                "type": "string"
+            },
+            "author_email": {
+                "type": "string"
+            },
+            "has_novel_research": {
+                "type": "integer"
+            },
+            "has_large_scale_data": {
+                "type": "integer"
+            },
+            "research_results": {
+                "type": ["string", "null"]
+            },
+            "gene_list": {
+                "type": ["string", "null"]
+            },
+            "dataset_description": {
+                "type": ["string", "null"]
+            },
+            "other_description": {
+                "type": ["string", "null"]
+            },
+            "no_action_requred": {
+                "type": "integer"
+            },
+            "is_fast_tracked": {
+                "type": "integer"
+            },
+            "curator_checked_datasets": {
+                "type": "integer"
+            },
+            "curator_checked_genelist": {
+                "type": "integer"
+            },
+            "date_created": {
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "date-time"
+                    },
+                    {
+                        "format": "date"
+                    }
+                ]
+            },
+            "created_by": {
+                "type": "string"
+            }
+        },
+        "required": ["pubmed_id", "citation", "author_email", "has_novel_research", "has_large_scale_data", "no_action_requred", "is_fast_tracked", "curator_checked_datasets", "curator_checked_genelist"]
+
+}
