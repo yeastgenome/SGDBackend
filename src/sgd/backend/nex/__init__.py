@@ -42,7 +42,7 @@ class SGDBackend(BackendInterface):
         for file in os.listdir(pathname):
             if file.endswith('.json'):
                 module = os.path.basename(file)[:-5]
-                self.classes[module] = nex.get_class_from_string(module + '.' + module.title())
+                self.classes[module] = nex.get_class_from_string(module + '.' + module.title().replace('_', ''))
                 self.schemas[module] = load_schema(module + '.json')
 
         self.log = set_up_logging(log_directory, 'nex')
