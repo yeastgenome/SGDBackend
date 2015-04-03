@@ -1160,7 +1160,10 @@ def make_posttranslational_evidence_starter(nex_session_maker):
         file_names = ['src/sgd/convert/data/methylationSitesPMID25109467.txt',
                       'src/sgd/convert/data/ubiquitinationSites090314.txt',
                       'src/sgd/convert/data/phosphorylationUbiquitinationPMID23749301.txt',
-                      'src/sgd/convert/data/succinylationAcetylation090914.txt']
+                      'src/sgd/convert/data/succinylationAcetylation090914.txt',
+                      'src/sgd/convert/data/gap1_Ub_PMID11500494.txt',
+                      'src/sgd/convert/data/PTMsitesPMID25344756.txt'
+                      ]
 
         for file_name in file_names:
             print file_name
