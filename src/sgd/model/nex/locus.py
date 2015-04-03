@@ -46,11 +46,13 @@ class Locus(Dbentity):
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
-        self.display_name = self.systematic_name if self.gene_name is None else self.gene_name
 
         tabs = tab_information(self.dbentity_status, self.locus_type)
         for tab in tabs:
             setattr(self, tab, tabs[tab])
+
+    def __create_display_name__(self):
+        return self.systematic_name if self.gene_name is None else self.gene_name
 
     def __create_format_name__(self):
         return self.systematic_name

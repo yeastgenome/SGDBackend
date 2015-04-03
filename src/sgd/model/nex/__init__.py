@@ -95,6 +95,8 @@ class UpdateWithJsonMixin(object):
         for key, cls, allow_updates in self.__eq_fks__:
             current_fk_value = getattr(self, key)
 
+            print key, isinstance(current_fk_value, list)
+
             if isinstance(cls, str):
                 #We've been given the class as a string due to cyclic dependencies, so find the actual class
                 cls = get_class_from_string(cls)
@@ -169,6 +171,7 @@ class UpdateWithJsonMixin(object):
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session, make_changes=True)
+        self.display_name = self.__create_display_name__()
         self.format_name = create_format_name(self.__create_format_name__())
         self.link = self.__create_link__()
 
@@ -177,6 +180,9 @@ class UpdateWithJsonMixin(object):
 
     def __create_link__(self):
         return '/' + self.__class__.__name__.lower() + '/' + self.format_name
+
+    def __create_display_name__(self):
+        return self.display_name
 
 class ToJsonMixin(object):
 

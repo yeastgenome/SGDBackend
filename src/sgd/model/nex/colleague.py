@@ -7,6 +7,7 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin
 from src.sgd.model.nex.keyword import Keyword
 from src.sgd.model.nex.source import Source
+from src.sgd.model.nex.locus import Locus
 
 __author__ = 'kelley'
 
@@ -45,13 +46,13 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False, lazy='joined')
     keywords = association_proxy('colleague_keywords', 'keyword')
-    #loci = association_proxy('colleague_locus', 'keyword')
+    loci = association_proxy('colleague_locuses', 'locus')
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'date_created', 'created_by',
                      'last_name', 'first_name', 'suffix', 'other_last_name', 'profession', 'job_title',
                      'institution', 'full_address', 'city', 'state', 'country', 'work_phone',
                      'other_phone', 'fax', 'email', 'is_pi', 'is_contact', 'display_email', 'date_last_modified']
-    __eq_fks__ = [('source', Source, False), ('urls', 'colleague.ColleagueUrl', True), ('keywords', 'colleague.ColleagueKeyword', False)]#, ('loci', 'colleague.ColleagueLocus', False)]
+    __eq_fks__ = [('source', Source, False), ('urls', 'colleague.ColleagueUrl', True), ('colleague_locuses', 'colleague.ColleagueLocus', True)]#, ('keywords', 'colleague.ColleagueKeyword', False)]
     __id_values__ = ['format_name', 'id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
@@ -101,7 +102,7 @@ class ColleagueUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return (None if self.colleague is None else self.colleague.unique_key()), self.display_name, self.link
+        return (None if self.colleague is None else self.colleague.unique_key()), self.display_name, self.url_type
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -115,7 +116,7 @@ class ColleagueUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         current_obj = session.query(cls)\
             .filter_by(colleague_id=newly_created_object.colleague_id)\
             .filter_by(display_name=newly_created_object.display_name)\
-            .filter_by(link=newly_created_object.link).first()
+            .filter_by(url_type=newly_created_object.url_type).first()
 
         if current_obj is None:
             return newly_created_object, 'Created'
@@ -199,18 +200,18 @@ class ColleagueKeyword(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
         self.update(obj_json, session)
 
     def update(self, obj_json, session, make_changes=True):
-        print obj_json
         keyword = Keyword.create_or_find(obj_json, session)
         source = Source.create_or_find(obj_json['source'], session)
         self.keyword = keyword
         self.keyword_id = keyword.id
         self.source = source
         self.source_id = source.id
-        self.date_created = None if 'date_created' not in obj_json else obj_json['date_created']
-        self.created_by = None if 'created_by' not in obj_json else obj_json['created_by']
 
     def unique_key(self):
         return (None if self.colleague is None else self.colleague.unique_key()), (None if self.keyword is None else self.keyword.unique_key())
+
+    def __create_format_name__(self):
+        return self.keyword.format_name + '_' + self.colleague.format_name
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -230,4 +231,54 @@ class ColleagueKeyword(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
         else:
             return current_obj, 'Found'
 
+
+class ColleagueLocus(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'colleague_locus'
+
+    id = Column('colleague_locus_id', Integer, primary_key=True)
+    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
+    colleague_id = Column('colleague_id', Integer, ForeignKey(Colleague.id, ondelete='CASCADE'))
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    bud_id = Column('bud_id', Integer)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    colleague = relationship(Colleague, uselist=False, backref=backref('colleague_locuses', cascade="all, delete-orphan", passive_deletes=True))
+    locus = relationship(Locus, uselist=False, backref=backref('colleague_locuses', cascade="all, delete-orphan", passive_deletes=True))
+    source = relationship(Source, uselist=False)
+
+    __eq_values__ = ['id', 'bud_id', 'date_created', 'created_by']
+    __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False), ('locus', Locus, False)]
+    __id_values__ = ['format_name']
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
+
+    def __init__(self, obj_json, session):
+        self.update(obj_json, session)
+
+    def unique_key(self):
+        return (None if self.colleague is None else self.colleague.unique_key()), (None if self.locus is None else self.locus.unique_key())
+
+    def __create_format_name__(self):
+        return self.locus.format_name + '_' + self.colleague.format_name
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            newly_created_object.colleague_id = parent_obj.id
+
+        print newly_created_object.locus_id, newly_created_object.colleague_id
+
+        current_obj = session.query(cls)\
+            .filter_by(colleague_id=newly_created_object.colleague_id)\
+            .filter_by(locus_id=newly_created_object.locus_id).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
 
