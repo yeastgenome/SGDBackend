@@ -1176,7 +1176,7 @@ if __name__ == "__main__":
     #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
 
     do_conversion(make_locus_data_backend_starter(nex_backend, 'alignment_bioent', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'ALIGNMENT', locus_ids, name='convert.from_backend.alignment_details', commit_interval=10),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'ALIGNMENT', locus_ids, name='convert.from_backend.alignment_details', commit_interval=10, sure=True),
                     OutputTransformer(100)])
 
     #do_conversion(make_orphan_backend_starter(nex_backend, ['alignments']),

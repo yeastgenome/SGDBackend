@@ -114,7 +114,7 @@ def switch_to_alignment_coord(ref_align_seq, indices):
 
         if ref_coord in ref_indices:
             ref_index_to_alignment_index[ref_coord] = i
-    return [ref_index_to_alignment_index[ref_index-1]+1 for ref_index in indices]
+    return [ref_index_to_alignment_index[ref_index]+1 for ref_index in ref_indices]
 
 
 def make_alignment(locus_id=None):
@@ -151,8 +151,11 @@ def make_alignment(locus_id=None):
     if dnasequenceevidence is not None:
         for tag in dnasequenceevidence.tags:
             if tag.class_type == 'INTRON':
-                coords = switch_to_alignment_coord(reference_aligment.residues_with_gaps, [tag.relative_start, tag.relative_end])
-                obj_json['introns'].append({'start': coords[0], 'end': coords[1]})
+                try:
+                    coords = switch_to_alignment_coord(reference_aligment.residues_with_gaps, [tag.relative_start, tag.relative_end])
+                    obj_json['introns'].append({'start': coords[0], 'end': coords[1]})
+                except:
+                    print locus_id, ' trouble with introns.'
 
     obj_json['aligned_dna_sequences'] = [{'strain_id': x.strain_id,
                                           'strain_display_name': x.strain.display_name,
