@@ -102,14 +102,14 @@ class SGDBackend(BackendInterface):
                 return obj
         return None
 
-    def get_all_objects(self, class_name):
+    def get_all_objects(self, class_name, limit, offset):
         #Get class
         if class_name in self.classes:
             cls = self.classes[class_name]
         else:
             return None
 
-        return json.dumps([(obj.id, obj.display_name) for obj in DBSession.query(cls).all()])
+        return json.dumps([(obj.id, obj.display_name) for obj in DBSession.query(cls).limit(limit).offset(offset).all()])
 
     #Bioentity
     def all_bioentities(self, chunk_size, offset):

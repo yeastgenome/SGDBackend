@@ -27,7 +27,7 @@ def prep_views(chosen_backend, config):
 
     #Get all objects
     config.add_route('get_all', '/{class_type}')
-    config.add_view(lambda request: chosen_backend.response_wrapper('get_all', request)(chosen_backend.get_all_objects(request.matchdict['class_type'])),
+    config.add_view(lambda request: chosen_backend.response_wrapper('get_all', request)(chosen_backend.get_all_objects(request.matchdict['class_type'], None if 'limit' not in request.GET else request.GET['limit'], None if 'offset' not in request.GET else request.GET['offset'])),
                 renderer='string', route_name='get_all')
 
     #Update object
