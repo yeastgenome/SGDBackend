@@ -3,28 +3,36 @@
     "type": "object",
     "properties": {
         "id": {
+            "title": "ID",
             "type": "integer"
         },
         "display_name": {
+            "title": "Name",
             "type": "string"
         },
         "format_name": {
+            "title": "Format Name",
             "type": "string"
         },
         "link": {
+            "title": "Link",
             "type": "string"
         },
         "description": {
-            "type": ["string", "null"]
+            "title": "Description",
+            "type": "string"
         },
         "source": {
+            "title": "Source",
             "$ref": "source.json"
         },
         "bud_id": {
-            "type": ["integer", "null"]
+            "title": "Bud ID",
+            "type": "integer"
         },
         "date_created": {
-            "type": ["string", "null"],
+            "title": "Date Created",
+            "type": "string",
             "anyOf": [
                 {
                     "format": "date-time"
@@ -35,93 +43,122 @@
             ]
         },
         "created_by": {
-            "type": ["string", "null"]
+            "title": "Created By",
+            "type": "string"
         },
         "sgdid": {
+            "title": "SGD ID",
             "type": "string"
         },
         "dbentity_status": {
+            "title": "DBentity Status",
             "type": "string"
         },
         "locus_type": {
+            "title": "Locus Type",
             "type": "string"
         },
         "name_description": {
-            "type": ["string", "null"]
+            "title": "Name Description",
+            "type": "string"
         },
         "headline": {
-            "type": ["string", "null"]
+            "title": "Headline",
+            "type": "string"
         },
         "gene_name": {
-            "type": ["string", "null"]
+            "title": "Gene Name",
+            "type": "string"
         },
         "systematic_name": {
+            "title": "Systematic Name",
             "type": "string"
         },
         "qualifier": {
-            "type": ["string", "null"]
+            "title": "Qualifier",
+            "type": "string"
         },
         "genetic_position": {
-            "type": ["string", "null"]
+            "title": "Genetic Position",
+            "type": "string"
         },
         "has_summary": {
-            "type": "integer"
+            "title": "Has Summary",
+            "type": "boolean"
         },
         "has_sequence": {
-            "type": "integer"
+            "title": "Has Sequence",
+            "type": "boolean"
         },
         "has_history": {
-            "type": "integer"
+            "title": "Has History",
+            "type": "boolean"
         },
         "has_literature": {
-            "type": "integer"
+            "title": "Has Literature",
+            "type": "boolean"
         },
         "has_go": {
-            "type": "integer"
+            "title": "Has GO",
+            "type": "boolean"
         },
         "has_phenotype": {
-            "type": "integer"
+            "title": "Has Phenotype",
+            "type": "boolean"
         },
         "has_interaction": {
-            "type": "integer"
+            "title": "Has Interaction",
+            "type": "boolean"
         },
         "has_expression": {
-            "type": "integer"
+            "title": "Has Expression",
+            "type": "boolean"
         },
         "has_regulation": {
-            "type": "integer"
+            "title": "Has Regulation",
+            "type": "boolean"
         },
         "has_protein": {
-            "type": "integer"
+            "title": "Has Protein",
+            "type": "boolean"
         },
         "has_sequence_section": {
-            "type": "integer"
+            "title": "Has Sequence",
+            "type": "boolean"
         },
         "urls": {
+            "title": "Urls",
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
                     "id": {
+                        "title": "ID",
                         "type": "integer"
                     },
                     "display_name": {
+                        "title": "Name",
                         "type": "string"
                     },
                     "link": {
+                        "title": "Link",
                         "type": "string"
                     },
                     "url_type": {
-                        "type": ["string", "null"]
+                        "title": "Url Type",
+                        "type": "string"
                     },
                     "placement": {
-                        "type": ["string", "null"]
+                        "title": "Placement",
+                        "type": "string"
                     },
                     "source": {
+                        "title": "Source",
                         "$ref": "source.json"
                     },
                     "date_created": {
-                        "type": ["string", "null"],
+                        "title": "Date Created",
+                        "type": "string",
                         "anyOf": [
                             {
                                 "format": "date-time"
@@ -132,34 +169,42 @@
                         ]
                     },
                     "created_by": {
-                        "type": ["string", "null"]
+                        "title": "Created By",
+                        "type": "string"
                     }
                 },
                 "required": ["display_name", "link", "url_type", "source"]
             }
         },
         "aliases": {
+            "title": "Aliases",
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
                     "id": {
+                        "title": "ID",
                         "type": "integer"
                     },
                     "display_name": {
+                        "title": "Name",
                         "type": "string"
                     },
                     "link": {
-                        "type": ["string", "null"]
+                        "title": "Link",
+                        "type": "string"
                     },
                     "alias_type": {
+                        "title": "Alias Type",
                         "type": "string"
                     },
                     "source": {
+                        "title": "Source",
                         "$ref": "source.json"
                     },
                     "date_created": {
-                        "type": ["string", "null"],
+                        "title": "Date Created",
+                        "type": "string",
                         "anyOf": [
                             {
                                 "format": "date-time"
@@ -170,7 +215,8 @@
                         ]
                     },
                     "created_by": {
-                        "type": ["string", "null"]
+                        "title": "Created By",
+                        "type": "string"
                     }
                 },
                 "required": ["display_name", "link", "alias_type", "source"]

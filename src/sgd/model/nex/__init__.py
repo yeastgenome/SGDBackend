@@ -64,6 +64,7 @@ class UpdateWithJsonMixin(object):
             raise Exception('Class ' + cls.__name__ + ' doesn\'t have format name. You need to implement the create_or_find method.')
 
     def update(self, obj_json, session, make_changes=True):
+        warnings = []
         anything_changed = False
         for key in self.__eq_values__:
             current_value = getattr(self, key)
@@ -79,11 +80,12 @@ class UpdateWithJsonMixin(object):
                         #Ok because it's either date_created or created_by
                         pass
                     elif current_value is not None and current_value != new_value:
-                        print self.__class__.__name__
-                        print self.unique_key()
-                        print ToJsonMixin.to_json(self)
-                        print obj_json
-                        raise Exception(key + ' cannot be edited. (Tried to change from ' + str(current_value) + ' to ' + str(new_value) + '.)')
+                        warnings.append(key + ' cannot be edited. (Tried to change from ' + str(current_value) + ' to ' + str(new_value) + '.)')
+                        #print self.__class__.__name__
+                        #print self.unique_key()
+                        #print ToJsonMixin.to_json(self)
+                        #print obj_json
+                        #raise Exception(key + ' cannot be edited. (Tried to change from ' + str(current_value) + ' to ' + str(new_value) + '.)')
                 else:
                     if new_value != current_value:
                         if make_changes:
@@ -94,8 +96,6 @@ class UpdateWithJsonMixin(object):
 
         for key, cls, allow_updates in self.__eq_fks__:
             current_fk_value = getattr(self, key)
-
-            print key, isinstance(current_fk_value, list)
 
             if isinstance(cls, str):
                 #We've been given the class as a string due to cyclic dependencies, so find the actual class
@@ -120,14 +120,17 @@ class UpdateWithJsonMixin(object):
                         new_fk_obj, status = cls.create_or_find(new_fk_json_obj_entry, session, parent_obj=self)
                         if make_changes and allow_updates:
                             #If we find an object, and we allow updates, then we update it.
-                            updated = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=True)
+                            updated, sub_warnings = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=True)
+                            warnings.extend(sub_warnings)
                             if updated:
                                 anything_changed = True
                         else:
                             #If we find an object, and we don't allow updates, and it differs from the object we've been given, exception
-                            should_be_updated = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=False)
+                            should_be_updated, sub_warnings = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=False)
+                            warnings.extend(sub_warnings)
                             if should_be_updated:
-                                raise Exception('Update not allowed, but fk differs.')
+                                warnings.append('Update not allowed, but fk differs.')
+                                #raise Exception('Update not allowed, but fk differs.')
 
                         if new_fk_obj.unique_key() in keys_not_seen:
                             #We already have this object, and we've done our update so we're all set. Just a little bit of bookkeeping
@@ -155,9 +158,11 @@ class UpdateWithJsonMixin(object):
                         new_fk_obj.update(new_fk_json_obj, session, make_changes=True)
                     elif new_fk_obj is not None:
                         #If we find an object, and we don't allow updates, and it differs from the object we've been given, exception
-                        should_be_updated = new_fk_obj.update(new_fk_json_obj, session, make_changes=False)
+                        should_be_updated, sub_warnings = new_fk_obj.update(new_fk_json_obj, session, make_changes=False)
+                        warnings.extend(sub_warnings)
                         if should_be_updated:
-                            raise Exception('Update not allowed, but fk differs.')
+                            warnings.append('Update not allowed, but fk differs.')
+                            #raise Exception('Update not allowed, but fk differs.')
 
                     if current_fk_value is None and new_fk_obj is None:
                         pass
@@ -167,7 +172,7 @@ class UpdateWithJsonMixin(object):
                             setattr(self, key, new_fk_obj)
                         anything_changed = True
 
-        return anything_changed
+        return anything_changed, warnings
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session, make_changes=True)

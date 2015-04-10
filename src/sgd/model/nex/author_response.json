@@ -3,63 +3,83 @@
         "type": "object",
         "properties": {
             "id": {
+                "title": "ID",
                 "type": "integer"
             },
             "display_name": {
+                "title": "Name",
                 "type": "string"
             },
             "format_name": {
+                "title": "Format Name",
                 "type": "string"
             },
             "link": {
+                "title": "Link",
                 "type": "string"
             },
             "source": {
+                "title": "Source",
                 "$ref": "source.json"
             },
             "bud_id": {
-                "type": ["integer", "null"]
+                "title": "Bud ID",
+                "type": "integer"
             },
             "pubmed_id": {
+                "title": "Pubmed ID",
                 "type": "integer"
             },
             "citation": {
+                "title": "Citation",
                 "type": "string"
             },
             "author_email": {
+                "title": "Author Email",
                 "type": "string"
             },
             "has_novel_research": {
-                "type": "integer"
+                "title": "Has Novel Research",
+                "type": "boolean"
             },
             "has_large_scale_data": {
-                "type": "integer"
+                "title": "Has Large Scale Data",
+                "type": "boolean"
             },
             "research_results": {
-                "type": ["string", "null"]
+                "title": "Research Results",
+                "type": "string"
             },
             "gene_list": {
-                "type": ["string", "null"]
+                "title": "Gene List",
+                "type": "string"
             },
             "dataset_description": {
-                "type": ["string", "null"]
+                "title": "Dataset Description",
+                "type": "string"
             },
             "other_description": {
-                "type": ["string", "null"]
+                "title": "Other Description",
+                "type": "string"
             },
             "no_action_required": {
-                "type": "integer"
+                "title": "No Action Required",
+                "type": "boolean"
             },
             "is_fast_tracked": {
-                "type": "integer"
+                "title": "Is Fast Tracked",
+                "type": "boolean"
             },
             "curator_checked_datasets": {
-                "type": "integer"
+                "title": "Curator Checked Datasets",
+                "type": "boolean"
             },
             "curator_checked_genelist": {
-                "type": "integer"
+                "title": "Curator Checked Gene List",
+                "type": "boolean"
             },
             "date_created": {
+                "title": "Date Created",
                 "type": "string",
                 "anyOf": [
                     {
@@ -71,6 +91,7 @@
                 ]
             },
             "created_by": {
+                "title": "Created By",
                 "type": "string"
             }
         },

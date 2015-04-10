@@ -3,27 +3,35 @@
         "type": "object",
         "properties": {
             "id": {
+                "title": "ID",
                 "type": "integer"
             },
             "display_name": {
+                "title": "Name",
                 "type": "string"
             },
             "format_name": {
+                "title": "Format Name",
                 "type": "string"
             },
             "link": {
+                "title": "Link",
                 "type": "string"
             },
             "description": {
-                "type": ["string", "null"]
+                "title": "Description",
+                "type": "string"
             },
             "source": {
+                "title": "Source",
                 "$ref": "source.json"
             },
             "bud_id": {
-                "type": ["integer", "null"]
+                "title": "Bud ID",
+                "type": "integer"
             },
             "date_created": {
+                "title": "Date Created",
                 "type": "string",
                 "anyOf": [
                     {
@@ -35,6 +43,7 @@
                 ]
             },
             "created_by": {
+                "title": "Created By",
                 "type": "string"
             }
         },

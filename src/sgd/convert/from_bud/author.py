@@ -8,7 +8,7 @@ def author_starter(bud_session_maker):
 
     for old_author in bud_session.query(Author).all():
         yield {'display_name': old_author.name,
-               'source': {'format_name': 'PubMed'},
+               'source': {'display_name': 'PubMed'},
                'bud_id': old_author.id,
                'date_created': str(old_author.date_created),
                'created_by': old_author.created_by}

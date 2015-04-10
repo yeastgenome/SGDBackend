@@ -72,25 +72,30 @@ def colleague_starter(bud_session_maker):
                     'source': {'display_name': bud_obj.source},
                     'last_name': bud_obj.last_name,
                     'first_name': bud_obj.first_name,
-                    'suffix': bud_obj.suffix,
                     'other_last_name': bud_obj.other_last_name,
                     'profession': bud_obj.profession,
                     'job_title': bud_obj.job_title,
                     'institution': bud_obj.institution,
                     'full_address': address,
                     'city': bud_obj.city,
-                    'state': bud_obj.state,
                     'country': bud_obj.country,
                     'work_phone': bud_obj.work_phone,
                     'other_phone': bud_obj.other_phone,
                     'fax': bud_obj.fax,
                     'email': bud_obj.email,
-                    'is_pi': 1 if bud_obj.is_pi == 'Y' else 0,
-                    'is_contact': 1 if bud_obj.is_contact == 'Y' else 0,
-                    'display_email': 1 if bud_obj.display_email == 'Y' else 0,
+                    'is_pi': True if bud_obj.is_pi == 'Y' else False,
+                    'is_contact': True if bud_obj.is_contact == 'Y' else False,
+                    'display_email': True if bud_obj.display_email == 'Y' else False,
                     'date_last_modified': str(bud_obj.date_last_modified),
                     'date_created': str(bud_obj.date_created),
                     'created_by': bud_obj.created_by}
+
+        if bud_obj.suffix is not None:
+            obj_json['suffix'] = bud_obj.suffix
+        if bud_obj.state is not None:
+            obj_json['state'] = bud_obj.state
+        if bud_obj.profession is not None:
+            obj_json['profession'] = bud_obj.profession
 
         #Load urls
         obj_json['urls'] = load_urls(bud_obj, bud_session)

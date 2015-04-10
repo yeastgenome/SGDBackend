@@ -1,5 +1,5 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String, Date, Boolean
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
 
@@ -38,9 +38,9 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     other_phone = Column('other_phone', String)
     fax = Column('fax', String)
     email = Column('email', String)
-    is_pi = Column('is_pi', Integer)
-    is_contact = Column('is_contact', Integer)
-    display_email = Column('display_email', Integer)
+    is_pi = Column('is_pi', Boolean)
+    is_contact = Column('is_contact', Boolean)
+    display_email = Column('display_email', Boolean)
     date_last_modified = Column('date_last_modified', Date, server_default=FetchedValue())
 
     #Relationships

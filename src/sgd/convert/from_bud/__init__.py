@@ -18,6 +18,7 @@ def basic_convert(bud_db, nex_db, starter, class_name, key_f):
     already_seen = set()
 
     accumulated_status = dict()
+    warnings_count = 0
     for obj_json in starter(bud_session_maker):
         key = key_f(obj_json)
         if key in already_seen:
@@ -25,6 +26,7 @@ def basic_convert(bud_db, nex_db, starter, class_name, key_f):
         else:
             response = curate_backend.add_object(class_name, obj_json, update_ok=True)
             status = json.loads(response)['status']
+            warnings_count += len(json.loads(response)['warnings'])
             already_seen.add(key)
 
         if status not in accumulated_status:
@@ -32,7 +34,7 @@ def basic_convert(bud_db, nex_db, starter, class_name, key_f):
         accumulated_status[status] += 1
 
     end = datetime.datetime.now()
-    print end.date(), 'convert.from_bud.' + class_name, accumulated_status, 'Start-End/Duration:', \
+    print end.date(), 'convert.from_bud.' + class_name, accumulated_status, 'Warnings', warnings_count, 'Start-End/Duration:', \
         datetime.datetime.strftime(start, '%X') + '-' + datetime.datetime.strftime(end, '%X') + '/' + str(end-start)
 
 

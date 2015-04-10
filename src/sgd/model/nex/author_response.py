@@ -1,5 +1,5 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date, CLOB
+from sqlalchemy.types import Integer, String, Date, CLOB, Boolean
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
@@ -20,16 +20,16 @@ class AuthorResponse(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     pubmed_id = Column('pubmed_id', Integer)
     citation = Column('citation', String)
     author_email = Column('author_email', String)
-    has_novel_research = Column('has_novel_research', Integer)
-    has_large_scale_data = Column('has_large_scale_data', Integer)
+    has_novel_research = Column('has_novel_research', Boolean)
+    has_large_scale_data = Column('has_large_scale_data', Boolean)
     research_results = Column('research_results', CLOB)
     gene_list = Column('gene_list', String)
     dataset_description = Column('dataset_description', String)
     other_description = Column('other_description', String)
-    no_action_required = Column('no_action_required', Integer)
-    is_fast_tracked = Column('is_fast_tracked', Integer)
-    curator_checked_datasets = Column('curator_checked_datasets', Integer)
-    curator_checked_genelist = Column('curator_checked_genelist', Integer)
+    no_action_required = Column('no_action_required', Boolean)
+    is_fast_tracked = Column('is_fast_tracked', Boolean)
+    curator_checked_datasets = Column('curator_checked_datasets', Boolean)
+    curator_checked_genelist = Column('curator_checked_genelist', Boolean)
     created_by = Column('created_by', String, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
 

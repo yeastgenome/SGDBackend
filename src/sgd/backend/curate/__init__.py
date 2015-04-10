@@ -44,7 +44,7 @@ class CurateBackend(SGDBackend):
             if new_obj_by_key.id != new_obj.id:
                 raise Exception('Your edits cause this ' + class_name + ' to collide with <a href="/' + class_name.lower() + "/" + str(new_obj_by_key.id) + '/edit"> this one</a>.')
 
-            updated = new_obj.update(new_json_obj, DBSession)
+            updated, warnings = new_obj.update(new_json_obj, DBSession)
 
             if updated:
                 id = new_obj.id
@@ -53,12 +53,14 @@ class CurateBackend(SGDBackend):
                 return json.dumps({'status': 'Updated',
                                    'message': None,
                                    'json': new_obj.to_json(),
-                                   'id': new_obj.id})
+                                   'id': new_obj.id,
+                                   'warnings': warnings})
             else:
                 return json.dumps({'status': 'No Change',
                                    'message': None,
                                    'json': new_obj.to_json(),
-                                   'id': new_obj.id})
+                                   'id': new_obj.id,
+                                   'warnings': warnings})
 
         except Exception as e:
             print traceback.format_exc()
@@ -99,7 +101,8 @@ class CurateBackend(SGDBackend):
                 return json.dumps({'status': 'Added',
                         'message': None,
                         'json': newly_created_obj.to_json(),
-                        'id': newly_created_obj.id})
+                        'id': newly_created_obj.id,
+                        'warnings': []})
             else:
                 raise Exception('Neither found nor created.')
 
@@ -109,5 +112,6 @@ class CurateBackend(SGDBackend):
                             'message': e.message,
                             'traceback': traceback.format_exc(),
                             'json': str(new_json_obj),
-                            'id': None
+                            'id': None,
+                            'warnings': []
                             })

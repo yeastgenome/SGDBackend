@@ -1,5 +1,5 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.types import Integer, String, Date, Boolean
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
@@ -21,17 +21,17 @@ class Locus(Dbentity):
     qualifier = Column('qualifier', String)
     genetic_position = Column('genetic_position', String)
 
-    has_summary = Column('has_summary', Integer)
-    has_sequence = Column('has_sequence', Integer)
-    has_history = Column('has_history', Integer)
-    has_literature = Column('has_literature', Integer)
-    has_go = Column('has_go', Integer)
-    has_phenotype = Column('has_phenotype', Integer)
-    has_interaction = Column('has_interaction', Integer)
-    has_expression = Column('has_expression', Integer)
-    has_regulation = Column('has_regulation', Integer)
-    has_protein = Column('has_protein', Integer)
-    has_sequence_section = Column('has_sequence_section', Integer)
+    has_summary = Column('has_summary', Boolean)
+    has_sequence = Column('has_sequence', Boolean)
+    has_history = Column('has_history', Boolean)
+    has_literature = Column('has_literature', Boolean)
+    has_go = Column('has_go', Boolean)
+    has_phenotype = Column('has_phenotype', Boolean)
+    has_interaction = Column('has_interaction', Boolean)
+    has_expression = Column('has_expression', Boolean)
+    has_regulation = Column('has_regulation', Boolean)
+    has_protein = Column('has_protein', Boolean)
+    has_sequence_section = Column('has_sequence_section', Boolean)
 
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Dbentity.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',

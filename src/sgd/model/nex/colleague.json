@@ -3,33 +3,35 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer",
-            "title": "ID"
+            "title": "ID",
+            "type": "integer"
         },
         "display_name": {
-            "type": "string",
-            "title": "Name"
+            "title": "Name",
+            "type": "string"
         },
         "format_name": {
-            "type": "string",
-            "title": "Format Name"
+            "title": "Format Name",
+            "type": "string"
         },
         "link": {
-            "type": "string",
-            "title": "Link"
+            "title": "Link",
+            "type": "string"
         },
         "description": {
-            "type": "string",
-            "title": "Description"
+            "title": "Description",
+            "type": "string"
         },
         "source": {
+            "title": "Source",
             "$ref": "source.json"
         },
         "bud_id": {
-            "type": "integer",
-            "title": "Bud ID"
+            "title": "Bud ID",
+            "type": "integer"
         },
         "date_created": {
+            "title": "Date Created",
             "type": "string",
             "anyOf": [
                 {
@@ -38,87 +40,90 @@
                 {
                     "format": "date"
                 }
-            ],
-            "title": "Date Created"
+            ]
         },
         "created_by": {
-            "type": "string",
-            "title": "Created By"
+            "title": "Created By",
+            "type": "string"
         },
         "last_name": {
-            "type": "string",
-            "title": "Last Name"
+            "title": "Last Name",
+            "type": "string"
         },
         "first_name": {
-            "type": "string",
-            "title": "First Name"
+            "title": "First Name",
+            "type": "string"
         },
         "suffix": {
-            "type": "string",
-            "title": "Suffix"
+            "title": "Suffix",
+            "type": "string"
         },
         "other_last_name": {
-            "type": "string",
-            "title": "Other Last Name"
+            "title": "Other Last Name",
+            "type": "string"
         },
         "profession": {
-            "type": "string",
-            "title": "Profession"
+            "title": "Profession",
+            "type": "string"
         },
         "job_title": {
-            "type": "string",
-            "title": "Job Title"
+            "title": "Job Title",
+            "type": "string"
         },
         "institution": {
-            "type": "string",
-            "title": "Institution"
+            "title": "Institution",
+            "type": "string"
         },
         "full_address": {
-            "type": "string",
-            "title": "Full Address"
+            "title": "Full Address",
+            "type": "string"
         },
         "city": {
-            "type": "string",
-            "title": "City"
+            "title": "City",
+            "type": "string"
         },
         "state": {
+            "title": "State",
             "type": "string",
-            "enum": ["Alabama", "Alaska", "Arizona", "Arkansas"],
-            "title": "State"
+            "enum": ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana",
+            "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
+            "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina",
+            "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"]
         },
         "country": {
-            "type": "string",
-            "title": "Country"
+            "title": "Country",
+            "type": "string"
         },
         "work_phone": {
-            "type": "string",
-            "title": "Work Phone"
+            "title": "Work Phone",
+            "type": "string"
         },
         "other_phone": {
-            "type": "string",
-            "title": "Other Phone"
+            "title": "Other Phone",
+            "type": "string"
         },
         "fax": {
-            "type": "string",
-            "title": "Fax"
+            "title": "Fax",
+            "type": "string"
         },
         "email": {
-            "type": "string",
-            "title": "Email"
+            "title": "Email",
+            "type": "string"
         },
         "is_pi": {
-            "type": "integer",
-            "title": "Is PI?"
+            "title": "Is PI?",
+            "type": "boolean"
         },
         "is_contact": {
-            "type": "integer",
-            "title": "Is Contact?"
+            "title": "Is Contact?",
+            "type": "boolean"
         },
         "display_email": {
-            "type": "integer",
-            "title": "Display Email?"
+            "title": "Display Email?",
+            "type": "boolean"
         },
         "date_last_modified": {
+            "title": "Date Last Modified",
             "type": "string",
             "anyOf": [
                 {
@@ -127,30 +132,36 @@
                 {
                     "format": "date"
                 }
-            ],
-            "title": "Date Last Modified"
+            ]
         },
         "urls": {
+            "title": "Urls",
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
                     "id": {
+                        "title": "ID",
                         "type": "integer"
                     },
                     "display_name": {
+                        "title": "Name",
                         "type": "string"
                     },
                     "link": {
+                        "title": "Link",
                         "type": "string"
                     },
                     "url_type": {
+                        "title": "Url Type",
                         "type": "string"
                     },
                     "source": {
+                        "title": "Source",
                         "$ref": "source.json"
                     },
                     "date_created": {
+                        "title": "Date Created",
                         "type": "string",
                         "anyOf": [
                             {
@@ -162,19 +173,19 @@
                         ]
                     },
                     "created_by": {
+                        "title": "Created By",
                         "type": "string"
                     }
                 },
                 "required": ["display_name", "link", "url_type", "source"]
-            },
-            "title": "Urls"
+            }
         },
         "keywords": {
+            "title": "Keywords",
             "type": "array",
             "items": {
                 "$ref": "keyword.json"
-            },
-            "title": "Keywords"
+            }
         }
     },
     "required": ["first_name", "last_name", "source", "is_pi", "is_contact", "display_email"]

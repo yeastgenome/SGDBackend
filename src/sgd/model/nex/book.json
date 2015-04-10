@@ -1,29 +1,37 @@
 {
     "title": "Book",
-        "type": ["object", "null"],
+        "type": "object",
         "properties": {
             "id": {
+                "title": "ID",
                 "type": "integer"
             },
             "display_name": {
+                "title": "Name",
                 "type": "string"
             },
             "format_name": {
+                "title": "Format Name",
                 "type": "string"
             },
             "link": {
+                "title": "Link",
                 "type": "string"
             },
             "description": {
-                "type": ["string", "null"]
+                "title": "Description",
+                "type": "string"
             },
             "source": {
+                "title": "Source",
                 "$ref": "source.json"
             },
             "bud_id": {
-                "type": ["integer", "null"]
+                "title": "Bud ID",
+                "type": "integer"
             },
             "date_created": {
+                "title": "Date Created",
                 "type": "string",
                 "anyOf": [
                     {
@@ -35,27 +43,34 @@
                 ]
             },
             "created_by": {
+                "title": "Created By",
                 "type": "string"
             },
             "title": {
+                "title": "Title",
                 "type": "string"
             },
             "volume_title": {
-                "type": ["string", "null"]
+                "title": "Volume Title",
+                "type": "string"
             },
             "isbn": {
-                "type": ["string", "null"]
+                "title": "ISBN",
+                "type": "string"
             },
             "total_pages": {
-                "type": ["integer", "null"]
+                "title": "Total Pages",
+                "type": "integer"
             },
             "publisher": {
-                "type": ["string", "null"]
+                "title": "Publisher",
+                "type": "string"
             },
             "publisher_location": {
-                "type": ["string", "null"]
+                "title": "Publisher Location",
+                "type": "string"
             }
         },
-        "required": ["title", "volume_title", "source"]
+        "required": ["title", "source"]
 
 }
