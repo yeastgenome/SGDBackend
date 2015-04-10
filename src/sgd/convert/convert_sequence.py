@@ -133,14 +133,14 @@ if __name__ == "__main__":
     #               [Json2CorePerfDB(perf_session_maker, PerfStrain, name='convert.from_backend.strain', commit_interval=1000, delete_untouched=True)])
 
     # ------------------------------------------ Perf2 ------------------------------------------
-    # perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
-    # perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
+    perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, 'sgd-db2.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+    perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
 
     # do_conversion(make_locus_data_backend_starter(perf_backend, 'neighbor_sequence_details', locus_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000)])
     #
-    # do_conversion(make_locus_data_backend_starter(perf_backend, 'sequence_details', locus_ids),
-    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
+    #do_conversion(make_locus_data_backend_starter(perf_backend, 'sequence_details', locus_ids),
+    #               [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'SEQUENCE', locus_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])
     #
     # do_conversion(make_contig_data_backend_starter(perf_backend, 'sequence_details', contig_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioitemDetails, 'SEQUENCE', contig_ids, name='convert.from_backend.sequence_details', commit_interval=1000)])

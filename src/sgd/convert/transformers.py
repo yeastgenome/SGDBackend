@@ -442,7 +442,7 @@ class Json2DisambigPerfDB(TransformerInterface):
 
 class Json2DataPerfDB(TransformerInterface):
 
-    def __init__(self, session_maker, cls, class_type, obj_ids, name=None, commit_interval=None, commit=False, delete_untouched=True):
+    def __init__(self, session_maker, cls, class_type, obj_ids, name=None, commit_interval=None, commit=False, delete_untouched=True, sure=False):
         self.session = session_maker()
         self.cls = cls
         self.name = name
@@ -464,7 +464,7 @@ class Json2DataPerfDB(TransformerInterface):
 
         if delete_untouched:
             to_be_deleted = list(current_ids - obj_ids)
-            if to_be_deleted > 100:
+            if to_be_deleted > 100 and not sure:
                 print 'Tried to delete more than 100 entries - are you sure?'
             else:
                 for obj_id in to_be_deleted:

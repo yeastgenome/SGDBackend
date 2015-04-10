@@ -267,7 +267,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                 yield None
 
         #Phenotype
-        for row in make_file_starter('src/sgd/convert/data/PhenotypeSummariesSample030415.txt')():
+        for row in make_file_starter('src/sgd/convert/data/PhenotypeSummaries032015.txt')():
             bioentity_key = (row[0], 'LOCUS')
 
             if bioentity_key in key_to_bioentity:
