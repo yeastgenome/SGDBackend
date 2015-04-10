@@ -3,28 +3,34 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID"
         },
         "display_name": {
-            "type": "string"
+            "type": "string",
+            "title": "Name"
         },
         "format_name": {
-            "type": "string"
+            "type": "string",
+            "title": "Format Name"
         },
         "link": {
-            "type": "string"
+            "type": "string",
+            "title": "Link"
         },
         "description": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Description"
         },
         "source": {
             "$ref": "source.json"
         },
         "bud_id": {
-            "type": ["integer", "null"]
+            "type": "integer",
+            "title": "Bud ID"
         },
         "date_created": {
-            "type": ["string", "null"],
+            "type": "string",
             "anyOf": [
                 {
                     "format": "date-time"
@@ -32,67 +38,88 @@
                 {
                     "format": "date"
                 }
-            ]
+            ],
+            "title": "Date Created"
         },
         "created_by": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Created By"
         },
         "last_name": {
-            "type": "string"
+            "type": "string",
+            "title": "Last Name"
         },
         "first_name": {
-            "type": "string"
+            "type": "string",
+            "title": "First Name"
         },
         "suffix": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Suffix"
         },
         "other_last_name": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Other Last Name"
         },
         "profession": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Profession"
         },
         "job_title": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Job Title"
         },
         "institution": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Institution"
         },
         "full_address": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Full Address"
         },
         "city": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "City"
         },
         "state": {
-            "type": ["string", "null"]
+            "type": "string",
+            "enum": ["Alabama", "Alaska", "Arizona", "Arkansas"],
+            "title": "State"
         },
         "country": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Country"
         },
         "work_phone": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Work Phone"
         },
         "other_phone": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Other Phone"
         },
         "fax": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Fax"
         },
         "email": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Email"
         },
         "is_pi": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Is PI?"
         },
         "is_contact": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Is Contact?"
         },
         "display_email": {
-            "type": "integer"
+            "type": "integer",
+            "title": "Display Email?"
         },
         "date_last_modified": {
-            "type": ["string", "null"],
+            "type": "string",
             "anyOf": [
                 {
                     "format": "date-time"
@@ -100,7 +127,8 @@
                 {
                     "format": "date"
                 }
-            ]
+            ],
+            "title": "Date Last Modified"
         },
         "urls": {
             "type": "array",
@@ -117,13 +145,13 @@
                         "type": "string"
                     },
                     "url_type": {
-                        "type": ["string", "null"]
+                        "type": "string"
                     },
                     "source": {
                         "$ref": "source.json"
                     },
                     "date_created": {
-                        "type": ["string", "null"],
+                        "type": "string",
                         "anyOf": [
                             {
                                 "format": "date-time"
@@ -134,23 +162,19 @@
                         ]
                     },
                     "created_by": {
-                        "type": ["string", "null"]
+                        "type": "string"
                     }
                 },
                 "required": ["display_name", "link", "url_type", "source"]
-            }
+            },
+            "title": "Urls"
         },
         "keywords": {
             "type": "array",
             "items": {
                 "$ref": "keyword.json"
-            }
-        },
-        "loci": {
-            "type": "array",
-            "items": {
-                "$ref": "locus.json"
-            }
+            },
+            "title": "Keywords"
         }
     },
     "required": ["first_name", "last_name", "source", "is_pi", "is_contact", "display_email"]

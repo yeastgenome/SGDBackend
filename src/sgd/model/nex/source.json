@@ -4,22 +4,28 @@
     "type": "object",
     "properties": {
         "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "ID"
         },
         "display_name": {
-            "type": "string"
+            "type": "string",
+            "title": "Name"
         },
         "format_name": {
-            "type": "string"
+            "type": "string",
+            "title": "Format Name"
         },
         "link": {
-            "type": "string"
+            "type": "string",
+            "title": "Link"
         },
         "description": {
-            "type": ["string", "null"]
+            "type": "string",
+            "title": "Description"
         },
         "bud_id": {
-            "type": ["integer", "null"]
+            "type": "integer",
+            "title": "Bud ID"
         },
         "date_created": {
             "type": "string",
@@ -30,10 +36,12 @@
                 {
                     "format": "date"
                 }
-            ]
+            ],
+            "title": "Date Created"
         },
         "created_by": {
-            "type": "string"
+            "type": "string",
+            "title": "Name"
         }
     },
     "required": ["display_name"]
