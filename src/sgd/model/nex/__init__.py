@@ -51,15 +51,17 @@ class UpdateWithJsonMixin(object):
         if obj_json is None:
             return None, 'Found'
 
-        if hasattr(cls, 'format_name'):
+        if 'id' in obj_json:
+            current_obj = session.query(cls).filter_by(id=obj_json['id']).first()
+        elif hasattr(cls, 'format_name'):
             current_obj = session.query(cls).filter_by(format_name=cls.__create_format_name__(obj_json)).first()
-
-            if current_obj is None:
-                return cls(obj_json, session), 'Created'
-            else:
-                return current_obj, 'Found'
         else:
             raise Exception('Class ' + cls.__name__ + ' doesn\'t have format name. You need to implement the create_or_find method.')
+
+        if current_obj is None:
+            return cls(obj_json, session), 'Created'
+        else:
+            return current_obj, 'Found'
 
     def update(self, obj_json, session, make_changes=True):
         warnings = []

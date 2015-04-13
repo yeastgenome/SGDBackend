@@ -76,6 +76,13 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
         #Relations
         obj_json['children'] = [x.to_json() for x in self.children]
         obj_json['parents'] = [x.to_json() for x in self.parents]
+
+        #Keywords
+        obj_json['colleague_keywords'] = [x.to_min_json() for x in self.keywords]
+
+        #Loci
+        obj_json['colleague_locuses'] = [x.to_min_json() for x in self.loci]
+
         return obj_json
 
 
