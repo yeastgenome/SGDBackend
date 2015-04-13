@@ -40,6 +40,7 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     def unique_key(self):
         return self.format_name, self.class_type
 
-    def __create_link__(self):
-        return '/' + self.__class__.__name__.lower() + '/' + self.sgdid
+    @classmethod
+    def __create_link__(cls, obj_json):
+        return '/' + cls.__name__.lower() + '/' + obj_json['sgdid']
 

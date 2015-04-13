@@ -36,7 +36,7 @@ class Keyword(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     def to_json(self):
         obj_json = ToJsonMixin.to_json(self)
         #obj_json['datasets'] = [x.dataset.to_semi_json() for x in self.dataset_keywords]
-        obj_json['colleagues'] = [x.colleague.to_semi_json() for x in self.colleague_keywords]
+        obj_json['colleagues'] = [x.colleague.to_min_json() for x in self.colleague_keywords]
         return obj_json
 
 

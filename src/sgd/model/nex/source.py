@@ -24,9 +24,14 @@ class Source(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
-        if obj_json['display_name'] in to_change:
-            obj_json['display_name'] = to_change[obj_json['display_name']]
         UpdateWithJsonMixin.__init__(self, obj_json, session)
+
+    @classmethod
+    def __create_display_name__(cls, obj_json):
+        if obj_json['display_name'] in to_change:
+            return to_change[obj_json['display_name']]
+        else:
+            return obj_json['display_name']
 
 to_change = {
     'Colleague submission': 'Colleague',

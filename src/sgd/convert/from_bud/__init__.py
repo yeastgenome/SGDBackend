@@ -37,6 +37,15 @@ def basic_convert(bud_db, nex_db, starter, class_name, key_f):
     print end.date(), 'convert.from_bud.' + class_name, accumulated_status, 'Warnings', warnings_count, 'Start-End/Duration:', \
         datetime.datetime.strftime(start, '%X') + '-' + datetime.datetime.strftime(end, '%X') + '/' + str(end-start)
 
+def remove_nones(obj_json):
+    to_be_deleted = set()
+    for key, value in obj_json.iteritems():
+        if value is None:
+            to_be_deleted.add(key)
+    for key in to_be_deleted:
+        del obj_json[key]
+    return obj_json
+
 
 _digits = re.compile('\d')
 def contains_digits(d):

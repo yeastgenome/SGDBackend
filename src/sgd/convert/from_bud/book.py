@@ -1,4 +1,4 @@
-from src.sgd.convert.from_bud import basic_convert
+from src.sgd.convert.from_bud import basic_convert, remove_nones
 
 __author__ = 'kpaskov'
 
@@ -7,23 +7,17 @@ def book_starter(bud_session_maker):
     bud_session = bud_session_maker()
 
     for old_book in bud_session.query(Book).all():
-        obj_json = {'source': {'display_name': 'PubMed'},
-               'title': old_book.title,
-               'publisher': old_book.publisher,
-               'bud_id': old_book.id,
-               'date_created': str(old_book.date_created),
-               'created_by': old_book.created_by}
-
-        if old_book.volume_title is not None:
-            obj_json['volume_title'] = old_book.volume_title
-        if old_book.total_pages is not None:
-            obj_json['total_pages'] = old_book.total_pages
-        if old_book.publisher_location is not None:
-            obj_json['publisher_location'] = old_book.publisher_location
-        if old_book.isbn is not None:
-            obj_json['isbn'] = old_book.isbn
-        yield obj_json
-
+        yield remove_nones({
+            'source': {'display_name': 'PubMed'},
+            'title': old_book.title,
+            'publisher': old_book.publisher,
+            'bud_id': old_book.id,
+            'volume_title': old_book.volume_title,
+            'total_pages': old_book.total_pages,
+            'publisher_location': old_book.publisher_location,
+            'isbn': old_book.isbn,
+            'date_created': str(old_book.date_created),
+            'created_by': old_book.created_by})
 
     bud_session.close()
 

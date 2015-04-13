@@ -1,9 +1,59 @@
-from src.sgd.convert import break_up_file
 from sqlalchemy.orm import joinedload
-from src.sgd.convert.from_bud import basic_convert
+from src.sgd.convert.from_bud import basic_convert, remove_nones
 
 __author__ = 'kpaskov'
 
+state_abbrev = {
+    'AL': 'Alabama',
+    'AK': 'Alaska',
+    'AZ': 'Arizona',
+    'AR': 'Arkansas',
+    'CA': 'California',
+    'CO': 'Colorado',
+    'CT': 'Connecticut',
+    'DE': 'Delaware',
+    'FL': 'Florida',
+    'GA': 'Georgia',
+    'HI': 'Hawaii',
+    'ID': 'Idaho',
+    'IL': 'Illinois',
+    'IN': 'Indiana',
+    'IA': 'Iowa',
+    'KS': 'Kansas',
+    'KY': 'Kentucky',
+    'LA': 'Louisiana',
+    'ME': 'Maine',
+    'MD': 'Maryland',
+    'MA': 'Massachusetts',
+    'MI': 'Michigan',
+    'MN': 'Minnesota',
+    'MS': 'Mississippi',
+    'MO': 'Missouri',
+    'MT': 'Montana',
+    'NE': 'Nebraska',
+    'NV': 'Nevada',
+    'NH': 'New Hampshire',
+    'NJ': 'New Jersey',
+    'NM': 'New Mexico',
+    'NY': 'New York',
+    'NC': 'North Carolina',
+    'ND': 'North Dakota',
+    'OH': 'Ohio',
+    'OK': 'Oklahoma',
+    'OR': 'Oregon',
+    'PA': 'Pennsylvania',
+    'RI': 'Rhode Island',
+    'SC': 'South Carolina',
+    'SD': 'South Dakota',
+    'TN': 'Tennessee',
+    'TX': 'Texas',
+    'UT': 'Utah',
+    'VT': 'Vermont',
+    'VA': 'Virginia',
+    'WA': 'Washington',
+    'WV': 'West Virginia',
+    'WI': 'Wisconsin',
+    'WY': 'Wyoming'}
 
 def load_urls(bud_colleague, bud_session):
     from src.sgd.model.bud.colleague import ColleagueUrl
@@ -56,7 +106,6 @@ def load_loci(bud_colleague, bud_session):
                      'gene_name': bud_obj.feature.gene_name,
                      'date_created': str(bud_obj.feature.date_created),
                      'created_by': bud_obj.feature.created_by})
-    print loci
     return loci
 
 
@@ -68,40 +117,36 @@ def colleague_starter(bud_session_maker):
     for bud_obj in bud_session.query(Colleague).all():
         address = ' '.join([x for x in [bud_obj.address1, bud_obj.address2, bud_obj.address3, bud_obj.address4, bud_obj.address5] if x is not None])
 
-        obj_json = {'bud_id': bud_obj.id,
-                    'source': {'display_name': bud_obj.source},
-                    'last_name': bud_obj.last_name,
-                    'first_name': bud_obj.first_name,
-                    'other_last_name': bud_obj.other_last_name,
-                    'profession': bud_obj.profession,
-                    'job_title': bud_obj.job_title,
-                    'institution': bud_obj.institution,
-                    'full_address': address,
-                    'city': bud_obj.city,
-                    'country': bud_obj.country,
-                    'work_phone': bud_obj.work_phone,
-                    'other_phone': bud_obj.other_phone,
-                    'fax': bud_obj.fax,
-                    'email': bud_obj.email,
-                    'is_pi': True if bud_obj.is_pi == 'Y' else False,
-                    'is_contact': True if bud_obj.is_contact == 'Y' else False,
-                    'display_email': True if bud_obj.display_email == 'Y' else False,
-                    'date_last_modified': str(bud_obj.date_last_modified),
-                    'date_created': str(bud_obj.date_created),
-                    'created_by': bud_obj.created_by}
-
-        if bud_obj.suffix is not None:
-            obj_json['suffix'] = bud_obj.suffix
-        if bud_obj.state is not None:
-            obj_json['state'] = bud_obj.state
-        if bud_obj.profession is not None:
-            obj_json['profession'] = bud_obj.profession
+        obj_json = remove_nones({
+            'bud_id': bud_obj.id,
+            'source': {'display_name': bud_obj.source},
+            'last_name': bud_obj.last_name,
+            'first_name': bud_obj.first_name,
+            'other_last_name': bud_obj.other_last_name,
+            'job_title': bud_obj.job_title,
+            'institution': bud_obj.institution,
+            'full_address': address,
+            'city': bud_obj.city,
+            'country': bud_obj.country,
+            'work_phone': bud_obj.work_phone,
+            'other_phone': bud_obj.other_phone,
+            'fax': bud_obj.fax,
+            'email': bud_obj.email,
+            'is_pi': True if bud_obj.is_pi == 'Y' else False,
+            'is_contact': True if bud_obj.is_contact == 'Y' else False,
+            'display_email': True if bud_obj.display_email == 'Y' else False,
+            'suffix': bud_obj.suffix,
+            'state': None if bud_obj.state not in state_abbrev else state_abbrev[bud_obj.state],
+            'profession': bud_obj.profession,
+            'date_last_modified': str(bud_obj.date_last_modified),
+            'date_created': str(bud_obj.date_created),
+            'created_by': bud_obj.created_by})
 
         #Load urls
         obj_json['urls'] = load_urls(bud_obj, bud_session)
 
         #Load keywords
-        #obj_json['keywords'] = load_keywords(bud_obj, bud_session)
+        obj_json['colleague_keywords'] = load_keywords(bud_obj, bud_session)
 
         #Load loci
         obj_json['colleague_locuses'] = load_loci(bud_obj, bud_session)
@@ -113,7 +158,7 @@ def colleague_starter(bud_session_maker):
 
 
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, colleague_starter, 'colleague', lambda x: (x['first_name'], x['last_name'], x['institution']))
+    basic_convert(bud_db, nex_db, colleague_starter, 'colleague', lambda x: (x['first_name'], x['last_name'], None if 'institution' not in x else x['institution']))
 
 if __name__ == '__main__':
     convert('pastry.stanford.edu:1521', 'curator-dev-db')

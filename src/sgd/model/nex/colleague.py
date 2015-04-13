@@ -52,16 +52,20 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                      'last_name', 'first_name', 'suffix', 'other_last_name', 'profession', 'job_title',
                      'institution', 'full_address', 'city', 'state', 'country', 'work_phone',
                      'other_phone', 'fax', 'email', 'is_pi', 'is_contact', 'display_email', 'date_last_modified']
-    __eq_fks__ = [('source', Source, False), ('urls', 'colleague.ColleagueUrl', True), ('colleague_locuses', 'colleague.ColleagueLocus', True)]#, ('keywords', 'colleague.ColleagueKeyword', False)]
+    __eq_fks__ = [('source', Source, False), ('urls', 'colleague.ColleagueUrl', True), ('colleague_locuses', 'colleague.ColleagueLocus', False), ('colleague_keywords', 'colleague.ColleagueKeyword', False)]
     __id_values__ = ['format_name', 'id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
-        self.display_name = self.first_name + ' ' + self.last_name
 
-    def __create_format_name__(self):
-        return '_'.join([x for x in [self.first_name, self.last_name, self.institution] if x is not None])[0:100]
+    @classmethod
+    def __create_format_name__(cls, obj_json):
+        return '_'.join([x for x in [obj_json['first_name'], obj_json['last_name'], None if 'institution' not in obj_json else obj_json['institution']] if x is not None])[0:100]
+
+    @classmethod
+    def __create_display_name__(cls, obj_json):
+        return obj_json['first_name'] + ' ' + obj_json['last_name']
 
     def to_json(self):
         obj_json = ToJsonMixin.to_json(self)
@@ -196,37 +200,29 @@ class ColleagueKeyword(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
-    def __init__(self, obj_json, session):
-        self.update(obj_json, session)
-
-    def update(self, obj_json, session, make_changes=True):
-        keyword = Keyword.create_or_find(obj_json, session)
-        source = Source.create_or_find(obj_json['source'], session)
+    def __init__(self, colleague, keyword):
         self.keyword = keyword
-        self.keyword_id = keyword.id
-        self.source = source
-        self.source_id = source.id
+        self.colleague = colleague
+        self.source = self.keyword.source
 
     def unique_key(self):
         return (None if self.colleague is None else self.colleague.unique_key()), (None if self.keyword is None else self.keyword.unique_key())
-
-    def __create_format_name__(self):
-        return self.keyword.format_name + '_' + self.colleague.format_name
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
         if obj_json is None:
             return None
 
-        newly_created_object = cls(obj_json, session)
-        if parent_obj is not None:
-            newly_created_object.colleague_id = parent_obj.id
+        keyword, status = Keyword.create_or_find(obj_json, session)
+        #if status == 'Created':
+        #    raise Exception('Keyword not found: ' + str(obj_json))
 
         current_obj = session.query(cls)\
-            .filter_by(colleague_id=newly_created_object.colleague_id)\
-            .filter_by(keyword_id=newly_created_object.keyword_id).first()
+            .filter_by(colleague_id=parent_obj.id)\
+            .filter_by(keyword_id=keyword.id).first()
 
         if current_obj is None:
+            newly_created_object = cls(parent_obj, keyword)
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
@@ -253,31 +249,29 @@ class ColleagueLocus(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
-    def __init__(self, obj_json, session):
-        self.update(obj_json, session)
+    def __init__(self, colleague, locus):
+        self.locus = locus
+        self.colleague = colleague
+        self.source = self.locus.source
 
     def unique_key(self):
         return (None if self.colleague is None else self.colleague.unique_key()), (None if self.locus is None else self.locus.unique_key())
-
-    def __create_format_name__(self):
-        return self.locus.format_name + '_' + self.colleague.format_name
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
         if obj_json is None:
             return None
 
-        newly_created_object = cls(obj_json, session)
-        if parent_obj is not None:
-            newly_created_object.colleague_id = parent_obj.id
-
-        print newly_created_object.locus_id, newly_created_object.colleague_id
+        locus, status = Locus.create_or_find(obj_json, session)
+        if status == 'Created':
+            raise Exception('Locus not found: ' + str(obj_json))
 
         current_obj = session.query(cls)\
-            .filter_by(colleague_id=newly_created_object.colleague_id)\
-            .filter_by(locus_id=newly_created_object.locus_id).first()
+            .filter_by(colleague_id=parent_obj.id)\
+            .filter_by(locus_id=locus.id).first()
 
         if current_obj is None:
+            newly_created_object = cls(parent_obj, locus)
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'

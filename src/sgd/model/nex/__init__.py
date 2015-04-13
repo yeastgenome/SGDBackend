@@ -51,13 +51,11 @@ class UpdateWithJsonMixin(object):
         if obj_json is None:
             return None, 'Found'
 
-        newly_created_obj = cls(obj_json, session)
-
         if hasattr(cls, 'format_name'):
-            current_obj = session.query(cls).filter_by(format_name=newly_created_obj.format_name).first()
+            current_obj = session.query(cls).filter_by(format_name=cls.__create_format_name__(obj_json)).first()
 
             if current_obj is None:
-                return newly_created_obj, 'Created'
+                return cls(obj_json, session), 'Created'
             else:
                 return current_obj, 'Found'
         else:
@@ -175,19 +173,22 @@ class UpdateWithJsonMixin(object):
         return anything_changed, warnings
 
     def __init__(self, obj_json, session):
+        self.display_name = self.__create_display_name__(obj_json)
+        self.format_name = self.__create_format_name__(obj_json)
+        self.link = self.__create_link__(obj_json)
         self.update(obj_json, session, make_changes=True)
-        self.display_name = self.__create_display_name__()
-        self.format_name = create_format_name(self.__create_format_name__())
-        self.link = self.__create_link__()
 
-    def __create_format_name__(self):
-        return self.display_name
+    @classmethod
+    def __create_format_name__(cls, obj_json):
+        return create_format_name(cls.__create_display_name__(obj_json))
 
-    def __create_link__(self):
-        return '/' + self.__class__.__name__.lower() + '/' + self.format_name
+    @classmethod
+    def __create_link__(cls, obj_json):
+        return '/' + cls.__name__.lower() + '/' + cls.__create_format_name__(obj_json)
 
-    def __create_display_name__(self):
-        return self.display_name
+    @classmethod
+    def __create_display_name__(cls, obj_json):
+        return obj_json['display_name']
 
 class ToJsonMixin(object):
 

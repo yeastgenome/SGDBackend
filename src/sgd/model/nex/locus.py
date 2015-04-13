@@ -51,11 +51,13 @@ class Locus(Dbentity):
         for tab in tabs:
             setattr(self, tab, tabs[tab])
 
-    def __create_display_name__(self):
-        return self.systematic_name if self.gene_name is None else self.gene_name
+    @classmethod
+    def __create_display_name__(cls, obj_json):
+        return obj_json['systematic_name'] if 'gene_name' not in obj_json else obj_json['gene_name']
 
-    def __create_format_name__(self):
-        return self.systematic_name
+    @classmethod
+    def __create_format_name__(cls, obj_json):
+        return obj_json['systematic_name']
 
     def to_json(self):
         obj_json = ToJsonMixin.to_json(self)
