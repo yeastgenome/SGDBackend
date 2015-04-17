@@ -69,7 +69,7 @@ def keyword_starter(bud_session_maker):
 
     from src.sgd.model.bud.colleague import Keyword
     bud_session = bud_session_maker()
-    for bud_obj in bud_session.query(Keyword).all():
+    for bud_obj in bud_session.query(Keyword).filter_by(source='Curator-defined').all():
         yield {'display_name': bud_obj.keyword,
                'source': {'display_name': bud_obj.source},
                'bud_id': bud_obj.id,

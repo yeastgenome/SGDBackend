@@ -1,4 +1,4 @@
-from src.sgd.convert.from_bud import basic_convert
+from src.sgd.convert.from_bud import basic_convert, remove_nones
 
 from sqlalchemy.orm import joinedload
 from datetime import datetime
@@ -29,20 +29,17 @@ def load_urls(bud_reference, pubmed_id, bud_session):
         urls.append({'display_name': 'PubMed',
                      'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(pubmed_id),
                      'source': {'display_name': 'PubMed'},
-                     'url_type': 'PUBMED',
-                     'bud_id': None})
+                     'url_type': 'PUBMED'})
     if doi is not None:
         urls.append({'display_name': 'Full-Text',
                      'link': 'http://dx.doi.org/' + doi,
                      'source': {'display_name': 'DOI'},
-                     'url_type': 'FULLTEXT',
-                     'bud_id': None})
+                     'url_type': 'FULLTEXT'})
     if pubmed_central_id is not None:
         urls.append({'display_name': 'PMC',
                      'link': 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(pubmed_central_id),
                      'source': {'display_name': 'PubMedCentral'},
-                     'url_type': 'PUBMEDCENTRAL',
-                     'bud_id': None})
+                     'url_type': 'PUBMEDCENTRAL'})
     return urls, pubmed_central_id, doi
 
 
@@ -55,7 +52,6 @@ def load_aliases(bud_reference, bud_session):
         aliases.append({'display_name': ref_dbxref.dbxref.dbxref_id,
                         'source': {'display_name': 'SGD'},
                         'alias_type': ref_dbxref.dbxref.dbxref_type,
-                        'link': None,
                         'bud_id': ref_dbxref.dbxref.id,
                         'date_created': str(ref_dbxref.dbxref.date_created),
                         'created_by': ref_dbxref.dbxref.created_by})
@@ -63,17 +59,15 @@ def load_aliases(bud_reference, bud_session):
     return aliases
 
 
-def load_reference_reftypes(bud_reference, bud_session):
-    reference_reftypes = []
+def load_reftypes(bud_reference, bud_session):
+    reftypes = []
 
     from src.sgd.model.bud.reference import RefReftype
+
     for old_refreftype in bud_session.query(RefReftype).options(joinedload(RefReftype.reftype)).filter_by(reference_id=bud_reference.id).all():
-        reference_reftypes.append({'source': {'display_name': old_refreftype.reftype.source},
-                                   'reftype': {'display_name': old_refreftype.reftype.name,
-                                               'source': {'display_name': old_refreftype.reftype.source}},
-                                   'date_created': str(old_refreftype.reftype.date_created),
-                                   'created_by': old_refreftype.reftype.created_by})
-    return reference_reftypes
+        reftypes.append({'display_name': old_refreftype.reftype.name,
+                         'source': {'display_name': old_refreftype.reftype.source}})
+    return reftypes
 
 
 def reference_starter(bud_session_maker):
@@ -109,7 +103,7 @@ def reference_starter(bud_session_maker):
 
         urls, pubmed_central_id, doi = load_urls(old_reference, pubmed_id, bud_session)
 
-        obj_json = {'bud_id': old_reference.id,
+        obj_json = remove_nones({'bud_id': old_reference.id,
                     'sgdid': old_reference.dbxref_id,
                     'source': {'display_name': old_reference.source},
                     'method_obtained': old_reference.status,
@@ -129,7 +123,7 @@ def reference_starter(bud_session_maker):
                     'doi': doi,
                     'pubmed_central_id': pubmed_central_id,
                     'date_created': str(old_reference.date_created),
-                    'created_by': old_reference.created_by}
+                    'created_by': old_reference.created_by})
 
         #Load aliases
         obj_json['aliases'] = load_aliases(old_reference, bud_session)
@@ -138,9 +132,10 @@ def reference_starter(bud_session_maker):
         obj_json['urls'] = urls
 
         #Load Reference Reftypes
-        obj_json['reference_reftypes'] = []#load_reference_reftypes(old_reference, bud_session)
+        obj_json['reference_reftypes'] = load_reftypes(old_reference, bud_session)
 
         print obj_json['sgdid']
+
         yield obj_json
 
     bud_session.close()

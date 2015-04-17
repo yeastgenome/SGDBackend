@@ -1,6 +1,7 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.ext.associationproxy import association_proxy
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
@@ -22,6 +23,7 @@ class Reftype(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     #Relationships
     source = relationship(Source, uselist=False)
+    references = association_proxy('reference_reftypes', 'reference')
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'created_by', 'date_created']
     __eq_fks__ = [('source', Source, False)]
@@ -30,3 +32,8 @@ class Reftype(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
+
+    def to_json(self):
+        obj_json = ToJsonMixin.to_json(self)
+        obj_json['reference_reftypes'] = [x.to_min_json() for x in self.references]
+        return obj_json

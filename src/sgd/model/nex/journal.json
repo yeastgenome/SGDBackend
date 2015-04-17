@@ -63,5 +63,5 @@
                 "type": "string"
             }
         },
-        "required": ["title", "med_abbr", "source"]
+        "required": ["source"]
 }

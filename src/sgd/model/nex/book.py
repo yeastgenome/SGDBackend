@@ -38,10 +38,17 @@ class Book(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
-        self.display_name = self.title
 
     def unique_key(self):
         return self.title, self.volume_title
 
-    def __create_format_name__(self):
-        return self.title + '' if self.volume_title is None else ('_' + self.volume_title)
+    @classmethod
+    def __create_format_name__(cls, obj_json):
+        if 'volume_title' in obj_json:
+            return create_format_name(obj_json['title'][:50] + obj_json['volume_title'][:50])
+        else:
+            return create_format_name(obj_json['title'][:100])
+
+    @classmethod
+    def __create_display_name__(cls, obj_json):
+        return obj_json['title']

@@ -4,7 +4,7 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date, CLOB
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
 from src.sgd.model.nex.dbentity import Dbentity
 from src.sgd.model.nex.source import Source
 from src.sgd.model.nex.journal import Journal
@@ -38,6 +38,7 @@ class Reference(Dbentity):
 
     author_names = association_proxy('author_references', 'author_name')
     related_references = association_proxy('refrels', 'child_ref')
+    reftypes = association_proxy('reference_reftypes', 'reftype')
 
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE', 'inherit_condition': id == Dbentity.id}
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
@@ -52,10 +53,15 @@ class Reference(Dbentity):
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
-        self.display_name = self.citation[:self.citation.find(")")+1]
 
-    def __create_format_name__(self):
-        return self.sgdid
+    @classmethod
+    def __create_format_name__(cls, obj_json):
+        return create_format_name(obj_json['citation'][0:100])
+
+    @classmethod
+    def __create_display_name__(cls, obj_json):
+        citation = obj_json['citation']
+        return citation[:citation.find(")")+1]
 
     def to_min_json(self, include_description=False):
         obj_json = ToJsonMixin.to_min_json(self, include_description=include_description)
@@ -76,7 +82,7 @@ class Reference(Dbentity):
         obj_json = self.to_json()
         obj_json['abstract'] = None if len(self.paragraphs) == 0 else self.paragraphs[0].to_json(linkit=True)
         obj_json['bibentry'] = None if self.bibentry is None else self.bibentry.text
-        obj_json['reftypes'] = [x.reftype.to_min_json() for x in self.ref_reftypes]
+        obj_json['reftypes'] = [x.reftype.to_min_json() for x in self.reftypes]
         obj_json['authors'] = [x.author.to_min_json() for x in self.author_references]
         interaction_locus_ids = set()
         interaction_locus_ids.update([x.locus1_id for x in self.physinteraction_evidences])
@@ -97,12 +103,12 @@ class Reference(Dbentity):
         for child in self.children:
             child_json = child.child.to_semi_json()
             child_json['abstract'] = None if len(child.child.paragraphs) == 0 else child.child.paragraphs[0].to_json(linkit=True)
-            child_json['reftypes'] = [x.reftype.to_min_json() for x in child.child.ref_reftypes]
+            child_json['reftypes'] = [x.reftype.to_min_json() for x in child.child.reftypes]
             obj_json['related_references'].append(child_json)
         for parent in self.parents:
             parent_json = parent.parent.to_semi_json()
             parent_json['abstract'] = None if len(parent.parent.paragraphs) == 0 else parent.parent.paragraphs[0].to_json(linkit=True)
-            parent_json['reftypes'] = [x.reftype.to_min_json() for x in parent.parent.ref_reftypes]
+            parent_json['reftypes'] = [x.reftype.to_min_json() for x in parent.parent.reftypes]
             obj_json['related_references'].append(parent_json)
         obj_json['urls'] = [x.to_json() for x in self.urls]
         if self.journal is not None:
@@ -263,6 +269,7 @@ class ReferenceRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
         else:
             return current_obj, 'Found'
 
+
 class ReferenceReftype(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'reference_reftype'
 
@@ -284,8 +291,10 @@ class ReferenceReftype(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
-    def __init__(self, obj_json, session):
-        self.update(obj_json, session)
+    def __init__(self, reference, reftype):
+        self.reftype = reftype
+        self.reference = reference
+        self.source_id = self.reftype.source_id
 
     def unique_key(self):
         return (None if self.reference is None else self.reference.unique_key()), (None if self.reftype is None else self.reftype.unique_key())
@@ -295,15 +304,17 @@ class ReferenceReftype(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
         if obj_json is None:
             return None
 
-        newly_created_object = cls(obj_json, session)
-        if parent_obj is not None:
-            newly_created_object.reference_id = parent_obj.id
+        reftype, status = Reftype.create_or_find(obj_json, session)
+
+        #if status == 'Created':
+        #    raise Exception('Keyword not found: ' + str(obj_json))
 
         current_obj = session.query(cls)\
-            .filter_by(reference_id=newly_created_object.reference_id)\
-            .filter_by(reftype_id=newly_created_object.reftype_id).first()
+            .filter_by(reference_id=parent_obj.id)\
+            .filter_by(reftype_id=reftype.id).first()
 
         if current_obj is None:
+            newly_created_object = cls(parent_obj, reftype)
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'

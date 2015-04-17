@@ -3,57 +3,6 @@ from src.sgd.convert.from_bud import basic_convert, remove_nones
 
 __author__ = 'kpaskov'
 
-state_abbrev = {
-    'AL': 'Alabama',
-    'AK': 'Alaska',
-    'AZ': 'Arizona',
-    'AR': 'Arkansas',
-    'CA': 'California',
-    'CO': 'Colorado',
-    'CT': 'Connecticut',
-    'DE': 'Delaware',
-    'FL': 'Florida',
-    'GA': 'Georgia',
-    'HI': 'Hawaii',
-    'ID': 'Idaho',
-    'IL': 'Illinois',
-    'IN': 'Indiana',
-    'IA': 'Iowa',
-    'KS': 'Kansas',
-    'KY': 'Kentucky',
-    'LA': 'Louisiana',
-    'ME': 'Maine',
-    'MD': 'Maryland',
-    'MA': 'Massachusetts',
-    'MI': 'Michigan',
-    'MN': 'Minnesota',
-    'MS': 'Mississippi',
-    'MO': 'Missouri',
-    'MT': 'Montana',
-    'NE': 'Nebraska',
-    'NV': 'Nevada',
-    'NH': 'New Hampshire',
-    'NJ': 'New Jersey',
-    'NM': 'New Mexico',
-    'NY': 'New York',
-    'NC': 'North Carolina',
-    'ND': 'North Dakota',
-    'OH': 'Ohio',
-    'OK': 'Oklahoma',
-    'OR': 'Oregon',
-    'PA': 'Pennsylvania',
-    'RI': 'Rhode Island',
-    'SC': 'South Carolina',
-    'SD': 'South Dakota',
-    'TN': 'Tennessee',
-    'TX': 'Texas',
-    'UT': 'Utah',
-    'VT': 'Vermont',
-    'VA': 'Virginia',
-    'WA': 'Washington',
-    'WV': 'West Virginia',
-    'WI': 'Wisconsin',
-    'WY': 'Wyoming'}
 
 def load_urls(bud_colleague, bud_session):
     from src.sgd.model.bud.colleague import ColleagueUrl
@@ -74,18 +23,43 @@ def load_urls(bud_colleague, bud_session):
     return make_unique.values()
 
 
+def load_documents(bud_colleague, bud_session):
+    from src.sgd.model.bud.colleague import ColleagueRemark, ColleagueKeyword
+
+    documents = []
+    text = ' '.join([x.remark for x in bud_session.query(ColleagueRemark).filter_by(colleague_id=bud_colleague.id).filter_by(remark_type='Research Interest').all()])
+    text += '\n'
+    text += ', '.join([x.remark for x in bud_session.query(ColleagueRemark).filter_by(colleague_id=bud_colleague.id).filter_by(remark_type='Announcement').all()])
+    text += ', '.join([x.keyword.keyword for x in bud_session.query(ColleagueKeyword).options(joinedload('keyword')).filter_by(colleague_id=bud_colleague.id).all() if x.keyword.source == 'Colleague Keyword'])
+
+    text = text.strip()
+
+    if text != '':
+        documents.append(
+            {'text': text,
+             'html': text,
+             'source': {'display_name': 'SGD'},
+             'bud_id': bud_colleague.id,
+             'document_type': 'Research Interest',
+             'date_created': str(bud_colleague.date_created),
+             'created_by': bud_colleague.created_by})
+
+    return documents
+
+
 def load_keywords(bud_colleague, bud_session):
     from src.sgd.model.bud.colleague import ColleagueKeyword
 
     keywords = []
 
     for bud_obj in bud_session.query(ColleagueKeyword).options(joinedload('keyword')).filter_by(colleague_id=bud_colleague.id).all():
-        keywords.append(
-            {'display_name': bud_obj.keyword.keyword,
-             'source': {'display_name': bud_obj.keyword.source},
-             'bud_id': bud_obj.id,
-             'date_created': str(bud_obj.keyword.date_created),
-             'created_by': bud_obj.keyword.created_by})
+        if bud_obj.keyword.source == 'Curator-defined':
+            keywords.append(
+                {'display_name': bud_obj.keyword.keyword,
+                 'source': {'display_name': bud_obj.keyword.source},
+                 'bud_id': bud_obj.id,
+                 'date_created': str(bud_obj.keyword.date_created),
+                 'created_by': bud_obj.keyword.created_by})
 
     return keywords
 
@@ -115,7 +89,7 @@ def colleague_starter(bud_session_maker):
     bud_session = bud_session_maker()
 
     for bud_obj in bud_session.query(Colleague).all():
-        address = ' '.join([x for x in [bud_obj.address1, bud_obj.address2, bud_obj.address3, bud_obj.address4, bud_obj.address5] if x is not None])
+        address = '\n'.join([x for x in [bud_obj.address1, bud_obj.address2, bud_obj.address3, bud_obj.address4, bud_obj.address5] if x is not None])
 
         obj_json = remove_nones({
             'bud_id': bud_obj.id,
@@ -136,7 +110,7 @@ def colleague_starter(bud_session_maker):
             'is_contact': True if bud_obj.is_contact == 'Y' else False,
             'display_email': True if bud_obj.display_email == 'Y' else False,
             'suffix': bud_obj.suffix,
-            'state': None if bud_obj.state not in state_abbrev else state_abbrev[bud_obj.state],
+            'state': bud_obj.state if bud_obj.state is not None else bud_obj.region,
             'profession': bud_obj.profession,
             'date_last_modified': str(bud_obj.date_last_modified),
             'date_created': str(bud_obj.date_created),
@@ -145,13 +119,15 @@ def colleague_starter(bud_session_maker):
         #Load urls
         obj_json['urls'] = load_urls(bud_obj, bud_session)
 
+        #Load documents
+        obj_json['documents'] = load_documents(bud_obj, bud_session)
+
         #Load keywords
         obj_json['colleague_keywords'] = load_keywords(bud_obj, bud_session)
 
         #Load loci
         obj_json['colleague_locuses'] = load_loci(bud_obj, bud_session)
 
-        print obj_json['first_name'], obj_json['last_name']
         yield obj_json
 
     bud_session.close()

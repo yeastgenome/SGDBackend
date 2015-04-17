@@ -1,5 +1,5 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date, Boolean
+from sqlalchemy.types import Integer, String, Date, Boolean, CLOB
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
 
@@ -52,7 +52,11 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                      'last_name', 'first_name', 'suffix', 'other_last_name', 'profession', 'job_title',
                      'institution', 'full_address', 'city', 'state', 'country', 'work_phone',
                      'other_phone', 'fax', 'email', 'is_pi', 'is_contact', 'display_email', 'date_last_modified']
-    __eq_fks__ = [('source', Source, False), ('urls', 'colleague.ColleagueUrl', True), ('colleague_locuses', 'colleague.ColleagueLocus', False), ('colleague_keywords', 'colleague.ColleagueKeyword', False)]
+    __eq_fks__ = [('source', Source, False),
+                  ('urls', 'colleague.ColleagueUrl', True),
+                  ('documents', 'colleague.ColleagueDocument', True),
+                  ('colleague_locuses', 'colleague.ColleagueLocus', False),
+                  ('colleague_keywords', 'colleague.ColleagueKeyword', False)]
     __id_values__ = ['format_name', 'id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
@@ -180,6 +184,53 @@ class ColleagueRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
             .filter_by(parent_id=newly_created_object.parent_id)\
             .filter_by(child_id=newly_created_object.child_id)\
             .filter_by(relation_type=newly_created_object.relation_type).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
+
+class ColleagueDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'colleague_document'
+
+    id = Column('document_id', Integer, primary_key=True)
+    document_type = Column('document_type', String)
+    text = Column('text', CLOB)
+    html = Column('html', CLOB)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    bud_id = Column('bud_id', Integer)
+    colleague_id = Column('colleague_id', Integer, ForeignKey(Colleague.id, ondelete='CASCADE'))
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    colleague = relationship(Colleague, uselist=False, backref=backref('documents', cascade="all, delete-orphan", passive_deletes=True))
+    source = relationship(Source, uselist=False)
+
+    __eq_values__ = ['id', 'text', 'html', 'bud_id', 'document_type',
+                     'date_created', 'created_by']
+    __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False)]
+    __id_values__ = ['format_name']
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
+
+    def __init__(self, obj_json, session):
+        self.update(obj_json, session)
+
+    def unique_key(self):
+        return (None if self.colleague is None else self.colleague.unique_key()), self.document_type
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            newly_created_object.colleague_id = parent_obj.id
+
+        current_obj = session.query(cls)\
+            .filter_by(colleague_id=newly_created_object.colleague_id)\
+            .filter_by(document_type=newly_created_object.document_type).first()
 
         if current_obj is None:
             return newly_created_object, 'Created'

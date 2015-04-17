@@ -91,3 +91,17 @@ class ColleagueKeyword(Base):
 
     colleague = relationship(Colleague, uselist=False)
     keyword = relationship(Keyword, uselist=False)
+
+class ColleagueRemark(Base):
+    __tablename__ = 'colleague_remark'
+
+    id = Column('colleague_remark_no', Integer, primary_key=True)
+    colleague_id = Column('colleague_no', Integer, ForeignKey(Colleague.id))
+    remark = Column('remark', String)
+    remark_type = Column('remark_type', String)
+    remark_date = Column('remark_date', Date)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+
+
+    colleague = relationship(Colleague, uselist=False)

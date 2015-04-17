@@ -219,7 +219,7 @@
                         "type": "string"
                     }
                 },
-                "required": ["display_name", "link", "alias_type", "source"]
+                "required": ["display_name", "alias_type", "source"]
             }
         }
     },

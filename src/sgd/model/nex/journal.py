@@ -3,7 +3,7 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
 from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
@@ -35,11 +35,22 @@ class Journal(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
-        self.display_name = self.title if self.title is not None else self.med_abbr
 
     def unique_key(self):
         return self.title, self.med_abbr
 
-    def __create_format_name__(self):
-        return self.title[:99] if self.med_abbr is None else self.med_abbr[:99] if self.title is None else self.title[:50] + '_' + self.med_abbr[:49]
+    @classmethod
+    def __create_display_name__(cls, obj_json):
+        return obj_json['title'] if 'title' in obj_json else obj_json['med_abbr']
+
+    @classmethod
+    def __create_format_name__(self, obj_json):
+        if 'med_abbr' in obj_json and 'title' in obj_json:
+            return create_format_name(obj_json['title'][0:50] + obj_json['med_abbr'][0:50])
+        elif 'med_abbr' in obj_json:
+            return create_format_name(obj_json['med_abbr'][0:100])
+        elif 'title' in obj_json:
+            return create_format_name(obj_json['title'][:100])
+        else:
+            raise Exception('Journal must have med_abbr or title.')
 

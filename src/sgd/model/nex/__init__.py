@@ -2,6 +2,7 @@ __author__ = 'kpaskov'
 
 import json
 import datetime
+import traceback
 import glob
 import os
 
@@ -117,32 +118,35 @@ class UpdateWithJsonMixin(object):
                     keys_not_seen = set(key_to_current_value)
 
                     for new_fk_json_obj_entry in new_fk_json_obj:
-                        new_fk_obj, status = cls.create_or_find(new_fk_json_obj_entry, session, parent_obj=self)
-                        if make_changes and allow_updates:
-                            #If we find an object, and we allow updates, then we update it.
-                            updated, sub_warnings = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=True)
-                            warnings.extend(sub_warnings)
-                            if updated:
-                                anything_changed = True
-                        else:
-                            #If we find an object, and we don't allow updates, and it differs from the object we've been given, exception
-                            should_be_updated, sub_warnings = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=False)
-                            warnings.extend(sub_warnings)
-                            if should_be_updated:
-                                warnings.append('Update not allowed, but fk differs.')
-                                #raise Exception('Update not allowed, but fk differs.')
+                        try:
+                            new_fk_obj, status = cls.create_or_find(new_fk_json_obj_entry, session, parent_obj=self)
+                            if make_changes and allow_updates:
+                                #If we find an object, and we allow updates, then we update it.
+                                updated, sub_warnings = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=True)
+                                warnings.extend(sub_warnings)
+                                if updated:
+                                    anything_changed = True
+                            else:
+                                #If we find an object, and we don't allow updates, and it differs from the object we've been given, exception
+                                should_be_updated, sub_warnings = new_fk_obj.update(new_fk_json_obj_entry, session, make_changes=False)
+                                warnings.extend(sub_warnings)
+                                if should_be_updated:
+                                    warnings.append('Update not allowed, but fk differs.')
+                                    #raise Exception('Update not allowed, but fk differs.')
 
-                        if new_fk_obj.unique_key() in keys_not_seen:
-                            #We already have this object, and we've done our update so we're all set. Just a little bit of bookkeeping
-                            keys_not_seen.remove(new_fk_obj.unique_key())
-                        elif new_fk_obj.unique_key() in key_to_current_value:
-                            #We already have this object AND we've already seen it before, so we've been given duplicates - not allowed.
-                            raise Exception('Duplicate foreign key ' + key)
-                        else:
-                            if make_changes:
-                                #We haven't seen this object, so add it.
-                                current_fk_value.append(new_fk_obj)
-                            anything_changed = True
+                            if new_fk_obj.unique_key() in keys_not_seen:
+                                #We already have this object, and we've done our update so we're all set. Just a little bit of bookkeeping
+                                keys_not_seen.remove(new_fk_obj.unique_key())
+                            elif new_fk_obj.unique_key() in key_to_current_value:
+                                #We already have this object AND we've already seen it before, so we've been given duplicates - not allowed.
+                                raise Exception('Duplicate foreign key ' + key)
+                            else:
+                                if make_changes:
+                                    #We haven't seen this object, so add it.
+                                    current_fk_value.append(new_fk_obj)
+                                anything_changed = True
+                        except:
+                            print traceback.print_exc()
 
                     for key in keys_not_seen:
                         #We didn't see these keys, so they need to be deleted.

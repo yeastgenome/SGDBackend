@@ -1,6 +1,6 @@
 from src.sgd.convert import break_up_file
 from sqlalchemy.orm import joinedload
-from src.sgd.convert.from_bud import basic_convert
+from src.sgd.convert.from_bud import basic_convert, remove_nones
 
 __author__ = 'kpaskov'
 
@@ -180,14 +180,13 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
     aliases = []
     for bud_obj in bud_session.query(AliasFeature).options(joinedload('alias')).filter_by(feature_id=bud_locus.id).all():
         #if bud_obj.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'}:
-        aliases.append(
-            {'display_name': bud_obj.alias_name,
-             'source': {'display_name': 'SGD'},
-             'bud_id': bud_obj.id,
-             'alias_type': bud_obj.alias_type,
-             'link': None,
-             'date_created': str(bud_obj.date_created),
-             'created_by': bud_obj.created_by})
+        aliases.append({
+            'display_name': bud_obj.alias_name,
+            'source': {'display_name': 'SGD'},
+            'bud_id': bud_obj.id,
+            'alias_type': bud_obj.alias_type,
+            'date_created': str(bud_obj.date_created),
+            'created_by': bud_obj.created_by})
 
     for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).filter_by(feature_id=bud_locus.id).all():
         display_name = bud_obj.dbxref.dbxref_id
@@ -201,24 +200,20 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
                         if display.label_location == 'Resources External Links':
                             link = url.url.replace('_SUBSTITUTE_THIS_', display_name)
 
-        aliases.append(
+        aliases.append(remove_nones(
             {'display_name': display_name,
              'link': link,
              'source': {'display_name': bud_obj.dbxref.source},
              'alias_type': bud_obj.dbxref.dbxref_type,
              'bud_id': bud_obj.id,
              'date_created': str(bud_obj.dbxref.date_created),
-             'created_by': bud_obj.dbxref.created_by})
+             'created_by': bud_obj.dbxref.created_by}))
 
     if uniprot_id is not None:
         aliases.append(
             {'display_name': uniprot_id,
-             'link': None,
              'source': {'display_name': 'Uniprot'},
-             'alias_type': 'Uniprot ID',
-             'bud_id': None,
-             'date_created': None,
-             'created_by': None})
+             'alias_type': 'Uniprot ID'})
 
     return aliases
 
@@ -259,6 +254,8 @@ def locus_starter(bud_session_maker):
                 obj_json['qualifier'] = ann.qualifier
                 obj_json['description'] = ann.description
                 obj_json['genetic_position'] = None if ann.genetic_position is None else str(ann.genetic_position)
+
+            obj_json = remove_nones(obj_json)
 
             #Load aliases
             obj_json['aliases'] = load_aliases(bud_obj, bud_session, None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid])
