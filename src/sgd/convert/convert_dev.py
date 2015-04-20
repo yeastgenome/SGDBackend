@@ -926,11 +926,11 @@ if __name__ == "__main__":
     #
     # Nex -> Perf
     from src.sgd.model.perf.core import Bioentity as PerfBioentity, Locustab as PerfLocustab, Locusentry as PerfLocusentry
-    # do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
-    #               [Json2CorePerfDB(perf_session_maker, PerfBioentity,
-    #                                name='convert.from_backend.bioentity',
-    #                                commit_interval=100),
-    #                OutputTransformer(10)])
+    do_conversion(make_backend_starter(nex_backend, 'all_bioentities', 1000),
+                  [Json2CorePerfDB(perf_session_maker, PerfBioentity,
+                                   name='convert.from_backend.bioentity',
+                                   commit_interval=100),
+                   OutputTransformer(10)])
     #
     # do_conversion(make_backend_starter(nex_backend, 'all_locustabs', 1000),
     #               [Json2CorePerfDB(perf_session_maker, PerfLocustab,
@@ -1034,9 +1034,9 @@ if __name__ == "__main__":
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'EC_NUMBER_LOCUS', ecnumber_ids, name='convert.from_backend.ec_number_details', commit_interval=1000),
     #                 OutputTransformer(1000)])
     #
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'go_details', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000, sure=True),
-                    OutputTransformer(1000)])
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'go_details', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'GO', locus_ids, name='convert.from_backend.go_details', commit_interval=1000, sure=True),
+    #                 OutputTransformer(1000)])
     #
     # do_conversion(make_go_data_backend_starter(nex_backend, 'go_details', go_ids),
     #                [Json2DataPerfDB(perf_session_maker, BioconceptDetails, 'GO_LOCUS', go_ids, name='convert.from_backend.go_details', commit_interval=1000),
