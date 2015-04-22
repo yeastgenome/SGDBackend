@@ -59,6 +59,9 @@ class UpdateWithJsonMixin(object):
         else:
             raise Exception('Class ' + cls.__name__ + ' doesn\'t have format name. You need to implement the create_or_find method.')
 
+        if current_obj is None and hasattr(cls, 'sgdid') and 'sgdid' in obj_json:
+            current_obj = session.query(cls).filter_by(sgdid=obj_json['sgdid']).first()
+
         if current_obj is None:
             return cls(obj_json, session), 'Created'
         else:

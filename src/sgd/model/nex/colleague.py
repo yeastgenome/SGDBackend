@@ -267,7 +267,6 @@ class ColleagueKeyword(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
     keyword_id = Column('keyword_id', Integer, ForeignKey(Keyword.id, ondelete='CASCADE'))
     colleague_id = Column('colleague_id', Integer, ForeignKey(Colleague.id, ondelete='CASCADE'))
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    bud_id = Column('bud_id', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -276,7 +275,7 @@ class ColleagueKeyword(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
     keyword = relationship(Keyword, uselist=False, backref=backref('colleague_keywords', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'bud_id', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False), ('keyword', Keyword, False)]
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
@@ -316,7 +315,6 @@ class ColleagueLocus(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     locus_id = Column('locus_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
     colleague_id = Column('colleague_id', Integer, ForeignKey(Colleague.id, ondelete='CASCADE'))
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    bud_id = Column('bud_id', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -325,7 +323,7 @@ class ColleagueLocus(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     locus = relationship(Locus, uselist=False, backref=backref('colleague_locuses', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'bud_id', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False), ('locus', Locus, False)]
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']

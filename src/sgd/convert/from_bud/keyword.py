@@ -51,7 +51,6 @@ definitions = {
     'transcription':                'The synthesis of RNA from a DNA template by RNA polymerase, and accessory factors.',
     'translational regulation':    'Modulation of the frequency, rate or extent of protein formation by translation of mRNA.',
     'ubiquitin or ULP modification':    'The covalent attachment or removal of ubiquitin or ubiquitin-like proteins (ULPs) from target protein(s).',
-    'other':                        'Cannot be binned based on the current set of tags.',
     'not yet curated':              'The dataset has not yet been assigned a tag or tags.'
 }
 
@@ -60,7 +59,7 @@ def keyword_starter(bud_session_maker):
     for row in make_file_starter('src/sgd/convert/data/microarray_05_14/SPELL-tags.txt')():
         tag = row[2].strip()
         for t in [x.strip() for x in tag.split('|')]:
-            if t != '':
+            if t != '' and t != 'other':
                 yield {
                     'display_name': t,
                     'description': definitions.get(t),

@@ -277,7 +277,6 @@ class ReferenceReftype(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
     reftype_id = Column('reftype_id', Integer, ForeignKey(Reftype.id, ondelete='CASCADE'))
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    bud_id = Column('bud_id', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -286,7 +285,7 @@ class ReferenceReftype(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
     reftype = relationship(Reftype, uselist=False, backref=backref('reference_reftypes', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'bud_id', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('reference', Reference, False), ('reftype', Reftype, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
