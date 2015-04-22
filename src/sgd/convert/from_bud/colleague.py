@@ -83,6 +83,22 @@ def load_loci(bud_colleague, bud_session):
     return loci
 
 
+def load_relations(bud_colleague, bud_session):
+    from src.sgd.model.bud.colleague import ColleagueRelation
+
+    relations = []
+    for bud_obj in bud_session.query(ColleagueRelation).filter_by(colleague_id=bud_colleague.id).all():
+        relations.append(remove_nones({
+            "first_name": bud_obj.associate.first_name,
+            "last_name": bud_obj.associate.last_name,
+            "institution": bud_obj.associate.institution,
+            "relation_type": bud_obj.relationship_type,
+            "date_created": str(bud_obj.date_created),
+            "created_by": bud_obj.created_by
+        }))
+    return relations
+
+
 def colleague_starter(bud_session_maker):
     from src.sgd.model.bud.colleague import Colleague
 
@@ -127,6 +143,9 @@ def colleague_starter(bud_session_maker):
 
         #Load loci
         obj_json['colleague_locuses'] = load_loci(bud_obj, bud_session)
+
+        #Load children
+        obj_json['children'] = load_relations(bud_obj, bud_session)
 
         yield obj_json
 

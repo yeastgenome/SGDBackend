@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin
+from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin, create_format_name
 from src.sgd.model.nex.keyword import Keyword
 from src.sgd.model.nex.source import Source
 from src.sgd.model.nex.locus import Locus
@@ -30,7 +30,9 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     profession = Column('profession', String)
     job_title = Column('job_title', String)
     institution = Column('institution', String)
-    full_address = Column('full_address', String)
+    address1 = Column('address1', String)
+    address2 = Column('address2', String)
+    address3 = Column('address3', String)
     city = Column('city', String)
     state = Column('state', String)
     country = Column('country', String)
@@ -50,22 +52,29 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'date_created', 'created_by',
                      'last_name', 'first_name', 'suffix', 'other_last_name', 'profession', 'job_title',
-                     'institution', 'full_address', 'city', 'state', 'country', 'work_phone',
+                     'institution', 'address1', 'address2', 'address3', 'city', 'state', 'country', 'work_phone',
                      'other_phone', 'fax', 'email', 'is_pi', 'is_contact', 'display_email', 'date_last_modified']
     __eq_fks__ = [('source', Source, False),
                   ('urls', 'colleague.ColleagueUrl', True),
                   ('documents', 'colleague.ColleagueDocument', True),
                   ('colleague_locuses', 'colleague.ColleagueLocus', False),
-                  ('colleague_keywords', 'colleague.ColleagueKeyword', False)]
+                  ('colleague_keywords', 'colleague.ColleagueKeyword', False),
+                  ('children', 'colleague.ColleagueRelation', False)]
     __id_values__ = ['format_name', 'id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
+        if "is_pi" not in obj_json:
+            self.is_pi = False
+        if "is_contact" not in obj_json:
+            self.is_contact = False
+        if "display_email" not in obj_json:
+            self.display_name = False
 
     @classmethod
     def __create_format_name__(cls, obj_json):
-        return '_'.join([x for x in [obj_json['first_name'], obj_json['last_name'], None if 'institution' not in obj_json else obj_json['institution']] if x is not None])[0:100]
+        return create_format_name('_'.join([x for x in [obj_json['first_name'], obj_json['last_name'], None if 'institution' not in obj_json else obj_json['institution']] if x is not None])[0:100])
 
     @classmethod
     def __create_display_name__(cls, obj_json):
@@ -87,6 +96,13 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
         #Loci
         obj_json['colleague_locuses'] = [x.to_min_json() for x in self.loci]
 
+        return obj_json
+
+    def to_min_json(self, include_description=False):
+        obj_json = ToJsonMixin.to_min_json(self, include_description)
+        obj_json['first_name'] = self.first_name
+        obj_json['last_name'] = self.last_name
+        obj_json['institution'] = self.institution
         return obj_json
 
 
@@ -144,7 +160,6 @@ class ColleagueRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
 
     id = Column('relation_id', Integer, primary_key=True)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    bud_id = Column('bud_id', Integer)
     parent_id = Column('parent_id', Integer, ForeignKey(Colleague.id, ondelete='CASCADE'))
     child_id = Column('child_id', Integer, ForeignKey(Colleague.id, ondelete='CASCADE'))
     relation_type = Column('relation_type', String)
@@ -156,39 +171,47 @@ class ColleagueRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
     child = relationship(Colleague, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'bud_id', 'relation_type',
-                     'date_created', 'created_by']
+    __eq_values__ = ['id', 'relation_type', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('parent', Colleague, False), ('child', Colleague, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
-    def __init__(self, obj_json, session):
-        self.update(obj_json, session)
+    def __init__(self, parent, child, relation_type):
+        self.parent = parent
+        self.child = child
+        self.source = self.child.source
+        self.relation_type = relation_type
 
     def unique_key(self):
-        return self.relation_type, self.parent.unique_key(), self.child.unique_key()
+        return (None if self.parent is None else self.parent.unique_key()), (None if self.child is None else self.child.unique_key(), self.relation_type)
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
         if obj_json is None:
             return None
 
-        newly_created_object = cls(obj_json, session)
-        if parent_obj is not None:
-            if newly_created_object.parent is None:
-                newly_created_object.parent_id = parent_obj.id
-            elif newly_created_object.child is None:
-                newly_created_object.child_id = parent_obj.id
+        child, status = Colleague.create_or_find(obj_json, session)
+        #if status == 'Created':
+        #    raise Exception('Colleague not found: ' + str(obj_json))
+
+        relation_type = obj_json["relation_type"]
 
         current_obj = session.query(cls)\
-            .filter_by(parent_id=newly_created_object.parent_id)\
-            .filter_by(child_id=newly_created_object.child_id)\
-            .filter_by(relation_type=newly_created_object.relation_type).first()
+            .filter_by(parent_id=parent_obj.id)\
+            .filter_by(child_id=child.id)\
+            .filter_by(relation_type=relation_type).first()
 
         if current_obj is None:
+            newly_created_object = cls(parent_obj, child, relation_type)
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
+
+    def to_json(self):
+        obj_json = self.child.to_min_json()
+        obj_json['source'] = self.child.source.to_min_json()
+        obj_json['relation_type'] = self.relation_type
+
 
 class ColleagueDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'colleague_document'

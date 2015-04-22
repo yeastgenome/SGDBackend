@@ -63,6 +63,9 @@ class ColleagueRelation(Base):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
 
+    colleague = relationship(Colleague, backref=backref("associates", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[colleague_id])
+    associate = relationship(Colleague, backref=backref("colleagues", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[associate_id])
+
 class ColleagueFeature(Base):
     __tablename__ = 'coll_feat'
 
