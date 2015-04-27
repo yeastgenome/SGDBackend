@@ -93,14 +93,13 @@ class SGDBackend(BackendInterface):
             strains = [x for x in strains if str(x['id']) in strain_ids]
 
         strain_id_to_index = dict([(x['id'], i) for i, x in enumerate(strains)])
-        strain_ids = [x['id'] for x in strains]
 
         locus_ids = [x.locus_id for x in DBSession.query(DNAsequenceevidence).filter_by(strain_id=1).filter_by(dna_type='GENOMIC').order_by(DNAsequenceevidence.contig_id, DNAsequenceevidence.start).limit(limit).offset(offset).all()]
         locuses = []
 
         chunk_size = 500
         for i in range(0, len(locus_ids), chunk_size):
-            new_locus_ids = locus_ids[i*chunk_size: (i+1)*chunk_size]
+            new_locus_ids = locus_ids[i:i+chunk_size]
             id_to_new_locus = dict()
 
             for x in DBSession.query(Locus).filter(Locus.id.in_(set(new_locus_ids))):
@@ -108,8 +107,10 @@ class SGDBackend(BackendInterface):
                     obj_json = x.to_min_json()
                     obj_json['headline'] = x.headline
                     obj_json['qualifier'] = x.qualifier
+                    obj_json['locus_type'] = x.locus_type
                     obj_json['dna_scores'] = [None for _ in strains]
                     obj_json['protein_scores'] = [None for _ in strains]
+
                     id_to_new_locus[x.id] = obj_json
 
             alignment_evidences = DBSession.query(Alignmentevidence).filter(Alignmentevidence.locus_id.in_(set(new_locus_ids))).all()
@@ -124,12 +125,15 @@ class SGDBackend(BackendInterface):
 
             locuses.extend([id_to_new_locus[locus_id] for locus_id in new_locus_ids if locus_id in id_to_new_locus])
 
+        print len(locuses)
+
         return json.dumps({'loci': locuses,
                            'strains': strains,
                            'graph_data': {}})
         return None
 
     def alignment_bioent(self, locus_identifier=None, strain_ids=None, are_ids=False):
+        import view_sequence
         from src.sgd.backend import calculate_variant_data
         if are_ids:
             locus_id = locus_identifier
@@ -149,8 +153,11 @@ class SGDBackend(BackendInterface):
             alignment['aligned_dna_sequences'] = [x for x in alignment['aligned_dna_sequences'] if x['strain_id'] in strain_ids]
             alignment['aligned_protein_sequences'] = [x for x in alignment['aligned_protein_sequences'] if x['strain_id'] in strain_ids]
 
-            alignment['variant_data_dna'] = calculate_variant_data(alignment['aligned_dna_sequences'])
-            alignment['variant_data_protein'] = calculate_variant_data(alignment['aligned_protein_sequences'])
+            try:
+                alignment['variant_data_dna'] = calculate_variant_data('DNA', alignment['aligned_dna_sequences'], alignment['introns'])
+            except:
+                print locus_id
+            alignment['variant_data_protein'] = calculate_variant_data('Protein', alignment['aligned_protein_sequences'], alignment['introns'])
             return json.dumps(alignment)
 
     def snapshot(self):

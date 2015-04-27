@@ -1175,13 +1175,13 @@ if __name__ == "__main__":
     # do_conversion(make_orphan_backend_starter(nex_backend, ['references_this_week', 'snapshot', 'tag_list']),
     #               [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
 
-    do_conversion(make_locus_data_backend_starter(nex_backend, 'alignment_bioent', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'ALIGNMENT', locus_ids, name='convert.from_backend.alignment_details', commit_interval=10),
-                    OutputTransformer(100)])
+    # do_conversion(make_locus_data_backend_starter(nex_backend, 'alignment_bioent', locus_ids),
+    #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'ALIGNMENT', locus_ids, name='convert.from_backend.alignment_details', commit_interval=10, sure=True),
+    #                 OutputTransformer(100)])
 
-    #do_conversion(make_orphan_backend_starter(nex_backend, ['alignments']),
-    #              [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
-    #
+    do_conversion(make_orphan_backend_starter(nex_backend, ['alignments']),
+                 [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
+
     # from src.sgd.model.nex import locus_types
     # do_conversion(make_orphan_arg_backend_starter(nex_backend, 'locus_list', locus_types),
     #                [Json2OrphanPerfDB(perf_session_maker, name='convert.from_backend.orphans', commit_interval=1000)])
