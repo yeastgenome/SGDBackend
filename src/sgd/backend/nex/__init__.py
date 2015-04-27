@@ -154,10 +154,7 @@ class SGDBackend(BackendInterface):
             alignment['aligned_dna_sequences'] = [x for x in alignment['aligned_dna_sequences'] if x['strain_id'] in strain_ids]
             alignment['aligned_protein_sequences'] = [x for x in alignment['aligned_protein_sequences'] if x['strain_id'] in strain_ids]
 
-            try:
-                alignment['variant_data_dna'] = calculate_variant_data('DNA', alignment['aligned_dna_sequences'], alignment['introns'])
-            except:
-                print locus_id
+            alignment['variant_data_dna'] = calculate_variant_data('DNA', alignment['aligned_dna_sequences'], alignment['introns'])
             alignment['variant_data_protein'] = calculate_variant_data('Protein', alignment['aligned_protein_sequences'], alignment['introns'])
             return json.dumps(alignment)
 
