@@ -2139,7 +2139,7 @@ def make_alignment_evidence_starter(nex_session_maker):
         id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
         key_to_strain = dict([(x.unique_key(), x) for x in nex_session.query(Strain).all()])
 
-        for filename in listdir('src/sgd/convert/alignments'):
+        for filename in listdir('src/sgd/convert/data/alignments'):
             bioentity_id = None
             sequence_type = None
             bioentity = None
@@ -2164,7 +2164,7 @@ def make_alignment_evidence_starter(nex_session_maker):
                 bioentity = id_to_bioentity[bioentity_id]
 
             if bioentity is not None:
-                f = open('src/sgd/convert/alignments/' + filename, 'rU')
+                f = open('src/sgd/convert/data/alignments/' + filename, 'rU')
                 strain_key_to_residues = dict()
                 strain_key = None
                 residues = ''
@@ -2182,7 +2182,7 @@ def make_alignment_evidence_starter(nex_session_maker):
 
                 #Load original sequence if alignment is empty
                 if len(strain_key_to_residues) == 0:
-                    f = open('src/sgd/convert/strain_sequences/' + filename, 'rU')
+                    f = open('src/sgd/convert/data/strain_sequences/' + filename, 'rU')
                     strain_key_to_residues = dict()
                     strain_key = None
                     residues = ''
