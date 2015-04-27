@@ -997,8 +997,8 @@ if __name__ == "__main__":
     # from src.sgd.model.nex.bioconcept import Go, Observable, Phenotype, ECNumber
     from src.sgd.model.nex.bioitem import Chemical, Contig, Domain, Datasetcolumn
     # from src.sgd.model.nex.reference import Reference
-    nex_session = nex_session_maker()
-    locus_ids = [x.id for x in nex_session.query(Locus).all()]
+    #nex_session = nex_session_maker()
+    #locus_ids = [x.id for x in nex_session.query(Locus).all()]
     # ecnumber_ids = [x.id for x in nex_session.query(ECNumber).all()]
     # go_ids = [x.id for x in nex_session.query(Go).all()]
     # datasetcolumn_ids = [x.id for x in nex_session.query(Datasetcolumn).all()]
@@ -1008,7 +1008,7 @@ if __name__ == "__main__":
     # chemical_ids = [x.id for x in nex_session.query(Chemical).all()]
     #contig_ids = [x.id for x in nex_session.query(Contig).all()]
     # reference_ids = [x.id for x in nex_session.query(Reference).all()]
-    nex_session.close()
+    #nex_session.close()
     #
     # # do_conversion(make_locus_data_backend_starter(nex_backend, 'neighbor_sequence_details', locus_ids),
     # #                [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'NEIGHBOR_SEQUENCE', locus_ids, name='convert.from_backend.neighbor_sequence_details', commit_interval=1000),

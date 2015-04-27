@@ -107,6 +107,7 @@ class SGDBackend(BackendInterface):
                     obj_json = x.to_min_json()
                     obj_json['headline'] = x.headline
                     obj_json['qualifier'] = x.qualifier
+                    obj_json['sgdid'] = x.sgdid
                     obj_json['locus_type'] = x.locus_type
                     obj_json['dna_scores'] = [None for _ in strains]
                     obj_json['protein_scores'] = [None for _ in strains]
