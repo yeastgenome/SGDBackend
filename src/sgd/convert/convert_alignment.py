@@ -19,13 +19,13 @@ if __name__ == "__main__":
     from src.sgd.model.nex.evidence import Alignmentevidence
     from src.sgd.convert.from_bud.evidence import make_alignment_evidence_starter
 
-    do_conversion(make_alignment_evidence_starter(nex_session_maker),
-                      [Json2Obj(Alignmentevidence),
-                       Obj2NexDB(nex_session_maker, lambda x: x.query(Alignmentevidence),
-                                 name='convert.from_bud.evidence.alignment_evidence',
-                                 delete_untouched=True,
-                                 commit_interval=1000),
-                       OutputTransformer(1000)])
+    # do_conversion(make_alignment_evidence_starter(nex_session_maker),
+    #                   [Json2Obj(Alignmentevidence),
+    #                    Obj2NexDB(nex_session_maker, lambda x: x.query(Alignmentevidence),
+    #                              name='convert.from_bud.evidence.alignment_evidence',
+    #                              delete_untouched=True,
+    #                              commit_interval=1000),
+    #                    OutputTransformer(1000)])
 
 
     # ------------------------------------------ Perf ------------------------------------------
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     nex_session.close()
 
     do_conversion(make_locus_data_backend_starter(nex_backend, 'alignment_bioent', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'ALIGNMENT', locus_ids, name='convert.from_backend.alignment_details', commit_interval=10),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'ALIGNMENT', locus_ids, name='convert.from_backend.alignment_details', commit_interval=100, sure=True),
                     OutputTransformer(100)])
 
     do_conversion(make_orphan_backend_starter(nex_backend, ['alignments']),
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     perf_backend = PerfBackend(config.PERF_DBTYPE, 'sgd-db1.stanford.edu:1521', config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, None)
 
     do_conversion(make_locus_data_backend_starter(perf_backend, 'alignment_bioent', locus_ids),
-                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'ALIGNMENT', locus_ids, name='convert.from_backend.alignment_details', commit_interval=10),
+                   [Json2DataPerfDB(perf_session_maker, BioentityDetails, 'ALIGNMENT', locus_ids, name='convert.from_backend.alignment_details', commit_interval=100, sure=True),
                     OutputTransformer(100)])
 
     do_conversion(make_orphan_backend_starter(perf_backend, ['alignments']),
