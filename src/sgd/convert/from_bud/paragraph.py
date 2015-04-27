@@ -46,8 +46,8 @@ strain_paragraphs = {'S288C': ('S288C is a widely used laboratory strain, design
 }
 
 # --------------------- Convert Bioentity Paragraph ---------------------
-def create_i(reference, reference_index, extra_text):
-    new_i = '<span data-tooltip aria-haspopup="true" class="has-tip" title="' + extra_text + (' ' if len(extra_text) > 0 else '') + reference.display_name + '"><a href="#reference"><sup>' + str(reference_index) + '</sup></a></span>'
+def create_i(reference, reference_index):
+    new_i = '<span data-tooltip aria-haspopup="true" class="has-tip" title="' + reference.display_name + '"><a href="#reference">' + str(reference_index) + '</a></span>'
     return new_i
 
 def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
@@ -142,31 +142,26 @@ def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, 
         new_omim_text = new_metacyc_text
 
     # Replace references
-    new_reference_text = ''
-    for block in new_omim_text.split('('):
-        end_index = block.find(')')
-        if end_index >= 0:
-            reference_text = ''
-            references = []
-            reference_blocks = block[:end_index].split('<reference:')
-            if len(reference_blocks) > 1:
-                for reference_block in reference_blocks[1:]:
-                    reference_end_index = reference_block.find('>')
-                    if reference_end_index >= 0:
-                        sgdid = reference_block[0:reference_end_index]
-                        if sgdid in sgdid_to_reference:
-                            if not sgdid_to_reference[sgdid].id in reference_id_to_index:
-                                reference_id_to_index[sgdid_to_reference[sgdid].id] = '?'
-                            references.append(sgdid_to_reference[sgdid])
-                        else:
-                            print 'Reference not found in ' + label + ' : ' + sgdid
-                        reference_text += reference_block[reference_end_index+1:].replace(',', '').replace('and', '').strip()
-                replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], reference_text) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
-                new_reference_text += replacement + block[end_index+1:]
+    reference_blocks = new_omim_text.split('<reference:')
+    if len(reference_blocks) > 1:
+        new_reference_text = reference_blocks[0]
+        for block in reference_blocks[1:]:
+            end_index = block.find('>')
+            if end_index >= 0:
+                sgdid = block[0:end_index]
+                reference = None if sgdid not in sgdid_to_reference else sgdid_to_reference[sgdid]
+                if reference is not None:
+                    reference_index = '?' if reference.id not in reference_id_to_index else reference_id_to_index[reference.id]
+                    replacement = create_i(reference, reference_index)
+                else:
+                    raise Exception("Could not find reference sgdid: " + sgdid)
+
+                new_reference_text += replacement
+                new_reference_text += block[end_index+1:]
             else:
-                new_reference_text += ('' if new_reference_text == '' else '(') + block
-        else:
-            new_reference_text += ('' if new_reference_text == '' else '(') + block
+                new_reference_text += block
+    else:
+        new_reference_text = new_omim_text
 
     return new_reference_text, text
 
@@ -205,6 +200,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                     'created_by': paragraph_feats[0].paragraph.created_by,
                     'category': 'LSP'
                 }
+            print feature.id
 
         bioentity_key_to_date = dict()
         #Go

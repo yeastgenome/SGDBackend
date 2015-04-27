@@ -241,55 +241,68 @@ class Locus(Bioentity):
                                           }
 
         #Go overview
+        man_mf = dict()
+        man_bp = dict()
+        man_cc = dict()
+        htp_mf = dict()
+        htp_bp = dict()
+        htp_cc = dict()
+        for evidence in self.go_evidences:
+            goterm = evidence.go
+            ev_json = None
+            if goterm.go_aspect == 'molecular function' and evidence.annotation_type == 'manually curated':
+                if goterm.id not in man_mf:
+                    man_mf[goterm.id] = {'term': goterm.to_min_json(), 'evidence_codes': [], 'qualifiers': []}
+                ev_json = man_mf[goterm.id]
+
+            elif goterm.go_aspect == 'molecular function' and evidence.annotation_type == 'high-throughput':
+                if goterm.id not in htp_mf:
+                    htp_mf[goterm.id] = {'term': goterm.to_min_json(), 'evidence_codes': [], 'qualifiers': []}
+                ev_json = htp_mf[goterm.id]
+
+            elif goterm.go_aspect == 'biological process' and evidence.annotation_type == 'manually curated':
+                if goterm.id not in man_bp:
+                    man_bp[goterm.id] = {'term': goterm.to_min_json(), 'evidence_codes': [], 'qualifiers': []}
+                ev_json = man_bp[goterm.id]
+
+            elif goterm.go_aspect == 'biological process' and evidence.annotation_type == 'high-throughput':
+                if goterm.id not in htp_bp:
+                    htp_bp[goterm.id] = {'term': goterm.to_min_json(), 'evidence_codes': [], 'qualifiers': []}
+                ev_json = htp_bp[goterm.id]
+
+            elif goterm.go_aspect == 'cellular component' and evidence.annotation_type == 'manually curated':
+                if goterm.id not in man_cc:
+                    man_cc[goterm.id] = {'term': goterm.to_min_json(), 'evidence_codes': [], 'qualifiers': []}
+                ev_json = man_cc[goterm.id]
+
+            elif goterm.go_aspect == 'cellular component' and evidence.annotation_type == 'high-throughput':
+                if goterm.id not in htp_cc:
+                    htp_cc[goterm.id] = {'term': goterm.to_min_json(), 'evidence_codes': [], 'qualifiers': []}
+                ev_json = htp_cc[goterm.id]
+
+            if ev_json is not None:
+                if evidence.experiment_id is not None:
+                    evidence_code_ids = [x['id'] for x in ev_json['evidence_codes']]
+                    if evidence.experiment_id not in evidence_code_ids:
+                        ev_json['evidence_codes'].append(evidence.experiment.to_min_json())
+                if evidence.qualifier is not None:
+                    qualifiers = ev_json['qualifiers']
+                    if evidence.qualifier not in qualifiers:
+                        ev_json['qualifiers'].append(evidence.qualifier)
+
         go_date_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GODATE']
         go_paragraphs = [x.to_json() for x in self.paragraphs if x.category == 'GO']
-        manual_mf_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'molecular function' and x.annotation_type == 'manually curated'])
-        htp_mf_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'molecular function' and x.annotation_type == 'high-throughput'])
-        manual_bp_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'biological process' and x.annotation_type == 'manually curated'])
-        htp_bp_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'biological process' and x.annotation_type == 'high-throughput'])
-        manual_cc_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'cellular component' and x.annotation_type == 'manually curated'])
-        htp_cc_terms = dict([(x.go.id, x.go) for x in self.go_evidences if x.go.go_aspect == 'cellular component' and x.annotation_type == 'high-throughput'])
-        term_to_evidence_codes_qualifiers = dict([(x, (set(), set())) for x in manual_mf_terms.keys()])
-        term_to_evidence_codes_qualifiers.update([(x, (set(), set())) for x in htp_mf_terms.keys()])
-        term_to_evidence_codes_qualifiers.update([(x, (set(), set())) for x in manual_bp_terms.keys()])
-        term_to_evidence_codes_qualifiers.update([(x, (set(), set())) for x in htp_bp_terms.keys()])
-        term_to_evidence_codes_qualifiers.update([(x, (set(), set())) for x in manual_cc_terms.keys()])
-        term_to_evidence_codes_qualifiers.update([(x, (set(), set())) for x in htp_cc_terms.keys()])
-        for evidence in self.go_evidences:
-            if evidence.annotation_type != 'computational':
-                if evidence.experiment_id is not None:
-                    term_to_evidence_codes_qualifiers[evidence.go_id][0].add(evidence.experiment)
-                if evidence.qualifier is not None:
-                    term_to_evidence_codes_qualifiers[evidence.go_id][1].add(evidence.qualifier)
 
         obj_json['go_overview'] = {'paragraph': None if len(go_paragraphs) == 0 else go_paragraphs[0]['text'],
                                    'go_slim': sorted(dict([(x.id, x.to_min_json()) for x in chain(*[[x.parent for x in y.go.parents if x.relation_type == 'GO_SLIM'] for y in self.go_evidences])]).values(), key=lambda x: x['display_name'].lower()),
                                    'date_last_reviewed': None if len(go_date_paragraphs) == 0 else go_date_paragraphs[0]['text'],
                                    'computational_annotation_count': len([x for x in self.go_evidences if x.annotation_type == 'computational']),
-                                   'manual_molecular_function_terms': sorted([dict({'term': x.to_min_json(),
-                                                                                    'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes_qualifiers[x.id][0]],
-                                                                                    'qualifiers': list(term_to_evidence_codes_qualifiers[x.id][1]),
-                                                                                    }) for x in manual_mf_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'manual_biological_process_terms': sorted([dict({'term': x.to_min_json(),
-                                                                                    'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes_qualifiers[x.id][0]],
-                                                                                    'qualifiers': list(term_to_evidence_codes_qualifiers[x.id][1])
-                                                                                    }) for x in manual_bp_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'manual_cellular_component_terms': sorted([dict({'term': x.to_min_json(),
-                                                                                    'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes_qualifiers[x.id][0]],
-                                                                                    'qualifiers': list(term_to_evidence_codes_qualifiers[x.id][1])
-                                                                                    }) for x in manual_cc_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'htp_molecular_function_terms': sorted([dict({'term': x.to_min_json(),
-                                                                                 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes_qualifiers[x.id][0]],
-                                                                                 'qualifiers': list(term_to_evidence_codes_qualifiers[x.id][1])
-                                                                                    }) for x in htp_mf_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'htp_biological_process_terms': sorted([dict({'term': x.to_min_json(),
-                                                                                 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes_qualifiers[x.id][0]],
-                                                                                 'qualifiers': list(term_to_evidence_codes_qualifiers[x.id][1])
-                                                                                    }) for x in htp_bp_terms.values()], key=lambda x: x['term']['display_name'].lower()),
-                                   'htp_cellular_component_terms': sorted([dict({'term': x.to_min_json(),
-                                                                                 'evidence_codes': [y.to_min_json() for y in term_to_evidence_codes_qualifiers[x.id][0]],
-                                                                                 'qualifiers': list(term_to_evidence_codes_qualifiers[x.id][1])
-                                                                                    }) for x in htp_cc_terms.values()], key=lambda x: x['term']['display_name'].lower())}
+                                   'manual_molecular_function_terms': sorted(man_mf.values(), key=lambda x: x['term']['display_name'].lower()),
+                                   'manual_biological_process_terms': sorted(man_bp.values(), key=lambda x: x['term']['display_name'].lower()),
+                                   'manual_cellular_component_terms': sorted(man_cc.values(), key=lambda x: x['term']['display_name'].lower()),
+                                   'htp_molecular_function_terms': sorted(htp_mf.values(), key=lambda x: x['term']['display_name'].lower()),
+                                   'htp_biological_process_terms': sorted(htp_bp.values(), key=lambda x: x['term']['display_name'].lower()),
+                                   'htp_cellular_component_terms': sorted(htp_cc.values(), key=lambda x: x['term']['display_name'].lower())}
 
         #Interaction
         genetic_interactions = set()
