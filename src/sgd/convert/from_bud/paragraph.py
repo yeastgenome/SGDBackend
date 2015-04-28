@@ -200,7 +200,6 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                     'created_by': paragraph_feats[0].paragraph.created_by,
                     'category': 'LSP'
                 }
-            print feature.id
 
         bioentity_key_to_date = dict()
         #Go

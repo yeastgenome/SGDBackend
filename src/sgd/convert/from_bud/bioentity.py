@@ -548,6 +548,12 @@ def make_bioentity_url_starter(bud_session_maker, nex_session_maker):
                         'source': key_to_source['SGD'],
                         'category': 'LOCUS_SEQUENCE_SECTION',
                         'bioentity_id': locus.id}
+            yield {'display_name': 'Variant Viewer',
+                        'link': '/variant-viewer#/' + locus.sgdid,
+                        'source': key_to_source['SGD'],
+                        'category': 'LOCUS_SEQUENCE_SECTION',
+                        'bioentity_id': locus.id}
+
             yield {'display_name': 'Yeast Phenotype Ontology',
                         'link': '/ontology/phenotype/ypo/overview',
                         'source': key_to_source['SGD'],
