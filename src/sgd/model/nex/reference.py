@@ -48,7 +48,7 @@ class Reference(Dbentity):
     __eq_fks__ = [('source', Source, False), ('journal', Journal, False), ('book', Book, False),
                   ('aliases', 'reference.ReferenceAlias', True), ('urls', 'reference.ReferenceUrl', True),
                   ('reference_reftypes', 'reference.ReferenceReftype', False)]
-    __id_values__ = ['format_name', 'id', 'sgdid', 'pubmed_id']
+    __id_values__ = ['id', 'sgdid', 'pubmed_id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):

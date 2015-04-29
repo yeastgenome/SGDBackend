@@ -45,231 +45,27 @@ strain_paragraphs = {'S288C': ('S288C is a widely used laboratory strain, design
 
 }
 
-# --------------------- Convert Bioentity Paragraph ---------------------
-def create_i(reference, reference_index, extra_text):
-    new_i = '<span data-tooltip aria-haspopup="true" class="has-tip" title="' + extra_text + (' ' if len(extra_text) > 0 else '') + reference.display_name + '"><a href="#reference"><sup>' + str(reference_index) + '</sup></a></span>'
-    return new_i
-
-def clean_paragraph(locus, text, label, sgdid_to_reference, sgdid_to_bioentity, goid_to_go):
-    reference_id_to_index = {}
-    for reference in locus.get_ordered_references():
-        reference_id_to_index[reference.id] = len(reference_id_to_index) + 1
-
-    # Replace bioentities
-    feature_blocks = text.split('<feature:')
-    if len(feature_blocks) > 1:
-        new_bioentity_text = feature_blocks[0]
-        for block in feature_blocks[1:]:
-            end_index = block.find('>')
-            final_end_index = block.find('</feature>')
-            if final_end_index > end_index >= 0:
-                try:
-                    if block[1:end_index].endswith('*'):
-                        replacement = '<a href="/cgi-bin/search/luceneQS.fpl?query=' + block[1:end_index] + '">' + block[end_index+1:final_end_index] + '</a>'
-                        new_bioentity_text += replacement
-                    else:
-                        sgdid = 'S' + block[1:end_index].zfill(9)
-                        if sgdid in sgdid_to_bioentity:
-                            bioentity = sgdid_to_bioentity[sgdid]
-                            replacement = '<a href="' + bioentity.link + '">' + block[end_index+1:final_end_index] + '</a>'
-                            new_bioentity_text += replacement
-                        else:
-                            print 'Feature not found in ' + label + ' : ' + block[0:end_index]
-                except:
-                    print 'Bad sgdid in ' + label + ' : ' + block[0:end_index]
-
-                new_bioentity_text += block[final_end_index+10:]
-            else:
-                new_bioentity_text += block
-    else:
-        new_bioentity_text = text
-
-    # Replace go
-    go_blocks = new_bioentity_text.split('<go:')
-    if len(go_blocks) > 1:
-        new_go_text = go_blocks[0]
-        for block in go_blocks[1:]:
-            end_index = block.find('>')
-            final_end_index = block.find('</go>')
-            if final_end_index > end_index >= 0:
-                try:
-                    goid = int(block[0:end_index])
-                    if goid in goid_to_go:
-                        go = goid_to_go[goid]
-                        replacement = '<a href="' + go.link + '">' + block[end_index+1:final_end_index] + '</a>'
-                        new_go_text += replacement
-                    else:
-                        print 'Go not found in ' + label + ' : ' + block[0:end_index]
-                except:
-                    print 'Bad goid in ' + label + ' : ' + block[0:end_index]
-
-                new_go_text += block[final_end_index+5:]
-            else:
-                new_go_text += block
-    else:
-        new_go_text = new_bioentity_text
-
-    # Replace MetaCyc
-    metacyc_blocks = new_go_text.split('<MetaCyc:')
-    if len(metacyc_blocks) > 1:
-        new_metacyc_text = metacyc_blocks[0]
-        for block in metacyc_blocks[1:]:
-            end_index = block.find('>')
-            final_end_index = block.find('</MetaCyc>')
-            if final_end_index > end_index >= 0:
-                replacement = '<a href="http://pathway.yeastgenome.org/YEAST/NEW-IMAGE?type=PATHWAY&object=' + block[0:end_index] + '">' + block[end_index+1:final_end_index] + '</a>'
-                new_metacyc_text += replacement
-                new_metacyc_text += block[final_end_index+10:]
-            else:
-                new_metacyc_text += block
-    else:
-        new_metacyc_text = new_go_text
-
-    # Replace OMIM
-    omim_blocks = new_metacyc_text.split('<OMIM:')
-    if len(omim_blocks) > 1:
-        new_omim_text = omim_blocks[0]
-        for block in omim_blocks[1:]:
-            end_index = block.find('>')
-            final_end_index = block.find('</OMIM>')
-            if final_end_index > end_index >= 0:
-                replacement = '<a href="http://www.omim.org/entry/' + block[0:end_index] + '">' + block[end_index+1:final_end_index] + '</a>'
-                new_omim_text += replacement
-                new_omim_text += block[final_end_index+7:]
-            else:
-                new_omim_text += block
-    else:
-        new_omim_text = new_metacyc_text
-
-    # Replace references
-    new_reference_text = ''
-    for block in new_omim_text.split('('):
-        end_index = block.find(')')
-        if end_index >= 0:
-            reference_text = ''
-            references = []
-            reference_blocks = block[:end_index].split('<reference:')
-            if len(reference_blocks) > 1:
-                for reference_block in reference_blocks[1:]:
-                    reference_end_index = reference_block.find('>')
-                    if reference_end_index >= 0:
-                        sgdid = reference_block[0:reference_end_index]
-                        if sgdid in sgdid_to_reference:
-                            if not sgdid_to_reference[sgdid].id in reference_id_to_index:
-                                reference_id_to_index[sgdid_to_reference[sgdid].id] = '?'
-                            references.append(sgdid_to_reference[sgdid])
-                        else:
-                            print 'Reference not found in ' + label + ' : ' + sgdid
-                        reference_text += reference_block[reference_end_index+1:].replace(',', '').replace('and', '').strip()
-                replacement = ' '.join(create_i(reference, reference_id_to_index[reference.id], reference_text) for reference in sorted(references, key=lambda x: 0 if x.id not in reference_id_to_index else reference_id_to_index[x.id]))
-                new_reference_text += replacement + block[end_index+1:]
-            else:
-                new_reference_text += ('' if new_reference_text == '' else '(') + block
-        else:
-            new_reference_text += ('' if new_reference_text == '' else '(') + block
-
-    return new_reference_text, text
-
-def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.bioentity import Locus
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.reference import Reference
-    from src.sgd.model.nex.bioentity import Bioentity
-    from src.sgd.model.nex.bioconcept import Go
-    from src.sgd.model.bud.general import ParagraphFeat
-    from src.sgd.model.bud.go import GoFeature
-    from src.sgd.model.bud.feature import Feature
-    def bioentity_paragraph_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-        key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Locus).all()])
-        id_to_bioentity = dict([(x.id, x) for x in nex_session.query(Locus).all()])
-        sgdid_to_reference = dict([(x.sgdid, x) for x in nex_session.query(Reference).all()])
-        sgdid_to_bioentity = dict([(x.sgdid, x) for x in nex_session.query(Bioentity).all()])
-        goid_to_go = dict([(int(x.go_id[3:]), x) for x in nex_session.query(Go).all()])
-
-        #LSP
-        for feature in bud_session.query(Feature).all():
-            paragraph_feats = feature.paragraph_feats
-            if len(paragraph_feats) > 0 and feature.id in id_to_bioentity:
-                paragraph_feats.sort(key=lambda x: x.order)
-                paragraph_html, paragraph_text = clean_paragraph(id_to_bioentity[feature.id], '<p>' + ('</p><p>'.join([x.paragraph.text for x in paragraph_feats])) + '</p>', str([x.paragraph.id for x in paragraph_feats]), sgdid_to_reference, sgdid_to_bioentity, goid_to_go)
-                yield {
-                    'bioentity': id_to_bioentity[feature.id],
-                    'source': key_to_source['SGD'],
-                    'text': paragraph_text,
-                    'html': paragraph_html,
-                    'date_created': paragraph_feats[0].paragraph.date_created,
-                    'created_by': paragraph_feats[0].paragraph.created_by,
-                    'category': 'LSP'
-                }
-
-        bioentity_key_to_date = dict()
-        #Go
-        for gofeature in bud_session.query(GoFeature).all():
-            bioentity_key = (gofeature.feature.name, 'LOCUS')
-            if gofeature.annotation_type == 'manually curated' and bioentity_key not in bioentity_key_to_date:
-                bioentity_key_to_date[bioentity_key] = gofeature.date_last_reviewed
-
-        for bioentity_key, date_last_reviewed in bioentity_key_to_date.iteritems():
-            if bioentity_key in key_to_bioentity:
-                yield {
-                    'bioentity': key_to_bioentity[bioentity_key],
-                    'source': key_to_source['SGD'],
-                    'text': str(date_last_reviewed),
-                    'html': str(date_last_reviewed),
-                    'date_created': None,
-                    'created_by': None,
-                    'category': 'GODATE'
-                }
-            else:
-                #print 'Bioentity not found: ' + str(bioentity_key)
-                yield None
-
-        for pieces in make_file_starter('src/sgd/convert/data/gp_information.559292_sgd')():
-            if len(pieces) >= 8:
-                sgdid = pieces[8]
-                if sgdid.startswith('SGD:'):
-                    sgdid = sgdid[4:]
-                    go_annotation = [x[22:].strip() for x in pieces[9].split('|') if x.startswith('go_annotation_summary')]
-                    if len(go_annotation) == 1:
-                        if sgdid in sgdid_to_bioentity:
-                            yield {
-                                'bioentity': sgdid_to_bioentity[sgdid],
-                                'source': key_to_source['SGD'],
-                                'text': go_annotation[0],
-                                'html': go_annotation[0],
-                                'date_created': None,
-                                'created_by': None,
-                                'category': 'GO'
-                            }
-                        else:
-                            print 'Bioentity not found: ' + sgdid
-                            yield None
-
-        #Regulation
-        for row in make_file_starter('src/sgd/convert/data/regulationSummaries')():
-            bioentity_key = (row[0], 'LOCUS')
-
-            if bioentity_key in key_to_bioentity:
-                bioentity = key_to_bioentity[bioentity_key]
-                yield {
-                    'bioentity': bioentity,
-                    'source': key_to_source['SGD'],
-                    'text': row[2],
-                    'html': link_gene_names(row[2], {bioentity.display_name, bioentity.format_name, bioentity.display_name + 'P', bioentity.format_name + 'P'}, nex_session),
-                    'category': 'REGULATION'
-                }
-            else:
-                #print 'Bioentity not found: ' + str(bioentity_key)
-                yield None
-
-
-        bud_session.close()
-        nex_session.close()
-    return bioentity_paragraph_starter
+# bioentity_key_to_date = dict()
+#     #Go
+#     for gofeature in bud_session.query(GoFeature).all():
+#         bioentity_key = (gofeature.feature.name, 'LOCUS')
+#         if gofeature.annotation_type == 'manually curated' and bioentity_key not in bioentity_key_to_date:
+#             bioentity_key_to_date[bioentity_key] = gofeature.date_last_reviewed
+#
+#     for bioentity_key, date_last_reviewed in bioentity_key_to_date.iteritems():
+#         if bioentity_key in key_to_bioentity:
+#             yield {
+#                 'bioentity': key_to_bioentity[bioentity_key],
+#                 'source': key_to_source['SGD'],
+#                 'text': str(date_last_reviewed),
+#                 'html': str(date_last_reviewed),
+#                 'date_created': None,
+#                 'created_by': None,
+#                 'category': 'GODATE'
+#             }
+#         else:
+#             #print 'Bioentity not found: ' + str(bioentity_key)
+#             yield None
 
 # --------------------- Convert Strain Paragraph ---------------------
 def make_strain_paragraph_starter(nex_session_maker):

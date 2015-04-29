@@ -1,5 +1,6 @@
 from sqlalchemy.orm import joinedload
 from src.sgd.convert.from_bud import basic_convert, remove_nones
+from src.sgd.convert.from_bud.keyword import keyword_mapping
 
 __author__ = 'kpaskov'
 
@@ -55,7 +56,7 @@ def load_keywords(bud_colleague, bud_session):
     for bud_obj in bud_session.query(ColleagueKeyword).options(joinedload('keyword')).filter_by(colleague_id=bud_colleague.id).all():
         if bud_obj.keyword.source == 'Curator-defined':
             keywords.append(
-                {'display_name': bud_obj.keyword.keyword,
+                {'display_name': bud_obj.keyword.keyword if bud_obj.keyword.keyword not in keyword_mapping else keyword_mapping[bud_obj.keyword.keyword],
                  'source': {'display_name': bud_obj.keyword.source},
                  'bud_id': bud_obj.id,
                  'date_created': str(bud_obj.keyword.date_created),
@@ -105,8 +106,6 @@ def colleague_starter(bud_session_maker):
     bud_session = bud_session_maker()
 
     for bud_obj in bud_session.query(Colleague).all():
-        address = '\n'.join([x for x in [bud_obj.address1, bud_obj.address2, bud_obj.address3, bud_obj.address4, bud_obj.address5] if x is not None])
-
         obj_json = remove_nones({
             'bud_id': bud_obj.id,
             'source': {'display_name': bud_obj.source},
@@ -115,7 +114,9 @@ def colleague_starter(bud_session_maker):
             'other_last_name': bud_obj.other_last_name,
             'job_title': bud_obj.job_title,
             'institution': bud_obj.institution,
-            'full_address': address,
+            'address1': bud_obj.address1,
+            'address2': bud_obj.address2,
+            'address3': bud_obj.address3,
             'city': bud_obj.city,
             'country': bud_obj.country,
             'work_phone': bud_obj.work_phone,

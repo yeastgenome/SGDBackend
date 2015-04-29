@@ -1,10 +1,11 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.types import Integer, String, Date, Boolean
+from sqlalchemy.types import Integer, String, Date, Boolean, CLOB
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin
 from src.sgd.model.nex.dbentity import Dbentity
+from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
@@ -40,7 +41,11 @@ class Locus(Dbentity):
                      'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position',
                      'has_summary', 'has_history', 'has_literature', 'has_go', 'has_phenotype', 'has_interaction',
                      'has_expression', 'has_regulation', 'has_protein', 'has_sequence', 'has_sequence_section']
-    __eq_fks__ = [('source', Source, False), ('aliases', 'locus.LocusAlias', True), ('urls', 'locus.LocusUrl', True)]
+    __eq_fks__ = [('source', Source, False),
+                  ('aliases', 'locus.LocusAlias', True),
+                  ('urls', 'locus.LocusUrl', True),
+                  ('documents', 'locus.LocusDocument', True),
+                  ('children', 'locus.LocusRelation', False)]
     __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
 
@@ -382,7 +387,7 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type', 'placement',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('locus', Locus, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
@@ -436,7 +441,7 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'is_external_id', 'alias_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
@@ -469,13 +474,11 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         else:
             return current_obj, 'Found'
 
-
 class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'locus_relation'
 
     id = Column('relation_id', Integer, primary_key=True)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    bud_id = Column('bud_id', Integer)
     parent_id = Column('parent_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
     child_id = Column('child_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
     relation_type = Column('relation_type', String)
@@ -487,17 +490,79 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     child = relationship(Locus, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'bud_id', 'relation_type',
-                     'date_created', 'created_by']
+    __eq_values__ = ['id', 'relation_type', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('parent', Locus, False), ('child', Locus, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
+
+    def __init__(self, parent, child, relation_type):
+        self.parent = parent
+        self.child = child
+        self.source = self.child.source
+        self.relation_type = relation_type
+
+    def unique_key(self):
+        return (None if self.parent is None else self.parent.unique_key()), (None if self.child is None else self.child.unique_key(), self.relation_type)
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        child, status = Locus.create_or_find(obj_json, session)
+        #if status == 'Created':
+        #    raise Exception('Colleague not found: ' + str(obj_json))
+
+        relation_type = obj_json["relation_type"]
+
+        current_obj = session.query(cls)\
+            .filter_by(parent_id=parent_obj.id)\
+            .filter_by(child_id=child.id)\
+            .filter_by(relation_type=relation_type).first()
+
+        if current_obj is None:
+            newly_created_object = cls(parent_obj, child, relation_type)
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
+
+    def to_json(self):
+        obj_json = self.child.to_min_json()
+        obj_json['source'] = self.child.source.to_min_json()
+        obj_json['relation_type'] = self.relation_type
+
+
+class LocusDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'locus_document'
+
+    id = Column('document_id', Integer, primary_key=True)
+    document_type = Column('document_type', String)
+    document_order = Column('document_order', Integer)
+    text = Column('text', CLOB)
+    html = Column('html', CLOB)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    bud_id = Column('bud_id', Integer)
+    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    locus = relationship(Locus, uselist=False, backref=backref('documents', cascade="all, delete-orphan", passive_deletes=True))
+    source = relationship(Source, uselist=False)
+
+    __eq_values__ = ['id', 'text', 'html', 'bud_id', 'document_type', 'document_order',
+                     'date_created', 'created_by']
+    __eq_fks__ = [('source', Source, False),
+                  ('locus', Locus, False),
+                  ('references', 'locus.LocusDocumentReference', False)]
+    __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return self.relation_type, self.parent.unique_key(), self.child.unique_key()
+        return (None if self.locus is None else self.locus.unique_key()), self.document_type, self.document_order
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -506,20 +571,70 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
         newly_created_object = cls(obj_json, session)
         if parent_obj is not None:
-            if newly_created_object.parent is None:
-                newly_created_object.parent_id = parent_obj.id
-            elif newly_created_object.child is None:
-                newly_created_object.child_id = parent_obj.id
+            newly_created_object.locus_id = parent_obj.id
 
         current_obj = session.query(cls)\
-            .filter_by(parent_id=newly_created_object.parent_id)\
-            .filter_by(child_id=newly_created_object.child_id)\
-            .filter_by(relation_type=newly_created_object.relation_type).first()
+            .filter_by(locus_id=newly_created_object.locus_id)\
+            .filter_by(document_type=newly_created_object.document_type)\
+            .filter_by(document_order=newly_created_object.document_order).first()
 
         if current_obj is None:
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
+
+
+class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'locus_document_reference'
+
+    id = Column('document_reference_id', Integer, primary_key=True)
+    document_id = Column('document_id', Integer, ForeignKey(LocusDocument.id, ondelete='CASCADE'))
+    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
+    reference_order = Column('reference_order', Integer)
+    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    document = relationship(LocusDocument, uselist=False, backref=backref('references', cascade="all, delete-orphan", passive_deletes=True))
+    reference = relationship(Reference, uselist=False, backref=backref('locus_documents', cascade="all, delete-orphan", passive_deletes=True))
+    source = relationship(Source, uselist=False)
+
+    __eq_values__ = ['id', 'reference_order', 'date_created', 'created_by']
+    __eq_fks__ = [('source', Source, False),
+                  ('document', LocusDocument, False),
+                  ('reference', Reference, False)]
+    __id_values__ = []
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
+
+    def __init__(self, document, reference, reference_order):
+        self.document = document
+        self.reference_id = reference.id
+        self.source = self.document.source
+        self.reference_order = reference_order
+
+    def unique_key(self):
+        return (None if self.document is None else self.document.unique_key()), (None if self.reference is None else self.reference.unique_key())
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        reference, status = Reference.create_or_find(obj_json, session)
+        if status == 'Created':
+            raise Exception('Reference not found: ' + str(obj_json))
+
+        current_obj = session.query(cls)\
+            .filter_by(document_id=parent_obj.id)\
+            .filter_by(reference_id=reference.id).first()
+
+        if current_obj is None:
+            newly_created_object = cls(parent_obj, reference, obj_json['reference_order'])
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
+
 
 def tab_information(status, locus_type):
     if status == 'Merged' or status == 'Deleted':

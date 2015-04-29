@@ -46,7 +46,6 @@ url_placement_mapping = {
     'Expression Resources': 'LOCUS_EXPRESSION',
     'Regulatory Role Resources': 'LOCUS_REGULATION',
     'Protein Information Homologs': 'LOCUS_PROTEIN_HOMOLOGS',
-    'Analyze Sequence S288C vs. other species': 'LOCUS_PROTEIN_HOMOLOGS',
     'Protein databases/Other': 'LOCUS_PROTEIN_PROTEIN_DATABASES',
     'Localization Resources': 'LOCUS_PROEIN_LOCALIZATION',
     'Post-translational modifications': 'LOCUS_PROTEIN_MODIFICATIONS',
@@ -174,8 +173,8 @@ def load_urls(bud_locus, bud_session):
 
 
 def load_aliases(bud_locus, bud_session, uniprot_id):
-    from src.sgd.model.bud.feature import Feature, Annotation, AliasFeature
-    from src.sgd.model.bud.general import DbxrefFeat, Note, NoteFeat
+    from src.sgd.model.bud.feature import AliasFeature
+    from src.sgd.model.bud.general import DbxrefFeat
 
     aliases = []
     for bud_obj in bud_session.query(AliasFeature).options(joinedload('alias')).filter_by(feature_id=bud_locus.id).all():
@@ -217,6 +216,41 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
 
     return aliases
 
+def load_relations(bud_feature, bud_session):
+    from src.sgd.model.bud.feature import FeatRel
+
+    relations = []
+    for bud_obj in bud_session.query(FeatRel).filter_by(relationship_type='pair').filter_by(parent_id=bud_feature.id).all():
+        relations.append(remove_nones({
+            "systematic_name": bud_obj.parent.name,
+            "relation_type": bud_obj.relationship_type,
+            "date_created": str(bud_obj.date_created),
+            "created_by": bud_obj.created_by
+        }))
+    return relations
+
+
+def load_documents(bud_feature, bud_session):
+    from src.sgd.model.bud.general import ParagraphFeat
+
+    documents = []
+
+    #LSP
+    paragraph_feats = bud_session.query(ParagraphFeat).filter_by(feature_id=bud_feature.id).all()
+    for paragraph_feat in paragraph_feats:
+        paragraph = paragraph_feat.paragraph
+        paragraph_html, paragraph_text = clean_paragraph(paragraph.text)
+        documents.append(
+            {'text': paragraph_text,
+             'html': paragraph_html,
+             'source': {'display_name': 'SGD'},
+             'bud_id': paragraph.id,
+             'document_type': 'Paragraph',
+             'document_order': paragraph_feat.order,
+             'date_created': str(paragraph.date_created),
+             'created_by': paragraph.created_by})
+    return documents
+
 
 def locus_starter(bud_session_maker):
     from src.sgd.model.bud.feature import Feature
@@ -229,12 +263,17 @@ def locus_starter(bud_session_maker):
         if line[1].strip() == 'SGD':
             sgdid_to_uniprotid[line[2].strip()] = line[0].strip()
 
+    #Load paragraphs
+    sgdid_to_go_paragraph = load_go_paragraphs()
+    systematic_name_to_reg_paragraph = load_reg_paragraphs()
+
     #Create features
     for bud_obj in bud_session.query(Feature).options(joinedload('annotation')).all():
         if bud_obj.type not in non_locus_feature_types:
             sgdid = bud_obj.dbxref_id
+            systematic_name = bud_obj.name
             obj_json = {'gene_name': bud_obj.gene_name,
-                        'systematic_name':bud_obj.name,
+                        'systematic_name': systematic_name,
                         'source': {
                             'display_name': bud_obj.source
                         },
@@ -242,8 +281,6 @@ def locus_starter(bud_session_maker):
                         'sgdid': sgdid,
                         'dbentity_status': bud_obj.status,
                         'locus_type': bud_obj.type,
-                        'gene_name': bud_obj.gene_name,
-                        'bud_id': bud_obj.id,
                         'date_created': str(bud_obj.date_created),
                         'created_by': bud_obj.created_by}
 
@@ -263,10 +300,138 @@ def locus_starter(bud_session_maker):
             #Load urls
             obj_json['urls'] = load_urls(bud_obj, bud_session)
 
+            #Load children
+            obj_json['children'] = load_relations(bud_obj, bud_session)
+
+            #Load documents
+            obj_json['documents'] = load_documents(bud_obj, bud_session)
+            if sgdid in sgdid_to_go_paragraph:
+                obj_json['documents'].append(sgdid_to_go_paragraph[sgdid])
+            if systematic_name in systematic_name_to_reg_paragraph:
+                obj_json['documents'].append(systematic_name_to_reg_paragraph[systematic_name])
+
             print obj_json['systematic_name']
             yield obj_json
 
     bud_session.close()
+
+
+def load_go_paragraphs():
+    sgdid_to_paragraph = dict()
+    f = open('src/sgd/convert/data/gp_information.559292_sgd', 'U')
+    for line in f:
+        pieces = line.split('\t')
+        if len(pieces) >= 8:
+            sgdid = pieces[8]
+            if sgdid.startswith('SGD:'):
+                sgdid = sgdid[4:]
+                go_annotation = [x[22:].strip() for x in pieces[9].split('|') if x.startswith('go_annotation_summary')]
+                if len(go_annotation) == 1:
+                    sgdid_to_paragraph[sgdid] = {'text': go_annotation[0],
+                                                 'html': go_annotation[0],
+                                                 'source': {'display_name': 'SGD'},
+                                                 'document_type': 'Go'}
+    f.close()
+    return sgdid_to_paragraph
+
+
+def load_reg_paragraphs():
+    systematic_name_to_paragraph = dict()
+    f = open('src/sgd/convert/data/regulationSummaries', 'U')
+    for line in f:
+        pieces = line.split('\t')
+        systematic_name = pieces[0]
+
+        references = [int(x) for x in pieces[3].strip().split('|') if x != 'references' and x != '']
+        references = [{'pubmed_id': x, 'reference_order': i} for i, x in enumerate(references)]
+
+        systematic_name_to_paragraph[systematic_name] = {'text': pieces[2],
+                                                         'html': pieces[2],
+                                                         'source': {'display_name': 'SGD'},
+                                                         'document_type': 'Regulation',
+                                                         'references': references}
+
+    f.close()
+    return systematic_name_to_paragraph
+
+
+def create_i(reference, reference_index, extra_text):
+    new_i = '<span data-tooltip aria-haspopup="true" class="has-tip" title="' + extra_text + (' ' if len(extra_text) > 0 else '') + reference.display_name + '"><a href="#reference"><sup>' + str(reference_index) + '</sup></a></span>'
+    return new_i
+
+
+def clean_paragraph(text):
+
+    # Replace bioentities
+    feature_blocks = text.split('<feature:')
+    if len(feature_blocks) > 1:
+        new_bioentity_text = feature_blocks[0]
+        for block in feature_blocks[1:]:
+            end_index = block.find('>')
+            final_end_index = block.find('</feature>')
+            if final_end_index > end_index >= 0:
+                if block[1:end_index].endswith('*'):
+                    replacement = '<a href="/cgi-bin/search/luceneQS.fpl?query=' + block[1:end_index] + '">' + block[end_index+1:final_end_index] + '</a>'
+                    new_bioentity_text += replacement
+                else:
+                    sgdid = 'S' + block[1:end_index].zfill(9)
+                    new_bioentity_text += '<a href="/locus/' + sgdid + '">' + block[end_index+1:final_end_index] + '</a>'
+
+                new_bioentity_text += block[final_end_index+10:]
+            else:
+                new_bioentity_text += block
+    else:
+        new_bioentity_text = text
+
+    # Replace go
+    go_blocks = new_bioentity_text.split('<go:')
+    if len(go_blocks) > 1:
+        new_go_text = go_blocks[0]
+        for block in go_blocks[1:]:
+            end_index = block.find('>')
+            final_end_index = block.find('</go>')
+            if final_end_index > end_index >= 0:
+                goid = int(block[0:end_index])
+                new_go_text += '<a href="/go/' + str(goid) + '">' + block[end_index+1:final_end_index] + '</a>'
+                new_go_text += block[final_end_index+5:]
+            else:
+                new_go_text += block
+    else:
+        new_go_text = new_bioentity_text
+
+    # Replace MetaCyc
+    metacyc_blocks = new_go_text.split('<MetaCyc:')
+    if len(metacyc_blocks) > 1:
+        new_metacyc_text = metacyc_blocks[0]
+        for block in metacyc_blocks[1:]:
+            end_index = block.find('>')
+            final_end_index = block.find('</MetaCyc>')
+            if final_end_index > end_index >= 0:
+                replacement = '<a href="http://pathway.yeastgenome.org/YEAST/NEW-IMAGE?type=PATHWAY&object=' + block[0:end_index] + '">' + block[end_index+1:final_end_index] + '</a>'
+                new_metacyc_text += replacement
+                new_metacyc_text += block[final_end_index+10:]
+            else:
+                new_metacyc_text += block
+    else:
+        new_metacyc_text = new_go_text
+
+    # Replace OMIM
+    omim_blocks = new_metacyc_text.split('<OMIM:')
+    if len(omim_blocks) > 1:
+        new_omim_text = omim_blocks[0]
+        for block in omim_blocks[1:]:
+            end_index = block.find('>')
+            final_end_index = block.find('</OMIM>')
+            if final_end_index > end_index >= 0:
+                replacement = '<a href="http://www.omim.org/entry/' + block[0:end_index] + '">' + block[end_index+1:final_end_index] + '</a>'
+                new_omim_text += replacement
+                new_omim_text += block[final_end_index+7:]
+            else:
+                new_omim_text += block
+    else:
+        new_omim_text = new_metacyc_text
+
+    return new_omim_text, text
 
 
 def convert(bud_db, nex_db):
@@ -274,4 +439,3 @@ def convert(bud_db, nex_db):
 
 if __name__ == '__main__':
     convert('pastry.stanford.edu:1521', 'curator-dev-db')
-

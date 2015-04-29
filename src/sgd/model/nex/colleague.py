@@ -126,7 +126,7 @@ class ColleagueUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
@@ -233,7 +233,7 @@ class ColleagueDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
     __eq_values__ = ['id', 'text', 'html', 'bud_id', 'document_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
@@ -277,7 +277,7 @@ class ColleagueKeyword(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
 
     __eq_values__ = ['id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False), ('keyword', Keyword, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
     def __init__(self, colleague, keyword):
@@ -325,7 +325,7 @@ class ColleagueLocus(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     __eq_values__ = ['id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False), ('locus', Locus, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
     def __init__(self, colleague, locus):

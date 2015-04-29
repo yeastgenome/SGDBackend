@@ -277,7 +277,7 @@
             }
         },
         "parents": {
-            "title": "Children",
+            "title": "Parents",
             "type": "array",
             "items": {
                 "type": "object",

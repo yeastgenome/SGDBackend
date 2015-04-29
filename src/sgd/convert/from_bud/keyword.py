@@ -1,5 +1,5 @@
 from src.sgd.convert.transformers import make_file_starter
-from src.sgd.convert.from_bud import basic_convert
+from src.sgd.convert.from_bud import basic_convert, remove_nones
 
 __author__ = 'kpaskov'
 
@@ -54,22 +54,45 @@ definitions = {
     'not yet curated':              'The dataset has not yet been assigned a tag or tags.'
 }
 
+keyword_mapping = {
+    'cell aging': 'aging',
+    'Aging': 'aging',
+    'Cell growth and development': 'cell morphogenesis',
+    'Chromatin, telomeres, centromeres': 'chromatin organization',
+    'Evolution/phylogenetics': 'evolution',
+    'Cell cycle': 'mitotic cell cycle',
+    'Other': 'other',
+    'Signalling': 'signaling',
+    'Environmental sensing and stress response': 'stress',
+    'Transcription and gene expression': 'transcription',
+    'Translation and protein synthesis': 'translational regulation',
+    'Bioinformatics/computational biology': 'bioinformatics/computational biology',
+    'Cytoskeleton and molecular motors': 'cytoskeleton and molecular motors',
+    'Functional genomics/proteomics': 'functional genomics/proteomics',
+    'Metabolism and metabolic regulation': 'metabolism and metabolic regulation',
+    'Nuclear structure/function': 'nuclear structure/function',
+    'Organelles, biogenesis, structure, and function': 'organelles, biogenesis, structure, and function',
+    'Prions': 'prions',
+    'Protein structure/folding': 'protein structure/folding',
+    'Protein trafficking, localization and degradation': 'protein trafficking, localization and degradation',
+    'Transposons': 'transposons',
+}
+
 
 def keyword_starter(bud_session_maker):
-    for row in make_file_starter('src/sgd/convert/data/microarray_05_14/SPELL-tags.txt')():
-        tag = row[2].strip()
+    for row in make_file_starter('src/sgd/convert/data/microarray_05_14/pmid_filename_gse_conds_tags_file_20150416_forNex.txt')():
+        tag = row[6].strip()
         for t in [x.strip() for x in tag.split('|')]:
-            if t != '' and t != 'other':
-                yield {
-                    'display_name': t,
-                    'description': definitions.get(t),
-                    'source': {'display_name': 'SGD'}
-                }
+            yield remove_nones({
+                'display_name': t if t not in keyword_mapping else keyword_mapping[t],
+                'description': definitions.get(t),
+                'source': {'display_name': 'SGD'}
+            })
 
     from src.sgd.model.bud.colleague import Keyword
     bud_session = bud_session_maker()
     for bud_obj in bud_session.query(Keyword).filter_by(source='Curator-defined').all():
-        yield {'display_name': bud_obj.keyword,
+        yield {'display_name': bud_obj.keyword if bud_obj.keyword not in keyword_mapping else keyword_mapping[bud_obj.keyword],
                'source': {'display_name': bud_obj.source},
                'bud_id': bud_obj.id,
                'date_created': str(bud_obj.date_created),

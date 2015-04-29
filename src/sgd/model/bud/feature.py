@@ -73,6 +73,12 @@ class FeatRel(Base, EqualityByIDMixin):
     child_id = Column('child_feature_no', Integer, ForeignKey(Feature.id))
     relationship_type = Column('relationship_type', String)
     rank = Column('rank', Integer)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+
+    #Relationships
+    parent = relationship(Feature, backref=backref("children", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
+    child = relationship(Feature, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
     
 class Annotation(Base, EqualityByIDMixin):
     __tablename__ = 'feat_annotation'
