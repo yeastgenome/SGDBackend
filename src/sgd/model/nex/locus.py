@@ -459,15 +459,11 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         newly_created_object = cls(obj_json, session)
         if parent_obj is not None:
             newly_created_object.locus_id = parent_obj.id
-            if not hasattr(parent_obj, 'alias_map'):
-                parent_obj.alias_map = dict([((x.display_name, x.alias_type), x) for x in parent_obj.aliases])
-            current_obj = None if (newly_created_object.display_name, newly_created_object.alias_type) not in parent_obj.alias_map else parent_obj.alias_map[(newly_created_object.display_name, newly_created_object.alias_type)]
 
-        else:
-            current_obj = session.query(cls)\
-                .filter_by(locus_id=newly_created_object.locus_id)\
-                .filter_by(display_name=newly_created_object.display_name)\
-                .filter_by(alias_type=newly_created_object.alias_type).first()
+        current_obj = session.query(cls)\
+            .filter_by(locus_id=newly_created_object.locus_id)\
+            .filter_by(display_name=newly_created_object.display_name)\
+            .filter_by(alias_type=newly_created_object.alias_type).first()
 
         if current_obj is None:
             return newly_created_object, 'Created'
@@ -491,7 +487,9 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'relation_type', 'date_created', 'created_by']
-    __eq_fks__ = [('source', Source, False), ('parent', Locus, False), ('child', Locus, False)]
+    __eq_fks__ = [('source', Source, False),
+                  ('parent', Locus, False),
+                  ('child', Locus, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
@@ -510,8 +508,8 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
             return None
 
         child, status = Locus.create_or_find(obj_json, session)
-        #if status == 'Created':
-        #    raise Exception('Colleague not found: ' + str(obj_json))
+        if status == 'Created':
+            raise Exception('Child locus not found: ' + str(obj_json))
 
         relation_type = obj_json["relation_type"]
 
@@ -608,10 +606,10 @@ class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJso
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
     def __init__(self, document, reference, reference_order):
+        self.reference_order = reference_order
         self.document = document
         self.reference_id = reference.id
         self.source = self.document.source
-        self.reference_order = reference_order
 
     def unique_key(self):
         return (None if self.document is None else self.document.unique_key()), (None if self.reference is None else self.reference.unique_key())
@@ -753,3 +751,8 @@ def tab_information(status, locus_type):
         }
     else:
         raise Exception('Locus type is invalid.')
+
+
+#def create_i(reference, reference_index, extra_text):
+#    new_i = '<span data-tooltip aria-haspopup="true" class="has-tip" title="' + extra_text + (' ' if len(extra_text) > 0 else '') + reference.display_name + '"><a href="#reference"><sup>' + str(reference_index) + '</sup></a></span>'
+#    return new_ir

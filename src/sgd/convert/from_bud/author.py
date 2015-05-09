@@ -13,6 +13,8 @@ def author_starter(bud_session_maker):
                'date_created': str(old_author.date_created),
                'created_by': old_author.created_by}
 
+        print old_author.name
+
     bud_session.close()
 
 def convert(bud_db, nex_db):

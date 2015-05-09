@@ -70,8 +70,54 @@ def load_reftypes(bud_reference, bud_session):
     return reftypes
 
 
+def load_authors(bud_reference, bud_session):
+    authors = []
+
+    from src.sgd.model.bud.reference import AuthorReference
+
+    for old_author_reference in bud_session.query(AuthorReference).options(joinedload(AuthorReference.author)).filter_by(reference_id=bud_reference.id).all():
+        authors.append({'display_name': old_author_reference.author.name,
+                        'source': {'display_name': 'PubMed'},
+                        'author_order': old_author_reference.order,
+                        'author_type': old_author_reference.type})
+
+    return authors
+
+
+def load_relations(bud_reference, bud_session):
+    from src.sgd.model.bud.reference import RefRelation
+
+    relations = []
+    for bud_obj in bud_session.query(RefRelation).options(joinedload(RefRelation.child)).filter_by(parent_id=bud_reference.id).all():
+        relations.append(remove_nones({
+            "sgdid": bud_obj.child.dbxref_id,
+            "relation_type": 'None' if bud_obj.description is None else bud_obj.description,
+            "date_created": str(bud_obj.date_created),
+            "created_by": bud_obj.created_by
+        }))
+    return relations
+
+
+def load_documents(bud_reference, bud_session):
+    from src.sgd.model.bud.reference import Abstract
+
+    documents = []
+
+    #Abstract
+    abstract = bud_session.query(Abstract).filter_by(reference_id=bud_reference.id).first()
+    if abstract is not None:
+        documents.append(
+            {'text': abstract.text,
+             'html': abstract.text,
+             'source': {'display_name': 'SGD'},
+             'document_type': 'Abstract',
+             'date_created': str(bud_reference.date_created),
+             'created_by': bud_reference.created_by})
+    return documents
+
+
 def reference_starter(bud_session_maker):
-    from src.sgd.model.bud.reference import Reference, Ref_URL
+    from src.sgd.model.bud.reference import Reference
 
     bud_session = bud_session_maker()
 
@@ -82,16 +128,19 @@ def reference_starter(bud_session_maker):
             abbreviation = old_journal.abbreviation
             if old_journal.issn == '0948-5023':
                 abbreviation = 'J Mol Model (Online)'
-            new_journal = {'title': old_journal.full_name,
-                           'med_abbr': abbreviation,
-                           'source': {'display_name': old_reference.source}}
+            new_journal = remove_nones({'title': old_journal.full_name,
+                                        'med_abbr': abbreviation,
+                                        'issn_print': old_journal.issn,
+                                        'source': {'display_name': old_reference.source}})
 
         new_book = None
         old_book = old_reference.book
         if old_book is not None:
-            new_book = {'title': old_book.title,
-                        'volume_title': old_book.volume_title,
-                        'source': {'display_name': old_reference.source}}
+            new_book = remove_nones({'title': old_book.title,
+                                     'volume_title': old_book.volume_title,
+                                     'publisher_location': old_book.publisher_location,
+                                     'isbn': old_book.isbn,
+                                     'source': {'display_name': old_reference.source}})
 
         pubmed_id = None
         if old_reference.pubmed_id is not None:
@@ -131,8 +180,18 @@ def reference_starter(bud_session_maker):
         #Load urls
         obj_json['urls'] = urls
 
-        #Load Reference Reftypes
+        #Load reference reftypes
         obj_json['reference_reftypes'] = load_reftypes(old_reference, bud_session)
+
+        #Load reference authors
+        obj_json['reference_authors'] = load_authors(old_reference, bud_session)
+
+        #Load children
+        obj_json['children'] = load_relations(old_reference, bud_session)
+
+        #Load documents
+        obj_json['documents'] = load_documents(old_reference, bud_session)
+        obj_json['documents'].append(create_bibentry(obj_json))
 
         print obj_json['sgdid']
 
@@ -140,132 +199,45 @@ def reference_starter(bud_session_maker):
 
     bud_session.close()
 
-# -------------------- Convert Bibentry ---------------------
-def make_bibentry_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.reference import Reference, Book, Journal, Author, Reftype
-    from src.sgd.model.nex.paragraph import Referenceparagraph
-    def bibentry_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
 
-        id_to_journal = dict([(x.id, x) for x in nex_session.query(Journal).all()])
-        id_to_book = dict([(x.id, x) for x in nex_session.query(Book).all()])
-        id_to_author = dict([(x.id, x) for x in nex_session.query(Author).all()])
-        id_to_reftype = dict([(x.id, x) for x in nex_session.query(Reftype).all()])
+def create_bibentry(obj_json):
+    entries = []
+    entries.append(('PMID', obj_json.get('pubmed_id')))
+    entries.append(('STAT', obj_json.get('dbentity_status')))
+    entries.append(('DP', obj_json.get('date_published')))
+    entries.append(('TI', obj_json.get('title')))
+    entries.append(('SO', obj_json['source']['display_name']))
+    entries.append(('LR', obj_json.get('date_revised')))
+    entries.append(('IP', obj_json.get('issue')))
+    entries.append(('PG', obj_json.get('page')))
+    entries.append(('VI', obj_json.get('volume')))
+    entries.append(('SO', 'SGD'))
 
-        for reference in nex_session.query(Reference).options(joinedload('author_references'), joinedload('ref_reftypes')).all():
-            entries = []
+    for reference_author in obj_json['reference_authors']:
+        entries.append(('AU', reference_author['display_name']))
 
-            add_entry(entries, reference, lambda x: x.pubmed_id, 'PMID')
-            add_entry(entries, reference, lambda x: x.ref_status, 'STAT')
-            add_entry(entries, reference, lambda x: x.date_published, 'DP')
-            add_entry(entries, reference, lambda x: x.title, 'TI')
-            add_entry(entries, reference, lambda x: x.source.display_name, 'SO')
-            add_entry(entries, reference, lambda x: x.date_revised, 'LR')
-            add_entry(entries, reference, lambda x: x.issue, 'IP')
-            add_entry(entries, reference, lambda x: x.page, 'PG')
-            add_entry(entries, reference, lambda x: x.volume, 'VI')
-            add_entry(entries, reference, lambda x: 'SGD', 'SO')
+    for reference_reftype in obj_json['reference_reftypes']:
+        entries.append(('PT', reference_reftype['display_name']))
 
-            for author_reference in reference.author_references:
-                author = id_to_author[author_reference.author_id]
-                add_entry(entries, author, lambda x: x.display_name, 'AU')
+    if len(obj_json['documents']) > 0:
+        entries.append(('AB', obj_json['documents'][0]['text']))
 
-            for ref_reftype in reference.ref_reftypes:
-                reftype = id_to_reftype[ref_reftype.reftype_id]
-                add_entry(entries, reftype, lambda x: x.display_name, 'PT')
+    if 'journal' in obj_json:
+        entries.append(('TA', obj_json['journal'].get('med_abbr')))
+        entries.append(('JT', obj_json['journal'].get('title')))
+        entries.append(('IS', obj_json['journal'].get('issn_print')))
 
-            if len(reference.paragraphs) > 0:
-                add_entry(entries, reference, lambda x: reference.paragraphs[0].to_json(), 'AB')
-
-            if reference.journal_id is not None:
-                journal = id_to_journal[reference.journal_id]
-                add_entry(entries, journal, lambda x: x.med_abbr, 'TA')
-                add_entry(entries, journal, lambda x: x.title, 'JT')
-                add_entry(entries, journal, lambda x: x.issn_print, 'IS')
-
-            if reference.book is not None:
-                book = id_to_book[reference.book_id]
-                add_entry(entries, book, lambda x: x.publisher_location, 'PL')
-                add_entry(entries, book, lambda x: x.title, 'BTI')
-                add_entry(entries, book, lambda x: x.volume_title, 'VTI')
-                add_entry(entries, book, lambda x: x.isbn, 'ISBN')
-
-            yield {'id': reference.id,
-                   'text': '\n'.join([str(x) for x in entries])}
-
-        bud_session.close()
-        nex_session.close()
-    return bibentry_starter
-
-def add_entry(entries, reference, value_f, label):
-    try:
-        value = value_f(reference)
-        if value is not None:
-            entries.append(label + ' - ' + str(value))
-    except:
-        pass
-
-# --------------------- Convert Author Reference ---------------------
-def make_author_reference_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.reference import Author, Reference
-    from src.sgd.model.bud.reference import AuthorReference as OldAuthorReference
-    def author_reference_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        id_to_reference = dict([(x.id, x) for x in nex_session.query(Reference).all()])
-        key_to_author = dict([(x.unique_key(), x) for x in nex_session.query(Author).all()])
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
-
-        for old_author_reference in bud_session.query(OldAuthorReference).all():
-            author_key = create_format_name(old_author_reference.author.name)
-            reference_id = old_author_reference.reference_id
-            if author_key in key_to_author and reference_id in id_to_reference:
-                yield {'id': old_author_reference.id,
-                       'source': key_to_source['PubMed'],
-                       'author': key_to_author[author_key],
-                       'reference': id_to_reference[reference_id],
-                       'order': old_author_reference.order,
-                       'author_type': old_author_reference.type,
-                       'date_created': old_author_reference.author.date_created,
-                       'created_by': old_author_reference.author.created_by}
-            else:
-                print 'Author or reference not found: ' + str(author_key) + ' ' + str(reference_id)
-
-        bud_session.close()
-        nex_session.close()
-    return author_reference_starter
+    if 'book' in obj_json:
+        entries.append(('PL', obj_json['book'].get('publisher_location')))
+        entries.append(('BTI', obj_json['book'].get('title')))
+        entries.append(('VTI', obj_json['book'].get('volume_title')))
+        entries.append(('ISBN', obj_json['book'].get('isbn')))
 
 
-# --------------------- Convert Reference Relation ---------------------
-def make_reference_relation_starter(bud_session_maker, nex_session_maker):
-    from src.sgd.model.nex.misc import Source
-    from src.sgd.model.nex.reference import Reference
-    from src.sgd.model.bud.reference import RefRelation
-    def reference_relation_starter():
-        bud_session = bud_session_maker()
-        nex_session = nex_session_maker()
-
-        key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source)])
-        reference_ids = set(x.id for x in nex_session.query(Reference.id).all())
-
-        for old_ref_relation in bud_session.query(RefRelation).all():
-            parent_id = old_ref_relation.parent_id
-            child_id = old_ref_relation.child_id
-            if parent_id in reference_ids and child_id in reference_ids:
-                yield {'source': key_to_source['SGD'],
-                       'parent_id': parent_id,
-                       'child_id': child_id,
-                       'date_created': old_ref_relation.date_created,
-                       'created_by': old_ref_relation.created_by}
-            else:
-                print 'Reference not found: ' + str(parent_id) + ' ' + str(child_id)
-
-        bud_session.close()
-        nex_session.close()
-    return reference_relation_starter
+    return {'text': '\n'.join([key + ' - ' + str(value) for key, value in entries if value is not None]),
+            'html': '\n'.join([key + ' - ' + str(value) for key, value in entries if value is not None]),
+            'source': {'display_name': 'SGD'},
+            'document_type': 'Bibentry'}
 
 
 def convert(bud_db, nex_db):

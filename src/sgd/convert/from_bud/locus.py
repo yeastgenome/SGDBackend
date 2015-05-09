@@ -239,7 +239,7 @@ def load_documents(bud_feature, bud_session):
     paragraph_feats = bud_session.query(ParagraphFeat).filter_by(feature_id=bud_feature.id).all()
     for paragraph_feat in paragraph_feats:
         paragraph = paragraph_feat.paragraph
-        paragraph_html, paragraph_text = clean_paragraph(paragraph.text)
+        paragraph_html, paragraph_text, references = clean_paragraph(paragraph.text)
         documents.append(
             {'text': paragraph_text,
              'html': paragraph_html,
@@ -247,6 +247,7 @@ def load_documents(bud_feature, bud_session):
              'bud_id': paragraph.id,
              'document_type': 'Paragraph',
              'document_order': paragraph_feat.order,
+             'references': references,
              'date_created': str(paragraph.date_created),
              'created_by': paragraph.created_by})
     return documents
@@ -343,7 +344,7 @@ def load_reg_paragraphs():
         systematic_name = pieces[0]
 
         references = [int(x) for x in pieces[3].strip().split('|') if x != 'references' and x != '']
-        references = [{'pubmed_id': x, 'reference_order': i} for i, x in enumerate(references)]
+        references = [{'pubmed_id': x, 'reference_order': i+1} for i, x in enumerate(references)]
 
         systematic_name_to_paragraph[systematic_name] = {'text': pieces[2],
                                                          'html': pieces[2],
@@ -353,11 +354,6 @@ def load_reg_paragraphs():
 
     f.close()
     return systematic_name_to_paragraph
-
-
-def create_i(reference, reference_index, extra_text):
-    new_i = '<span data-tooltip aria-haspopup="true" class="has-tip" title="' + extra_text + (' ' if len(extra_text) > 0 else '') + reference.display_name + '"><a href="#reference"><sup>' + str(reference_index) + '</sup></a></span>'
-    return new_i
 
 
 def clean_paragraph(text):
@@ -431,7 +427,21 @@ def clean_paragraph(text):
     else:
         new_omim_text = new_metacyc_text
 
-    return new_omim_text, text
+
+    # Pull references
+    references = []
+    sgdids = set()
+    reference_blocks = new_omim_text.split('<reference:')
+    if len(reference_blocks) > 1:
+        for block in reference_blocks[1:]:
+            end_index = block.find('>')
+            if end_index >= 0:
+                sgdid = block[0:end_index]
+                if sgdid not in sgdids:
+                    references.append({'sgdid': sgdid, 'reference_order': len(references)+1})
+                    sgdids.add(sgdid)
+
+    return new_omim_text, text, references
 
 
 def convert(bud_db, nex_db):

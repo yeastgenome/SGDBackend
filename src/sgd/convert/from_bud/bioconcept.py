@@ -7,6 +7,28 @@ __author__ = 'kpaskov'
 
 #1.23.14 Maitenance (sgd-dev): 1:04
 
+# bioentity_key_to_date = dict()
+#     #Go
+#     for gofeature in bud_session.query(GoFeature).all():
+#         bioentity_key = (gofeature.feature.name, 'LOCUS')
+#         if gofeature.annotation_type == 'manually curated' and bioentity_key not in bioentity_key_to_date:
+#             bioentity_key_to_date[bioentity_key] = gofeature.date_last_reviewed
+#
+#     for bioentity_key, date_last_reviewed in bioentity_key_to_date.iteritems():
+#         if bioentity_key in key_to_bioentity:
+#             yield {
+#                 'bioentity': key_to_bioentity[bioentity_key],
+#                 'source': key_to_source['SGD'],
+#                 'text': str(date_last_reviewed),
+#                 'html': str(date_last_reviewed),
+#                 'date_created': None,
+#                 'created_by': None,
+#                 'category': 'GODATE'
+#             }
+#         else:
+#             #print 'Bioentity not found: ' + str(bioentity_key)
+#             yield None
+
 # --------------------- Convert Observable ---------------------
 def make_observable_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source

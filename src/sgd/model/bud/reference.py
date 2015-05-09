@@ -249,6 +249,11 @@ class RefRelation(Base):
     description = Column('description', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
+
+    #Relationships
+    parent = relationship(Reference, backref=backref("children", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
+    child = relationship(Reference, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
+
     
 class Litguide(Base):
     __tablename__ = 'lit_guide'

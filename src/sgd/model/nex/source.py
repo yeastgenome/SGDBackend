@@ -2,7 +2,7 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
 
 __author__ = 'kelley'
 
