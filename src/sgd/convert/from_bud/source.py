@@ -5,7 +5,7 @@ __author__ = 'kpaskov'
 other_sources = ['SGD', 'GO', 'PROSITE', 'Gene3D', 'SUPERFAMILY', 'TIGRFAM', 'Pfam', 'PRINTS',
                                         'PIRSF', 'JASPAR', 'SMART', 'PANTHER', 'ProDom', 'DOI',
                                         'PubMedCentral', 'PubMed', '-', 'ECO', 'TMHMM', 'SignalP', 'PhosphoGRID',
-                                        'GenBank/EMBL/DDBJ', 'Phobius']
+                                        'GenBank/EMBL/DDBJ', 'Phobius', 'SO']
 
 ok_codes = {('ALIAS', 'ALIAS_TYPE'), ('DBXREF', 'SOURCE'), ('EXPERIMENT', 'SOURCE'), ('FEATURE', 'SOURCE'),
                 ('GO_ANNOTATION', 'SOURCE'), ('HOMOLOG', 'SOURCE'), ('INTERACTION', 'SOURCE'), ('PHENOTYPE', 'SOURCE'),

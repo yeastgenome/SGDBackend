@@ -404,16 +404,12 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         newly_created_object = cls(obj_json, session)
         if parent_obj is not None:
             newly_created_object.locus_id = parent_obj.id
-            if not hasattr(parent_obj, 'url_map'):
-                parent_obj.url_map = dict([((x.display_name, x.placement, x.link), x) for x in parent_obj.urls])
-            current_obj = None if (newly_created_object.display_name, newly_created_object.placement, newly_created_object.link) not in parent_obj.url_map else parent_obj.url_map[(newly_created_object.display_name, newly_created_object.placement, newly_created_object.link)]
 
-        else:
-            current_obj = session.query(cls)\
-                .filter_by(locus_id=newly_created_object.locus_id)\
-                .filter_by(display_name=newly_created_object.display_name)\
-                .filter_by(placement=newly_created_object.placement)\
-                .filter_by(link=newly_created_object.link).first()
+        current_obj = session.query(cls)\
+            .filter_by(locus_id=newly_created_object.locus_id)\
+            .filter_by(display_name=newly_created_object.display_name)\
+            .filter_by(placement=newly_created_object.placement)\
+            .filter_by(link=newly_created_object.link).first()
 
         if current_obj is None:
             return newly_created_object, 'Created'
