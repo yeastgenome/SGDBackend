@@ -628,6 +628,29 @@ def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_referenc
             return evidence_key, conditions
     return None
 
+# bioentity_key_to_date = dict()
+#     #Go
+#     for gofeature in bud_session.query(GoFeature).all():
+#         bioentity_key = (gofeature.feature.name, 'LOCUS')
+#         if gofeature.annotation_type == 'manually curated' and bioentity_key not in bioentity_key_to_date:
+#             bioentity_key_to_date[bioentity_key] = gofeature.date_last_reviewed
+#
+#     for bioentity_key, date_last_reviewed in bioentity_key_to_date.iteritems():
+#         if bioentity_key in key_to_bioentity:
+#             yield {
+#                 'bioentity': key_to_bioentity[bioentity_key],
+#                 'source': key_to_source['SGD'],
+#                 'text': str(date_last_reviewed),
+#                 'html': str(date_last_reviewed),
+#                 'date_created': None,
+#                 'created_by': None,
+#                 'category': 'GODATE'
+#             }
+#         else:
+#             #print 'Bioentity not found: ' + str(bioentity_key)
+#             yield None
+
+
 def make_go_slim_evidence_starter(nex_session_maker):
     from src.sgd.model.nex.misc import Source
     from src.sgd.model.nex.bioentity import Bioentity

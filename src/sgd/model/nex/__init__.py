@@ -141,6 +141,7 @@ class UpdateWithJsonMixin(object):
                                 #We already have this object, and we've done our update so we're all set. Just a little bit of bookkeeping
                                 keys_not_seen.remove(new_fk_obj.unique_key())
                             elif new_fk_obj.unique_key() in key_to_current_value:
+                                print new_fk_json_obj
                                 #We already have this object AND we've already seen it before, so we've been given duplicates - not allowed.
                                 raise Exception('Duplicate foreign key ' + key)
                             else:

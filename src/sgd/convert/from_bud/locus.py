@@ -1,6 +1,7 @@
 from src.sgd.convert import break_up_file
 from sqlalchemy.orm import joinedload
 from src.sgd.convert.from_bud import basic_convert, remove_nones
+from collections import OrderedDict
 
 __author__ = 'kpaskov'
 
@@ -343,9 +344,7 @@ def load_reg_paragraphs():
         pieces = line.split('\t')
         systematic_name = pieces[0]
 
-        references = [int(x) for x in pieces[3].strip().split('|') if x != 'references' and x != '']
-        if len(set(references)) != len(references):
-            print 'Regulation reference repeats.', systematic_name
+        references = list(OrderedDict.fromkeys([int(x) for x in pieces[3].strip().split('|') if x != 'references' and x != '']))
         references = [{'pubmed_id': x, 'reference_order': i+1} for i, x in enumerate(references)]
 
         systematic_name_to_paragraph[systematic_name] = {'text': pieces[2],
@@ -442,7 +441,6 @@ def clean_paragraph(text):
                 if sgdid not in sgdids:
                     references.append({'sgdid': sgdid, 'reference_order': len(references)+1})
                     sgdids.add(sgdid)
-    print references
 
     return new_omim_text, text, references
 

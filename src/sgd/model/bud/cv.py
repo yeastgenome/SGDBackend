@@ -36,7 +36,7 @@ class CVTermRel(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     
     child = relationship(CVTerm, uselist=False, primaryjoin="CVTermRel.child_id==CVTerm.id", backref='parent_rels')
-    parent = relationship(CVTerm, uselist=False, primaryjoin="CVTermRel.parent_id==CVTerm.id")
+    parent = relationship(CVTerm, uselist=False, primaryjoin="CVTermRel.parent_id==CVTerm.id", backref='child_rels')
     
 class CVTermSynonym(Base, EqualityByIDMixin):
     __tablename__ = 'cvterm_synonym'

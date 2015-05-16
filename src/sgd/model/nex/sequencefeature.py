@@ -39,7 +39,7 @@ class Sequencefeature(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin)
 
     @classmethod
     def __create_format_name__(cls, obj_json):
-        return create_format_name(obj_json['display_name'][:100])
+        return obj_json['so_id']
 
 
 class SequencefeatureUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
@@ -62,7 +62,7 @@ class SequencefeatureUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMix
     __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
     def __init__(self, obj_json, session):
