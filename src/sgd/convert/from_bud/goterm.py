@@ -59,7 +59,7 @@ def goterm_starter(bud_session_maker):
 
 
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, goterm_starter, 'goterm', lambda x: x['display_name'])
+    basic_convert(bud_db, nex_db, goterm_starter, 'goterm', lambda x: x['go_id'] if 'display_name' not in x else x['display_name'])
 
 
 if __name__ == '__main__':

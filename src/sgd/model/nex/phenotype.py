@@ -43,11 +43,11 @@ class Phenotype(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     @classmethod
     def __create_format_name__(cls, obj_json):
-        return create_format_name(('' if 'qualifier' not in obj_json else obj_json['qualifier']['display_name'] + '.') + obj_json['observable']['display_name'])
+        return create_format_name(('' if 'qualifier' not in obj_json else obj_json['qualifier']['display_name'] + '.') + obj_json['observable']['display_name'])[:100]
 
     @classmethod
     def __create_display_name__(cls, obj_json):
-        return obj_json['observable']['display_name'] + ('' if 'qualifier' not in obj_json else ': ' + obj_json['qualifier']['display_name'])
+        return (obj_json['observable']['display_name'] + ('' if 'qualifier' not in obj_json else ': ' + obj_json['qualifier']['display_name']))[:500]
 
     @hybrid_property
     def evidences(self):

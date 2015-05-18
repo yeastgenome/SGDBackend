@@ -224,5 +224,5 @@
             }
         }
     },
-    "required": ["go_id", "display_name", "go_aspect"]
+    "required": ["go_id", "go_aspect"]
 }
