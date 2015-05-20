@@ -196,7 +196,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                     'source': key_to_source['SGD'],
                     'text': paragraph_text,
                     'html': paragraph_html,
-                    'date_created': paragraph_feats[0].paragraph.date_created,
+                    'date_created': paragraph_feats[0].paragraph.date_edited,
                     'created_by': paragraph_feats[0].paragraph.created_by,
                     'category': 'LSP'
                 }
