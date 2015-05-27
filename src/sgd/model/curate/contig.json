@@ -1,0 +1,192 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Proteindomain",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "display_name": {
+            "title": "Name",
+            "type": "string"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+        "link": {
+            "title": "Link",
+            "type": "string"
+        },
+        "description": {
+            "title": "Description",
+            "type": "string"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "taxonomy": {
+            "title": "Taxonomy",
+            "$ref": "taxonomy.json"
+        },
+        "reference_chromosome": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "title": "Display Name",
+                    "type": "string"
+                }
+            },
+            "required": ["display_name"]
+        },
+        "genome_release": {
+            "title": "Genome Release",
+            "$ref": "genomerelease.json"
+        },
+        "is_chromosome": {
+            "title": "Chromosome?",
+            "type": "boolean"
+        },
+        "centromere_start": {
+            "title": "Centromere Start",
+            "type": "integer"
+        },
+        "centromere_end": {
+            "title": "Centromere End",
+            "type": "integer"
+        },
+        "genbank_accession": {
+            "title": "Genbank Accession",
+            "type": "string"
+        },
+        "gi_number": {
+            "title": "GI Number",
+            "type": "string"
+        },
+        "refseq_id": {
+            "title": "Refseq ID",
+            "type": "string"
+        },
+        "reference_start": {
+            "title": "Reference Start",
+            "type": "integer"
+        },
+        "reference_end": {
+            "title": "Reference End",
+            "type": "integer"
+        },
+        "reference_percent_identity": {
+            "title": "Reference Percent Identity",
+            "type": "number"
+        },
+        "reference_alignment_length": {
+            "title": "Reference Alignment Length",
+            "type": "integer"
+        },
+        "seq_version": {
+            "title": "Sequence Version",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "coord_version": {
+            "title": "Coordinate Version",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "header": {
+            "title": "Header",
+            "type": "string"
+        },
+        "filename": {
+            "title": "Filename",
+            "type": "string"
+        },
+        "residues": {
+            "title": "Residues",
+            "type": "string"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        },
+        "urls": {
+            "title": "Urls",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
+                    "url_type": {
+                        "title": "Url Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["display_name", "link", "url_type", "source"]
+            }
+        }
+    },
+    "required": ["taxonomy", "is_chromosome", "residues"]
+}

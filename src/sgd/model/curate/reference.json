@@ -1,0 +1,343 @@
+{
+    "title": "Reference",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "display_name": {
+            "title": "Name",
+            "type": "string"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+        "link": {
+            "title": "Link",
+            "type": "string"
+        },
+        "description": {
+            "title": "Description",
+            "type": "string"
+        },
+        "dbentity_status": {
+            "title": "DBentity Status",
+            "type": "string"
+        },
+        "sgdid": {
+            "title": "SGD ID",
+            "type": "string"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "bud_id": {
+            "title": "BUD ID",
+            "type": "integer"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Created By",
+            "type": "string"
+        },
+        "pubmed_id": {
+            "title": "Pubmed ID",
+            "type": "integer"
+        },
+        "pubmed_central_id": {
+            "title": "Pubmed Central ID",
+            "type": "string"
+        },
+        "fulltext_status": {
+            "title": "Fulltext Status",
+            "type": "string"
+        },
+        "citation": {
+            "title": "Citation",
+            "type": "string"
+        },
+        "year": {
+            "title": "Year",
+            "type": "integer"
+        },
+        "date_published": {
+            "title": "Date Published",
+            "type": "string"
+        },
+        "date_revised": {
+            "title": "Date Revised",
+            "type": "string"
+        },
+        "issue": {
+            "title": "Issue",
+            "type": "string"
+        },
+        "page": {
+            "title": "Page",
+            "type": "string"
+        },
+        "volume": {
+            "title": "Volume",
+            "type": "string"
+        },
+        "title": {
+            "title": "Title",
+            "type": "string"
+        },
+        "doi": {
+            "title": "DOI",
+            "type": "string"
+        },
+        "journal": {
+            "title": "Journal",
+            "$ref": "journal.json"
+        },
+        "book": {
+            "title": "Book",
+            "$ref": "book.json"
+        },
+        "urls": {
+            "title": "Urls",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
+                    "url_type": {
+                        "title": "Url Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["display_name", "link", "url_type", "source"]
+            }
+        },
+        "aliases": {
+            "title": "Aliases",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
+                    "alias_type": {
+                        "title": "Alias Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["display_name", "alias_type", "source"]
+            }
+        },
+        "documents": {
+            "title": "Documents",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "text": {
+                        "title": "Text",
+                        "type": "string"
+                    },
+                    "html": {
+                        "title": "HTML",
+                        "type": "string"
+                    },
+                    "document_type": {
+                        "title": "Document Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "references": {
+                        "title": "References",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "title": "ID",
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["text", "document_type", "source"]
+            }
+        },
+        "children": {
+            "title": "Children",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "systematic_name": {
+                        "title": "SGDID",
+                        "type": "sgdid"
+                    },
+                    "relation_type": {
+                        "title": "Relation Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["sgdid"]
+            }
+        },
+        "parents": {
+            "title": "Parents",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "sgdid": {
+                        "title": "SGDID",
+                        "type": "string"
+                    },
+                    "relation_type": {
+                        "title": "Relation Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["sgdid"]
+            }
+        }
+    },
+    "required": ["source", "sgdid", "citation"]
+
+}

@@ -1,0 +1,67 @@
+{
+    "title": "Journal",
+        "type": "object",
+        "properties": {
+            "id": {
+                "title": "ID",
+                "type": "integer"
+            },
+            "display_name": {
+                "title": "Name",
+                "type": "string"
+            },
+            "format_name": {
+                "title": "Format Name",
+                "type": "string"
+            },
+            "link": {
+                "title": "Link",
+                "type": "string"
+            },
+            "description": {
+                "title": "Description",
+                "type": "string"
+            },
+            "source": {
+                "title": "Source",
+                "$ref": "source.json"
+            },
+            "bud_id": {
+                "title": "Bud ID",
+                "type": "integer"
+            },
+            "date_created": {
+                "title": "Date Created",
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "date-time"
+                    },
+                    {
+                        "format": "date"
+                    }
+                ]
+            },
+            "created_by": {
+                "title": "Created By",
+                "type": "string"
+            },
+            "title": {
+                "title": "Title",
+                "type": "string"
+            },
+            "med_abbr": {
+                "title": "Med Abbr",
+                "type": "string"
+            },
+            "issn_print": {
+                "title": "ISSN Print",
+                "type": "string"
+            },
+            "issn_online": {
+                "title": "ISSN Online",
+                "type": "string"
+            }
+        },
+        "required": ["source"]
+}

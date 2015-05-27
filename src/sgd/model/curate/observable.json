@@ -1,0 +1,182 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Observable",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "display_name": {
+            "title": "Name",
+            "type": "string"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+        "link": {
+            "title": "Link",
+            "type": "string"
+        },
+        "description": {
+            "title": "Description",
+            "type": "string"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "apo_id": {
+            "title": "APO ID",
+            "type": "string"
+        },
+        "observable_type": {
+            "title": "Observable Type",
+            "type": "string"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        },
+        "aliases": {
+            "title": "Aliases",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
+                    "alias_type": {
+                        "title": "Alias Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["display_name", "alias_type", "source"]
+            }
+        },
+        "children": {
+            "title": "Children",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "apo_id": {
+                        "title": "APO ID",
+                        "type": "string"
+                    },
+                    "relation_type": {
+                        "title": "Relation Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["apo_id"]
+            }
+        },
+        "parents": {
+            "title": "Parents",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "apo_id": {
+                        "title": "APO ID",
+                        "type": "string"
+                    },
+                    "relation_type": {
+                        "title": "Relation Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["apo_id"]
+            }
+        }
+    },
+    "required": ["display_name"]
+}

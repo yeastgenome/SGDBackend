@@ -1,0 +1,102 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Orphan",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "display_name": {
+            "title": "Name",
+            "type": "string"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+        "link": {
+            "title": "Link",
+            "type": "string"
+        },
+        "description": {
+            "title": "Description",
+            "type": "string"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "orphan_type": {
+            "title": "Orphan Type",
+            "type": "string"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        },
+        "urls": {
+            "title": "Urls",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
+                    "url_type": {
+                        "title": "Url Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["display_name", "link", "url_type", "source"]
+            }
+        }
+    },
+    "required": ["display_name"]
+}
