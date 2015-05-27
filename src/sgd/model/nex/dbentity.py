@@ -29,7 +29,7 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
                      'bud_id', 'sgdid', 'dbentity_status', 'date_created', 'created_by']
-    __eq_fks__ = ['source']
+    __eq_fks__ = [('source', Source, False)]
     __mapper_args__ = {'polymorphic_on': class_type}
     __id_values__ = ['sgdid', 'format_name', 'id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
@@ -39,6 +39,10 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     def unique_key(self):
         return self.format_name, self.class_type
+
+    @classmethod
+    def __create_display_name__(cls, obj_json):
+        return obj_json['sgdid'] if 'display_name' not in obj_json else obj_json['display_name']
 
     @classmethod
     def __create_link__(cls, obj_json):

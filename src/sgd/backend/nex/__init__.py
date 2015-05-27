@@ -93,6 +93,7 @@ class SGDBackend(BackendInterface):
         obj = None
         query = DBSession.query(cls)
         for id_value in cls.__id_values__:
+            print id_value
             if id_value == 'id':
                 if int_identifier is not None:
                     obj = query.filter(getattr(cls, id_value) == int_identifier).first()
@@ -101,6 +102,14 @@ class SGDBackend(BackendInterface):
             if obj is not None:
                 return obj
         return None
+
+    def _get_object_from_json(self, cls, obj_json):
+        obj, status = cls.create_or_find(obj_json, DBSession)
+        if status == 'Found':
+            return obj
+        else:
+            print obj_json
+            return None
 
     def get_all_objects(self, class_name, limit, offset):
         #Get class

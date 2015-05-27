@@ -54,8 +54,32 @@ class Feat_Location(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
 
     sequence = relationship(Sequence, uselist=False, primaryjoin="Feat_Location.sequence_id==Sequence.id")
-    feature = relationship(Feature, uselist=False)
-    
+    feature = relationship(Feature, uselist=False, backref='feat_locations')
+
+class Release(Base, EqualityByIDMixin):
+    __tablename__ = 'release'
+
+    id = Column('release_no', Integer, primary_key=True)
+    organism_id = Column('organism_no', Integer)
+    genome_release = Column('genome_release', String)
+    sequence_release = Column('sequence_release', Float)
+    annotation_release = Column('annotation_release', Float)
+    curation_release = Column('curation_release', Float)
+    filename = Column('tarball_file', String)
+    release_date = Column('release_date', Date)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+
+class FeatLocation_Rel(Base, EqualityByIDMixin):
+    __tablename__ = 'featloc_rel'
+
+    id = Column('featloc_rel_no', Integer, primary_key=True)
+    feature_location_id = Column('feat_location_no', Integer, ForeignKey(Feat_Location.id))
+    release_id = Column('release_no', Integer, ForeignKey(Release.id))
+
+    feature_location = relationship(Feat_Location, uselist=False, backref='featlocation_rels')
+    release = relationship(Release, uselist=False)
+
 class ProteinInfo(Base, EqualityByIDMixin):
     __tablename__ = 'protein_info'
     

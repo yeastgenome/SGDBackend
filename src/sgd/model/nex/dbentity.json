@@ -51,5 +51,5 @@
             "type": "string"
         }
     },
-    "required": ["source", "sgdid", "dbentity_status"]
+    "required": ["sgdid"]
 }

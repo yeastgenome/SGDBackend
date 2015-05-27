@@ -21,6 +21,7 @@ def basic_convert(bud_db, nex_db, starter, class_name, key_f):
     warnings_count = 0
     for obj_json in starter(bud_session_maker):
         key = key_f(obj_json)
+        print key
         if key in already_seen:
             status = 'Duplicate'
         else:

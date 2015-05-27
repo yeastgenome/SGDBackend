@@ -1,0 +1,112 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "DNA Sequence Annotation",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "dbentity": {
+            "title": "DBentity",
+            "$ref": "dbentity.json"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "reference": {
+            "title": "Reference",
+            "$ref": "reference.json"
+        },
+        "taxonomy": {
+            "title": "Taxonomy",
+            "$ref": "taxonomy.json"
+        },
+        "contig": {
+            "title": "Contig",
+            "$ref": "contig.json"
+        },
+        "genomerelease": {
+            "title": "Genomerelease",
+            "$ref": "genomerelease.json"
+        },
+        "dna_type": {
+            "title": "DNA Type",
+            "type": "string"
+        },
+        "residues": {
+            "title": "Residues",
+            "type": "string"
+        },
+        "seq_version": {
+            "title": "Sequence Version",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "coord_version": {
+            "title": "Coordinate Version",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "start_index": {
+            "title": "Start Index",
+            "type": "integer"
+        },
+        "end_index": {
+            "title": "End Index",
+            "type": "integer"
+        },
+        "strand": {
+            "title": "Strand",
+            "type": "string"
+        },
+        "header": {
+            "title": "Header",
+            "type": "string"
+        },
+        "filename": {
+            "title": "Filename",
+            "type": "string"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Created By",
+            "type": "string"
+        }
+    },
+    "required": ["dbentity", "source", "dna_type", "residues"]
+}

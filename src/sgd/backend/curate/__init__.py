@@ -94,15 +94,25 @@ class CurateBackend(SGDBackend):
                 else:
                     raise Exception('A ' + class_name + ' like this already exists <a href="/' + class_name.lower() + "/" + str(new_obj.id) + '/edit"> here</a>.')
             elif status == 'Created':
-                format_name = new_obj.format_name
-                DBSession.add(new_obj)
-                transaction.commit()
-                newly_created_obj = self._get_object_from_identifier(cls, format_name)
-                return json.dumps({'status': 'Added',
-                        'message': None,
-                        'json': newly_created_obj.to_json(),
-                        'id': newly_created_obj.id,
-                        'warnings': []})
+                if hasattr(new_obj, 'format_name'):
+                    format_name = new_obj.format_name
+                    DBSession.add(new_obj)
+                    transaction.commit()
+                    newly_created_obj = self._get_object_from_identifier(cls, format_name)
+                    return json.dumps({'status': 'Added',
+                            'message': None,
+                            'json': newly_created_obj.to_json(),
+                            'id': newly_created_obj.id,
+                            'warnings': []})
+                else:
+                    DBSession.add(new_obj)
+                    transaction.commit()
+                    newly_created_obj = self._get_object_from_json(cls, new_json_obj)
+                    return json.dumps({'status': 'Added',
+                            'message': None,
+                            'json': newly_created_obj.to_json(),
+                            'id': newly_created_obj.id,
+                            'warnings': []})
             else:
                 raise Exception('Neither found nor created.')
 

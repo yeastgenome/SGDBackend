@@ -33,6 +33,10 @@ class Source(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
         else:
             return obj_json['display_name']
 
+    @classmethod
+    def __create_link__(cls, obj_json):
+        return None
+
 to_change = {
     'Colleague submission': 'Colleague',
     'Curator': 'SGD',

@@ -50,7 +50,7 @@ def load_urls(obj_json):
         urls.append({'display_name': obj_json['interpro_id'],
                      'link': 'http://www.ebi.ac.uk/interpro/entry/' + obj_json['interpro_id'],
                      'source': {'display_name': 'InterPro'},
-                     'category': 'Interpro'})
+                     'url_type': 'Interpro'})
     return urls
 
 def proteindomain_starter(bud_session_maker):
@@ -73,10 +73,9 @@ def proteindomain_starter(bud_session_maker):
             source = '-'
 
         display_name = row[4].strip()
-        descriptions = []
-        descriptions.append(row[5].strip())
+        descriptions = [row[5].strip()]
         interpro_id = None
-        if len(row) == 13:
+        if len(row) >= 13:
             interpro_id = row[11].strip()
             descriptions.append(row[12].strip())
 
@@ -122,9 +121,9 @@ def proteindomain_starter(bud_session_maker):
         if source == 'PANTHER' and display_name in panther_id_to_description:
             description += ('; ' + panther_id_to_description[description])
 
-        obj_json = {'display_name': bud_obj.display_name,
-               'source': {'display_name': source},
-               'description': description}
+        obj_json = remove_nones({'display_name': bud_obj.dbxref_id,
+                                 'source': {'display_name': source},
+                                 'description': description})
         obj_json['urls'] = load_urls(obj_json)
         yield obj_json
 

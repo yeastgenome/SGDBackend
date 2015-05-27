@@ -215,14 +215,11 @@ class ToJsonMixin(object):
     def to_json(self):
         obj_json = {}
         for key in self.__eq_values__:
-            if key == 'json':
-                pass
+            value = getattr(self, key)
+            if value is not None and isinstance(value, datetime.date):
+                obj_json[key] = str(value)
             else:
-                value = getattr(self, key)
-                if value is not None and isinstance(value, datetime.date):
-                    obj_json[key] = str(value)
-                else:
-                    obj_json[key] = value
+                obj_json[key] = value
 
         for key, cls, allow_updates in self.__eq_fks__:
             fk_obj = getattr(self, key)
