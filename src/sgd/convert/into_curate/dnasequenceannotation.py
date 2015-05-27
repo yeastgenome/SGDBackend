@@ -1,7 +1,7 @@
-from src.sgd.convert.from_bud import basic_convert, remove_nones
+from decimal import Decimal
+from src.sgd.convert.into_curate import basic_convert
+from src.sgd.convert.into_curate.locus import non_locus_feature_types
 from sqlalchemy.orm import joinedload
-from sqlalchemy.sql.expression import or_
-from src.sgd.convert.from_bud.locus import non_locus_feature_types
 
 __author__ = 'kpaskov'
 

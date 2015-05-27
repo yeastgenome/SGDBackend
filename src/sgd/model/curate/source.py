@@ -2,14 +2,14 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
 
 __author__ = 'kelley'
 
 class Source(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'source'
 
-    id = Column('source_id', Integer, primary_key = True)
+    id = Column('source_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     link = Column('obj_url', String)

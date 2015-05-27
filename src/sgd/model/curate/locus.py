@@ -3,10 +3,10 @@ from sqlalchemy.types import Integer, String, Date, Boolean, CLOB
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin
-from src.sgd.model.nex.dbentity import Dbentity
-from src.sgd.model.nex.reference import Reference
-from src.sgd.model.nex.source import Source
+from src.sgd.model.curate import Base, UpdateWithJsonMixin, ToJsonMixin
+from src.sgd.model.curate.dbentity import Dbentity
+from src.sgd.model.curate.reference import Reference
+from src.sgd.model.curate.source import Source
 
 __author__ = 'kelley'
 

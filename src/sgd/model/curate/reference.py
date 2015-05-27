@@ -4,13 +4,13 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date, CLOB
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
-from src.sgd.model.nex.dbentity import Dbentity
-from src.sgd.model.nex.source import Source
-from src.sgd.model.nex.journal import Journal
-from src.sgd.model.nex.book import Book
-from src.sgd.model.nex.reftype import Reftype
-from src.sgd.model.nex.author import Author
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
+from src.sgd.model.curate.dbentity import Dbentity
+from src.sgd.model.curate.source import Source
+from src.sgd.model.curate.journal import Journal
+from src.sgd.model.curate.book import Book
+from src.sgd.model.curate.reftype import Reftype
+from src.sgd.model.curate.author import Author
 __author__ = 'kpaskov'
 
 class Reference(Dbentity):
@@ -85,7 +85,7 @@ class Reference(Dbentity):
         obj_json['urls'] = [x.to_json() for x in self.urls]
         return obj_json
 
-    def to_full_json(self):
+    def to_json(self):
         obj_json = self.to_json()
         obj_json['abstract'] = None if len(self.paragraphs) == 0 else self.paragraphs[0].to_json(linkit=True)
         obj_json['bibentry'] = None if self.bibentry is None else self.bibentry.text
@@ -147,7 +147,7 @@ class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type',
                      'date_created', 'created_by']
-    __eq_fks__ = [('source', Source, False), ('reference', Reference, False)]
+    __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
 
@@ -175,6 +175,11 @@ class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
+
+    def to_json(self):
+        obj_json = ToJsonMixin.to_json(self)
+        obj_json['category'] = obj_json['url_type']
+        return obj_json
 
 class ReferenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'reference_alias'

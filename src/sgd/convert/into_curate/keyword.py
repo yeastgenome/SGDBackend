@@ -1,5 +1,4 @@
-from src.sgd.convert.transformers import make_file_starter
-from src.sgd.convert.from_bud import basic_convert, remove_nones
+from src.sgd.convert.into_curate import basic_convert, remove_nones
 
 __author__ = 'kpaskov'
 
@@ -80,7 +79,9 @@ keyword_mapping = {
 
 
 def keyword_starter(bud_session_maker):
-    for row in make_file_starter('src/sgd/convert/data/microarray_05_14/pmid_filename_gse_conds_tags_file_20150416_forNex.txt')():
+    f = open('src/sgd/convert/data/microarray_05_14/pmid_filename_gse_conds_tags_file_20150416_forNex.txt', 'r')
+    for line in f:
+        row = line.split('\t')
         tag = row[6].strip()
         for t in [x.strip() for x in tag.split('|')]:
             yield remove_nones({
@@ -88,6 +89,7 @@ def keyword_starter(bud_session_maker):
                 'description': definitions.get(t),
                 'source': {'display_name': 'SGD'}
             })
+    f.close()
 
     from src.sgd.model.bud.colleague import Keyword
     bud_session = bud_session_maker()

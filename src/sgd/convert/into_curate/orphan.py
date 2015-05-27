@@ -1,5 +1,4 @@
-from src.sgd.convert.from_bud import basic_convert, remove_nones
-from sqlalchemy.orm import joinedload
+from src.sgd.convert.into_curate import basic_convert, remove_nones
 
 __author__ = 'kpaskov'
 

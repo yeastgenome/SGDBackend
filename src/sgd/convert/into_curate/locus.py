@@ -1,7 +1,6 @@
-from src.sgd.convert import break_up_file
-from sqlalchemy.orm import joinedload
-from src.sgd.convert.from_bud import basic_convert, remove_nones
+from src.sgd.convert.into_curate import basic_convert, remove_nones
 from collections import OrderedDict
+from sqlalchemy.orm import joinedload
 
 __author__ = 'kpaskov'
 
@@ -261,9 +260,12 @@ def locus_starter(bud_session_maker):
 
     #Load uniprot ids
     sgdid_to_uniprotid = {}
-    for line in break_up_file('src/sgd/convert/data/YEAST_559292_idmapping.dat'):
-        if line[1].strip() == 'SGD':
-            sgdid_to_uniprotid[line[2].strip()] = line[0].strip()
+    f = open('src/sgd/convert/data/YEAST_559292_idmapping.dat', 'r')
+    for line in f:
+        pieces = line.split('\t')
+        if pieces[1].strip() == 'SGD':
+            sgdid_to_uniprotid[pieces[2].strip()] = pieces[0].strip()
+    f.close()
 
     #Load paragraphs
     sgdid_to_go_paragraph = load_go_paragraphs()

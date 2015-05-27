@@ -1,16 +1,15 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.types import Integer, String, Date, CLOB
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
-from src.sgd.model.nex.contig import Contig
-from src.sgd.model.nex.dbentity import Dbentity
-from src.sgd.model.nex.genomerelease import Genomerelease
-from src.sgd.model.nex.locus import Locus
-from src.sgd.model.nex.source import Source
-from src.sgd.model.nex.taxonomy import Taxonomy
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.curate.contig import Contig
+from src.sgd.model.curate.dbentity import Dbentity
+from src.sgd.model.curate.genomerelease import Genomerelease
+from src.sgd.model.curate.locus import Locus
+from src.sgd.model.curate.source import Source
+from src.sgd.model.curate.taxonomy import Taxonomy
 
 __author__ = 'kelley'
 

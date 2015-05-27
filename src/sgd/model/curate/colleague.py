@@ -4,10 +4,10 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin, create_format_name
-from src.sgd.model.nex.keyword import Keyword
-from src.sgd.model.nex.source import Source
-from src.sgd.model.nex.locus import Locus
+from src.sgd.model.curate import Base, UpdateWithJsonMixin, ToJsonMixin, create_format_name
+from src.sgd.model.curate.keyword import Keyword
+from src.sgd.model.curate.source import Source
+from src.sgd.model.curate.locus import Locus
 
 __author__ = 'kelley'
 

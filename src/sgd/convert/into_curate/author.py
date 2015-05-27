@@ -1,6 +1,6 @@
 __author__ = 'kpaskov'
 import json
-from src.sgd.convert.transformers import make_file_starter
+
 
 def author_starter(bud_session_maker):
     from src.sgd.model.bud.reference import Author
@@ -16,6 +16,7 @@ def author_starter(bud_session_maker):
         print old_author.name
 
     bud_session.close()
+
 
 def convert(bud_db, nex_db):
     from src.sgd.backend.curate import CurateBackend

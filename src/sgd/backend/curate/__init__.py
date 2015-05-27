@@ -16,18 +16,16 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 from jsonschema import Draft4Validator
 
-from src.sgd.backend.backend_interface import BackendInterface
 from src.sgd.backend.nex import set_up_logging
 from src.sgd.model import curate
-from src.sgd.model.schema_utils import load_schema
-
+from src.sgd.model.curate.schema_utils import load_schema
 
 __author__ = 'kpaskov'
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 query_limit = 25000
 
-class CurateBackend(BackendInterface):
+class CurateBackend():
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
 
         class Base(object):
@@ -49,7 +47,7 @@ class CurateBackend(BackendInterface):
                 self.classes[module] = curate.get_class_from_string(module + '.' + module.title().replace('_', ''))
                 self.schemas[module] = load_schema(module + '.json')
 
-        self.log = set_up_logging(log_directory, 'nex')
+        self.log = set_up_logging(log_directory, 'curate')
 
     def response_wrapper(self, method_name, request):
         request_id = str(uuid.uuid4())
@@ -97,7 +95,6 @@ class CurateBackend(BackendInterface):
         obj = None
         query = DBSession.query(cls)
         for id_value in cls.__id_values__:
-            print id_value
             if id_value == 'id':
                 if int_identifier is not None:
                     obj = query.filter(getattr(cls, id_value) == int_identifier).first()
@@ -115,14 +112,25 @@ class CurateBackend(BackendInterface):
             print obj_json
             return None
 
-    def get_all_objects(self, class_name, limit, offset):
+    def get_all_objects(self, class_name, limit, offset, size):
         #Get class
         if class_name in self.classes:
             cls = self.classes[class_name]
         else:
             return None
 
-        return json.dumps([(obj.id, obj.display_name) for obj in DBSession.query(cls).limit(limit).offset(offset).all()])
+        query = DBSession.query(cls).limit(limit).offset(offset)
+
+        if size == 'mini':
+            json_extract_f = lambda obj: (obj.id, obj.display_name, obj.format_name)
+        elif size == 'small':
+            json_extract_f = lambda obj: obj.to_min_json()
+        elif size == 'medium':
+            json_extract_f = lambda obj: obj.to_semi_json()
+        elif size == 'large':
+            json_extract_f = lambda obj: obj.to_json()
+
+        return json.dumps([json_extract_f(obj) for obj in query.all()])
 
     def update_object(self, class_name, identifier, new_json_obj):
         try:

@@ -1,4 +1,4 @@
-from src.sgd.convert.from_bud import basic_convert
+from src.sgd.convert.into_curate import basic_convert
 
 __author__ = 'kpaskov'
 

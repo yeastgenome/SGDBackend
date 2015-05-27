@@ -1,10 +1,10 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
-from src.sgd.model.nex.source import Source
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.curate.source import Source
 
 __author__ = 'kelley'
 
@@ -33,6 +33,6 @@ class Author(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     def to_json(self):
         obj_json = ToJsonMixin.to_json(self)
-        #references = set([x.reference for x in self.author_references])
-        #obj_json['references'] = [x.to_semi_json() for x in sorted(references, key=lambda x: (x.year, x.date_published), reverse=True)]
+        references = set([x.reference for x in self.reference_authors])
+        obj_json['references'] = [x.to_semi_json() for x in sorted(references, key=lambda x: (x.year, x.date_published), reverse=True)]
         return obj_json
