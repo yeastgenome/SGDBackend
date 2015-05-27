@@ -21,6 +21,7 @@ class Paragraph(Base, EqualityByIDMixin, UpdateByJsonMixin):
     category = Column('category', String)
     text = Column('text', CLOB)
     html = Column('html', CLOB)
+    date_edited = Column('date_edited', Date, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
     display_name = None
@@ -30,7 +31,7 @@ class Paragraph(Base, EqualityByIDMixin, UpdateByJsonMixin):
     source = relationship(Source, uselist=False, lazy='joined')
 
     __mapper_args__ = {'polymorphic_on': class_type}
-    __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by', 'date_edited']
     __eq_fks__ = ['source']
 
     def unique_key(self):
