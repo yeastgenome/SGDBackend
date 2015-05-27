@@ -37,6 +37,7 @@ class Strain(Dbentity):
                   ('documents', 'strain.StrainDocument', True)]
     __id_values__ = ['id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['strain_type']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -69,6 +70,7 @@ class StrainUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
                   ('strain', Strain, False)]
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -119,6 +121,7 @@ class StrainDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
                   ('references', 'strain.StrainDocumentReference', False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -167,6 +170,7 @@ class StrainDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJs
                   ('reference', Reference, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, document, reference, reference_order):
         self.reference_order = reference_order

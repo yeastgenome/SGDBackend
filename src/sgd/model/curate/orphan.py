@@ -31,6 +31,7 @@ class Orphan(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('urls', 'orphan.OrphanUrl', True)]
     __id_values__ = ['id', 'display_name', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['orphan_type']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -57,6 +58,7 @@ class OrphanUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False), ('orphan', Orphan, False)]
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)

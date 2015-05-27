@@ -33,6 +33,7 @@ class Experiment(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('children', 'experiment.ExperimentRelation', True)]
     __id_values__ = ['id', 'format_name', 'apo_id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['experiment_type']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -63,6 +64,7 @@ class ExperimentAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin)
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -112,6 +114,7 @@ class ExperimentRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMix
                   ('child', Experiment, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, parent, child, relation_type):
         self.relation_type = relation_type

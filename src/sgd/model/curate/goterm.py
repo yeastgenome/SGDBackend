@@ -34,6 +34,7 @@ class Goterm(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('children', 'goterm.GotermRelation', True)]
     __id_values__ = ['id', 'format_name', 'go_id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['go_aspect']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -68,6 +69,7 @@ class GotermUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -116,6 +118,7 @@ class GotermAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -165,6 +168,7 @@ class GotermRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
                   ('child', Goterm, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, parent, child, relation_type):
         self.relation_type = relation_type

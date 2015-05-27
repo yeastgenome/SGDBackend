@@ -35,6 +35,7 @@ class Book(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name', 'id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['volume_title', 'publisher']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)

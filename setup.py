@@ -50,5 +50,6 @@ setup(name='SGDBackend',
       [paste.app_factory]
       sgdbackend = src:nexbackend
       perfbackend = src:perfbackend
+      curatebackend = src:curatebackend
       """,
       )

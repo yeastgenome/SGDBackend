@@ -9,3 +9,7 @@ def nexbackend(global_config, **configs):
 def perfbackend(global_config, **configs):
     config = prepare_backend('perf')
     return config.make_wsgi_app()
+
+def curatebackend(global_config, **configs):
+    config = prepare_backend('curate')
+    return config.make_wsgi_app()

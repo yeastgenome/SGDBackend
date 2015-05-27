@@ -54,6 +54,7 @@ class Dnasequenceannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJson
                   ('extensions', 'dnasequenceannotation.Dnasequenceannotation_extension', True)]
     __id_values__ = ['id', 'format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = ['taxonomy_id', 'dbentity_id', 'dna_type', 'seq_version', 'coord_version', 'strand', 'genomerelease_id', 'contig_id']
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -113,6 +114,7 @@ class Dnasequenceannotation_extension(Base, EqualityByIDMixin, UpdateWithJsonMix
                   ('genomerelease', Genomerelease, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)

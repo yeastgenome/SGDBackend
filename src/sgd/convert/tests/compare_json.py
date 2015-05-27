@@ -10,7 +10,7 @@ def compare_json_objects(obj_json1, obj_json2, verbose=False):
     are_equal = True
     if isinstance(obj_json1, dict) and isinstance(obj_json2, dict):
         for key1, value1 in obj_json1.iteritems():
-            if key1 not in set(['id', 'link']):
+            if key1 not in set(['id', 'link', 'format_name']):
                 if key1 not in obj_json2:
                     if verbose:
                         print 'Missing: ', key1

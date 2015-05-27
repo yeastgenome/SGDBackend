@@ -43,6 +43,7 @@ class AuthorResponse(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['has_novel_research', 'has_large_scale_data', 'no_action_required', 'is_fast_tracked', 'curator_checked_datasets', 'curator_checked_genelist']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)

@@ -57,6 +57,7 @@ class Reference(Dbentity):
                   ('documents', 'reference.ReferenceDocument', True)]
     __id_values__ = ['id', 'sgdid', 'pubmed_id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['fulltext_status', 'method_obtained', 'journal_id', 'book_id']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -150,6 +151,7 @@ class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -203,6 +205,7 @@ class ReferenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False), ('reference', Reference, False)]
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -252,6 +255,7 @@ class ReferenceRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
                   ('child', Reference, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, parent, child, relation_type):
         self.parent = parent
@@ -309,6 +313,7 @@ class ReferenceReftype(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
     __eq_fks__ = [('source', Source, False), ('reference', Reference, False), ('reftype', Reftype, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, reference, reftype):
         self.reftype = reftype
@@ -360,6 +365,7 @@ class ReferenceAuthor(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin)
     __eq_fks__ = [('source', Source, False), ('reference', Reference, False), ('author', Author, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, reference, author, author_order, author_type):
         self.author_order = author_order
@@ -416,6 +422,7 @@ class ReferenceDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
                   ('reference', Reference, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)

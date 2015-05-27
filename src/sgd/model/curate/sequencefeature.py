@@ -33,6 +33,7 @@ class Sequencefeature(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin)
                   ('children', 'sequencefeature.SequencefeatureRelation', True)]
     __id_values__ = ['id', 'format_name', 'so_id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -64,6 +65,7 @@ class SequencefeatureUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMix
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -112,6 +114,7 @@ class SequencefeatureAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonM
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -161,6 +164,7 @@ class SequencefeatureRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJs
                   ('child', Sequencefeature, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, parent, child, relation_type):
         self.parent = parent

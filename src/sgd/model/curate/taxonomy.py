@@ -33,6 +33,7 @@ class Taxonomy(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('children', 'taxonomy.TaxonomyRelation', True)]
     __id_values__ = ['id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['rank']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -59,6 +60,7 @@ class TaxonomyAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -108,6 +110,7 @@ class TaxonomyRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
                   ('child', Taxonomy, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, parent, child, relation_type):
         self.parent = parent

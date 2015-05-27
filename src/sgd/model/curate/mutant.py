@@ -32,6 +32,7 @@ class Mutant(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('children', 'mutant.MutantRelation', True)]
     __id_values__ = ['id', 'format_name', 'apo_id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -62,6 +63,7 @@ class MutantAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -111,6 +113,7 @@ class MutantRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
                   ('child', Mutant, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, parent, child, relation_type):
         self.relation_type = relation_type

@@ -112,14 +112,37 @@ class CurateBackend():
             print obj_json
             return None
 
-    def get_all_objects(self, class_name, limit, offset, size):
+    def get_all_objects(self, class_name, filter_options):
+        '''
+        Get all objects of a particular type, with limit, offset, and size. Size refers to the amount of information
+        returned for each object.
+        '''
         #Get class
         if class_name in self.classes:
             cls = self.classes[class_name]
         else:
             return None
 
-        query = DBSession.query(cls).limit(limit).offset(offset)
+        query = DBSession.query(cls)
+
+        limit = None
+        offset = None
+        size = 'small'
+
+        for key, value in filter_options.items():
+            if key == 'limit':
+                limit = value
+            elif key == 'offset':
+                offset = value
+            elif key == 'size':
+                size = value
+            elif key in cls.__filter_values__:
+                query = query.filter(getattr(cls, key) == value)
+
+        if limit is not None:
+            query = query.limit(limit)
+        if offset is not None:
+            query = query.offset(offset)
 
         if size == 'mini':
             json_extract_f = lambda obj: (obj.id, obj.display_name, obj.format_name)
@@ -133,6 +156,9 @@ class CurateBackend():
         return json.dumps([json_extract_f(obj) for obj in query.all()])
 
     def update_object(self, class_name, identifier, new_json_obj):
+        '''
+        Updates a single object of a particular class.
+        '''
         try:
             if class_name in self.schemas:
                 schema = self.schemas[class_name]
@@ -185,56 +211,64 @@ class CurateBackend():
                             })
 
     def add_object(self, class_name, new_json_obj, update_ok=False):
-        try:
-            #Validate json
-            if class_name in self.schemas:
-                schema = self.schemas[class_name]
-                Draft4Validator(schema).validate(new_json_obj)
-            else:
-                raise Exception('Schema not found: ' + class_name)
-
-            #Get class
-            cls = self._get_class_from_class_name(class_name)
-            if cls is None:
-                raise Exception('Class not found: ' + class_name)
-
-            #Get object if one already exists
-            new_obj, status = cls.create_or_find(new_json_obj, DBSession)
-
-            if status == 'Found':
-                if update_ok:
-                    return self.update_object(class_name, new_obj.id, new_json_obj)
+        '''
+        Can add a single object or a list of objects of a particular class. If update_ok is set to true, then
+        if the object is already in the database, this method updates the object with any new information. If
+        update_ok is set to false, thn an exception is raised if the object is already in the database.
+        '''
+        if isinstance(list, new_json_obj):
+            return json.dumps([json.loads(self.add_object(class_name, x, update_ok=update_ok)) for x in new_json_obj])
+        else:
+            try:
+                #Validate json
+                if class_name in self.schemas:
+                    schema = self.schemas[class_name]
+                    Draft4Validator(schema).validate(new_json_obj)
                 else:
-                    raise Exception('A ' + class_name + ' like this already exists <a href="/' + class_name.lower() + "/" + str(new_obj.id) + '/edit"> here</a>.')
-            elif status == 'Created':
-                if hasattr(new_obj, 'format_name'):
-                    format_name = new_obj.format_name
-                    DBSession.add(new_obj)
-                    transaction.commit()
-                    newly_created_obj = self._get_object_from_identifier(cls, format_name)
-                    return json.dumps({'status': 'Added',
-                            'message': None,
-                            'json': newly_created_obj.to_json(),
-                            'id': newly_created_obj.id,
-                            'warnings': []})
-                else:
-                    DBSession.add(new_obj)
-                    transaction.commit()
-                    newly_created_obj = self._get_object_from_json(cls, new_json_obj)
-                    return json.dumps({'status': 'Added',
-                            'message': None,
-                            'json': newly_created_obj.to_json(),
-                            'id': newly_created_obj.id,
-                            'warnings': []})
-            else:
-                raise Exception('Neither found nor created.')
+                    raise Exception('Schema not found: ' + class_name)
 
-        except Exception as e:
-            print traceback.format_exc()
-            return json.dumps({'status': 'Error',
-                            'message': e.message,
-                            'traceback': traceback.format_exc(),
-                            'json': str(new_json_obj),
-                            'id': None,
-                            'warnings': []
-                            })
+                #Get class
+                cls = self._get_class_from_class_name(class_name)
+                if cls is None:
+                    raise Exception('Class not found: ' + class_name)
+
+                #Get object if one already exists
+                new_obj, status = cls.create_or_find(new_json_obj, DBSession)
+
+                if status == 'Found':
+                    if update_ok:
+                        return self.update_object(class_name, new_obj.id, new_json_obj)
+                    else:
+                        raise Exception('A ' + class_name + ' like this already exists <a href="/' + class_name.lower() + "/" + str(new_obj.id) + '/edit"> here</a>.')
+                elif status == 'Created':
+                    if hasattr(new_obj, 'format_name'):
+                        format_name = new_obj.format_name
+                        DBSession.add(new_obj)
+                        transaction.commit()
+                        newly_created_obj = self._get_object_from_identifier(cls, format_name)
+                        return json.dumps({'status': 'Added',
+                                'message': None,
+                                'json': newly_created_obj.to_json(),
+                                'id': newly_created_obj.id,
+                                'warnings': []})
+                    else:
+                        DBSession.add(new_obj)
+                        transaction.commit()
+                        newly_created_obj = self._get_object_from_json(cls, new_json_obj)
+                        return json.dumps({'status': 'Added',
+                                'message': None,
+                                'json': newly_created_obj.to_json(),
+                                'id': newly_created_obj.id,
+                                'warnings': []})
+                else:
+                    raise Exception('Neither found nor created.')
+
+            except Exception as e:
+                print traceback.format_exc()
+                return json.dumps({'status': 'Error',
+                                'message': e.message,
+                                'traceback': traceback.format_exc(),
+                                'json': str(new_json_obj),
+                                'id': None,
+                                'warnings': []
+                                })

@@ -54,6 +54,7 @@ class Contig(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('reference_chromosome', 'contig.Contig', False)]
     __id_values__ = ['id', 'display_name', 'genbank_accession', 'gi_number', 'refseq_id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['reference_chromosome_id', 'seq_version', 'coord_version', 'taxonomy_id']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
