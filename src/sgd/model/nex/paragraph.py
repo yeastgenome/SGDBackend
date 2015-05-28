@@ -75,7 +75,7 @@ class Bioentityparagraph(Paragraph):
     bioentity = relationship(Bioentity, uselist=False, backref=backref('paragraphs', passive_deletes=True))
 
     __mapper_args__ = {'polymorphic_identity': "BIOENTITY", 'inherit_condition': id==Paragraph.id}
-    __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'class_type', 'format_name', 'category', 'text', 'html', 'date_created', 'created_by', 'date_edited']
     __eq_fks__ = ['source', 'bioentity']
 
     def __init__(self, obj_json):
