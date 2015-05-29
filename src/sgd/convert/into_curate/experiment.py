@@ -46,7 +46,6 @@ def experiment_starter(bud_session_maker):
     for term in terms:
         if term['namespace'] == 'experiment_type':
             apo_id = term['apo_id']
-            print apo_id
             term['children'] = [] if apo_id not in parent_to_children else parent_to_children[apo_id]
 
             if term['display_name'] in large_scale_survey:

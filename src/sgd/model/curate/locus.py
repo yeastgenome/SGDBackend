@@ -35,6 +35,7 @@ class Locus(Dbentity):
     has_sequence_section = Column('has_sequence_section', Boolean)
 
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Dbentity.id}
+
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
                      'bud_id', 'sgdid', 'dbentity_status', 'date_created', 'created_by',
                      'systematic_name',

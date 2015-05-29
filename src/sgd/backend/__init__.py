@@ -13,28 +13,34 @@ def prep_views(chosen_backend, config):
                     renderer='string', route_name='all_classes')
 
     #Get schema
-    config.add_route('schema', '/schema/{class_type}')
+    config.add_route('schema', '/profiles/{class_type}.json', request_method="GET")
     config.add_view(lambda request: chosen_backend.response_wrapper('schema', request)(chosen_backend.schema(request.matchdict['class_type'])),
                 renderer='string', route_name='schema')
 
     #Add object
-    config.add_route('add', '/{class_type}/add', request_method="POST")
+    config.add_route('add', '/{class_type}', request_method="POST")
     config.add_view(lambda request: chosen_backend.response_wrapper('add', request)(chosen_backend.add_object(request.matchdict['class_type'], request.json_body)),
                 renderer='string', route_name='add')
+
     #Get object
-    config.add_route('get', '/{class_type}/{identifier}')
+    config.add_route('get', '/{class_type}/{identifier}', request_method="GET")
     config.add_view(lambda request: chosen_backend.response_wrapper('get', request)(chosen_backend.get_object(request.matchdict['class_type'], request.matchdict['identifier'])),
                 renderer='string', route_name='get')
 
-    #Get all objects
-    config.add_route('get_all', '/{class_type}')
-    config.add_view(lambda request: chosen_backend.response_wrapper('get_all', request)(chosen_backend.get_all_objects(request.matchdict['class_type'], request.params)),
-                renderer='string', route_name='get_all')
-
     #Update object
-    config.add_route('update', '/{class_type}/{identifier}/update', request_method="POST")
+    config.add_route('update', '/{class_type}/{identifier}', request_method="PATCH")
     config.add_view(lambda request: chosen_backend.response_wrapper('update', request)(chosen_backend.update_object(request.matchdict['class_type'], request.matchdict['identifier'], request.json_body)),
                 renderer='string', route_name='update')
+
+    #Delete object
+    config.add_route('delete', '/{class_type}/{identifier}', request_method="DELETE")
+    config.add_view(lambda request: chosen_backend.response_wrapper('delete', request)(chosen_backend.delete_object(request.matchdict['class_type'], request.matchdict['identifier'])),
+                renderer='string', route_name='delete')
+
+    #Get all objects
+    config.add_route('get_all', '/{class_type}', request_method="GET")
+    config.add_view(lambda request: chosen_backend.response_wrapper('get_all', request)(chosen_backend.get_all_objects(request.matchdict['class_type'], request.params)),
+                renderer='string', route_name='get_all')
 
     #########################################################################################
     

@@ -4,6 +4,7 @@ import json
 import uuid
 import os
 import traceback
+import transaction
 
 from pyramid.response import Response
 
@@ -68,91 +69,82 @@ class CurateBackend():
         return None if class_type not in self.schemas else json.dumps(self.schemas[class_type])
 
     def get_object(self, class_name, identifier):
-        #Get class
-        cls = self._get_class_from_class_name(class_name)
-        if cls is None:
-            return None
-
-        #Get object
-        obj = self._get_object_from_identifier(cls, identifier)
-
-        return None if obj is None else json.dumps(obj.to_json())
-
-    def _get_class_from_class_name(self, class_name):
-        if class_name in self.classes:
-            return self.classes[class_name]
-        else:
-            return None
-
-    def _get_object_from_identifier(self, cls, identifier):
-        int_identifier = None
-        try:
-            int_identifier = int(identifier)
-        except:
-            pass
-
+        '''
+        Get an object of a particular type with the given identifier.
+        '''
         obj = None
-        query = DBSession.query(cls)
-        for id_value in cls.__id_values__:
-            if id_value == 'id':
-                if int_identifier is not None:
-                    obj = query.filter(getattr(cls, id_value) == int_identifier).first()
-            else:
-                obj = query.filter(func.lower(getattr(cls, id_value)) == identifier.lower()).first()
-            if obj is not None:
-                return obj
-        return None
+        try:
+            #Get class
+            cls = self._get_class_from_class_name(class_name)
+            if cls is None:
+                return None
 
-    def _get_object_from_json(self, cls, obj_json):
-        obj, status = cls.create_or_find(obj_json, DBSession)
-        if status == 'Found':
-            return obj
-        else:
-            print obj_json
-            return None
+            #Get object
+            obj = self._get_object_from_identifier(cls, identifier)
+
+            return None if obj is None else json.dumps(obj.to_json())
+        except Exception as e:
+            transaction.rollback()
+            print traceback.format_exc()
+            return json.dumps({'status': 'Error',
+                            'message': e.message,
+                            'traceback': traceback.format_exc(),
+                            'json': None if obj is None else str(obj),
+                            'id': None
+                            })
 
     def get_all_objects(self, class_name, filter_options):
         '''
         Get all objects of a particular type, with limit, offset, and size. Size refers to the amount of information
         returned for each object.
         '''
-        #Get class
-        if class_name in self.classes:
-            cls = self.classes[class_name]
-        else:
-            return None
+        try:
+            #Get class
+            if class_name in self.classes:
+                cls = self.classes[class_name]
+            else:
+                return None
 
-        query = DBSession.query(cls)
+            query = DBSession.query(cls)
 
-        limit = None
-        offset = None
-        size = 'small'
+            limit = None
+            offset = None
+            size = 'small'
 
-        for key, value in filter_options.items():
-            if key == 'limit':
-                limit = value
-            elif key == 'offset':
-                offset = value
-            elif key == 'size':
-                size = value
-            elif key in cls.__filter_values__:
-                query = query.filter(getattr(cls, key) == value)
+            for key, value in filter_options.items():
+                if key == 'limit':
+                    limit = value
+                elif key == 'offset':
+                    offset = value
+                elif key == 'size':
+                    size = value
+                elif key in cls.__filter_values__:
+                    query = query.filter(getattr(cls, key) == value)
 
-        if limit is not None:
-            query = query.limit(limit)
-        if offset is not None:
-            query = query.offset(offset)
+            if limit is not None:
+                query = query.limit(limit)
+            if offset is not None:
+                query = query.offset(offset)
 
-        if size == 'mini':
-            json_extract_f = lambda obj: (obj.id, obj.display_name, obj.format_name)
-        elif size == 'small':
-            json_extract_f = lambda obj: obj.to_min_json()
-        elif size == 'medium':
-            json_extract_f = lambda obj: obj.to_semi_json()
-        elif size == 'large':
-            json_extract_f = lambda obj: obj.to_json()
+            if size == 'mini':
+                json_extract_f = lambda obj: (obj.id, obj.display_name, obj.format_name)
+            elif size == 'small':
+                json_extract_f = lambda obj: obj.to_min_json()
+            elif size == 'medium':
+                json_extract_f = lambda obj: obj.to_semi_json()
+            elif size == 'large':
+                json_extract_f = lambda obj: obj.to_json()
 
-        return json.dumps([json_extract_f(obj) for obj in query.all()])
+            return json.dumps([json_extract_f(obj) for obj in query.all()])
+        except Exception as e:
+            transaction.rollback()
+            print traceback.format_exc()
+            return json.dumps({'status': 'Error',
+                            'message': e.message,
+                            'traceback': traceback.format_exc(),
+                            'json': None,
+                            'id': None
+                            })
 
     def update_object(self, class_name, identifier, new_json_obj):
         '''
@@ -187,7 +179,7 @@ class CurateBackend():
 
             if updated:
                 id = new_obj.id
-                DBSession.commit()
+                transaction.commit()
                 new_obj = DBSession.query(cls).filter_by(id=id).first()
                 return json.dumps({'status': 'Updated',
                                    'message': None,
@@ -202,6 +194,7 @@ class CurateBackend():
                                    'warnings': warnings})
 
         except Exception as e:
+            transaction.rollback()
             print traceback.format_exc()
             return json.dumps({'status': 'Error',
                             'message': e.message,
@@ -244,7 +237,7 @@ class CurateBackend():
                     if hasattr(new_obj, 'format_name'):
                         format_name = new_obj.format_name
                         DBSession.add(new_obj)
-                        DBSession.commit()
+                        transaction.commit()
                         newly_created_obj = self._get_object_from_identifier(cls, format_name)
                         return json.dumps({'status': 'Added',
                                 'message': None,
@@ -253,7 +246,7 @@ class CurateBackend():
                                 'warnings': []})
                     else:
                         DBSession.add(new_obj)
-                        DBSession.commit()
+                        transaction.commit()
                         newly_created_obj = self._get_object_from_json(cls, new_json_obj)
                         return json.dumps({'status': 'Added',
                                 'message': None,
@@ -264,6 +257,7 @@ class CurateBackend():
                     raise Exception('Neither found nor created.')
 
             except Exception as e:
+                transaction.rollback()
                 print traceback.format_exc()
                 return json.dumps({'status': 'Error',
                                 'message': e.message,
@@ -272,3 +266,65 @@ class CurateBackend():
                                 'id': None,
                                 'warnings': []
                                 })
+
+    def delete_object(self, class_name, identifier):
+        try:
+            #Get class
+            cls = self._get_class_from_class_name(class_name)
+            if cls is None:
+                return None
+
+            #Get object
+            obj = self._get_object_from_identifier(cls, identifier)
+
+            DBSession.delete(obj)
+            transaction.commit()
+
+            return json.dumps({'status': 'Deleted',
+                               'message': None,
+                               'json': None,
+                               'id': obj.id,
+                               'warnings': []})
+        except Exception as e:
+            transaction.rollback()
+            print traceback.format_exc()
+            return json.dumps({'status': 'Error',
+                                'message': e.message,
+                                'traceback': traceback.format_exc(),
+                                'json': None,
+                                'id': None,
+                                'warnings': []
+                                })
+
+    def _get_class_from_class_name(self, class_name):
+        if class_name in self.classes:
+            return self.classes[class_name]
+        else:
+            return None
+
+    def _get_object_from_identifier(self, cls, identifier):
+        int_identifier = None
+        try:
+            int_identifier = int(identifier)
+        except:
+            pass
+
+        obj = None
+        query = DBSession.query(cls)
+        for id_value in cls.__id_values__:
+            if id_value == 'id':
+                if int_identifier is not None:
+                    obj = query.filter(getattr(cls, id_value) == int_identifier).first()
+            else:
+                obj = query.filter(func.lower(getattr(cls, id_value)) == identifier.lower()).first()
+            if obj is not None:
+                return obj
+        return None
+
+    def _get_object_from_json(self, cls, obj_json):
+        obj, status = cls.create_or_find(obj_json, DBSession)
+        if status == 'Found':
+            return obj
+        else:
+            print obj_json
+            return None
