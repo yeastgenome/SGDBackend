@@ -90,8 +90,8 @@ class Reference(Dbentity):
         obj_json = ToJsonMixin.to_json(self)
         obj_json['abstract'] = None if len(self.documents) == 0 else self.documents[0].to_json()
         #obj_json['bibentry'] = None if self.bibentry is None else self.bibentry.text
-        obj_json['reftypes'] = [x.to_min_json() for x in self.reftypes]
-        obj_json['authors'] = [x.author.to_min_json() for x in self.reference_authors]
+        #obj_json['reftypes'] = [x.to_min_json() for x in self.reftypes]
+        #obj_json['authors'] = [x.author.to_min_json() for x in self.reference_authors]
         #interaction_locus_ids = set()
         #interaction_locus_ids.update([x.locus1_id for x in self.physinteraction_evidences])
         #interaction_locus_ids.update([x.locus2_id for x in self.physinteraction_evidences])
@@ -343,6 +343,12 @@ class ReferenceReftype(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
         else:
             return current_obj, 'Found'
 
+    def to_min_json(self, include_description=False):
+        return self.reftype.to_min_json()
+
+    def to_semi_json(self):
+        return self.reftype.to_semi_json()
+
 
 class ReferenceAuthor(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'reference_author'
@@ -398,6 +404,12 @@ class ReferenceAuthor(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin)
         else:
             return current_obj, 'Found'
 
+    def to_min_json(self, include_description=False):
+        return self.author.to_min_json()
+
+    def to_semi_json(self):
+        return self.author.to_semi_json()
+
 
 class ReferenceDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'reference_document'
@@ -447,3 +459,9 @@ class ReferenceDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
+
+    def to_min_json(self, include_description=False):
+        return self.to_json()
+
+    def to_semi_json(self):
+        return self.to_json()

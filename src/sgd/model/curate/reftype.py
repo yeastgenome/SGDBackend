@@ -38,3 +38,6 @@ class Reftype(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
         obj_json = ToJsonMixin.to_json(self)
         obj_json['reference_reftypes'] = [x.to_min_json() for x in self.references]
         return obj_json
+
+    def to_semi_json(self):
+        return self.to_min_json()
