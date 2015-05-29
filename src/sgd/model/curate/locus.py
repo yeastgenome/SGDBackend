@@ -582,6 +582,16 @@ class LocusDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         else:
             return current_obj, 'Found'
 
+    def to_semi_json(self):
+        return self.to_min_json()
+
+    def to_min_json(self):
+        obj_json = ToJsonMixin.to_min_json(self)
+        obj_json['text'] = self.html
+        obj_json['document_type'] = self.document_type
+        obj_json['document_order'] = self.document_order
+        return obj_json
+
 
 class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'locus_document_reference'

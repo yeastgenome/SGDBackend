@@ -1,0 +1,89 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Post-Translational Modification Annotation",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+        "dbentity": {
+            "title": "DBentity",
+            "type": "object",
+            "properties": {
+                "systematic_name": {
+                    "title": "Systematic Name",
+                    "type": "string"
+                },
+                "required": ["systematic_name"]
+            }
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "taxonomy": {
+            "title": "Taxonomy",
+            "$ref": "taxonomy.json"
+        },
+        "reference": {
+            "title": "Reference",
+            "type": "object",
+            "properties": {
+                "systematic_name": {
+                    "title": "Pubmed ID",
+                    "type": "string"
+                },
+                "required": ["pubmed_id"]
+            }
+        },
+        "modifier": {
+            "title": "Modifier",
+            "type": "object",
+            "properties": {
+                "systematic_name": {
+                    "title": "Systematic Name",
+                    "type": "string"
+                },
+                "required": ["systematic_name"]
+            }
+        },
+        "posttrans_type": {
+            "title": "Post-Translational Type",
+            "type": "string"
+        },
+        "site_index": {
+            "title": "Site Index",
+            "type": "integer"
+        },
+        "site_residue": {
+            "title": "Site Residue",
+            "type": "string"
+        },
+        "site_functions": {
+            "title": "Site Functions",
+            "type": "string"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Created By",
+            "type": "string"
+        }
+    },
+    "required": ["dbentity", "source", "posttrans_type", "site_residue", "site_index"]
+}

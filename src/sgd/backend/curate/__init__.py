@@ -4,7 +4,6 @@ import json
 import uuid
 import os
 import traceback
-import transaction
 
 from pyramid.response import Response
 
@@ -34,7 +33,7 @@ class CurateBackend():
         curate.Base = declarative_base(cls=Base)
         engine = create_engine("%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname), pool_recycle=3600)
 
-        DBSession.configure(bind=engine)
+        DBSession.configure(bind=engine, autocommit=False)
         curate.Base.metadata.bind = engine
 
         #Load classes
@@ -159,6 +158,7 @@ class CurateBackend():
         '''
         Updates a single object of a particular class.
         '''
+
         try:
             if class_name in self.schemas:
                 schema = self.schemas[class_name]
@@ -187,7 +187,7 @@ class CurateBackend():
 
             if updated:
                 id = new_obj.id
-                transaction.commit()
+                DBSession.commit()
                 new_obj = DBSession.query(cls).filter_by(id=id).first()
                 return json.dumps({'status': 'Updated',
                                    'message': None,
@@ -216,7 +216,7 @@ class CurateBackend():
         if the object is already in the database, this method updates the object with any new information. If
         update_ok is set to false, thn an exception is raised if the object is already in the database.
         '''
-        if isinstance(list, new_json_obj):
+        if isinstance(new_json_obj, list):
             return json.dumps([json.loads(self.add_object(class_name, x, update_ok=update_ok)) for x in new_json_obj])
         else:
             try:
@@ -244,7 +244,7 @@ class CurateBackend():
                     if hasattr(new_obj, 'format_name'):
                         format_name = new_obj.format_name
                         DBSession.add(new_obj)
-                        transaction.commit()
+                        DBSession.commit()
                         newly_created_obj = self._get_object_from_identifier(cls, format_name)
                         return json.dumps({'status': 'Added',
                                 'message': None,
@@ -253,7 +253,7 @@ class CurateBackend():
                                 'warnings': []})
                     else:
                         DBSession.add(new_obj)
-                        transaction.commit()
+                        DBSession.commit()
                         newly_created_obj = self._get_object_from_json(cls, new_json_obj)
                         return json.dumps({'status': 'Added',
                                 'message': None,
