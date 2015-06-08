@@ -62,9 +62,16 @@ class UpdateWithJsonMixin(object):
                 break
 
         if current_obj is None:
+            current_obj = cls.specialized_find(obj_json, session)
+
+        if current_obj is None:
             return cls(obj_json, session), 'Created'
         else:
             return current_obj, 'Found'
+
+    @classmethod
+    def specialized_find(cls, obj_json, session):
+        return None
 
     def update(self, obj_json, session, make_changes=True):
         warnings = []
@@ -197,7 +204,7 @@ class UpdateWithJsonMixin(object):
 
     @classmethod
     def __create_file_name__(cls, obj_json):
-        return create_format_name(obj_json['name'])
+        return create_format_name(cls.__create_name__(obj_json))
 
 
 class ToJsonMixin(object):

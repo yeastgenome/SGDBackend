@@ -23,7 +23,7 @@ def book_starter(bud_session_maker):
 
 
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, book_starter, 'book', lambda x: (x['title'], None if 'volume_title' not in x else x['volume_title']))
+    basic_convert(bud_db, nex_db, book_starter, 'book', lambda x: (None if 'title' not in x else x['title'], None if 'volume_title' not in x else x['volume_title']))
 
 
 if __name__ == '__main__':

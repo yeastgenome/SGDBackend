@@ -14,7 +14,7 @@ def journal_starter(bud_session_maker):
         title = old_journal.full_name
         if title is not None or abbreviation is not None:
             yield remove_nones({
-                'source': {'display_name': 'PubMed'},
+                'source': {'name': 'PubMed'},
                 'title': title,
                 'med_abbr': abbreviation,
                 'issn_print': old_journal.issn,
