@@ -11,11 +11,10 @@ __author__ = 'kelley'
 class AuthorResponse(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'author_response'
 
-    id = Column('author_response_id', Integer, primary_key=True)
-    format_name = Column('format_name', String)
-    display_name = Column('display_name', String)
+    id = Column('author_response_id', String, primary_key=True)
+    name = Column('name', String)
     link = Column('obj_url', String)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
     pubmed_id = Column('pubmed_id', Integer)
     citation = Column('citation', String)
@@ -36,13 +35,13 @@ class AuthorResponse(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'source_id', 'bud_id',
+    __eq_values__ = ['id', 'name', 'link', 'source_id', 'bud_id',
                      'pubmed_id', 'citation', 'author_email', 'has_novel_research', 'has_large_scale_data', 'research_results', 'gene_list', 'dataset_description',
                      'other_description', 'no_action_required', 'is_fast_tracked', 'curator_checked_datasets', 'curator_checked_genelist',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
-    __id_values__ = ['id', 'format_name']
-    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __id_values__ = ['id']
+    __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
     __filter_values__ = ['has_novel_research', 'has_large_scale_data', 'no_action_required', 'is_fast_tracked', 'curator_checked_datasets', 'curator_checked_genelist']
 
     def __init__(self, obj_json, session):
