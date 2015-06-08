@@ -29,8 +29,8 @@ class Reference(Dbentity):
     page = Column('page', String)
     volume = Column('volume', String)
     title = Column('title', String)
-    journal_id = Column('journal_id', Integer, ForeignKey(Journal.id))
-    book_id = Column('book_id', Integer, ForeignKey(Book.id))
+    journal_id = Column('journal_id', String, ForeignKey(Journal.id))
+    book_id = Column('book_id', String, ForeignKey(Book.id))
     doi = Column('doi', String)
 
     book = relationship(Book, uselist=False)
@@ -63,31 +63,27 @@ class Reference(Dbentity):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
 
     @classmethod
-    def __create_format_name__(cls, obj_json):
-        return create_format_name(obj_json['citation'][0:100])
-
-    @classmethod
-    def __create_display_name__(cls, obj_json):
+    def __create_name__(cls, obj_json):
         citation = obj_json['citation']
         return citation[:citation.find(")")+1]
 
-    def to_min_json(self, include_description=False):
-        obj_json = ToJsonMixin.to_min_json(self, include_description=include_description)
+    def __to_small_json__(self):
+        obj_json = ToJsonMixin.__to_small_json__(self)
         obj_json['pubmed_id'] = self.pubmed_id
         obj_json['year'] = self.year
         return obj_json
 
-    def to_semi_json(self):
-        obj_json = self.to_min_json()
+    def __to_medium_json__(self):
+        obj_json = ToJsonMixin.__to_medium_json__(self)
         obj_json['pubmed_id'] = self.pubmed_id
-        obj_json['citation'] = self.citation
         obj_json['year'] = self.year
+        obj_json['citation'] = self.citation
         obj_json['journal'] = None if self.journal is None else self.journal.med_abbr
         obj_json['urls'] = [x.to_json() for x in self.urls]
         return obj_json
 
-    def to_json(self):
-        obj_json = ToJsonMixin.to_json(self)
+    def __to_large_json__(self):
+        obj_json = ToJsonMixin.__to_large_json__(self)
         obj_json['abstract'] = None if len(self.documents) == 0 else self.documents[0].to_json()
         #obj_json['bibentry'] = None if self.bibentry is None else self.bibentry.text
         #obj_json['reftypes'] = [x.to_min_json() for x in self.reftypes]
@@ -133,11 +129,11 @@ class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'reference_url'
 
     id = Column('url_id', Integer, primary_key=True)
-    display_name = Column('display_name', String)
+    name = Column('name', String)
     link = Column('obj_url', String)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
+    reference_id = Column('reference_id', String, ForeignKey(Reference.id, ondelete='CASCADE'))
     url_type = Column('url_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
@@ -146,10 +142,10 @@ class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     reference = relationship(Reference, uselist=False, backref=backref('urls', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type',
+    __eq_values__ = ['id', 'name', 'link', 'bud_id', 'url_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
     __filter_values__ = []
 
@@ -170,7 +166,7 @@ class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
         current_obj = session.query(cls)\
             .filter_by(reference_id=newly_created_object.reference_id)\
-            .filter_by(display_name=newly_created_object.display_name)\
+            .filter_by(name=newly_created_object.name)\
             .filter_by(link=newly_created_object.link).first()
 
         if current_obj is None:
@@ -187,11 +183,11 @@ class ReferenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'reference_alias'
 
     id = Column('alias_id', Integer, primary_key=True)
-    display_name = Column('display_name', String)
+    name = Column('name', String)
     link = Column('obj_url', String)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
+    reference_id = Column('reference_id', String, ForeignKey(Reference.id, ondelete='CASCADE'))
     alias_type = Column('alias_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
@@ -200,10 +196,10 @@ class ReferenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     reference = relationship(Reference, uselist=False, backref=backref('aliases', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'alias_type',
+    __eq_values__ = ['id', 'name', 'link', 'bud_id', 'alias_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False), ('reference', Reference, False)]
-    __id_values__ = ['format_name']
+    __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
     __filter_values__ = []
 
@@ -224,7 +220,7 @@ class ReferenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
         current_obj = session.query(cls)\
             .filter_by(reference_id=newly_created_object.reference_id)\
-            .filter_by(display_name=newly_created_object.display_name)\
+            .filter_by(name=newly_created_object.name)\
             .filter_by(alias_type=newly_created_object.alias_type).first()
 
         if current_obj is None:
@@ -237,9 +233,9 @@ class ReferenceRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
     __tablename__ = 'reference_relation'
 
     id = Column('relation_id', Integer, primary_key=True)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    parent_id = Column('parent_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
-    child_id = Column('child_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
+    parent_id = Column('parent_id', String, ForeignKey(Reference.id, ondelete='CASCADE'))
+    child_id = Column('child_id', String, ForeignKey(Reference.id, ondelete='CASCADE'))
     relation_type = Column('relation_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())

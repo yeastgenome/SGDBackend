@@ -8,7 +8,7 @@ def book_starter(bud_session_maker):
 
     for old_book in bud_session.query(Book).all():
         yield remove_nones({
-            'source': {'display_name': 'PubMed'},
+            'source': {'name': 'PubMed'},
             'title': old_book.title,
             'publisher': old_book.publisher,
             'bud_id': old_book.id,
