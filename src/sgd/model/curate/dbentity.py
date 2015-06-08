@@ -38,7 +38,7 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
 
     def unique_key(self):
-        return self.format_name, self.class_type
+        return self.name, self.class_type
 
     @classmethod
     def __create_name__(cls, obj_json):

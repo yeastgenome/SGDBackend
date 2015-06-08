@@ -215,15 +215,13 @@ class ToJsonMixin(object):
     def __to_small_json__(self):
         obj_json = dict()
         for key in {'id', 'name', 'link'}:
-            if hasattr(self, key):
-                obj_json[key] = getattr(self, key)
+            obj_json[key] = getattr(self, key)
         return obj_json
 
     def __to_medium_json__(self):
         obj_json = dict()
         for key in {'id', 'name', 'link', 'description'}:
-            if hasattr(self, key):
-                obj_json[key] = getattr(self, key)
+            obj_json[key] = getattr(self, key)
         return obj_json
 
     def __to_large_json__(self):

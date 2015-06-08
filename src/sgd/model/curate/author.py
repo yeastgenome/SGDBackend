@@ -33,6 +33,6 @@ class Author(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     def __to_large_json__(self):
         obj_json = ToJsonMixin.__to_large_json__(self)
-        references = set([x.reference for x in self.reference_authors])
-        obj_json['references'] = [x.to_semi_json() for x in sorted(references, key=lambda x: (x.year, x.date_published), reverse=True)]
+        references = sorted(set([x.reference for x in self.references]), key=lambda x: (x.year, x.date_published), reverse=True)
+        obj_json['references'] = [x.to_json('medium') for x in references]
         return obj_json

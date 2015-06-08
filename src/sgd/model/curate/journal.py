@@ -41,11 +41,20 @@ class Journal(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     @classmethod
     def __create_name__(cls, obj_json):
-        return obj_json['title']
+        if 'title' in obj_json:
+            return obj_json['title']
+        else:
+            return obj_json['med_abbr']
+
+    def __to_small_json__(self):
+        obj_json = ToJsonMixin.__to_small_json__(self)
+        obj_json['title'] = self.title
+        obj_json['med_abbr'] = self.med_abbr
+        return obj_json
 
     @classmethod
     def specialized_find(cls, obj_json, session):
         return session.query(cls).\
-            filter_by(title=obj_json['title']).\
+            filter_by(title=None if 'title' not in obj_json else obj_json['title']).\
             filter_by(med_abbr=None if 'med_abbr' not in obj_json else obj_json['med_abbr']).first()
 

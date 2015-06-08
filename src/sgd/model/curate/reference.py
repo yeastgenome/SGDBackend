@@ -16,7 +16,7 @@ __author__ = 'kpaskov'
 class Reference(Dbentity):
     __tablename__ = 'referencedbentity'
 
-    id = Column('dbentity_id', Integer, ForeignKey(Dbentity.id), primary_key=True)
+    id = Column('dbentity_id', String, ForeignKey(Dbentity.id), primary_key=True)
     method_obtained = Column('method_obtained', String)
     fulltext_status = Column('fulltext_status', String)
     citation = Column('citation', String)
@@ -36,13 +36,8 @@ class Reference(Dbentity):
     book = relationship(Book, uselist=False)
     journal = relationship(Journal, uselist=False)
 
-    related_references = association_proxy('reference_relations', 'child')
-    reftypes = association_proxy('reference_reftypes', 'reftype')
-    authors = association_proxy('reference_authors', 'author')
-    author_names = association_proxy('author', 'display_name')
-
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE', 'inherit_condition': id == Dbentity.id}
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
+    __eq_values__ = ['id', 'name', 'link', 'description',
                      'bud_id', 'sgdid', 'dbentity_status', 'date_created', 'created_by',
                      'method_obtained', 'fulltext_status', 'citation', 'year', 'pubmed_id', 'pubmed_central_id', 'date_published', 'date_revised',
                      'issue', 'page', 'volume', 'title', 'doi']
@@ -51,12 +46,12 @@ class Reference(Dbentity):
                   ('book', Book, False),
                   ('aliases', 'reference.ReferenceAlias', True),
                   ('urls', 'reference.ReferenceUrl', True),
-                  ('reference_reftypes', 'reference.ReferenceReftype', False),
-                  ('reference_authors', 'reference.ReferenceAuthor', False),
+                  ('reftypes', 'reference.ReferenceReftype', False),
+                  ('authors', 'reference.ReferenceAuthor', False),
                   ('children', 'reference.ReferenceRelation', False),
                   ('documents', 'reference.ReferenceDocument', True)]
-    __id_values__ = ['id', 'sgdid', 'pubmed_id', 'format_name']
-    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __id_values__ = ['id', 'sgdid', 'pubmed_id']
+    __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
     __filter_values__ = ['fulltext_status', 'method_obtained', 'journal_id', 'book_id']
 
     def __init__(self, obj_json, session):
@@ -84,10 +79,8 @@ class Reference(Dbentity):
 
     def __to_large_json__(self):
         obj_json = ToJsonMixin.__to_large_json__(self)
-        obj_json['abstract'] = None if len(self.documents) == 0 else self.documents[0].to_json()
-        #obj_json['bibentry'] = None if self.bibentry is None else self.bibentry.text
-        #obj_json['reftypes'] = [x.to_min_json() for x in self.reftypes]
-        #obj_json['authors'] = [x.author.to_min_json() for x in self.reference_authors]
+        obj_json['parents'] = [x.to_json(perspective='child') for x in self.parents]
+
         #interaction_locus_ids = set()
         #interaction_locus_ids.update([x.locus1_id for x in self.physinteraction_evidences])
         #interaction_locus_ids.update([x.locus2_id for x in self.physinteraction_evidences])
@@ -96,27 +89,13 @@ class Reference(Dbentity):
         #regulation_locus_ids = set()
         #regulation_locus_ids.update([x.locus1_id for x in self.regulation_evidences])
         #regulation_locus_ids.update([x.locus2_id for x in self.regulation_evidences])
-        obj_json['urls'] = [x.to_min_json() for x in self.urls]
+
         #obj_json['counts'] = {
         #    'interaction': len(interaction_locus_ids),
         #    'go': len(set([x.locus_id for x in self.go_evidences])),
         #    'phenotype': len(set([x.locus_id for x in self.phenotype_evidences])),
         #    'regulation': len(regulation_locus_ids)
         #}
-        obj_json['related_references'] = []
-        for child in self.children:
-            child_json = child.child.to_semi_json()
-            child_json['abstract'] = None if len(child.child.documents) == 0 else child.child.documents[0].to_json()
-            child_json['reftypes'] = [x.to_min_json() for x in child.child.reftypes]
-            obj_json['related_references'].append(child_json)
-        for parent in self.parents:
-            parent_json = parent.parent.to_semi_json()
-            parent_json['abstract'] = None if len(parent.parent.documents) == 0 else parent.parent.documents[0].to_json()
-            parent_json['reftypes'] = [x.to_min_json() for x in parent.parent.reftypes]
-            obj_json['related_references'].append(parent_json)
-        obj_json['urls'] = [x.to_json() for x in self.urls]
-        if self.journal is not None:
-            obj_json['journal']['med_abbr'] = self.journal.med_abbr
 
         #id_to_dataset = {}
         #for expression_evidence in self.expression_evidences:
@@ -153,7 +132,7 @@ class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return (None if self.reference is None else self.reference.unique_key()), self.display_name, self.link
+        return (None if self.reference is None else self.reference.unique_key()), self.name, self.link
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -174,10 +153,14 @@ class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         else:
             return current_obj, 'Found'
 
-    def to_json(self):
-        obj_json = ToJsonMixin.to_json(self)
-        obj_json['category'] = obj_json['url_type']
-        return obj_json
+    def to_json(self, size='small'):
+        return {
+            'name': self.name,
+            'link': self.link,
+            'source': self.source.__to_small_json__(),
+            'url_type': self.url_type
+        }
+
 
 class ReferenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'reference_alias'
@@ -207,7 +190,7 @@ class ReferenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return (None if self.reference is None else self.reference.unique_key()), self.display_name, self.alias_type
+        return (None if self.reference is None else self.reference.unique_key()), self.name, self.alias_type
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -227,6 +210,71 @@ class ReferenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
+
+    def to_json(self, size='small'):
+        return {
+            'name': self.name,
+            'link': self.link,
+            'source': self.source.__to_small_json__(),
+            'alias_type': self.alias_type
+        }
+
+
+class ReferenceDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'reference_document'
+
+    id = Column('document_id', Integer, primary_key=True)
+    document_type = Column('document_type', String)
+    text = Column('text', CLOB)
+    html = Column('html', CLOB)
+    source_id = Column('source_id', String, ForeignKey(Source.id))
+    bud_id = Column('bud_id', Integer)
+    reference_id = Column('reference_id', String, ForeignKey(Reference.id, ondelete='CASCADE'))
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships
+    reference = relationship(Reference, uselist=False, backref=backref('documents', cascade="all, delete-orphan", passive_deletes=True))
+    source = relationship(Source, uselist=False)
+
+    __eq_values__ = ['id', 'text', 'html', 'bud_id', 'document_type',
+                     'date_created', 'created_by']
+    __eq_fks__ = [('source', Source, False),
+                  ('reference', Reference, False)]
+    __id_values__ = []
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
+
+    def __init__(self, obj_json, session):
+        self.update(obj_json, session)
+
+    def unique_key(self):
+        return (None if self.reference is None else self.reference.unique_key()), self.document_type
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            newly_created_object.reference_id = parent_obj.id
+
+        current_obj = session.query(cls)\
+            .filter_by(reference_id=newly_created_object.reference_id)\
+            .filter_by(document_type=newly_created_object.document_type).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
+
+    def to_json(self, size='small'):
+        return {
+            'text': self.html,
+            'source': self.source.__to_small_json__(),
+            'document_type': self.document_type
+        }
 
 
 class ReferenceRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
@@ -284,25 +332,34 @@ class ReferenceRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
         else:
             return current_obj, 'Found'
 
-    def to_json(self):
-        obj_json = self.child.to_min_json()
-        obj_json['source'] = self.child.source.to_min_json()
-        obj_json['relation_type'] = self.relation_type
+    def to_json(self, size='small', perspective='parent'):
+        if perspective == 'parent':
+            obj_json = self.child.to_json(size='medium')
+            obj_json['documents'] = [x.to_json() for x in self.child.documents]
+            obj_json['reftypes'] = [x.to_json(size='small', perspective='reference') for x in self.child.reftypes]
+        elif perspective == 'child':
+            obj_json = self.parent.to_json(size='medium')
+            obj_json['documents'] = [x.to_json() for x in self.parent.documents]
+            obj_json['reftypes'] = [x.to_json(size='small', perspective='reference') for x in self.parent.reftypes]
+
+        if obj_json is not None:
+            obj_json['relation_type'] = self.relation_type
+        return obj_json
 
 
 class ReferenceReftype(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'reference_reftype'
 
     id = Column('reference_reftype_id', Integer, primary_key=True)
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
-    reftype_id = Column('reftype_id', Integer, ForeignKey(Reftype.id, ondelete='CASCADE'))
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', String, ForeignKey(Reference.id, ondelete='CASCADE'))
+    reftype_id = Column('reftype_id', String, ForeignKey(Reftype.id, ondelete='CASCADE'))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    reference = relationship(Reference, uselist=False, backref=backref('reference_reftypes', cascade="all, delete-orphan", passive_deletes=True))
-    reftype = relationship(Reftype, uselist=False, backref=backref('reference_reftypes', cascade="all, delete-orphan", passive_deletes=True))
+    reference = relationship(Reference, uselist=False, backref=backref('reftypes', cascade="all, delete-orphan", passive_deletes=True))
+    reftype = relationship(Reftype, uselist=False, backref=backref('references', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'date_created', 'created_by']
@@ -339,28 +396,30 @@ class ReferenceReftype(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
         else:
             return current_obj, 'Found'
 
-    def to_min_json(self, include_description=False):
-        return self.reftype.to_min_json()
+    def to_json(self, size='small', perspective='reference'):
+        if perspective == 'reference':
+            obj_json = self.reftype.to_json(size=size)
+        elif perspective == 'reftype':
+            obj_json = self.reference.to_json(size=size)
 
-    def to_semi_json(self):
-        return self.reftype.to_semi_json()
+        return obj_json
 
 
 class ReferenceAuthor(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'reference_author'
 
     id = Column('reference_author_id', Integer, primary_key=True)
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
-    author_id = Column('author_id', Integer, ForeignKey(Author.id, ondelete='CASCADE'))
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    reference_id = Column('reference_id', String, ForeignKey(Reference.id, ondelete='CASCADE'))
+    author_id = Column('author_id', String, ForeignKey(Author.id, ondelete='CASCADE'))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
     author_order = Column('author_order', Integer)
     author_type = Column('author_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    reference = relationship(Reference, uselist=False, backref=backref('reference_authors', cascade="all, delete-orphan", passive_deletes=True))
-    author = relationship(Author, uselist=False, backref=backref('reference_authors', cascade="all, delete-orphan", passive_deletes=True))
+    reference = relationship(Reference, uselist=False, backref=backref('authors', cascade="all, delete-orphan", passive_deletes=True))
+    author = relationship(Author, uselist=False, backref=backref('references', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'date_created', 'created_by', 'author_order', 'author_type']
@@ -400,64 +459,13 @@ class ReferenceAuthor(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin)
         else:
             return current_obj, 'Found'
 
-    def to_min_json(self, include_description=False):
-        return self.author.to_min_json()
+    def to_json(self, size='small', perspective='reference'):
+        if perspective == 'reference':
+            obj_json = self.author.to_json(size=size)
+        elif perspective == 'author':
+            obj_json = self.reference.to_json(size=size)
 
-    def to_semi_json(self):
-        return self.author.to_semi_json()
-
-
-class ReferenceDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
-    __tablename__ = 'reference_document'
-
-    id = Column('document_id', Integer, primary_key=True)
-    document_type = Column('document_type', String)
-    text = Column('text', CLOB)
-    html = Column('html', CLOB)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    bud_id = Column('bud_id', Integer)
-    reference_id = Column('reference_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
-    date_created = Column('date_created', Date, server_default=FetchedValue())
-    created_by = Column('created_by', String, server_default=FetchedValue())
-
-    #Relationships
-    reference = relationship(Reference, uselist=False, backref=backref('documents', cascade="all, delete-orphan", passive_deletes=True))
-    source = relationship(Source, uselist=False)
-
-    __eq_values__ = ['id', 'text', 'html', 'bud_id', 'document_type',
-                     'date_created', 'created_by']
-    __eq_fks__ = [('source', Source, False),
-                  ('reference', Reference, False)]
-    __id_values__ = []
-    __no_edit_values__ = ['id', 'date_created', 'created_by']
-    __filter_values__ = []
-
-    def __init__(self, obj_json, session):
-        self.update(obj_json, session)
-
-    def unique_key(self):
-        return (None if self.reference is None else self.reference.unique_key()), self.document_type
-
-    @classmethod
-    def create_or_find(cls, obj_json, session, parent_obj=None):
-        if obj_json is None:
-            return None
-
-        newly_created_object = cls(obj_json, session)
-        if parent_obj is not None:
-            newly_created_object.reference_id = parent_obj.id
-
-        current_obj = session.query(cls)\
-            .filter_by(reference_id=newly_created_object.reference_id)\
-            .filter_by(document_type=newly_created_object.document_type).first()
-
-        if current_obj is None:
-            return newly_created_object, 'Created'
-        else:
-            return current_obj, 'Found'
-
-    def to_min_json(self, include_description=False):
-        return self.to_json()
-
-    def to_semi_json(self):
-        return self.to_json()
+        if obj_json is not None:
+            obj_json['author_order'] = self.author_order
+            obj_json['author_type'] = self.author_type
+        return obj_json

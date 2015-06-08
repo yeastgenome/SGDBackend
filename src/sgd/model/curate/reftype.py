@@ -35,5 +35,5 @@ class Reftype(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     def __to_large_json__(self):
         obj_json = ToJsonMixin.__to_large_json__(self)
-        obj_json['references'] = [x.to_json(size='small') for x in self.references]
+        obj_json['references'] = [x.to_json(size='small', perspective='reftype') for x in self.references]
         return obj_json

@@ -212,19 +212,6 @@
                         "title": "Source",
                         "$ref": "source.json"
                     },
-                    "references": {
-                        "title": "References",
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "title": "ID",
-                                    "type": "integer"
-                                }
-                            }
-                        }
-                    },
                     "date_created": {
                         "title": "Date Created",
                         "type": "string",

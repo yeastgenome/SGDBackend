@@ -14,9 +14,9 @@ def load_urls(bud_reference, pubmed_id, bud_session):
     doi = None
     pubmed_central_id = None
     for ref_url in bud_session.query(Ref_URL).options(joinedload('url')).filter_by(reference_id=bud_reference.id).all():
-        urls.append({'display_name': ref_url.url.url_type,
+        urls.append({'name': ref_url.url.url_type,
                      'link': ref_url.url.url,
-                     'source': {'display_name': ref_url.url.source},
+                     'source': {'name': ref_url.url.source},
                      'url_type': ref_url.url.url_type,
                      'bud_id': ref_url.id})
 
@@ -26,19 +26,19 @@ def load_urls(bud_reference, pubmed_id, bud_session):
             doi = ref_url.url.url[18:]
 
     if pubmed_id is not None:
-        urls.append({'display_name': 'PubMed',
+        urls.append({'name': 'PubMed',
                      'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(pubmed_id),
-                     'source': {'display_name': 'PubMed'},
+                     'source': {'name': 'PubMed'},
                      'url_type': 'PUBMED'})
     if doi is not None:
-        urls.append({'display_name': 'Full-Text',
+        urls.append({'name': 'Full-Text',
                      'link': 'http://dx.doi.org/' + doi,
-                     'source': {'display_name': 'DOI'},
+                     'source': {'name': 'DOI'},
                      'url_type': 'FULLTEXT'})
     if pubmed_central_id is not None:
-        urls.append({'display_name': 'PMC',
+        urls.append({'name': 'PMC',
                      'link': 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(pubmed_central_id),
-                     'source': {'display_name': 'PubMedCentral'},
+                     'source': {'name': 'PubMedCentral'},
                      'url_type': 'PUBMEDCENTRAL'})
     return urls, pubmed_central_id, doi
 
@@ -49,8 +49,8 @@ def load_aliases(bud_reference, bud_session):
     from src.sgd.model.bud.reference import DbxrefRef
 
     for ref_dbxref in bud_session.query(DbxrefRef).options(joinedload(DbxrefRef.dbxref)).filter_by(reference_id=bud_reference.id).all():
-        aliases.append({'display_name': ref_dbxref.dbxref.dbxref_id,
-                        'source': {'display_name': 'SGD'},
+        aliases.append({'name': ref_dbxref.dbxref.dbxref_id,
+                        'source': {'name': 'SGD'},
                         'alias_type': ref_dbxref.dbxref.dbxref_type,
                         'bud_id': ref_dbxref.dbxref.id,
                         'date_created': str(ref_dbxref.dbxref.date_created),
@@ -65,8 +65,8 @@ def load_reftypes(bud_reference, bud_session):
     from src.sgd.model.bud.reference import RefReftype
 
     for old_refreftype in bud_session.query(RefReftype).options(joinedload(RefReftype.reftype)).filter_by(reference_id=bud_reference.id).all():
-        reftypes.append({'display_name': old_refreftype.reftype.name,
-                         'source': {'display_name': old_refreftype.reftype.source}})
+        reftypes.append({'name': old_refreftype.reftype.name,
+                         'source': {'name': old_refreftype.reftype.source}})
     return reftypes
 
 
@@ -76,8 +76,8 @@ def load_authors(bud_reference, bud_session):
     from src.sgd.model.bud.reference import AuthorReference
 
     for old_author_reference in bud_session.query(AuthorReference).options(joinedload(AuthorReference.author)).filter_by(reference_id=bud_reference.id).all():
-        authors.append({'display_name': old_author_reference.author.name,
-                        'source': {'display_name': 'PubMed'},
+        authors.append({'name': old_author_reference.author.name,
+                        'source': {'name': 'PubMed'},
                         'author_order': old_author_reference.order,
                         'author_type': old_author_reference.type})
 
@@ -109,7 +109,7 @@ def load_documents(bud_reference, bud_session):
         documents.append(
             {'text': abstract.text,
              'html': abstract.text,
-             'source': {'display_name': 'SGD'},
+             'source': {'name': 'SGD'},
              'document_type': 'Abstract',
              'date_created': str(bud_reference.date_created),
              'created_by': bud_reference.created_by})
@@ -131,7 +131,7 @@ def reference_starter(bud_session_maker):
             new_journal = remove_nones({'title': old_journal.full_name,
                                         'med_abbr': abbreviation,
                                         'issn_print': old_journal.issn,
-                                        'source': {'display_name': old_reference.source}})
+                                        'source': {'name': old_reference.source}})
 
         new_book = None
         old_book = old_reference.book
@@ -140,7 +140,7 @@ def reference_starter(bud_session_maker):
                                      'volume_title': old_book.volume_title,
                                      'publisher_location': old_book.publisher_location,
                                      'isbn': old_book.isbn,
-                                     'source': {'display_name': old_reference.source}})
+                                     'source': {'name': old_reference.source}})
 
         pubmed_id = None
         if old_reference.pubmed_id is not None:
@@ -154,7 +154,7 @@ def reference_starter(bud_session_maker):
 
         obj_json = remove_nones({'bud_id': old_reference.id,
                     'sgdid': old_reference.dbxref_id,
-                    'source': {'display_name': old_reference.source},
+                    'source': {'name': old_reference.source},
                     'method_obtained': old_reference.status,
                     'dbentity_status': 'Active',
                     'pubmed_id': pubmed_id,
@@ -181,10 +181,10 @@ def reference_starter(bud_session_maker):
         obj_json['urls'] = urls
 
         #Load reference reftypes
-        obj_json['reference_reftypes'] = load_reftypes(old_reference, bud_session)
+        obj_json['reftypes'] = load_reftypes(old_reference, bud_session)
 
         #Load reference authors
-        obj_json['reference_authors'] = load_authors(old_reference, bud_session)
+        obj_json['authors'] = load_authors(old_reference, bud_session)
 
         #Load children
         obj_json['children'] = load_relations(old_reference, bud_session)
@@ -192,8 +192,6 @@ def reference_starter(bud_session_maker):
         #Load documents
         obj_json['documents'] = load_documents(old_reference, bud_session)
         obj_json['documents'].append(create_bibentry(obj_json))
-
-        print obj_json['sgdid']
 
         yield obj_json
 
@@ -206,18 +204,18 @@ def create_bibentry(obj_json):
     entries.append(('STAT', obj_json.get('dbentity_status')))
     entries.append(('DP', obj_json.get('date_published')))
     entries.append(('TI', obj_json.get('title')))
-    entries.append(('SO', obj_json['source']['display_name']))
+    entries.append(('SO', obj_json['source']['name']))
     entries.append(('LR', obj_json.get('date_revised')))
     entries.append(('IP', obj_json.get('issue')))
     entries.append(('PG', obj_json.get('page')))
     entries.append(('VI', obj_json.get('volume')))
     entries.append(('SO', 'SGD'))
 
-    for reference_author in obj_json['reference_authors']:
-        entries.append(('AU', reference_author['display_name']))
+    for author in obj_json['authors']:
+        entries.append(('AU', author['name']))
 
-    for reference_reftype in obj_json['reference_reftypes']:
-        entries.append(('PT', reference_reftype['display_name']))
+    for reftype in obj_json['reftypes']:
+        entries.append(('PT', reftype['name']))
 
     if len(obj_json['documents']) > 0:
         entries.append(('AB', obj_json['documents'][0]['text']))
@@ -236,7 +234,7 @@ def create_bibentry(obj_json):
 
     return {'text': '\n'.join([key + ' - ' + str(value) for key, value in entries if value is not None]),
             'html': '\n'.join([key + ' - ' + str(value) for key, value in entries if value is not None]),
-            'source': {'display_name': 'SGD'},
+            'source': {'name': 'SGD'},
             'document_type': 'Bibentry'}
 
 
