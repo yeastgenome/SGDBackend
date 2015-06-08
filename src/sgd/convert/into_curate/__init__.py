@@ -26,13 +26,20 @@ def basic_convert(bud_db, nex_db, starter, class_name, key_f):
             status = 'Duplicate'
         else:
             response = curate_backend.add_object(class_name, obj_json, update_ok=True)
-            status = json.loads(response)['status']
-            warnings_count += len(json.loads(response)['warnings'])
+            status = response['status']
+            warnings_count += len(response['warnings'])
             already_seen.add(key)
 
         if status not in accumulated_status:
             accumulated_status[status] = 0
         accumulated_status[status] += 1
+
+    # Delete objects not seen
+    accumulated_status['Delete'] = 0
+    for obj_json in curate_backend.get_all_objects(class_name, {'size': 'small'}):
+        if key_f(obj_json) not in already_seen:
+            curate_backend.delete_object(class_name, obj_json['id'])
+            accumulated_status['Delete'] += 1
 
     end = datetime.datetime.now()
     print end.date(), 'convert.from_bud.' + class_name, accumulated_status, 'Warnings', warnings_count, 'Start-End/Duration:', \

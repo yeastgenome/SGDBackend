@@ -17,6 +17,7 @@ class Taxonomy(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     format_name = Column('format_name', String)
     link = Column('obj_url', String)
     bud_id = Column('bud_id', Integer)
+    ncbi_taxon_id = Column('ncbi_taxon_id', Integer)
     common_name = Column('common_name', String)
     rank = Column('rank', String)
     description = Column('description', String)
@@ -27,11 +28,11 @@ class Taxonomy(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by',
-                     'common_name', 'rank']
+                     'common_name', 'rank', 'ncbi_taxon_id']
     __eq_fks__ = [('source', Source, False),
                   ('aliases', 'taxonomy.TaxonomyAlias', True),
                   ('children', 'taxonomy.TaxonomyRelation', True)]
-    __id_values__ = ['id', 'format_name']
+    __id_values__ = ['id', 'format_name', 'ncbi_taxon_id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
     __filter_values__ = ['rank']
 

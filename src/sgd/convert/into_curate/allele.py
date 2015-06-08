@@ -5,14 +5,13 @@ __author__ = 'kpaskov'
 
 def allele_starter(bud_session_maker):
     from src.sgd.model.bud.phenotype import ExperimentProperty
-    from src.sgd.model.bud.go import GorefDbxref
 
     bud_session = bud_session_maker()
 
     for bud_obj in bud_session.query(ExperimentProperty).filter(ExperimentProperty.type == 'Allele').all():
         if bud_obj.type == 'Allele':
-            yield {'display_name': bud_obj.value,
-                   'source': {'display_name': 'SGD'},
+            yield {'name': bud_obj.value,
+                   'source': {'name': 'SGD'},
                    'bud_id':bud_obj.id,
                    'date_created': str(bud_obj.date_created),
                    'created_by': bud_obj.created_by}
@@ -21,7 +20,7 @@ def allele_starter(bud_session_maker):
 
 
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, allele_starter, 'allele', lambda x: x['display_name'])
+    basic_convert(bud_db, nex_db, allele_starter, 'allele', lambda x: x['name'])
 
 
 if __name__ == '__main__':
