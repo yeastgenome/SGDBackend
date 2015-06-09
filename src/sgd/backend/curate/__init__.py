@@ -1,10 +1,7 @@
-__author__ = 'kpaskov'
-
 import json
 import uuid
 import os
 import traceback
-import transaction
 
 from pyramid.response import Response
 
@@ -18,11 +15,12 @@ from jsonschema import Draft4Validator
 
 from src.sgd.backend.nex import set_up_logging
 from src.sgd.model import curate
+from src.sgd.model.curate import ToJsonMixin
 from src.sgd.model.curate.schema_utils import load_schema
 
 __author__ = 'kpaskov'
 
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+DBSession = scoped_session(sessionmaker(autocommit=False))
 query_limit = 25000
 
 class CurateBackend():
@@ -133,6 +131,8 @@ class CurateBackend():
                     'json': None,
                     'id': None
             }
+        finally:
+            DBSession.remove()
 
     def update_object(self, class_name, identifier, new_json_obj):
         '''
@@ -169,15 +169,15 @@ class CurateBackend():
             if updated:
                 response = {'status': 'Updated',
                             'message': None,
-                            'json': str(new_obj.to_json('large')),
+                            'json': str(ToJsonMixin.__to_large_json__(new_obj)),
                             'id': new_obj.id,
                             'warnings': warnings}
-                transaction.commit()
+                DBSession.commit()
                 return response
             else:
                 return {'status': 'No Change',
                         'message': None,
-                        'json': str(new_obj.to_json('large')),
+                        'json': str(ToJsonMixin.__to_large_json__(new_obj)),
                         'id': new_obj.id,
                         'warnings': warnings}
 
@@ -189,6 +189,8 @@ class CurateBackend():
                     'json': str(new_json_obj),
                     'id': None
             }
+        finally:
+            DBSession.remove()
 
     def add_object(self, class_name, new_json_obj, update_ok=False):
         '''
@@ -224,10 +226,10 @@ class CurateBackend():
                     DBSession.add(new_obj)
                     response = {'status': 'Added',
                                 'message': None,
-                                'json': str(new_obj.to_json('large')),
+                                'json': str(ToJsonMixin.__to_large_json__(new_obj)),
                                 'id': new_obj.id,
                                 'warnings': []}
-                    transaction.commit()
+                    DBSession.commit()
                     return response
                 else:
                     raise Exception('Neither found nor created.')
@@ -241,6 +243,8 @@ class CurateBackend():
                         'id': None,
                         'warnings': []
                 }
+            finally:
+                DBSession.remove()
 
     def delete_object(self, class_name, identifier):
         try:
@@ -260,7 +264,7 @@ class CurateBackend():
                         'json': None,
                         'id': new_obj.id,
                         'warnings': []}
-            transaction.commit()
+            DBSession.commit()
             return response
         except Exception as e:
             print traceback.format_exc()
@@ -271,6 +275,8 @@ class CurateBackend():
                     'id': None,
                     'warnings': []
             }
+        finally:
+            DBSession.remove()
 
     def find_object(self, class_name, identifier):
         #Get class
