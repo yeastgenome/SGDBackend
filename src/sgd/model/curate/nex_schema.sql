@@ -967,10 +967,10 @@ TAXONOMY_ID INTEGER,
 BUD_ID INTEGER,
 MD5SUM VARCHAR2(100) NOT NULL,
 FILE_VERSION VARCHAR2(20) NOT NULL,
-FILE_FORMAT VARCHAR2(20) NOT NULL CHECK (FILE_FORMAT IN (‘FASTA’, ‘tab-delimited’, ‘GFF3’, ‘tar’, ‘bigWig’, ‘Excel’ )),
-FILE_EXTENSION VARCHAR2(20) NOT NULL CHECK (FILE_EXTENSION IN (‘.fsa’, ’.fsa.gz’, ‘.fasta’, ’.txt’, .tab’, ’.gff’, ’.gz’, ‘.tar.gz’, ‘.bw’, ‘.xlsx’, ‘.zip’, ‘.bedgraph’, ‘.bed.gz’, ‘.bed’, ‘.doc’, ‘.rar’, ‘.pdf’, ‘.tsv’, ‘.dat’, ‘.obo’)),
-FILE_CATEGORY VARCHAR2(100) NOT NULL CHECK (FILE_CATEGORY IN (‘curated data’, ‘analysis’, ‘ontology’, ‘predicted data’)), 
-FILE_OUTPUT_TYPE VARCHAR2(100) NOT NULL CHECK (FILE_OUTPUT_TYPE IN (‘document’, ‘spreadsheet’, ‘alignments’, ‘image’)),
+FILE_FORMAT VARCHAR2(20) NOT NULL CHECK (FILE_FORMAT IN ('FASTA', 'tab-delimited', 'GFF3', 'tar', 'bigWig', 'Excel')),
+FILE_EXTENSION VARCHAR2(20) NOT NULL CHECK (FILE_EXTENSION IN ('.fsa', '.fsa.gz', '.fasta', '.txt', '.tab', '.gff', '.gz', '.tar.gz', '.bw', '.xlsx', '.zip', '.bedgraph', '.bed.gz', '.bed', '.doc', '.rar', '.pdf', '.tsv', '.dat', '.obo')),
+FILE_CATEGORY VARCHAR2(100) NOT NULL CHECK (FILE_CATEGORY IN ('curated data', 'analysis', 'ontology', 'predicted data')), 
+FILE_OUTPUT_TYPE VARCHAR2(100) NOT NULL CHECK (FILE_OUTPUT_TYPE IN ('document', 'spreadsheet', 'alignment', 'image')),
  DATE_CREATED DATE DEFAULT SYSDATE NOT NULL, 
 CREATED_BY VARCHAR2(12) DEFAULT SUBSTR(USER,1,12) NOT NULL,
  CONSTRAINT FILE_PK PRIMARY KEY (FILE_ID), 
