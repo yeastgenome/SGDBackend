@@ -27,7 +27,7 @@ def evidence_starter(bud_session_maker):
                     parent = pieces[1].split('!')[0].strip()
                     if parent not in parent_to_children:
                         parent_to_children[parent] = []
-                    parent_to_children[parent].append({'eco_id': term['eco_id'], 'name': term['name'], 'source': {'name': 'ECO'}, 'relation_type': 'is_a'})
+                    parent_to_children[parent].append({'eco_id': term['eco_id'], 'name': term['name'], 'source': {'name': 'ECO'}, 'relation_type': 'is a'})
                 elif pieces[0] in key_switch:
                     term[key_switch[pieces[0]]] = pieces[1]
                 else:
@@ -36,7 +36,6 @@ def evidence_starter(bud_session_maker):
 
     for term in terms:
         eco_id = term['eco_id']
-        print eco_id
         term['children'] = [] if eco_id not in parent_to_children else parent_to_children[eco_id]
         term['urls'].append({'name': 'BioPortal',
                               'link': 'http://bioportal.bioontology.org/ontologies/ECO?p=classes&conceptid=' + term['eco_id'],
@@ -44,7 +43,7 @@ def evidence_starter(bud_session_maker):
                               'url_type': 'External'})
         term['urls'].append({'name': 'OLS',
                               'link': 'http://www.ebi.ac.uk/ontology-lookup/?termId=' + term['eco_id'],
-                              'source': {'display_name': 'EBI'},
+                              'source': {'name': 'EBI'},
                               'url_type': 'External'})
         yield term
 

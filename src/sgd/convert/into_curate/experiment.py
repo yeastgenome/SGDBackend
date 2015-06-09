@@ -7,7 +7,7 @@ large_scale_survey = {'large-scale survey', 'competitive growth', 'heterozygous_
                       'homozygous diploid, competitive growth', 'heterozygous diploid, systematic mutation set', 'homozygous diploid, systematic mutation set'}
 classical_genetics = {'classical genetics', 'heterozygous diploid', 'homozygous diploid'}
 
-key_switch = {'id': 'apo_id', 'name': 'display_name', 'def': 'description', 'created_by': 'created'}
+key_switch = {'id': 'apo_id', 'name': 'name', 'def': 'description', 'created_by': 'created'}
 
 def experiment_starter(bud_session_maker):
 
@@ -21,22 +21,22 @@ def experiment_starter(bud_session_maker):
             if term is not None:
                 terms.append(term)
             term = {'aliases': [],
-                    'source': {'display_name': 'SGD'},
+                    'source': {'name': 'SGD'},
                     'urls': []}
         elif term is not None:
             pieces = line.split(': ')
             if len(pieces) == 2:
                 if pieces[0] == 'synonym':
                     quotation_split = pieces[1].split('"')
-                    display_name = quotation_split[1]
+                    name = quotation_split[1]
                     alias_type = quotation_split[2].split('[')[0].strip()
-                    if len(display_name) < 500 and (display_name, alias_type) not in [(x['display_name'], x['alias_type']) for x in term['aliases']]:
-                        term['aliases'].append({'display_name': display_name, "alias_type": alias_type, "source": {"display_name": "SGD"}})
+                    if len(name) < 500 and (name, alias_type) not in [(x['name'], x['alias_type']) for x in term['aliases']]:
+                        term['aliases'].append({'name': name, "alias_type": alias_type, "source": {"name": "SGD"}})
                 elif pieces[0] == 'is_a':
                     parent = pieces[1].split('!')[0].strip()
                     if parent not in parent_to_children:
                         parent_to_children[parent] = []
-                    parent_to_children[parent].append({'apo_id': term['apo_id'], 'source': {'display_name': 'SGD'}, 'display_name': term['display_name'], 'relation_type': 'is_a'})
+                    parent_to_children[parent].append({'apo_id': term['apo_id'], 'source': {'name': 'SGD'}, 'name': term['name'], 'relation_type': 'is a'})
                 elif pieces[0] in key_switch:
                     term[key_switch[pieces[0]]] = pieces[1]
                 else:
@@ -48,15 +48,15 @@ def experiment_starter(bud_session_maker):
             apo_id = term['apo_id']
             term['children'] = [] if apo_id not in parent_to_children else parent_to_children[apo_id]
 
-            if term['display_name'] in large_scale_survey:
+            if term['name'] in large_scale_survey:
                 term['experiment_type'] = 'large-scale survey'
-            if term['display_name'] in classical_genetics:
+            if term['name'] in classical_genetics:
                 term['experiment_type'] = 'classical genetics'
             yield term
 
 
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, experiment_starter, 'experiment', lambda x: x['display_name'])
+    basic_convert(bud_db, nex_db, experiment_starter, 'experiment', lambda x: x['name'])
 
 
 if __name__ == '__main__':

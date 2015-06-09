@@ -5,14 +5,10 @@
     "properties": {
         "id": {
             "title": "ID",
-            "type": "integer"
-        },
-        "display_name": {
-            "title": "Name",
             "type": "string"
         },
-        "format_name": {
-            "title": "Format Name",
+        "name": {
+            "title": "Name",
             "type": "string"
         },
         "link": {
@@ -61,11 +57,7 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "title": "ID",
-                        "type": "integer"
-                    },
-                    "display_name": {
+                    "name": {
                         "title": "Name",
                         "type": "string"
                     },
@@ -98,7 +90,7 @@
                         "type": "string"
                     }
                 },
-                "required": ["display_name", "alias_type", "source"]
+                "required": ["name", "alias_type", "source"]
             }
         },
         "children": {
@@ -178,5 +170,5 @@
             }
         }
     },
-    "required": ["display_name"]
+    "required": ["name"]
 }

@@ -492,11 +492,11 @@ class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJso
     def __init__(self, document, reference, reference_order):
         self.reference_order = reference_order
         self.document = document
-        self.reference = reference
+        self.reference_id = reference.id
         self.source = self.document.source
 
     def unique_key(self):
-        return (None if self.document is None else self.document.unique_key()), (None if self.reference is None else self.reference.unique_key())
+        return (None if self.document is None else self.document.unique_key()), (self.reference_id if self.reference is None else self.reference.unique_key())
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -518,6 +518,8 @@ class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJso
             return current_obj, 'Found'
 
     def to_json(self, size='small'):
+        if self.reference is None:
+            return None
         obj_json = self.reference.to_json(size='medium')
         obj_json['reference_order'] = self.reference_order
         return obj_json

@@ -68,7 +68,7 @@ class EvidenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return (None if self.evidence is None else self.evidence.unique_key()), self.display_name, self.link
+        return (None if self.evidence is None else self.evidence.unique_key()), self.name, self.link
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -88,6 +88,14 @@ class EvidenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
+
+    def to_json(self, size='small'):
+        return {
+            'name': self.name,
+            'link': self.link,
+            'source': self.source.__to_small_json__(),
+            'url_type': self.url_type
+        }
 
 
 class EvidenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
@@ -116,7 +124,7 @@ class EvidenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return (None if self.evidence is None else self.evidence.unique_key()), self.display_name, self.alias_type
+        return (None if self.evidence is None else self.evidence.unique_key()), self.name, self.alias_type
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -136,6 +144,14 @@ class EvidenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
+
+    def to_json(self, size='small'):
+        return {
+            'name': self.name,
+            'link': self.link,
+            'source': self.source.__to_small_json__(),
+            'alias_type': self.alias_type
+        }
 
 
 class EvidenceRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
@@ -192,7 +208,12 @@ class EvidenceRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
         else:
             return current_obj, 'Found'
 
-    def to_json(self):
-        obj_json = self.child.to_min_json()
-        obj_json['source'] = self.child.source.to_min_json()
-        obj_json['relation_type'] = self.relation_type
+    def to_json(self, size='small', perspective='parent'):
+        if perspective == 'parent':
+            obj_json = self.child.to_json(size='small')
+        elif perspective == 'child':
+            obj_json = self.parent.to_json(size='small')
+
+        if obj_json is not None:
+            obj_json['relation_type'] = self.relation_type
+        return obj_json
