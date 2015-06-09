@@ -57,7 +57,6 @@ class UpdateWithJsonMixin(object):
         for key in getattr(cls, '__id_values__'):
             if key in obj_json:
                 current_obj = session.query(cls).filter(getattr(cls, key) == obj_json[key]).first()
-                print key, cls.__name__
 
             if current_obj is not None:
                 break
