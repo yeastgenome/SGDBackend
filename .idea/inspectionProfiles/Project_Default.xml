@@ -20,9 +20,7 @@
     </inspection_tool>
     <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="false">
       <option name="ignoredIdentifiers">
-        <value>
-          <list size="0" />
-        </value>
+        <list />
       </option>
     </inspection_tool>
     <inspection_tool class="SqlNoDataSourceInspection" enabled="false" level="WARNING" enabled_by_default="false" />
