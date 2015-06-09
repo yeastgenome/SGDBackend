@@ -215,7 +215,7 @@ class ReferenceAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         return {
             'name': self.name,
             'link': self.link,
-            'source': self.source.__to_small_json__(),
+            'source': self.source.to_json(size='small'),
             'alias_type': self.alias_type
         }
 
@@ -272,7 +272,7 @@ class ReferenceDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
     def to_json(self, size='small'):
         return {
             'text': self.html,
-            'source': self.source.__to_small_json__(),
+            'source': self.source.to_json(size='small'),
             'document_type': self.document_type
         }
 

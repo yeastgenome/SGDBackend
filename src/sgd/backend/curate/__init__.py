@@ -68,7 +68,7 @@ class CurateBackend():
         schema = load_schema
         return None if class_type not in self.schemas else self.schemas[class_type]
 
-    def get_object(self, class_name, identifier):
+    def get_object(self, class_name, identifier, filter_options):
         '''
         Get an object of a particular type with the given identifier.
         '''
@@ -77,15 +77,19 @@ class CurateBackend():
             #Find object
             obj = self.find_object(class_name, identifier)
 
-            return None if obj is None else obj.to_json('large')
+            size = 'large'
+            if 'size' in filter_options:
+                size = filter_options['size']
+
+            return None if obj is None else obj.to_json(size=size)
         except Exception as e:
             print traceback.format_exc()
             return {'status': 'Error',
-                            'message': e.message,
-                            'traceback': traceback.format_exc(),
-                            'json': None if obj is None else str(obj),
-                            'id': None
-                            }
+                    'message': e.message,
+                    'traceback': traceback.format_exc(),
+                    'json': None if obj is None else str(obj),
+                    'id': None
+            }
 
     def get_all_objects(self, class_name, filter_options):
         '''

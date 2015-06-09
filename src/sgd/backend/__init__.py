@@ -24,7 +24,7 @@ def prep_views(chosen_backend, config):
 
     #Get object
     config.add_route('get', '/{class_type}/{identifier}', request_method="GET")
-    config.add_view(lambda request: chosen_backend.response_wrapper('get', request)(chosen_backend.get_object(request.matchdict['class_type'], request.matchdict['identifier'])),
+    config.add_view(lambda request: chosen_backend.response_wrapper('get', request)(chosen_backend.get_object(request.matchdict['class_type'], request.matchdict['identifier'], request.params)),
                 renderer='string', route_name='get')
 
     #Update object
