@@ -5,14 +5,10 @@
     "properties": {
         "id": {
             "title": "ID",
-            "type": "integer"
-        },
-        "display_name": {
-            "title": "Name",
             "type": "string"
         },
-        "format_name": {
-            "title": "Format Name",
+        "name": {
+            "title": "Name",
             "type": "string"
         },
         "link": {
@@ -43,5 +39,5 @@
             "type": "string"
         }
     },
-    "required": ["display_name", "source"]
+    "required": ["name", "source"]
 }

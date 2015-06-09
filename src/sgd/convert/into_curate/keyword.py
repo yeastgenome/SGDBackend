@@ -85,17 +85,17 @@ def keyword_starter(bud_session_maker):
         tag = row[6].strip()
         for t in [x.strip() for x in tag.split('|')]:
             yield remove_nones({
-                'display_name': t if t not in keyword_mapping else keyword_mapping[t],
+                'name': t if t not in keyword_mapping else keyword_mapping[t],
                 'description': definitions.get(t),
-                'source': {'display_name': 'SGD'}
+                'source': {'name': 'SGD'}
             })
     f.close()
 
     from src.sgd.model.bud.colleague import Keyword
     bud_session = bud_session_maker()
     for bud_obj in bud_session.query(Keyword).filter_by(source='Curator-defined').all():
-        yield {'display_name': bud_obj.keyword if bud_obj.keyword not in keyword_mapping else keyword_mapping[bud_obj.keyword],
-               'source': {'display_name': bud_obj.source},
+        yield {'name': bud_obj.keyword if bud_obj.keyword not in keyword_mapping else keyword_mapping[bud_obj.keyword],
+               'source': {'name': bud_obj.source},
                'bud_id': bud_obj.id,
                'date_created': str(bud_obj.date_created),
                'created_by': bud_obj.created_by}
@@ -103,7 +103,7 @@ def keyword_starter(bud_session_maker):
 
 
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, keyword_starter, 'keyword', lambda x: x['display_name'])
+    basic_convert(bud_db, nex_db, keyword_starter, 'keyword', lambda x: x['name'])
 
 
 if __name__ == '__main__':

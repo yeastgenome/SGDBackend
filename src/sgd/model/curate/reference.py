@@ -132,7 +132,7 @@ class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return (None if self.reference is None else self.reference.unique_key()), self.name, self.link
+        return (None if self.reference is None else self.reference.unique_key()), self.name, self.url_type
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -146,7 +146,7 @@ class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         current_obj = session.query(cls)\
             .filter_by(reference_id=newly_created_object.reference_id)\
             .filter_by(name=newly_created_object.name)\
-            .filter_by(link=newly_created_object.link).first()
+            .filter_by(url_type=newly_created_object.url_type).first()
 
         if current_obj is None:
             return newly_created_object, 'Created'
@@ -273,7 +273,9 @@ class ReferenceDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
         return {
             'text': self.html,
             'source': self.source.to_json(size='small'),
-            'document_type': self.document_type
+            'document_type': self.document_type,
+            'document_order': self.document_order,
+            'references': []
         }
 
 
