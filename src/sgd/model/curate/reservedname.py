@@ -16,7 +16,7 @@ __author__ = 'kkarra'
 class Reservedname(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'reservedname'
 
-    id = Column('reservedname_id', Integer, primary_key=True)
+    id = Column('reservedname_id', String, primary_key=True)
     source_id = Column('source_id',Integer, ForeignKey(Source.id))
     reference_id = Column('reference_id', ForeignKey(Reference.id))
     colleague_id = Column('colleague_id', Integer, ForeignKey(Colleague.id))
@@ -25,11 +25,10 @@ class Reservedname(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     reservation_date = Column('reservation_date', Date, server_default=FetchedValue())
     expiration_date = Column('expiration_date', Date, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
+    name = Column('name', String)
     description = Column('description', String)
     created_by = Column('created_by', String)
-    link = Column('object_url', String)
+    link = Column('obj_url', String)
 
     #Relationships
     source = relationship(Source, uselist=False)
@@ -37,12 +36,18 @@ class Reservedname(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     locus = relationship(Locus, uselist=False, backref=backref('reservednames'))
     colleague = relationship(Colleague, uselist=False, backref=backref('reservednames', uselist=False))
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
+    __eq_values__ = ['id', 'name', 'link', 'description',
                      'bud_id', 'reservation_date', 'expiration_date',
                      'date_created', 'created_by']
-    __eq_fks__ = ['source', 'locus', 'reference', 'colleague']
-    __id_values__ = ['format_name', 'id']
-    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __eq_fks__ = [('source', Source, False),
+                  ('locus', Locus, False),
+                  ('reference', Reference, False),
+                  ('colleague', Colleague, False)]
+    __id_values__ = ['name', 'id']
+    __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
     __filter_values__ = ['locus_id', 'colleague_id']
+
+    def __init__(self, obj_json, session):
+        UpdateWithJsonMixin.__init__(self, obj_json, session)
 
 

@@ -20,7 +20,7 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     source_id = Column('source_id', String, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
-    created_by = Column('created_by', String, server_default=FetchedValue())
+    created_by = Column('created_by', String)
 
     last_name = Column('last_name', String)
     first_name = Column('first_name', String)

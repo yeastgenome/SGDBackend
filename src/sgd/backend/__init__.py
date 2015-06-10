@@ -1,5 +1,3 @@
-from pyramid.config import Configurator
-
 import config
 
 
@@ -13,7 +11,7 @@ def prep_views(chosen_backend, config):
                     renderer='string', route_name='all_classes')
 
     #Get schema
-    config.add_route('schema', '/profiles/{class_type}.json', request_method="GET")
+    config.add_route('schema', '/schema/{class_type}', request_method="GET")
     config.add_view(lambda request: chosen_backend.response_wrapper('schema', request)(chosen_backend.schema(request.matchdict['class_type'])),
                 renderer='string', route_name='schema')
 
@@ -415,6 +413,8 @@ def prep_views(chosen_backend, config):
 
     
 def prepare_backend(backend_type):
+    from pyramid.config import Configurator
+
     configurator = Configurator()
     configurator.add_static_view('static', 'static', cache_max_age=3600)
 

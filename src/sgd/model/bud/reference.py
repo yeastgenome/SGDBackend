@@ -239,6 +239,9 @@ class Reflink(Base):
     col_name = Column('col_name', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
+
+    #relationships
+    reference = relationship(Reference, uselist=False)
         
 class RefRelation(Base):
     __tablename__ = 'ref_relationship'
