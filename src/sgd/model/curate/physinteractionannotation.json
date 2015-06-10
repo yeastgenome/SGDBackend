@@ -1,0 +1,81 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Physical Interaction Annotation",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "string"
+        },
+        "dbentity1": {
+            "title": "DBentity1",
+            "type": "object",
+            "properties": {
+                "systematic_name": {
+                    "title": "Systematic Name",
+                    "type": "string"
+                },
+                "required": ["systematic_name"]
+            }
+        },
+	"dbentity2": {
+            "title": "DBentity2",
+            "type": "object",
+            "properties": {
+                "systematic_name": {
+                    "title": "Systematic Name",
+                    "type": "string"
+                },
+                "required": ["systematic_name"]
+            }
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "taxonomy": {
+            "title": "Taxonomy",
+            "$ref": "taxonomy.json"
+        },
+        "reference": {
+            "title": "Reference",
+            "type": "object",
+            "properties": {
+                "pubmed_id": {
+                    "title": "Pubmed ID",
+                    "type": "integer"
+                },
+                "required": ["pubmed_id"]
+            }
+        },
+        "modification": {
+            "title": "Modification",
+            "type": "string"
+        },
+        "annotation_type": {
+            "title": "Annotation Type",
+            "type": "string"
+        },
+        "note": {
+            "title": "Note",
+            "type": "string"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Created By",
+            "type": "string"
+        }
+    },
+    "required": ["dbentity1", "dbentity2", "source", "reference", "modification", "annotation_type"]
+}
