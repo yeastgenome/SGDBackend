@@ -15,7 +15,7 @@ class Strain(Dbentity):
     __tablename__ = 'straindbentity'
 
     id = Column('dbentity_id', Integer, ForeignKey(Dbentity.id), primary_key=True)
-    taxonomy_id = Column('taxonomy_id', Integer, ForeignKey(Taxonomy.id))
+    taxonomy_id = Column('taxonomy_id', String, ForeignKey(Taxonomy.id))
     strain_type = Column('strain_type', String)
     genotype = Column('genotype', String)
     genbank_id = Column('genbank_id', String)

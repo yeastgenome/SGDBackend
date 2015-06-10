@@ -25,7 +25,7 @@ def goterm_starter(bud_session_maker):
                     quotation_split = pieces[1].split('"')
                     display_name = quotation_split[1]
                     alias_type = quotation_split[2].split('[')[0].strip()
-                    if len(display_name) < 500 and (display_name, alias_type) not in [(x['name'], x['alias_type']) for x in term['aliases']]:
+                    if len(display_name) < 500 and alias_type in {'BROAD', 'EXACT', 'RELATED', 'NARROW'} and (display_name, alias_type) not in [(x['name'], x['alias_type']) for x in term['aliases']]:
                         term['aliases'].append({'name': display_name, "alias_type": alias_type, "source": {"name": "GO"}})
                 elif pieces[0] == 'is_a':
                     parent = pieces[1].split('!')[0].strip()

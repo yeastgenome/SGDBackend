@@ -5,14 +5,10 @@
     "properties": {
         "id": {
             "title": "ID",
-            "type": "integer"
-        },
-        "display_name": {
-            "title": "Name",
             "type": "string"
         },
-        "format_name": {
-            "title": "Format Name",
+        "name": {
+            "title": "Name",
             "type": "string"
         },
         "link": {
@@ -65,9 +61,9 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "systematic_name": {
-                        "title": "Display Name",
-                        "type": "display_name"
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
                     },
                     "relation_type": {
                         "title": "Relation Type",
@@ -94,7 +90,7 @@
                         "type": "string"
                     }
                 },
-                "required": ["display_name"]
+                "required": ["name"]
             }
         },
         "parents": {
@@ -103,8 +99,8 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "display_name": {
-                        "title": "Display Name",
+                    "name": {
+                        "title": "Name",
                         "type": "string"
                     },
                     "relation_type": {
@@ -132,7 +128,7 @@
                         "type": "string"
                     }
                 },
-                "required": ["display_name"]
+                "required": ["name"]
             }
         },
         "aliases": {
@@ -141,12 +137,8 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "title": "ID",
-                        "type": "integer"
-                    },
-                    "display_name": {
-                        "title": "Display Name",
+                    "name": {
+                        "title": "Name",
                         "type": "string"
                     },
                     "link": {
@@ -178,9 +170,9 @@
                         "type": "string"
                     }
                 },
-                "required": ["display_name", "alias_type", "source"]
+                "required": ["name", "alias_type", "source"]
             }
         }
     },
-    "required": ["display_name", "ncbi_taxon_id"]
+    "required": ["name", "ncbi_taxon_id"]
 }
