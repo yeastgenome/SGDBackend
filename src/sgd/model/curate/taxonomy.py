@@ -11,10 +11,9 @@ __author__ = 'kelley'
 class Taxonomy(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'taxonomy'
 
-    id = Column('taxonomy_id', Integer, primary_key=True)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
+    id = Column('taxonomy_id', String, primary_key=True)
+    source_id = Column('source_id', String, ForeignKey(Source.id))
+    name = Column('name', String)
     link = Column('obj_url', String)
     bud_id = Column('bud_id', Integer)
     ncbi_taxon_id = Column('ncbi_taxon_id', Integer)
@@ -27,13 +26,13 @@ class Taxonomy(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by',
+    __eq_values__ = ['id', 'name', 'link', 'description', 'bud_id', 'date_created', 'created_by',
                      'common_name', 'rank', 'ncbi_taxon_id']
     __eq_fks__ = [('source', Source, False),
                   ('aliases', 'taxonomy.TaxonomyAlias', True),
                   ('children', 'taxonomy.TaxonomyRelation', True)]
-    __id_values__ = ['id', 'format_name', 'ncbi_taxon_id']
-    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __id_values__ = ['id', 'name', 'ncbi_taxon_id']
+    __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
     __filter_values__ = ['rank']
 
     def __init__(self, obj_json, session):
@@ -44,11 +43,11 @@ class TaxonomyAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'taxonomy_alias'
 
     id = Column('alias_id', Integer, primary_key=True)
-    display_name = Column('display_name', String)
+    name = Column('name', String)
     link = Column('obj_url', String)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
-    taxonomy_id = Column('taxonomy_id', Integer, ForeignKey(Taxonomy.id, ondelete='CASCADE'))
+    taxonomy_id = Column('taxonomy_id', String, ForeignKey(Taxonomy.id, ondelete='CASCADE'))
     alias_type = Column('alias_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
@@ -57,7 +56,7 @@ class TaxonomyAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     taxonomy = relationship(Taxonomy, uselist=False, backref=backref('aliases', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'alias_type', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'name', 'link', 'bud_id', 'alias_type', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
@@ -67,7 +66,7 @@ class TaxonomyAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return (None if self.taxonomy is None else self.taxonomy.unique_key()), self.display_name, self.alias_type
+        return (None if self.taxonomy is None else self.taxonomy.unique_key()), self.name, self.alias_type
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -80,7 +79,7 @@ class TaxonomyAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
         current_obj = session.query(cls)\
             .filter_by(taxonomy_id=newly_created_object.taxonomy_id)\
-            .filter_by(display_name=newly_created_object.display_name)\
+            .filter_by(name=newly_created_object.name)\
             .filter_by(alias_type=newly_created_object.alias_type).first()
 
         if current_obj is None:
@@ -88,14 +87,22 @@ class TaxonomyAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         else:
             return current_obj, 'Found'
 
+    def to_json(self, size='small'):
+        return {
+            'name': self.name,
+            'link': self.link,
+            'source': self.source.__to_small_json__(),
+            'alias_type': self.alias_type
+        }
+
 
 class TaxonomyRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'taxonomy_relation'
 
     id = Column('relation_id', Integer, primary_key=True)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    parent_id = Column('parent_id', Integer, ForeignKey(Taxonomy.id, ondelete='CASCADE'))
-    child_id = Column('child_id', Integer, ForeignKey(Taxonomy.id, ondelete='CASCADE'))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
+    parent_id = Column('parent_id', String, ForeignKey(Taxonomy.id, ondelete='CASCADE'))
+    child_id = Column('child_id', String, ForeignKey(Taxonomy.id, ondelete='CASCADE'))
     relation_type = Column('relation_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
@@ -144,7 +151,12 @@ class TaxonomyRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
         else:
             return current_obj, 'Found'
 
-    def to_json(self):
-        obj_json = self.child.to_min_json()
-        obj_json['source'] = self.child.source.to_min_json()
-        obj_json['relation_type'] = self.relation_type
+    def to_json(self, size='small', perspective='parent'):
+        if perspective == 'parent':
+            obj_json = self.child.to_json(size='small')
+        elif perspective == 'child':
+            obj_json = self.parent.to_json(size='small')
+
+        if obj_json is not None:
+            obj_json['relation_type'] = self.relation_type
+        return obj_json

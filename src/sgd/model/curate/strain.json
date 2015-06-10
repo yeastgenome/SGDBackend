@@ -5,14 +5,10 @@
     "properties": {
         "id": {
             "title": "ID",
-            "type": "integer"
-        },
-        "display_name": {
-            "title": "Name",
             "type": "string"
         },
-        "format_name": {
-            "title": "Format Name",
+        "name": {
+            "title": "Name",
             "type": "string"
         },
         "link": {
@@ -53,10 +49,6 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "title": "ID",
-                        "type": "integer"
-                    },
                     "text": {
                         "title": "Text",
                         "type": "string"
@@ -81,7 +73,7 @@
                             "properties": {
                                 "id": {
                                     "title": "ID",
-                                    "type": "integer"
+                                    "type": "string"
                                 }
                             }
                         }
@@ -112,12 +104,8 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "title": "ID",
-                        "type": "integer"
-                    },
-                    "display_name": {
-                        "title": "Display Name",
+                    "name": {
+                        "title": "Name",
                         "type": "string"
                     },
                     "link": {
@@ -149,9 +137,9 @@
                         "type": "string"
                     }
                 },
-                "required": ["display_name", "link", "url_type", "source"]
+                "required": ["name", "link", "url_type", "source"]
             }
         }
     },
-    "required": ["display_name"]
+    "required": ["name"]
 }

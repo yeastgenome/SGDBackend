@@ -11,9 +11,9 @@ def load_aliases(bud_obj, bud_session):
     aliases = []
     for bud_obj in bud_session.query(TaxonomyAlias).filter_by(taxon_id=bud_obj.id).all():
         aliases.append(remove_nones({
-            "display_name": bud_obj.synonym,
-            "alias_type": 'None',
-            'source': {'display_name': '-'}
+            "name": bud_obj.synonym,
+            "alias_type": 'Synonym',
+            'source': {'name': '-'}
         }))
     return aliases
 
@@ -23,9 +23,9 @@ def load_relations(bud_obj, bud_session):
     relations = []
     for bud_obj in bud_session.query(TaxonomyRelation).filter_by(parent_id=bud_obj.id).filter_by(generation=1).all():
         relations.append(remove_nones({
-            "display_name": bud_obj.child.name,
-            'source': {'display_name': '-'},
-            "relation_type": 'None'
+            "name": bud_obj.child.name,
+            'source': {'name': '-'},
+            "relation_type": 'is a'
         }))
     return relations
 
@@ -36,13 +36,13 @@ def taxonomy_starter(bud_session_maker):
 
     for relation in bud_session.query(TaxonomyRelation).options(joinedload(TaxonomyRelation.child)).filter_by(parent_id=4893).all():
         bud_obj = relation.child
-        obj_json = remove_nones({'display_name': bud_obj.name,
+        obj_json = remove_nones({'name': bud_obj.name,
                                  'bud_id': bud_obj.id,
                                  'ncbi_taxon_id': bud_obj.id,
                                  'common_name': bud_obj.common_name,
                                  'description': bud_obj.common_name,
                                  'rank': bud_obj.rank,
-                                 'source': {'display_name': '-'},
+                                 'source': {'name': '-'},
                                  'date_created': str(bud_obj.date_created),
                                  'created_by': bud_obj.created_by})
 
@@ -58,7 +58,7 @@ def taxonomy_starter(bud_session_maker):
 
 
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, taxonomy_starter, 'taxonomy', lambda x: x['display_name'])
+    basic_convert(bud_db, nex_db, taxonomy_starter, 'taxonomy', lambda x: x['name'])
 
 
 if __name__ == '__main__':

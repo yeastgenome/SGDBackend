@@ -161,9 +161,9 @@ class GotermRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'goterm_relation'
 
     id = Column('relation_id', Integer, primary_key=True)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    parent_id = Column('parent_id', Integer, ForeignKey(Goterm.id, ondelete='CASCADE'))
-    child_id = Column('child_id', Integer, ForeignKey(Goterm.id, ondelete='CASCADE'))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
+    parent_id = Column('parent_id', String, ForeignKey(Goterm.id, ondelete='CASCADE'))
+    child_id = Column('child_id', String, ForeignKey(Goterm.id, ondelete='CASCADE'))
     relation_type = Column('relation_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
