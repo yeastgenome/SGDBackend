@@ -35,6 +35,10 @@
             "title": "Bud ID",
             "type": "integer"
         },
+        "ncbi_taxon_id": {
+            "title": "NCBI Taxon ID",
+            "type": "integer"
+        },
         "source": {
             "title": "Source",
             "$ref": "source.json"
@@ -178,5 +182,5 @@
             }
         }
     },
-    "required": ["display_name"]
+    "required": ["display_name", "ncbi_taxon_id"]
 }

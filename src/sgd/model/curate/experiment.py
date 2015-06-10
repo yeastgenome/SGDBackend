@@ -11,10 +11,9 @@ __author__ = 'kelley'
 class Experiment(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'experiment'
 
-    id = Column('experiment_id', Integer, primary_key=True)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
+    id = Column('experiment_id', String, primary_key=True)
+    source_id = Column('source_id', String, ForeignKey(Source.id))
+    name = Column('name', String)
     link = Column('obj_url', String)
     bud_id = Column('bud_id', Integer)
     apo_id = Column('apo_id', String)
@@ -26,13 +25,13 @@ class Experiment(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by',
+    __eq_values__ = ['id', 'name', 'link', 'description', 'bud_id', 'date_created', 'created_by',
                      'experiment_type', 'apo_id']
     __eq_fks__ = [('source', Source, False),
                   ('aliases', 'experiment.ExperimentAlias', True),
                   ('children', 'experiment.ExperimentRelation', True)]
-    __id_values__ = ['id', 'format_name', 'apo_id']
-    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __id_values__ = ['id', 'name', 'apo_id']
+    __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
     __filter_values__ = ['experiment_type']
 
     def __init__(self, obj_json, session):
@@ -47,11 +46,11 @@ class ExperimentAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin)
     __tablename__ = 'experiment_alias'
 
     id = Column('alias_id', Integer, primary_key=True)
-    display_name = Column('display_name', String)
+    name = Column('name', String)
     link = Column('obj_url', String)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
-    experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id, ondelete='CASCADE'))
+    experiment_id = Column('experiment_id', String, ForeignKey(Experiment.id, ondelete='CASCADE'))
     alias_type = Column('alias_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
@@ -60,7 +59,7 @@ class ExperimentAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin)
     experiment = relationship(Experiment, uselist=False, backref=backref('aliases', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'alias_type', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'name', 'link', 'bud_id', 'alias_type', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
@@ -91,14 +90,22 @@ class ExperimentAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin)
         else:
             return current_obj, 'Found'
 
+    def to_json(self, size='small'):
+        return {
+            'name': self.name,
+            'link': self.link,
+            'source': self.source.__to_small_json__(),
+            'alias_type': self.alias_type
+        }
+
 
 class ExperimentRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'experiment_relation'
 
     id = Column('relation_id', Integer, primary_key=True)
-    source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    parent_id = Column('parent_id', Integer, ForeignKey(Experiment.id, ondelete='CASCADE'))
-    child_id = Column('child_id', Integer, ForeignKey(Experiment.id, ondelete='CASCADE'))
+    source_id = Column('source_id', String, ForeignKey(Source.id))
+    parent_id = Column('parent_id', String, ForeignKey(Experiment.id, ondelete='CASCADE'))
+    child_id = Column('child_id', String, ForeignKey(Experiment.id, ondelete='CASCADE'))
     relation_type = Column('relation_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
@@ -147,7 +154,12 @@ class ExperimentRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMix
         else:
             return current_obj, 'Found'
 
-    def to_json(self):
-        obj_json = self.child.to_min_json()
-        obj_json['source'] = self.child.source.to_min_json()
-        obj_json['relation_type'] = self.relation_type
+    def to_json(self, size='small', perspective='parent'):
+        if perspective == 'parent':
+            obj_json = self.child.to_json(size='small')
+        elif perspective == 'child':
+            obj_json = self.parent.to_json(size='small')
+
+        if obj_json is not None:
+            obj_json['relation_type'] = self.relation_type
+        return obj_json

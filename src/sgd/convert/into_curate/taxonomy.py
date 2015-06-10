@@ -9,7 +9,7 @@ def load_aliases(bud_obj, bud_session):
     from src.sgd.model.bud.taxonomy import TaxonomyAlias
 
     aliases = []
-    for bud_obj in bud_session.query(TaxonomyAlias).filter_by(id=bud_obj.id).all():
+    for bud_obj in bud_session.query(TaxonomyAlias).filter_by(taxon_id=bud_obj.id).all():
         aliases.append(remove_nones({
             "display_name": bud_obj.synonym,
             "alias_type": 'None',
@@ -38,7 +38,9 @@ def taxonomy_starter(bud_session_maker):
         bud_obj = relation.child
         obj_json = remove_nones({'display_name': bud_obj.name,
                                  'bud_id': bud_obj.id,
+                                 'ncbi_taxon_id': bud_obj.id,
                                  'common_name': bud_obj.common_name,
+                                 'description': bud_obj.common_name,
                                  'rank': bud_obj.rank,
                                  'source': {'display_name': '-'},
                                  'date_created': str(bud_obj.date_created),
@@ -50,7 +52,6 @@ def taxonomy_starter(bud_session_maker):
         #Load children
         obj_json['children'] = load_relations(bud_obj, bud_session)
 
-        print bud_obj.name
         yield obj_json
 
     bud_session.close()

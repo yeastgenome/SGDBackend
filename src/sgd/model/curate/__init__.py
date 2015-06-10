@@ -1,5 +1,6 @@
 import datetime
 import traceback
+import uuid
 
 __author__ = 'kpaskov'
 
@@ -28,10 +29,12 @@ locus_types = [
     'intein_encoding_region',
     'telomerase_RNA_gene']
 
+
 def create_format_name(display_name):
     format_name = display_name.replace(' ', '_')
     format_name = format_name.replace('/', '-')
     return format_name
+
 
 def get_class_from_string(class_string):
     module = class_string.split('.')[0]
@@ -41,6 +44,7 @@ def get_class_from_string(class_string):
         return getattr(mod, class_name)
     else:
         raise Exception('Class not found: ' + class_string)
+
 
 class UpdateWithJsonMixin(object):
 
@@ -53,16 +57,21 @@ class UpdateWithJsonMixin(object):
         for key in getattr(cls, '__id_values__'):
             if key in obj_json:
                 current_obj = session.query(cls).filter(getattr(cls, key) == obj_json[key]).first()
-            elif key == 'format_name':
-                current_obj = session.query(cls).filter_by(format_name=cls.__create_format_name__(obj_json)).first()
 
             if current_obj is not None:
                 break
 
         if current_obj is None:
+            current_obj = cls.specialized_find(obj_json, session)
+
+        if current_obj is None:
             return cls(obj_json, session), 'Created'
         else:
             return current_obj, 'Found'
+
+    @classmethod
+    def specialized_find(cls, obj_json, session):
+        return None
 
     def update(self, obj_json, session, make_changes=True):
         warnings = []
@@ -180,36 +189,42 @@ class UpdateWithJsonMixin(object):
         return anything_changed, warnings
 
     def __init__(self, obj_json, session):
-        self.display_name = self.__create_display_name__(obj_json)
-        self.format_name = self.__create_format_name__(obj_json)
+        self.id = str(uuid.uuid4())
+        self.name = self.__create_name__(obj_json)
         self.link = self.__create_link__(obj_json)
         self.update(obj_json, session, make_changes=True)
 
     @classmethod
-    def __create_format_name__(cls, obj_json):
-        return create_format_name(cls.__create_display_name__(obj_json))
-
-    @classmethod
     def __create_link__(cls, obj_json):
-        return '/' + cls.__name__.lower() + '/' + cls.__create_format_name__(obj_json)
+        return '/' + cls.__name__.lower() + '/' + cls.__create_file_name__(obj_json)
 
     @classmethod
-    def __create_display_name__(cls, obj_json):
-        return obj_json['display_name']
+    def __create_name__(cls, obj_json):
+        return obj_json['name']
+
+    @classmethod
+    def __create_file_name__(cls, obj_json):
+        return create_format_name(cls.__create_name__(obj_json))
+
 
 class ToJsonMixin(object):
 
-    def to_min_json(self, include_description=False):
-        obj_json = dict()
-        for key in {'id', 'format_name', 'display_name', 'link'}:
-            if hasattr(self, key):
-                obj_json[key] = getattr(self, key)
+    def __to_mini_json__(self):
+        return self.id, self.name
 
-        if include_description and hasattr(self, 'description'):
-            obj_json['description'] = self.description
+    def __to_small_json__(self):
+        obj_json = dict()
+        for key in {'id', 'name', 'link'}:
+            obj_json[key] = getattr(self, key)
         return obj_json
 
-    def to_json(self):
+    def __to_medium_json__(self):
+        obj_json = dict()
+        for key in {'id', 'name', 'link', 'description'}:
+            obj_json[key] = getattr(self, key)
+        return obj_json
+
+    def __to_large_json__(self):
         obj_json = {}
         for key in self.__eq_values__:
             value = getattr(self, key)
@@ -224,11 +239,22 @@ class ToJsonMixin(object):
             if fk_obj is None:
                 obj_json[key] = None
             elif isinstance(fk_obj, list):
-                obj_json[key] = [x.to_min_json() for x in fk_obj]
+                obj_json[key] = [x.to_json('small') for x in fk_obj]
             else:
-                obj_json[key] = fk_obj.to_min_json()
-
+                obj_json[key] = fk_obj.to_json('small')
         return obj_json
 
+    def to_json(self, size='small'):
+        if size == 'mini':
+            return self.__to_mini_json__()
+        elif size == 'small':
+            return self.__to_small_json__()
+        elif size == 'medium':
+            return self.__to_medium_json__()
+        elif size == 'large':
+            return self.__to_large_json__()
+        else:
+            raise Exception('Invalid size.')
+
     def unique_key(self):
-        return self.format_name
+        return self.name

@@ -8,7 +8,7 @@ def book_starter(bud_session_maker):
 
     for old_book in bud_session.query(Book).all():
         yield remove_nones({
-            'source': {'display_name': 'PubMed'},
+            'source': {'name': 'PubMed'},
             'title': old_book.title,
             'publisher': old_book.publisher,
             'bud_id': old_book.id,
@@ -23,7 +23,7 @@ def book_starter(bud_session_maker):
 
 
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, book_starter, 'book', lambda x: (x['title'], None if 'volume_title' not in x else x['volume_title']))
+    basic_convert(bud_db, nex_db, book_starter, 'book', lambda x: (None if 'title' not in x else x['title'], None if 'volume_title' not in x else x['volume_title']))
 
 
 if __name__ == '__main__':

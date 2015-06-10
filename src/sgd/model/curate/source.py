@@ -9,30 +9,29 @@ __author__ = 'kelley'
 class Source(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'source'
 
-    id = Column('source_id', Integer, primary_key=True)
-    display_name = Column('display_name', String)
-    format_name = Column('format_name', String)
+    id = Column('source_id', String, primary_key=True)
+    name = Column('name', String)
     link = Column('obj_url', String)
     bud_id = Column('bud_id', Integer)
     description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'name', 'link', 'description', 'bud_id', 'date_created', 'created_by']
     __eq_fks__ = []
-    __id_values__ = ['id', 'format_name']
-    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __id_values__ = ['id', 'name']
+    __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
     __filter_values__ = []
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
 
     @classmethod
-    def __create_display_name__(cls, obj_json):
-        if obj_json['display_name'] in to_change:
-            return to_change[obj_json['display_name']]
+    def __create_name__(cls, obj_json):
+        if obj_json['name'] in to_change:
+            return to_change[obj_json['name']]
         else:
-            return obj_json['display_name']
+            return obj_json['name']
 
     @classmethod
     def __create_link__(cls, obj_json):

@@ -2,7 +2,7 @@ from src.sgd.convert.into_curate import basic_convert, remove_nones
 
 __author__ = 'kpaskov'
 
-key_switch = {'id': 'go_id', 'name': 'display_name', 'def': 'description', 'namespace': 'go_aspect', 'created_by': 'created'}
+key_switch = {'id': 'go_id', 'name': 'name', 'def': 'description', 'namespace': 'go_aspect', 'created_by': 'created'}
 
 def goterm_starter(bud_session_maker):
 
@@ -16,7 +16,7 @@ def goterm_starter(bud_session_maker):
             if term is not None:
                 terms.append(term)
             term = {'aliases': [],
-                    'source': {'display_name': 'GO'},
+                    'source': {'name': 'GO'},
                     'urls': []}
         elif term is not None:
             pieces = line.split(': ')
@@ -25,13 +25,13 @@ def goterm_starter(bud_session_maker):
                     quotation_split = pieces[1].split('"')
                     display_name = quotation_split[1]
                     alias_type = quotation_split[2].split('[')[0].strip()
-                    if len(display_name) < 500 and (display_name, alias_type) not in [(x['display_name'], x['alias_type']) for x in term['aliases']]:
-                        term['aliases'].append({'display_name': display_name, "alias_type": alias_type, "source": {"display_name": "GO"}})
+                    if len(display_name) < 500 and (display_name, alias_type) not in [(x['name'], x['alias_type']) for x in term['aliases']]:
+                        term['aliases'].append({'name': display_name, "alias_type": alias_type, "source": {"name": "GO"}})
                 elif pieces[0] == 'is_a':
                     parent = pieces[1].split('!')[0].strip()
                     if parent not in parent_to_children:
                         parent_to_children[parent] = []
-                    parent_to_children[parent].append({'go_id': term['go_id'], 'source': {'display_name': 'GO'}, 'go_aspect': term['go_aspect'].replace('_', ' '), 'relation_type': 'is_a'})
+                    parent_to_children[parent].append({'go_id': term['go_id'], 'source': {'name': 'GO'}, 'go_aspect': term['go_aspect'].replace('_', ' '), 'relation_type': 'is a'})
                 elif pieces[0] in key_switch:
                     term[key_switch[pieces[0]]] = pieces[1]
                 else:
@@ -40,15 +40,14 @@ def goterm_starter(bud_session_maker):
 
     for term in terms:
         go_id = term['go_id']
-        print go_id
         term['children'] = [] if go_id not in parent_to_children else parent_to_children[go_id]
-        term['urls'].append({'display_name': term['go_id'],
+        term['urls'].append({'name': term['go_id'],
                               'link': "http://amigo.geneontology.org/amigo/term/" + term['go_id'],
-                              'source': {'display_name': 'GO'},
+                              'source': {'name': 'GO'},
                               'url_type': 'GO'})
-        term['urls'].append({'display_name': 'View GO Annotations in other species in AmiGO',
+        term['urls'].append({'name': 'View GO Annotations in other species in AmiGO',
                               'link': "http://amigo.geneontology.org/amigo/term/" + term['go_id'] + "#display-associations-tab",
-                              'source': {'display_name': 'GO'},
+                              'source': {'name': 'GO'},
                               'url_type': 'Amigo'})
         term['go_aspect'] = term['go_aspect'].replace('_', ' ')
         if 'description' in term and len(term['description']) > 1000:
@@ -57,7 +56,7 @@ def goterm_starter(bud_session_maker):
 
 
 def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, goterm_starter, 'goterm', lambda x: x['go_id'] if 'display_name' not in x else x['display_name'])
+    basic_convert(bud_db, nex_db, goterm_starter, 'goterm', lambda x: x['go_id'])
 
 
 if __name__ == '__main__':

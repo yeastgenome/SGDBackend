@@ -55,6 +55,14 @@ url_placement_mapping = {
     'Resources External Links': 'LOCUS_LSP'
 }
 
+url_type_mapping = {
+    'Unknown': 'CGI',
+    'query by ID assigned by database': 'External identifier',
+    'query by SGD ORF name': 'Systematic name',
+    'query by SGD ORF name with anchor': 'Systematic name',
+    'query by SGDID': 'SGDID'
+}
+
 
 def load_urls(bud_locus, bud_session):
     from src.sgd.model.bud.general import FeatUrl, DbxrefFeat
@@ -75,10 +83,10 @@ def load_urls(bud_locus, bud_session):
                 print "Can't handle this url. " + str(old_url.url_type)
 
             urls.append(
-                {'display_name': old_webdisplay.label_name,
-                 'source': {'display_name': old_url.source},
+                {'name': old_webdisplay.label_name,
+                 'source': {'name': old_url.source},
                  'bud_id': old_url.id,
-                 'url_type': url_type,
+                 'url_type': url_type_mapping[url_type],
                  'placement': old_webdisplay.label_location if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
                  'link': link,
                  'date_created': str(old_url.date_created),
@@ -103,72 +111,72 @@ def load_urls(bud_locus, bud_session):
                     print "Can't handle this url. " + str(old_url.url_type)
 
                 urls.append(
-                    {'display_name': old_webdisplay.label_name,
-                     'source': {'display_name': old_url.source},
+                    {'name': old_webdisplay.label_name,
+                     'source': {'name': old_url.source},
                      'bud_id': old_url.id,
                      'link': link,
-                     'url_type': url_type,
+                     'url_type': url_type_mapping[url_type],
                      'placement': old_webdisplay.label_location if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
                      'date_created': str(old_url.date_created),
                      'created_by': old_url.created_by})
 
     urls.append(
-        {'display_name': 'SPELL',
-         'source': {'display_name': 'SGD'},
+        {'name': 'SPELL',
+         'source': {'name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': 'http://spell.yeastgenome.org/search/show_results?search_string=' + bud_locus.name,
-         'url_type': 'Unknown',
+         'url_type': 'CGI',
          'placement': 'LOCUS_EXPRESSION'})
 
     urls.append(
-        {'display_name': 'Gene/Sequence Resources',
-         'source': {'display_name': 'SGD'},
+        {'name': 'Gene/Sequence Resources',
+         'source': {'name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/cgi-bin/seqTools?back=1&seqname=' + bud_locus.name,
-         'url_type': 'Unknown',
+         'url_type': 'CGI',
          'placement': 'LOCUS_SEQUENCE'})
 
     urls.append(
-        {'display_name': 'ORF Map',
-         'source': {'display_name': 'SGD'},
+        {'name': 'ORF Map',
+         'source': {'name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/cgi-bin/ORFMAP/ORFmap?dbid=' + bud_locus.dbxref_id,
-         'url_type': 'Unknown',
+         'url_type': 'CGI',
          'placement': 'LOCUS_SEQUENCE'})
 
     urls.append(
-        {'display_name': 'GBrowse',
-         'source': {'display_name': 'SGD'},
+        {'name': 'GBrowse',
+         'source': {'name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': 'http://browse.yeastgenome.org/fgb2/gbrowse/scgenome/?name=' + bud_locus.name,
-         'url_type': 'Unknown',
+         'url_type': 'CGI',
          'placement': 'LOCUS_SEQUENCE'})
 
     urls.append(
-        {'display_name': 'BLASTN',
-         'source': {'display_name': 'SGD'},
+        {'name': 'BLASTN',
+         'source': {'name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/cgi-bin/blast-sgd.pl?name=' + bud_locus.name,
-         'url_type': 'Unknown',
+         'url_type': 'CGI',
          'placement': 'LOCUS_SEQUENCE_SECTION'})
 
     urls.append(
-        {'display_name': 'BLASTP',
-         'source': {'display_name': 'SGD'},
+        {'name': 'BLASTP',
+         'source': {'name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/cgi-bin/blast-sgd.pl?name=' + bud_locus.name + '&suffix=prot',
-         'url_type': 'Unknown',
+         'url_type': 'CGI',
          'placement': 'LOCUS_SEQUENCE_SECTION'})
 
     urls.append(
-        {'display_name': 'Yeast Phenotype Ontology',
-         'source': {'display_name': 'SGD'},
+        {'name': 'Yeast Phenotype Ontology',
+         'source': {'name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/ontology/phenotype/ypo/overview',
-         'url_type': 'Unknown',
+         'url_type': 'CGI',
          'placement': 'LOCUS_PHENOTYPE_ONTOLOGY'})
 
-    make_unique = dict([((x['display_name'], x['placement'], x['link']), x) for x in urls])
+    make_unique = dict([((x['name'], x['placement'], x['url_type']), x) for x in urls])
     return make_unique.values()
 
 
@@ -180,8 +188,8 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
     for bud_obj in bud_session.query(AliasFeature).options(joinedload('alias')).filter_by(feature_id=bud_locus.id).all():
         #if bud_obj.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'}:
         aliases.append({
-            'display_name': bud_obj.alias_name,
-            'source': {'display_name': 'SGD'},
+            'name': bud_obj.alias_name,
+            'source': {'name': 'SGD'},
             'bud_id': bud_obj.id,
             'alias_type': bud_obj.alias_type,
             'date_created': str(bud_obj.date_created),
@@ -200,9 +208,9 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
                             link = url.url.replace('_SUBSTITUTE_THIS_', display_name)
 
         aliases.append(remove_nones(
-            {'display_name': display_name,
+            {'name': display_name,
              'link': link,
-             'source': {'display_name': bud_obj.dbxref.source},
+             'source': {'name': bud_obj.dbxref.source},
              'alias_type': bud_obj.dbxref.dbxref_type,
              'bud_id': bud_obj.id,
              'date_created': str(bud_obj.dbxref.date_created),
@@ -210,11 +218,12 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
 
     if uniprot_id is not None:
         aliases.append(
-            {'display_name': uniprot_id,
-             'source': {'display_name': 'Uniprot'},
+            {'name': uniprot_id,
+             'source': {'name': 'Uniprot'},
              'alias_type': 'Uniprot ID'})
 
-    return aliases
+    make_unique = dict([((x['name'], x['alias_type']), x) for x in aliases])
+    return make_unique.values()
 
 def load_relations(bud_feature, bud_session):
     from src.sgd.model.bud.feature import FeatRel
@@ -243,7 +252,7 @@ def load_documents(bud_feature, bud_session):
         documents.append(
             {'text': paragraph_text,
              'html': paragraph_html,
-             'source': {'display_name': 'SGD'},
+             'source': {'name': 'SGD'},
              'bud_id': paragraph.id,
              'document_type': 'Paragraph',
              'document_order': paragraph_feat.order,
@@ -279,7 +288,7 @@ def locus_starter(bud_session_maker):
             obj_json = {'gene_name': bud_obj.gene_name,
                         'systematic_name': systematic_name,
                         'source': {
-                            'display_name': bud_obj.source
+                            'name': bud_obj.source
                         },
                         'bud_id': bud_obj.id,
                         'sgdid': sgdid,
@@ -314,7 +323,6 @@ def locus_starter(bud_session_maker):
             if systematic_name in systematic_name_to_reg_paragraph:
                 obj_json['documents'].append(systematic_name_to_reg_paragraph[systematic_name])
 
-            print obj_json['systematic_name']
             yield obj_json
 
     bud_session.close()
@@ -333,7 +341,7 @@ def load_go_paragraphs():
                 if len(go_annotation) == 1:
                     sgdid_to_paragraph[sgdid] = {'text': go_annotation[0],
                                                  'html': go_annotation[0],
-                                                 'source': {'display_name': 'SGD'},
+                                                 'source': {'name': 'SGD'},
                                                  'document_type': 'Go'}
     f.close()
     return sgdid_to_paragraph
@@ -351,9 +359,10 @@ def load_reg_paragraphs():
 
         systematic_name_to_paragraph[systematic_name] = {'text': pieces[2],
                                                          'html': pieces[2],
-                                                         'source': {'display_name': 'SGD'},
+                                                         'source': {'name': 'SGD'},
                                                          'document_type': 'Regulation',
-                                                         'references': references}
+                                                         'references': references
+                                                        }
 
     f.close()
     return systematic_name_to_paragraph
