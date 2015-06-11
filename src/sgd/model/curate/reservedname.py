@@ -17,11 +17,11 @@ class Reservedname(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'reservedname'
 
     id = Column('reservedname_id', String, primary_key=True)
-    source_id = Column('source_id',Integer, ForeignKey(Source.id))
+    source_id = Column('source_id',String, ForeignKey(Source.id))
     reference_id = Column('reference_id', ForeignKey(Reference.id))
-    colleague_id = Column('colleague_id', Integer, ForeignKey(Colleague.id))
+    colleague_id = Column('colleague_id', String, ForeignKey(Colleague.id))
     bud_id = Column('bud_id', Integer)
-    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
+    locus_id = Column('locus_id', String, ForeignKey(Locus.id))
     reservation_date = Column('reservation_date', Date, server_default=FetchedValue())
     expiration_date = Column('expiration_date', Date, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
