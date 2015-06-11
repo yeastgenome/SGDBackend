@@ -1,7 +1,7 @@
 import filecmp
 import os.path
 import urllib
-# import shutil
+import shutil
 from src.sgd.convert.into_curate.interaction_config import email_receiver, email_subject
 from src.sgd.convert.into_curate.util import sendmail
 from src.sgd.convert.into_curate.physinteractionannotation import convert as physconvert
@@ -28,4 +28,4 @@ if __name__ == "__main__":
 
     update_interaction(biogrid_file)
 
-    # shutil.move(biogrid_file, old_biogrid_file)
+    shutil.move(biogrid_file, old_biogrid_file)

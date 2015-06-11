@@ -46,7 +46,8 @@ def geninteractionannotation_starter(bud_session_maker):
                     'dbentity1': {'systematic_name': row[0], 'name': row[0]},
                     'dbentity2': {'systematic_name': row[1], 'name': row[1]},
                     'source': {'name': 'BioGRID'},
-                    'taxonomy': {'name': 'Saccharomyces cerevisiae S288c'},
+                    'taxonomy': {'name': 'Saccharomyces cerevisiae S288c',
+                                 'ncbi_taxon_id': 559292},
                     'reference': {'pubmed_id': int(row[6])},
                     'mutant_type': mutant_type,
                     'annotation_type': row[9]

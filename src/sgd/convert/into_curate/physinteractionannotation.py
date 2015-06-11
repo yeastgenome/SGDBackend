@@ -9,7 +9,6 @@ import sys
 
 __author__ = 'sweng66'
 
-
 def physinteractionannotation_starter(bud_session_maker):
 
     header = True
@@ -26,19 +25,20 @@ def physinteractionannotation_starter(bud_session_maker):
     
         if len(row) == 12 and row[4] and row[4] in genetic_type_to_phenotype:
             # it is genetic interaction
-            # print "GI: ", line
+            print "GI: ", line
             continue
 
         if len(row) == 12: 
             if header:
                 header = False
             else:         
-                # print "PI: ", line                
+                print "PI: ", line                
                 obj_json = {
                     'dbentity1': {'systematic_name': row[0], 'name': row[0]},
                     'dbentity2': {'systematic_name': row[1], 'name': row[1]},
                     'source': {'name': 'BioGRID'},
-                    'taxonomy': {'name': 'Saccharomyces cerevisiae S288c'},
+                    'taxonomy': {'name': 'Saccharomyces cerevisiae S288c', 
+                                 'ncbi_taxon_id': 559292 },
                     'reference': {'pubmed_id': int(row[6])},
                     'modification': row[8],
                     'annotation_type': row[9]
