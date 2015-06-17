@@ -90,7 +90,7 @@ def make_binding_evidence_starter(nex_session_maker):
         key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Bioentity).all()])
         pubmed_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
-
+    
         for row in make_file_starter('src/sgd/convert/data/yetfasco_data.txt', delimeter=';')():
             expert_confidence = row[8][1:-1]
             if expert_confidence == 'High':
@@ -311,7 +311,7 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
                     yield None
 
         bioentity_id_to_protein_length = dict([(x.feature_id, x.length) for x in bud_session.query(ProteinInfo).all()])
-
+        
         for row in make_file_starter('src/sgd/convert/data/TF_family_class_accession04302013.txt')():
             bioent_key = (row[2].strip(), 'LOCUS')
             domain_key = (row[0], 'DOMAIN')
@@ -439,7 +439,7 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
                 children = new_children
 
         evidence_key_to_gpad_conditions = dict(filter(None, [make_go_gpad_conditions(x, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept, chebi_id_to_chemical, sgdid_to_bioentity, term_id_to_role) for x in make_file_starter('src/sgd/convert/data/gp_association.559292_sgd')()]))
-
+        
         for old_go_feature in bud_session.query(GoFeature).options(joinedload(GoFeature.go_refs)).all():
             go_key = ('GO:' + str(old_go_feature.go.go_go_id).zfill(7), 'GO')
             if go_key[0] == 'GO:0008150':
@@ -661,8 +661,12 @@ def make_go_slim_evidence_starter(nex_session_maker):
     return go_slim_evidence_starter
 
 # --------------------- History Evidence ---------------------
-note_type_to_preface = {'Nomenclature history': 'Nomenclature', 'Nomenclature conflict': 'Nomenclature',
-                        'Other': 'Other', 'Mapping': 'Mapping'}
+note_type_to_preface = {'Nomenclature history': 'Nomenclature', 
+                        'Nomenclature conflict': 'Nomenclature',
+                        'Other': 'Other', 
+                        'Mapping': 'Mapping'}
+
+
 def make_history_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.bud.general import Note
     from src.sgd.model.bud.reference import Reflink
@@ -1163,7 +1167,7 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                       'src/sgd/convert/data/succinylationAcetylation090914.txt',
                       'src/sgd/convert/data/gap1_Ub_PMID11500494.txt',
                       'src/sgd/convert/data/PTMsitesPMID25344756.txt'
-                      ]
+                      ] 
 
         for file_name in file_names:
             print file_name

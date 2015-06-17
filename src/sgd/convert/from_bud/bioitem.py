@@ -115,7 +115,7 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
         panther_id_to_description = {}
         for row in make_file_starter('src/sgd/convert/data/PANTHER9.0_HMM_classifications.txt')():
             panther_id_to_description[row[0]] = row[1].lower()
-
+            
         for row in make_file_starter('src/sgd/convert/data/domains.tab')():
             source_key = row[3].strip()
 
@@ -155,7 +155,7 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
                        'interpro_description': interpro_description}
             else:
                 print 'Source not found: ' + source_key
-
+        
         for row in make_file_starter('src/sgd/convert/data/TF_family_class_accession04302013.txt')():
             description = 'Class: ' + row[4] + ', Family: ' + row[3]
             yield {'display_name': row[0],
@@ -707,7 +707,7 @@ def make_bioitem_tag_starter(nex_session_maker):
 
         key_to_dataset = dict([(x.unique_key(), x) for x in nex_session.query(Dataset).all()])
         key_to_tag = dict([(x.unique_key(), x) for x in nex_session.query(Tag).all()])
-
+        
         for row in make_file_starter('src/sgd/convert/data/microarray_05_14/SPELL-tags.txt')():
             dataset_key = (row[1].strip()[:-4], 'DATASET')
             tags = row[2].strip()

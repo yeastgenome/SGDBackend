@@ -42,7 +42,7 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
                    'category': 'large-scale survey' if format_name in large_scale_survey else 'classical genetics' if format_name in classical_genetics else None,
                    'date_created': bud_obj.date_created,
                    'created_by': bud_obj.created_by}
-
+        
         for row in make_file_starter('src/sgd/convert/data/2014-05-15_reg_data/Venters_Macisaac_Hu05-12-2014_regulator_lines')():
             source_key = row[11].strip()
             if source_key in key_to_source:
@@ -80,8 +80,8 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
                            'eco_id': row[5]}
                 else:
                     print 'Source not found: ' + str(source_key)
-
-        for row in make_file_starter('src/sgd/convert/data/yetfasco_data.txt', delimeter=';')():
+            
+            for row in make_file_starter('src/sgd/convert/data/yetfasco_data.txt', delimeter=';')():
             expert_confidence = row[8][1:-1]
             if expert_confidence == 'High':
                 yield {'display_name': row[9][1:-1],
