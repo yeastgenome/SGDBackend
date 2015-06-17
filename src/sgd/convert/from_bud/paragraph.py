@@ -222,7 +222,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
             else:
                 #print 'Bioentity not found: ' + str(bioentity_key)
                 yield None
-
+        
         for pieces in make_file_starter('src/sgd/convert/data/gp_information.559292_sgd')():
             if len(pieces) >= 8:
                 sgdid = pieces[8]
@@ -262,6 +262,7 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                 yield None
 
         #Phenotype
+        ## src/sgd/convert/data/PhenotypeSummaries032015.txt
         for row in make_file_starter('src/sgd/convert/data/PhenotypeSummaries032015.txt')():
             bioentity_key = (row[0], 'LOCUS')
 

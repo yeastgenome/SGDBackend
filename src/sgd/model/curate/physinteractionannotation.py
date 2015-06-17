@@ -16,12 +16,13 @@ __author__ = 'sweng66'
 class Physinteractionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'physinteractionannotation'
 
-    id = Column('annotation_id', String, primary_key=True)
+    id = Column('annotation_id', Integer, primary_key=True)
     dbentity1_id = Column('dbentity1_id', Integer, ForeignKey(Dbentity.id, ondelete='CASCADE'))
     dbentity2_id = Column('dbentity2_id', Integer, ForeignKey(Dbentity.id, ondelete='CASCADE'))
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     taxonomy_id = Column('taxonomy_id', Integer, ForeignKey(Taxonomy.id, ondelete='CASCADE'))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
+    bait_hit = Column('bait_hit', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -36,7 +37,7 @@ class Physinteractionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWith
     taxonomy = relationship(Taxonomy, uselist=False)
     reference = relationship(Reference, uselist=False, foreign_keys=[reference_id])
     
-    __eq_values__ = ['id', 'date_created', 'created_by', 'annotation_type', 'modification', 'note']
+    __eq_values__ = ['id', 'date_created', 'created_by', 'bait_hit', 'annotation_type', 'modification', 'note']
     __eq_fks__ = [('source', Source, False),
                   ('taxonomy', Taxonomy, False),
                   ('reference', Reference, False),
@@ -45,7 +46,7 @@ class Physinteractionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWith
 
     __id_values__ = ['id']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
-    __filter_values__ = ['dbentity1_id', 'dbentity2_id', 'reference_id', 'modification', 'annotation_type']
+    __filter_values__ = ['dbentity1_id', 'dbentity2_id', 'reference_id', 'bait_hit', 'modification', 'annotation_type']
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -74,6 +75,7 @@ class Physinteractionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWith
             .filter_by(dbentity1_id=dbentity.id)\
             .filter_by(dbentity2_id=dbentity.id)\
             .filter_by(reference_id=obj_json['reference_id'])\
+            .filter_by(bait_hit=obj_json['bait_hit'])\
             .filter_by(modification=obj_json['modification'])\
             .filter_by(annotation_type=obj_json['annotation_type'])\
 

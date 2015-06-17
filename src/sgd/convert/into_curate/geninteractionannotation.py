@@ -43,8 +43,6 @@ def geninteractionannotation_starter(bud_session_maker):
                     exptType = "" if newPheno.get('experiment_type') == None else newPheno.get('experiment_type')
                 
                 obj_json = {
-                    'dbentity1': {'systematic_name': row[0], 'name': row[0]},
-                    'dbentity2': {'systematic_name': row[1], 'name': row[1]},
                     'source': {'name': 'BioGRID'},
                     'taxonomy': {'name': 'Saccharomyces cerevisiae S288c',
                                  'ncbi_taxon_id': 559292},
@@ -52,6 +50,18 @@ def geninteractionannotation_starter(bud_session_maker):
                     'mutant_type': mutant_type,
                     'annotation_type': row[9]
                 }
+
+                 ## check syntax
+                id1 = row[2].replace("S0+", "")
+                id2 = row[3].replace("S0+", "")
+                if id_1 < id_2:
+                    obj_json['dbentity1'] = {'sgdid': row[2]}
+                    obj_json['dbentity2'] = {'sgdid': row[3]}
+                    obj_json['bait_hit'] = 'bait-hit'
+                else:
+                    obj_json['dbentity1'] = {'sgdid': row[3]}
+                    obj_json['dbentity2'] = {'sgdid': row[2]}
+                    obj_json['bait_hit'] = 'hit-bait'
                 
                 if row[10] != '-':
                     obj_json['note'] = row[10]
@@ -72,7 +82,7 @@ def geninteractionannotation_starter(bud_session_maker):
 
 def convert(bud_db, nex_db):
     # no need to pass bud_db for this script
-    basic_convert(bud_db, nex_db, geninteractionannotation_starter, 'geninteractionannotation', lambda x: (x['dbentity1']['systematic_name'], None if 'reference' not in x else x['reference']['pubmed_id'], x['mutant_type'], x['annotation_type']))
+    basic_convert(bud_db, nex_db, geninteractionannotation_starter, 'geninteractionannotation', lambda x: (x['dbentity1']['sgdid'], x['dbentity2']['sgdid'], x['reference']['pubmed_id'], x['mutant_type'], x['annotation_type']))
 
 
 if __name__ == '__main__':

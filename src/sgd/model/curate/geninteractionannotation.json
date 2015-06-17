@@ -5,28 +5,28 @@
     "properties": {
         "id": {
             "title": "ID",
-            "type": "string"
+            "type": "integer"
         },
         "dbentity1": {
             "title": "DBentity1",
             "type": "object",
             "properties": {
-                "systematic_name": {
-                    "title": "Systematic Name",
+                "sgdid": {
+                    "title": "SGDID",
                     "type": "string"
                 },
-                "required": ["systematic_name"]
+                "required": ["sgdid"]
             }
         },
 	"dbentity2": {
             "title": "DBentity2",
             "type": "object",
             "properties": {
-                "systematic_name": {
-                    "title": "Systematic Name",
+                "sgdid": {
+                    "title": "SGDID",
                     "type": "string"
                 },
-                "required": ["systematic_name"]
+                "required": ["sgdid"]
             }
         },
         "source": {
@@ -85,6 +85,10 @@
                 },
                 "required": ["observable", "qualifier"]
             }
+        },
+	"bait_hit": {
+            "title": "Bait Hit",
+            "type": "string"
         },
         "mutant_type": {
             "title": "Mutant Type",
