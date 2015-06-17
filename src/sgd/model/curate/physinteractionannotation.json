@@ -5,28 +5,28 @@
     "properties": {
         "id": {
             "title": "ID",
-            "type": "string"
+            "type": "integer"
         },
         "dbentity1": {
             "title": "DBentity1",
             "type": "object",
             "properties": {
-                "systematic_name": {
-                    "title": "Systematic Name",
+                "sgdid": {
+                    "title": "SGDID",
                     "type": "string"
                 },
-                "required": ["systematic_name"]
+                "required": ["sgdid"]
             }
         },
 	"dbentity2": {
             "title": "DBentity2",
             "type": "object",
             "properties": {
-                "systematic_name": {
-                    "title": "Systematic Name",
+                "sgdid": {
+                    "title": "SGDID",
                     "type": "string"
                 },
-                "required": ["systematic_name"]
+                "required": ["sgdid"]
             }
         },
         "source": {
@@ -47,6 +47,10 @@
                 },
                 "required": ["pubmed_id"]
             }
+        },
+	"bait_hit": {
+            "title": "Bait Hit",
+            "type": "string"
         },
         "modification": {
             "title": "Modification",
@@ -77,5 +81,5 @@
             "type": "string"
         }
     },
-    "required": ["dbentity1", "dbentity2", "source", "reference", "modification", "annotation_type"]
+    "required": ["dbentity1", "dbentity2", "source", "reference", "bait_hit", "modification", "annotation_type"]
 }

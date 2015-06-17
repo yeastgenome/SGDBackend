@@ -18,7 +18,7 @@ __author__ = 'sweng66'
 class Geninteractionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'geninteractionannotation'
 
-    id = Column('annotation_id', String, primary_key=True)
+    id = Column('annotation_id', Integer, primary_key=True)
     dbentity1_id = Column('dbentity1_id', Integer, ForeignKey(Dbentity.id, ondelete='CASCADE'))
     dbentity2_id = Column('dbentity2_id', Integer, ForeignKey(Dbentity.id, ondelete='CASCADE'))
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
@@ -26,6 +26,7 @@ class Geninteractionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJ
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
     experiment_id = Column('experiment_id', Integer, ForeignKey(Experiment.id, ondelete='CASCADE'))
     phenotype_id = Column('phenotype_id', Integer, ForeignKey(Phenotype.id, ondelete='CASCADE'))
+    bait_hit = Column('bait_hit', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -42,7 +43,7 @@ class Geninteractionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJ
     experiment = relationship(Experiment, uselist=False, foreign_keys=[experiment_id])
     phenotype = relationship(Phenotype, uselist=False, foreign_keys=[phenotype_id])
     
-    __eq_values__ = ['id', 'date_created', 'created_by', 'mutant_type', 'annotation_type', 'note']
+    __eq_values__ = ['id', 'date_created', 'created_by', 'bait_hit', 'mutant_type', 'annotation_type', 'note']
 
     __eq_fks__ = [('source', Source, False),
                   ('taxonomy', Taxonomy, False),
@@ -54,7 +55,7 @@ class Geninteractionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJ
 
     __id_values__ = ['id']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
-    __filter_values__ = ['dbentity1_id', 'dbentity2_id', 'reference_id', 'mutant_type', 'annotation_type']
+    __filter_values__ = ['dbentity1_id', 'dbentity2_id', 'reference_id', 'bait_hit', 'mutant_type', 'annotation_type']
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -84,6 +85,7 @@ class Geninteractionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJ
             .filter_by(dbentity2_id=dbentity2.id)\
             .filter_by(reference_id=obj_json['reference_id'])\
             .filter_by(mutant_type=obj_json['mutant_type'])\
+            .filter_by(bait_hit=obj_json['bait_hit'])\
             .filter_by(annotation_type=obj_json['annotation_type'])\
 
         current_obj = query.first()
