@@ -1,0 +1,84 @@
+{
+    "title": "History Annotation",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "string"
+        },
+        "reference": {
+            "title": "Reference",
+            "type": "object",
+            "properties": {
+                "sgdid": {
+                    "type": "string"
+                }
+            }
+        },
+        "colleague": {
+            "title": "Colleague",
+            "type": "object",
+            "properties": {
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "institution": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "locus": {
+            "title": "Dbentity",
+            "type": "object",
+            "properties": {
+                "systematic_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "subclass": {
+            "title": "Name",
+            "type": "string"
+        },
+        "history_type": {
+            "title": "History Type",
+            "type": "string"
+        },
+        "history_note": {
+            "title": "History Note",
+            "type": "string"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Created By",
+            "type": "string"
+        }
+    },
+    "required": ["name", "source"]
+
+}

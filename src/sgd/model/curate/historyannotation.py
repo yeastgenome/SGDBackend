@@ -1,35 +1,47 @@
+from sqlalchemy.schema import Column, ForeignKey, FetchedValue 
+from sqlalchemy.orm import relationship, backref
+from sqlalchemy.types import Integer, String, Date
+  from src.sgd.model import EqualityByIDMixin
+ from src.sgd.model.curate import Base, UpdateWithJsonMixin 
+from src.sgd.model.curate.source import Source 
+from src.sgd.model.curate.reference import Reference 
+from src.sgd.model.curate.locus import Dbentity
+from src.sgd.model.curate.colleague import Colleague
+from src.sgd.model.curate.colleague import Taxonomy
+
+
 __author__ = 'kkarra'
 
 
 class HistoryAnnotation(Base, EqualityByIDMixin):
-   __tablename__ = 'historyannotation'
+    __tablename__ = 'historyannotation'
 
-   id = Column('annotation_id', Integer, primary_key=True)
-   bud_id = Column('bud_id', Integer)
-   colleague_id = Column('colleague_id', Integer)
-   created_by = Column('created_by', String)
-   date_annotation_made = Column('date_annotation_made', Date)
-   date_created = Column('date_created', Date)
-   dbentity_id = Column('dbentity_id', Integer)
-   history_type = Column('history_type', String)
-   history_note = Column('history_note', String)
-   reference_id = Column('reference_id', Integer)
-   source_id = Column('source_id', Integer)
-   subclass = Column('subclass', String)
-   taxonomy_id = Column('taxonomy_id', Integer)
+    id = Column('annotation_id', String, primary_key=True)
+    dbentity_id = Column('dbentity_id', Integer)
+    source_id = Column('source_id',String, ForeignKey(Source.id))
+    reference_id = Column('reference_id', ForeignKey(Reference.id))
+    taxonomy_id = Column('taxonomy_id', Integer)
+    bud_id = Column('bud_id', Integer)
+    colleague_id = Column('colleague_id',String, ForeignKey(Colleague.id))
+    date_annotation_made = Column('date_annotation_made', Date, server_default=FetchedValue())
+    subclass = Column('subclass', String)
+    history_type = Column('history_type', String)
+    history_note = Column('history_note', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
 
-   __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'created_by', 'date_created']
-   __eq_fks__ = [('source', Source, False)]
-   __id_values__ = ['format_name', 'id']
-   __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
-   __filter_values__ = []
+    #Relationships 
+    source = relationship(Source, uselist=False) 
+    reference = relationship(Reference, uselist=False) 
+    taxonomy = relationship(Taxonomy, uselist=False)
+    dbentity = relationship(Dbentity, uselist=False, backref=backref('historyannotations'), uselist=False) 
+    colleague = relationship(Colleague, uselist=False, backref=backref('historyannotations', uselist=False))
 
-    def __init__(self, obj_json, session):
-        UpdateWithJsonMixin.__init__(self, obj_json, session)
+__eq_values__ = ['id', 'name', 'link', 'bud_id', 'created_by', 'date_created']
+__eq_fks__ = [('source', Source, False)]
+__id_values__ = ['name', 'id']
+__no_edit_values__ = ['id', 'name', 'link', 'date_created', 'created_by']
+__filter_values__ = ['locus_id', 'colleague_id']
 
-    def to_json(self):
-        obj_json = ToJsonMixin.to_json(self)
-        return obj_json
-
-    def to_semi_json(self):
-        return self.to_min_json()
+def __init__(self, obj_json, session):
+    UpdateWithJsonMixin.__init__(self, obj_json, session)

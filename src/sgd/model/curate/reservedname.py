@@ -1,7 +1,6 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.types import Integer, String, Date
-from sqlalchemy.ext.associationproxy import association_proxy
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
@@ -27,8 +26,11 @@ class Reservedname(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     date_created = Column('date_created', Date, server_default=FetchedValue())
     name = Column('name', String)
     description = Column('description', String)
-    created_by = Column('created_by', String)
+    created_by = Column('created_by', String, server_default=FetchedValue())
     link = Column('obj_url', String)
+
+    #created_by - fetchedValues gets OTTO and runs without error and inserts 43 values
+    # created_by - without that tries to insert the real value and since it does not exist in Colleague table yet chokes
 
     #Relationships
     source = relationship(Source, uselist=False)
