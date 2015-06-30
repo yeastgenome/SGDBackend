@@ -3,6 +3,8 @@ import sys
 import traceback
 import datetime
 
+from src.sgd.model.nex import UpdateByJsonMixin
+
 __author__ = 'kpaskov'
 
 # ------------------------------------------ Transformers ------------------------------------------
@@ -440,26 +442,37 @@ class Json2DisambigPerfDB(TransformerInterface):
 
 class Json2DataPerfDB(TransformerInterface):
 
-    def __init__(self, session_maker, cls, class_type, obj_ids, name=None, commit_interval=None, commit=False):
+    def __init__(self, session_maker, cls, class_type, obj_ids, name=None, commit_interval=None, commit=False, delete_untouched=True, sure=False):
         self.session = session_maker()
         self.cls = cls
         self.name = name
         self.commit_interval = commit_interval
         self.commit = commit
 
-        self.id_to_obj = dict([(x.obj_id, x) for x in self.session.query(cls).filter_by(class_type=class_type).all()])
+        if delete_untouched:
+            self.id_to_obj = dict([(x.obj_id, x) for x in self.session.query(cls).filter_by(class_type=class_type).all()])
+        else:
+            self.id_to_obj = dict([(x.obj_id, x) for x in self.session.query(cls).filter_by(class_type=class_type).filter(cls.obj_id.in_(obj_ids)).all()])
         current_ids = set(self.id_to_obj.keys())
         obj_ids = set(obj_ids)
         to_be_added = obj_ids - current_ids
-        to_be_deleted = list(current_ids - obj_ids)
 
         for obj_id in to_be_added:
             new_obj = self.cls(obj_id, class_type, None)
             self.session.add(new_obj)
             self.id_to_obj[obj_id] = new_obj
-        for obj_id in to_be_deleted:
-            self.session.delete(self.id_to_obj[obj_id])
-            del self.id_to_obj[obj_id]
+
+        if delete_untouched:
+            to_be_deleted = list(current_ids - obj_ids)
+            if to_be_deleted > 100 and not sure:
+                print 'Tried to delete more than 100 entries - are you sure?'
+            else:
+                for obj_id in to_be_deleted:
+                    self.session.delete(self.id_to_obj[obj_id])
+                    del self.id_to_obj[obj_id]
+                self.deleted_count = len(to_be_deleted)
+        else:
+            self.deleted_count = 0
 
         if self.commit_interval is not None or self.commit:
             self.session.commit()
@@ -470,7 +483,7 @@ class Json2DataPerfDB(TransformerInterface):
         self.no_change_count = 0
         self.duplicate_count = 0
         self.error_count = 0
-        self.deleted_count = len(to_be_deleted)
+
 
     def convert(self, newly_created_obj_json):
         if self.commit_interval is not None and (self.added_count + self.updated_count + self.deleted_count) % self.commit_interval == 0:
