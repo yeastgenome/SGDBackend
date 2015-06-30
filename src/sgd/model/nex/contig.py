@@ -1,12 +1,11 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String, Date, CLOB, Numeric
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
-from src.sgd.model.nex.source import Source
-from src.sgd.model.nex.taxonomy import Taxonomy
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.curate.source import Source
+from src.sgd.model.curate.taxonomy import Taxonomy
 
 __author__ = 'kelley'
 
@@ -55,6 +54,7 @@ class Contig(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('reference_chromosome', 'contig.Contig', False)]
     __id_values__ = ['id', 'display_name', 'genbank_accession', 'gi_number', 'refseq_id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['reference_chromosome_id', 'seq_version', 'coord_version', 'taxonomy_id']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)

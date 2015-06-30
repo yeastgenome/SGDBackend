@@ -1,16 +1,15 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.types import Integer, String, Date, CLOB
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
-from src.sgd.model.nex.contig import Contig
-from src.sgd.model.nex.dbentity import Dbentity
-from src.sgd.model.nex.genomerelease import Genomerelease
-from src.sgd.model.nex.locus import Locus
-from src.sgd.model.nex.source import Source
-from src.sgd.model.nex.taxonomy import Taxonomy
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.curate.contig import Contig
+from src.sgd.model.curate.dbentity import Dbentity
+from src.sgd.model.curate.genomerelease import Genomerelease
+from src.sgd.model.curate.locus import Locus
+from src.sgd.model.curate.source import Source
+from src.sgd.model.curate.taxonomy import Taxonomy
 
 __author__ = 'kelley'
 
@@ -55,6 +54,7 @@ class Dnasequenceannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJson
                   ('extensions', 'dnasequenceannotation.Dnasequenceannotation_extension', True)]
     __id_values__ = ['id', 'format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = ['taxonomy_id', 'dbentity_id', 'dna_type', 'seq_version', 'coord_version', 'strand', 'genomerelease_id', 'contig_id']
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -114,6 +114,7 @@ class Dnasequenceannotation_extension(Base, EqualityByIDMixin, UpdateWithJsonMix
                   ('genomerelease', Genomerelease, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)

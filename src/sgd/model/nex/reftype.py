@@ -1,11 +1,11 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
-from src.sgd.model.nex.source import Source
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.curate.source import Source
 
 __author__ = 'kelley'
 
@@ -29,6 +29,7 @@ class Reftype(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name', 'id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -37,3 +38,6 @@ class Reftype(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
         obj_json = ToJsonMixin.to_json(self)
         obj_json['reference_reftypes'] = [x.to_min_json() for x in self.references]
         return obj_json
+
+    def to_semi_json(self):
+        return self.to_min_json()

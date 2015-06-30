@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
-from src.sgd.model.nex.source import Source
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
+from src.sgd.model.curate.source import Source
 
 __author__ = 'kelley'
 
@@ -33,6 +33,7 @@ class Chemical(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('children', 'chemical.ChemicalRelation', True)]
     __id_values__ = ['id', 'format_name', 'chebi_id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -63,6 +64,7 @@ class ChemicalUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -111,6 +113,7 @@ class ChemicalAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -160,6 +163,7 @@ class ChemicalRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
                   ('child', Chemical, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, parent, child, relation_type):
         self.relation_type = relation_type

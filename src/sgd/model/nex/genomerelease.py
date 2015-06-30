@@ -1,11 +1,10 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String, Date, Float
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
-from src.sgd.model.nex.source import Source
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.curate.source import Source
 
 __author__ = 'kelley'
 
@@ -36,6 +35,7 @@ class Genomerelease(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['id', 'display_name', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['sequence_release', 'annotation_release', 'curation_release']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)

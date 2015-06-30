@@ -3,11 +3,11 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.types import Integer, String, Date, CLOB
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import ToJsonMixin, UpdateWithJsonMixin, Base
-from src.sgd.model.nex.source import Source
-from src.sgd.model.nex.taxonomy import Taxonomy
-from src.sgd.model.nex.dbentity import Dbentity
-from src.sgd.model.nex.reference import Reference
+from src.sgd.model.curate import ToJsonMixin, UpdateWithJsonMixin, Base
+from src.sgd.model.curate.source import Source
+from src.sgd.model.curate.taxonomy import Taxonomy
+from src.sgd.model.curate.dbentity import Dbentity
+from src.sgd.model.curate.reference import Reference
 
 __author__ = 'kelley'
 
@@ -37,6 +37,7 @@ class Strain(Dbentity):
                   ('documents', 'strain.StrainDocument', True)]
     __id_values__ = ['id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['strain_type']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -69,6 +70,7 @@ class StrainUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
                   ('strain', Strain, False)]
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -119,6 +121,7 @@ class StrainDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
                   ('references', 'strain.StrainDocumentReference', False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -167,6 +170,7 @@ class StrainDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJs
                   ('reference', Reference, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, document, reference, reference_order):
         self.reference_order = reference_order

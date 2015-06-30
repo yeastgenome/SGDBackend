@@ -1,11 +1,10 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.types import Integer, String, Date
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
-from src.sgd.model.nex.source import Source
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.curate.source import Source
 
 __author__ = 'kelley'
 
@@ -32,6 +31,7 @@ class Proteindomain(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('urls', 'proteindomain.ProteindomainUrl', True)]
     __id_values__ = ['id', 'display_name', 'interpro_id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -58,6 +58,7 @@ class ProteindomainUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
     __eq_fks__ = [('source', Source, False), ('proteindomain', Proteindomain, False)]
     __id_values__ = ['format_name']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)

@@ -1,10 +1,10 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.types import Integer, String, Date
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
-from src.sgd.model.nex.source import Source
+from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.curate.source import Source
 
 __author__ = 'kelley'
 
@@ -33,6 +33,7 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __mapper_args__ = {'polymorphic_on': class_type}
     __id_values__ = ['sgdid', 'format_name', 'id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['dbentity_status']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)

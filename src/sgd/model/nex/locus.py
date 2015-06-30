@@ -3,10 +3,10 @@ from sqlalchemy.types import Integer, String, Date, Boolean, CLOB
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin
-from src.sgd.model.nex.dbentity import Dbentity
-from src.sgd.model.nex.reference import Reference
-from src.sgd.model.nex.source import Source
+from src.sgd.model.curate import Base, UpdateWithJsonMixin, ToJsonMixin
+from src.sgd.model.curate.dbentity import Dbentity
+from src.sgd.model.curate.reference import Reference
+from src.sgd.model.curate.source import Source
 
 __author__ = 'kelley'
 
@@ -35,6 +35,7 @@ class Locus(Dbentity):
     has_sequence_section = Column('has_sequence_section', Boolean)
 
     __mapper_args__ = {'polymorphic_identity': 'LOCUS', 'inherit_condition': id == Dbentity.id}
+
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
                      'bud_id', 'sgdid', 'dbentity_status', 'date_created', 'created_by',
                      'systematic_name',
@@ -48,6 +49,7 @@ class Locus(Dbentity):
                   ('children', 'locus.LocusRelation', False)]
     __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['locus_type', 'qualifier']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -81,6 +83,7 @@ class Locus(Dbentity):
     def to_semi_json(self):
         obj_json = ToJsonMixin.to_min_json(self)
         obj_json['description'] = self.description
+        obj_json['locus_type'] = self.locus_type
         return obj_json
 
     def get_ordered_references(self):
@@ -386,9 +389,10 @@ class LocusUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type', 'placement',
                      'date_created', 'created_by']
-    __eq_fks__ = [('source', Source, False), ('locus', Locus, False)]
+    __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -439,6 +443,7 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -488,6 +493,7 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
                   ('child', Locus, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, parent, child, relation_type):
         self.parent = parent
@@ -547,10 +553,10 @@ class LocusDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_values__ = ['id', 'text', 'html', 'bud_id', 'document_type', 'document_order',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False),
-                  ('locus', Locus, False),
                   ('references', 'locus.LocusDocumentReference', False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -577,6 +583,16 @@ class LocusDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         else:
             return current_obj, 'Found'
 
+    def to_semi_json(self):
+        return self.to_min_json()
+
+    def to_min_json(self):
+        obj_json = ToJsonMixin.to_min_json(self)
+        obj_json['text'] = self.html
+        obj_json['document_type'] = self.document_type
+        obj_json['document_order'] = self.document_order
+        return obj_json
+
 
 class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'locus_document_reference'
@@ -595,11 +611,10 @@ class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJso
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'reference_order', 'date_created', 'created_by']
-    __eq_fks__ = [('source', Source, False),
-                  ('document', LocusDocument, False),
-                  ('reference', Reference, False)]
+    __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, document, reference, reference_order):
         self.reference_order = reference_order

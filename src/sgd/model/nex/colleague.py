@@ -4,10 +4,10 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin, create_format_name
-from src.sgd.model.nex.keyword import Keyword
-from src.sgd.model.nex.source import Source
-from src.sgd.model.nex.locus import Locus
+from src.sgd.model.curate import Base, UpdateWithJsonMixin, ToJsonMixin, create_format_name
+from src.sgd.model.curate.keyword import Keyword
+from src.sgd.model.curate.source import Source
+from src.sgd.model.curate.locus import Locus
 
 __author__ = 'kelley'
 
@@ -62,6 +62,7 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('children', 'colleague.ColleagueRelation', False)]
     __id_values__ = ['format_name', 'id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __filter_values__ = ['last_name', 'first_name', 'institution', 'is_pi', 'is_contact']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
@@ -128,6 +129,7 @@ class ColleagueUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -175,6 +177,7 @@ class ColleagueRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
     __eq_fks__ = [('source', Source, False), ('parent', Colleague, False), ('child', Colleague, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, parent, child, relation_type):
         self.parent = parent
@@ -235,6 +238,7 @@ class ColleagueDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixi
     __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
@@ -279,6 +283,7 @@ class ColleagueKeyword(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin
     __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False), ('keyword', Keyword, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, colleague, keyword):
         self.keyword = keyword
@@ -327,6 +332,7 @@ class ColleagueLocus(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __eq_fks__ = [('source', Source, False), ('colleague', Colleague, False), ('locus', Locus, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
 
     def __init__(self, colleague, locus):
         self.locus = locus
