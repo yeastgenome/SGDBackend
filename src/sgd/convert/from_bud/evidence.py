@@ -1121,6 +1121,7 @@ def make_posttranslational_evidence_starter(nex_session_maker):
 
         key_to_source = dict([(x.unique_key(), x) for x in nex_session.query(Source).all()])
         key_to_bioentity = dict([(x.unique_key(), x) for x in nex_session.query(Bioentity).all()])
+        name_to_formatname = dict([(x.display_name, x.format_name) for x in nex_session.query(Bioentity).all()])
         pmid_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
         #Phosphorylation
@@ -1157,12 +1158,16 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                     print 'Bioentity not found: ' + str(bioentity_key)
 
         #Other sites
+
+
         file_names = ['src/sgd/convert/data/methylationSitesPMID25109467.txt',
                       'src/sgd/convert/data/ubiquitinationSites090314.txt',
                       'src/sgd/convert/data/phosphorylationUbiquitinationPMID23749301.txt',
                       'src/sgd/convert/data/succinylationAcetylation090914.txt',
                       'src/sgd/convert/data/gap1_Ub_PMID11500494.txt',
-                      'src/sgd/convert/data/PTMsitesPMID25344756.txt'
+                      'src/sgd/convert/data/PTMsitesPMID25344756.txt',
+                      'src/sgd/convert/data/PTMs_20150623.txt',
+                      'src/sgd/convert/data/PTMsites062615.txt'
                       ]
 
         for file_name in file_names:
@@ -1180,14 +1185,30 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                     site_index = int(site[1:])
                     site_functions = pieces[2]
                     modification_type = pieces[3]
-                    modifier = pieces[4]
+                    modifiers = pieces[4]
                     source_key = pieces[5]
                     pmid = int(pieces[6].replace('PMID:', ''))
 
-                    if modifier is not '':
-                        print modifier
+                    conditions = {}
+
+                    if modifiers is not '':
+                        # print modifier
+                        for modifier in modifiers.split('|'):
+                            modifier = modifier.upper()
+                            if name_to_formatname.get(modifier) != None:
+                                modifier = name_to_formatname.get(modifier)
+                            bioent_key = (modifier, 'LOCUS')
+                            if bioent_key in key_to_bioentity:
+                                condition = Bioentityproperty({'role': 'Kinase', 'bioentity': key_to_bioentity[bioent_key]})
+                                conditions[condition.unique_key()] = condition
+                            else:
+                                print 'Bioentity not found: ' + str(bioent_key)
+                            
                     if site_functions is not '':
                         print site_functions
+                        for site_function in site_functions.split('|'):
+                            condition = Generalproperty({'note': site_function.capitalize()})
+                            conditions[condition.unique_key()] = condition
 
                     if bioentity_key in key_to_bioentity and source_key in key_to_source and pmid in pmid_to_reference:
                         yield {
@@ -1197,13 +1218,12 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                            'site_residue': site_residue,
                            'type': modification_type,
                            'reference': pmid_to_reference[pmid],
-                           'properties': []
+                           'properties': conditions.values()
                         }
                     else:
                         print 'Bioentity or source or pmid not found: ' + str(bioentity_key) + ' ' + str(source_key) + ' ' + str(pmid)
 
             f.close()
-
 
         nex_session.close()
     return posttranslational_evidence_starter
