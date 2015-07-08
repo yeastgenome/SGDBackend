@@ -27,7 +27,7 @@ class Feature(Base, EqualityByIDMixin):
     taxonomy = relationship(Taxonomy, uselist=False)
 
     aliases = relationship("AliasFeature", lazy='subquery')
-    alias_names = association_proxy('aliases', 'name')
+    alias_names = association_proxy('aliases', 'alias_name')
     
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
