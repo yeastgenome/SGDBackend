@@ -36,7 +36,7 @@ def create_format_name(display_name):
 def get_class_from_string(class_string):
     module = class_string.split('.')[0]
     class_name = class_string.split('.')[1]
-    mod = __import__('src.sgd.model.curate.' + module, fromlist=[class_name])
+    mod = __import__('src.sgd.model.nex.' + module, fromlist=[class_name])
     if hasattr(mod, class_name):
         return getattr(mod, class_name)
     else:
