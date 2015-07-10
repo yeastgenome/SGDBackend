@@ -1,0 +1,52 @@
+CREATE OR REPLACE PACKAGE BODY AuditLog AS
+--
+-- Insert into delete_log table whenever a row is deleted from a table
+--
+PROCEDURE InsertDeleteLog (
+    p_table IN VARCHAR2,
+    p_key IN VARCHAR2,
+    p_row IN CLOB,
+    p_user IN VARCHAR2)
+AS
+    v_tabName	delete_log.tab_name%TYPE;
+BEGIN
+
+    v_tabName := UPPER(p_table); 
+
+    INSERT INTO delete_log 
+        (delete_log_id, tab_name, primary_key, deleted_row, created_by)
+    VALUES
+        (delete_log_seq.NEXTVAL, v_tabName, p_key, p_row, p_user);
+
+END InsertDeleteLog;
+
+
+-- Insert into update_log table whenever a row is updated in a table
+--
+PROCEDURE InsertUpdateLog (
+    p_table IN VARCHAR2,
+    p_column IN VARCHAR2,
+    p_key IN VARCHAR2,
+    p_old IN CLOB,
+    p_new IN CLOB,
+    p_user IN VARCHAR2)   
+AS 
+    v_tabName	update_log.tab_name%TYPE;
+    v_colName	update_log.col_name%TYPE;
+BEGIN
+
+    v_tabName := UPPER(p_table); 
+    v_colName := UPPER(p_column); 
+
+    INSERT INTO update_log
+        (update_log_id, tab_name, col_name, primary_key, old_value, new_value, created_by)
+    VALUES
+        (update_log_seq.NEXTVAL, v_tabName, v_colName, p_key, p_old, p_new, p_user);
+
+END InsertUpdateLog;
+
+END AuditLog;
+/
+GRANT EXECUTE ON AuditLog to PUBLIC
+/
+SHOW ERROR
