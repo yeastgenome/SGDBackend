@@ -6,14 +6,14 @@ __author__ = 'kpaskov'
 
 
 def basic_convert(bud_db, nex_db, starter, class_name, key_f):
-    from src.sgd.backend.curate import CurateBackend
+    from src.sgd.backend.nex.update_backend import UpdateBackend
     from src.sgd.model import bud
     from src.sgd.convert import config
-    from src.sgd.convert import prepare_schema_connection
+    from src.sgd.convert.util import prepare_schema_connection
 
     start = datetime.datetime.now()
     bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, bud_db, config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
-    curate_backend = CurateBackend(config.NEX_DBTYPE, nex_db, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
+    update_backend = UpdateBackend(config.NEX_DBTYPE, nex_db, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
 
     already_seen = set()
 
@@ -25,7 +25,7 @@ def basic_convert(bud_db, nex_db, starter, class_name, key_f):
         if key in already_seen:
             status = 'Duplicate'
         else:
-            response = curate_backend.add_object(class_name, obj_json, update_ok=True)
+            response = update_backend.add_object(class_name, obj_json, update_ok=True)
             status = json.loads(response)['status']
             warnings_count += len(json.loads(response)['warnings'])
             already_seen.add(key)
