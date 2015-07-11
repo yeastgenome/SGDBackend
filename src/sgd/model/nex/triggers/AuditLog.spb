@@ -9,14 +9,16 @@ PROCEDURE InsertDeleteLog (
     p_user IN VARCHAR2)
 AS
     v_tabName	delete_log.tab_name%TYPE;
+	v_row		delete_log.deleted_row%TYPE;
 BEGIN
 
     v_tabName := UPPER(p_table); 
+	v_row 	  := p_row;
 
     INSERT INTO delete_log 
         (delete_log_id, tab_name, primary_key, deleted_row, created_by)
     VALUES
-        (delete_log_seq.NEXTVAL, v_tabName, p_key, p_row, p_user);
+        (delete_log_seq.NEXTVAL, v_tabName, p_key, v_row, p_user);
 
 END InsertDeleteLog;
 
@@ -27,8 +29,8 @@ PROCEDURE InsertUpdateLog (
     p_table IN VARCHAR2,
     p_column IN VARCHAR2,
     p_key IN VARCHAR2,
-    p_old IN CLOB,
-    p_new IN CLOB,
+    p_old IN VARCHAR2,
+    p_new IN VARCHAR2,
     p_user IN VARCHAR2)   
 AS 
     v_tabName	update_log.tab_name%TYPE;

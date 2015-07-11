@@ -4,8 +4,6 @@ CREATE OR REPLACE TRIGGER Dbuser_BIUR
 --
   BEFORE INSERT OR UPDATE ON dbuser
   FOR EACH ROW
-DECLARE
-  v_IsValidCode        code.code_value%TYPE;
 BEGIN
   IF INSERTING THEN
 
