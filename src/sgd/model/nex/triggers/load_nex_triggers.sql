@@ -14,5 +14,7 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Taxonomy_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyAlias_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyAlias_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyUrl_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_AUDR.trg

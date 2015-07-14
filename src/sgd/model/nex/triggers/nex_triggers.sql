@@ -654,22 +654,4 @@ BEGIN
 SELECT url_seq.nextval INTO :new.url_id FROM DUAL;
 END;
 /
-
---/
-CREATE OR REPLACE TRIGGER TAXONOMY_ALIAS_TRIGGER
-BEFORE INSERT ON taxonomy_alias
-FOR EACH ROW
-BEGIN
-SELECT alias_seq.nextval INTO :new.alias_id FROM DUAL;
-END;
-/
-
---/
-CREATE OR REPLACE TRIGGER TAXONOMY_RELATION_TRIGGER
-BEFORE INSERT ON taxonomy_relation
-FOR EACH ROW
-BEGIN
-SELECT relation_seq.nextval INTO :new.relation_id FROM DUAL;
-END;
-/
-
+ 

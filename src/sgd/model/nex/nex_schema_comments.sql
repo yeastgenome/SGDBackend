@@ -42,7 +42,7 @@ Comment on column SOURCE.DESCRIPTION is 'Description or comment.';
 Comment on column SOURCE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column SOURCE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-/* Taxonomy */
+/* Ontologies */
 
 Comment on table TAXONOMY is 'Taxonomy information descended from the family Saccharomycetaceae from NCBI.';
 Comment on column TAXONOMY.TAXONOMY_ID is 'Unique random identifier (Oracle sequence).';
@@ -67,6 +67,17 @@ Comment on column TAXONOMY_ALIAS.ALIAS_TYPE is 'Type of alias (Synonym, Secondar
 Comment on column TAXONOMY_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column TAXONOMY_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table TAXONOMY_URL is 'URLs associated with taxonomy.';
+Comment on column TAXONOMY_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column TAXONOMY_URL.NAME is 'Public display name (Taxonomy Browser).';
+Comment on column TAXONOMY_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column TAXONOMY_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column TAXONOMY_URL.BUD_ID is 'Not from BUD.';
+Comment on column TAXONOMY_URL.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column TAXONOMY_URL.URL_TYPE is 'Type of URL (External).';
+Comment on column TAXONOMY_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column TAXONOMY_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table TAXONOMY_RELATION is 'Relationship between the taxonomy terms from NCBI.';
 Comment on column TAXONOMY_RELATION.RELATION_ID is 'Unique random identifier (Oracle sequence).';
 Comment on column TAXONOMY_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
@@ -76,7 +87,5 @@ Comment on column TAXONOMY_RELATION.CHILD_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
 Comment on column TAXONOMY_RELATION.RELATION_TYPE is 'Type of relation (is a).';
 Comment on column TAXONOMY_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column TAXONOMY_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
-
-/* Ontologies */
 
 /* Dbentity (Locus, Reference, Strain, File) */
