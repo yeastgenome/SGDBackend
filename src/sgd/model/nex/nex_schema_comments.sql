@@ -44,6 +44,50 @@ Comment on column SOURCE.CREATED_BY is 'Username of the person who entered the r
 
 /* Ontologies */
 
+Comment on table CHEMICAL is 'Chemical Entities of Biological Interest (ChEBI) from the EBI.';
+Comment on column CHEMICAL.CHEMICAL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column CHEMICAL.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column CHEMICAL.DISPLAY_NAME is 'Public display name.';
+Comment on column CHEMICAL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column CHEMICAL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column CHEMICAL.BUD_ID is 'PK from BUD.CV_TERM.CV_TERM_NO.';
+Comment on column CHEMICAL.CHEBI_ID is 'Chemical identifier from the EBI (e.g., CHEBI:58471).';
+Comment on column CHEMICAL.DESCRIPTION is 'Description or comment.';
+Comment on column CHEMICAL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column CHEMICAL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table CHEMICAL_ALIAS is 'Other names or synonyms for the chemical.';
+Comment on column CHEMICAL_ALIAS.ALIAS_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column CHEMICAL_ALIAS.DISPLAY_NAME is 'Public display name.';
+Comment on column CHEMICAL_ALIAS.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column CHEMICAL_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column CHEMICAL_ALIAS.BUD_ID is 'PK from BUD.CVTERM_SYNONYM.CVTERM_SYNONYM_NO.';
+Comment on column CHEMICAL_ALIAS.CHEMICAL_ID is 'FK to CHEMICAL.CHEMICAL_ID.';
+Comment on column CHEMICAL_ALIAS.ALIAS_TYPE is 'Type of alias (EXACT, RELATED, Secondary ChEBI ID).';
+Comment on column CHEMICAL_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column CHEMICAL_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table CHEMICAL_URL is 'URLs associated with chemicals.';
+Comment on column CHEMICAL_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column CHEMICAL_URL.DISPLAY_NAME is 'Public display name (ChEBI).';
+Comment on column CHEMICAL_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column CHEMICAL_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column CHEMICAL_URL.BUD_ID is 'PK from BUD.URL.URL_NO';
+Comment on column CHEMICAL_URL.CHEMICAL_ID is 'FK to CHEMICAL.CHEMICAL_ID.';
+Comment on column CHEMICAL_URL.URL_TYPE is 'Type of URL (External).';
+Comment on column CHEMICAL_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column CHEMICAL_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table CHEMICAL_RELATION is 'Relationship between two chemicals.';
+Comment on column CHEMICAL_RELATION.RELATION_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column CHEMICAL_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column CHEMICAL_RELATION.BUD_ID is 'PK from BUD.CVTERM_RELATIONSIHP.CVTERM_RELATIONSIHP_NO.';
+Comment on column CHEMICAL_RELATION.PARENT_ID is 'FK to CHEMICAL_ID.';
+Comment on column CHEMICAL_RELATION.CHILD_ID is 'FK to CHEMICAL_ID.';
+Comment on column CHEMICAL_RELATION.RELATION_TYPE is 'Type of relation (is a).';
+Comment on column CHEMICAL_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column CHEMICAL_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table TAXONOMY is 'Taxonomy information descended from the family Saccharomycetaceae from NCBI.';
 Comment on column TAXONOMY.TAXONOMY_ID is 'Unique random identifier (Oracle sequence).';
 Comment on column TAXONOMY.FORMAT_NAME is 'Unique name to create download files.';
