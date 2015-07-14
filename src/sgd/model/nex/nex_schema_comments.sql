@@ -74,7 +74,7 @@ Comment on column CHEMICAL_URL.OBJ_URL is 'URL of the object (relative for local
 Comment on column CHEMICAL_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column CHEMICAL_URL.BUD_ID is 'PK from BUD.URL.URL_NO';
 Comment on column CHEMICAL_URL.CHEMICAL_ID is 'FK to CHEMICAL.CHEMICAL_ID.';
-Comment on column CHEMICAL_URL.URL_TYPE is 'Type of URL (External).';
+Comment on column CHEMICAL_URL.URL_TYPE is 'Type of URL (ChEBI).';
 Comment on column CHEMICAL_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CHEMICAL_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -87,6 +87,83 @@ Comment on column CHEMICAL_RELATION.CHILD_ID is 'FK to CHEMICAL_ID.';
 Comment on column CHEMICAL_RELATION.RELATION_TYPE is 'Type of relation (is a).';
 Comment on column CHEMICAL_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CHEMICAL_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table ENZYME is 'Enzyme Commission (EC) numbers based on chemical reactions catalyzed by enzymes.';
+Comment on column ENZYME.ENZYME_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column ENZYME.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column ENZYME.DISPLAY_NAME is 'Public display name (e.g., 3.1.26.5).';
+Comment on column ENZYME.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column ENZYME.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ENZYME.BUD_ID is 'PK from BUD.DBXREF.DBXREF_NO.';
+Comment on column ENZYME.DESCRIPTION is 'Description or comment.';
+Comment on column ENZYME.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ENZYME.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table ENZYME_ALIAS is 'Other names or synonyms for the enzyme.';
+Comment on column ENZYME_ALIAS.ALIAS_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column ENZYME_ALIAS.DISPLAY_NAME is 'Public display name.';
+Comment on column ENZYME_ALIAS.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column ENZYME_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ENZYME_ALIAS.BUD_ID is 'Not in BUD.';
+Comment on column ENZYME_ALIAS.ENZYME_ID is 'FK to ENZYME.ENZYME_ID.';
+Comment on column ENZYME_ALIAS.ALIAS_TYPE is 'Type of alias (Synonym).';
+Comment on column ENZYME_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ENZYME_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table ENZYME_URL is 'URLs associated with contigs.';
+Comment on column ENZYME_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column ENZYME_URL.DISPLAY_NAME is 'Public display name (ExPASy, BRENDA).';
+Comment on column ENZYME_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column ENZYME_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ENZYME_URL.BUD_ID is 'Not from BUD';
+Comment on column ENZYME_URL.ENZYME_ID is 'FK to ENZYME.ENZYME_ID.';
+Comment on column ENZYME_URL.URL_TYPE is 'Type of URL (ExPASy, BRENDA).';
+Comment on column ENZYME_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ENZYME_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table EVIDENCE is 'Evidence Ontology (ECO) describes types of scientific evidence.';
+Comment on column EVIDENCE.EVIDENCE_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column EVIDENCE.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column EVIDENCE.DISPLAY_NAME is 'Public display name.';
+Comment on column EVIDENCE.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column EVIDENCE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column EVIDENCE.BUD_ID is 'Not from BUD.';
+Comment on column EVIDENCE.ECO_ID is 'Evidence ontology identifier (e.g. ECO:0000168).';
+Comment on column EVIDENCE.DESCRIPTION is 'Description or comment.';
+Comment on column EVIDENCE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column EVIDENCE.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table EVIDENCE_ALIAS is 'Other names or synonyms for types of evidence.';
+Comment on column EVIDENCE_ALIAS.ALIAS_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column EVIDENCE_ALIAS.DISPLAY_NAME is 'Public display name.';
+Comment on column EVIDENCE_ALIAS.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column EVIDENCE_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column EVIDENCE_ALIAS.BUD_ID is 'Not from BUD.';
+Comment on column EVIDENCE_ALIAS.EVIDENCE_ID is 'FK to EVIDENCE.EVIDENCE_ID.';
+Comment on column EVIDENCE_ALIAS.ALIAS_TYPE is 'Type of alias (BROAD, EXACT, RELATED, NARROW).';
+Comment on column EVIDENCE_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column EVIDENCE_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table EVIDENCE_URL is 'URLs associated with evidence types.';
+Comment on column EVIDENCE_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column EVIDENCE_URL.DISPLAY_NAME is 'Public display name (BioPortal, OLS).';
+Comment on column EVIDENCE_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column EVIDENCE_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column EVIDENCE_URL.BUD_ID is 'Not from BUD.';
+Comment on column EVIDENCE_URL.EVIDENCE_ID is 'FK to EVIDENCE.EVIDENCE_ID.';
+Comment on column EVIDENCE_URL.URL_TYPE is 'Type of URL (BioPortal, OLS).';
+Comment on column EVIDENCE_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column EVIDENCE_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table EVIDENCE_RELATION is 'Relationship between two evidence types.';
+Comment on column EVIDENCE_RELATION.RELATION_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column EVIDENCE_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column EVIDENCE_RELATION.BUD_ID is 'Not from BUD.';
+Comment on column EVIDENCE_RELATION.PARENT_ID is 'FK to EVIDENCE.EVIDENCE_ID.';
+Comment on column EVIDENCE_RELATION.CHILD_ID is 'FK to EVIDENCE.EVIDENCE_ID.';
+Comment on column EVIDENCE_RELATION.RELATION_TYPE is 'Type of relation (is a).';
+Comment on column EVIDENCE_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column EVIDENCE_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table TAXONOMY is 'Taxonomy information descended from the family Saccharomycetaceae from NCBI.';
 Comment on column TAXONOMY.TAXONOMY_ID is 'Unique random identifier (Oracle sequence).';
@@ -113,12 +190,12 @@ Comment on column TAXONOMY_ALIAS.CREATED_BY is 'Username of the person who enter
 
 Comment on table TAXONOMY_URL is 'URLs associated with taxonomy.';
 Comment on column TAXONOMY_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
-Comment on column TAXONOMY_URL.NAME is 'Public display name (Taxonomy Browser).';
+Comment on column TAXONOMY_URL.NAME is 'Public display name (NCBI Taxonomy).';
 Comment on column TAXONOMY_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column TAXONOMY_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column TAXONOMY_URL.BUD_ID is 'Not from BUD.';
 Comment on column TAXONOMY_URL.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
-Comment on column TAXONOMY_URL.URL_TYPE is 'Type of URL (External).';
+Comment on column TAXONOMY_URL.URL_TYPE is 'Type of URL (NCBI Taxonomy).';
 Comment on column TAXONOMY_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column TAXONOMY_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
