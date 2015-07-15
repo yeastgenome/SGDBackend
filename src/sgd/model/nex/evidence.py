@@ -769,7 +769,7 @@ class Proteinexperimentevidence(Evidence):
         self.json = json.dumps(self.to_json(aux_obj_json=obj_json))
 
     def unique_key(self):
-        return self.class_type, self.locus_id, self.experiment_id
+        return self.class_type, self.locus_id, self.experiment_id, self.reference_id
 
 class DNAsequenceevidence(Evidence):
     __tablename__ = "dnasequenceevidence"
