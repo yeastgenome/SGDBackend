@@ -263,21 +263,24 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                 yield None
 
         #Phenotype
-        for row in make_file_starter('src/sgd/convert/data/PhenotypeSummaries032015.txt')():
-            bioentity_key = (row[0], 'LOCUS')
+        file_names = ['src/sgd/convert/data/PhenotypeSummaries032015.txt',
+                      'src/sgd/convert/data/15-6phenoSummariesTyposFixed.txt']
 
-            if bioentity_key in key_to_bioentity:
-                bioentity = key_to_bioentity[bioentity_key]
-                yield {
-                    'bioentity': bioentity,
-                    'source': key_to_source['SGD'],
-                    'text': row[1],
-                    'html': link_gene_names(row[1], {bioentity.display_name, bioentity.format_name, bioentity.display_name + 'P', bioentity.format_name + 'P'}, nex_session),
-                    'category': 'PHENOTYPE'
-                }
-            else:
-                #print 'Bioentity not found: ' + str(bioentity_key)
-                yield None
+        for file_name in file_names:
+            for row in make_file_starter(file_name)():
+                bioentity_key = (row[0], 'LOCUS')
+                if bioentity_key in key_to_bioentity:
+                    bioentity = key_to_bioentity[bioentity_key]
+                    yield {
+                        'bioentity': bioentity,
+                        'source': key_to_source['SGD'],
+                        'text': row[1],
+                        'html': link_gene_names(row[1], {bioentity.display_name, bioentity.format_name, bioentity.display_name + 'P', bioentity.format_name + 'P'}, nex_session),
+                        'category': 'PHENOTYPE'
+                        }
+                else:
+                    #print 'Bioentity not found: ' + str(bioentity_key)
+                    yield None
 
 
         bud_session.close()
