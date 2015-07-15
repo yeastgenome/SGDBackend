@@ -24,15 +24,29 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EnzymeAlias_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EnzymeUrl_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EnzymeUrl_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Evidence_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Evidence_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceAlias_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceAlias_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceUrl_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceUrl_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceRelation_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceRelation_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Evidence_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Evidence_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceAlias_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceAlias_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceUrl_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceUrl_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceRelation_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceRelation_AUDR.trg
 
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Obinvestigation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Obinvestigation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObinvestigationUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObinvestigationUrl_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObinvestigationRelation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObinvestigationRelation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Sequencefeature_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Sequencefeature_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/SequencefeatureAlias_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/SequencefeatureAlias_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/SequencefeatureUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/SequencefeatureUrl_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/SequencefeatureRelation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/SequencefeatureRelation_AUDR.trg
 
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Taxonomy_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Taxonomy_AUDR.trg
@@ -42,5 +56,3 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyUrl_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_AUDR.trg
-
-
