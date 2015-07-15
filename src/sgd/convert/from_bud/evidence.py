@@ -1267,7 +1267,7 @@ def get_pubmed_ids(entry):
 # --------------------- Convert Protein Experiment Evidence ---------------------
 def make_protein_experiment_evidence_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.nex.misc import Source, Experiment
-    from src.sgd.model.nex.bioentity import Locus
+    from src.sgd.model.nex.bioentity import Bioentity, Locus
     from src.sgd.model.nex.reference import Reference
     from src.sgd.model.bud.sequence import ProteinDetail
     from src.sgd.model.bud.reference import Reflink
@@ -1298,7 +1298,30 @@ def make_protein_experiment_evidence_starter(bud_session_maker, nex_session_make
                 print 'Reference or bioentity not found: ' + str(reference_id) + ' ' + str(bioentity_id)
 
         bud_session.close()
+
+	### load data from flat files
+	formatname_to_bioentity = dict([(x.format_name, x) for x in nex_session.query(Bioentity).all()])
+        pmid_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
+
+	file_name = "src/sgd/convert/data/Chong_et_al_abundance.txt"
+	pmid = 26046442
+
+        f = open(file_name, 'rU')
+       	header = True
+        for line in f:
+            if header:
+                header = False
+            else:
+                field = line.split('\t')
+		yield {'source': key_to_source['SGD'],
+                       'reference': pmid_to_reference[pmid],
+                       'experiment': key_to_experiment['protein_abundance'],
+                       'locus': formatname_to_bioentity[field[0]],
+                       'data_value': int(field[1].rstrip()),
+                       'data_unit': "molecules/cell"}
+
         nex_session.close()
+
     return protein_experiment_evidence_starter
 
 # --------------------- Regulation Evidence ---------------------
