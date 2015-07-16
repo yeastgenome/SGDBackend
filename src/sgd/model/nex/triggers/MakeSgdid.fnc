@@ -3,8 +3,8 @@ CREATE OR REPLACE FUNCTION MakeSgdid RETURN VARCHAR2
 -- Constructs and returns a SGDID  
 --
 IS
-    v_Sgdid	dbxref.dbxref_id%TYPE;
-    v_SgdidNo    NUMBER;  
+    v_Sgdid		dbentity.dbentity_id%TYPE;
+    v_SgdidNo   NUMBER;  
 BEGIN
 
    SELECT sgdid_seq.NEXTVAL INTO v_SgdidNo FROM DUAL;
