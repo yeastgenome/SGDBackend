@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION MakeSgdid RETURN VARCHAR2
 -- Constructs and returns a SGDID  
 --
 IS
-    v_Sgdid		dbentity.dbentity_id%TYPE;
+    v_Sgdid	    dbentity.sgdid%TYPE;
     v_SgdidNo   NUMBER;  
 BEGIN
 
