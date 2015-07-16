@@ -210,3 +210,38 @@ Comment on column TAXONOMY_RELATION.DATE_CREATED is 'Date the record was entered
 Comment on column TAXONOMY_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* Dbentity (Locus, Reference, Strain, File) */
+
+Comment on table DBENTITY is 'Primary objects that are the focus of curation. They are strain independent and require an SGDID.';
+Comment on column DBENTITY.DBENTITY_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column DBENTITY.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column DBENTITY.DISPLAY_NAME is 'Public display name.';
+Comment on column DBENTITY.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column DBENTITY.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DBENTITY.BUD_ID is 'PK from BUD.FEATURE.FEATURE_NO.';
+Comment on column DBENTITY.SGDID is 'SGD accession identifier.';
+Comment on column DBENTITY.SUBCLASS is 'What object inherits from DBENTITY (DBENTITY, FILE, LOCUS, REFERENCE, STRAIN).';
+Comment on column DBENTITY.DBENTITY_STATUS is 'Current state of the dbentity (Active, Merged, Deleted, Archived).';
+Comment on column DBENTITY.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DBENTITY.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table LOCUSDBENTITY is 'Features located on a sequence, that are associate with a locus. Inherits from DBENTITY.';
+Comment on column LOCUSDBENTITY.DBENTITY_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column LOCUSDBENTITY.SYSTEMATIC_NAME is 'Unique name for the dbentity. Subfeature names have a number appended after the systematic name.';
+Comment on column LOCUSDBENTITY.SEQUENCEFEATURE_ID is 'FK to SEQUENCEFEATURE.SEQUENCEFEATURE_ID.';
+Comment on column LOCUSDBENTITY.GENE_NAME is 'Registered gene name consisting of 3 letters followed by an integer (e.g., ADE12).';
+Comment on column LOCUSDBENTITY.QUALIFIER is 'Categorization of the gene (Verified, Uncharacterized, Dubious).';
+Comment on column LOCUSDBENTITY.GENETIC_POSITION is 'Genetic position of the locus.';
+Comment on column LOCUSDBENTITY.NAME_DESCRIPTION is 'Description of the gene name acronym.';
+Comment on column LOCUSDBENTITY.HEADLINE is 'An abbreviated version of the LOCUSDBENTITY.DESCRIPTION.';
+Comment on column LOCUSDBENTITY.DESCRIPTION is 'Brief description of the gene product or role the feature plays in the cell.';
+Comment on column LOCUSDBENTITY.HAS_SUMMARY is 'Has a Locus web page.';
+Comment on column LOCUSDBENTITY.HAS_SEQUENCE is 'Has a Sequence tab page.';
+Comment on column LOCUSDBENTITY.HAS_HISTORY is 'Has a History section on the Locus page.';
+Comment on column LOCUSDBENTITY.HAS_LITERATURE is 'Has a Literature tab page.';
+Comment on column LOCUSDBENTITY.HAS_GO is 'Has a Gene Ontology tab page.';
+Comment on column LOCUSDBENTITY.HAS_PHENOTYPE is 'Has a Phenotype tab page.';
+Comment on column LOCUSDBENTITY.HAS_INTERACTION is 'Has an Interaction tab page.';
+Comment on column LOCUSDBENTITY.HAS_EXPRESSION is 'Has an Expression tab page.';
+Comment on column LOCUSDBENTITY.HAS_REGULATION is 'Has a Regulation tab page.';
+Comment on column LOCUSDBENTITY.HAS_PROTEIN is 'Has a Protein tab page.';
+Comment on column LOCUSDBENTITY.HAS_SEQUENCE_SECTION is 'Has a Sequence section on the Locus page.';
