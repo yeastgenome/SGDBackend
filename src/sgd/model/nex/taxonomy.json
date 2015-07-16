@@ -7,8 +7,12 @@
             "title": "ID",
             "type": "integer"
         },
+	"taxid": {
+	    "title": "TAXON_ID",
+            "type": "integer"
+	},
         "display_name": {
-            "title": "Name",
+            "title": "Display Name",
             "type": "string"
         },
         "format_name": {
@@ -19,10 +23,6 @@
             "title": "Link",
             "type": "string"
         },
-        "description": {
-            "title": "Description",
-            "type": "string"
-        },
         "common_name": {
             "title": "Common Name",
             "type": "string"
@@ -30,10 +30,6 @@
         "rank": {
             "title": "Rank",
             "type": "string"
-        },
-        "bud_id": {
-            "title": "Bud ID",
-            "type": "integer"
         },
         "source": {
             "title": "Source",
@@ -61,9 +57,9 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "systematic_name": {
+                    "display_name": {
                         "title": "Display Name",
-                        "type": "display_name"
+                        "type": "string"
                     },
                     "relation_type": {
                         "title": "Relation Type",
@@ -145,10 +141,10 @@
                         "title": "Display Name",
                         "type": "string"
                     },
-                    "link": {
-                        "title": "Link",
-                        "type": "string"
-                    },
+                    "bud_id": {
+		        "title": "BUD ID",
+                        "type": "integer"
+		    },
                     "alias_type": {
                         "title": "Alias Type",
                         "type": "string"
@@ -176,7 +172,57 @@
                 },
                 "required": ["display_name", "alias_type", "source"]
             }
+        },
+	"urls": {
+            "title": "Urls",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+		    "link": {
+		    	"title": "Link",
+			"type": "string"
+		    },
+		    "bud_id": {
+		        "title": "BUD ID",
+                        "type": "integer"
+		    },
+                    "url_type": {
+                        "title": "URL Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["display_name", "link", "url_type", "source"]
+            }
         }
     },
-    "required": ["display_name"]
+    "required": ["taxid", "display_name"]
 }
