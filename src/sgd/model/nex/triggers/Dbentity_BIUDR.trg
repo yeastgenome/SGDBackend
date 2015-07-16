@@ -5,7 +5,8 @@ CREATE OR REPLACE TRIGGER Dbentity_BIUDR
   BEFORE INSERT OR UPDATE ON dbentity
   FOR EACH ROW
 DECLARE
-  v_IsValidUser     dbuser.userid%TYPE;
+  v_IsValidUser   dbuser.username%TYPE;
+  v_CanDelete     NUMBER;
 BEGIN
   IF INSERTING THEN
 
