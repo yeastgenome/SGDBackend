@@ -14,7 +14,7 @@ BEGIN
     END IF;
 
     IF (:new.sgdid IS NULL) THEN
-        :new.sgdid := MakeSGDID;
+        :new.sgdid := MakeSgdid;
     ELSE
         :new.sgdid := UPPER(:new.sgdid);
     END IF;
