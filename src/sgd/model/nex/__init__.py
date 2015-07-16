@@ -48,14 +48,13 @@ class UpdateWithJsonMixin(object):
     def create_or_find(cls, obj_json, session, parent_obj=None):
         if obj_json is None:
             return None, 'Found'
-
         current_obj = None
+
         for key in getattr(cls, '__id_values__'):
             if key in obj_json:
                 current_obj = session.query(cls).filter(getattr(cls, key) == obj_json[key]).first()
             elif key == 'format_name':
                 current_obj = session.query(cls).filter_by(format_name=cls.__create_format_name__(obj_json)).first()
-
             if current_obj is not None:
                 break
 
@@ -187,15 +186,21 @@ class UpdateWithJsonMixin(object):
 
     @classmethod
     def __create_format_name__(cls, obj_json):
-        return create_format_name(cls.__create_display_name__(obj_json))
+        if obj_json.get('display_name') != None:
+            return create_format_name(cls.__create_display_name__(obj_json))
+        else:
+            return ''
 
     @classmethod
     def __create_link__(cls, obj_json):
-        return '/' + cls.__name__.lower() + '/' + cls.__create_format_name__(obj_json)
+        if obj_json.get('display_name') != None:
+            return '/' + cls.__name__.lower() + '/' + cls.__create_format_name__(obj_json)
+        else:
+            return ''
 
     @classmethod
     def __create_display_name__(cls, obj_json):
-        return obj_json['display_name']
+        return obj_json.get('display_name')
 
 class ToJsonMixin(object):
 

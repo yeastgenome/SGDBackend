@@ -1,26 +1,30 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Source",
+    "title": "Dbuser",
     "type": "object",
     "properties": {
         "id": {
             "title": "ID",
-            "type": "Integer"
+            "type": "integer"
         },
-        "format_name": {
-            "title": "Format Name",
+        "username": {
+            "title": "User Name",
             "type": "string"
         },
-	"display_name": {
-            "title": "Display Name",
+        "first_name": {
+            "title": "First Name",
             "type": "string"
         },
-        "link": {
-            "title": "Link",
+	"last_name": {
+            "title": "Last Name",
             "type": "string"
         },
-        "description": {
-            "title": "Description",
+        "email": {
+            "title": "Email",
+            "type": "string"
+        },
+	"status": {
+            "title": "Status",
             "type": "string"
         },
         "bud_id": {
@@ -38,11 +42,7 @@
                     "format": "date"
                 }
             ]
-        },
-        "created_by": {
-            "title": "Name",
-            "type": "string"
         }
     },
-    "required": ["display_name"]
+    "required": ["username", "first_name", "last_name", "email", "status"]
 }

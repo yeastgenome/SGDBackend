@@ -18,7 +18,7 @@ query_limit = 25000
 class UpdateBackend(SGDBackend):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
         SGDBackend.__init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory)
-
+        
     def update_object(self, class_name, identifier, new_json_obj):
         try:
             if class_name in self.schemas:
