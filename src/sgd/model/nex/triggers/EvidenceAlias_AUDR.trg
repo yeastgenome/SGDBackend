@@ -48,7 +48,7 @@ BEGIN
              :old.evidence_id || '[:]' || :old.alias_type || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
-    AuditLog.InsertDeleteLog('EVIDENCE', :old.alias_id, v_row, USER);
+    AuditLog.InsertDeleteLog('EVIDENCE_ALIAS', :old.alias_id, v_row, USER);
 
   END IF;
 

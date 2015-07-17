@@ -48,7 +48,7 @@ BEGIN
              :old.sequencefeature_id || '[:]' || :old.alias_type || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
-    AuditLog.InsertDeleteLog('SEQUENCEFEATURE', :old.alias_id, v_row, USER);
+    AuditLog.InsertDeleteLog('SEQUENCEFEATURE_ALIAS', :old.alias_id, v_row, USER);
 
   END IF;
 

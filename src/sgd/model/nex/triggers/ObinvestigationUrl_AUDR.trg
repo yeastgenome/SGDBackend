@@ -48,7 +48,7 @@ BEGIN
              :old.obinvestigation_id || '[:]' || :old.url_type || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
-    AuditLog.InsertDeleteLog('OBINVESTIGATION', :old.url_id, v_row, USER);
+    AuditLog.InsertDeleteLog('OBINVESTIGATION_URL', :old.url_id, v_row, USER);
 
   END IF;
 

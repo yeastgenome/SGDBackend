@@ -48,7 +48,7 @@ BEGIN
              :old.enzyme_id || '[:]' || :old.url_type || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
-    AuditLog.InsertDeleteLog('ENZYME', :old.url_id, v_row, USER);
+    AuditLog.InsertDeleteLog('ENZYME_URL', :old.url_id, v_row, USER);
 
   END IF;
 

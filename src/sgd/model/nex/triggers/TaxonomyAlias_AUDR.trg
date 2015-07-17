@@ -48,7 +48,7 @@ BEGIN
              :old.taxonomy_id || '[:]' || :old.alias_type || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
-    AuditLog.InsertDeleteLog('TAXONOMY', :old.alias_id, v_row, USER);
+    AuditLog.InsertDeleteLog('TAXONOMY_ALIAS', :old.alias_id, v_row, USER);
 
   END IF;
 

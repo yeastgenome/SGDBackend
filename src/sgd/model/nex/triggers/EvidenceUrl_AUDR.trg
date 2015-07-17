@@ -48,7 +48,7 @@ BEGIN
              :old.evidence_id || '[:]' || :old.url_type || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
-    AuditLog.InsertDeleteLog('EVIDENCE', :old.url_id, v_row, USER);
+    AuditLog.InsertDeleteLog('EVIDENCE_URL', :old.url_id, v_row, USER);
 
   END IF;
 

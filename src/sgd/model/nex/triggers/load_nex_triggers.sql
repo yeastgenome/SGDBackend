@@ -3,7 +3,7 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckUser.fnc
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckDelete.sps
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckDelete.spb
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/MakeSgdid.fnc
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/MakeSgdid.fnc
 
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DeleteLog_BUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/UpdateLog_BUDR.trg
@@ -55,9 +55,12 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyUrl_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_BIUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_AUDR.trg
 
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_BIUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_AUDR.trg
-
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusAlias_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusAlias_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusUrl_AUDR.trg
