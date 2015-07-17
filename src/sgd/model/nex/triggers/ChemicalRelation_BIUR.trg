@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Chemical_BIUR;
+END ChemicalRelation_BIUR;
 /
 SHOW ERROR

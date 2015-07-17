@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Taxonomy_BIUR;
+END TaxonomyRelation_BIUR;
 /
 SHOW ERROR

@@ -269,3 +269,13 @@ Comment on column LOCUS_URL.URL_TYPE is 'Type of URL (CGI, External identifier, 
 Comment on column LOCUS_URL.PLACEMENT is 'Location of the URL on the web page.';
 Comment on column LOCUS_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LOCUS_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table LOCUS_RELATION is 'Relationship between two locus dbentities or features.';
+Comment on column LOCUS_RELATION.RELATION_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column LOCUS_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column LOCUS_RELATION.BUD_ID is 'PK from BUD.FEAT_RELATIONSHIP.FEAT_RELATIONSHIP_NO.';
+Comment on column LOCUS_RELATION.PARENT_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column LOCUS_RELATION.CHILD_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column LOCUS_RELATION.RELATION_TYPE is 'Type of relation (pair, part of, adjacent to).';
+Comment on column LOCUS_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column LOCUS_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';

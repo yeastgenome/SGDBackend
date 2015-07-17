@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Obinvestigation_BIUR;
+END ObinvestigationRelation_BIUR;
 /
 SHOW ERROR

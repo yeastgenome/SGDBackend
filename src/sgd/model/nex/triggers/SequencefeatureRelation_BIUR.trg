@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Sequencefeature_BIUR;
+END SequencefeatureRelation_BIUR;
 /
 SHOW ERROR

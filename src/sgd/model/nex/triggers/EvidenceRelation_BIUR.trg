@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Evidence_BIUR;
+END EvidenceRelation_BIUR;
 /
 SHOW ERROR
