@@ -59,8 +59,10 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusAlias_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusAlias_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusUrl_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusUrl_AUDR.trg
 
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusAlias_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusAlias_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusUrl_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusUrl_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusRelation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusRelation_AUDR.trg
