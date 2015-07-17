@@ -50,7 +50,7 @@ BEGIN
     v_row := :old.alias_id || '[:]' || 
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.locus_id || '[:]' || :has_external_id_section || '[:]' || 
+             :old.locus_id || '[:]' || :old.has_external_id_section || '[:]' || 
              :old.alias_type || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
