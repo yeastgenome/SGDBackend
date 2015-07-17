@@ -245,3 +245,27 @@ Comment on column LOCUSDBENTITY.HAS_EXPRESSION is 'Has an Expression tab page.';
 Comment on column LOCUSDBENTITY.HAS_REGULATION is 'Has a Regulation tab page.';
 Comment on column LOCUSDBENTITY.HAS_PROTEIN is 'Has a Protein tab page.';
 Comment on column LOCUSDBENTITY.HAS_SEQUENCE_SECTION is 'Has a Sequence section on the Locus page.';
+
+Comment on table LOCUS_ALIAS is 'Other names, synonyms, or dbxrefs for a feature or gene.';
+Comment on column LOCUS_ALIAS.ALIAS_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column LOCUS_ALIAS.DISPLAY_NAME is 'Public display name.';
+Comment on column LOCUS_ALIAS.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column LOCUS_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column LOCUS_ALIAS.BUD_ID is 'PK from BUD.ALIAS.ALIAS_NO or BUD.DBXREF.DBXREF_NO.';
+Comment on column LOCUS_ALIAS.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column LOCUS_ALIAS.HAS_EXTERNAL_ID_SECTION is 'Whether the alias is displayed in the Protein tab External Identifier section.';
+Comment on column LOCUS_ALIAS.ALIAS_TYPE is 'Type of alias or dbxref.';
+Comment on column LOCUS_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column LOCUS_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table LOCUS_URL is 'URLs associated with locus dbentities or features.';
+Comment on column LOCUS_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column LOCUS_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column LOCUS_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column LOCUS_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column LOCUS_URL.BUD_ID is 'PK from BUD.URL.URL_NO.';
+Comment on column LOCUS_URL.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column LOCUS_URL.URL_TYPE is 'Type of URL (CGI, External identifier, Systematic name, SGDID).';
+Comment on column LOCUS_URL.PLACEMENT is 'Location of the URL on the web page.';
+Comment on column LOCUS_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column LOCUS_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
