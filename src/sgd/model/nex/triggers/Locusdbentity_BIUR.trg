@@ -4,8 +4,6 @@ CREATE OR REPLACE TRIGGER Locusdbentity_BIUR
 --
   BEFORE INSERT OR UPDATE ON locusdbentity
   FOR EACH ROW
-DECLARE
-  v_IsValidUser     dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
