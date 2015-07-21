@@ -47,17 +47,17 @@ BEGIN
 
     IF (((:old.longest_scaffold IS NULL) AND (:new.longest_scaffold IS NOT NULL)) OR ((:old.longest_scaffold IS NOT NULL) AND (:new.longest_scaffold IS NULL)) OR (:old.longest_scaffold != :new.longest_scaffold)) 
     THEN
-        AuditLog.InsertUpdateLog('STRAINDBENTITY', 'DESCRIPTION', :old.dbentity_id, :old.longest_scaffold, :new.longest_scaffold, USER);
+        AuditLog.InsertUpdateLog('STRAINDBENTITY', 'LONGEST_SCAFFOLD', :old.dbentity_id, :old.longest_scaffold, :new.longest_scaffold, USER);
     END IF;
 
     IF (((:old.scaffold_nfifty IS NULL) AND (:new.scaffold_nfifty IS NOT NULL)) OR ((:old.scaffold_nfifty IS NOT NULL) AND (:new.scaffold_nfifty IS NULL)) OR (:old.scaffold_nfifty != :new.scaffold_nfifty))
     THEN
-        AuditLog.InsertUpdateLog('STRAINDBENTITY', 'DESCRIPTION', :old.dbentity_id, :old.scaffold_nfifty, :new.scaffold_nfifty, USER);
+        AuditLog.InsertUpdateLog('STRAINDBENTITY', 'SCAFFOLD_NFIFTY', :old.dbentity_id, :old.scaffold_nfifty, :new.scaffold_nfifty, USER);
     END IF;
 
     IF (((:old.feature_count IS NULL) AND (:new.feature_count IS NOT NULL)) OR ((:old.feature_count IS NOT NULL) AND (:new.feature_count IS NULL)) OR (:old.feature_count != :new.feature_count))
     THEN
-        AuditLog.InsertUpdateLog('STRAINDBENTITY', 'DESCRIPTION', :old.dbentity_id, :old.feature_count, :new.feature_count, USER);
+        AuditLog.InsertUpdateLog('STRAINDBENTITY', 'FEATURE_COUNT', :old.dbentity_id, :old.feature_count, :new.feature_count, USER);
     END IF;
 
   ELSE
@@ -67,7 +67,7 @@ BEGIN
              :old.genotype || '[:]' || :old.genbank_id || '[:]' || 
              :old.assembly_size || '[:]' || :old.fold_coverage || '[:]' || 
              :old.scaffold_number || '[:]' || :old.longest_scaffold || '[:]' || 
-             :old.scaffold_nfifty || '[:]' || :old.feature_count || '[:]' ||;
+             :old.scaffold_nfifty || '[:]' || :old.feature_count;
 
     AuditLog.InsertDeleteLog('STRAINDBENTITY', :old.dbentity_id, v_row, USER);
 
