@@ -224,6 +224,8 @@ Comment on column DBENTITY.DBENTITY_STATUS is 'Current state of the dbentity (Ac
 Comment on column DBENTITY.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DBENTITY.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+/* Locus */
+
 Comment on table LOCUSDBENTITY is 'Features located on a sequence, that are associate with a locus. Inherits from DBENTITY.';
 Comment on column LOCUSDBENTITY.DBENTITY_ID is 'Unique random identifier (Oracle sequence).';
 Comment on column LOCUSDBENTITY.SYSTEMATIC_NAME is 'Unique name for the dbentity. Subfeature names have a number appended after the systematic name.';
@@ -279,3 +281,30 @@ Comment on column LOCUS_RELATION.CHILD_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
 Comment on column LOCUS_RELATION.RELATION_TYPE is 'Type of relation (pair, part of, adjacent to).';
 Comment on column LOCUS_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LOCUS_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+/* Strain */
+
+Comment on table STRAINDBENTITY is 'A yeast strain which has sequence data. Inherits from DBENTITY';
+Comment on column STRAINDBENTITY.DBENTITY_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column STRAINDBENTITY.TAXONOMY_ID is  'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column STRAINDBENTITY.STRAIN_TYPE is 'Strain designation assigned by SGD (Reference, Alternative Reference, Other).';
+Comment on column STRAINDBENTITY.GENOTYPE is 'Genotype of the strain.';
+Comment on column STRAINDBENTITY.GENBANK_ID is 'GenBank accession ID of the strain (e.g., JRII00000000).';
+Comment on column STRAINDBENTITY.ASSEMBLY_SIZE is 'Total number of nucleotides in the assembly.';
+Comment on column STRAINDBENTITY.FOLD_COVERAGE is 'Average number of reads per nucleotide in the assembly.';
+Comment on column STRAINDBENTITY.SCAFFOLD_NUMBER is 'Number of scaffolds in the assembly.';
+Comment on column STRAINDBENTITY.LONGEST_SCAFFOLD is 'Length of the longest scaffold.';
+Comment on column STRAINDBENTITY.SCAFFOLD_NFIFTY is 'Weighted median statistic such that 50% of the entire assembly is contained i\
+n scaffolds equal to or larger than this value';
+Comment on column STRAINDBENTITY.FEATURE_COUNT is 'Number of features identified in this strain.';
+
+Comment on table STRAIN_URL is 'URLs associated with a strain.';
+Comment on column STRAIN_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column STRAIN_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column STRAIN_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column STRAIN_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column STRAIN_URL.BUD_ID is 'Not from BUD';
+Comment on column STRAIN_URL.STRAIN_ID is 'FK to STRAINDBENTITY.DBENTITY_ID.';
+Comment on column STRAIN_URL.URL_TYPE is 'Type of URL (Source, Wiki, PubMed, GenBank, Download).';
+Comment on column STRAIN_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column STRAIN_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
