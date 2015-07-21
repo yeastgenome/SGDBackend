@@ -456,12 +456,3 @@ BEGIN
 SELECT docref_seq.nextval INTO :new.document_reference_id FROM DUAL;
 END;
 /
-
---/
-CREATE OR REPLACE TRIGGER STRAIN_URL_TRIGGER
-BEFORE INSERT ON strain_url
-FOR EACH ROW
-BEGIN
-SELECT url_seq.nextval INTO :new.url_id FROM DUAL;
-END;
-/

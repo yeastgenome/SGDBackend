@@ -63,7 +63,7 @@ Comment on column CHEMICAL_ALIAS.OBJ_URL is 'URL of the object (relative for loc
 Comment on column CHEMICAL_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column CHEMICAL_ALIAS.BUD_ID is 'PK from BUD.CVTERM_SYNONYM.CVTERM_SYNONYM_NO.';
 Comment on column CHEMICAL_ALIAS.CHEMICAL_ID is 'FK to CHEMICAL.CHEMICAL_ID.';
-Comment on column CHEMICAL_ALIAS.ALIAS_TYPE is 'Type of alias (EXACT, RELATED, Secondary ChEBI ID).';
+Comment on column CHEMICAL_ALIAS.ALIAS_TYPE is 'Type of alias (EXACT, RELATED, Secondary ChEBI ID, IUPAC name).';
 Comment on column CHEMICAL_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CHEMICAL_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
 

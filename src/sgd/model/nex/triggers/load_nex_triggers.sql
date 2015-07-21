@@ -63,6 +63,9 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusAlias_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusUrl_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusUrl_AUDR.trg
-
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusRelation_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusRelation_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusRelation_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusRelation_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Straindbentity_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Straindbentity_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainUrl_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainUrl_AUDR.trg
