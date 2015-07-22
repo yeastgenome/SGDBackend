@@ -97,8 +97,7 @@ BEGIN
            :old.date_revised || '[:]' || :old.issue || '[:]' || 
            :old.page || '[:]' || :old.volume || '[:]' || 
            :old.title || '[:]' || :old.doi || '[:]' ||
-           :old.journal_no || '[:]' || :old.book_no || '[:]' ||
-           :old.date_created || '[:]' || :old.created_by;
+           :old.journal_no || '[:]' || :old.book_no;
 
   AuditLog.InsertDeleteLog('REFERENCE', :old.dbentity_id, v_row, USER);
 

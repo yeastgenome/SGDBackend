@@ -4,8 +4,6 @@ CREATE OR REPLACE TRIGGER Referencdbeentity_BIUR
 --
   BEFORE INSERT OR UPDATE ON referencedbentity
   FOR EACH ROW
-DECLARE
-  v_IsValidUser     dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
@@ -20,8 +18,6 @@ BEGIN
                 (-20019, 'Reference title must be entered if there is a Pubmed_ID.');
         END IF;
     END IF;
-
-    v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
 
@@ -40,16 +36,6 @@ BEGIN
             RAISE_APPLICATION_ERROR
                 (-20019, 'Reference title must be entered if there is a Pubmed_ID.');
         END IF;
-    END IF;
-
-    IF (:new.date_created != :old.date_created) THEN    
-        RAISE_APPLICATION_ERROR
-            (-20001, 'Audit columns cannot be updated.');
-    END IF;
-
-    IF (:new.created_by != :old.created_by) THEN    
-        RAISE_APPLICATION_ERROR
-            (-20001, 'Audit columns cannot be updated.');
     END IF;
 
   END IF;
