@@ -7,6 +7,30 @@ key_switch = {'id': 'chebi_id', 'name': 'display_name', 'def': 'description'}
 
 def chemical_starter(bud_session_maker):
     
+    from src.sgd.model.bud.cv import CVTerm
+    from src.sgd.model.bud.phenotype import ExperimentProperty
+
+    bud_session = bud_session_maker()
+
+    chebi_to_date_created = {}
+    for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no == 3).all():
+        if bud_obj.dbxref_id is not None:
+            chebi_to_date_created[bud_obj.dbxref_id] = (str(bud_obj.date_created), bud_obj.created_by)
+        else:
+            yield remove_nones({'display_name': bud_obj.name,
+                                'source': {'display_name': 'SGD'},
+                                'bud_id': bud_obj.id,
+                                'description': bud_obj.definition,
+                                'date_created': str(bud_obj.date_created),
+                                'created_by': bud_obj.created_by})
+
+    for bud_obj in bud_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')).all():
+        yield {'display_name': bud_obj.value,
+               'bud_id': bud_obj.id,
+               'source': {'display_name': 'SGD'},
+               'date_created': str(bud_obj.date_created),
+               'created_by': bud_obj.created_by}
+    
     terms = []
     parent_to_children = dict()
     # downloaded from ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo
@@ -28,8 +52,10 @@ def chemical_starter(bud_session_maker):
                     display_name = quotation_split[1]
                     alias_type = quotation_split[2].split('[')[0].strip()[:40]
                     ### 
-                    if alias_type not in ('EXACT', 'RELATED'):
+                    if alias_type not in ('EXACT', 'RELATED', 'EXACT IUPAC_NAME'):
                         continue
+                    if alias_type == 'EXACT IUPAC_NAME':
+                        alias_type = 'IUPAC name'
                     if len(display_name) < 500 and (display_name, alias_type) not in [(x['display_name'], x['alias_type']) for x in term['aliases']]:
                         term['aliases'].append({'display_name': display_name, "alias_type": alias_type, "source": {"display_name": "EBI"}})
                 elif pieces[0] == 'is_a':
