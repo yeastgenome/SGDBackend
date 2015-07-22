@@ -75,14 +75,14 @@ BEGIN
         AuditLog.InsertUpdateLog('REFERENCE', 'DOI', :old.dbentity_id, :old.doi, :new.doi, USER);
     END IF;
 
-    IF (((:old.journal_no IS NULL) AND (:new.journal_no IS NOT NULL)) OR ((:old.journal_no IS NOT NULL) AND (:new.journal_no IS NULL)) OR (:old.journal_no != :new.journal_no))
+    IF (((:old.journal_id IS NULL) AND (:new.journal_id IS NOT NULL)) OR ((:old.journal_id IS NOT NULL) AND (:new.journal_id IS NULL)) OR (:old.journal_id != :new.journal_id))
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE', 'JOURNAL_NO', :old.dbentity_id, :old.journal_no, :new.journal_no, USER);
+        AuditLog.InsertUpdateLog('REFERENCE', 'JOURNAL_ID', :old.dbentity_id, :old.journal_id, :new.journal_id, USER);
     END IF;
 
-    IF (((:old.book_no IS NULL) AND (:new.book_no IS NOT NULL)) OR ((:old.book_no IS NOT NULL) AND (:new.book_no IS NULL)) OR (:old.book_no != :new.book_no))
+    IF (((:old.book_id IS NULL) AND (:new.book_id IS NOT NULL)) OR ((:old.book_id IS NOT NULL) AND (:new.book_id IS NULL)) OR (:old.book_id != :new.book_id))
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE', 'BOOK_NO', :old.dbentity_id, :old.book_no, :new.book_no, USER);
+        AuditLog.InsertUpdateLog('REFERENCE', 'BOOK_ID', :old.dbentity_id, :old.book_id, :new.book_id, USER);
     END IF;
 
   ELSE
@@ -97,7 +97,7 @@ BEGIN
            :old.date_revised || '[:]' || :old.issue || '[:]' || 
            :old.page || '[:]' || :old.volume || '[:]' || 
            :old.title || '[:]' || :old.doi || '[:]' ||
-           :old.journal_no || '[:]' || :old.book_no;
+           :old.journal_id || '[:]' || :old.book_id;
 
   AuditLog.InsertDeleteLog('REFERENCE', :old.dbentity_id, v_row, USER);
 
