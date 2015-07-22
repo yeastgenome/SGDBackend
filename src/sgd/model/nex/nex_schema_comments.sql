@@ -51,7 +51,7 @@ Comment on column CHEMICAL.DISPLAY_NAME is 'Public display name.';
 Comment on column CHEMICAL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column CHEMICAL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column CHEMICAL.BUD_ID is 'PK from BUD.CV_TERM.CV_TERM_NO.';
-Comment on column CHEMICAL.CHEBI_ID is 'Chemical identifier from the EBI (e.g., CHEBI:58471).';
+Comment on column CHEMICAL.CHEBI_ID is 'Chemical identifier from the EBI (e.g., CHEBI:58471) or new term requests (NTR).';
 Comment on column CHEMICAL.DESCRIPTION is 'Description or comment.';
 Comment on column CHEMICAL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CHEMICAL.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -342,8 +342,9 @@ Comment on column JOURNAL.CREATED_BY is 'Username of the person who entered the 
 
 Comment on table REFERENCEDBENTITY is 'Details about references associated with annotations. Inherits from DBENTITY';
 Comment on column REFERENCEDBENTITY.DBENTITY_ID is 'Unique random identifier (Oracle sequence).';
-Comment on column REFERENCEDBENTITY.METHOD_OBTAINED is 'How the reference was obtained (Epub ahead of print, In preparation, In press, Published, Submited, Unpublished).';
-Comment on column REFERENCEDBENTITY.FULLTEXT_STATUS is 'Current state of the full text for this reference (N, NAA, NAM, NAP, Y, YF, YT).';
+Comment on column REFERENCEDBENTITY.METHOD_OBTAINED is 'How the reference was obtained (Curator PubMed reference, Curator triage, Curator non-PubMed reference, Gene registry, PDB script, PubMed script, SacchDB, YPD)';
+Comment on column REFERENCEDBENTITY.PUBLICATION_STATUS is 'Publication state of the reference (Epub ahead of print, In preparation, In press, Published, Submitted, Unpublished).';
+Comment on column REFERENCEDBENTITY.FULLTEXT_STATUS is 'State of the full text for the reference (N, NAA, NAM, NAP, Y, YF, YT).';
 Comment on column REFERENCEDBENTITY.CITATION is 'Full citation of the reference.';
 Comment on column REFERENCEDBENTITY.YEAR is 'Year the reference was published.';
 Comment on column REFERENCEDBENTITY.PUBMED_ID is 'PMID of the reference from NCBI.';

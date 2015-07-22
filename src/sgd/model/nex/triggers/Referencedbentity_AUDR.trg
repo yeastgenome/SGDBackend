@@ -15,6 +15,12 @@ BEGIN
         AuditLog.InsertUpdateLog('REFERENCE', 'METHOD_OBTAINED', :old.dbentity_id, :old.method_obtained, :new.method_obtained, USER);
     END IF;
 
+   IF (:old.publication_status != :new.publication_status)
+    THEN
+        AuditLog.InsertUpdateLog('REFERENCE', 'PUBLICATION_STATUS', :old.dbentity_id, :old.publication_status, :new.publication_status, USER);
+    END IF;
+
+
     IF (:old.fulltext_status != :new.fulltext_status)
     THEN
         AuditLog.InsertUpdateLog('REFERENCE', 'FULLTEXT_STATUS', :old.dbentity_id, :old.fulltext_status, :new.fulltext_status, USER);
@@ -91,6 +97,7 @@ BEGIN
   WHERE dbentity_id = :old.dbentity_id;
 
   v_row := :old.dbentity_id || '[:]' || :old.method_obtained || '[:]' ||
+           :old.publication_status || '[:]' ||
            :old.fulltext_status || '[:]' || :old.citation || '[:]' || 
            :old.year || '[:]' || :old.pubmed_id || '[:]' ||
            :old.pubmed_central_id || '[:]' || :old.date_published || '[:]' || 
