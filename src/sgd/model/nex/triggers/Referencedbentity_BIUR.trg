@@ -21,7 +21,7 @@ BEGIN
 
   ELSE
 
-    IF (:new.reference_id != :old.reference_id) THEN    
+    IF (:new.dbentity_id != :old.dbentity_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
