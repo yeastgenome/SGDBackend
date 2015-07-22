@@ -313,7 +313,8 @@ Comment on column STRAIN_URL.CREATED_BY is 'Username of the person who entered t
 
 Comment on table BOOK is 'Details about book references.';
 Comment on column BOOK.BOOK_ID is 'Unique random identifier (Oracle sequence).';
-Comment on column BOOK.NAME is 'Public display name.';
+Comment on column BOOK.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column BOOK.DISPLAY_NAME is 'Public display name.';
 Comment on column BOOK.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column BOOK.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column BOOK.BUD_ID is 'PK from BUD.BOOK.BOOK_NO.';
@@ -327,7 +328,8 @@ Comment on column BOOK.CREATED_BY is 'Username of the person who entered the rec
 
 Comment on table JOURNAL is 'Details about journal references.';
 Comment on column JOURNAL.JOURNAL_ID is 'Unique random identifier (Oracle sequence).';
-Comment on column JOURNAL.NAME is 'Public display name.';
+Comment on column JOURNAL.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column JOURNAL.DISPLAY_NAME is 'Public display name.';
 Comment on column JOURNAL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column JOURNAL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column JOURNAL.BUD_ID is 'PK from BUD.JOURNAL.JOURNAL_NO.';

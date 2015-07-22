@@ -67,5 +67,11 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusRelation_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Straindbentity_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Straindbentity_AUDR.trg
---@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainUrl_BIUR.trg
---@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainUrl_AUDR.trg
+
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Book_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Book_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Journal_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Journal_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Referencedbentity_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Referencedbentity_AUDR.trg
