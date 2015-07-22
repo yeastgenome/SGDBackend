@@ -308,3 +308,50 @@ Comment on column STRAIN_URL.STRAIN_ID is 'FK to STRAINDBENTITY.DBENTITY_ID.';
 Comment on column STRAIN_URL.URL_TYPE is 'Type of URL (Source, Wiki, PubMed, GenBank, Download).';
 Comment on column STRAIN_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column STRAIN_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+/* Reference */
+
+Comment on table BOOK is 'Details about book references.';
+Comment on column BOOK.BOOK_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column BOOK.NAME is 'Public display name.';
+Comment on column BOOK.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column BOOK.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column BOOK.BUD_ID is 'PK from BUD.BOOK.BOOK_NO.';
+Comment on column BOOK.TITLE is 'Title of the book.';
+Comment on column BOOK.VOLUME_TITLE is 'Title if the book is part of a volume.';
+Comment on column BOOK.ISBN is 'International Standard Book Number.';
+Comment on column BOOK.TOTAL_PAGES is 'Total number of pages in the book.';
+Comment on column BOOK.PUBLISHER is 'Publisher of the book.';
+Comment on column BOOK.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column BOOK.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table JOURNAL is 'Details about journal references.';
+Comment on column JOURNAL.JOURNAL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column JOURNAL.NAME is 'Public display name.';
+Comment on column JOURNAL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column JOURNAL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column JOURNAL.BUD_ID is 'PK from BUD.JOURNAL.JOURNAL_NO.';
+Comment on column JOURNAL.MED_ABBR is 'NLM abbreviation of the journal name.';
+Comment on column JOURNAL.TITLE is 'Full name of the journal.';
+Comment on column JOURNAL.ISSN_PRINT is 'International Standard Serial Number.';
+Comment on column JOURNAL.ISSN_ELECTRONIC is 'Electronic International Standard Serial Number.';
+Comment on column JOURNAL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column JOURNAL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table REFERENCEDBENTITY is 'Details about references associated with annotations. Inherits from DBENTITY';
+Comment on column REFERENCEDBENTITY.DBENTITY_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFERENCEDBENTITY.METHOD_OBTAINED is 'How the reference was obtained (Epub ahead of print, In preparation, In press, Published, Submited, Unpublished).';
+Comment on column REFERENCEDBENTITY.FULLTEXT_STATUS is 'Current state of the full text for this reference (N, NAA, NAM, NAP, Y, YF, YT).';
+Comment on column REFERENCEDBENTITY.CITATION is 'Full citation of the reference.';
+Comment on column REFERENCEDBENTITY.YEAR is 'Year the reference was published.';
+Comment on column REFERENCEDBENTITY.PUBMED_ID is 'PMID of the reference from NCBI.';
+Comment on column REFERENCEDBENTITY.PUBMED_CENTRAL_ID is 'PMCID of the reference from NCBI.';
+Comment on column REFERENCEDBENTITY.DATE_PUBLISHED is 'Full date the reference was published.';
+Comment on column REFERENCEDBENTITY.DATE_REVISED is 'Date if the reference was updated by NCBI.';
+Comment on column REFERENCEDBENTITY.ISSUE is 'Issue of the reference.';
+Comment on column REFERENCEDBENTITY.PAGE is 'Page numbers of the reference.';
+Comment on column REFERENCEDBENTITY.VOLUME is 'Volume of the reference.';
+Comment on column REFERENCEDBENTITY.TITLE is 'Title of the reference.';
+Comment on column REFERENCEDBENTITY.DOI is 'Digital Object Identifier from the International DOI Foundation.';
+Comment on column REFERENCEDBENTITY.JOURNAL_ID is 'FK to JOURNAL.JOURNAL_ID.';
+Comment on column REFERENCEDBENTITY.BOOK_ID is 'FK to BOOK.BOOK_ID.';
