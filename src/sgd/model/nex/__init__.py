@@ -217,7 +217,9 @@ class ToJsonMixin(object):
     def to_json(self):
         obj_json = {}
         for key in self.__eq_values__:
+
             value = getattr(self, key)
+
             if value is not None and isinstance(value, datetime.date):
                 obj_json[key] = str(value)
             else:

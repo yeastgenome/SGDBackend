@@ -27,7 +27,10 @@ def source_starter(bud_session_maker):
                 items = line.split('\t')
                 source = items[0]
                 bud_id = items[1]
-                desc = items[2].replace('"', '')
+
+                print source
+
+                desc = items[2].replace('"', '')     
                 obj_json = {'display_name': source }
                 if is_number(bud_id):
                     id = int(bud_id)
