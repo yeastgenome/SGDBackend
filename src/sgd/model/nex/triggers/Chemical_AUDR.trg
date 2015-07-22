@@ -35,7 +35,7 @@ BEGIN
         AuditLog.InsertUpdateLog('CHEMICAL', 'BUD_ID', :old.chemical_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
-    IF (:old.chebi_id != :new.chebi_id)
+    IF (((:old.chebi_id IS NULL) AND (:new.chebi_id IS NOT NULL)) OR ((:old.chebi_id IS NOT NULL) AND (:new.chebi_id IS NULL)) OR (:old.chebi_id != :new.chebi_id))
     THEN
         AuditLog.InsertUpdateLog('CHEMICAL', 'CHEBI_ID', :old.chemical_id, :old.chebi_id, :new.chebi_id, USER);
     END IF;

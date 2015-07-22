@@ -51,7 +51,7 @@ Comment on column CHEMICAL.DISPLAY_NAME is 'Public display name.';
 Comment on column CHEMICAL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column CHEMICAL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column CHEMICAL.BUD_ID is 'PK from BUD.CV_TERM.CV_TERM_NO.';
-Comment on column CHEMICAL.CHEBI_ID is 'Chemical identifier from the EBI (e.g., CHEBI:58471).';
+Comment on column CHEMICAL.CHEBI_ID is 'Chemical identifier from the EBI (e.g., CHEBI:58471) or new term requests (NTR).';
 Comment on column CHEMICAL.DESCRIPTION is 'Description or comment.';
 Comment on column CHEMICAL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CHEMICAL.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -63,7 +63,7 @@ Comment on column CHEMICAL_ALIAS.OBJ_URL is 'URL of the object (relative for loc
 Comment on column CHEMICAL_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column CHEMICAL_ALIAS.BUD_ID is 'PK from BUD.CVTERM_SYNONYM.CVTERM_SYNONYM_NO.';
 Comment on column CHEMICAL_ALIAS.CHEMICAL_ID is 'FK to CHEMICAL.CHEMICAL_ID.';
-Comment on column CHEMICAL_ALIAS.ALIAS_TYPE is 'Type of alias (EXACT, RELATED, Secondary ChEBI ID).';
+Comment on column CHEMICAL_ALIAS.ALIAS_TYPE is 'Type of alias (EXACT, RELATED, Secondary ChEBI ID, IUPAC name).';
 Comment on column CHEMICAL_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CHEMICAL_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -224,6 +224,8 @@ Comment on column DBENTITY.DBENTITY_STATUS is 'Current state of the dbentity (Ac
 Comment on column DBENTITY.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DBENTITY.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+/* Locus */
+
 Comment on table LOCUSDBENTITY is 'Features located on a sequence, that are associate with a locus. Inherits from DBENTITY.';
 Comment on column LOCUSDBENTITY.DBENTITY_ID is 'Unique random identifier (Oracle sequence).';
 Comment on column LOCUSDBENTITY.SYSTEMATIC_NAME is 'Unique name for the dbentity. Subfeature names have a number appended after the systematic name.';
@@ -279,3 +281,80 @@ Comment on column LOCUS_RELATION.CHILD_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
 Comment on column LOCUS_RELATION.RELATION_TYPE is 'Type of relation (pair, part of, adjacent to).';
 Comment on column LOCUS_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LOCUS_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+/* Strain */
+
+Comment on table STRAINDBENTITY is 'A yeast strain which has sequence data. Inherits from DBENTITY';
+Comment on column STRAINDBENTITY.DBENTITY_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column STRAINDBENTITY.TAXONOMY_ID is  'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column STRAINDBENTITY.STRAIN_TYPE is 'Strain designation assigned by SGD (Reference, Alternative Reference, Other).';
+Comment on column STRAINDBENTITY.GENOTYPE is 'Genotype of the strain.';
+Comment on column STRAINDBENTITY.GENBANK_ID is 'GenBank accession ID of the strain (e.g., JRII00000000).';
+Comment on column STRAINDBENTITY.ASSEMBLY_SIZE is 'Total number of nucleotides in the assembly.';
+Comment on column STRAINDBENTITY.FOLD_COVERAGE is 'Average number of reads per nucleotide in the assembly.';
+Comment on column STRAINDBENTITY.SCAFFOLD_NUMBER is 'Number of scaffolds in the assembly.';
+Comment on column STRAINDBENTITY.LONGEST_SCAFFOLD is 'Length of the longest scaffold.';
+Comment on column STRAINDBENTITY.SCAFFOLD_NFIFTY is 'Weighted median statistic such that 50% of the entire assembly is contained i\
+n scaffolds equal to or larger than this value';
+Comment on column STRAINDBENTITY.FEATURE_COUNT is 'Number of features identified in this strain.';
+
+Comment on table STRAIN_URL is 'URLs associated with a strain.';
+Comment on column STRAIN_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column STRAIN_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column STRAIN_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column STRAIN_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column STRAIN_URL.BUD_ID is 'Not from BUD';
+Comment on column STRAIN_URL.STRAIN_ID is 'FK to STRAINDBENTITY.DBENTITY_ID.';
+Comment on column STRAIN_URL.URL_TYPE is 'Type of URL (Source, Wiki, PubMed, GenBank, Download).';
+Comment on column STRAIN_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column STRAIN_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+/* Reference */
+
+Comment on table BOOK is 'Details about book references.';
+Comment on column BOOK.BOOK_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column BOOK.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column BOOK.DISPLAY_NAME is 'Public display name.';
+Comment on column BOOK.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column BOOK.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column BOOK.BUD_ID is 'PK from BUD.BOOK.BOOK_NO.';
+Comment on column BOOK.TITLE is 'Title of the book.';
+Comment on column BOOK.VOLUME_TITLE is 'Title if the book is part of a volume.';
+Comment on column BOOK.ISBN is 'International Standard Book Number.';
+Comment on column BOOK.TOTAL_PAGES is 'Total number of pages in the book.';
+Comment on column BOOK.PUBLISHER is 'Publisher of the book.';
+Comment on column BOOK.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column BOOK.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table JOURNAL is 'Details about journal references.';
+Comment on column JOURNAL.JOURNAL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column JOURNAL.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column JOURNAL.DISPLAY_NAME is 'Public display name.';
+Comment on column JOURNAL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column JOURNAL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column JOURNAL.BUD_ID is 'PK from BUD.JOURNAL.JOURNAL_NO.';
+Comment on column JOURNAL.MED_ABBR is 'NLM abbreviation of the journal name.';
+Comment on column JOURNAL.TITLE is 'Full name of the journal.';
+Comment on column JOURNAL.ISSN_PRINT is 'International Standard Serial Number.';
+Comment on column JOURNAL.ISSN_ELECTRONIC is 'Electronic International Standard Serial Number.';
+Comment on column JOURNAL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column JOURNAL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table REFERENCEDBENTITY is 'Details about references associated with annotations. Inherits from DBENTITY';
+Comment on column REFERENCEDBENTITY.DBENTITY_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFERENCEDBENTITY.METHOD_OBTAINED is 'How the reference was obtained (Curator PubMed reference, Curator triage, Curator non-PubMed reference, Gene registry, PDB script, PubMed script, SacchDB, YPD)';
+Comment on column REFERENCEDBENTITY.PUBLICATION_STATUS is 'Publication state of the reference (Epub ahead of print, In preparation, In press, Published, Submitted, Unpublished).';
+Comment on column REFERENCEDBENTITY.FULLTEXT_STATUS is 'State of the full text for the reference (N, NAA, NAM, NAP, Y, YF, YT).';
+Comment on column REFERENCEDBENTITY.CITATION is 'Full citation of the reference.';
+Comment on column REFERENCEDBENTITY.YEAR is 'Year the reference was published.';
+Comment on column REFERENCEDBENTITY.PUBMED_ID is 'PMID of the reference from NCBI.';
+Comment on column REFERENCEDBENTITY.PUBMED_CENTRAL_ID is 'PMCID of the reference from NCBI.';
+Comment on column REFERENCEDBENTITY.DATE_PUBLISHED is 'Full date the reference was published.';
+Comment on column REFERENCEDBENTITY.DATE_REVISED is 'Date if the reference was updated by NCBI.';
+Comment on column REFERENCEDBENTITY.ISSUE is 'Issue of the reference.';
+Comment on column REFERENCEDBENTITY.PAGE is 'Page numbers of the reference.';
+Comment on column REFERENCEDBENTITY.VOLUME is 'Volume of the reference.';
+Comment on column REFERENCEDBENTITY.TITLE is 'Title of the reference.';
+Comment on column REFERENCEDBENTITY.DOI is 'Digital Object Identifier from the International DOI Foundation.';
+Comment on column REFERENCEDBENTITY.JOURNAL_ID is 'FK to JOURNAL.JOURNAL_ID.';
+Comment on column REFERENCEDBENTITY.BOOK_ID is 'FK to BOOK.BOOK_ID.';

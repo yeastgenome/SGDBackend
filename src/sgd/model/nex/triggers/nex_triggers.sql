@@ -26,15 +26,6 @@ END;
 /
 
 --/
-CREATE OR REPLACE TRIGGER BOOK_TRIGGER
-BEFORE INSERT ON book
-FOR EACH ROW
-BEGIN
-SELECT object_seq.nextval INTO :new.book_id FROM DUAL;
-END;
-/
-
---/
 CREATE OR REPLACE TRIGGER COLLEAGUE_TRIGGER
 BEFORE INSERT ON colleague
 FOR EACH ROW
@@ -193,15 +184,6 @@ BEFORE INSERT ON goterm_url
 FOR EACH ROW
 BEGIN
 SELECT url_seq.nextval INTO :new.url_id FROM DUAL;
-END;
-/
-
---/
-CREATE OR REPLACE TRIGGER JOURNAL_TRIGGER
-BEFORE INSERT ON journal
-FOR EACH ROW
-BEGIN
-SELECT object_seq.nextval INTO :new.journal_id FROM DUAL;
 END;
 /
 
@@ -454,14 +436,5 @@ BEFORE INSERT ON strain_document_reference
 FOR EACH ROW
 BEGIN
 SELECT docref_seq.nextval INTO :new.document_reference_id FROM DUAL;
-END;
-/
-
---/
-CREATE OR REPLACE TRIGGER STRAIN_URL_TRIGGER
-BEFORE INSERT ON strain_url
-FOR EACH ROW
-BEGIN
-SELECT url_seq.nextval INTO :new.url_id FROM DUAL;
 END;
 /
