@@ -358,3 +358,25 @@ Comment on column REFERENCEDBENTITY.TITLE is 'Title of the reference.';
 Comment on column REFERENCEDBENTITY.DOI is 'Digital Object Identifier from the International DOI Foundation.';
 Comment on column REFERENCEDBENTITY.JOURNAL_ID is 'FK to JOURNAL.JOURNAL_ID.';
 Comment on column REFERENCEDBENTITY.BOOK_ID is 'FK to BOOK.BOOK_ID.';
+
+Comment on table REFERENCE_ALIAS is 'Other names or synonyms for the reference.';
+Comment on column REFERENCE_ALIAS.ALIAS_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFERENCE_ALIAS.DISPLAY_NAME is 'Public display name.';
+Comment on column REFERENCE_ALIAS.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column REFERENCE_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REFERENCE_ALIAS.BUD_ID is 'PK from BUD.DBXREF.DBXREF_NO.';
+Comment on column REFERENCE_ALIAS.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_ALIAS.ALIAS_TYPE is 'Type of alias (SGDID Secondary).';
+Comment on column REFERENCE_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REFERENCE_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table REFERENCE_URL is 'URLs associated with references.';
+Comment on column REFERENCE_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFERENCE_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column REFERENCE_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column REFERENCE_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REFERENCE_URL.BUD_ID is 'PK from BUD.URL.URL_NO.';
+Comment on column REFERENCE_URL.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_URL.URL_TYPE is 'Type of URL (DOI full text, PMC full text, PubMed, PubMedCentral, Reference supplement).';
+Comment on column REFERENCE_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REFERENCE_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
