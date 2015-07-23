@@ -3,8 +3,8 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
-from src.sgd.model.curate.source import Source
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
+from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
 
@@ -20,7 +20,7 @@ class Journal(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     title = Column('title', String)
     med_abbr = Column('med_abbr', String)
     issn_print = Column('issn_print', String)
-    issn_online = Column('issn_online', String)
+    issn_online = Column('issn_electronic', String)
     created_by = Column('created_by', String, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
 

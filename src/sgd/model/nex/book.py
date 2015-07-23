@@ -3,8 +3,8 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
-from src.sgd.model.curate.source import Source
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
+from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
 
@@ -22,7 +22,6 @@ class Book(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     isbn = Column('isbn', String)
     total_pages = Column('total_pages', Integer)
     publisher = Column('publisher', String)
-    publisher_location = Column('publisher_location', String)
     created_by = Column('created_by', String, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
 
@@ -30,8 +29,7 @@ class Book(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'bud_id', 'link', 'title', 'volume_title', 'isbn', 'total_pages',
-                     'publisher', 'publisher_location',
-                     'date_created', 'created_by']
+                     'publisher', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['format_name', 'id']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']

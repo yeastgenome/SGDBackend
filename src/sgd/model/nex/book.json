@@ -65,10 +65,6 @@
             "publisher": {
                 "title": "Publisher",
                 "type": "string"
-            },
-            "publisher_location": {
-                "title": "Publisher Location",
-                "type": "string"
             }
         },
         "required": ["title", "source"]

@@ -18,10 +18,6 @@
                 "title": "Link",
                 "type": "string"
             },
-            "description": {
-                "title": "Description",
-                "type": "string"
-            },
             "source": {
                 "title": "Source",
                 "$ref": "source.json"
