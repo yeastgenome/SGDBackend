@@ -33,6 +33,8 @@ BEGIN
         AuditLog.InsertUpdateLog('SGDID', 'DESCRIPTION', :old.sgdid, :old.description, :new.description, USER);
     END IF;
 
+  END IF;
+
 END Sgdid_AUR;
 /
 SHOW ERROR
