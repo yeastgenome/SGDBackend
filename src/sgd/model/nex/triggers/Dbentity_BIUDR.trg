@@ -29,7 +29,7 @@ BEGIN
             RAISE_APPLICATION_ERROR
                  (-20040, 'Allowable values are Active or Archived.');
         END IF;
-    ELSE ((:new.subclass == 'STRAIN') OR (:new.subclass == 'REFERENCE')) THEN
+    ELSE ((:new.subclass = 'STRAIN') OR (:new.subclass = 'REFERENCE')) THEN
         IF (:new.dbentity_status != 'Active') THEN
             RAISE_APPLICATION_ERROR
                  (-20041, 'Only allowable value is Active.');
@@ -60,7 +60,7 @@ BEGIN
             RAISE_APPLICATION_ERROR
                  (-20040, 'Allowable values are Active or Archived.');
 	    END IF;
-    ELSE ((:new.subclass = 'STRAIN') OR (:new.subclass == 'REFERENCE')) THEN
+    ELSE ((:new.subclass = 'STRAIN') OR (:new.subclass = 'REFERENCE')) THEN
 	    IF (:new.dbentity_status != 'Active') THEN
             RAISE_APPLICATION_ERROR
                  (-20041, 'Only allowable value is Active.');
@@ -79,7 +79,7 @@ BEGIN
 
   ELSE
 
-    IF ((:new.subclass == 'LOCUS') OR (:new.subclass == 'STRAIN')) THEN
+    IF ((:new.subclass = 'LOCUS') OR (:new.subclass = 'STRAIN')) THEN
        RAISE_APPLICATION_ERROR
                  (-20042, 'This dbentity subclass can not be deleted.');
     END	IF;
