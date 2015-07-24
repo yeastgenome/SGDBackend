@@ -29,7 +29,7 @@ BEGIN
             RAISE_APPLICATION_ERROR
                  (-20040, 'Allowable values are Active or Archived.');
         END IF;
-    ELSE (:new.subclass = 'STRAIN') OR (:new.subclass = 'REFERENCE') THEN
+    ELSIF (:new.subclass = 'STRAIN') OR (:new.subclass = 'REFERENCE') THEN
         IF (:new.dbentity_status != 'Active') THEN
             RAISE_APPLICATION_ERROR
                  (-20041, 'Only allowable value is Active.');
@@ -60,7 +60,7 @@ BEGIN
             RAISE_APPLICATION_ERROR
                  (-20040, 'Allowable values are Active or Archived.');
 	    END IF;
-    ELSE (:new.subclass = 'STRAIN') OR (:new.subclass = 'REFERENCE') THEN
+    ELSIF (:new.subclass = 'STRAIN') OR (:new.subclass = 'REFERENCE') THEN
 	    IF (:new.dbentity_status != 'Active') THEN
             RAISE_APPLICATION_ERROR
                  (-20041, 'Only allowable value is Active.');
