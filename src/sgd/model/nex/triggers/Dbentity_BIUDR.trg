@@ -25,11 +25,11 @@ BEGIN
                  (-20039, 'Allowable values are Active, Merged, Deleted.');
         END IF;
     ELSIF (:new.subclass = 'FILE') THEN
-        IF ((:new.dbentity_status = 'Merged') OR (:new.dbentity_status = 'Deleted')) THEN
+        IF (:new.dbentity_status = 'Merged') OR (:new.dbentity_status = 'Deleted') THEN
             RAISE_APPLICATION_ERROR
                  (-20040, 'Allowable values are Active or Archived.');
         END IF;
-    ELSE ((:new.subclass = 'STRAIN') OR (:new.subclass = 'REFERENCE')) THEN
+    ELSE (:new.subclass = 'STRAIN') OR (:new.subclass = 'REFERENCE') THEN
         IF (:new.dbentity_status != 'Active') THEN
             RAISE_APPLICATION_ERROR
                  (-20041, 'Only allowable value is Active.');
@@ -56,11 +56,11 @@ BEGIN
                  (-20039, 'Allowable values are Active, Merged, Deleted.');
 		END IF;
     ELSIF (:new.subclass = 'FILE') THEN
-	    IF ((:new.dbentity_status = 'Merged') OR (:new.dbentity_status = 'Deleted')) THEN
+	    IF (:new.dbentity_status = 'Merged') OR (:new.dbentity_status = 'Deleted') THEN
             RAISE_APPLICATION_ERROR
                  (-20040, 'Allowable values are Active or Archived.');
 	    END IF;
-    ELSE ((:new.subclass = 'STRAIN') OR (:new.subclass = 'REFERENCE')) THEN
+    ELSE (:new.subclass = 'STRAIN') OR (:new.subclass = 'REFERENCE') THEN
 	    IF (:new.dbentity_status != 'Active') THEN
             RAISE_APPLICATION_ERROR
                  (-20041, 'Only allowable value is Active.');
