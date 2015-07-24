@@ -1,6 +1,7 @@
-from src.sgd.convert.into_curate import basic_convert, remove_nones
+from src.sgd.convert import basic_convert, remove_nones
 
 __author__ = 'kpaskov'
+## updated by sweng66
 
 def journal_starter(bud_session_maker):
     from src.sgd.model.bud.reference import Journal
@@ -13,8 +14,12 @@ def journal_starter(bud_session_maker):
 
         title = old_journal.full_name
         if title is not None or abbreviation is not None:
+            display_name = title
+            if title == None:
+                display_name = abbreviation
             yield remove_nones({
                 'source': {'display_name': 'PubMed'},
+                'display_name': display_name,
                 'title': title,
                 'med_abbr': abbreviation,
                 'issn_print': old_journal.issn,
@@ -26,9 +31,9 @@ def journal_starter(bud_session_maker):
     bud_session.close()
 
 
-def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, journal_starter, 'journal', lambda x: (None if 'title' not in x else x['title'], None if 'med_abbr' not in x else x['med_abbr']))
-
 if __name__ == '__main__':
-    convert('pastry.stanford.edu:1521', 'curator-dev-db')
+    from src.sgd.convert import config
+    basic_convert(config.BUD_HOST, config.NEX_HOST, journal_starter, 'journal', lambda x: (None if 'title' not in x else x['title'], None if 'med_abbr' not in x else x['med_abbr']))
+
+
 
