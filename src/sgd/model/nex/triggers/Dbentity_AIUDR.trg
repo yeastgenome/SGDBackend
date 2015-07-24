@@ -1,12 +1,24 @@
-CREATE OR REPLACE TRIGGER Dbentity_AUR
+CREATE OR REPLACE TRIGGER Dbentity_AIUDR
 --
---  After a row in the dbentity table is updated, 
---  execute a trigger or write record to update_log table
+--  After a row in the dbentity table is inserted, updated, or deleted 
+--  execute a trigger to write a record to the sgdid, update_log, or delete_log tables
 --
-    AFTER UPDATE ON dbentity
+    AFTER INSERT OR UPDATE OR DELETE ON dbentity
     FOR EACH ROW
+DECLARE
+    v_row       delete_log.deleted_row%TYPE;
+    v_objurl    sgdid.obj_url%TYPE;
 BEGIN
-  IF UPDATING THEN
+  IF INSERTING THEN
+
+    v_objurl := CONCAT('/sgdid/', :new.sgdid);
+
+    INSERT INTO sgdid
+        (sgdid, display_name, obj_url, source_id, subclass, sgdid_status, created_by)
+    VALUES
+        (:new.sgdid, :new.sgdid, v_objurl, 'SGD', :new.subclass, 'Primary' , USER);
+
+  ELSIF UPDATING THEN
 
     IF (:old.format_name != :new.format_name)
     THEN
@@ -49,8 +61,22 @@ BEGIN
 --		InsertHistory.InsertHistory(:old.dbentity_id, 'SGD', SYSDATE, 'DBENTITY', 'Dbentity status', :old.dbentity_status, :new.dbentity_status, 'Dbentity status change', USER);
     END IF;
 
+  ELSE
+
+    UPDATE sgdid SET sgdid_status = 'Deleted'
+    WHERE sgdid = :old.sgdid;
+
+    v_row := :old.dbentity_id || '[:]' || :old.format_name || '[:]' || 
+             :old.display_name || '[:]' || :old.obj_url || '[:]' || 
+             :old.source_id || '[:]' || :old.bud_id || '[:]' ||
+             :old.sgdid || '[:]' || :old.subclass || '[:]' ||
+             :old.dbentity_status || '[:]' ||
+             :old.date_created || '[:]' || :old.created_by;
+
+    AuditLog.InsertDeleteLog('DBENTITY', :old.dbentity_id, v_row, USER);
+
   END IF;
 
-END Dbentity_AUR;
+END Dbentity_AIUDR;
 /
 SHOW ERROR

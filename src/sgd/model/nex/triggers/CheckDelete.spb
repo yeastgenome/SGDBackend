@@ -13,7 +13,7 @@ BEGIN
 
     v_TabName := upper(p_table);
 
-    IF v_TabName IN ('UPDATE_LOG', 'DELETE_LOG', 'DBENTITY') 
+    IF v_TabName IN ('UPDATE_LOG', 'DELETE_LOG', 'SGDID') 
     THEN 
        RAISE_APPLICATION_ERROR
           (-20023, 'Data cannot be deleted from table "' || p_table || '".');
