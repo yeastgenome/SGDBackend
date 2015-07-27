@@ -9,7 +9,6 @@ from src.sgd.model.bud import Base
 from feature import Feature
 from general import Dbxref, Url
 
-
 class Book(Base, EqualityByIDMixin):
     __tablename__ = 'book'
 
