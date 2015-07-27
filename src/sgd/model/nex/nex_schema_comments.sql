@@ -66,7 +66,7 @@ Comment on column RO.BUD_ID is 'Not in BUD.';
 Comment on column RO.RO_ID is 'Relation identifier  (e.g., RO:0002434).';
 Comment on column RO.DESCRIPTION is 'Description or comment.';
 Comment on column RO.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column RO.CREATED_BY is 'Username of the person who entered the record into the database.'
+Comment on column RO.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table RO_URL is 'URLs associated with the relation ontology.';
 Comment on column RO_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
