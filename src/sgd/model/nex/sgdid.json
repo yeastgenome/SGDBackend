@@ -1,0 +1,55 @@
+{
+    "title": "Sgdid",
+        "type": "object",
+        "properties": {
+            "id": {
+                "title": "SGDID",
+                "type": "string"
+            },
+            "display_name": {
+                "title": "Name",
+                "type": "string"
+            },
+            "link": {
+                "title": "Link",
+                "type": "string"
+            },
+	    "subclass": {
+                "title": "Subclass",
+                "type": "string"
+            },
+	    "sgdid_status": {
+                "title": "SGDID Status",
+                "type": "string"
+            },
+	    "description": {
+                "title": "Description",
+                "type": "string"
+            },
+            "source": {
+                "title": "Source",
+                "$ref": "source.json"
+            },
+            "bud_id": {
+                "title": "Bud ID",
+                "type": "integer"
+            },
+            "date_created": {
+                "title": "Date Created",
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "date-time"
+                    },
+                    {
+                        "format": "date"
+                    }
+                ]
+            },
+            "created_by": {
+                "title": "Created By",
+                "type": "string"
+            }
+        },
+        "required": ["id"]
+}
