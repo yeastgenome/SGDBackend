@@ -43,18 +43,51 @@ Comment on column SOURCE.DATE_CREATED is 'Date the record was entered into the d
 Comment on column SOURCE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table SGDID is 'SGD accession identifier for dbentity objects.';
-Comment on column SGDID.SGDID is 'Unique SGD accession identifier consisting of a letter (S or L) followed by 9 zero-padded numbers (S000151155).';
+Comment on column SGDID.SGDID is 'Unique SGD accession identifier consisting of a letter (S or L) followed by 9 zero-padded numbers (e.g., S000151155).';
 Comment on column SGDID.DISPLAY_NAME is 'Public display name.';
 Comment on column SGDID.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column SGDID.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column SGDID.BUD_ID is 'PK from BUD.DBXREF.DBXREF_NO.';
 Comment on column SGDID.SUBCLASS is 'Type of dbentity assigned the SGDID (LOCUS, REFERENCE, STRAIN, FILE).';
-Comment on column SGDID.SGDID_STATUS is 'State of the SGDID (Primary, Secondary, Deleted).';
+Comment on column SGDID.SGDID_STATUS is 'State of the SGDID (Primary, Secondary, Deleted, Unassigned).';
 Comment on column SGDID.DESCRIPTION is 'Comment about or reason why the SGDID was deleted.';
 Comment on column SGDID.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column SGDID.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* Ontologies */
+
+Comment on table RO is 'Relation Ontology (RO) used to describe data relationships.';
+Comment on column RO.RELATION_ONTOLOGY_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column RO.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column RO.DISPLAY_NAME is 'Public display name.';
+Comment on column RO.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column RO.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column RO.BUD_ID is 'Not in BUD.';
+Comment on column RO.RO_ID is 'Relation identifier  (e.g., RO:0002434).';
+Comment on column RO.DESCRIPTION is 'Description or comment.';
+Comment on column RO.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column RO.CREATED_BY is 'Username of the person who entered the record into the database.'
+
+Comment on table RO_URL is 'URLs associated with the relation ontology.';
+Comment on column RO_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column RO_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column RO_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column RO_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column RO_URL.BUD_ID is 'Not in BUD';
+Comment on column RO_URL.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
+Comment on column RO_URL.URL_TYPE is 'Type of URL (Ontobee).';
+Comment on column RO_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column RO_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table RO_RELATION is 'Relationship between two relations.';
+Comment on column RO_RELATION.RELATION_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column RO_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column RO_RELATION.BUD_ID is 'Not in BUD.';
+Comment on column RO_RELATION.PARENT_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
+Comment on column RO_RELATION.CHILD_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
+Comment on column RO_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
+Comment on column RO_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column RO_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table CHEMICAL is 'Chemical Entities of Biological Interest (ChEBI) from the EBI.';
 Comment on column CHEMICAL.CHEMICAL_ID is 'Unique random identifier (Oracle sequence).';
@@ -96,7 +129,7 @@ Comment on column CHEMICAL_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column CHEMICAL_RELATION.BUD_ID is 'PK from BUD.CVTERM_RELATIONSIHP.CVTERM_RELATIONSIHP_NO.';
 Comment on column CHEMICAL_RELATION.PARENT_ID is 'FK to CHEMICAL_ID.';
 Comment on column CHEMICAL_RELATION.CHILD_ID is 'FK to CHEMICAL_ID.';
-Comment on column CHEMICAL_RELATION.RELATION_TYPE is 'Type of relation (is a).';
+Comment on column CHEMICAL_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
 Comment on column CHEMICAL_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CHEMICAL_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -173,9 +206,86 @@ Comment on column EVIDENCE_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column EVIDENCE_RELATION.BUD_ID is 'Not from BUD.';
 Comment on column EVIDENCE_RELATION.PARENT_ID is 'FK to EVIDENCE.EVIDENCE_ID.';
 Comment on column EVIDENCE_RELATION.CHILD_ID is 'FK to EVIDENCE.EVIDENCE_ID.';
-Comment on column EVIDENCE_RELATION.RELATION_TYPE is 'Type of relation (is a).';
+Comment on column EVIDENCE_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
 Comment on column EVIDENCE_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column EVIDENCE_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table OBINVESTIGATION is 'Ontology for Biomedical Investigations (OBI) describes biomedical studies.';
+Comment on column OBINVESTIGATION.OBINVESTIGATION_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column OBINVESTIGATION.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column OBINVESTIGATION.DISPLAY_NAME is 'Public display name.';
+Comment on column OBINVESTIGATION.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column OBINVESTIGATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column OBINVESTIGATION.BUD_ID is 'Not from BUD.';
+Comment on column OBINVESTIGATION.OBI_ID is 'Biomedical investigations identifier (e.g. OBI:0000185).';
+Comment on column OBINVESTIGATION.DESCRIPTION is 'Description or comment.';
+Comment on column OBINVESTIGATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column OBINVESTIGATION.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table OBINVESTIGATION_URL is 'URLs associated with biomedical investigations.';
+Comment on column OBINVESTIGATION_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column OBINVESTIGATION_URL.DISPLAY_NAME is 'Public display name (Ontobee).';
+Comment on column OBINVESTIGATION_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column OBINVESTIGATION_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column OBINVESTIGATION_URL.BUD_ID is 'Not from BUD.';
+Comment on column OBINVESTIGATION_URL.OBINVESTIGATION_ID is 'FK to OBINVESTIGATION.OBINVESTIGATION_ID.';
+Comment on column OBINVESTIGATION_URL.URL_TYPE is 'Type of URL (Ontobee).';
+Comment on column OBINVESTIGATION_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column OBINVESTIGATION_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table OBINVESTIGATION_RELATION is 'Relationship between two biomedical investigation ontology terms.';
+Comment on column OBINVESTIGATION_RELATION.RELATION_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column OBINVESTIGATION_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column OBINVESTIGATION_RELATION.BUD_ID is 'Not from BUD.';
+Comment on column OBINVESTIGATION_RELATION.PARENT_ID is 'FK to OBINVESTIGATION.OBINVESTIGATION_ID.';
+Comment on column OBINVESTIGATION_RELATION.CHILD_ID is 'FK to OBINVESTIGATION.OBINVESTIGATION_ID.';
+Comment on column OBINVESTIGATION_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
+Comment on column OBINVESTIGATION_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column OBINVESTIGATION_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table SEQUENCEFEATURE is 'Sequence features as defined by the Sequence Ontology (SO).';
+Comment on column SEQUENCEFEATURE.SEQUENCEFEATURE_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column SEQUENCEFEATURE.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column SEQUENCEFEATURE.DISPLAY_NAME is 'Public display name.';
+Comment on column SEQUENCEFEATURE.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column SEQUENCEFEATURE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column SEQUENCEFEATURE.BUD_ID is 'Not from BUD.';
+Comment on column SEQUENCEFEATURE.SO_ID is 'Sequence Ontology identifier (e.g., SO:0000368).';
+Comment on column SEQUENCEFEATURE.DESCRIPTION is 'Description or comment.';
+Comment on column SEQUENCEFEATURE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column SEQUENCEFEATURE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table SEQUENCEFEATURE_ALIAS is 'Other names or synonyms for the sequence feature.';
+Comment on column SEQUENCEFEATURE_ALIAS.ALIAS_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column SEQUENCEFEATURE_ALIAS.DISPLAY_NAME is 'Public display name.';
+Comment on column SEQUENCEFEATURE_ALIAS.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column SEQUENCEFEATURE_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column SEQUENCEFEATURE_ALIAS.BUD_ID is 'Not from BUD.';
+Comment on column SEQUENCEFEATURE_ALIAS.SEQUENCEFEATURE_ID is 'FK to SEQUENCEFEATURE.SEQUENCEFEATURE_ID.';
+Comment on column SEQUENCEFEATURE_ALIAS.ALIAS_TYPE is 'Type of alias (BROAD, EXACT, RELATED, NARROW).';
+Comment on column SEQUENCEFEATURE_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column SEQUENCEFEATURE_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table SEQUENCEFEATURE_URL is 'URLs associated with sequence features.';
+Comment on column SEQUENCEFEATURE_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column SEQUENCEFEATURE_URL.DISPLAY_NAME is 'Public display name (MISO, OLS).';
+Comment on column SEQUENCEFEATURE_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column SEQUENCEFEATURE_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column SEQUENCEFEATURE_URL.BUD_ID is 'Not from BUD.';
+Comment on column SEQUENCEFEATURE_URL.SEQUENCEFEATURE_ID is 'FK to SEQUENCEFEATURE.SEQUENCEFEATURE_ID.';
+Comment on column SEQUENCEFEATURE_URL.URL_TYPE is 'Type of URL (MISO, OLS).';
+Comment on column SEQUENCEFEATURE_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column SEQUENCEFEATURE_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table SEQUENCEFEATURE_RELATION is 'Relationship between two sequence features.';
+Comment on column SEQUENCEFEATURE_RELATION.RELATION_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column SEQUENCEFEATURE_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column SEQUENCEFEATURE_RELATION.BUD_ID is 'Not from BUD.';
+Comment on column SEQUENCEFEATURE_RELATION.PARENT_ID is 'FK to SEQUENCEFEATURE.SEQUENCEFEATURE_ID.';
+Comment on column SEQUENCEFEATURE_RELATION.CHILD_ID is 'FK to SEQUENCEFEATURE.SEQUENCEFEATURE_ID.';
+Comment on column SEQUENCEFEATURE_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
+Comment on column SEQUENCEFEATURE_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column SEQUENCEFEATURE_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table TAXONOMY is 'Taxonomy information descended from the family Saccharomycetaceae from NCBI.';
 Comment on column TAXONOMY.TAXONOMY_ID is 'Unique random identifier (Oracle sequence).';
@@ -217,7 +327,7 @@ Comment on column TAXONOMY_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column TAXONOMY_RELATION.BUD_ID is 'PK from BUD.TAX_RELATIONSHIP.TAX_RELATIONSHIP_NO .';
 Comment on column TAXONOMY_RELATION.PARENT_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
 Comment on column TAXONOMY_RELATION.CHILD_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
-Comment on column TAXONOMY_RELATION.RELATION_TYPE is 'Type of relation (is a).';
+Comment on column TAXONOMY_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
 Comment on column TAXONOMY_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column TAXONOMY_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -240,7 +350,7 @@ Comment on column DBENTITY.CREATED_BY is 'Username of the person who entered the
 
 Comment on table LOCUSDBENTITY is 'Features located on a sequence, that are associate with a locus. Inherits from DBENTITY.';
 Comment on column LOCUSDBENTITY.DBENTITY_ID is 'Unique random identifier (Oracle sequence).';
-Comment on column LOCUSDBENTITY.SYSTEMATIC_NAME is 'Unique name for the dbentity. Subfeature names have a number appended after the systematic name.';
+Comment on column LOCUSDBENTITY.SYSTEMATIC_NAME is 'Unique name for the dbentity. Subfeatures have a number appended after the systematic name.';
 Comment on column LOCUSDBENTITY.SEQUENCEFEATURE_ID is 'FK to SEQUENCEFEATURE.SEQUENCEFEATURE_ID.';
 Comment on column LOCUSDBENTITY.GENE_NAME is 'Registered gene name consisting of 3 letters followed by an integer (e.g., ADE12).';
 Comment on column LOCUSDBENTITY.QUALIFIER is 'Categorization of the gene (Verified, Uncharacterized, Dubious).';
@@ -279,7 +389,7 @@ Comment on column LOCUS_URL.OBJ_URL is 'URL of the object (relative for local li
 Comment on column LOCUS_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column LOCUS_URL.BUD_ID is 'PK from BUD.URL.URL_NO.';
 Comment on column LOCUS_URL.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
-Comment on column LOCUS_URL.URL_TYPE is 'Type of URL (CGI, External identifier, Systematic name, SGDID).';
+Comment on column LOCUS_URL.URL_TYPE is 'Type of URL (CGI, External id, Systematic name, SGDID).';
 Comment on column LOCUS_URL.PLACEMENT is 'Location of the URL on the web page.';
 Comment on column LOCUS_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LOCUS_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -290,7 +400,7 @@ Comment on column LOCUS_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column LOCUS_RELATION.BUD_ID is 'PK from BUD.FEAT_RELATIONSHIP.FEAT_RELATIONSHIP_NO.';
 Comment on column LOCUS_RELATION.PARENT_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
 Comment on column LOCUS_RELATION.CHILD_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
-Comment on column LOCUS_RELATION.RELATION_TYPE is 'Type of relation (pair, part of, adjacent to).';
+Comment on column LOCUS_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
 Comment on column LOCUS_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LOCUS_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -317,7 +427,7 @@ Comment on column STRAIN_URL.OBJ_URL is 'URL of the object (relative for local l
 Comment on column STRAIN_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column STRAIN_URL.BUD_ID is 'Not from BUD';
 Comment on column STRAIN_URL.STRAIN_ID is 'FK to STRAINDBENTITY.DBENTITY_ID.';
-Comment on column STRAIN_URL.URL_TYPE is 'Type of URL (Source, Wiki, PubMed, GenBank, Download).';
+Comment on column STRAIN_URL.URL_TYPE is 'Type of URL (External id, Wiki, PubMed, GenBank, Download).';
 Comment on column STRAIN_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column STRAIN_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -378,7 +488,7 @@ Comment on column REFERENCE_ALIAS.OBJ_URL is 'URL of the object (relative for lo
 Comment on column REFERENCE_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column REFERENCE_ALIAS.BUD_ID is 'PK from BUD.DBXREF.DBXREF_NO.';
 Comment on column REFERENCE_ALIAS.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
-Comment on column REFERENCE_ALIAS.ALIAS_TYPE is 'Type of alias (SGDID Secondary).';
+Comment on column REFERENCE_ALIAS.ALIAS_TYPE is 'Type of alias (Secondary SGDID).';
 Comment on column REFERENCE_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -392,3 +502,31 @@ Comment on column REFERENCE_URL.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTIT
 Comment on column REFERENCE_URL.URL_TYPE is 'Type of URL (DOI full text, PMC full text, PubMed, PubMedCentral, Reference supplement).';
 Comment on column REFERENCE_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table REFTYPE is 'Publication types assigned by NCBI or SGD.';
+Comment on column REFTYPE.REFTYPE_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFTYPE.DISPLAY_NAME is 'Public display name.';
+Comment on column REFTYPE.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column REFTYPE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REFTYPE.BUD_ID is 'PK from BUD.REF_TYPE.REF_TYPE_NO.';
+Comment on column REFTYPE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REFTYPE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table REFERENCE_REFTYPE is 'Links a reference with a reftype.';
+Comment on column REFERENCE_REFTYPE.REFERENCE_REFTYPE_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFERENCE_REFTYPE.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_REFTYPE.REFTYPE_ID is 'FK to REFTYPE.REFTYPE_ID.';
+Comment on column REFERENCE_REFTYPE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REFERENCE_REFTYPE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REFERENCE_REFTYPE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table REFERENCE_CORRECTION is 'Relationship between two references, used for published errata, comments, retractions, etc.';
+Comment on column REFERENCE_CORRECTION.CORRECTION_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFERENCE_CORRECTION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REFERENCE_CORRECTION.BUD_ID is 'PK from BUD.REF_RELATIONSHIP.REF_RELATIONSHIP_NO.';
+Comment on column REFERENCE_CORRECTION.PARENT_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_CORRECTION.CHILD_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_CORRECTION.CORRECTION_TYPE is 'Type of correction or comment (Erratum in, Comment on, etc.).';
+Comment on column REFERENCE_CORRECTION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REFERENCE_CORRECTION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
