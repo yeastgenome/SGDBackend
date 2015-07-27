@@ -7,7 +7,6 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.bud import Base
 from feature import Feature
 
-
 __author__ = 'kpaskov'
 
 class Dbxref(Base, EqualityByIDMixin):
@@ -134,3 +133,15 @@ class ParagraphFeat(Base, EqualityByIDMixin):
     #Relationships
     feature = relationship(Feature, uselist=False, backref='paragraph_feats')
     paragraph = relationship(Paragraph, uselist=False, backref='paragraph_feats')
+
+class DeleteLog(Base, EqualityByIDMixin):
+    __tablename__ = 'delete_log'
+
+    #Values                                                                                   
+    id = Column('delete_log_no', Integer, primary_key = True)
+    tab_name = Column('tab_name', String)
+    primary_key = Column('primary_key', Integer)
+    deleted_row = Column('deleted_row', String)
+    description = Column('description', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)

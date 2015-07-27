@@ -3,8 +3,8 @@ from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.orm import relationship
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
-from src.sgd.model.curate.source import Source
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.nex.source import Source
 
 __author__ = 'kelley'
 
