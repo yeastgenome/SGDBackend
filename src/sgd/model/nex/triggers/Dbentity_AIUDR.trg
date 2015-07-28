@@ -16,7 +16,7 @@ BEGIN
     INSERT INTO sgdid
         (sgdid, display_name, obj_url, source_id, subclass, sgdid_status, created_by)
     VALUES
-        (:new.sgdid, :new.sgdid, v_objurl, 'SGD', :new.subclass, 'Primary' , USER);
+        (:new.sgdid, :new.display_name, v_objurl, 'SGD', :new.subclass, 'Primary' , USER);
 
   ELSIF UPDATING THEN
 
