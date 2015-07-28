@@ -85,7 +85,7 @@ Comment on column RO_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column RO_RELATION.BUD_ID is 'Not in BUD.';
 Comment on column RO_RELATION.PARENT_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
 Comment on column RO_RELATION.CHILD_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
-Comment on column RO_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
+Comment on column RO_RELATION.RELATION_TYPE is 'Type of relation (is a).';
 Comment on column RO_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column RO_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -521,7 +521,7 @@ Comment on column REFERENCE_REFTYPE.DATE_CREATED is 'Date the record was entered
 Comment on column REFERENCE_REFTYPE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table REFERENCE_CORRECTION is 'Relationship between two references, used for published errata, comments, retractions, etc.';
-Comment on column REFERENCE_CORRECTION.CORRECTION_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFERENCE_CORRECTION.REFERENCE_CORRECTION_ID is 'Unique random identifier (Oracle sequence).';
 Comment on column REFERENCE_CORRECTION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column REFERENCE_CORRECTION.BUD_ID is 'PK from BUD.REF_RELATIONSHIP.REF_RELATIONSHIP_NO.';
 Comment on column REFERENCE_CORRECTION.PARENT_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
