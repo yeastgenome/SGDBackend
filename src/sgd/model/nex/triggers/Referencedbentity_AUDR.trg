@@ -93,9 +93,6 @@ BEGIN
 
   ELSE
 
-  UPDATE dbentity SET dbentity_status = 'Deleted'
-  WHERE dbentity_id = :old.dbentity_id;
-
   v_row := :old.dbentity_id || '[:]' || :old.method_obtained || '[:]' ||
            :old.publication_status || '[:]' ||
            :old.fulltext_status || '[:]' || :old.citation || '[:]' || 

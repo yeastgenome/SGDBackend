@@ -416,8 +416,7 @@ Comment on column STRAINDBENTITY.ASSEMBLY_SIZE is 'Total number of nucleotides i
 Comment on column STRAINDBENTITY.FOLD_COVERAGE is 'Average number of reads per nucleotide in the assembly.';
 Comment on column STRAINDBENTITY.SCAFFOLD_NUMBER is 'Number of scaffolds in the assembly.';
 Comment on column STRAINDBENTITY.LONGEST_SCAFFOLD is 'Length of the longest scaffold.';
-Comment on column STRAINDBENTITY.SCAFFOLD_NFIFTY is 'Weighted median statistic such that 50% of the entire assembly is contained i\
-n scaffolds equal to or larger than this value';
+Comment on column STRAINDBENTITY.SCAFFOLD_NFIFTY is 'Weighted median statistic such that 50% of the entire assembly is contained in scaffolds equal to or larger than this value';
 Comment on column STRAINDBENTITY.FEATURE_COUNT is 'Number of features identified in this strain.';
 
 Comment on table STRAIN_URL is 'URLs associated with a strain.';
