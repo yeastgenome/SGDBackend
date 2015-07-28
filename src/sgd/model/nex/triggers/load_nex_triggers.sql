@@ -79,6 +79,10 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Book_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Journal_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Journal_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Referencedbentity_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Referencedbentity_AUDR.trg
 
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Referencedbentity_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Referencedbentity_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceAlias_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceAlias_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceUrl_AUDR.trg
