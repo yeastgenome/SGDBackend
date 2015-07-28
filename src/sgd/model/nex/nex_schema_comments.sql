@@ -504,6 +504,7 @@ Comment on column REFERENCE_URL.CREATED_BY is 'Username of the person who entere
 
 Comment on table REFTYPE is 'Publication types assigned by NCBI or SGD.';
 Comment on column REFTYPE.REFTYPE_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFTYPE.FORMAT_NAME is 'Unique name to create download files.';
 Comment on column REFTYPE.DISPLAY_NAME is 'Public display name.';
 Comment on column REFTYPE.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column REFTYPE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
