@@ -10,8 +10,8 @@ PROCEDURE InsertDeleteLog(p_table IN VARCHAR2,
 PROCEDURE InsertUpdateLog(p_table IN VARCHAR2,
                           p_column VARCHAR2,
                           p_key IN VARCHAR2,
-                          p_old IN CLOB,
-                          p_new IN CLOB,
+                          p_old IN VARCHAR2,
+                          p_new IN VARCHAR2,
                           p_user IN VARCHAR2);
 
 END AuditLog;
