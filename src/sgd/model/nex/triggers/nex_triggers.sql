@@ -8,15 +8,6 @@ END;
 /
 
 --/
-CREATE OR REPLACE TRIGGER AUTHOR_TRIGGER
-BEFORE INSERT ON author
-FOR EACH ROW
-BEGIN
-SELECT object_seq.nextval INTO :new.author_id FROM DUAL;
-END;
-/
-
---/
 CREATE OR REPLACE TRIGGER AUTHOR_RESPONSE_TRIGGER
 BEFORE INSERT ON author_response
 FOR EACH ROW
@@ -346,15 +337,6 @@ BEFORE INSERT ON qualifier_relation
 FOR EACH ROW
 BEGIN
 SELECT relation_seq.nextval INTO :new.relation_id FROM DUAL;
-END;
-/
-
---/
-CREATE OR REPLACE TRIGGER REFERENCE_AUTHOR_TRIGGER
-BEFORE INSERT ON reference_author
-FOR EACH ROW
-BEGIN
-SELECT reference_author_seq.nextval INTO :new.reference_author_id FROM DUAL;
 END;
 /
 
