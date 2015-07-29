@@ -12,27 +12,27 @@ BEGIN
 
     IF (:old.format_name != :new.format_name)
     THEN
-        AuditLog.InsertUpdateLog('SOURCE', 'FORMAT_NAME', :old.source_id, to_lob(:old.format_name), to_lob(:new.format_name), USER);
+        AuditLog.InsertUpdateLog('SOURCE', 'FORMAT_NAME', :old.source_id, :old.format_name, :new.format_name, USER);
     END IF;
 
 	 IF (:old.display_name != :new.display_name)
     THEN
-        AuditLog.InsertUpdateLog('SOURCE', 'DISPLAY_NAME', :old.source_id, to_lob(:old.display_name), to_lob(:new.display_name) , USER);
+        AuditLog.InsertUpdateLog('SOURCE', 'DISPLAY_NAME', :old.source_id, :old.display_name, :new.display_name, USER);
     END IF;
 
     IF (((:old.obj_url IS NULL) AND (:new.obj_url IS NOT NULL)) OR ((:old.obj_url IS NOT NULL) AND (:new.obj_url IS NULL)) OR (:old.obj_url != :new.obj_url))
     THEN
-        AuditLog.InsertUpdateLog('SOURCE', 'OBJ_URL', :old.source_id, to_lob(:old.obj_url), to_lob(:new.obj_url), USER);
+        AuditLog.InsertUpdateLog('SOURCE', 'OBJ_URL', :old.source_id, :old.obj_url, :new.obj_url, USER);
     END IF;
 
     IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id))
     THEN
-        AuditLog.InsertUpdateLog('SOURCE', 'BUD_ID', :old.source_id, to_lob(:old.bud_id), to_lob(:new.bud_id), USER);
+        AuditLog.InsertUpdateLog('SOURCE', 'BUD_ID', :old.source_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
     IF (((:old.description IS NULL) AND (:new.description IS NOT NULL)) OR ((:old.description IS NOT NULL) AND (:new.description IS NULL)) OR (:old.description != :new.description))
     THEN
-        AuditLog.InsertUpdateLog('SOURCE', 'DESCRIPTION', :old.source_id, to_lob(:old.description), to_lob(:new.description), USER);
+        AuditLog.InsertUpdateLog('SOURCE', 'DESCRIPTION', :old.source_id, :old.description, :new.description, USER);
     END IF;
 
   ELSE
