@@ -1,4 +1,4 @@
-CREATE OR REPLACE TRIGGER Dbentity_AIUDR
+CREATE OR REPLACE TRIGGER Dbentity_AUDR
 --
 --  After a row in the dbentity table is updated, or deleted 
 --  execute a trigger to write a record to the sgdid, update_log, or delete_log tables
@@ -68,6 +68,6 @@ BEGIN
 
   END IF;
 
-END Dbentity_AIUDR;
+END Dbentity_AUDR;
 /
 SHOW ERROR
