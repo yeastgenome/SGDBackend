@@ -3,7 +3,7 @@ CREATE OR REPLACE PACKAGE ManageSgdid AS
 -- Routines to do manage sgdids
 -- not possible directly in triggers
 --
-PROCEDURE InsertSgdid (p_sgdid IN VARCHAR2
+PROCEDURE InsertSgdid (p_sgdid IN VARCHAR2,
                        p_source IN VARCHAR2,
                        p_sgdidClass IN VARCHAR2,
                        p_sgdidStatus IN VARCHAR2,
