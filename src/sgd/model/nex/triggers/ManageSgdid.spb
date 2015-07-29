@@ -8,17 +8,18 @@ PROCEDURE InsertSgdid (p_sgdid IN VARCHAR2,
                        p_sgdidStatus IN VARCHAR2,
                        p_user IN VARCHAR2)
 IS
+    v_sgdid_id  sgdid.sgdid_id%TYPE;
     v_objurl    sgdid.obj_url%TYPE;
 BEGIN
 
-    SELECT object_seq.NEXTVAL INTO :new.sgdid_id FROM DUAL;
+    SELECT object_seq.NEXTVAL INTO v_sgdid_id FROM DUAL;
 
     v_objurl := CONCAT('/sgdid/', p_sgdid);
 
     INSERT INTO sgdid 
         (sgdid_id, display_name, obj_url, source, subclass, sgdid_status, created_by)
     VALUES
-        (:new.sgdid_id, p_sgdid, v_objurl, p_source, p_sgdidClass, p_sgdidStatus, p_user);
+        (v_sgdid_id, p_sgdid, v_objurl, p_source, p_sgdidClass, p_sgdidStatus, p_user);
 
 END InsertSgdid;
 
