@@ -41,6 +41,8 @@ BEGIN
 
     v_tabName := UPPER(p_table); 
     v_colName := UPPER(p_column); 
+    p_old     := to_lob(v_old);
+    p_new     := to_lob(v_new);
 
     INSERT INTO update_log
         (update_log_id, tab_name, col_name, primary_key, old_value, new_value, created_by)
