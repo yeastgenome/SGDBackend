@@ -10,11 +10,7 @@ DECLARE
 BEGIN
   IF INSERTING THEN
 
-    IF (ManageSgdid.CheckSgdid(:new.sgdid)) THEN
-	   RETURN;
-    ELSE
        ManageSgdid.InsertSgdid(:new.sgdid, 'SGD', :new.subclass, 'Primary', :new.created_by);
-    END IF;
 
   ELSIF UPDATING THEN
 
@@ -62,7 +58,7 @@ BEGIN
   ELSE
 
     UPDATE sgdid SET sgdid_status = 'Deleted'
-    WHERE sgdid = :old.sgdid;
+    WHERE display_name = :old.sgdid;
 
     v_row := :old.dbentity_id || '[:]' || :old.format_name || '[:]' || 
              :old.display_name || '[:]' || :old.obj_url || '[:]' || 
