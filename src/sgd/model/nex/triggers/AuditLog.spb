@@ -35,6 +35,8 @@ PROCEDURE InsertUpdateLog (
 AS 
     v_tabName	update_log.tab_name%TYPE;
     v_colName	update_log.col_name%TYPE;
+    v_old       update_log.old_value%TYPE;
+    v_new       update_log.new_value%TYPE;
 BEGIN
 
     v_tabName := UPPER(p_table); 
@@ -43,7 +45,7 @@ BEGIN
     INSERT INTO update_log
         (update_log_id, tab_name, col_name, primary_key, old_value, new_value, created_by)
     VALUES
-        (update_log_seq.NEXTVAL, v_tabName, v_colName, p_key, p_old, p_new, p_user);
+        (update_log_seq.NEXTVAL, v_tabName, v_colName, p_key, v_old, v_new, p_user);
 
 END InsertUpdateLog;
 
