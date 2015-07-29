@@ -561,3 +561,18 @@ Comment on column REFERENCE_AUTHOR.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column REFERENCE_AUTHOR.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_AUTHOR.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table REFERENCE_UNLINK is 'References that should not be associated with a specific locus, but should remain in the database.';
+Comment on column REFERENCE_UNLINK.REFERENCE_UNLINK_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFERENCE_UNLINK.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_UNLINK.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_UNLINK.BUD_ID is 'PK from BUD.REF_UNLINK.REF_UNLINK_NO.';
+Comment on column REFERENCE_UNLINK.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REFERENCE_UNLINK.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table REFERENCE_DELETED is 'References permanently removed from the database via curator triage.';
+Comment on column REFERENCE_DELETED.REFERENCE_DELETED_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFERENCE_DELETED.PUBMED_ID is 'PubMed ID of the reference from NCBI.';
+Comment on column REFERENCE_DELETED.SGDID_ID is 'SGDID of the reference assigned before removal from the database.';
+Comment on column REFERENCE_DELETED.BUD_ID is 'PK from BUD.REF_BAD.PUBMED.';
+Comment on column REFERENCE_DELETED.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REFERENCE_DELETED.CREATED_BY is 'Username of the person who entered the record into the database.';
