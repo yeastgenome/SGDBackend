@@ -7,16 +7,14 @@ CREATE OR REPLACE TRIGGER Dbentity_AIUDR
     FOR EACH ROW
 DECLARE
     v_row       delete_log.deleted_row%TYPE;
-    v_objurl    sgdid.obj_url%TYPE;
 BEGIN
   IF INSERTING THEN
 
-    v_objurl := CONCAT('/sgdid/', :new.sgdid);
-
-    INSERT INTO sgdid
-        (sgdid, display_name, obj_url, source_id, subclass, sgdid_status, created_by)
-    VALUES
-        (:new.sgdid, :new.display_name, v_objurl, 'SGD', :new.subclass, 'Primary' , USER);
+    IF (ManageSgdid.CheckSgdid(:new.sgdid)) THEN
+	   RETURN;
+    ELSE
+       ManageSgdid.InsertSgdid(:new.sgdid, 'SGD', :new.subclass, 'Primary', :new.created_by);
+    END IF;
 
   ELSIF UPDATING THEN
 

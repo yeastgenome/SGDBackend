@@ -1,0 +1,59 @@
+CREATE OR REPLACE PACKAGE BODY ManageSgdid AS
+--
+-- Automatic insert into SGDID table
+--
+PROCEDURE InsertSgdid (p_sgdid IN VARCHAR2,
+                       p_source IN VARCHAR2,
+                       p_sgdidClass IN VARCHAR2,
+                       p_sgdidStatus IN VARCHAR2,
+                       p_user IN VARCHAR2)
+IS
+    v_objurl    sgdid.obj_url%TYPE;
+BEGIN
+
+    SELECT object_seq.NEXTVAL INTO :new.sgdid_id FROM DUAL;
+
+    v_objurl := CONCAT('/sgdid/', p_sgdid);
+
+    INSERT INTO sgdid 
+        (sgdid_id, display_name, obj_url, source, subclass, sgdid_status, created_by)
+    VALUES
+        (:new.sgdid_id, p_sgdid, v_objurl, p_source, p_sgdidClass, p_sgdidStatus, p_user);
+
+END InsertSgdid;
+
+--
+-- Checks to see if a particular SGDID exists in the sgdid table
+-- Returns TRUE if the sgdid_id is found
+-- or FALSE if no match was found
+--
+FUNCTION CheckSgdid (p_sgdid IN VARCHAR2)
+                     RETURN NUMBER
+IS
+    v_Sgdid    sgdid.display_name%TYPE;
+BEGIN
+
+    SELECT count(display_name) INTO v_Sgdid
+    FROM sgdid
+    WHERE display_name = p_sgdid;
+
+    IF v_Sgdid > 0 THEN
+
+        RETURN (1);
+
+    ELSE
+
+       RAISE_APPLICATION_ERROR
+          (-20020, 'SGDID "' || p_Sgdid || '" does NOT exists in the SGDID table.');
+       RETURN (0);
+
+    END IF;
+
+End CheckSgdid;
+
+END ManageSgdid;
+/
+GRANT EXECUTE ON ManageSgdid to PUBLIC
+/
+SHOW ERROR
+

@@ -10,14 +10,15 @@ DECLARE
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.sgdid IS NULL) THEN
-		RAISE_APPLICATION_ERROR
-            (-20038, 'SGDIDs can only be inserted via inserts to the DBENTITY table.');
-    END IF; 
+    IF (:new.sgdid_id IS NULL) THEN
+        SELECT object_seq.NEXTVAL INTO :new.sgdid_id FROM DUAL;
+    END IF;
+
+    v_IsValidUser := CheckUser(:new.created_by);
 
   ELSIF UPDATING THEN
 
-    IF (:new.sgdid != :old.sgdid) THEN    
+    IF (:new.sgdid_id != :old.sgdid_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;

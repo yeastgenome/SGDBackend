@@ -42,8 +42,8 @@ Comment on column SOURCE.DESCRIPTION is 'Description or comment.';
 Comment on column SOURCE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column SOURCE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table SGDID is 'SGD accession identifier for dbentity objects.';
-Comment on column SGDID.SGDID is 'Unique SGD accession identifier consisting of a letter (S or L) followed by 9 zero-padded numbers (e.g., S000151155).';
+Comment on table SGDID is 'SGD accession identifier for dbentity objects consisting of a letter (S or L) followed by 9 zero-padded numbers (e.g., S000151155).';
+Comment on column SGDID.SGDID_ID is 'Unique random identifier (Oracle sequence).';
 Comment on column SGDID.DISPLAY_NAME is 'Public display name.';
 Comment on column SGDID.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column SGDID.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
@@ -340,7 +340,7 @@ Comment on column DBENTITY.DISPLAY_NAME is 'Public display name.';
 Comment on column DBENTITY.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column DBENTITY.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DBENTITY.BUD_ID is 'PK from BUD.FEATURE.FEATURE_NO.';
-Comment on column DBENTITY.SGDID is 'FK to SGDID.SGDID.';
+Comment on column DBENTITY.SGDID is 'SGD accession identifier.';
 Comment on column DBENTITY.SUBCLASS is 'What object inherits from DBENTITY (DBENTITY, FILE, LOCUS, REFERENCE, STRAIN).';
 Comment on column DBENTITY.DBENTITY_STATUS is 'Current state of the dbentity (Active, Merged, Deleted, Archived).';
 Comment on column DBENTITY.DATE_CREATED is 'Date the record was entered into the database.';
@@ -528,4 +528,17 @@ Comment on column REFERENCE_CORRECTION.CHILD_ID is 'FK to REFERENCEDBENTITY.DBEN
 Comment on column REFERENCE_CORRECTION.CORRECTION_TYPE is 'Type of correction or comment (Erratum in, Comment on, etc.).';
 Comment on column REFERENCE_CORRECTION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_CORRECTION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table REFERENCE_DOCUMENT is 'Abstract or Medline entry associated with references.';
+Comment on column REFERENCE_DOCUMENT.DOCUMENT_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column REFERENCE_DOCUMENT.DOCUMENT_TYPE is 'Type of document (Abstract, Medline).';
+Comment on column REFERENCE_DOCUMENT.TEXT is 'Plain text of the document.';
+Comment on column REFERENCE_DOCUMENT.HTML is 'HTML mark-up of the document.';
+Comment on column REFERENCE_DOCUMENT.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REFERENCE_DOCUMENT.BUD_ID is 'PK from BUD.ABSTRACT.REFERENCE_NO.';
+Comment on column REFERENCE_DOCUMENT.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_DOCUMENT.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REFERENCE_DOCUMENT.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+
 

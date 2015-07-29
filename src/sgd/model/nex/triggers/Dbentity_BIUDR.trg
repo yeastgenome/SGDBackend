@@ -6,6 +6,7 @@ CREATE OR REPLACE TRIGGER Dbentity_BIUDR
   FOR EACH ROW
 DECLARE
   v_IsValidUser   dbuser.username%TYPE;
+  v_IsSgdidValid  sgdid.display_name%TYPE;
 BEGIN
   IF INSERTING THEN
 
@@ -17,6 +18,7 @@ BEGIN
         :new.sgdid := MakeSgdid;
     ELSE
         :new.sgdid := UPPER(:new.sgdid);
+         v_IsSgdidValid := ManageSgdid.CheckSgdid(:new.sgdid);
     END IF;
 
     IF (:new.subclass = 'LOCUS') THEN
