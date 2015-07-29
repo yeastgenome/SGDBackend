@@ -4,6 +4,8 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckDelete.sps
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckDelete.spb
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/MakeSgdid.fnc
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ManageSgdid.sps
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ManageSgdid.spb
 
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DeleteLog_BUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/UpdateLog_BUDR.trg
@@ -64,6 +66,7 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_BIUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AUDR.trg  # only for initial data load
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AIUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_AUDR.trg
@@ -91,7 +94,9 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reftype_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceReftype_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceReftype_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceCorrection_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceCorrection_AUDR.trg
 
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceCorrection_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceCorrection_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDocument_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDocument_AUDR.trg
 
