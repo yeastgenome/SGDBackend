@@ -182,6 +182,10 @@ class UpdateWithJsonMixin(object):
         self.display_name = self.__create_display_name__(obj_json)
         self.format_name = self.__create_format_name__(obj_json)
         self.link = self.__create_link__(obj_json)
+        if obj_json.get('date_created') != None:
+            self.date_created = obj_json['date_created']
+        if obj_json.get('created_by') != None:
+            self.created_by = obj_json['created_by']
         self.update(obj_json, session, make_changes=True)
 
     @classmethod
@@ -238,4 +242,7 @@ class ToJsonMixin(object):
         return obj_json
 
     def unique_key(self):
-        return self.format_name
+        if self.format_name != None:
+            return self.format_name
+        else:
+            return self.display_name

@@ -34,9 +34,9 @@ def sgdid_starter(bud_session_maker):
             if dbxref.id in key_to_feat or sgdid in sgdid_to_feat:
                 subclass = 'LOCUS'
             
-            # print sgdid, subclass, note, status
+            print sgdid, dbxref.date_created, dbxref.created_by
+
             yield {'source': {'display_name': 'SGD'},
-                   'id': sgdid,
                    'display_name': sgdid,
                    'description': note,
                    'subclass': subclass,
@@ -49,7 +49,7 @@ def sgdid_starter(bud_session_maker):
 
 if __name__ == '__main__':
     from src.sgd.convert import config
-    basic_convert(config.BUD_HOST, config.NEX_HOST, sgdid_starter, 'sgdid', lambda x: x['id'])
+    basic_convert(config.BUD_HOST, config.NEX_HOST, sgdid_starter, 'sgdid', lambda x: x['display_name'])
 
 
 

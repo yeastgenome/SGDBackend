@@ -20,15 +20,14 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     sgdid = Column('sgdid', String)
     bud_id = Column('bud_id', Integer)
     dbentity_status = Column('dbentity_status', String)
-    description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
     source = relationship(Source, uselist=False, lazy='joined')
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
-                     'bud_id', 'sgdid', 'dbentity_status', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'sgdid', 
+                     'class_type', 'dbentity_status', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
     __mapper_args__ = {'polymorphic_on': class_type}
     __id_values__ = ['sgdid', 'format_name', 'id']

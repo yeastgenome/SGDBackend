@@ -3,8 +3,8 @@
         "type": "object",
         "properties": {
             "id": {
-                "title": "SGDID",
-                "type": "string"
+                "title": "SGDID ID",
+                "type": "integer"
             },
             "display_name": {
                 "title": "Name",
@@ -51,5 +51,5 @@
                 "type": "string"
             }
         },
-        "required": ["id"]
+        "required": ["display_name"]
 }
