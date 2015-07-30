@@ -210,6 +210,17 @@ Comment on column EVIDENCE_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_O
 Comment on column EVIDENCE_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column EVIDENCE_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table KEYWORD is 'Controlled vocabulary to describe broad categories of biology, used to filter or group data.';
+Comment on column KEYWORD.KEYWORD_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column KEYWORD.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column KEYWORD.DISPLAY_NAME is 'Public display name.';
+Comment on column KEYWORD.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column KEYWORD.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column KEYWORD.BUD_ID is 'From BUD.KEYWORD.KEYWORD_NO and SPELL tags.';
+Comment on column KEYWORD.DESCRIPTION is 'Description or comment.';
+Comment on column KEYWORD.DATE_CREATED is 'Datev the record was entered into the database.';
+Comment on column KEYWORD.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
 Comment on table OBINVESTIGATION is 'Ontology for Biomedical Investigations (OBI) describes biomedical studies.';
 Comment on column OBINVESTIGATION.OBINVESTIGATION_ID is 'Unique random identifier (Oracle sequence).';
 Comment on column OBINVESTIGATION.FORMAT_NAME is 'Unique name to create download files.';
@@ -576,3 +587,78 @@ Comment on column REFERENCE_DELETED.SGDID_ID is 'SGDID of the reference assigned
 Comment on column REFERENCE_DELETED.BUD_ID is 'PK from BUD.REF_BAD.PUBMED.';
 Comment on column REFERENCE_DELETED.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_DELETED.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+/* File */
+
+/* Colleague */
+
+Comment on table COLLEAGUE is 'A researcher or associate who registered with the database.';
+Comment on column COLLEAGUE.COLLEAGUE_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column COLLEAGUE.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column COLLEAGUE.DISPLAY_NAME is 'Public display name.';
+Comment on column COLLEAGUE.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column COLLEAGUE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column COLLEAGUE.BUD_ID is 'PK from BUD.COLLEAGUE.COLLEAGUE_NO.';
+Comment on column COLLEAGUE.ORCID is 'Unique Author Open Researcher and Contributor ID.';
+Comment on column COLLEAGUE.LAST_NAME is 'Last name of the colleague.';
+Comment on column COLLEAGUE.FIRST_NAME is 'First name of the colleague, including middle name if any.';
+Comment on column COLLEAGUE.SUFFIX is 'Name suffix (II, III, IV, Jr., Sr.).';
+Comment on column COLLEAGUE.OTHER_LAST_NAME is 'Maiden or other last name used.';
+Comment on column COLLEAGUE.PROFESSION is 'Profession (e.g., yeast molecular biologist, bioinformaticist).';
+Comment on column COLLEAGUE.JOB_TITLE is 'Position (e.g., Professor, Post-doc, Staff scientist),';
+Comment on column COLLEAGUE.INSTITUTION is 'University, company, or organization of the colleague.';
+Comment on column COLLEAGUE.ADDRESS1 is 'First line of street address.';
+Comment on column COLLEAGUE.ADDRESS2 is 'Second line of street address.';
+Comment on column COLLEAGUE.ADDRESS3 is 'Third line of street address.';
+Comment on column COLLEAGUE.CITY is 'City.';
+Comment on column COLLEAGUE.STATE is 'State or region (US and Canada coded).';
+Comment on column COLLEAGUE.COUNTRY is 'Country (Coded).';
+Comment on column COLLEAGUE.POSTAL_CODE is 'Postal or zip code.';
+Comment on column COLLEAGUE.WORK_PHONE is 'Colleague work phone number.';
+Comment on column COLLEAGUE.OTHER_PHONE is 'Another phone number for the colleague.';
+Comment on column COLLEAGUE.FAX is 'Fax number.';
+Comment on column COLLEAGUE.EMAIL is 'Email address.';
+Comment on column COLLEAGUE.RESEARCH_INTEREST is 'Research interests of the colleague.';
+Comment on column COLLEAGUE.IS_PI is 'Whether the colleague is a PI.';
+Comment on column COLLEAGUE.IS_CONTACT is 'Whether the colleague is a contact for SGD.';
+Comment on column COLLEAGUE.DISPLAY_EMAIL is 'Whether to display the colleague email address.';
+Comment on column COLLEAGUE.DATE_LAST_MODIFIED is 'Date the record was last updated.';
+Comment on column COLLEAGUE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column COLLEAGUE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table COLLEAGUE_URL is 'URLs associated with colleagues.';
+Comment on column COLLEAGUE_URL.URL_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column COLLEAGUE_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column COLLEAGUE_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column COLLEAGUE_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column COLLEAGUE_URL.BUD_ID is 'PK from BUD.URL.URL_NO.';
+Comment on column COLLEAGUE_URL.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column COLLEAGUE_URL.URL_TYPE is 'Type of URL (Lab, Reference supplement, Research summary).';
+Comment on column COLLEAGUE_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column COLLEAGUE_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table COLLEAGUE_ASSOCIATION is 'Association between two colleagues.';
+Comment on column COLLEAGUE_ASSOCIATION.COLLEAGUE_ASSOCIATION_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column COLLEAGUE_ASSOCIATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column COLLEAGUE_ASSOCIATION.BUD_ID is 'PK from BUD.COLL_RELATIONSHIP.COLL_RELATIONSHIP_NO.';
+Comment on column COLLEAGUE_ASSOCIATION.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column COLLEAGUE_ASSOCIATION.ASSOCIATE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column COLLEAGUE_ASSOCIATION.ASSOCIATION_TYPE is 'Type of association or relationship (Associate, Lab member).';
+Comment on column COLLEAGUE_ASSOCIATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column COLLEAGUE_ASSOCIATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table COLLEAGUE_LOCUS is 'Links a colleague with a locus of research interest.';
+Comment on column COLLEAGUE_LOCUS.COLLEAGUE_LOCUS_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column COLLEAGUE_LOCUS.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column COLLEAGUE_LOCUS.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column COLLEAGUE_LOCUS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column COLLEAGUE_LOCUS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column COLLEAGUE_LOCUS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table COLLEAGUE_KEYWORD is 'Keywords associated with a colleague.';
+Comment on column COLLEAGUE_KEYWORD.COLLEAGUE_KEYWORD_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column COLLEAGUE_KEYWORD.KEYWORD_ID is 'FK to KEYWORD.KEYWORD_ID.';
+Comment on column COLLEAGUE_KEYWORD.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column COLLEAGUE_KEYWORD.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column COLLEAGUE_KEYWORD.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column COLLEAGUE_KEYWORD.CREATED_BY is 'Username of the person who entered the record into the database.';
