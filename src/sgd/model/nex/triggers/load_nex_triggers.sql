@@ -6,7 +6,7 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/MakeSgdid.fnc
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ManageSgdid.sps
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ManageSgdid.spb
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckPubmed.fnc
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckPubmed.fnc
 
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DeleteLog_BUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/UpdateLog_BUDR.trg
@@ -44,6 +44,10 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceUrl_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceRelation_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceRelation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Keyword_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Keyword_AUDR.trg
+
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Obinvestigation_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Obinvestigation_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObinvestigationUrl_BIUR.trg
@@ -103,9 +107,8 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Author_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceAuthor_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceAuthor_AUDR.trg
-
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceUnlink_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceUnlink_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceUnlink_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceUnlink_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_AUDR.trg
 
