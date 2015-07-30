@@ -17,7 +17,7 @@ BEGIN
 
     v_IsPubmedUsed := CheckPubmed(:new.pubmed_id);
 
-    IF (:new.sgdid_id IS NOT NULL) THEN
+    IF (:new.sgdid IS NOT NULL) THEN
       v_IsSgdidUsed := ManageSgdid.CheckSgdid(:new.sgdid);
     END IF;
 
@@ -32,8 +32,8 @@ BEGIN
 
     v_IsPubmedUsed := CheckPubmed(:new.pubmed_id);
 
-    IF (:new.sgdid_id IS NOT NULL) THEN
-      v_IsSgdidUsed := ManageSgdid.CheckSgdid(:new.sgdid_id);
+    IF (:new.sgdid IS NOT NULL) THEN
+      v_IsSgdidUsed := ManageSgdid.CheckSgdid(:new.sgdid);
     END IF;
 
     IF (:new.date_created != :old.date_created) THEN    

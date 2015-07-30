@@ -9,15 +9,15 @@ DECLARE
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.reference_unlink_no IS NULL) THEN
-        SELECT reference_unlink_seq.NEXTVAL INTO :new.reference_unlink_no FROM DUAL;
+    IF (:new.reference_unlink_id IS NULL) THEN
+        SELECT reference_unlink_seq.NEXTVAL INTO :new.reference_unlink_id FROM DUAL;
     END IF; 
 
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
 
-    IF (:new.reference_unlink_no != :old.reference_unlink_no) THEN    
+    IF (:new.reference_unlink_id != :old.reference_unlink_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;

@@ -12,17 +12,17 @@ BEGIN
 
     IF (:old.reference_id != :new.reference_id )
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE_UNLINK', 'REFERENCE_ID', :old.reference_unlink_no, :old.reference_id, :new.reference_id, USER);
+        AuditLog.InsertUpdateLog('REFERENCE_UNLINK', 'REFERENCE_ID', :old.reference_unlink_id, :old.reference_id, :new.reference_id, USER);
     END IF;
 
     IF (:old.locus_id != :new.locus_id) 
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE_UNLINK', 'LOCUS_ID', :old.reference_unlink_no, :old.locus_id, :new.locus_id, USER);
+        AuditLog.InsertUpdateLog('REFERENCE_UNLINK', 'LOCUS_ID', :old.reference_unlink_id, :old.locus_id, :new.locus_id, USER);
     END IF;
 
     IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id)) 
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE_UNLINK', 'BUD_ID', :old.reference_unlink_no, :old.bud_id, :new.bud_id, USER);
+        AuditLog.InsertUpdateLog('REFERENCE_UNLINK', 'BUD_ID', :old.reference_unlink_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
   ELSE
@@ -31,7 +31,7 @@ BEGIN
              :old.locus_id || '[:]' || :old.bud_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
-    AuditLog.InsertDeleteLog('REFERENCE_UNLINK', :old.reference_unlink_no, v_row, USER);
+    AuditLog.InsertDeleteLog('REFERENCE_UNLINK', :old.reference_unlink_id, v_row, USER);
 
   END IF;
 
