@@ -264,7 +264,8 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
 
         #Phenotype
         file_names = ['src/sgd/convert/data/PhenotypeSummaries032015.txt',
-                      'src/sgd/convert/data/15-6phenoSummariesTyposFixed.txt']
+                      'src/sgd/convert/data/15-6phenoSummariesTyposFixed.txt',
+                      'src/sgd/convert/data/15-7phenoSummaries.txt']
 
         for file_name in file_names:
             for row in make_file_starter(file_name)():
