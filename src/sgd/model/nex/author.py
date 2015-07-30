@@ -17,6 +17,7 @@ class Author(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
+    orcid = Column('orcid', String)
     created_by = Column('created_by', String, server_default=FetchedValue())
     date_created = Column('date_created', Date, server_default=FetchedValue())
 
@@ -34,6 +35,6 @@ class Author(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     def to_json(self):
         obj_json = ToJsonMixin.to_json(self)
-        references = set([x.reference for x in self.reference_authors])
-        obj_json['references'] = [x.to_semi_json() for x in sorted(references, key=lambda x: (x.year, x.date_published), reverse=True)]
+        # references = set([x.reference for x in self.reference_authors])
+        # obj_json['references'] = [x.to_semi_json() for x in sorted(references, key=lambda x: (x.year, x.date_published), reverse=True)]
         return obj_json

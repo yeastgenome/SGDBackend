@@ -18,10 +18,6 @@
             "title": "Link",
             "type": "string"
         },
-        "description": {
-            "title": "Description",
-            "type": "string"
-        },
         "source": {
             "title": "Source",
             "$ref": "source.json"
@@ -29,6 +25,10 @@
         "bud_id": {
             "title": "Bud ID",
             "type": "integer"
+        },
+	"class_type": {
+            "title": "Subclass",
+            "type": "string"
         },
         "date_created": {
             "title": "Date Created",
@@ -51,5 +51,5 @@
             "type": "string"
         }
     },
-    "required": ["sgdid"]
+    "required": ["display_name"]
 }

@@ -35,10 +35,7 @@ class UpdateBackend(SGDBackend):
                 raise Exception('Class not found: ' + class_name)
 
             try:
-                if class_name == 'sgdid':
-                    new_obj = DBSession.query(cls).filter_by(id=identifier).first()
-                else:
-                    new_obj = DBSession.query(cls).filter_by(id=int(identifier)).first()
+                new_obj = DBSession.query(cls).filter_by(id=int(identifier)).first()
             except:
                 raise Exception(class_name + ' ' + identifier + ' could not be found.')
 

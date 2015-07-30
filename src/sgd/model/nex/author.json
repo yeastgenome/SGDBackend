@@ -18,10 +18,6 @@
                 "title": "Link",
                 "type": "string"
             },
-            "description": {
-                "title": "Description",
-                "type": "string"
-            },
             "source": {
                 "title": "Source",
                 "$ref": "source.json"
@@ -45,7 +41,11 @@
             "created_by": {
                 "title": "Created By",
                 "type": "string"
-            }
+            },
+	    "ORCID": {
+	    	"title": "ORCID",
+		"type": "string"
+	    }
         },
         "required": ["display_name", "source"]
 

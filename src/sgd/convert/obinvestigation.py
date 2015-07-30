@@ -1,7 +1,6 @@
 from src.sgd.convert import basic_convert
 
-__author__ = 'kpaskov'
-## updated by sweng66
+__author__ = 'sweng66'
 
 key_switch = {'id': 'obi_id', 'name': 'display_name', 'def': 'description'}
 

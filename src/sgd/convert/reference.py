@@ -1,12 +1,12 @@
-from src.sgd.convert.into_curate import basic_convert, remove_nones
+from src.sgd.convert import basic_convert, remove_nones
 
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 
-__author__ = 'kpaskov'
-
+__author__ = 'sweng66'
 
 def load_urls(bud_reference, pubmed_id, bud_session):
+
     urls = []
 
     from src.sgd.model.bud.reference import Ref_URL
@@ -14,9 +14,24 @@ def load_urls(bud_reference, pubmed_id, bud_session):
     doi = None
     pubmed_central_id = None
     for ref_url in bud_session.query(Ref_URL).options(joinedload('url')).filter_by(reference_id=bud_reference.id).all():
+        source = ''
+        if ref_url.url.source == 'Publisher' and ref_url.url.url_type == 'DOI full text':
+            source = 'Publication'
+        elif ref_url.url.source in ['Author', 'Publisher'] and ref_url.url.url_type = 'Reference supplement':
+            source = 'Publication'
+        elif ref_url.url.url_type in ['PMC full text', 'PubMed', 'PubMedCentral', 'DOI full text']:
+            source = 'NCBI'
+        elif ref_url.url.source == 'Colleague submission' and ref_url.url.url_type == 'Reference supplement':
+            source = 'Direct submission'
+        elif ref_url.url.source == 'YFGdb' and ref_url.url.url_type == 'Reference supplement':
+            source = 'YFGdb'
+        else:
+            print "Unknown SOURCE ", ref_url.url.source, ref_url.url.url_type
+            continue
+
         urls.append({'display_name': ref_url.url.url_type,
                      'link': ref_url.url.url,
-                     'source': {'display_name': ref_url.url.source},
+                     'source': {'display_name': source},
                      'url_type': ref_url.url.url_type,
                      'bud_id': ref_url.id})
 
@@ -28,17 +43,17 @@ def load_urls(bud_reference, pubmed_id, bud_session):
     if pubmed_id is not None:
         urls.append({'display_name': 'PubMed',
                      'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(pubmed_id),
-                     'source': {'display_name': 'PubMed'},
+                     'source': {'display_name': 'NCBI'},
                      'url_type': 'PUBMED'})
     if doi is not None:
         urls.append({'display_name': 'Full-Text',
                      'link': 'http://dx.doi.org/' + doi,
-                     'source': {'display_name': 'DOI'},
+                     'source': {'display_name': 'NCBI'},
                      'url_type': 'FULLTEXT'})
     if pubmed_central_id is not None:
         urls.append({'display_name': 'PMC',
                      'link': 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(pubmed_central_id),
-                     'source': {'display_name': 'PubMedCentral'},
+                     'source': {'display_name': 'NCBI'},
                      'url_type': 'PUBMEDCENTRAL'})
     return urls, pubmed_central_id, doi
 
@@ -91,7 +106,7 @@ def load_relations(bud_reference, bud_session):
     for bud_obj in bud_session.query(RefRelation).options(joinedload(RefRelation.child)).filter_by(parent_id=bud_reference.id).all():
         relations.append(remove_nones({
             "sgdid": bud_obj.child.dbxref_id,
-            "relation_type": 'None' if bud_obj.description is None else bud_obj.description,
+            "correction_type": 'None' if bud_obj.description is None else bud_obj.description,
             "date_created": str(bud_obj.date_created),
             "created_by": bud_obj.created_by
         }))
@@ -152,10 +167,19 @@ def reference_starter(bud_session_maker):
 
         urls, pubmed_central_id, doi = load_urls(old_reference, pubmed_id, bud_session)
 
+        source = 'SGD'
+        if 'PubMed' in ref.source:
+            source = 'NCBI'
+        elif 'PDB' in ref.source:
+            source = 'PDB'
+        elif 'YPD' in ref.source:
+            source = 'YPD'
+        
         obj_json = remove_nones({'bud_id': old_reference.id,
                     'sgdid': old_reference.dbxref_id,
-                    'source': {'display_name': old_reference.source},
-                    'method_obtained': old_reference.status,
+                    'source': {'display_name': source},
+                    'method_obtained': old_reference.source,
+                    'publication_status': old_reference.status,
                     'dbentity_status': 'Active',
                     'pubmed_id': pubmed_id,
                     'fulltext_status': old_reference.pdf_status,
@@ -240,8 +264,10 @@ def create_bibentry(obj_json):
             'document_type': 'Bibentry'}
 
 
-def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, reference_starter, 'reference', lambda x: x['sgdid'])
-
 if __name__ == '__main__':
-    convert('pastry.stanford.edu:1521', 'curator-dev-db')
+    from src.sgd.convert import config
+    basic_convert(config.BUD_HOST, config.NEX_HOST, reference_starter, 'reference', lambda x: x['sgdid'])
+
+
+
+

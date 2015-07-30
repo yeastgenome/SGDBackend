@@ -11,7 +11,7 @@ __author__ = 'sweng66'
 class Sgdid(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'sgdid'
 
-    id = Column('sgdid', String, primary_key=True)
+    id = Column('sgdid_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
@@ -25,7 +25,7 @@ class Sgdid(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'subclass', 'sgdid_status', 'description', 'bud_id', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'display_name', 'link', 'subclass', 'sgdid_status', 'description', 'bud_id']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = ['id']
     __no_edit_values__ = ['id', 'link', 'date_created', 'created_by']
@@ -35,14 +35,14 @@ class Sgdid(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
     
     def unique_key(self):
-        return self.id
+        return self.display_name
 
     @classmethod
     def __create_display_name__(cls, obj_json):
-        return obj_json['id']
+        return obj_json['display_name']
 
     @classmethod
     def __create_link__(cls, obj_json):
-        return '/' + cls.__name__.lower() + '/' + obj_json['id']
+        return '/' + cls.__name__.lower() + '/' + obj_json['display_name']
 
     
