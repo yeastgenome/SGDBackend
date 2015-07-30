@@ -583,8 +583,8 @@ Comment on column REFERENCE_UNLINK.CREATED_BY is 'Username of the person who ent
 Comment on table REFERENCE_DELETED is 'References permanently removed from the database via curator triage.';
 Comment on column REFERENCE_DELETED.REFERENCE_DELETED_ID is 'Unique random identifier (Oracle sequence).';
 Comment on column REFERENCE_DELETED.PUBMED_ID is 'PubMed ID of the reference from NCBI.';
-Comment on column REFERENCE_DELETED.SGDID_ID is 'SGDID of the reference assigned before removal from the database.';
-Comment on column REFERENCE_DELETED.BUD_ID is 'PK from BUD.REF_BAD.PUBMED.';
+Comment on column REFERENCE_DELETED.SGDID is 'SGDID of the reference assigned before removal from the database.';
+Comment on column REFERENCE_DELETED.BUD_ID is 'PK in BUD is PubMed ID.';
 Comment on column REFERENCE_DELETED.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_DELETED.CREATED_BY is 'Username of the person who entered the record into the database.';
 
