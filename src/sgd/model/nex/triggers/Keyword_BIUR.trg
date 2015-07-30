@@ -5,12 +5,12 @@ CREATE OR REPLACE TRIGGER Keyword_BIUR
   BEFORE INSERT OR UPDATE ON keyword
   FOR EACH ROW
 DECLARE
-  v_IsValidUser         dbuser.userid%TYPE;
+  v_IsValidUser         dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
     IF (:new.keyword_id IS NULL) THEN
-        SELECT keyword_seq.NEXTVAL INTO :new.keyword_id FROM DUAL;
+        SELECT object_seq.NEXTVAL INTO :new.keyword_id FROM DUAL;
     END IF; 
 
     v_IsValidUser := CheckUser(:new.created_by);

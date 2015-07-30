@@ -37,7 +37,7 @@ BEGIN
 
     IF (((:old.description IS NULL) AND (:new.description IS NOT NULL)) OR ((:old.description IS NOT NULL) AND (:new.description IS NULL)) OR (:old.description != :new.description))
     THEN
-        AuditLog.InsertUpdateLog('KEYWORD', 'KEYWORD', :old.keyword_id, :old.keyword, :new.keyword, USER);
+        AuditLog.InsertUpdateLog('KEYWORD', 'DESCRIPTION', :old.keyword_id, :old.description, :new.description, USER);
     END IF;
 
   ELSE
