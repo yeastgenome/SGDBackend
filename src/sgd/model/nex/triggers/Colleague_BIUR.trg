@@ -60,8 +60,6 @@ BEGIN
             (-20001, 'Audit columns cannot be updated.');
     END IF;
 
-    :new.date_modified := SYSDATE;
-
   END IF;
 
 END Colleague_BIUR;

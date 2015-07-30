@@ -150,9 +150,9 @@ BEGIN
         AuditLog.InsertUpdateLog('COLLEAGUE', 'DISPLAY_EMAIL', :old.colleague_id, :old.display_email, :new.display_email, USER);
     END IF;
 
-    IF (:old.date_modified != :new.date_modified)
+    IF (:old.date_last_modified != :new.date_last_modified)
     THEN
-        AuditLog.InsertUpdateLog('COLLEAGUE', 'DATE_MODIFIED', :old.colleague_id, :old.date_modified, :new.date_modified, USER);
+        AuditLog.InsertUpdateLog('COLLEAGUE', 'DATE_LAST_MODIFIED', :old.colleague_id, :old.date_last_modified, :new.date_last_modified, USER);
     END IF;
 
   ELSE
@@ -172,7 +172,7 @@ BEGIN
              :old.other_phone || '[:]' || :old.fax || '[:]' ||
              :old.email || '[:]' || :old.research_interest || '[:]' ||
              :old.is_pi || '[:]' || :old.is_contact || '[:]' ||
-             :old.display_email || '[:]' || :old.date_modified || '[:]' || 
+             :old.display_email || '[:]' || :old.date_last_modified || '[:]' || 
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('COLLEAGUE', :old.colleague_id, v_row, USER);
