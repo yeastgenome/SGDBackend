@@ -49,7 +49,7 @@ BEGIN
   ELSE
 
     v_row := :old.sequencefeature_id || '[:]' || :old.format_name || '[:]' ||
-		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
+             :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.so_id || '[:]' || :old.description || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;

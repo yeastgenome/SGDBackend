@@ -44,10 +44,8 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceUrl_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceRelation_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceRelation_AUDR.trg
-
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Keyword_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Keyword_AUDR.trg
-
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Keyword_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Keyword_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Obinvestigation_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Obinvestigation_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObinvestigationUrl_BIUR.trg
@@ -112,3 +110,13 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_AUDR.trg
 
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Colleague_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Colleague_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueUrl_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueAssociation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueAssociation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueLocus_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueLocus_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueKeyword_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueKeyword_AUDR.trg

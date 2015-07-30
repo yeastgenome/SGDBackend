@@ -218,7 +218,7 @@ Comment on column KEYWORD.OBJ_URL is 'URL of the object (relative for local link
 Comment on column KEYWORD.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column KEYWORD.BUD_ID is 'From BUD.KEYWORD.KEYWORD_NO and SPELL tags.';
 Comment on column KEYWORD.DESCRIPTION is 'Description or comment.';
-Comment on column KEYWORD.DATE_CREATED is 'Datev the record was entered into the database.';
+Comment on column KEYWORD.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column KEYWORD.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
 Comment on table OBINVESTIGATION is 'Ontology for Biomedical Investigations (OBI) describes biomedical studies.';
@@ -633,7 +633,7 @@ Comment on column COLLEAGUE_URL.OBJ_URL is 'URL of the object (relative for loca
 Comment on column COLLEAGUE_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column COLLEAGUE_URL.BUD_ID is 'PK from BUD.URL.URL_NO.';
 Comment on column COLLEAGUE_URL.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
-Comment on column COLLEAGUE_URL.URL_TYPE is 'Type of URL (Lab, Reference supplement, Research summary).';
+Comment on column COLLEAGUE_URL.URL_TYPE is 'Type of URL (Lab, Research summary).';
 Comment on column COLLEAGUE_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column COLLEAGUE_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -657,8 +657,8 @@ Comment on column COLLEAGUE_LOCUS.CREATED_BY is 'Username of the person who ente
 
 Comment on table COLLEAGUE_KEYWORD is 'Keywords associated with a colleague.';
 Comment on column COLLEAGUE_KEYWORD.COLLEAGUE_KEYWORD_ID is 'Unique random identifier (Oracle sequence).';
-Comment on column COLLEAGUE_KEYWORD.KEYWORD_ID is 'FK to KEYWORD.KEYWORD_ID.';
 Comment on column COLLEAGUE_KEYWORD.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column COLLEAGUE_KEYWORD.KEYWORD_ID is 'FK to KEYWORD.KEYWORD_ID.';
 Comment on column COLLEAGUE_KEYWORD.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column COLLEAGUE_KEYWORD.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column COLLEAGUE_KEYWORD.CREATED_BY is 'Username of the person who entered the record into the database.';
