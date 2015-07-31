@@ -39,7 +39,7 @@ class Reference(Dbentity):
     journal = relationship(Journal, uselist=False)
 
     __mapper_args__ = {'polymorphic_identity': 'REFERENCE', 'inherit_condition': id == Dbentity.id}
-    __eq_values__ = ['id', 'display_name', 'link', 'description','bud_id', 'sgdid', 'dbentity_status', 
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'sgdid', 'dbentity_status', 
                      'date_created', 'created_by', 'method_obtained', 'fulltext_status', 'citation', 
                      'year', 'pubmed_id', 'pubmed_central_id', 'date_published', 'date_revised',
                      'publication_status', 'issue', 'page', 'volume', 'title', 'doi']
@@ -61,9 +61,14 @@ class Reference(Dbentity):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
 
     @classmethod
-    def __create_name__(cls, obj_json):
+    def __create_display_name__(cls, obj_json):
         citation = obj_json['citation']
-        return citation[:citation.find(")")+1]
+        obj_json['display_name'] = citation[:citation.find(")")+1]
+        return obj_json['display_name']
+
+    def __create_format_name__(cls, obj_json):
+        obj_json['format_name'] = obj_json['sgdid']
+        return obj_json['format_name']
 
     def __to_small_json__(self):
         obj_json = ToJsonMixin.__to_small_json__(self)
@@ -82,7 +87,7 @@ class Reference(Dbentity):
 
     def __to_large_json__(self):
         obj_json = ToJsonMixin.__to_large_json__(self)
-        # obj_json['parents'] = [x.to_json(perspective='child') for x in self.parents]
+        obj_json['parents'] = [x.to_json(perspective='child') for x in self.parents]
         return obj_json
 
 class ReferenceUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
@@ -275,7 +280,7 @@ class ReferenceCorrection(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMi
     child = relationship(Reference, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'correction_type', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'relation_type', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False),
                   ('parent', Reference, False),
                   ('child', Reference, False)]
@@ -290,7 +295,7 @@ class ReferenceCorrection(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMi
         self.relation_type = relation_type
 
     def unique_key(self):
-        return (None if self.parent is None else self.parent.unique_key()), (None if self.child is None else self.child.unique_key(), self.correction_type)
+        return (None if self.parent is None else self.parent.unique_key()), (None if self.child is None else self.child.unique_key(), self.relation_type)
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -301,12 +306,12 @@ class ReferenceCorrection(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMi
         if status == 'Created':
             raise Exception('Child reference not found: ' + str(obj_json))
 
-        correction_type = obj_json["correction_type"]
+        relation_type = obj_json["relation_type"]
 
         current_obj = session.query(cls)\
             .filter_by(parent_id=parent_obj.id)\
             .filter_by(child_id=child.id)\
-            .filter_by(correction_type=correction_type).first()
+            .filter_by(relation_type=relation_type).first()
 
         if current_obj is None:
             newly_created_object = cls(parent_obj, child, relation_type)
@@ -325,7 +330,7 @@ class ReferenceCorrection(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMi
             obj_json['reftypes'] = [x.to_json(size='small', perspective='reference') for x in self.parent.reftypes]
 
         if obj_json is not None:
-            obj_json['correction_type'] = self.correction_type
+            obj_json['relation_type'] = self.relation_type
         return obj_json
 
 class ReferenceReftype(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):

@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
 from src.sgd.model.nex.source import Source
+from src.sgd.model.nex.sgdid import Sgdid
 
 __author__ = 'kelley'
 
@@ -25,7 +26,7 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     #Relationships
     source = relationship(Source, uselist=False, lazy='joined')
-
+    
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'bud_id', 'sgdid', 
                      'class_type', 'dbentity_status', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]

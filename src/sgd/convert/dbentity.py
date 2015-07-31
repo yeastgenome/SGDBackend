@@ -7,7 +7,38 @@ def dbentity_starter(bud_session_maker):
     from src.sgd.model.bud.feature import Feature
     bud_session = bud_session_maker()
 
-    print "loading LOCUS data..."
+    print "Loading REFERENCE data..."
+
+    for ref in bud_session.query(Reference).all():
+        source = 'SGD'
+        if 'PubMed' in ref.source:
+            source = 'NCBI'
+        elif 'PDB' in ref.source:
+            source = 'PDB'
+        elif 'YPD' in ref.source:
+            source = 'YPD'
+        display_name = ref.citation.split(')')[0] + ')'
+        if ref.dbxref_id == 'S000075972':
+            display_name = 'Broach JR, et al. (1991)' 
+        elif ref.dbxref_id == 'S000075973':
+            display_name = 'Reznikoff W, et al. (1987)'
+        elif ref.dbxref_id == 'S000075970':
+            display_name = 'Pringle JR, et al. (1997)'
+        elif  ref.dbxref_id == 'S000075971':
+            display_name = 'Pringle JR and Broach JR (1992)'
+        elif len(display_name) > 90:
+            print "DISPLAY NAME TOO LONG:", display_name, ref.dbxref_id
+            continue
+        yield {'source': {'display_name': source},
+               'sgdid': ref.dbxref_id,
+               'display_name': display_name,
+               'class_type': 'REFERENCE',
+               'dbentity_status': 'Active',
+               'bud_id': ref.id,
+               'date_created': str(ref.date_created),
+               'created_by': ref.created_by}
+
+    print "Loading LOCUS data..."
 
     for locus in bud_session.query(Feature).all():
         yield {'source': {'display_name': 'SGD'},
@@ -19,25 +50,6 @@ def dbentity_starter(bud_session_maker):
                'bud_id': locus.id,
                'date_created': str(locus.date_created),
                'created_by': locus.created_by}
-
-    print "loading REFERENCE data..."
-
-    for ref in bud_session.query(Reference).all():
-        source = 'SGD'
-        if 'PubMed' in ref.source:
-            source = 'NCBI'
-        elif 'PDB' in ref.source:
-            source = 'PDB'
-        elif 'YPD' in ref.source:
-            source = 'YPD'
-        yield {'source': {'display_name': source},
-               'sgdid': ref.dbxref_id,
-               'display_name': ref.citation.split(')')[0] + ')',
-               'class_type': 'REFERENCE',
-               'dbentity_status': 'Active',
-               'bud_id': ref.id,
-               'date_created': str(ref.date_created),
-               'created_by': ref.created_by}
 
     bud_session.close()
 

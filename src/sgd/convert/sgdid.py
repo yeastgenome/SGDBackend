@@ -34,7 +34,7 @@ def sgdid_starter(bud_session_maker):
             if dbxref.id in key_to_feat or sgdid in sgdid_to_feat:
                 subclass = 'LOCUS'
             
-            print sgdid, dbxref.date_created, dbxref.created_by
+            print sgdid, status
 
             yield {'source': {'display_name': 'SGD'},
                    'display_name': sgdid,
