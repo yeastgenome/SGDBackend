@@ -716,3 +716,19 @@ Comment on column STRAIN_SUMMARY_REFERENCE.DATE_CREATED is 'Date the record was 
 Comment on column STRAIN_SUMMARY_REFERENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* Gene reservations */
+
+Comment on table RESERVEDNAME is 'Reserved gene names according to the Gene Registration Guidelines.';
+Comment on column RESERVEDNAME.RESERVEDNAME_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column RESERVEDNAME.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column RESERVEDNAME.DISPLAY_NAME is 'Public display name.';
+Comment on column RESERVEDNAME.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column RESERVEDNAME.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column RESERVEDNAME.BUD_ID is 'From BUD.GENE_RESERVATION.FEATURE_NO.';
+Comment on column RESERVEDNAME.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column RESERVEDNAME.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column RESERVEDNAME.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column RESERVEDNAME.RESERVATION_DATE is 'Date the gene reservation was made.';
+Comment on column RESERVEDNAME.EXPIRATION_DATE is 'Date the gene reservation expires (default = RESERVATION_DATE + 365 days).';
+Comment on column RESERVEDNAME.DESCRIPTION is 'Description or comment.';
+Comment on column RESERVEDNAME.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column RESERVEDNAME.CREATED_BY  is 'Username of the person who entered the record into the database.';
