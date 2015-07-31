@@ -18,10 +18,10 @@
             "title": "DBentity Status",
             "type": "string"
         },
-        "sgdid": {
-            "title": "SGD ID",
+	"sgdid": {
+	    "title": "SGDID",
             "type": "string"
-        },
+	},
         "date_created": {
             "title": "Date Created",
             "type": "string",
