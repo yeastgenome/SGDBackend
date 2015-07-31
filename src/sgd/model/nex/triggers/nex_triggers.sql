@@ -125,24 +125,6 @@ END;
 /
 
 --/
-CREATE OR REPLACE TRIGGER LOCUS_DOC_TRIGGER
-BEFORE INSERT ON locus_document
-FOR EACH ROW
-BEGIN
-SELECT document_seq.nextval INTO :new.document_id FROM DUAL;
-END;
-/
-
---/
-CREATE OR REPLACE TRIGGER LOCUS_DOC_REF_TRIGGER
-BEFORE INSERT ON locus_document_reference
-FOR EACH ROW
-BEGIN
-SELECT docref_seq.nextval INTO :new.document_reference_id FROM DUAL;
-END;
-/
-
---/
 CREATE OR REPLACE TRIGGER MUTANT_TRIGGER
 BEFORE INSERT ON mutant
 FOR EACH ROW
@@ -274,23 +256,5 @@ BEFORE INSERT ON qualifier_relation
 FOR EACH ROW
 BEGIN
 SELECT relation_seq.nextval INTO :new.relation_id FROM DUAL;
-END;
-/
-
---/
-CREATE OR REPLACE TRIGGER STRAIN_DOC_TRIGGER
-BEFORE INSERT ON strain_document
-FOR EACH ROW
-BEGIN
-SELECT document_seq.nextval INTO :new.document_id FROM DUAL;
-END;
-/
-
---/
-CREATE OR REPLACE TRIGGER STRAIN_DOC_REF_TRIGGER
-BEFORE INSERT ON strain_document_reference
-FOR EACH ROW
-BEGIN
-SELECT docref_seq.nextval INTO :new.document_reference_id FROM DUAL;
 END;
 /

@@ -119,5 +119,15 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueKeyword_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueLocus_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueLocus_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueReference_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueReference_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueReference_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueReference_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusSummary_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusSummary_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusSummaryReference_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusSummaryReference_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainSummary_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainSummary_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainSummaryReference_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainSummaryReference_AUDR.trg
+
