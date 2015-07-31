@@ -672,3 +672,47 @@ Comment on column COLLEAGUE_REFERENCE.DATE_CREATED is 'Date the record was enter
 Comment on column COLLEAGUE_REFERENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* Data objects */
+/* Summaries */
+
+Comment on table LOCUS_SUMMARY is 'Summaries or paragraphs associated with locus features.';
+Comment on column LOCUS_SUMMARY.SUMMARY_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column LOCUS_SUMMARY.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column LOCUS_SUMMARY.BUD_ID is 'PK from BUD.PARAGRAPH.PARAGRAPH_NO.';
+Comment on column LOCUS_SUMMARY.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column LOCUS_SUMMARY.SUMMARY_TYPE is 'Type of summary (Gene, Function, Phenotype, Regulation).';
+Comment on column LOCUS_SUMMARY.SUMMARY_ORDER is 'Order of summaries when composed of multiple paragraphs (default = 1).';
+Comment on column LOCUS_SUMMARY.TEXT is 'Summary plain text.';
+Comment on column LOCUS_SUMMARY.HTML is 'Summary HTML mark-up.';
+Comment on column LOCUS_SUMMARY.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column LOCUS_SUMMARY.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table LOCUS_SUMMARY_REFERENCE is 'References associated with a locus summary.';
+Comment on column LOCUS_SUMMARY_REFERENCE.SUMMARY_REFERENCE_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column LOCUS_SUMMARY_REFERENCE.SUMMARY_ID is 'FK to LOCUS_SUMMARY.SUMMARY_ID.';
+Comment on column LOCUS_SUMMARY_REFERENCE.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column LOCUS_SUMMARY_REFERENCE.REFERENCE_ORDER is 'Order of the references in the summary.';
+Comment on column LOCUS_SUMMARY_REFERENCE.SOURCE_ID is  'FK to SOURCE.SOURCE_ID.';
+Comment on column LOCUS_SUMMARY_REFERENCE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column LOCUS_SUMMARY_REFERENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table STRAIN_SUMMARY is 'Summaries or paragraphs associated with strains.';
+Comment on column STRAIN_SUMMARY.SUMMARY_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column STRAIN_SUMMARY.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column STRAIN_SUMMARY.BUD_ID is 'Not from BUD.';
+Comment on column STRAIN_SUMMARY.STRAIN_ID is 'FK to STRAINDBENTITY.DBENTITY_ID.';
+Comment on column STRAIN_SUMMARY.SUMMARY_TYPE is 'Type of summary (Strain).';
+Comment on column STRAIN_SUMMARY.TEXT is 'Summary plain text.';
+Comment on column STRAIN_SUMMARY.HTML is 'Summary HTML mark-up.';
+Comment on column STRAIN_SUMMARY.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column STRAIN_SUMMARY.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table STRAIN_SUMMARY_REFERENCE is 'References associatd with a strain summary.';
+Comment on column STRAIN_SUMMARY_REFERENCE.SUMMARY_REFERENCE_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column STRAIN_SUMMARY_REFERENCE.SUMMARY_ID is 'FK to STRAIN_SUMMARY.SUMMARY_ID.';
+Comment on column STRAIN_SUMMARY_REFERENCE.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column STRAIN_SUMMARY_REFERENCE.REFERENCE_ORDER is 'Order of the references in the summary.';
+Comment on column STRAIN_SUMMARY_REFERENCE.SOURCE_ID is  'FK to SOURCE.SOURCE_ID.';
+Comment on column STRAIN_SUMMARY_REFERENCE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column STRAIN_SUMMARY_REFERENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+/* Gene reservations */
