@@ -647,6 +647,14 @@ Comment on column COLLEAGUE_ASSOCIATION.ASSOCIATION_TYPE is 'Type of association
 Comment on column COLLEAGUE_ASSOCIATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column COLLEAGUE_ASSOCIATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table COLLEAGUE_KEYWORD is 'Keywords associated with a colleague.';
+Comment on column COLLEAGUE_KEYWORD.COLLEAGUE_KEYWORD_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column COLLEAGUE_KEYWORD.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column COLLEAGUE_KEYWORD.KEYWORD_ID is 'FK to KEYWORD.KEYWORD_ID.';
+Comment on column COLLEAGUE_KEYWORD.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column COLLEAGUE_KEYWORD.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column COLLEAGUE_KEYWORD.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table COLLEAGUE_LOCUS is 'Links a colleague with a locus of research interest.';
 Comment on column COLLEAGUE_LOCUS.COLLEAGUE_LOCUS_ID is 'Unique random identifier (Oracle sequence).';
 Comment on column COLLEAGUE_LOCUS.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
@@ -655,10 +663,12 @@ Comment on column COLLEAGUE_LOCUS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column COLLEAGUE_LOCUS.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column COLLEAGUE_LOCUS.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table COLLEAGUE_KEYWORD is 'Keywords associated with a colleague.';
-Comment on column COLLEAGUE_KEYWORD.COLLEAGUE_KEYWORD_ID is 'Unique random identifier (Oracle sequence).';
-Comment on column COLLEAGUE_KEYWORD.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
-Comment on column COLLEAGUE_KEYWORD.KEYWORD_ID is 'FK to KEYWORD.KEYWORD_ID.';
-Comment on column COLLEAGUE_KEYWORD.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column COLLEAGUE_KEYWORD.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column COLLEAGUE_KEYWORD.CREATED_BY is 'Username of the person who entered the record into the database.';
+Comment on table COLLEAGUE_REFERENCE is 'Links a colleague with a reference, primarily through ORCIDs.';
+Comment on column COLLEAGUE_REFERENCE.COLLEAGUE_REFERENCE_ID is 'Unique random identifier (Oracle sequence).';
+Comment on column COLLEAGUE_REFERENCE.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column COLLEAGUE_REFERENCE.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column COLLEAGUE_REFERENCE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column COLLEAGUE_REFERENCE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column COLLEAGUE_REFERENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+/* Data objects */
