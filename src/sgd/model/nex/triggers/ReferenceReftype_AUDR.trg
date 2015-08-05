@@ -38,8 +38,8 @@ BEGIN
   ELSE
 
     v_row := :old.reference_reftype_id || '[:]' || :old.display_name || '[:]' ||
-             :old.obj_url '[:]' || :old.source_id || '[:]' ||
-             :old.bud_id '[:]' || :old.reference_id || '[:]' ||
+             :old.obj_url || '[:]' || :old.source_id || '[:]' ||
+             :old.bud_id || '[:]' || :old.reference_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('REFERENCE_REFTYPE', :old.reference_reftype_id, v_row, USER);
