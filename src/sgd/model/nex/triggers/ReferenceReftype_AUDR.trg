@@ -10,14 +10,14 @@ DECLARE
 BEGIN
   IF UPDATING THEN
 
-    IF (:old.reference_id != :new.reference_id)
+     IF (:old.display_name != :new.display_name)
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE_REFTYPE', 'REFERENCE_ID', :old.reference_reftype_id, :old.reference_id, :new.reference_id, USER);
+        AuditLog.InsertUpdateLog('REFERENCE_REFTYPE', 'DISPLAY_NAME', :old.reference_reftype_id, :old.display_name, :new.display_name, USER);
     END IF;
 
-     IF (:old.reftype_id != :new.reftype_id)
+    IF (((:old.obj_url IS NULL) AND (:new.obj_url IS NOT NULL)) OR ((:old.obj_url IS NOT NULL) AND (:new.obj_url IS NULL)) OR (:old.obj_url != :new.obj_url))
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE_REFTYPE', 'REFTYPE_ID', :old.reference_reftype_id, :old.reftype_id, :new.reftype_id, USER);
+        AuditLog.InsertUpdateLog('REFERENCE_REFTYPE', 'OBJ_URL', :old.reference_reftype_id, :old.obj_url, :new.obj_url, USER);
     END IF;
 
      IF (:old.source_id != :new.source_id)
@@ -25,10 +25,21 @@ BEGIN
         AuditLog.InsertUpdateLog('REFERENCE_REFTYPE', 'SOURCE_ID', :old.reference_reftype_id, :old.source_id, :new.source_id, USER);
     END IF;
 
+    IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id))
+    THEN
+        AuditLog.InsertUpdateLog('REFERENCE_REFTYPE', 'BUD_ID', :old.reference_reftype_id, :old.bud_id, :new.bud_id, USER);
+    END IF;
+
+    IF (:old.reference_id != :new.reference_id)
+    THEN
+        AuditLog.InsertUpdateLog('REFERENCE_REFTYPE', 'REFERENCE_ID', :old.reference_reftype_id, :old.reference_id, :new.reference_id, USER);
+    END IF;
+
   ELSE
 
-    v_row := :old.reference_reftype_id || '[:]' || :old.reference_id || '[:]' ||
-             :old.reftype_id || '[:]' || :old.source_id || '[:]' ||
+    v_row := :old.reference_reftype_id || '[:]' || :old.display_name || '[:]' ||
+             :old.obj_url '[:]' || :old.source_id || '[:]' ||
+             :old.bud_id '[:]' || :old.reference_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('REFERENCE_REFTYPE', :old.reference_reftype_id, v_row, USER);
