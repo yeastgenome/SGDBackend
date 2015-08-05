@@ -513,21 +513,13 @@ Comment on column REFERENCE_URL.URL_TYPE is 'Type of URL (DOI full text, PMC ful
 Comment on column REFERENCE_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table REFTYPE is 'Publication types assigned by NCBI or SGD.';
-Comment on column REFTYPE.REFTYPE_ID is 'Unique random identifier (Oracle sequence).';
-Comment on column REFTYPE.FORMAT_NAME is 'Unique name to create download files.';
-Comment on column REFTYPE.DISPLAY_NAME is 'Public display name.';
-Comment on column REFTYPE.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
-Comment on column REFTYPE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column REFTYPE.BUD_ID is 'PK from BUD.REF_TYPE.REF_TYPE_NO.';
-Comment on column REFTYPE.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column REFTYPE.CREATED_BY is 'Username of the person who entered the record into the database.';
-
 Comment on table REFERENCE_REFTYPE is 'Links a reference with a reftype.';
 Comment on column REFERENCE_REFTYPE.REFERENCE_REFTYPE_ID is 'Unique random identifier (Oracle sequence).';
-Comment on column REFERENCE_REFTYPE.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
-Comment on column REFERENCE_REFTYPE.REFTYPE_ID is 'FK to REFTYPE.REFTYPE_ID.';
+Comment on column REFERENCE_REFTYPE.DISPLAY_NAME is 'Public display name.';
+Comment on column REFERENCE_REFTYPE.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column REFERENCE_REFTYPE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REFERENCE_REFTYPE.BUD_ID is 'PK from BUD.REF_REFTYPE.REF_REFTYPE_NO.';
+Comment on column REFERENCE_REFTYPE.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
 Comment on column REFERENCE_REFTYPE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_REFTYPE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
