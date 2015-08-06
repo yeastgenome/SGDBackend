@@ -107,7 +107,7 @@ Comment on column APO_ALIAS.DISPLAY_NAME is 'Public display name.';
 Comment on column APO_ALIAS.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column APO_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column APO_ALIAS.BUD_ID is 'Not in BUD.';
-Comment on column APO_ALIAS.CHEMICAL_ID is 'FK to APO.APO_ID.';
+Comment on column APO_ALIAS.APO_ID is 'FK to APO.APO_ID.';
 Comment on column APO_ALIAS.ALIAS_TYPE is 'Type of alias (EXACT, RELATED).';
 Comment on column APO_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column APO_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -118,7 +118,7 @@ Comment on column APO_URL.DISPLAY_NAME is 'Public display name (BioPortal, OLS).
 Comment on column APO_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column APO_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column APO_URL.BUD_ID is 'Not in BUD.';
-Comment on column APO_URL.CHEMICAL_ID is 'FK to APO.APO_ID.';
+Comment on column APO_URL.APO_ID is 'FK to APO.APO_ID.';
 Comment on column APO_URL.URL_TYPE is 'Type of URL (External).';
 Comment on column APO_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column APO_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
