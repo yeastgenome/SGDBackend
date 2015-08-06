@@ -10,14 +10,34 @@ DECLARE
 BEGIN
   IF UPDATING THEN
 
+     IF (:old.display_name != :new.display_name)
+    THEN
+        AuditLog.InsertUpdateLog('REFERENCE_AUTHOR', 'DISPLAY_NAME', :old.reference_author_id, :old.display_name, :new.display_name, USER);
+    END IF;
+
+    IF (((:old.obj_url IS NULL) AND (:new.obj_url IS NOT NULL)) OR ((:old.obj_url IS NOT NULL) AND (:new.obj_url IS NULL)) OR (:old.obj_url != :new.obj_url))
+    THEN
+        AuditLog.InsertUpdateLog('REFERENCE_AUTHOR', 'OBJ_URL', :old.reference_author_id, :old.obj_url, :new.obj_url, USER);
+    END IF;
+
+     IF (:old.source_id != :new.source_id)
+    THEN
+        AuditLog.InsertUpdateLog('REFERENCE_AUTHOR', 'SOURCE_ID', :old.reference_author_id, :old.source_id, :new.source_id, USER);
+    END IF;
+
+    IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id))
+    THEN
+        AuditLog.InsertUpdateLog('REFERENCE_AUTHOR', 'BUD_ID', :old.reference_author_id, :old.bud_id, :new.bud_id, USER);
+    END IF;
+
     IF (:old.reference_id != :new.reference_id)
     THEN
         AuditLog.InsertUpdateLog('REFERENCE_AUTHOR', 'REFERENCE_ID', :old.reference_author_id, :old.reference_id, :new.reference_id, USER);
     END IF;
 
-     IF (:old.author_id != :new.author_id)
+    IF (((:old.orcid IS NULL) AND (:new.orcid IS NOT NULL)) OR ((:old.orcid IS NOT NULL) AND (:new.orcid IS NULL)) OR (:old.orcid != :new.orcid))
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE_AUTHOR', 'AUTHOR_ID', :old.reference_author_id, :old.author_id, :new.author_id, USER);
+        AuditLog.InsertUpdateLog('REFERENCE_AUTHOR', 'ORCID', :old.reference_author_id, :old.orcid, :new.orcid, USER);
     END IF;
 
      IF (:old.author_order != :new.author_order)
@@ -30,17 +50,13 @@ BEGIN
         AuditLog.InsertUpdateLog('REFERENCE_AUTHOR', 'AUTHOR_TYPE', :old.reference_author_id, :old.author_type, :new.author_type, USER);
     END IF;
 
-     IF (:old.source_id != :new.source_id)
-    THEN
-        AuditLog.InsertUpdateLog('REFERENCE_AUTHOR', 'SOURCE_ID', :old.reference_author_id, :old.source_id, :new.source_id, USER);
-    END IF;
-
-
   ELSE
 
-    v_row := :old.reference_author_id || '[:]' || :old.reference_id || '[:]' ||
-             :old.author_id || '[:]' || :old.author_order || '[:]' ||
-             :old.author_type || '[:]' || :old.source_id || '[:]' ||
+    v_row := :old.reference_author_id || '[:]' || :old.display_name || '[:]' ||
+             :old.obj_url || '[:]' || :old.source_id || '[:]' ||
+             :old.bud_id || '[:]' || :old.reference_id || '[:]' ||
+             :old.orcid || '[:]' || :old.author_order || '[:]' ||
+             :old.author_type || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('REFERENCE_AUTHOR', :old.reference_author_id, v_row, USER);
