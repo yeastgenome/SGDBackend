@@ -54,7 +54,7 @@ Comment on column SGDID.DESCRIPTION is 'Comment about or reason why the SGDID wa
 Comment on column SGDID.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column SGDID.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-/* Ontologies */
+/* Ontologies and CVs */
 
 Comment on table RO is 'Relation Ontology (RO) used to describe data relationships.';
 Comment on column RO.RELATION_ONTOLOGY_ID is 'Unique identifier (Oracle sequence).';
