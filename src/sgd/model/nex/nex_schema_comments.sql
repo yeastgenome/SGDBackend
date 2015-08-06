@@ -543,24 +543,16 @@ Comment on column REFERENCE_DOCUMENT.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DB
 Comment on column REFERENCE_DOCUMENT.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_DOCUMENT.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table AUTHOR is 'Names of reference authors in PubMed format.';
-Comment on column AUTHOR.AUTHOR_ID is 'Unique identifier (Oracle sequence).';
-Comment on column AUTHOR.FORMAT_NAME is 'Unique name to create download files.';
-Comment on column AUTHOR.DISPLAY_NAME is 'Public display name.';
-Comment on column AUTHOR.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
-Comment on column AUTHOR.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column AUTHOR.BUD_ID is 'PK from BUD.AUTHOR.AUTHOR_NO.';
-Comment on column AUTHOR.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column AUTHOR.CREATED_BY is 'Username of the person who entered the record into the database.';
-
 Comment on table REFERENCE_AUTHOR is 'Links authors with references.';
 Comment on column REFERENCE_AUTHOR.REFERENCE_AUTHOR_ID is 'Unique identifier (Oracle sequence).';
-Comment on column REFERENCE_AUTHOR.AUTHOR_ID is 'FK to AUTHOR.AUTHOR_ID.';
+Comment on column REFERENCE_AUTHOR.DISPLAY_NAME is 'Public display name.';
+Comment on column REFERENCE_AUTHOR.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column REFERENCE_AUTHOR.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REFERENCE_AUTHOR.BUD_ID is 'PK from BUD.AUTHOR_EDITOR.AUTHOR_EDITOR_NO.';
 Comment on column REFERENCE_AUTHOR.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
 Comment on column REFERENCE_AUTHOR.ORCID is 'Author Open Researcher and Contributor ID.';
 Comment on column REFERENCE_AUTHOR.AUTHOR_ORDER is 'Order of the authors.';
 Comment on column REFERENCE_AUTHOR.AUTHOR_TYPE is 'Type of author (Author, Editor).';
-Comment on column REFERENCE_AUTHOR.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column REFERENCE_AUTHOR.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_AUTHOR.CREATED_BY is 'Username of the person who entered the record into the database.';
 
