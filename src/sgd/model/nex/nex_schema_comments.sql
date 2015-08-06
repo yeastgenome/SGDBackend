@@ -210,6 +210,51 @@ Comment on column EVIDENCE_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_O
 Comment on column EVIDENCE_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column EVIDENCE_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table GO is 'Gene Ontology (GO) terms used to describe genes and gene products.';
+Comment on column GO.GO_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GO.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column GO.DISPLAY_NAME is 'Public display name.';
+Comment on column GO.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column GO.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column GO.BUD_ID is 'Not from BUD.';
+Comment on column GO.GOID is 'Gene Ontology identifier (e.g. GO:0016233).';
+Comment on column GO.GO_ASPECT is 'Three separate domains to describe gene products  (cellular component, biological process, molecular function).';
+Comment on column GO.DESCRIPTION is 'Description or comment.';
+Comment on column GO.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GO.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table GO_ALIAS is 'Other names or synonyms for a GO term.';
+Comment on column GO_ALIAS.ALIAS_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GO_ALIAS.DISPLAY_NAME is 'Public display name.';
+Comment on column GO_ALIAS.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column GO_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column GO_ALIAS.BUD_ID is 'Not from BUD.';
+Comment on column GO_ALIAS.GO_ID is 'FK to GO.GO_ID.';
+Comment on column GO_ALIAS.ALIAS_TYPE is 'Type of alias (BROAD, EXACT, RELATED, NARROW).';
+Comment on column GO_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GO_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table GO_URL is 'URLs associated with GO terms.';
+Comment on column GO_URL.URL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GO_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column GO_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column GO_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column GO_URL.BUD_ID is 'Not from BUD.';
+Comment on column GO_URL.GO_ID is 'FK to GO.GO_ID.';
+Comment on column GO_URL.URL_TYPE is 'Type of URL (GO, Amigo).';
+Comment on column GO_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GO_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table GO_RELATION is 'Relationship between two GO terms.';
+Comment on column GO_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GO_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column GO_RELATION.BUD_ID is 'Not from BUD.';
+Comment on column GO_RELATION.PARENT_ID is 'FK to GO.GO_ID.';
+Comment on column GO_RELATION.CHILD_ID is 'FK to GO.GO_ID.';
+Comment on column GO_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
+Comment on column GO_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GO_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table KEYWORD is 'Controlled vocabulary to describe broad categories of biology, used to filter or group data.';
 Comment on column KEYWORD.KEYWORD_ID is 'Unique identifier (Oracle sequence).';
 Comment on column KEYWORD.FORMAT_NAME is 'Unique name to create download files.';
@@ -737,53 +782,6 @@ Comment on column RESERVEDNAME.EXPIRATION_DATE is 'Date the gene reservation exp
 Comment on column RESERVEDNAME.DESCRIPTION is 'Description or comment.';
 Comment on column RESERVEDNAME.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column RESERVEDNAME.CREATED_BY  is 'Username of the person who entered the record into the database.';
-
-/* GO */
-
-Comment on table GOTERM is 'Gene Ontology (GO) terms used to describe genes and gene products.';
-Comment on column GOTERM.GOTERM_ID is 'Unique identifier (Oracle sequence).';
-Comment on column GOTERM.FORMAT_NAME is 'Unique name to create download files.';
-Comment on column GOTERM.DISPLAY_NAME is 'Public display name.';
-Comment on column GOTERM.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
-Comment on column GOTERM.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column GOTERM.BUD_ID is 'Not from BUD.';
-Comment on column GOTERM.GO_ID is 'Gene Ontology identifier (e.g. GO:0016233).';
-Comment on column GOTERM.GO_ASPECT is 'Three separate domains to describe gene products  (cellular component, biological process, molecular function).';
-Comment on column GOTERM.DESCRIPTION is 'Description or comment.';
-Comment on column GOTERM.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column GOTERM.CREATED_BY  is 'Username of the person who entered the record into the database.';
-
-Comment on table GOTERM_ALIAS is 'Other names or synonyms for a GO term.';
-Comment on column GOTERM_ALIAS.ALIAS_ID is 'Unique identifier (Oracle sequence).';
-Comment on column GOTERM_ALIAS.DISPLAY_NAME is 'Public display name.';
-Comment on column GOTERM_ALIAS.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
-Comment on column GOTERM_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column GOTERM_ALIAS.BUD_ID is 'Not from BUD.';
-Comment on column GOTERM_ALIAS.GOTERM_ID is 'FK to GOTERM.GOTERM_ID.';
-Comment on column GOTERM_ALIAS.ALIAS_TYPE is 'Type of alias (BROAD, EXACT, RELATED, NARROW).';
-Comment on column GOTERM_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column GOTERM_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
-
-Comment on table GOTERM_URL is 'URLs associated with GO terms.';
-Comment on column GOTERM_URL.URL_ID is 'Unique identifier (Oracle sequence).';
-Comment on column GOTERM_URL.DISPLAY_NAME is 'Public display name.';
-Comment on column GOTERM_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
-Comment on column GOTERM_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column GOTERM_URL.BUD_ID is 'Not from BUD.';
-Comment on column GOTERM_URL.GOTERM_ID is 'FK to GOTERM.GOTERM_ID.';
-Comment on column GOTERM_URL.URL_TYPE is 'Type of URL (GO, Amigo).';
-Comment on column GOTERM_URL.DATE_CREATED is 'Date the record was entered into the database.';                                                     \
-Comment on column GOTERM_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
-
-Comment on table GOTERM_RELATION is 'Relationship between two GO terms.';
-Comment on column GOTERM_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column GOTERM_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column GOTERM_RELATION.BUD_ID is 'Not from BUD.';
-Comment on column GOTERM_RELATION.PARENT_ID is 'FK to GOTERM.GOTERM_ID.';
-Comment on column GOTERM_RELATION.CHILD_ID is 'FK to GOTERM.GOTERM_ID.';
-Comment on column GOTERM_RELATION.RELATION_TYPE is 'Type of relation (is a).';
-Comment on column GOTERM_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column GOTERM_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* Phenotype */
 
