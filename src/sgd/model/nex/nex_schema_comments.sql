@@ -89,6 +89,50 @@ Comment on column RO_RELATION.RELATION_TYPE is 'Type of relation (is a).';
 Comment on column RO_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column RO_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table APO is 'Ascomycete Phenotype Ontology (APO) created and maintained SGD.';
+Comment on column APO.APO_ID is 'Unique identifier (Oracle sequence).';
+Comment on column APO.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column APO.DISPLAY_NAME is 'Public display name.';
+Comment on column APO.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column APO.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column APO.BUD_ID is 'Not in BUD';
+Comment on column APO.APOID is 'Phenotype identifier (e.g., APO:0000009) or new term requests (NTR).';
+Comment on column APO.DESCRIPTION is 'Description or comment.';
+Comment on column APO.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column APO.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table APO_ALIAS is 'Other names or synonyms for the phenotype.';
+Comment on column APO_ALIAS.ALIAS_ID is 'Unique identifier (Oracle sequence).';
+Comment on column APO_ALIAS.DISPLAY_NAME is 'Public display name.';
+Comment on column APO_ALIAS.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column APO_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column APO_ALIAS.BUD_ID is 'Not in BUD.';
+Comment on column APO_ALIAS.CHEMICAL_ID is 'FK to APO.APO_ID.';
+Comment on column APO_ALIAS.ALIAS_TYPE is 'Type of alias (EXACT, RELATED).';
+Comment on column APO_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column APO_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table APO_URL is 'URLs associated with phenotype.';
+Comment on column APO_URL.URL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column APO_URL.DISPLAY_NAME is 'Public display name (BioPortal, OLS).';
+Comment on column APO_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
+Comment on column APO_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column APO_URL.BUD_ID is 'Not in BUD.';
+Comment on column APO_URL.CHEMICAL_ID is 'FK to APO.APO_ID.';
+Comment on column APO_URL.URL_TYPE is 'Type of URL (External).';
+Comment on column APO_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column APO_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table APO_RELATION is 'Relationship between two phenotypes.';
+Comment on column APO_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column APO_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column APO_RELATION.BUD_ID is 'Not in BUD.';
+Comment on column APO_RELATION.PARENT_ID is 'FK to APO.APO_ID.';
+Comment on column APO_RELATION.CHILD_ID is 'FK to APO.APO_ID.';
+Comment on column APO_RELATION.RELATION_ONTOLOGY_ID is 'FK to RO.RELATION_ONTOLOGY_ID.';
+Comment on column APO_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column APO_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table CHEMICAL is 'Chemical Entities of Biological Interest (ChEBI) from the EBI.';
 Comment on column CHEMICAL.CHEMICAL_ID is 'Unique identifier (Oracle sequence).';
 Comment on column CHEMICAL.FORMAT_NAME is 'Unique name to create download files.';
@@ -236,7 +280,7 @@ Comment on column GO_ALIAS.CREATED_BY is 'Username of the person who entered the
 
 Comment on table GO_URL is 'URLs associated with GO terms.';
 Comment on column GO_URL.URL_ID is 'Unique identifier (Oracle sequence).';
-Comment on column GO_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column GO_URL.DISPLAY_NAME is 'Public display name (GO, Amigo).';
 Comment on column GO_URL.OBJ_URL is 'URL of the object (relative for local links and complete for external links).';
 Comment on column GO_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column GO_URL.BUD_ID is 'Not from BUD.';
