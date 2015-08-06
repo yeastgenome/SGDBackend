@@ -44,6 +44,14 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceUrl_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceRelation_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EvidenceRelation_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Go_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Go_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoAlias_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoAlias_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoUrl_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoUrl_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoRelation_BIUR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoRelation_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Keyword_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Keyword_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Obinvestigation_BIUR.trg
@@ -130,11 +138,11 @@
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_BIUR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_AUDR.trg
 
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Go_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Go_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoAlias_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoAlias_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoUrl_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoUrl_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoRelation_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoRelation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Apo_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Apo_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ApoAlias_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ApoAlias_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ApoUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ApoUrl_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ApoRelation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ApoRelation_AUDR.trg
