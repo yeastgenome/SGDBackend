@@ -35,9 +35,14 @@ BEGIN
         AuditLog.InsertUpdateLog('APO', 'BUD_ID', :old.apo_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
-    IF (((:old.apoid IS NULL) AND (:new.apoid IS NOT NULL)) OR ((:old.apoid IS NOT NULL) AND (:new.apoid IS NULL)) OR (:old.apoid != :new.apoid))
+    IF (:old.apoid != :new.apoid)
     THEN
         AuditLog.InsertUpdateLog('APO', 'APOID', :old.apo_id, :old.apoid, :new.apoid, USER);
+    END IF;
+
+    IF (:old.apo_namespace != :new.apo_namespace)
+    THEN
+        AuditLog.InsertUpdateLog('APO', 'APO_NAMESPACE', :old.apo_id, :old.apo_namespace, :new.apo_namespace, USER);
     END IF;
 
     IF (((:old.description IS NULL) AND (:new.description IS NOT NULL)) OR ((:old.description IS NOT NULL) AND (:new.description IS NULL)) OR (:old.description != :new.description))
@@ -51,7 +56,8 @@ BEGIN
     v_row := :old.apo_id || '[:]' || :old.format_name || '[:]' ||
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.apoid || '[:]' || :old.description || '[:]' ||
+             :old.apo_id || '[:]' || :old.apo_namespace || '[:]' ||
+             :old.description || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('APO', :old.apo_id, v_row, USER);

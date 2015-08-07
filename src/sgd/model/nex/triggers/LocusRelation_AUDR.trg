@@ -30,16 +30,16 @@ BEGIN
         AuditLog.InsertUpdateLog('LOCUS_RELATION', 'CHILD_ID', :old.relation_id, :old.child_id, :new.child_id, USER);
     END IF;
 
-    IF (:old.relation_ontology_id != :new.relation_ontology_id)
+    IF (:old.ro_id != :new.ro_id)
     THEN
-        AuditLog.InsertUpdateLog('LOCUS_RELATION', 'RELATION_ONTOLOGY_ID', :old.relation_id, :old.relation_ontology_id, :new.relation_ontology_id, USER);
+        AuditLog.InsertUpdateLog('LOCUS_RELATION', 'RO_ID', :old.relation_id, :old.ro_id, :new.ro_id, USER);
     END IF;
 
   ELSE
 
     v_row := :old.relation_id || '[:]' || :old.source_id || '[:]' ||
 		  	 :old.bud_id || '[:]' || :old.parent_id || '[:]' ||
-             :old.child_id || '[:]' || :old.relation_ontology_id || '[:]' ||
+             :old.child_id || '[:]' || :old.ro_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('LOCUS_RELATION', :old.relation_id, v_row, USER);

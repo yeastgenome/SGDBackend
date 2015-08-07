@@ -1,23 +1,23 @@
-Create OR REPLACE TRIGGER Ro_BIUR
+Create OR REPLACE TRIGGER ChebiRelation_BIUR
 --
--- Before insert or update trigger for ro table
+-- Before insert or update trigger for chebi_relation table
 --
-  BEFORE INSERT OR UPDATE ON ro
+  BEFORE INSERT OR UPDATE ON chebi_relation
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.ro_id IS NULL) THEN
-        SELECT object_seq.NEXTVAL INTO :new.ro_id FROM DUAL;
+    IF (:new.relation_id IS NULL) THEN
+        SELECT relation_seq.NEXTVAL INTO :new.relation_id FROM DUAL;
     END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
 
-    IF (:new.ro_id != :old.ro_id) THEN    
+    IF (:new.relation_id != :old.relation_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Ro_BIUR;
+END ChebiRelation_BIUR;
 /
 SHOW ERROR

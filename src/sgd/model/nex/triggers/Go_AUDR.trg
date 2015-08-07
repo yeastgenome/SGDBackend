@@ -40,9 +40,9 @@ BEGIN
         AuditLog.InsertUpdateLog('GO', 'GOID', :old.go_id, :old.goid, :new.goid, USER);
     END IF;
 
-     IF (:old.go_aspect != :new.go_aspect)
+     IF (:old.go_namespace != :new.go_namespace)
     THEN
-        AuditLog.InsertUpdateLog('GO', 'GO_ASPECT', :old.go_id, :old.go_aspect, :new.go_aspect, USER);
+        AuditLog.InsertUpdateLog('GO', 'GO_NAMESPACE', :old.go_id, :old.go_namespace, :new.go_namespace, USER);
     END IF;
 
     IF (((:old.description IS NULL) AND (:new.description IS NOT NULL)) OR ((:old.description IS NOT NULL) AND (:new.description IS NULL)) OR (:old.description != :new.description))
@@ -55,7 +55,7 @@ BEGIN
     v_row := :old.go_id || '[:]' || :old.format_name || '[:]' ||  
              :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.goid || '[:]' || :old.go_aspect || '[:]' ||
+             :old.goid || '[:]' || :old.go_namespace || '[:]' ||
              :old.description || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 

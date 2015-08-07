@@ -7,17 +7,17 @@ CREATE OR REPLACE FUNCTION CheckPubmed (
     p_pubmed IN VARCHAR2)
     RETURN NUMBER
 IS
-    v_PubmedId	  referencedbentity.pubmed_id%TYPE;
+    v_PubmedId	  referencedbentity.pmid%TYPE;
 BEGIN
 
-    SELECT count(pubmed_id) INTO v_PubmedId
+    SELECT count(pmid) INTO v_PubmedId
     FROM referencedbentity
-    WHERE pubmed_id = p_pubmed;
+    WHERE pmid = p_pubmed;
 
     IF v_PubMedId > 0 
     THEN 
        RAISE_APPLICATION_ERROR
-          (-20025, 'PubMed ID "' || p_pubmed || '" exists in the REFERENCEDBENTITY table.');
+          (-20025, 'PMID "' || p_pubmed || '" exists in the REFERENCEDBENTITY table.');
        RETURN (0);
     END IF;
 

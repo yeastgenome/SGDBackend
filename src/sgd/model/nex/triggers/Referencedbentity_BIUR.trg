@@ -12,10 +12,10 @@ BEGIN
             (-20018, 'journal_id and book_id can not both be NOT NULL.');
     END IF;
 
-    IF ((:new.journal_id IS NOT NULL) AND (:new.publication_status = 'Published') AND (:new.pubmed_id IS NOT NULL)) THEN
+    IF ((:new.journal_id IS NOT NULL) AND (:new.publication_status = 'Published') AND (:new.pmid IS NOT NULL)) THEN
         IF (:new.title IS NULL) THEN
             RAISE_APPLICATION_ERROR
-                (-20019, 'Reference title must be entered if there is a Pubmed_ID.');
+                (-20019, 'Reference title must be entered if there is a Pmid.');
         END IF;
     END IF;
 
@@ -31,10 +31,10 @@ BEGIN
             (-20018, 'journal_id and book_id can not both be NOT NULL.');
     END IF;
 
-    IF ((:new.journal_id IS NOT NULL) AND (:new.publication_status = 'Published') AND (:new.pubmed_id IS NOT NULL)) THEN
+    IF ((:new.journal_id IS NOT NULL) AND (:new.publication_status = 'Published') AND (:new.pmid IS NOT NULL)) THEN
         IF (:new.title IS NULL) THEN
             RAISE_APPLICATION_ERROR
-                (-20019, 'Reference title must be entered if there is a Pubmed_ID.');
+                (-20019, 'Reference title must be entered if there is a Pmid.');
         END IF;
     END IF;
 

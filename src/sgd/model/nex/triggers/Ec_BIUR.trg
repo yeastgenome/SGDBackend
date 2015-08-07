@@ -1,23 +1,23 @@
-Create OR REPLACE TRIGGER Ro_BIUR
+Create OR REPLACE TRIGGER Ec_BIUR
 --
--- Before insert or update trigger for ro table
+-- Before insert or update trigger for ec table
 --
-  BEFORE INSERT OR UPDATE ON ro
+  BEFORE INSERT OR UPDATE ON ec
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.ro_id IS NULL) THEN
-        SELECT object_seq.NEXTVAL INTO :new.ro_id FROM DUAL;
+    IF (:new.ec_id IS NULL) THEN
+        SELECT object_seq.NEXTVAL INTO :new.ec_id FROM DUAL;
     END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
 
-    IF (:new.ro_id != :old.ro_id) THEN    
+    IF (:new.ec_id != :old.ec_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Ro_BIUR;
+END Ec_BIUR;
 /
 SHOW ERROR

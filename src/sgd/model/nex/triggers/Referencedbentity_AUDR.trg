@@ -36,14 +36,14 @@ BEGIN
         AuditLog.InsertUpdateLog('REFERENCE', 'YEAR', :old.dbentity_id, :old.year, :new.year, USER);
     END IF;
 
-    IF (((:old.pubmed_id IS NULL) AND (:new.pubmed_id IS NOT NULL)) OR ((:old.pubmed_id IS NOT NULL) AND (:new.pubmed_id IS NULL)) OR (:old.pubmed_id != :new.pubmed_id))
+    IF (((:old.pmid IS NULL) AND (:new.pmid IS NOT NULL)) OR ((:old.pmid IS NOT NULL) AND (:new.pmid IS NULL)) OR (:old.pmid != :new.pmid))
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE', 'PUBMED_ID', :old.dbentity_id, :old.pubmed_id, :new.pubmed_id, USER);
+        AuditLog.InsertUpdateLog('REFERENCE', 'PMID', :old.dbentity_id, :old.pmid, :new.pmid, USER);
     END IF;
 
-    IF (((:old.pubmed_central_id IS NULL) AND (:new.pubmed_central_id IS NOT NULL)) OR ((:old.pubmed_central_id IS NOT NULL) AND (:new.pubmed_central_id IS NULL)) OR (:old.pubmed_central_id != :new.pubmed_central_id))
+    IF (((:old.pmcid IS NULL) AND (:new.pmcid IS NOT NULL)) OR ((:old.pmcid IS NOT NULL) AND (:new.pmcid IS NULL)) OR (:old.pmcid != :new.pmcid))
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE', 'PUBMED_CENTRAL_ID', :old.dbentity_id, :old.pubmed_central_id, :new.pubmed_central_id, USER);
+        AuditLog.InsertUpdateLog('REFERENCE', 'PMCID', :old.dbentity_id, :old.pmcid, :new.pmcid, USER);
     END IF;
 
     IF (((:old.date_published IS NULL) AND (:new.date_published IS NOT NULL)) OR ((:old.date_published IS NOT NULL) AND (:new.date_published IS NULL)) OR (:old.date_published != :new.date_published))
@@ -96,8 +96,8 @@ BEGIN
   v_row := :old.dbentity_id || '[:]' || :old.method_obtained || '[:]' ||
            :old.publication_status || '[:]' ||
            :old.fulltext_status || '[:]' || :old.citation || '[:]' || 
-           :old.year || '[:]' || :old.pubmed_id || '[:]' ||
-           :old.pubmed_central_id || '[:]' || :old.date_published || '[:]' || 
+           :old.year || '[:]' || :old.pmid || '[:]' ||
+           :old.pmcid || '[:]' || :old.date_published || '[:]' || 
            :old.date_revised || '[:]' || :old.issue || '[:]' || 
            :old.page || '[:]' || :old.volume || '[:]' || 
            :old.title || '[:]' || :old.doi || '[:]' ||

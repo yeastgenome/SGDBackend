@@ -11,9 +11,9 @@ BEGIN
 
   IF UPDATING THEN
 
-    IF (:old.pubmed_id != :new.pubmed_id) 
+    IF (:old.pmid != :new.pmid) 
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE_DELETED', 'PUBMED_ID', :old.reference_deleted_id, :old.pubmed_id, :new.pubmed_id, USER);
+        AuditLog.InsertUpdateLog('REFERENCE_DELETED', 'PMID', :old.reference_deleted_id, :old.pmid, :new.pmid, USER);
     END IF;
 
     IF (((:old.sgdid IS NULL) AND (:new.sgdid IS NOT NULL)) OR ((:old.sgdid IS NOT NULL) AND (:new.sgdid IS NULL)) OR (:old.sgdid != :new.sgdid))
@@ -28,7 +28,7 @@ BEGIN
 
   ELSE
 
-     v_row := :old.reference_deleted_id || '[:]' || :old.pubmed_id || '[:]' || 
+     v_row := :old.reference_deleted_id || '[:]' || :old.pmid || '[:]' || 
               :old.sgdid || '[:]' || :old.bud_id || '[:]' ||
               :old.date_created || '[:]' || :old.created_by;
 

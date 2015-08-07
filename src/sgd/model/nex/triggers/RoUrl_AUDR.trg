@@ -30,9 +30,9 @@ BEGIN
         AuditLog.InsertUpdateLog('RO_URL', 'BUD_ID', :old.url_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
-    IF (:old.relation_ontology_id != :new.relation_ontology_id)
+    IF (:old.ro_id != :new.ro_id)
     THEN
-        AuditLog.InsertUpdateLog('RO_URL', 'RELATION_ONTOLOGY_ID', :old.url_id, :old.relation_ontology_id, :new.relation_ontology_id, USER);
+        AuditLog.InsertUpdateLog('RO_URL', 'RO_ID', :old.url_id, :old.ro_id, :new.ro_id, USER);
     END IF;
 
     IF (:old.url_type != :new.url_type)
@@ -45,7 +45,7 @@ BEGIN
     v_row := :old.url_id || '[:]' || 
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.relation_ontology_id || '[:]' || :old.url_type || '[:]' ||
+             :old.ro_id || '[:]' || :old.url_type || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('RO_URL', :old.url_id, v_row, USER);

@@ -1,23 +1,23 @@
-Create OR REPLACE TRIGGER Ro_BIUR
+Create OR REPLACE TRIGGER EcoAlias_BIUR
 --
--- Before insert or update trigger for ro table
+-- Before insert or update trigger for eco_alias table
 --
-  BEFORE INSERT OR UPDATE ON ro
+  BEFORE INSERT OR UPDATE ON eco_alias
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.ro_id IS NULL) THEN
-        SELECT object_seq.NEXTVAL INTO :new.ro_id FROM DUAL;
+    IF (:new.alias_id IS NULL) THEN
+        SELECT alias_seq.NEXTVAL INTO :new.alias_id FROM DUAL;
     END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
 
-    IF (:new.ro_id != :old.ro_id) THEN    
+    IF (:new.alias_id != :old.alias_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Ro_BIUR;
+END EcoAlias_BIUR;
 /
 SHOW ERROR

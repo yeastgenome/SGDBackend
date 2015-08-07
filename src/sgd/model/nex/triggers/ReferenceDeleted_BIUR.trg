@@ -5,7 +5,7 @@ Create OR REPLACE TRIGGER ReferenceDeleted_BIUR
   BEFORE INSERT OR UPDATE ON reference_deleted
   FOR EACH ROW
 DECLARE
-  v_IsPubmedUsed        referencedbentity.pubmed_id%TYPE;
+  v_IsPubmedUsed        referencedbentity.pmid%TYPE;
   v_IsSgdidUsed         sgdid.display_name%TYPE;
   v_IsValidUser         dbuser.username%TYPE;
 BEGIN
@@ -15,7 +15,7 @@ BEGIN
         SELECT reference_deleted_seq.NEXTVAL INTO :new.reference_deleted_id FROM DUAL;
     END IF; 
 
-    v_IsPubmedUsed := CheckPubmed(:new.pubmed_id);
+    v_IsPubmedUsed := CheckPubmed(:new.pmid);
 
     IF (:new.sgdid IS NOT NULL) THEN
       v_IsSgdidUsed := ManageSgdid.CheckSgdid(:new.sgdid);
@@ -30,7 +30,7 @@ BEGIN
             (-20000, 'Primary key cannot be updated');
     END IF;
 
-    v_IsPubmedUsed := CheckPubmed(:new.pubmed_id);
+    v_IsPubmedUsed := CheckPubmed(:new.pmid);
 
     IF (:new.sgdid IS NOT NULL) THEN
       v_IsSgdidUsed := ManageSgdid.CheckSgdid(:new.sgdid);
