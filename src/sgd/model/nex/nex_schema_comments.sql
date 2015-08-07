@@ -570,8 +570,8 @@ Comment on column REFERENCEDBENTITY.PUBLICATION_STATUS is 'Publication state of 
 Comment on column REFERENCEDBENTITY.FULLTEXT_STATUS is 'State of the full text for the reference (N, NAA, NAM, NAP, Y, YF, YT).';
 Comment on column REFERENCEDBENTITY.CITATION is 'Full citation of the reference.';
 Comment on column REFERENCEDBENTITY.YEAR is 'Year the reference was published.';
-Comment on column REFERENCEDBENTITY.PUBMED_ID is 'PMID of the reference from NCBI.';
-Comment on column REFERENCEDBENTITY.PUBMED_CENTRAL_ID is 'PMCID of the reference from NCBI.';
+Comment on column REFERENCEDBENTITY.PMID is 'PMID of the reference from NCBI.';
+Comment on column REFERENCEDBENTITY.PMCID is 'PMCID of the reference from NCBI.';
 Comment on column REFERENCEDBENTITY.DATE_PUBLISHED is 'Full date the reference was published.';
 Comment on column REFERENCEDBENTITY.DATE_REVISED is 'Date if the reference was updated by NCBI.';
 Comment on column REFERENCEDBENTITY.ISSUE is 'Issue of the reference.';
@@ -657,7 +657,7 @@ Comment on column REFERENCE_UNLINK.CREATED_BY is 'Username of the person who ent
 
 Comment on table REFERENCE_DELETED is 'References permanently removed from the database via curator triage.';
 Comment on column REFERENCE_DELETED.REFERENCE_DELETED_ID is 'Unique identifier (Oracle sequence).';
-Comment on column REFERENCE_DELETED.PUBMED_ID is 'PubMed ID of the reference from NCBI.';
+Comment on column REFERENCE_DELETED.PMID is 'PubMed ID of the reference from NCBI.';
 Comment on column REFERENCE_DELETED.SGDID is 'SGDID of the reference assigned before removal from the database.';
 Comment on column REFERENCE_DELETED.BUD_ID is 'PK in BUD is PubMed ID.';
 Comment on column REFERENCE_DELETED.DATE_CREATED is 'Date the record was entered into the database.';
