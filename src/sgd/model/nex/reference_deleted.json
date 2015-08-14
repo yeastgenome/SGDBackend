@@ -1,0 +1,40 @@
+{
+    "title": "Reftype",
+        "type": "object",
+        "properties": {
+            "id": {
+                "title": "ID",
+                "type": "integer"
+            },
+            "pmid": {
+                "title": "Pubmed ID",
+                "type": "integer"
+            },
+            "sgdid": {
+                "title": "SGDID",
+                "type": "string"
+            },
+            "bud_id": {
+                "title": "Bud ID",
+                "type": "integer"
+            },
+            "date_created": {
+                "title": "Date Created",
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "date-time"
+                    },
+                    {
+                        "format": "date"
+                    }
+                ]
+            },
+            "created_by": {
+                "title": "Created By",
+                "type": "string"
+            }
+        },
+        "required": ["pmid"]
+
+}

@@ -163,6 +163,39 @@ def link_gene_names(text, to_ignore, nex_session):
         print text
         return text
 
+
+sgdid_to_reference_id = None
+
+def get_sgdid_to_reference_id(sgdid, nex_session=None):
+    from src.sgd.model.nex.reference import Reference
+    global sgdid_to_reference_id
+    if sgdid_to_reference_id is None:
+        if nex_session is None:
+            from src.sgd.model import nex
+            from src.sgd.convert import config
+            nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+            nex_session = nex_session_maker()
+        sgdid_to_reference_id = {}
+        for ref in nex_session.query(Reference).all():
+            sgdid_to_reference_id[ref.sgdid] = ref.id
+    return None if sgdid not in sgdid_to_reference_id else sgdid_to_reference_id[sgdid]
+
+relation_to_ro_id = None
+
+def get_relation_to_ro_id(relation_type, nex_session=None):
+    from src.sgd.model.nex.ro import Ro
+    global relation_to_ro_id
+    if relation_to_ro_id is None:
+        if nex_session is None:
+            from src.sgd.model import nex
+            from src.sgd.convert import config
+            nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+            nex_session = nex_session_maker()
+        relation_to_ro_id = {}
+        for relation in nex_session.query(Ro).all():
+            relation_to_ro_id[relation.display_name] = relation.id
+    return None if relation_type not in relation_to_ro_id else relation_to_ro_id[relation_type]
+
 word_to_strain_id = None
 
 def get_word_to_strain_id(word, nex_session):

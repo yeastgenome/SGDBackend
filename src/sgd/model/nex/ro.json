@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Obinvestigation",
+    "title": "Ro",
     "type": "object",
     "properties": {
         "id": {
@@ -31,7 +31,7 @@
             "title": "Source",
             "$ref": "source.json"
         },
-        "ro_id": {
+        "roid": {
             "title": "RO ID",
             "type": "string"
         },
@@ -103,7 +103,7 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "ro_id": {
+                    "roid": {
                         "title": "RO ID",
                         "type": "string"
                     },
@@ -132,7 +132,7 @@
                         "type": "string"
                     }
                 },
-                "required": ["obi_id"]
+                "required": ["roid"]
             }
         },
         "parents": {
@@ -141,7 +141,7 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "ro_id": {
+                    "roid": {
                         "title": "RO ID",
                         "type": "string"
                     },
@@ -170,7 +170,7 @@
                         "type": "string"
                     }
                 },
-                "required": ["ro_id"]
+                "required": ["roid"]
             }
         }
     },

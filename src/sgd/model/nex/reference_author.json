@@ -1,0 +1,56 @@
+{
+    "title": "Reference Author",
+        "type": "object",
+        "properties": {
+            "id": {
+                "title": "ID",
+                "type": "integer"
+            },
+            "display_name": {
+                "title": "Name",
+                "type": "string"
+            },
+            "link": {
+                "title": "Link",
+                "type": "string"
+            },
+	    "reference_id": {
+                "title": "Reference ID",
+                "type": "integer"
+            },
+            "source": {
+                "title": "Source",
+                "$ref": "source.json"
+            },
+            "bud_id": {
+                "title": "Bud ID",
+                "type": "integer"
+            },
+	    "author_order": {
+                "title": "Author Order",
+                "type": "integer"
+            },
+	    "author_type": {
+                "title": "Author Type",
+                "type": "string"
+            },
+            "date_created": {
+                "title": "Date Created",
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "date-time"
+                    },
+                    {
+                        "format": "date"
+                    }
+                ]
+            },
+            "created_by": {
+                "title": "Created By",
+                "type": "string"
+            }
+        },
+        "required": ["display_name", "author_order", "author_type", "source"]
+
+}

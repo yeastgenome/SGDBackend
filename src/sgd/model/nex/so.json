@@ -1,27 +1,40 @@
 {
-    "title": "Referencedbentity",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Sequencefeature",
     "type": "object",
     "properties": {
         "id": {
             "title": "ID",
             "type": "integer"
         },
-        "method_obtained": {
-            "title": "Method Obtained ",
+        "display_name": {
+            "title": "Name",
             "type": "string"
         },
-        "publication_status": {
-            "title": "Publication Status",
+        "format_name": {
+            "title": "Format Name",
             "type": "string"
         },
-        "dbentity_status": {
-            "title": "DBentity Status",
+        "link": {
+            "title": "Link",
             "type": "string"
         },
-	"sgdid": {
-	    "title": "SGDID",
+        "description": {
+            "title": "Description",
             "type": "string"
-	},
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "soid": {
+            "title": "SO ID",
+            "type": "string"
+        },
         "date_created": {
             "title": "Date Created",
             "type": "string",
@@ -35,64 +48,8 @@
             ]
         },
         "created_by": {
-            "title": "Created By",
+            "title": "Name",
             "type": "string"
-        },
-        "pmid": {
-            "title": "Pubmed ID",
-            "type": "integer"
-        },
-        "pmcid": {
-            "title": "Pubmed Central ID",
-            "type": "string"
-        },
-        "fulltext_status": {
-            "title": "Fulltext Status",
-            "type": "string"
-        },
-        "citation": {
-            "title": "Citation",
-            "type": "string"
-        },
-        "year": {
-            "title": "Year",
-            "type": "integer"
-        },
-        "date_published": {
-            "title": "Date Published",
-            "type": "string"
-        },
-        "date_revised": {
-            "title": "Date Revised",
-            "type": "string"
-        },
-        "issue": {
-            "title": "Issue",
-            "type": "string"
-        },
-        "page": {
-            "title": "Page",
-            "type": "string"
-        },
-        "volume": {
-            "title": "Volume",
-            "type": "string"
-        },
-        "title": {
-            "title": "Title",
-            "type": "string"
-        },
-        "doi": {
-            "title": "DOI",
-            "type": "string"
-        },
-        "journal": {
-            "title": "Journal",
-            "$ref": "journal.json"
-        },
-        "book": {
-            "title": "Book",
-            "$ref": "book.json"
         },
         "urls": {
             "title": "Urls",
@@ -105,7 +62,7 @@
                         "type": "integer"
                     },
                     "display_name": {
-                        "title": "Display Name",
+                        "title": "Name",
                         "type": "string"
                     },
                     "link": {
@@ -186,27 +143,23 @@
                 "required": ["display_name", "alias_type", "source"]
             }
         },
-	"reftypes": {
-            "title": "Reftypes",
+        "children": {
+            "title": "Children",
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "title": "ID",
-                        "type": "integer"
-                    },
-                    "display_name": {
-                        "title": "Name",
-                        "type": "string"
-                    },
-                    "link": {
-                        "title": "Link",
+                    "soid": {
+                        "title": "SO ID",
                         "type": "string"
                     },
                     "source": {
                         "title": "Source",
                         "$ref": "source.json"
+                    },
+		    "ro": {
+                        "title": "Ro",
+                        "$ref": "ro.json"
                     },
                     "date_created": {
                         "title": "Date Created",
@@ -225,38 +178,26 @@
                         "type": "string"
                     }
                 },
-                "required": ["display_name", "source"]
+                "required": ["soid"]
             }
         },
-	"authors": {
-            "title": "Authors",
+        "parents": {
+            "title": "Parents",
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "title": "ID",
-                        "type": "integer"
-                    },
-                    "display_name": {
-                        "title": "Name",
+                    "soid": {
+                        "title": "SO ID",
                         "type": "string"
-                    },
-                    "link": {
-                        "title": "Link",
-                        "type": "string"
-                    },
-                    "author_type": {
-                        "title": "Author Type",
-                        "type": "string"
-                    },
-		    "author_order": {
-                        "title": "Author Order",
-                        "type": "integer"
                     },
                     "source": {
                         "title": "Source",
                         "$ref": "source.json"
+                    },
+		    "ro": {
+                        "title": "Ro",
+                        "$ref": "ro.json"
                     },
                     "date_created": {
                         "title": "Date Created",
@@ -275,69 +216,9 @@
                         "type": "string"
                     }
                 },
-                "required": ["display_name", "author_order", "author_type", "source"]
-            }
-        },
-        "documents": {
-            "title": "Documents",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "title": "ID",
-                        "type": "integer"
-                    },
-                    "text": {
-                        "title": "Text",
-                        "type": "string"
-                    },
-                    "html": {
-                        "title": "HTML",
-                        "type": "string"
-                    },
-                    "document_type": {
-                        "title": "Document Type",
-                        "type": "string"
-                    },
-                    "source": {
-                        "title": "Source",
-                        "$ref": "source.json"
-                    },
-                    "references": {
-                        "title": "References",
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "title": "ID",
-                                    "type": "integer"
-                                }
-                            }
-                        }
-                    },
-                    "date_created": {
-                        "title": "Date Created",
-                        "type": "string",
-                        "anyOf": [
-                            {
-                                "format": "date-time"
-                            },
-                            {
-                                "format": "date"
-                            }
-                        ]
-                    },
-                    "created_by": {
-                        "title": "Created By",
-                        "type": "string"
-                    }
-                },
-                "required": ["text", "document_type", "source"]
+                "required": ["soid"]
             }
         }
     },
-    "required": ["source", "sgdid", "citation"]
-
+    "required": ["display_name"]
 }

@@ -4,7 +4,6 @@ import datetime
 
 __author__ = 'kpaskov'
 
-
 def basic_convert(bud_db, nex_db, starter, class_name, key_f):
     from src.sgd.backend.nex.update_backend import UpdateBackend
     from src.sgd.model import bud
@@ -14,7 +13,7 @@ def basic_convert(bud_db, nex_db, starter, class_name, key_f):
     start = datetime.datetime.now()
     bud_session_maker = prepare_schema_connection(bud, config.BUD_DBTYPE, bud_db, config.BUD_DBNAME, config.BUD_SCHEMA, config.BUD_DBUSER, config.BUD_DBPASS)
     update_backend = UpdateBackend(config.NEX_DBTYPE, nex_db, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.log_directory)
-
+    
     already_seen = set()
 
     accumulated_status = dict()
@@ -46,3 +45,6 @@ def remove_nones(obj_json):
     for key in to_be_deleted:
         del obj_json[key]
     return obj_json
+
+
+

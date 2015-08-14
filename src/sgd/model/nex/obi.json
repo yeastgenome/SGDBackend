@@ -1,18 +1,14 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Taxonomy",
+    "title": "Obi",
     "type": "object",
     "properties": {
         "id": {
             "title": "ID",
             "type": "integer"
         },
-	"taxid": {
-	    "title": "TAXON_ID",
-            "type": "integer"
-	},
         "display_name": {
-            "title": "Display Name",
+            "title": "Name",
             "type": "string"
         },
         "format_name": {
@@ -23,17 +19,21 @@
             "title": "Link",
             "type": "string"
         },
-        "common_name": {
-            "title": "Common Name",
+        "description": {
+            "title": "Description",
             "type": "string"
         },
-        "rank": {
-            "title": "Rank",
-            "type": "string"
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
         },
         "source": {
             "title": "Source",
             "$ref": "source.json"
+        },
+        "obiid": {
+            "title": "OBI ID",
+            "type": "string"
         },
         "date_created": {
             "title": "Date Created",
@@ -51,129 +51,7 @@
             "title": "Name",
             "type": "string"
         },
-        "children": {
-            "title": "Children",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "display_name": {
-                        "title": "Display Name",
-                        "type": "string"
-                    },
-                    "ro": {
-                        "title": "Ro",
-                        "$ref": "ro.json"
-                    },
-                    "source": {
-                        "title": "Source",
-                        "$ref": "source.json"
-                    },
-                    "date_created": {
-                        "title": "Date Created",
-                        "type": "string",
-                        "anyOf": [
-                            {
-                                "format": "date-time"
-                            },
-                            {
-                                "format": "date"
-                            }
-                        ]
-                    },
-                    "created_by": {
-                        "title": "Created By",
-                        "type": "string"
-                    }
-                },
-                "required": ["display_name"]
-            }
-        },
-        "parents": {
-            "title": "Parents",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "display_name": {
-                        "title": "Display Name",
-                        "type": "string"
-                    },
-                    "ro": {
-                        "title": "Ro",
-                        "$ref": "ro.json"
-                    },
-                    "source": {
-                        "title": "Source",
-                        "$ref": "source.json"
-                    },
-                    "date_created": {
-                        "title": "Date Created",
-                        "type": "string",
-                        "anyOf": [
-                            {
-                                "format": "date-time"
-                            },
-                            {
-                                "format": "date"
-                            }
-                        ]
-                    },
-                    "created_by": {
-                        "title": "Created By",
-                        "type": "string"
-                    }
-                },
-                "required": ["display_name"]
-            }
-        },
-        "aliases": {
-            "title": "Aliases",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "title": "ID",
-                        "type": "integer"
-                    },
-                    "display_name": {
-                        "title": "Display Name",
-                        "type": "string"
-                    },
-                    "bud_id": {
-		        "title": "BUD ID",
-                        "type": "integer"
-		    },
-                    "alias_type": {
-                        "title": "Alias Type",
-                        "type": "string"
-                    },
-                    "source": {
-                        "title": "Source",
-                        "$ref": "source.json"
-                    },
-                    "date_created": {
-                        "title": "Date Created",
-                        "type": "string",
-                        "anyOf": [
-                            {
-                                "format": "date-time"
-                            },
-                            {
-                                "format": "date"
-                            }
-                        ]
-                    },
-                    "created_by": {
-                        "title": "Created By",
-                        "type": "string"
-                    }
-                },
-                "required": ["display_name", "alias_type", "source"]
-            }
-        },
-	"urls": {
+        "urls": {
             "title": "Urls",
             "type": "array",
             "items": {
@@ -184,19 +62,15 @@
                         "type": "integer"
                     },
                     "display_name": {
-                        "title": "Display Name",
+                        "title": "Name",
                         "type": "string"
                     },
-		    "link": {
-		    	"title": "Link",
-			"type": "string"
-		    },
-		    "bud_id": {
-		        "title": "BUD ID",
-                        "type": "integer"
-		    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
                     "url_type": {
-                        "title": "URL Type",
+                        "title": "Url Type",
                         "type": "string"
                     },
                     "source": {
@@ -222,7 +96,83 @@
                 },
                 "required": ["display_name", "link", "url_type", "source"]
             }
+        },
+        "children": {
+            "title": "Children",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "obiid": {
+                        "title": "OBI ID",
+                        "type": "string"
+                    },
+                    "ro": {
+                        "title": "Ro",
+                        "$ref": "ro.json"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["obiid"]
+            }
+        },
+        "parents": {
+            "title": "Parents",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "obiid": {
+                        "title": "OBI ID",
+                        "type": "string"
+                    },
+                    "ro": {
+                        "title": "Ro",
+                        "$ref": "ro.json"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["obiid"]
+            }
         }
     },
-    "required": ["taxid", "display_name"]
+    "required": ["display_name"]
 }

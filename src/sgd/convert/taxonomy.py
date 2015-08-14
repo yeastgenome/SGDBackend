@@ -1,10 +1,9 @@
 from src.sgd.convert import basic_convert, remove_nones
+from src.sgd.convert.util import get_relation_to_ro_id
 from sqlalchemy.orm import joinedload
-
 
 __author__ = 'kpaskov'
 ## updated by sweng66
-
 
 def load_aliases(bud_obj, bud_session, secondary_common_name):
     from src.sgd.model.bud.taxonomy import TaxonomyAlias
@@ -35,8 +34,12 @@ def load_relations(bud_obj, bud_session):
     for relation_obj in bud_session.query(TaxonomyRelation).filter_by(parent_id=bud_obj.id).filter_by(generation=1).all():
         relations.append(remove_nones({
             "display_name": relation_obj.child.name,
+            "taxid": relation_obj.child.id,
+            "rank": relation_obj.child.rank,
+            "date_created": str(relation_obj.child.date_created),
+            "created_by": relation_obj.child.created_by,
             'source': {'display_name': 'NCBI'},
-            "relation_type": 'is a'
+            "ro_id": get_relation_to_ro_id('is a')
         }))
     return relations
 
@@ -48,7 +51,7 @@ def taxonomy_starter(bud_session_maker):
     # only load taxonomy for family "Saccharomycetaceae" (taxon_id=4893) and lower
     for relation in bud_session.query(TaxonomyRelation).options(joinedload(TaxonomyRelation.child)).filter_by(parent_id=4893).all():
         bud_obj = relation.child
-    
+
         obj_json = {'display_name': bud_obj.name,                  
                     'taxid': int(bud_obj.id),
                     'rank': bud_obj.rank,    

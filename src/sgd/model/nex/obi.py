@@ -5,19 +5,20 @@ from sqlalchemy.types import Integer, String, Date
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
 from src.sgd.model.nex.source import Source
+from src.sgd.model.nex.ro import Ro
 
 __author__ = 'sweng66'
 
-class Ro(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
-    __tablename__ = 'ro'
+class Obi(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
+    __tablename__ = 'obi'
 
-    id = Column('ro_id', Integer, primary_key=True)
+    id = Column('obi_id', Integer, primary_key=True)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
     link = Column('obj_url', String)
     bud_id = Column('bud_id', Integer)
-    roid = Column('roid', String)
+    obiid = Column('obiid', String)
     description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
@@ -25,11 +26,11 @@ class Ro(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by', 'roid']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by', 'obiid']
     __eq_fks__ = [('source', Source, False),
-                  ('urls', 'ro.RoUrl', True),
-                  ('children', 'ro.RoRelation', True)]
-    __id_values__ = ['id', 'format_name', 'roid']
+                  ('urls', 'obi.ObiUrl', True),
+                  ('children', 'obi.ObiRelation', True)]
+    __id_values__ = ['id', 'format_name', 'obiid']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
     __filter_values__ = []
 
@@ -38,24 +39,24 @@ class Ro(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     @classmethod
     def __create_format_name__(cls, obj_json):
-        return obj_json['roid']
+        return obj_json['obiid']
 
 
-class RoUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
-    __tablename__ = 'ro_url'
+class ObiUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'obi_url'
 
     id = Column('url_id', Integer, primary_key=True)
     display_name = Column('display_name', String)
     link = Column('obj_url', String)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
-    ro_id = Column('ro_id', Integer, ForeignKey(Ro.id, ondelete='CASCADE'))
+    obi_id = Column('obi_id', Integer, ForeignKey(Obi.id, ondelete='CASCADE'))
     url_type = Column('url_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    ro = relationship(Ro, uselist=False, backref=backref('urls', cascade="all, delete-orphan", passive_deletes=True))
+    obi = relationship(Obi, uselist=False, backref=backref('urls', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type',
@@ -69,7 +70,7 @@ class RoUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return (None if self.ro is None else self.ro.unique_key()), self.display_name, self.link
+        return (None if self.obi is None else self.obi.unique_key()), self.display_name, self.link
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -78,10 +79,10 @@ class RoUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
         newly_created_object = cls(obj_json, session)
         if parent_obj is not None:
-            newly_created_object.ro_id = parent_obj.id
+            newly_created_object.obi_id = parent_obj.id
 
         current_obj = session.query(cls)\
-            .filter_by(ro_id=newly_created_object.ro_id)\
+            .filter_by(obi_id=newly_created_object.obi_id)\
             .filter_by(display_name=newly_created_object.display_name)\
             .filter_by(link=newly_created_object.link).first()
 
@@ -91,57 +92,58 @@ class RoUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
             return current_obj, 'Found'
 
 
-class RoRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
-    __tablename__ = 'ro_relation'
+class ObiRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'obi_relation'
 
     id = Column('relation_id', Integer, primary_key=True)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
-    parent_id = Column('parent_id', Integer, ForeignKey(Ro.id, ondelete='CASCADE'))
-    child_id = Column('child_id', Integer, ForeignKey(Ro.id, ondelete='CASCADE'))
-    relation_type = Column('relation_type', String)
+    parent_id = Column('parent_id', Integer, ForeignKey(Obi.id, ondelete='CASCADE'))
+    child_id = Column('child_id', Integer, ForeignKey(Obi.id, ondelete='CASCADE'))
+    ro_id = Column('ro_id', Integer, ForeignKey(Ro.id))
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    parent = relationship(Ro, backref=backref("children", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
-    child = relationship(Ro, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
+    parent = relationship(Obi, backref=backref("children", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
+    child = relationship(Obi, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
     source = relationship(Source, uselist=False)
+    ro = relationship(Ro, uselist=False)
 
-    __eq_values__ = ['id', 'relation_type', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'ro_id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False),
-                  ('parent', Ro, False),
-                  ('child', Ro, False)]
+                  ('ro', Ro, False),
+                  ('parent', Obi, False),
+                  ('child', Obi, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
     __filter_values__ = []
 
-    def __init__(self, parent, child, relation_type):
+    def __init__(self, parent, child, ro_id):
         self.parent = parent
         self.child = child
         self.source = self.child.source
-        self.relation_type = relation_type
+        self.ro_id = ro_id
 
     def unique_key(self):
-        return (None if self.parent is None else self.parent.unique_key()), (None if self.child is None else self.child.unique_key(), self.relation_type)
+        return (None if self.parent is None else self.parent.unique_key()), (None if self.child is None else self.child.unique_key())
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
         if obj_json is None:
             return None
 
-        child, status = Ro.create_or_find(obj_json, session)
+        child, status = Obi.create_or_find(obj_json, session)
         #if status == 'Created':
         #    raise Exception('Child reference not found: ' + str(obj_json))
 
-        relation_type = obj_json["relation_type"]
+        ro_id = obj_json["ro_id"]
 
         current_obj = session.query(cls)\
             .filter_by(parent_id=parent_obj.id)\
-            .filter_by(child_id=child.id)\
-            .filter_by(relation_type=relation_type).first()
+            .filter_by(child_id=child.id).first()
 
         if current_obj is None:
-            newly_created_object = cls(parent_obj, child, relation_type)
+            newly_created_object = cls(parent_obj, child, ro_id)
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
@@ -149,4 +151,4 @@ class RoRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     def to_json(self):
         obj_json = self.child.to_min_json()
         obj_json['source'] = self.child.source.to_min_json()
-        obj_json['relation_type'] = self.relation_type
+        obj_json['ro'] = self.child.ro.to_min_json()
