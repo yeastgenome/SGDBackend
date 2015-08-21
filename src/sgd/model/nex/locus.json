@@ -54,9 +54,9 @@
             "title": "DBentity Status",
             "type": "string"
         },
-        "locus_type": {
-            "title": "Locus Type",
-            "type": "string"
+        "so_id": {
+            "title": "SO ID",
+            "type": "integer"
         },
         "name_description": {
             "title": "Name Description",
@@ -222,8 +222,8 @@
                 "required": ["display_name", "alias_type", "source"]
             }
         },
-        "documents": {
-            "title": "Documents",
+        "summaries": {
+            "title": "Summaries",
             "type": "array",
             "items": {
                 "type": "object",
@@ -240,12 +240,12 @@
                         "title": "HTML",
                         "type": "string"
                     },
-                    "document_type": {
-                        "title": "Document Type",
+                    "summary_type": {
+                        "title": "Summary Type",
                         "type": "string"
                     },
-                    "document_order": {
-                        "title": "Document Order",
+                    "summary_order": {
+                        "title": "Summary Order",
                         "type": "integer"
                     },
                     "source": {
@@ -282,7 +282,7 @@
                         "type": "string"
                     }
                 },
-                "required": ["text", "document_type", "source"]
+                "required": ["text", "summary_type", "source"]
             }
         },
         "children": {
@@ -295,9 +295,9 @@
                         "title": "Systematic Name",
                         "type": "string"
                     },
-                    "relation_type": {
-                        "title": "Relation Type",
-                        "type": "string"
+                    "ro": {
+                        "title": "Ro",
+                        "$ref": "ro.json"
                     },
                     "source": {
                         "title": "Source",
@@ -333,9 +333,9 @@
                         "title": "Systematic Name",
                         "type": "string"
                     },
-                    "relation_type": {
-                        "title": "Relation Type",
-                        "type": "string"
+                    "ro": {
+                        "title": "Ro",
+                        "$ref": "ro.json"
                     },
                     "source": {
                         "title": "Source",
@@ -362,6 +362,6 @@
             }
         }
     },
-    "required": ["systematic_name", "source", "sgdid", "locus_type", "dbentity_status"]
+    "required": ["systematic_name", "source", "sgdid", "so_id", "dbentity_status"]
 
 }

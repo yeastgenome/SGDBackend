@@ -139,6 +139,8 @@ class UpdateWithJsonMixin(object):
                             elif new_fk_obj.unique_key() in key_to_current_value:
                                 print new_fk_json_obj
                                 #We already have this object AND we've already seen it before, so we've been given duplicates - not allowed.
+                                # warnings.extend(sub_warnings)
+                                # warnings.append('Duplicate foreign key ' + key)
                                 raise Exception('Duplicate foreign key ' + key)
                             else:
                                 if make_changes:

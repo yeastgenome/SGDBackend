@@ -3,25 +3,28 @@ from sqlalchemy.types import Integer, String, Date, Boolean, CLOB
 from sqlalchemy.orm import relationship, backref
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.curate import Base, UpdateWithJsonMixin, ToJsonMixin
-from src.sgd.model.curate.dbentity import Dbentity
-from src.sgd.model.curate.reference import Reference
-from src.sgd.model.curate.source import Source
+from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin
+from src.sgd.model.nex.dbentity import Dbentity
+from src.sgd.model.nex.reference import Reference
+from src.sgd.model.nex.source import Source
+from src.sgd.model.nex.so import So
+from src.sgd.model.nex.ro import Ro
 
 __author__ = 'kelley'
+## updated by sweng66
 
 class Locus(Dbentity):
     __tablename__ = "locusdbentity"
 
     id = Column('dbentity_id', Integer, ForeignKey(Dbentity.id), primary_key=True)
-    name_description = Column('name_description', String)
-    headline = Column('headline', String)
-    locus_type = Column('locus_type', String)
     systematic_name = Column('systematic_name', String)
+    so_id = Column('so_id', Integer, ForeignKey(So.id))
     gene_name = Column('gene_name', String)
     qualifier = Column('qualifier', String)
     genetic_position = Column('genetic_position', String)
-
+    name_description = Column('name_description', String)
+    headline = Column('headline', String)
+    description = Column('description', String)
     has_summary = Column('has_summary', Boolean)
     has_sequence = Column('has_sequence', Boolean)
     has_history = Column('has_history', Boolean)
@@ -38,23 +41,24 @@ class Locus(Dbentity):
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description',
                      'bud_id', 'sgdid', 'dbentity_status', 'date_created', 'created_by',
-                     'systematic_name',
-                     'name_description', 'headline', 'locus_type', 'gene_name', 'qualifier', 'genetic_position',
-                     'has_summary', 'has_history', 'has_literature', 'has_go', 'has_phenotype', 'has_interaction',
-                     'has_expression', 'has_regulation', 'has_protein', 'has_sequence', 'has_sequence_section']
+                     'systematic_name', 'name_description', 'headline', 'gene_name', 
+                     'qualifier', 'genetic_position', 'has_summary', 'has_history', 
+                     'has_literature', 'has_go', 'has_phenotype', 'has_interaction',
+                     'has_expression', 'has_regulation', 'has_protein', 'has_sequence', 
+                     'has_sequence_section']
+                  # ('summaries', 'locus.LocusSummary', True),
     __eq_fks__ = [('source', Source, False),
                   ('aliases', 'locus.LocusAlias', True),
                   ('urls', 'locus.LocusUrl', True),
-                  ('documents', 'locus.LocusDocument', True),
                   ('children', 'locus.LocusRelation', False)]
     __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
-    __filter_values__ = ['locus_type', 'qualifier']
+    __filter_values__ = ['so_id', 'qualifier']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
-
-        tabs = tab_information(self.dbentity_status, self.locus_type)
+        self.so_id = obj_json.get('so_id')
+        tabs = obj_json['tabs']
         for tab in tabs:
             setattr(self, tab, tabs[tab])
 
@@ -83,8 +87,11 @@ class Locus(Dbentity):
     def to_semi_json(self):
         obj_json = ToJsonMixin.to_min_json(self)
         obj_json['description'] = self.description
-        obj_json['locus_type'] = self.locus_type
+        obj_json['so'] = self.so
         return obj_json
+
+
+    ### need to work on the following section..
 
     def get_ordered_references(self):
         references = []
@@ -429,7 +436,7 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
     locus_id = Column('locus_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
-    is_external_id = Column('is_external_id', Integer)
+    has_external_id_section = Column('has_external_id_section', Integer)
     alias_type = Column('alias_type', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
@@ -438,7 +445,7 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     locus = relationship(Locus, uselist=False, backref=backref('aliases', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'is_external_id', 'alias_type',
+    __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'has_external_id_section', 'alias_type',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
@@ -447,7 +454,7 @@ class LocusAlias(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     def __init__(self, obj_json, session):
         self.update(obj_json, session)
-        self.is_external_id = 0 if self.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'} else 1
+        self.has_external_id_section = 0 if self.alias_type in {'Uniform', 'Non-uniform', 'NCBI protein name', 'Retired name'} else 1
 
     def unique_key(self):
         return (None if self.locus is None else self.locus.unique_key()), self.display_name, self.alias_type
@@ -476,9 +483,10 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     id = Column('relation_id', Integer, primary_key=True)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    bud_id = Column('bud_id', Integer)
     parent_id = Column('parent_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
     child_id = Column('child_id', Integer, ForeignKey(Locus.id, ondelete='CASCADE'))
-    relation_type = Column('relation_type', String)
+    ro_id = Column('ro_id', Integer, ForeignKey(Ro.id))
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -486,23 +494,25 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     parent = relationship(Locus, backref=backref("children", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
     child = relationship(Locus, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
     source = relationship(Source, uselist=False)
+    ro = relationship(Ro, uselist=False)
 
-    __eq_values__ = ['id', 'relation_type', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'ro_id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False),
+                  ('ro', Ro, False),
                   ('parent', Locus, False),
                   ('child', Locus, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
     __filter_values__ = []
 
-    def __init__(self, parent, child, relation_type):
+    def __init__(self, parent, child, ro_id):
         self.parent = parent
         self.child = child
         self.source = self.child.source
-        self.relation_type = relation_type
+        self.ro_id = ro_id
 
     def unique_key(self):
-        return (None if self.parent is None else self.parent.unique_key()), (None if self.child is None else self.child.unique_key(), self.relation_type)
+        return (None if self.parent is None else self.parent.unique_key()), (None if self.child is None else self.child.unique_key(), self.ro_id)
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -513,15 +523,15 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         if status == 'Created':
             raise Exception('Child locus not found: ' + str(obj_json))
 
-        relation_type = obj_json["relation_type"]
+        ro_id = obj_json["ro_id"]
 
         current_obj = session.query(cls)\
             .filter_by(parent_id=parent_obj.id)\
             .filter_by(child_id=child.id)\
-            .filter_by(relation_type=relation_type).first()
+            .filter_by(ro_id=ro_id).first()
 
         if current_obj is None:
-            newly_created_object = cls(parent_obj, child, relation_type)
+            newly_created_object = cls(parent_obj, child, ro_id)
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
@@ -529,15 +539,14 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     def to_json(self):
         obj_json = self.child.to_min_json()
         obj_json['source'] = self.child.source.to_min_json()
-        obj_json['relation_type'] = self.relation_type
+        
 
+class LocusSummary(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'locus_summary'
 
-class LocusDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
-    __tablename__ = 'locus_document'
-
-    id = Column('document_id', Integer, primary_key=True)
-    document_type = Column('document_type', String)
-    document_order = Column('document_order', Integer)
+    id = Column('summary_id', Integer, primary_key=True)
+    summary_type = Column('summary_type', String)
+    summary_order = Column('summary_order', Integer)
     text = Column('text', CLOB)
     html = Column('html', CLOB)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
@@ -547,13 +556,13 @@ class LocusDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    locus = relationship(Locus, uselist=False, backref=backref('documents', cascade="all, delete-orphan", passive_deletes=True))
+    locus = relationship(Locus, uselist=False, backref=backref('summaries', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'text', 'html', 'bud_id', 'document_type', 'document_order',
+    __eq_values__ = ['id', 'text', 'html', 'bud_id', 'summary_type', 'summary_order',
                      'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False),
-                  ('references', 'locus.LocusDocumentReference', False)]
+                  ('references', 'locus.LocusSummaryReference', True)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
     __filter_values__ = []
@@ -562,7 +571,7 @@ class LocusDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         self.update(obj_json, session)
 
     def unique_key(self):
-        return (None if self.locus is None else self.locus.unique_key()), self.document_type, self.document_order
+        return (None if self.locus is None else self.locus.unique_key()), self.summary_type, self.summary_order
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -575,8 +584,8 @@ class LocusDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
         current_obj = session.query(cls)\
             .filter_by(locus_id=newly_created_object.locus_id)\
-            .filter_by(document_type=newly_created_object.document_type)\
-            .filter_by(document_order=newly_created_object.document_order).first()
+            .filter_by(summary_type=newly_created_object.summary_type)\
+            .filter_by(summary_order=newly_created_object.summary_order).first()
 
         if current_obj is None:
             return newly_created_object, 'Created'
@@ -589,16 +598,16 @@ class LocusDocument(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     def to_min_json(self):
         obj_json = ToJsonMixin.to_min_json(self)
         obj_json['text'] = self.html
-        obj_json['document_type'] = self.document_type
-        obj_json['document_order'] = self.document_order
+        obj_json['summary_type'] = self.summary_type
+        obj_json['summary_order'] = self.summary_order
         return obj_json
 
 
-class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
-    __tablename__ = 'locus_document_reference'
+class LocusSummaryReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'locus_summary_reference'
 
-    id = Column('document_reference_id', Integer, primary_key=True)
-    document_id = Column('document_id', Integer, ForeignKey(LocusDocument.id, ondelete='CASCADE'))
+    id = Column('summary_reference_id', Integer, primary_key=True)
+    summary_id = Column('summary_id', Integer, ForeignKey(LocusSummary.id, ondelete='CASCADE'))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id, ondelete='CASCADE'))
     reference_order = Column('reference_order', Integer)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
@@ -606,24 +615,33 @@ class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJso
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    document = relationship(LocusDocument, uselist=False, backref=backref('references', cascade="all, delete-orphan", passive_deletes=True))
-    reference = relationship(Reference, uselist=False, backref=backref('locus_documents', cascade="all, delete-orphan", passive_deletes=True))
+    summary = relationship(LocusSummary, uselist=False, backref=backref('references', cascade="all, delete-orphan", passive_deletes=True))
+    reference = relationship(Reference, uselist=False, backref=backref('locus_summaries', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'reference_order', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'reference_id', 'reference_order', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
     __filter_values__ = []
 
-    def __init__(self, document, reference, reference_order):
+    def __init__(self, summary, reference, reference_order):
         self.reference_order = reference_order
-        self.document = document
+        self.summary = summary
         self.reference_id = reference.id
-        self.source = self.document.source
+        self.source = self.summary.source
+
+
+        
+        
+        print "HELLO: ", summary.id, reference_order, reference.id
+
+
+
+
 
     def unique_key(self):
-        return (None if self.document is None else self.document.unique_key()), (None if self.reference is None else self.reference.unique_key())
+        return (None if self.summary is None else self.summary.unique_key()), (None if self.reference is None else self.reference.unique_key()), self.reference_order
 
     @classmethod
     def create_or_find(cls, obj_json, session, parent_obj=None):
@@ -635,9 +653,9 @@ class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJso
             raise Exception('Reference not found: ' + str(obj_json))
 
         current_obj = session.query(cls)\
-            .filter_by(document_id=parent_obj.id)\
+            .filter_by(summary_id=parent_obj.id)\
             .filter_by(reference_id=reference.id).first()
-
+    
         if current_obj is None:
             newly_created_object = cls(parent_obj, reference, obj_json['reference_order'])
             return newly_created_object, 'Created'
@@ -645,125 +663,6 @@ class LocusDocumentReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJso
             return current_obj, 'Found'
 
 
-def tab_information(status, locus_type):
-    if status == 'Merged' or status == 'Deleted':
-        return {
-            'has_summary': 1,
-            'has_sequence': 0,
-            'has_sequence_section': 1,
-            'has_history': 0,
-            'has_literature': 0,
-            'has_go': 0,
-            'has_phenotype': 0,
-            'has_interaction': 0,
-            'has_expression': 0,
-            'has_regulation': 0,
-            'has_protein': 0,
-        }
-    elif locus_type == 'ORF' or locus_type == 'blocked_reading_frame':
-        return {
-            'has_summary': 1,
-            'has_sequence': 1,
-            'has_sequence_section': 1,
-            'has_history': 0,
-            'has_literature': 1,
-            'has_go': 1,
-            'has_phenotype': 1,
-            'has_interaction': 1,
-            'has_expression': 1,
-            'has_regulation': 1,
-            'has_protein': 1,
-        }
-    elif locus_type in {'ARS', 'origin_of_replication', 'matrix_attachment_site', 'centromere',
-                              'gene_group', 'long_terminal_repeat', 'telomere', 'mating_type_region',
-                              'silent_mating_type_cassette_array', 'LTR_retrotransposon'}:
-        return {
-            'has_summary': 1,
-            'has_sequence': 1,
-            'has_sequence_section': 1,
-            'has_history': 0,
-            'has_literature': 1,
-            'has_go': 0,
-            'has_phenotype': 0,
-            'has_interaction': 0,
-            'has_expression': 0,
-            'has_regulation': 0,
-            'has_protein': 0,
-        }
-    elif locus_type == 'transposable_element_gene':
-        return {
-            'has_summary': 1,
-            'has_sequence': 1,
-            'has_sequence_section': 1,
-            'has_history': 0,
-            'has_literature': 1,
-            'has_go': 1,
-            'has_phenotype': 1,
-            'has_interaction': 1,
-            'has_expression': 0,
-            'has_regulation': 0,
-            'has_protein': 1,
-        }
-    elif locus_type == 'pseudogene':
-        return {
-            'has_summary': 1,
-            'has_sequence': 1,
-            'has_sequence_section': 1,
-            'has_history': 0,
-            'has_literature': 1,
-            'has_go': 1,
-            'has_phenotype': 1,
-            'has_interaction': 1,
-            'has_expression': 0,
-            'has_regulation': 1,
-            'has_protein': 1,
-        }
-    elif locus_type in {'rRNA_gene', 'ncRNA_gene', 'snRNA_gene', 'snoRNA_gene', 'tRNA_gene', 'telomerase_RNA_gene'}:
-        return {
-            'has_summary': 1,
-            'has_sequence': 1,
-            'has_sequence_section': 1,
-            'has_history': 0,
-            'has_literature': 1,
-            'has_go': 1,
-            'has_phenotype': 1,
-            'has_interaction': 1,
-            'has_expression': 0,
-            'has_regulation': 1,
-            'has_protein': 0,
-        }
-    elif locus_type in {'not in systematic sequence of S288C', 'not physically mapped'}:
-        return {
-            'has_summary': 1,
-            'has_sequence': 0,
-            'has_sequence_section': 0,
-            'has_history': 0,
-            'has_literature': 1,
-            'has_go': 1,
-            'has_phenotype': 1,
-            'has_interaction': 1,
-            'has_expression': 0,
-            'has_regulation': 0,
-            'has_protein': 0,
-        }
-    elif locus_type in {'intein_encoding_region'}:
-        return {
-            'has_summary': 1,
-            'has_sequence': 0,
-            'has_sequence_section': 0,
-            'has_history': 0,
-            'has_literature': 1,
-            'has_go': 0,
-            'has_phenotype': 0,
-            'has_interaction': 0,
-            'has_expression': 0,
-            'has_regulation': 0,
-            'has_protein': 0,
-        }
-    else:
-        raise Exception('Locus type is invalid.')
 
 
-#def create_i(reference, reference_index, extra_text):
-#    new_i = '<span data-tooltip aria-haspopup="true" class="has-tip" title="' + extra_text + (' ' if len(extra_text) > 0 else '') + reference.display_name + '"><a href="#reference"><sup>' + str(reference_index) + '</sup></a></span>'
-#    return new_ir
+

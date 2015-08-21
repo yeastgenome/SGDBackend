@@ -1,63 +1,15 @@
-from src.sgd.convert.into_curate import basic_convert, remove_nones
+from src.sgd.convert import basic_convert, remove_nones
 from collections import OrderedDict
 from sqlalchemy.orm import joinedload
+from src.sgd.convert.util import get_relation_to_ro_id
 
 __author__ = 'kpaskov'
-
-
-non_locus_feature_types = {
-    'ARS_consensus_sequence',
-    'binding_site',
-    'centromere_DNA_Element_I',
-    'centromere_DNA_Element_II',
-    'centromere_DNA_Element_III',
-    'CDS',
-    'chromosome',
-    'external_transcribed_spacer_region',
-    'five_prime_UTR_intron',
-    'insertion',
-    'internal_transcribed_spacer_region',
-    'intron',
-    'mRNA',
-    'non_transcribed_region',
-    'noncoding_exon',
-    'not physically mapped',
-    'plasmid',
-    'plus_1_translational_frameshift',
-    'repeat_region',
-    'TF_binding_site',
-    'TF_binding_sites',
-    'telomeric_repeat',
-    'X_element_combinatorial_repeat',
-    'X_element',
-    "Y_prime_element",
-    'uORF',
-    'W_region',
-    'X_region',
-    'Y_region',
-    'Z1_region',
-    'Z2_region'
-}
-
-url_placement_mapping = {
-    'Mutant Strains': 'LOCUS_PHENOTYPE_MUTANT_STRAINS',
-    'Phenotype Resources': 'LOCUS_PHENOTYPE_PHENOTYPE_RESOURCES',
-    'Interaction Resources': 'LOCUS_INTERACTION',
-    'Expression Resources': 'LOCUS_EXPRESSION',
-    'Regulatory Role Resources': 'LOCUS_REGULATION',
-    'Protein Information Homologs': 'LOCUS_PROTEIN_HOMOLOGS',
-    'Protein databases/Other': 'LOCUS_PROTEIN_PROTEIN_DATABASES',
-    'Localization Resources': 'LOCUS_PROEIN_LOCALIZATION',
-    'Post-translational modifications': 'LOCUS_PROTEIN_MODIFICATIONS',
-    'Analyze Sequence S288C only': 'LOCUS_SEQUENCE_S288C',
-    'Analyze Sequence S288C vs. other species': 'LOCUS_SEQUENCE_OTHER_SPECIES',
-    'Analyze Sequence S288C vs. other strains': 'LOCUS_SEQUENCE_OTHER_STRAINS',
-    'Resources External Links': 'LOCUS_LSP'
-}
-
+## updated by sweng66
 
 def load_urls(bud_locus, bud_session):
     from src.sgd.model.bud.general import FeatUrl, DbxrefFeat
+
+    url_placement_mapping = url_placement()
 
     urls = []
 
@@ -66,19 +18,23 @@ def load_urls(bud_locus, bud_session):
         url_type = old_url.url_type
         link = old_url.url
 
+        type = ''
         for old_webdisplay in old_url.displays:
             if url_type == 'query by SGDID':
+                type = 'SGDID'
                 link = link.replace('_SUBSTITUTE_THIS_', bud_locus.dbxref_id)
             elif url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name' or url_type == 'query by ID assigned by database':
                 link = link.replace('_SUBSTITUTE_THIS_', bud_locus.name)
+                type = 'Systematic name'
             else:
                 print "Can't handle this url. " + str(old_url.url_type)
+                continue
 
             urls.append(
                 {'display_name': old_webdisplay.label_name,
                  'source': {'display_name': old_url.source},
                  'bud_id': old_url.id,
-                 'url_type': url_type,
+                 'url_type': type,
                  'placement': old_webdisplay.label_location if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
                  'link': link,
                  'date_created': str(old_url.date_created),
@@ -93,21 +49,27 @@ def load_urls(bud_locus, bud_session):
                 url_type = old_url.url_type
                 link = old_url.url
 
+                type = ''
+
                 if url_type == 'query by SGD ORF name with anchor' or url_type == 'query by SGD ORF name':
                     link = link.replace('_SUBSTITUTE_THIS_', bud_locus.name)
+                    type = 'Systematic name'
                 elif url_type == 'query by ID assigned by database':
                     link = link.replace('_SUBSTITUTE_THIS_', str(dbxref_id))
+                    type = 'External id'
                 elif url_type == 'query by SGDID':
                     link = link.replace('_SUBSTITUTE_THIS_', bud_locus.dbxref_id)
+                    type = 'SGDID'
                 else:
                     print "Can't handle this url. " + str(old_url.url_type)
+                    continue
 
                 urls.append(
                     {'display_name': old_webdisplay.label_name,
                      'source': {'display_name': old_url.source},
                      'bud_id': old_url.id,
                      'link': link,
-                     'url_type': url_type,
+                     'url_type': type,
                      'placement': old_webdisplay.label_location if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
                      'date_created': str(old_url.date_created),
                      'created_by': old_url.created_by})
@@ -117,7 +79,7 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': 'http://spell.yeastgenome.org/search/show_results?search_string=' + bud_locus.name,
-         'url_type': 'Unknown',
+         'url_type': 'Systematic name',
          'placement': 'LOCUS_EXPRESSION'})
 
     urls.append(
@@ -125,7 +87,7 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/cgi-bin/seqTools?back=1&seqname=' + bud_locus.name,
-         'url_type': 'Unknown',
+         'url_type': 'Systematic name',
          'placement': 'LOCUS_SEQUENCE'})
 
     urls.append(
@@ -133,7 +95,7 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/cgi-bin/ORFMAP/ORFmap?dbid=' + bud_locus.dbxref_id,
-         'url_type': 'Unknown',
+         'url_type': 'SGDID',
          'placement': 'LOCUS_SEQUENCE'})
 
     urls.append(
@@ -141,23 +103,23 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': 'http://browse.yeastgenome.org/fgb2/gbrowse/scgenome/?name=' + bud_locus.name,
-         'url_type': 'Unknown',
+         'url_type': 'Systematic name',
          'placement': 'LOCUS_SEQUENCE'})
 
     urls.append(
         {'display_name': 'BLASTN',
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
-         'link': '/cgi-bin/blast-sgd.pl?name=' + bud_locus.name,
-         'url_type': 'Unknown',
+         'link': '/blast-sgd?name=' + bud_locus.name,
+         'url_type': 'Systematic name',
          'placement': 'LOCUS_SEQUENCE_SECTION'})
 
     urls.append(
         {'display_name': 'BLASTP',
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
-         'link': '/cgi-bin/blast-sgd.pl?name=' + bud_locus.name + '&suffix=prot',
-         'url_type': 'Unknown',
+         'link': '/blast-sgd?name=' + bud_locus.name + '&suffix=prot',
+         'url_type': 'Systematic name',
          'placement': 'LOCUS_SEQUENCE_SECTION'})
 
     urls.append(
@@ -165,7 +127,7 @@ def load_urls(bud_locus, bud_session):
          'source': {'display_name': 'SGD'},
          'bud_id': bud_locus.id,
          'link': '/ontology/phenotype/ypo/overview',
-         'url_type': 'Unknown',
+         'url_type': 'Internal web service',
          'placement': 'LOCUS_PHENOTYPE_ONTOLOGY'})
 
     make_unique = dict([((x['display_name'], x['placement'], x['link']), x) for x in urls])
@@ -188,6 +150,11 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
             'created_by': bud_obj.created_by})
 
     for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).filter_by(feature_id=bud_locus.id).all():
+        alias_type = bud_obj.dbxref.dbxref_type
+        if alias_type == 'DBID Primary':
+            continue
+        if alias_type == 'DBID Secondary':
+            alias_type = 'SGDID Secondary'
         display_name = bud_obj.dbxref.dbxref_id
         link = None
         if len(bud_obj.dbxref.urls) > 0:
@@ -203,7 +170,7 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
             {'display_name': display_name,
              'link': link,
              'source': {'display_name': bud_obj.dbxref.source},
-             'alias_type': bud_obj.dbxref.dbxref_type,
+             'alias_type': alias_type,
              'bud_id': bud_obj.id,
              'date_created': str(bud_obj.dbxref.date_created),
              'created_by': bud_obj.dbxref.created_by}))
@@ -220,17 +187,21 @@ def load_relations(bud_feature, bud_session):
     from src.sgd.model.bud.feature import FeatRel
 
     relations = []
-    for bud_obj in bud_session.query(FeatRel).filter_by(relationship_type='pair').filter_by(parent_id=bud_feature.id).all():
+    for bud_obj in bud_session.query(FeatRel).filter_by(parent_id=bud_feature.id).all():
+        if bud_obj.relationship_type == 'pair':
+            continue
         relations.append(remove_nones({
             "systematic_name": bud_obj.parent.name,
-            "relation_type": bud_obj.relationship_type,
+            "source": { "display_name": bud_obj.parent.source},
+            "bud_id": bud_obj.id,
+            "ro_id": get_relation_to_ro_id(bud_obj.relationship_type.replace('_', ' ')),
             "date_created": str(bud_obj.date_created),
             "created_by": bud_obj.created_by
         }))
     return relations
 
 
-def load_documents(bud_feature, bud_session):
+def load_summaries(bud_feature, bud_session):
     from src.sgd.model.bud.general import ParagraphFeat
 
     documents = []
@@ -240,21 +211,24 @@ def load_documents(bud_feature, bud_session):
     for paragraph_feat in paragraph_feats:
         paragraph = paragraph_feat.paragraph
         paragraph_html, paragraph_text, references = clean_paragraph(paragraph.text)
+
         documents.append(
             {'text': paragraph_text,
              'html': paragraph_html,
              'source': {'display_name': 'SGD'},
              'bud_id': paragraph.id,
-             'document_type': 'Paragraph',
-             'document_order': paragraph_feat.order,
+             'summary_type': 'Gene',
+             'summary_order': paragraph_feat.order,
              'references': references,
              'date_created': str(paragraph.date_created),
              'created_by': paragraph.created_by})
+
     return documents
 
 
 def locus_starter(bud_session_maker):
     from src.sgd.model.bud.feature import Feature
+    from src.sgd.model.nex.so import So
 
     bud_session = bud_session_maker()
 
@@ -271,53 +245,82 @@ def locus_starter(bud_session_maker):
     sgdid_to_go_paragraph = load_go_paragraphs()
     systematic_name_to_reg_paragraph = load_reg_paragraphs()
 
+    nex_session = get_nex_session() 
+    term_to_so = dict([(x.display_name, x) for x in nex_session.query(So).all()])
+
     #Create features
     for bud_obj in bud_session.query(Feature).options(joinedload('annotation')).all():
-        if bud_obj.type not in non_locus_feature_types:
-            sgdid = bud_obj.dbxref_id
-            systematic_name = bud_obj.name
-            obj_json = {'gene_name': bud_obj.gene_name,
-                        'systematic_name': systematic_name,
-                        'source': {
-                            'display_name': bud_obj.source
-                        },
-                        'bud_id': bud_obj.id,
-                        'sgdid': sgdid,
-                        'dbentity_status': bud_obj.status,
-                        'locus_type': bud_obj.type,
-                        'date_created': str(bud_obj.date_created),
-                        'created_by': bud_obj.created_by}
+        # if bud_obj.type not in non_locus_feature_types:
+        sgdid = bud_obj.dbxref_id
+        systematic_name = bud_obj.name
+        feature_type = bud_obj.type
+        if feature_type.startswith('not in'):
+            feature_type = 'ORF'
+        if feature_type.startswith('TF') or feature_type.startswith('not physically'):
+            continue
 
-            ann = bud_obj.annotation
-            if ann is not None:
-                obj_json['name_description'] = ann.name_description
-                obj_json['headline'] = ann.headline
-                obj_json['qualifier'] = ann.qualifier
-                obj_json['description'] = ann.description
-                obj_json['genetic_position'] = None if ann.genetic_position is None else str(ann.genetic_position)
+        obj_json = {'gene_name': bud_obj.gene_name,
+                    'systematic_name': systematic_name,
+                    'source': {
+                        'display_name': bud_obj.source
+                    },
+                    'bud_id': bud_obj.id,
+                    'sgdid': sgdid,
+                    'dbentity_status': bud_obj.status,
+                    'so_id': term_to_so[feature_type].id,
+                    'date_created': str(bud_obj.date_created),
+                    'created_by': bud_obj.created_by}
 
-            obj_json = remove_nones(obj_json)
+        ann = bud_obj.annotation
+        if ann is not None:
+            obj_json['name_description'] = ann.name_description
+            obj_json['headline'] = ann.headline
+            obj_json['qualifier'] = ann.qualifier
+            obj_json['description'] = ann.description
+            obj_json['genetic_position'] = None if ann.genetic_position is None else str(ann.genetic_position)
 
-            #Load aliases
-            obj_json['aliases'] = load_aliases(bud_obj, bud_session, None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid])
+        obj_json = remove_nones(obj_json)
 
-            #Load urls
-            obj_json['urls'] = load_urls(bud_obj, bud_session)
+        #Load aliases
+        obj_json['aliases'] = load_aliases(bud_obj, bud_session, None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid])
 
-            #Load children
-            obj_json['children'] = load_relations(bud_obj, bud_session)
+        #Load urls
+        obj_json['urls'] = load_urls(bud_obj, bud_session)
 
-            #Load documents
-            obj_json['documents'] = load_documents(bud_obj, bud_session)
-            if sgdid in sgdid_to_go_paragraph:
-                obj_json['documents'].append(sgdid_to_go_paragraph[sgdid])
-            if systematic_name in systematic_name_to_reg_paragraph:
-                obj_json['documents'].append(systematic_name_to_reg_paragraph[systematic_name])
+        #Load children
+        obj_json['children'] = load_relations(bud_obj, bud_session)
 
-            print obj_json['systematic_name']
-            yield obj_json
+        #Load various summaries
+        # obj_json['summaries'] = load_summaries(bud_obj, bud_session)
+        # if sgdid in sgdid_to_go_paragraph:
+        #    obj_json['summaries'].append(sgdid_to_go_paragraph[sgdid])
+        # if systematic_name in systematic_name_to_reg_paragraph:
+        #    obj_json['summaries'].append(systematic_name_to_reg_paragraph[systematic_name])
+            
+        obj_json['tabs'] = get_tabs(bud_obj.status, feature_type) 
+
+        print obj_json['systematic_name']
+
+        yield obj_json
 
     bud_session.close()
+
+
+def url_placement():
+
+    return {'Mutant Strains': 'LOCUS_PHENOTYPE_MUTANT_STRAINS',
+            'Phenotype Resources': 'LOCUS_PHENOTYPE_PHENOTYPE_RESOURCES',
+            'Interaction Resources': 'LOCUS_INTERACTION',
+            'Expression Resources': 'LOCUS_EXPRESSION',
+            'Regulatory Role Resources': 'LOCUS_REGULATION',
+            'Protein Information Homologs': 'LOCUS_PROTEIN_HOMOLOGS',
+            'Protein databases/Other': 'LOCUS_PROTEIN_PROTEIN_DATABASES',
+            'Localization Resources': 'LOCUS_PROEIN_LOCALIZATION',
+            'Post-translational modifications': 'LOCUS_PROTEIN_MODIFICATIONS',
+            'Analyze Sequence S288C only': 'LOCUS_SEQUENCE_S288C',
+            'Analyze Sequence S288C vs. other species': 'LOCUS_SEQUENCE_OTHER_SPECIES',
+            'Analyze Sequence S288C vs. other strains': 'LOCUS_SEQUENCE_OTHER_STRAINS',
+            'Resources External Links': 'LOCUS_LSP'}
 
 
 def load_go_paragraphs():
@@ -334,7 +337,7 @@ def load_go_paragraphs():
                     sgdid_to_paragraph[sgdid] = {'text': go_annotation[0],
                                                  'html': go_annotation[0],
                                                  'source': {'display_name': 'SGD'},
-                                                 'document_type': 'Go'}
+                                                 'summary_type': 'Go'}
     f.close()
     return sgdid_to_paragraph
 
@@ -352,12 +355,155 @@ def load_reg_paragraphs():
         systematic_name_to_paragraph[systematic_name] = {'text': pieces[2],
                                                          'html': pieces[2],
                                                          'source': {'display_name': 'SGD'},
-                                                         'document_type': 'Regulation',
+                                                         'summary_type': 'Regulation',
                                                          'references': references}
 
     f.close()
     return systematic_name_to_paragraph
 
+def get_tabs(status, feature_type):
+
+    if status == 'Merged' or status == 'Deleted':
+        return {
+            'has_summary': 1,
+            'has_sequence': 0,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 0,
+            'has_go': 0,
+            'has_phenotype': 0,
+            'has_interaction': 0,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 0,
+        }
+    elif feature_type == 'ORF' or feature_type == 'blocked_reading_frame':
+        return {
+            'has_summary': 1,
+            'has_sequence': 1,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 1,
+            'has_phenotype': 1,
+            'has_interaction': 1,
+            'has_expression': 1,
+            'has_regulation': 1,
+            'has_protein': 1,
+        }
+    elif feature_type in {'ARS', 'origin_of_replication', 'matrix_attachment_site', 'centromere',
+                          'gene_group', 'long_terminal_repeat', 'telomere', 
+                          'mating_type_region', 'silent_mating_type_cassette_array', 
+                          'LTR_retrotransposon'}:
+        return {
+            'has_summary': 1,
+            'has_sequence': 1,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 0,
+            'has_phenotype': 0,
+            'has_interaction': 0,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 0,
+        }
+    elif feature_type == 'transposable_element_gene':
+        return {
+            'has_summary': 1,
+            'has_sequence': 1,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 1,
+            'has_phenotype': 1,
+            'has_interaction': 1,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 1,
+        }
+    elif feature_type == 'pseudogene':
+        return {
+            'has_summary': 1,
+            'has_sequence': 1,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 1,
+            'has_phenotype': 1,
+            'has_interaction': 1,
+            'has_expression': 0,
+            'has_regulation': 1,
+            'has_protein': 1,
+        }
+    elif feature_type in {'rRNA_gene', 'ncRNA_gene', 'snRNA_gene', 'snoRNA_gene', 'tRNA_gene', 'telomerase_RNA_gene'}:
+        return {
+            'has_summary': 1,
+            'has_sequence': 1,
+            'has_sequence_section': 1,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 1,
+            'has_phenotype': 1,
+            'has_interaction': 1,
+            'has_expression': 0,
+            'has_regulation': 1,
+            'has_protein': 0,
+        }
+    elif feature_type in {'not in systematic sequence of S288C', 'not physically mapped'}:
+        return {
+            'has_summary': 1,
+            'has_sequence': 0,
+            'has_sequence_section': 0,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 1,
+            'has_phenotype': 1,
+            'has_interaction': 1,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 0,
+        }
+    elif feature_type in {'intein_encoding_region'}:
+        return {
+            'has_summary': 1,
+            'has_sequence': 0,
+            'has_sequence_section': 0,
+            'has_history': 0,
+            'has_literature': 1,
+            'has_go': 0,
+            'has_phenotype': 0,
+            'has_interaction': 0,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 0,
+        }
+    else:
+        # raise Exception('feature_type: ' + feature_type + ' is invalid.')
+        return {
+            'has_summary': 0,
+            'has_sequence': 0,
+            'has_sequence_section': 0,
+            'has_history': 0,
+            'has_literature': 0,
+            'has_go': 0,
+            'has_phenotype': 0,
+            'has_interaction': 0,
+            'has_expression': 0,
+            'has_regulation': 0,
+            'has_protein': 0,
+        }
+
+
+def get_nex_session():
+
+    from src.sgd.convert.util import prepare_schema_connection
+    from src.sgd.convert import config
+    from src.sgd.model import nex
+
+    nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+
+    return nex_session_maker()
 
 def clean_paragraph(text):
 
@@ -430,7 +576,6 @@ def clean_paragraph(text):
     else:
         new_omim_text = new_metacyc_text
 
-
     # Pull references
     references = []
     sgdids = set()
@@ -441,14 +586,14 @@ def clean_paragraph(text):
             if end_index >= 0:
                 sgdid = block[0:end_index]
                 if sgdid not in sgdids:
-                    references.append({'sgdid': sgdid, 'reference_order': len(references)+1})
+                    order = len(references)+1
+                    references.append({'sgdid': sgdid, 'reference_order': order})
                     sgdids.add(sgdid)
-
+            
     return new_omim_text, text, references
 
 
-def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, locus_starter, 'locus', lambda x: x['sgdid'])
-
 if __name__ == '__main__':
-    convert('pastry.stanford.edu:1521', 'curator-dev-db')
+    from src.sgd.convert import config
+    basic_convert(config.BUD_HOST, config.NEX_HOST, locus_starter, 'locus', lambda x: x['sgdid'])
+
