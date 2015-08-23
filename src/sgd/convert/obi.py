@@ -1,48 +1,39 @@
 from src.sgd.convert import basic_convert
-from src.sgd.convert.util import get_relation_to_ro_id
+from src.sgd.convert.util import read_obo
 
 __author__ = 'sweng66'
 
 key_switch = {'id': 'obiid', 'name': 'display_name', 'def': 'description'}
 
 def obi_starter(bud_session_maker):
-    terms = []
+    
     parent_to_children = dict()
+    is_obsolete_id = dict()
+    source = 'OBI Consortium'
     ## http://www.berkeleybop.org/ontologies/obi.obo
-    f = open('src/sgd/convert/data/obi.obo', 'r')
-    term = None
-    for line in f:
-        if line.startswith('property_value') or line.startswith('owl-'):
-            continue
-        line = line.strip()
-        if line == '[Term]':
-            if term is not None:
-                terms.append(term)
-            term = {}
-        # elif term is not None:
-        else:
-            pieces = line.split(': ')
-            if len(pieces) == 2:
-                if pieces[0] == 'is_a' and term.get('display_name') and term.get('obiid'):
-                    parent = pieces[1].split('!')[0].strip()
-                    if parent not in parent_to_children:
-                        parent_to_children[parent] = []
-                    parent_to_children[parent].append({'obiid': term['obiid'], 'display_name': term['display_name'], 'source': {'display_name': 'OBI Consortium'}, 'ro_id': get_relation_to_ro_id('is a')})
-                elif pieces[0] in key_switch:
-                    text = pieces[1]
-                    quotation_split = pieces[1].split('"')
-                    if pieces[0] == 'def':
-                        text = quotation_split[1]
-                    term[key_switch[pieces[0]]] = text
-                    
-    f.close()
+    terms = read_obo('OBI', 
+                     'src/sgd/convert/data/obi.obo', 
+                     key_switch,
+                     parent_to_children,
+                     is_obsolete_id,
+                     source)
 
     for term in terms:
         if term.get('obiid') == None or term.get('display_name') == None:
             continue
         obiid = term['obiid']
+        if obiid in is_obsolete_id:
+            continue
         print obiid
-        term['children'] = [] if obiid not in parent_to_children else parent_to_children[obiid]
+        if obiid not in parent_to_children:
+            term['children'] = [] 
+        else:
+            children = []
+            for child in parent_to_children[obiid]:
+                child_id = child['obiid']
+                if child_id not in is_obsolete_id:
+                    children.append(child)
+            term['children'] = children
         term['source'] = { 'display_name': 'OBI Consortium'}
         obiid = obiid.replace(":", "_")
         term['urls'] = [{'display_name': 'Ontobee',

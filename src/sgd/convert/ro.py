@@ -1,59 +1,44 @@
 from src.sgd.convert import basic_convert
+from src.sgd.convert.util import read_obo
 
 __author__ = 'sweng66'
 
 key_switch = {'xref': 'roid', 'name': 'display_name', 'def': 'description'}
 
 def ro_starter(bud_session_maker):
-    terms = []
+
     parent_to_children = dict()
+    source = 'GOC'
+    is_obsolete_id = {}
     ## http://www.geneontology.org/ontology/extensions/gorel.obo
-    f = open('src/sgd/convert/data/gorel.obo', 'r')
-    term = None
-    roid2id = {}
-    id = ''
-    for line in f:
-        line = line.strip()
-        if line == '[Typedef]':
-            if term is not None:
-                terms.append(term)
-            term = {}
-        else:
-            pieces = line.split(': ')
-            if len(pieces) == 2:
-                if pieces[0] == 'id':
-                    id = pieces[1]
-                elif pieces[0] == 'is_a' and term.get('display_name') and term.get('roid'):
-                    parent = pieces[1].split('!')[0].strip()
-                    if parent not in parent_to_children:
-                        parent_to_children[parent] = []
-                    parent_to_children[parent].append({'roid': term['roid'], 'display_name': term['display_name'], 'source': {'display_name': 'GOC'}, 'relation_type': 'is a'})
-                elif pieces[0] in key_switch:
-                    text = pieces[1]
-                    quotation_split = pieces[1].split('"')
-                    if pieces[0] == 'name':
-                        text = text.replace("_", " ")
-                    if pieces[0] == 'def':
-                        text = quotation_split[1]
-                    if pieces[0] == 'xref':
-                        roid2id[pieces[1]] = id
-                        id = ''
-                    term[key_switch[pieces[0]]] = text
-                    
-    f.close()
+    [terms, roid2id] = read_obo('RO', 
+                                'src/sgd/convert/data/gorel.obo', 
+                                key_switch, 
+                                parent_to_children, 
+                                is_obsolete_id, 
+                                source)
 
     for term in terms:
         if term.get('roid') == None or term.get('display_name') == None:
             continue
         roid = term['roid']
+        if roid in is_obsolete_id:
+            continue
         print roid
         id = roid2id.get(roid)
-        term['children'] = [] if id not in parent_to_children else parent_to_children[id]
-        term['source'] = { 'display_name': 'GOC'}
+        if id not in parent_to_children:
+            term['children'] = []
+        else:
+            children = []
+            for child in parent_to_children[id]:
+                child_roid = child['roid']
+                if child_roid not in is_obsolete_id:
+                    children.append(child)
+            term['children'] = children
         roid = roid.replace(":", "_")
         term['urls'] = [{'display_name': 'Ontobee',
                          'link': 'http://www.ontobee.org/browser/rdf.php?o=RO&iri=http://purl.obolibrary.org/obo/' + roid,
-                         'source': {'display_name': 'GOC'},
+                         'source': {'display_name': source},
                          'url_type': 'Ontobee'}]
         yield term
 

@@ -5,8 +5,7 @@ from sqlalchemy import not_
 
 from src.sgd.convert.config import log_directory
 
-
-__author__ = 'kpaskov'
+__author__ = 'kpaskov; sweng66'
 
 def prepare_schema_connection(model_cls, dbtype, dbhost, dbname, schema, dbuser, dbpass):
     class Base(object):
@@ -52,24 +51,114 @@ def is_number(str_value):
     except:
         return False
 
-def read_obo(filename):
+def read_obo(ontology, filename, key_switch, parent_to_children, is_obsolete_id, source, alias_source=None):
     terms = []
-    f = open(filename, 'r')
-    current_term = None
+    f = open(filename, 'r')    
+    term = None
+    id_name = key_switch.get('id')
+    if id_name is None:
+        id_name = key_switch.get('xref')
+    is_obsolete_ecoid = {}
+    id_to_id = {}
+    parent_child_pair = {}
     for line in f:
         line = line.strip()
-        if line == '[Term]':
-            if current_term is not None:
-                terms.append(current_term)
-            current_term = {}
-        elif current_term is not None and ': ' in line:
-            pieces = line.split(': ')
-            if pieces[0] in current_term:
-                current_term[pieces[0]] = [current_term[pieces[0]], pieces[1]]
+        if ontology == 'OBI' and (line.startswith('property_value:') or line.startswith('owl-')):
+            continue
+        if line == '[Term]' or line == '[Typedef]':
+            if term is not None:
+                terms.append(term)
+            if alias_source is None:
+                term = { 'source': { 'display_name': source } }
             else:
-                current_term[pieces[0]] = pieces[1]
+                term = { 'aliases': [],
+                         'urls': [],
+                         'source': { 'display_name': source } }
+
+        elif term is not None:
+            pieces = line.split(': ')
+            if ontology == 'RO' and pieces[0] == 'id':
+                id = pieces[1]
+            if len(pieces) >= 2:
+                if alias_source and pieces[0] == 'synonym':
+                    if len(pieces) > 2:
+                        pieces.pop(0)
+                        synonym_line = ": ".join(pieces)
+                    else:
+                        synonym_line = pieces[1]
+                    quotation_split = synonym_line.split('"')
+                    alias_name = quotation_split[1]
+                    type = quotation_split[2].split('[')[0].strip()
+                    alias_type = type.split(' ')[0]
+                    if ontology == 'CHEBI':
+                        alias_type = type[:40]
+                        if alias_type not in ('EXACT', 'RELATED', 'EXACT IUPAC_NAME'):
+                            continue
+                        if alias_type == 'EXACT IUPAC_NAME':
+                            alias_type = 'IUPAC name'
+                        if len(alias_name) >= 500 or (alias_name, alias_type) in [(x['display_name'], x['alias_type']) for x in term['aliases']]:
+                            continue                  
+                    term['aliases'].append({'display_name': alias_name, "alias_type": alias_type, "source": {"display_name": alias_source}})
+                elif ontology == 'GO' and (pieces[0] == 'is_a' or pieces[0] == 'relationship'):
+                    if term.get('display_name') is None:
+                        continue
+                    # is_a: GO:0051231 ! spindle elongation
+                    # relationship: part_of GO:0015767 ! lactose transport
+                    parent = pieces[1].split('!')[0].strip()
+                    relation_type = 'is a'
+                    if pieces[0] == 'relationship':
+                        type_goid = parent.split(' ')
+                        relation_type = type_goid[0].replace('_', ' ')
+                        parent = type_goid[1].strip()
+                    if (parent, term['goid']) in parent_child_pair:
+                        continue
+                    parent_child_pair[(parent, term['goid'])] = 1
+                    ro_id = get_relation_to_ro_id(relation_type)
+                    if ro_id is None:
+                        print relation_type, " is not in RO table"
+                        continue
+                    if parent not in parent_to_children:
+                        parent_to_children[parent] = []
+                    parent_to_children[parent].append({id_name: term[id_name], 'display_name': term['display_name'], key_switch['namespace']: term[key_switch['namespace']],'source': {'display_name': source}, 'ro_id': ro_id})
+                elif pieces[0] == 'is_a' and term.get('display_name') and term.get(id_name):
+                    parent = pieces[1].split('!')[0].strip()
+                    if parent not in parent_to_children:
+                        parent_to_children[parent] = []
+                    if id_name == 'roid':
+                        parent_to_children[parent].append({id_name: term[id_name], 'display_name': term['display_name'], 'source': {'display_name': source}, 'relation_type': 'is a'})
+                    elif key_switch.get('namespace'):
+                        parent_to_children[parent].append({id_name: term[id_name], 'display_name': term['display_name'], key_switch['namespace']: term[key_switch['namespace']], 'source': {'display_name': source}, 'ro_id': get_relation_to_ro_id('is a')})
+                    else:
+                        parent_to_children[parent].append({id_name: term[id_name], 'display_name': term['display_name'], 'source': {'display_name': source}, 'ro_id': get_relation_to_ro_id('is a')})
+                elif pieces[0] in key_switch:
+                    text = pieces[1]
+                    key = pieces[0]
+                    if ontology == 'RO':
+                        if pieces[0] == 'xref':
+                            id_to_id[pieces[1]] = id
+                            id = ''
+                        elif pieces[0] == 'name':
+                            text = text.replace("_", " ")
+                    if ontology == 'GO' and pieces[0] == 'namespace':
+                        text = text.replace("_", " ")
+                    if pieces[0] == 'def':
+                        defline = pieces[1]
+                        if len(pieces) > 2:
+                            pieces.pop(0)
+                            defline = ": ".join(pieces) 
+                        quotation_split = defline.split('" [')
+                        text = quotation_split[0][1:]
+                        text = text.replace("\\", "")
+                    term[key_switch[key]] = text
+                elif pieces[0] == 'is_obsolete':
+                    is_obsolete_id[term[id_name]] = 1
+
     f.close()
-    return terms
+    if ontology == 'RO':
+        return [terms, id_to_id]
+    else:
+        return terms
+
 
 def clean_up_orphans(nex_session_maker, child_cls, parent_cls, class_type):
     nex_session = nex_session_maker()

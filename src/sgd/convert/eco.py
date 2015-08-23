@@ -1,5 +1,5 @@
 from src.sgd.convert import basic_convert
-from src.sgd.convert.util import get_relation_to_ro_id
+from src.sgd.convert.util import read_obo
 
 __author__ = 'sweng66'
 
@@ -8,44 +8,31 @@ key_switch = {'id': 'ecoid', 'name': 'display_name', 'def': 'description'}
 def eco_starter(bud_session_maker):
     terms = []
     parent_to_children = dict()
+    is_obsolete_id = dict()
+    source = 'ECO'
     ## downloaded from http://evidenceontology.googlecode.com/svn/trunk/eco.obo
-    f = open('src/sgd/convert/data/eco.obo', 'r')
-    term = None
-    for line in f:
-        line = line.strip()
-        if line == '[Term]':
-            if term is not None:
-                terms.append(term)
-            term = {'aliases': [],
-                    'source': {'display_name': 'ECO'},
-                    'urls': []}
-        elif term is not None:
-            pieces = line.split(': ')
-            if len(pieces) == 2:
-                if pieces[0] == 'synonym':
-                    quotation_split = pieces[1].split('"')
-                    term['aliases'].append({'display_name': quotation_split[1], "alias_type": quotation_split[2].split('[')[0].strip(), "source": {"display_name": "ECO"}})
-                elif pieces[0] == 'is_a':
-                    parent = pieces[1].split('!')[0].strip()
-                    if parent not in parent_to_children:
-                        parent_to_children[parent] = []
-                    parent_to_children[parent].append({'ecoid': term['ecoid'], 'display_name': term['display_name'], 'source': {'display_name': 'ECO'}, 'ro_id': get_relation_to_ro_id('is a')})
-                elif pieces[0] in key_switch:
-                    text = pieces[1]
-                    quotation_split = pieces[1].split('"')
-                    if pieces[0] == 'def':
-                        text = quotation_split[1]
-                    term[key_switch[pieces[0]]] = text
-                elif pieces[0] == 'is_obsolete':
-                    term[pieces[0]] = pieces[1]
-    f.close()
+    terms = read_obo('ECO', 
+                     'src/sgd/convert/data/eco.obo',
+                     key_switch,
+                     parent_to_children,
+                     is_obsolete_id,
+                     source, 
+                     source)
 
     for term in terms:
-        if term.get('is_obsolete'):
+        if term['ecoid'] in is_obsolete_id:
             continue
         ecoid = term['ecoid']
         print ecoid
-        term['children'] = [] if ecoid not in parent_to_children else parent_to_children[ecoid]
+        if ecoid not in parent_to_children:
+            term['children'] = [] 
+        else:
+            children = []
+            for child in parent_to_children[ecoid]:
+                child_id = child['ecoid']
+                if child_id not in is_obsolete_id:
+                    children.append(child)
+            term['children'] = children
         term['urls'].append({'display_name': 'BioPortal',
                               'link': 'http://bioportal.bioontology.org/ontologies/ECO?p=classes&conceptid=' + term['ecoid'],
                               'source': {'display_name': 'BioPortal'},
