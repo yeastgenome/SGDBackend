@@ -663,29 +663,6 @@ Comment on column REFERENCE_DELETED.BUD_ID is 'PK in BUD is PubMed ID.';
 Comment on column REFERENCE_DELETED.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_DELETED.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-/* File */
-
-Comment on table FILEDBENTITY is 'Details about files loaded into or dumped from the database.';
-Comment on column FILEDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
-Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
-Comment on column FILEDBENTITY.FILE_VERSION is 'Version or release of the file.';
-Comment on column FILEDBENTITY.FILE_FORMAT is 'Standard file format.';
-Comment on column FILEDBENTITY.FILE_EXTENSION is 'Extension of the file name.';
-Comment on column FILEDBENTITY.FILE_CATEGORY is 'Type or category of file.';
-Comment on column FILEDBENTITY.FILE_OUTPUT_TYPE is 'Description of the purpose or contents of the file.';
-Comment on column FILEDBENTITY.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
-Comment on column FILEDBENTITY.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID, need species as well as strains.';
-
-Comment on table FILE_RELATION is 'Relationship between two files.';
-Comment on column FILE_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column FILE_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column FILE_RELATON.BUD_ID is 'Not in BUD.';
-Comment on column FILE_RELATION.PARENT_ID is 'FK to FILE_ID.';
-Comment on column FILE_RELATION.CHILD_ID is 'FK to FILE_ID.';
-Comment on column FILE_RELATION.RO_ID is 'FK TO RO.RO_ID.';
-Comment on column FILE_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column FILE_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
-
 /* Colleague */
 
 Comment on table COLLEAGUE is 'A researcher or associate who registered with the database.';
@@ -831,3 +808,62 @@ Comment on column RESERVEDNAME.CREATED_BY  is 'Username of the person who entere
 
 /* Phenotype */
 
+Comment on table PHENOTYPE is 'Phenotypes defined by the Ascomycete Phenotype Ontology (APO) as an observable:qualifier combination.';
+Comment on column PHENOTYPE.PHENOTYPE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PHENOTYPE.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column PHENOTYPE.DISPLAY_NAME is 'Public display name.';
+Comment on column PHENOTYPE.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column PHENOTYPE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PHENOTYPE.BUD_ID is 'Not from BUD.';
+Comment on column PHENOTYPE.OBSERVABLE_ID is 'FK to APO.APO_ID.';
+Comment on column PHENOTYPE.QUALIFIER_ID is 'FK to APO.APO_ID.';
+Comment on column PHENOTYPE.DESCRIPTION is 'Description or comment.';
+Comment on column PHENOTYPE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PHENOTYPE.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table ALLELE is 'Gene variants or alleles that show observable phenotypic traits.';
+Comment on column ALLELE.ALLELE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column ALLELE.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column ALLELE.DISPLAY_NAME is 'Public display name.';
+Comment on column ALLELE.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column ALLELE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ALLELE.BUD_ID is 'PK from BUD.EXPT_PROPERTY.EXPT_PROPERTY_NO';
+Comment on column ALLELE.DESCRIPTION is 'Description or comment.';
+Comment on column ALLELE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ALLELE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table REPORTER is 'Gene variants or alleles that show observable phenotypic traits.';
+Comment on column REPORTER.REPORTER_ID is 'Unique identifier (Oracle sequence).';
+Comment on column REPORTER.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column REPORTER.DISPLAY_NAME is 'Public display name.';
+Comment on column REPORTER.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column REPORTER.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REPORTER.BUD_ID is 'PK from BUD.EXPT_PROPERTY.EXPT_PROPERTY_NO';
+Comment on column REPORTER.DESCRIPTION is 'Description or comment.';
+Comment on column REPORTER.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REPORTER.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+
+
+/* File */
+
+Comment on table FILEDBENTITY is 'Details about files loaded into or dumped from the database.';
+Comment on column FILEDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
+Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
+Comment on column FILEDBENTITY.FILE_VERSION is 'Version or release of the file.';
+Comment on column FILEDBENTITY.FILE_FORMAT is 'Standard file format.';
+Comment on column FILEDBENTITY.FILE_EXTENSION is 'Extension of the file name.';
+Comment on column FILEDBENTITY.FILE_CATEGORY is 'Type or category of file.';
+Comment on column FILEDBENTITY.FILE_OUTPUT_TYPE is 'Description of the purpose or contents of the file.';
+Comment on column FILEDBENTITY.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column FILEDBENTITY.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID, need species as well as strains.';
+
+Comment on table FILE_RELATION is 'Relationship between two files.';
+Comment on column FILE_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column FILE_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column FILE_RELATON.BUD_ID is 'Not in BUD.';
+Comment on column FILE_RELATION.PARENT_ID is 'FK to FILE_ID.';
+Comment on column FILE_RELATION.CHILD_ID is 'FK to FILE_ID.';
+Comment on column FILE_RELATION.RO_ID is 'FK TO RO.RO_ID.';
+Comment on column FILE_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column FILE_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
