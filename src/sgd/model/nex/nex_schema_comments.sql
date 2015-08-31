@@ -843,7 +843,33 @@ Comment on column REPORTER.DESCRIPTION is 'Description or comment.';
 Comment on column REPORTER.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REPORTER.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+/* Annotations */
 
+Comment on table PHENOTYPEANNOTATION is 'Annotations associated with a phenotype.';
+Comment on column PHENOTYPEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PHENOTYPEANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column PHENOTYPEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PHENOTYPEANNOTATION.BUD_ID is 'Not from BUD.';
+Comment on column PHENOTYPEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column PHENOTYPEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column PHENOTYPEANNOTATION.PHENOTYPE_ID is 'FK to PHENOTYPE.PHENOTYPE_ID.';
+Comment on column PHENOTYPEANNOTATION.EXPERIMENT_ID is 'FK to APO.APO_ID.';
+Comment on column PHENOTYPEANNOTATION.MUTANT_ID is 'FK to APO.APO_ID.';
+Comment on column PHENOTYPEANNOTATION.ALLELE_ID is 'FK to ALLELE.ALLELE_ID.';
+Comment on column PHENOTYPEANNOTATION.REPORTER_ID is 'FK to REPORTER.REPORTER_ID.';
+Comment on column PHENOTYPEANNOTATION.CHEBI_ID is 'FK to CHEBI.CHEBI_ID.';
+Comment on column PHENOTYPEANNOTATION.ASSAY_ID is 'FK to OBI.OBI_ID.';
+Comment on column PHENOTYPEANNOTATION.ANALYSIS_ID is 'FK to OBI.OBI_ID.';
+Comment on column PHENOTYPEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PHENOTYPEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table PHENOTYPECONDITION is 'Conditions associated with a phenotype annotation.';
+Comment on column PHENOTYPECONDITION.PHENOTYPECONDITION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PHENOTYPECONDITION.ANNOTATION_ID is 'FK to PHENOTYPEANNOTATION.ANNOTATION_ID.';
+Comment on column PHENOTYPECONDITION.CONDITION_NAME is 'Type of condition (temperature, treatment, growth condition, strain name, etc.).';
+Comment on column PHENOTYPECONDITION.CONDITION_VALUE is 'Actual value of the condition.';
+Comment on column PHENOTYPEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PHENOTYPEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* File */
 
