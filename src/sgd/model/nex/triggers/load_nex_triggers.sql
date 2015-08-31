@@ -7,6 +7,7 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ManageSgdid.sps
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ManageSgdid.spb
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckPubmed.fnc
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckPhenotype.fnc
 
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DeleteLog_BUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/UpdateLog_BUDR.trg
@@ -143,3 +144,11 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainSummaryReference_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_AUDR.trg
+
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotype_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotype_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Allele_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Allele_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reporter_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reporter_AUDR.trg
