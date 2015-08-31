@@ -14,8 +14,8 @@ BEGIN
         SELECT object_seq.NEXTVAL INTO :new.phenotype_id FROM DUAL;
     END IF;
 
-	v_DoesPhenotypeExist := CheckPhenotype(:observable_id, 'observable');
-	v_DoesPhenotypeExist := CheckPhenotype(:qualifier_id, 'qualifier');
+	v_DoesPhenotypeExist := CheckPhenotype(:new.observable_id, 'observable');
+	v_DoesPhenotypeExist := CheckPhenotype(:new.qualifier_id, 'qualifier');
 
     v_IsValidUser := CheckUser(:new.created_by);
 
@@ -26,8 +26,8 @@ BEGIN
             (-20000, 'Primary key cannot be updated');
     END IF;
 
-    v_DoesPhenotypeExist := CheckPhenotype(:observable_id, 'observable');
-    v_DoesPhenotypeExist := CheckPhenotype(:qualifier_id, 'qualifier');
+    v_DoesPhenotypeExist := CheckPhenotype(:new.observable_id, 'observable');
+    v_DoesPhenotypeExist := CheckPhenotype(:new.qualifier_id, 'qualifier');
 
     IF (:new.date_created != :old.date_created) THEN    
         RAISE_APPLICATION_ERROR
