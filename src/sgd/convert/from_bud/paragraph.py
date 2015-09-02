@@ -246,26 +246,31 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                             yield None
 
         #Regulation
-        for row in make_file_starter('src/sgd/convert/data/regulationSummaries')():
-            bioentity_key = (row[0], 'LOCUS')
+        file_names = ['src/sgd/convert/data/regulationSummaries',
+                      'src/sgd/convert/data/15-8regulationSummaries.txt']
 
-            if bioentity_key in key_to_bioentity:
-                bioentity = key_to_bioentity[bioentity_key]
-                yield {
-                    'bioentity': bioentity,
-                    'source': key_to_source['SGD'],
-                    'text': row[2],
-                    'html': link_gene_names(row[2], {bioentity.display_name, bioentity.format_name, bioentity.display_name + 'P', bioentity.format_name + 'P'}, nex_session),
-                    'category': 'REGULATION'
-                }
-            else:
-                #print 'Bioentity not found: ' + str(bioentity_key)
-                yield None
+        for file_name in file_names:
+            for row in make_file_starter(file_name)():
+                bioentity_key = (row[0], 'LOCUS')
+
+                if bioentity_key in key_to_bioentity:
+                    bioentity = key_to_bioentity[bioentity_key]
+                    yield {
+                        'bioentity': bioentity,
+                        'source': key_to_source['SGD'],
+                        'text': row[2],
+                        'html': link_gene_names(row[2], {bioentity.display_name, bioentity.format_name, bioentity.display_name + 'P', bioentity.format_name + 'P'}, nex_session),
+                        'category': 'REGULATION'
+                    }
+                else:
+                    #print 'Bioentity not found: ' + str(bioentity_key)
+                    yield None
 
         #Phenotype
         file_names = ['src/sgd/convert/data/PhenotypeSummaries032015.txt',
                       'src/sgd/convert/data/15-6phenoSummariesTyposFixed.txt',
-                      'src/sgd/convert/data/15-7phenoSummaries.txt']
+                      'src/sgd/convert/data/15-7phenoSummaries.txt',
+                      'src/sgd/convert/data/15-8phenoSummaries.txt']
 
         for file_name in file_names:
             for row in make_file_starter(file_name)():
@@ -374,17 +379,20 @@ def make_paragraph_reference_starter(nex_session_maker):
                             print 'Reference not found: ' + sgdid
 
         #Regulation
-        for row in make_file_starter('src/sgd/convert/data/regulationSummaries')():
-            paragraph_key = (row[0], 'BIOENTITY', 'REGULATION')
-            for pubmed_id in [int(x) for x in row[3].strip().split('|') if x != 'references' and x != '']:
-                if paragraph_key in key_to_paragraph and pubmed_id in pubmed_id_to_reference:
-                    yield {
-                        'paragraph_id': key_to_paragraph[paragraph_key].id,
-                        'reference_id': pubmed_id_to_reference[pubmed_id].id,
-                    }
-                else:
-                    print 'Paragraph or reference not found: ' + str(paragraph_key) + ' ' + str(pubmed_id)
-                    yield None
+        file_names = ['src/sgd/convert/data/regulationSummaries',
+                      'src/sgd/convert/data/15-8regulationSummaries.txt']
+        for file_name in file_names:
+            for row in make_file_starter(file_name)():
+                paragraph_key = (row[0], 'BIOENTITY', 'REGULATION')
+                for pubmed_id in [int(x) for x in row[3].strip().split('|') if x != 'references' and x != '']:
+                    if paragraph_key in key_to_paragraph and pubmed_id in pubmed_id_to_reference:
+                        yield {
+                            'paragraph_id': key_to_paragraph[paragraph_key].id,
+                            'reference_id': pubmed_id_to_reference[pubmed_id].id,
+                        }
+                    else:
+                        print 'Paragraph or reference not found: ' + str(paragraph_key) + ' ' + str(pubmed_id)
+                        yield None
 
         #Strain
         for strain_key, paragraph in strain_paragraphs.iteritems():
