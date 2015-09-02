@@ -1303,22 +1303,31 @@ def make_protein_experiment_evidence_starter(bud_session_maker, nex_session_make
 	formatname_to_bioentity = dict([(x.format_name, x) for x in nex_session.query(Bioentity).all()])
         pmid_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
-	file_name = "src/sgd/convert/data/Chong_et_al_abundance.txt"
-	pmid = 26046442
+        # pmid = 26046442
+	file_names = {"26046442": "src/sgd/convert/data/Chong_et_al_abundance.txt",
+                      "24487582": "src/sgd/convert/data/Kulak_et_al-abundance_24487582.txt",
+                      "16699522": "src/sgd/convert/data/Newman_et_al-abundance-16699522.txt" }
 
-        f = open(file_name, 'rU')
-       	header = True
-        for line in f:
-            if header:
-                header = False
-            else:
-                field = line.split('\t')
-		yield {'source': key_to_source['SGD'],
-                       'reference': pmid_to_reference[pmid],
-                       'experiment': key_to_experiment['protein_abundance'],
-                       'locus': formatname_to_bioentity[field[0]],
-                       'data_value': int(field[1].rstrip()),
-                       'data_unit': "molecules/cell"}
+        for pmid in file_names:
+            file_name = file_names[pmid]
+            pmid = int(pmid)
+            f = open(file_name, 'rU')
+            header = True
+            for line in f:
+                if header:
+                    header = False
+                else:
+                    field = line.split('\t')
+                    data_value = field[1].rstrip()
+                    if '.' in data_value:
+                        data_value = float(data_value)
+                    data_value = int(data_value)
+                    yield {'source': key_to_source['SGD'],
+                           'reference': pmid_to_reference[pmid],
+                           'experiment': key_to_experiment['protein_abundance'],
+                           'locus': formatname_to_bioentity[field[0]],
+                           'data_value': data_value,
+                           'data_unit': "molecules/cell"}
 
         nex_session.close()
 
