@@ -851,7 +851,7 @@ Comment on column LITERATUREANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY
 Comment on column LITERATUREANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column LITERATUREANNOTATION.BUD_ID is 'From BUD.LIT_GUIDE.LIT_GUIDE_NO.';
 Comment on column LITERATUREANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
-Comment on column LITERATUREANNOTATION.STRAIN_ID is 'FK to STRAIN.STRAIN_ID.';
+Comment on column LITERATUREANNOTATION.STRAIN_ID is 'FK to STRAINDBENTITY.DBENTITY_ID.';
 Comment on column LITERATUREANNOTATION.TOPIC is 'Topic or category assigned to a reference (Additional Literature, Omics, Primary Literature, Reviews).';
 Comment on column LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -860,8 +860,8 @@ Comment on table PHENOTYPEANNOTATION is 'Annotations associated with a phenotype
 Comment on column PHENOTYPEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column PHENOTYPEANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
 Comment on column PHENOTYPEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column PHENOTYPEANNOTATION.BUD_ID is 'Not from BUD.';
-Comment on column PHENOTYPEANNOTATION.STRAIN_ID is 'FK to STRAIN.STRAIN_ID.';
+Comment on column PHENOTYPEANNOTATION.BUD_ID is 'From BUD.PHENO_ANNOTATION.PHENO_ANNOTATION_NO.';
+Comment on column PHENOTYPEANNOTATION.STRAIN_ID is 'FK to STRAINDBENTITY.DBENTITY_ID.';
 Comment on column PHENOTYPEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
 Comment on column PHENOTYPEANNOTATION.PHENOTYPE_ID is 'FK to PHENOTYPE.PHENOTYPE_ID.';
 Comment on column PHENOTYPEANNOTATION.EXPERIMENT_ID is 'FK to APO.APO_ID.';

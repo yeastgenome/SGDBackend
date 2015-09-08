@@ -151,10 +151,9 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reporter_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reporter_AUDR.trg
 
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeCondition_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeCondition_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationDetail_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationDetail_AUDR.trg
