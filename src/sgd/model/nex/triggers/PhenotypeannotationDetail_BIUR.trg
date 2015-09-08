@@ -1,23 +1,23 @@
-CREATE OR REPLACE TRIGGER PhenotypeCondition_BIUR
+CREATE OR REPLACE TRIGGER PhenotypeannotationDetail_BIUR
 --
--- Before insert or update trigger for the phenotype_condition table
+-- Before insert or update trigger for the phenotypeannotation_detail table
 --
-  BEFORE INSERT OR UPDATE ON phenotype_condition
+  BEFORE INSERT OR UPDATE ON phenotypeannotation_detail
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.condition_id IS NULL) THEN
-        SELECT condition_seq.NEXTVAL INTO :new.condition_id FROM DUAL;
+    IF (:new.detail_id IS NULL) THEN
+        SELECT detail_seq.NEXTVAL INTO :new.detail_id FROM DUAL;
     END IF; 
 
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
 
-    IF (:new.condition_id != :old.condition_id) THEN    
+    IF (:new.detail_id != :old.detail_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END PhenotypeCondition_BIUR;
+END PhenotypeannotationDetail_BIUR;
 /
 SHOW ERROR

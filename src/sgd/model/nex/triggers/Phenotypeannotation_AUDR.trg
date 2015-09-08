@@ -25,7 +25,7 @@ BEGIN
         AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'BUD_ID', :old.annotation_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
-    IF  (((:old.strain_id IS NULL) AND (:new.strain_id IS NOT NULL)) OR ((:old.strain_id IS NOT NULL) AND (:new.strain_id IS NULL)) OR (:old.strain_id != :new.strain_id))
+    IF  (:old.strain_id != :new.strain_id)
     THEN
         AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'STRAIN_ID', :old.annotation_id, :old.strain_id, :new.strain_id, USER);
     END IF;
@@ -79,7 +79,7 @@ BEGIN
 
     v_row := :old.annotation_id || '[:]' || :old.locus_id || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.reference_id || '[:]' || :old.analysis_id || '[:]' ||
+             :old.strain_id || '[:]' || :old.reference_id || '[:]' ||
              :old.phenotype_id || '[:]' || :old.experiment_id || '[:]' ||
              :old.mutant_id || '[:]' || :old.allele_id || '[:]' ||
              :old.reporter_id || '[:]' || :old.chebi_id || '[:]' ||

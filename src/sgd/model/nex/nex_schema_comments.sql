@@ -861,7 +861,7 @@ Comment on column PHENOTYPEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracl
 Comment on column PHENOTYPEANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
 Comment on column PHENOTYPEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column PHENOTYPEANNOTATION.BUD_ID is 'Not from BUD.';
-Comment on column PHENOTYPEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column PHENOTYPEANNOTATION.STRAIN_ID is 'FK to STRAIN.STRAIN_ID.';
 Comment on column PHENOTYPEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
 Comment on column PHENOTYPEANNOTATION.PHENOTYPE_ID is 'FK to PHENOTYPE.PHENOTYPE_ID.';
 Comment on column PHENOTYPEANNOTATION.EXPERIMENT_ID is 'FK to APO.APO_ID.';
@@ -874,13 +874,14 @@ Comment on column PHENOTYPEANNOTATION.ANALYSIS_ID is 'FK to OBI.OBI_ID.';
 Comment on column PHENOTYPEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PHENOTYPEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table PHENOTYPECONDITION is 'Conditions associated with a phenotype annotation.';
-Comment on column PHENOTYPECONDITION.PHENOTYPECONDITION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column PHENOTYPECONDITION.ANNOTATION_ID is 'FK to PHENOTYPEANNOTATION.ANNOTATION_ID.';
-Comment on column PHENOTYPECONDITION.CONDITION_NAME is 'Type of condition (temperature, treatment, growth condition, strain name, etc.).';
-Comment on column PHENOTYPECONDITION.CONDITION_VALUE is 'Actual value of the condition.';
-Comment on column PHENOTYPEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column PHENOTYPEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+Comment on table PHENOTYPEANNOTATION_DETAIL is 'Treatments, conditions and other details associated with a phenotype annotation.';
+Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PHENOTYPEANNOTATION_DETAIL.ANNOTATION_ID is 'FK to PHENOTYPEANNOTATION.ANNOTATION_ID.';
+Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_TYPE is 'Category or type of detail (treatment, growth condition, chemical, etc.).';
+Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_NAME is 'Specific detail name (temperature, YPD medium, miconazole, etc.).';
+Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_VALUE is 'Actual detail value (30 deg C, with 6% ethanol, 1000 ug/ml, etc.).';
+Comment on column PHENOTYPEANNOTATION_DETAIL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PHENOTYPEANNOTATION_DETAIL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* File */
 
