@@ -3,13 +3,25 @@ from collections import OrderedDict
 from sqlalchemy.orm import joinedload
 from src.sgd.convert.util import get_relation_to_ro_id
 
-__author__ = 'kpaskov'
-## updated by sweng66
+__author__ = 'kpaskov, sweng66'
 
 def load_urls(bud_locus, bud_session):
     from src.sgd.model.bud.general import FeatUrl, DbxrefFeat
 
     url_placement_mapping = url_placement()
+    
+    url_source_mapping = { 'Author': 'Publication',
+                           'Colleague submission': 'Direct submission',
+                           'DNASU Plasmid Repository': 'DNASU',
+                           'HIP HOP profile database (Novartis)': 'HIP HOP profile database',
+                           'HIPHOP chemogenomics database (UBC)': 'HIPHOP chemogenomics database',
+                           'LoQate': 'LoQAtE',
+                           'MRC': 'SUPERFAMILY',
+                           'PlasmID Database': 'PlasmID',
+                           'Publisher': 'Publication',
+                           'Yeast Genetic Resource Center': 'YGRC',
+                           'Yeast Microarray Global Viewer': 'yMGV',
+                           'yeast snoRNA database at UMass Amherst': 'Yeast snoRNA database'}
 
     urls = []
 
@@ -30,9 +42,13 @@ def load_urls(bud_locus, bud_session):
                 print "Can't handle this url. " + str(old_url.url_type)
                 continue
 
+            source = old_url.source
+            if source in url_source_mapping:
+                source = url_source_mapping.get(source)
+
             urls.append(
                 {'display_name': old_webdisplay.label_name,
-                 'source': {'display_name': old_url.source},
+                 'source': {'display_name': source},
                  'bud_id': old_url.id,
                  'url_type': type,
                  'placement': old_webdisplay.label_location if old_webdisplay.label_location not in url_placement_mapping else url_placement_mapping[old_webdisplay.label_location],
@@ -64,9 +80,13 @@ def load_urls(bud_locus, bud_session):
                     print "Can't handle this url. " + str(old_url.url_type)
                     continue
 
+                source = old_url.source
+                if source in url_source_mapping:
+                    source = url_source_mapping.get(source)
+
                 urls.append(
                     {'display_name': old_webdisplay.label_name,
-                     'source': {'display_name': old_url.source},
+                     'source': {'display_name': source},
                      'bud_id': old_url.id,
                      'link': link,
                      'url_type': type,
@@ -149,13 +169,20 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
             'date_created': str(bud_obj.date_created),
             'created_by': bud_obj.created_by})
 
+    found_uniprot = {}
     for bud_obj in bud_session.query(DbxrefFeat).options(joinedload('dbxref'), joinedload('dbxref.dbxref_urls')).filter_by(feature_id=bud_locus.id).all():
         alias_type = bud_obj.dbxref.dbxref_type
         if alias_type == 'DBID Primary':
             continue
         if alias_type == 'DBID Secondary':
             alias_type = 'SGDID Secondary'
+        if alias_type.startswith('UniProt'):
+            alias_type = 'UniProtKB ID'
         display_name = bud_obj.dbxref.dbxref_id
+
+        if alias_type.startswith('UniProt/Swiss'):
+            found_uniprot[display_name] = 1
+
         link = None
         if len(bud_obj.dbxref.urls) > 0:
             if len(bud_obj.dbxref.urls) == 1:
@@ -175,11 +202,10 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
              'date_created': str(bud_obj.dbxref.date_created),
              'created_by': bud_obj.dbxref.created_by}))
 
-    if uniprot_id is not None:
-        aliases.append(
-            {'display_name': uniprot_id,
-             'source': {'display_name': 'Uniprot'},
-             'alias_type': 'Uniprot ID'})
+    if uniprot_id is not None and uniprot_id not in found_uniprot:
+        aliases.append({'display_name': uniprot_id,
+                        'source': {'display_name': 'Uniprot'},
+                        'alias_type': 'Uniprot ID/Swiss-Prot ID'})
 
     return aliases
 
@@ -283,12 +309,13 @@ def locus_starter(bud_session_maker):
 
         #Load aliases
         obj_json['aliases'] = load_aliases(bud_obj, bud_session, None if sgdid not in sgdid_to_uniprotid else sgdid_to_uniprotid[sgdid])
-
+        
         #Load urls
         obj_json['urls'] = load_urls(bud_obj, bud_session)
 
         #Load children
-        obj_json['children'] = load_relations(bud_obj, bud_session)
+        # obj_json['children'] = load_relations(bud_obj, bud_session)
+        obj_json['children'] = []
 
         #Load various summaries
         # obj_json['summaries'] = load_summaries(bud_obj, bud_session)
@@ -296,7 +323,8 @@ def locus_starter(bud_session_maker):
         #    obj_json['summaries'].append(sgdid_to_go_paragraph[sgdid])
         # if systematic_name in systematic_name_to_reg_paragraph:
         #    obj_json['summaries'].append(systematic_name_to_reg_paragraph[systematic_name])
-            
+        obj_json['summaries'] = []
+        
         obj_json['tabs'] = get_tabs(bud_obj.status, feature_type) 
 
         print obj_json['systematic_name']

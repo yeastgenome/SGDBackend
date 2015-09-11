@@ -12,6 +12,9 @@ def load_urls(bud_reference, pubmed_id, bud_session):
 
     doi = None
     pubmed_central_id = None
+
+    url_added = {}
+
     for ref_url in bud_session.query(Ref_URL).options(joinedload('url')).filter_by(reference_id=bud_reference.id).all():
 
         source = ''
@@ -36,6 +39,8 @@ def load_urls(bud_reference, pubmed_id, bud_session):
                      'bud_id': ref_url.id,
                      'date_created': str(ref_url.url.date_created),
                      'created_by': ref_url.url.created_by})
+        
+        url_added[ref_url.url.url] = 1
 
         if ref_url.url.url_type == 'PMC full text':
             pubmed_central_id = ref_url.url.url.replace('http://www.ncbi.nlm.nih.gov/pmc/articles/', '')[:-1]
@@ -43,20 +48,26 @@ def load_urls(bud_reference, pubmed_id, bud_session):
             doi = ref_url.url.url[18:]
 
     if pubmed_id is not None:
-        urls.append({'display_name': 'PubMed',
-                     'link': 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(pubmed_id),
-                     'source': {'display_name': 'NCBI'},
-                     'url_type': 'PubMed'})
+        pubmed_url = 'http://www.ncbi.nlm.nih.gov/pubmed/' + str(pubmed_id)
+        if pubmed_url not in url_added:
+            urls.append({'display_name': 'PubMed',
+                         'link': pubmed_url,
+                         'source': {'display_name': 'NCBI'},
+                         'url_type': 'PubMed'})
     if doi is not None:
-        urls.append({'display_name': 'Full-Text',
-                     'link': 'http://dx.doi.org/' + doi,
-                     'source': {'display_name': 'NCBI'},
-                     'url_type': 'DOI full text'})
+        doi_url = 'http://dx.doi.org/' + doi
+        if doi_url not in url_added:
+            urls.append({'display_name': 'DOI full text',
+                         'link': doi_url,
+                         'source': {'display_name': 'NCBI'},
+                         'url_type': 'DOI full text'})
     if pubmed_central_id is not None:
-        urls.append({'display_name': 'PMC',
-                     'link': 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(pubmed_central_id),
-                     'source': {'display_name': 'NCBI'},
-                     'url_type': 'PubMedCentral'})
+        pmc_url = 'http://www.ncbi.nlm.nih.gov/pmc/articles/' + str(pubmed_central_id) + '/'
+        if pmc_url not in url_added:
+            urls.append({'display_name': 'PMC full text',
+                         'link': pmc_url,
+                         'source': {'display_name': 'NCBI'},
+                         'url_type': 'PMC full text'})
     return urls, pubmed_central_id, doi
 
 
@@ -140,7 +151,7 @@ def load_relations(bud_reference, bud_session):
     return relations
 
 
-def load_documents(bud_reference, bud_session):
+def load_documents(bud_reference, bud_session, source):
     from src.sgd.model.bud.reference import Abstract
 
     documents = []
@@ -151,7 +162,7 @@ def load_documents(bud_reference, bud_session):
         documents.append(
             {'text': abstract.text,
              'html': abstract.text,
-             'source': {'display_name': 'SGD'},
+             'source': {'display_name': source},
              'document_type': 'Abstract',
              'date_created': str(bud_reference.date_created),
              'created_by': bud_reference.created_by})
@@ -216,7 +227,7 @@ def reference_starter(bud_session_maker):
         urls, pubmed_central_id, doi = load_urls(old_reference, pubmed_id, bud_session)
 
         source = 'SGD'
-        if 'PubMed' in old_reference.source:
+        if pubmed_id is not None or pubmed_central_id is not None:
             source = 'NCBI'
         elif 'PDB' in old_reference.source:
             source = 'PDB'
@@ -281,8 +292,8 @@ def reference_starter(bud_session_maker):
         obj_json['children'] = load_relations(old_reference, bud_session)
 
         #Load documents
-        obj_json['documents'] = load_documents(old_reference, bud_session)
-        obj_json['documents'].append(create_bibentry(obj_json))
+        obj_json['documents'] = load_documents(old_reference, bud_session, source)
+        obj_json['documents'].append(create_bibentry(obj_json, source))
 
         print obj_json['citation']
 
@@ -291,7 +302,7 @@ def reference_starter(bud_session_maker):
     bud_session.close()
 
 
-def create_bibentry(obj_json):
+def create_bibentry(obj_json, source):
     entries = []
     entries.append(('PMID', obj_json.get('pmid')))
     entries.append(('STAT', obj_json.get('dbentity_status')))
@@ -302,7 +313,7 @@ def create_bibentry(obj_json):
     entries.append(('IP', obj_json.get('issue')))
     entries.append(('PG', obj_json.get('page')))
     entries.append(('VI', obj_json.get('volume')))
-    entries.append(('SO', 'SGD'))
+    entries.append(('SO', source))
 
     for reference_author in obj_json['reference_authors']:
         entries.append(('AU', reference_author['display_name']))
@@ -325,7 +336,7 @@ def create_bibentry(obj_json):
 
     return {'text': '\n'.join([key + ' - ' + str(value) for key, value in entries if value is not None]),
             'html': '\n'.join([key + ' - ' + str(value) for key, value in entries if value is not None]),
-            'source': {'display_name': 'SGD'},
+            'source': {'display_name': source},
             'document_type': 'Medline'}
 
 

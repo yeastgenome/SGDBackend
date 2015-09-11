@@ -10,8 +10,7 @@ from src.sgd.model.nex.source import Source
 from src.sgd.model.nex.so import So
 from src.sgd.model.nex.ro import Ro
 
-__author__ = 'kelley'
-## updated by sweng66
+__author__ = 'kelley, sweng66'
 
 class Locus(Dbentity):
     __tablename__ = "locusdbentity"
@@ -49,8 +48,8 @@ class Locus(Dbentity):
                   # ('summaries', 'locus.LocusSummary', True),
     __eq_fks__ = [('source', Source, False),
                   ('aliases', 'locus.LocusAlias', True),
-                  ('urls', 'locus.LocusUrl', True),
-                  ('children', 'locus.LocusRelation', False)]
+                  ('urls', 'locus.LocusUrl', True)]
+    #              ('children', 'locus.LocusRelation', False)]
     __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
     __filter_values__ = ['so_id', 'qualifier']
@@ -491,31 +490,31 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    parent = relationship(Locus, backref=backref("children", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
-    child = relationship(Locus, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
+    # parent = relationship(Locus, backref=backref("children", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[parent_id])
+    # child = relationship(Locus, backref=backref("parents", cascade="all, delete-orphan", passive_deletes=True), uselist=False, foreign_keys=[child_id])
     source = relationship(Source, uselist=False)
     ro = relationship(Ro, uselist=False)
 
     __eq_values__ = ['id', 'ro_id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False),
-                  ('ro', Ro, False),
-                  ('parent', Locus, False),
-                  ('child', Locus, False)]
+                  ('ro', Ro, False)]
+    #              ('parent', Locus, False),
+    #              ('child', Locus, False)]
     __id_values__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
     __filter_values__ = []
 
-    def __init__(self, parent, child, ro_id):
-        self.parent = parent
-        self.child = child
+    def __init__(self, parent_id, child_id, ro_id):
+        self.parent_id = parent_id
+        self.child_id = child_id
         self.source = self.child.source
         self.ro_id = ro_id
 
     def unique_key(self):
-        return (None if self.parent is None else self.parent.unique_key()), (None if self.child is None else self.child.unique_key(), self.ro_id)
+        return self.parent_id, self.child_id, self.ro_id
 
     @classmethod
-    def create_or_find(cls, obj_json, session, parent_obj=None):
+    def create_or_find(cls, obj_json, session, parent_id=None):
         if obj_json is None:
             return None
 
@@ -526,20 +525,15 @@ class LocusRelation(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         ro_id = obj_json["ro_id"]
 
         current_obj = session.query(cls)\
-            .filter_by(parent_id=parent_obj.id)\
-            .filter_by(child_id=child.id)\
+            .filter_by(parent_id=parent.id)\
+            .filter_by(child_id=child_id)\
             .filter_by(ro_id=ro_id).first()
 
         if current_obj is None:
-            newly_created_object = cls(parent_obj, child, ro_id)
+            newly_created_object = cls(parent_id, child_id, ro_id)
             return newly_created_object, 'Created'
         else:
             return current_obj, 'Found'
-
-    def to_json(self):
-        obj_json = self.child.to_min_json()
-        obj_json['source'] = self.child.source.to_min_json()
-        
 
 class LocusSummary(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __tablename__ = 'locus_summary'
@@ -556,7 +550,7 @@ class LocusSummary(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    locus = relationship(Locus, uselist=False, backref=backref('summaries', cascade="all, delete-orphan", passive_deletes=True))
+    # locus = relationship(Locus, uselist=False, backref=backref('summaries', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'text', 'html', 'bud_id', 'summary_type', 'summary_order',
@@ -615,8 +609,8 @@ class LocusSummaryReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJson
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    summary = relationship(LocusSummary, uselist=False, backref=backref('references', cascade="all, delete-orphan", passive_deletes=True))
-    reference = relationship(Reference, uselist=False, backref=backref('locus_summaries', cascade="all, delete-orphan", passive_deletes=True))
+    # summary = relationship(LocusSummary, uselist=False, backref=backref('references', cascade="all, delete-orphan", passive_deletes=True))
+    # reference = relationship(Reference, uselist=False, backref=backref('locus_summaries', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'reference_id', 'reference_order', 'date_created', 'created_by']
@@ -630,15 +624,6 @@ class LocusSummaryReference(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJson
         self.summary = summary
         self.reference_id = reference.id
         self.source = self.summary.source
-
-
-        
-        
-        print "HELLO: ", summary.id, reference_order, reference.id
-
-
-
-
 
     def unique_key(self):
         return (None if self.summary is None else self.summary.unique_key()), (None if self.reference is None else self.reference.unique_key()), self.reference_order

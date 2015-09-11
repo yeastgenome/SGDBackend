@@ -5,18 +5,25 @@ __author__ = 'sweng66'
 
 def keyword_starter(bud_session_maker):
     
-    f = open('src/sgd/convert/data/category2keywordMapping.txt', 'r')
-    category_to_keyword_mapping = {}
-    for line in f:
-        row = line.split('\t')
-        category_to_keyword_mapping[row[0]] = row[1].strip()
-    f.close()
-
     f = open('src/sgd/convert/data/category2keywordDefMapping.txt', 'r')
     category_to_def_mapping = {}
     for line in f:
         row = line.split('\t')
         category_to_def_mapping[row[0]] = row[1].strip()
+    f.close()
+
+    f = open('src/sgd/convert/data/category2keywordMapping.txt', 'r')
+    category_to_keyword_mapping = {}
+    for line in f:
+        row = line.split('\t')
+        if len(row) >= 2:
+            category_to_keyword_mapping[row[1].strip()] = row[0]
+        yield remove_nones({
+                'display_name': row[0],
+                'description': category_to_def_mapping.get(row[0]),
+                'source': {'display_name': 'SGD'}
+        })
+
     f.close()
 
     ### spell tags

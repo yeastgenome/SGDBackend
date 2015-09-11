@@ -51,6 +51,44 @@ def is_number(str_value):
     except:
         return False
 
+
+def children_from_obo(filename, ancestor):
+    f = open(filename, 'r')
+    child = ''
+    parent_to_children = {}
+    id_to_rank = {}
+    for line in f:
+        line = line.strip()
+        pieces = line.split(': ')
+        if pieces[0] == 'id':
+            child = pieces[1]
+        if pieces[0] == 'is_a':
+            parent = pieces[1].split(' ')[0]
+            if parent not in parent_to_children:
+                parent_to_children[parent] = []
+            parent_to_children[parent].append(child)
+        if pieces[0] == 'property_value' and pieces[1].startswith('has_rank NCBITaxon:'):
+            id_to_rank[child] = pieces[1].replace("has_rank NCBITaxon:", "") 
+
+    # do breadth first search of parent_to_children
+    # populate filtered_parent_set
+    filtered_parent_set = []
+    working_set = []
+    working_set.append(ancestor)
+    filtered_id_to_rank = {}
+    while len(working_set) > 0:
+        current = working_set[0]
+        working_set = working_set[1:]
+        filtered_parent_set.append(current)
+        filtered_id_to_rank[current] = id_to_rank.get(current)
+        if current in parent_to_children:
+            for child in parent_to_children[current]:
+                if child not in filtered_parent_set:
+                    working_set.append(child)
+        
+    return [filtered_parent_set, filtered_id_to_rank]
+
+
 def read_obo(ontology, filename, key_switch, parent_to_children, is_obsolete_id, source, alias_source=None):
     terms = []
     f = open(filename, 'r')    
@@ -63,6 +101,10 @@ def read_obo(ontology, filename, key_switch, parent_to_children, is_obsolete_id,
     parent_child_pair = {}
     for line in f:
         line = line.strip()
+        ## remove all back slashes
+        line = line.replace("\\", "")
+        if ontology != 'RO' and line == '[Typedef]':
+            break
         if ontology == 'OBI' and (line.startswith('property_value:') or line.startswith('owl-')):
             continue
         if line == '[Term]' or line == '[Typedef]':
@@ -153,6 +195,9 @@ def read_obo(ontology, filename, key_switch, parent_to_children, is_obsolete_id,
                 elif pieces[0] == 'is_obsolete':
                     is_obsolete_id[term[id_name]] = 1
 
+    if term is not None:
+        terms.append(term)
+
     f.close()
     if ontology == 'RO':
         return [terms, id_to_id]
@@ -170,7 +215,7 @@ def clean_up_orphans(nex_session_maker, child_cls, parent_cls, class_type):
     nex_session.close()
     return deleted_count
 
-word_to_bioent_id = None
+word_to_dbentity_id = None
 
 number_to_roman = {'01': 'I', '1': 'I',
                    '02': 'II', '2': 'II',
@@ -191,29 +236,29 @@ number_to_roman = {'01': 'I', '1': 'I',
                    '17': 'Mito',
                    }
 
-def get_word_to_bioent_id(word, nex_session):
-    from src.sgd.model.nex.bioentity import Locus
+def get_word_to_dbentity_id(word, nex_session):
+    from src.sgd.model.nex.locus import Locus
 
-    global word_to_bioent_id
-    if word_to_bioent_id is None:
-        word_to_bioent_id = {}
+    global word_to_dbentity_id
+    if word_to_dbentity_id is None:
+        word_to_dbentity_id = {}
         for locus in nex_session.query(Locus).all():
-            word_to_bioent_id[locus.format_name.lower()] = locus.id
-            word_to_bioent_id[locus.display_name.lower()] = locus.id
-            word_to_bioent_id[locus.format_name.lower() + 'p'] = locus.id
-            word_to_bioent_id[locus.display_name.lower() + 'p'] = locus.id
+            word_to_dbentity_id[locus.format_name.lower()] = locus.id
+            word_to_dbentity_id[locus.display_name.lower()] = locus.id
+            word_to_dbentity_id[locus.format_name.lower() + 'p'] = locus.id
+            word_to_dbentity_id[locus.display_name.lower() + 'p'] = locus.id
 
     word = word.lower()
-    return None if word not in word_to_bioent_id else word_to_bioent_id[word]
+    return None if word not in word_to_dbentity_id else word_to_dbentity_id[word]
 
-def get_bioent_by_name(bioent_name, to_ignore, nex_session):
-    from src.sgd.model.nex.bioentity import Bioentity
-    if bioent_name not in to_ignore:
+def get_dbentity_by_name(dbentity_name, to_ignore, nex_session):
+    from src.sgd.model.nex.locus import Locus
+    if dbentity_name not in to_ignore:
         try:
-            int(bioent_name)
+            int(dbentity_name)
         except ValueError:
-            bioent_id = get_word_to_bioent_id(bioent_name, nex_session)
-            return None if bioent_id is None else nex_session.query(Bioentity).filter_by(id=bioent_id).first()
+            dbentity_id = get_word_to_dbentity_id(dbentity_name, nex_session)
+            return None if dbentity_id is None else nex_session.query(Locus).filter_by(id=dbentity_id).first()
     return None
 
 def link_gene_names(text, to_ignore, nex_session):
@@ -222,21 +267,21 @@ def link_gene_names(text, to_ignore, nex_session):
     chunk_start = 0
     i = 0
     for word in words:
-        bioent_name = word
-        if bioent_name.endswith('.') or bioent_name.endswith(',') or bioent_name.endswith('?') or bioent_name.endswith('-'):
-            bioent_name = bioent_name[:-1]
-        if bioent_name.endswith(')'):
-            bioent_name = bioent_name[:-1]
-        if bioent_name.startswith('('):
-            bioent_name = bioent_name[1:]
+        dbentity_name = word
+        if dbentity_name.endswith('.') or dbentity_name.endswith(',') or dbentity_name.endswith('?') or dbentity_name.endswith('-'):
+            dbentity_name = dbentity_name[:-1]
+        if dbentity_name.endswith(')'):
+            dbentity_name = dbentity_name[:-1]
+        if dbentity_name.startswith('('):
+            dbentity_name = dbentity_name[1:]
 
-        bioent = get_bioent_by_name(bioent_name.upper(), to_ignore, nex_session)
+        dbentity = get_dbentity_by_name(dbentity_name.upper(), to_ignore, nex_session)
 
-        if bioent is not None:
+        if dbentity is not None:
             new_chunks.append(text[chunk_start: i])
             chunk_start = i + len(word) + 1
 
-            new_chunk = "<a href='" + bioent.link + "'>" + bioent_name + "</a>"
+            new_chunk = "<a href='" + dbentity.link + "'>" + dbentity_name + "</a>"
             if word[-2] == ')':
                 new_chunk = new_chunk + word[-2]
             if word.endswith('.') or word.endswith(',') or word.endswith('?') or word.endswith('-') or word.endswith(')'):
