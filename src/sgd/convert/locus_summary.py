@@ -110,6 +110,10 @@ def locus_summary_starter(bud_session_maker):
 
 
             for pmid in pmids:
+                sgdid = pmid_to_sgdid.get(int(pmid))
+                if sgdid is None:
+                    print "PMID=", pmid, " is not in the database"
+                    continue
                 order = order + 1
                 references.append({'sgdid': sgdid, 'reference_order': order})
 
