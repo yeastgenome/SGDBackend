@@ -1,0 +1,52 @@
+{
+    "title": "Colleague URL",
+        "type": "object",
+        "properties": {
+            "id": {
+                "title": "ID",
+                "type": "integer"
+            },
+            "display_name": {
+                "title": "Name",
+                "type": "string"
+            },
+            "link": {
+                "title": "Link",
+                "type": "string"
+            },
+	    "colleague_id": {
+                "title": "Colleague ID",
+                "type": "integer"
+            },
+            "source": {
+                "title": "Source",
+                "$ref": "source.json"
+            },
+            "bud_id": {
+                "title": "Bud ID",
+                "type": "integer"
+            },
+	    "url_type": {
+                "title": "URL Type",
+                "type": "string"
+            },
+            "date_created": {
+                "title": "Date Created",
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "date-time"
+                    },
+                    {
+                        "format": "date"
+                    }
+                ]
+            },
+            "created_by": {
+                "title": "Created By",
+                "type": "string"
+            }
+        },
+        "required": ["display_name", "colleague_id", "url_type", "source"]
+
+}
