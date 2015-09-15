@@ -18,10 +18,6 @@
             "title": "Link",
             "type": "string"
         },
-        "description": {
-            "title": "Description",
-            "type": "string"
-        },
         "source": {
             "title": "Source",
             "$ref": "source.json"
@@ -46,6 +42,10 @@
             "title": "Created By",
             "type": "string"
         },
+	"orcid": {
+            "title": "ORCID",
+	    "type": "string"
+	},
         "last_name": {
             "title": "Last Name",
             "type": "string"
@@ -98,6 +98,10 @@
             "title": "Country",
             "type": "string"
         },
+	"postal_code": {
+	    "title": "Postal Code",
+            "type": "string"
+	},
         "work_phone": {
             "title": "Work Phone",
             "type": "string"
@@ -164,6 +168,10 @@
                         "title": "Source",
                         "$ref": "source.json"
                     },
+		    "bud_id": {
+		        "title": "BUD ID",
+                        "type": "integer"
+		    },
                     "date_created": {
                         "title": "Date Created",
                         "type": "string",
@@ -182,151 +190,6 @@
                     }
                 },
                 "required": ["display_name", "link", "url_type", "source"]
-            }
-        },
-        "documents": {
-            "title": "Documents",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "title": "ID",
-                        "type": "integer"
-                    },
-                    "text": {
-                        "title": "Text",
-                        "type": "string"
-                    },
-                    "html": {
-                        "title": "HTML",
-                        "type": "string"
-                    },
-                    "document_type": {
-                        "title": "Document Type",
-                        "type": "string"
-                    },
-                    "source": {
-                        "title": "Source",
-                        "$ref": "source.json"
-                    },
-                    "date_created": {
-                        "title": "Date Created",
-                        "type": "string",
-                        "anyOf": [
-                            {
-                                "format": "date-time"
-                            },
-                            {
-                                "format": "date"
-                            }
-                        ]
-                    },
-                    "created_by": {
-                        "title": "Created By",
-                        "type": "string"
-                    }
-                },
-                "required": ["text", "document_type", "source"]
-            }
-        },
-        "children": {
-            "title": "Children",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "first_name": {
-                        "title": "First Name",
-                        "type": "string"
-                    },
-                    "last_name": {
-                        "title": "Last Name",
-                        "type": "string"
-                    },
-                    "institution": {
-                        "title": "Institution",
-                        "type": "string"
-                    },
-                    "relation_type": {
-                        "title": "Relation Type",
-                        "type": "string"
-                    },
-                    "source": {
-                        "title": "Source",
-                        "$ref": "source.json"
-                    },
-                    "date_created": {
-                        "title": "Date Created",
-                        "type": "string",
-                        "anyOf": [
-                            {
-                                "format": "date-time"
-                            },
-                            {
-                                "format": "date"
-                            }
-                        ]
-                    },
-                    "created_by": {
-                        "title": "Created By",
-                        "type": "string"
-                    }
-                },
-                "required": ["first_name", "last_name"]
-            }
-        },
-        "parents": {
-            "title": "Parents",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "first_name": {
-                        "title": "First Name",
-                        "type": "string"
-                    },
-                    "last_name": {
-                        "title": "Last Name",
-                        "type": "string"
-                    },
-                    "institution": {
-                        "title": "Institution",
-                        "type": "string"
-                    },
-                    "relation_type": {
-                        "title": "Relation Type",
-                        "type": "string"
-                    },
-                    "source": {
-                        "title": "Source",
-                        "$ref": "source.json"
-                    },
-                    "date_created": {
-                        "title": "Date Created",
-                        "type": "string",
-                        "anyOf": [
-                            {
-                                "format": "date-time"
-                            },
-                            {
-                                "format": "date"
-                            }
-                        ]
-                    },
-                    "created_by": {
-                        "title": "Created By",
-                        "type": "string"
-                    }
-                },
-                "required": ["first_name", "last_name"]
-            }
-        },
-        "keywords": {
-            "title": "Keywords",
-            "type": "array",
-            "items": {
-                "$ref": "keyword.json"
             }
         }
     },
