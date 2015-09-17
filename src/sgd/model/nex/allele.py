@@ -1,12 +1,13 @@
 from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String, Date
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
-from src.sgd.model.curate.source import Source
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
+from src.sgd.model.nex.source import Source
 
-__author__ = 'kelley'
+__author__ = 'sweng66'
 
 class Allele(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'allele'
@@ -26,9 +27,16 @@ class Allele(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
-    __id_values__ = ['id', 'display_name', 'format_name']
+
+    __id_values__ = ['id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
-    __filter_values__ = []
+    __filter_values__ = ['display_name']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
+
+    @classmethod
+    def __create_format_name__(cls, obj_json):
+        return create_format_name(obj_json['display_name'])  
+
+

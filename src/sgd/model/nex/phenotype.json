@@ -31,13 +31,13 @@
             "title": "Source",
             "$ref": "source.json"
         },
-        "observable": {
-            "title": "Observable",
-            "$ref": "observable.json"
+        "observable_id": {
+            "title": "Observable ID",
+            "type": "integer"
         },
-        "qualifier": {
-            "title": "Qualifier",
-            "$ref": "qualifier.json"
+        "qualifier_id": {
+            "title": "Qualifier ID",
+            "type": "integer"
         },
         "date_created": {
             "title": "Date Created",
