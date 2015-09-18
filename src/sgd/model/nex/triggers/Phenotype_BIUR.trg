@@ -15,7 +15,10 @@ BEGIN
     END IF;
 
 	v_DoesPhenotypeExist := CheckPhenotype(:new.observable_id, 'observable');
-	v_DoesPhenotypeExist := CheckPhenotype(:new.qualifier_id, 'qualifier');
+
+	IF (:new.qualifier_id is NOT NULL) THEN
+	    v_DoesPhenotypeExist := CheckPhenotype(:new.qualifier_id, 'qualifier');
+    END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);
 
@@ -27,7 +30,10 @@ BEGIN
     END IF;
 
     v_DoesPhenotypeExist := CheckPhenotype(:new.observable_id, 'observable');
-    v_DoesPhenotypeExist := CheckPhenotype(:new.qualifier_id, 'qualifier');
+    
+    IF (:new.qualifier_id is NOT NULL) THEN
+        v_DoesPhenotypeExist := CheckPhenotype(:new.qualifier_id, 'qualifier');
+    END IF;
 
     IF (:new.date_created != :old.date_created) THEN    
         RAISE_APPLICATION_ERROR
