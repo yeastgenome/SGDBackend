@@ -1,0 +1,48 @@
+{
+    "title": "Locus Relation",
+        "type": "object",
+        "properties": {
+            "id": {
+                "title": "ID",
+                "type": "integer"
+            },
+            "parent_id": {
+                "title": "Parent ID",
+                "type": "integer"
+            },
+            "child_id": {
+                "title": "Child ID",
+                "type": "integer"
+            },
+            "source": {
+                "title": "Source",
+                "$ref": "source.json"
+            },
+            "bud_id": {
+                "title": "Bud ID",
+                "type": "integer"
+            },
+	    "ro_id": {
+                "title": "RO ID",
+                "type": "integer"
+            },
+            "date_created": {
+                "title": "Date Created",
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "date-time"
+                    },
+                    {
+                        "format": "date"
+                    }
+                ]
+            },
+            "created_by": {
+                "title": "Created By",
+                "type": "string"
+            }
+        },
+        "required": ["parent_id", "child_id", "ro_id", "source"]
+
+}

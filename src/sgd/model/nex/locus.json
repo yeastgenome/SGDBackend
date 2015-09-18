@@ -295,9 +295,9 @@
                         "title": "Systematic Name",
                         "type": "string"
                     },
-                    "ro": {
-                        "title": "Ro",
-                        "$ref": "ro.json"
+                    "ro_id": {
+                        "title": "Ro ID",
+                        "type": "integer"
                     },
                     "source": {
                         "title": "Source",
@@ -333,9 +333,9 @@
                         "title": "Systematic Name",
                         "type": "string"
                     },
-                    "ro": {
-                        "title": "Ro",
-                        "$ref": "ro.json"
+                    "ro_id": {
+                        "title": "Ro ID",
+                        "type": "integer"
                     },
                     "source": {
                         "title": "Source",

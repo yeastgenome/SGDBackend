@@ -130,6 +130,20 @@ class RefBad(Base, EqualityByIDMixin):
     def __repr__(self):
         data = self.pubmed_id, self.dbxref_id
         return 'RefBad(pubmed_id=%s, dbxref_id=%s)' % data  
+
+class RefUnlink(Base, EqualityByIDMixin):
+    __tablename__ = 'ref_unlink'
+
+    id = Column('ref_unlink_no', Integer, primary_key = True)
+    pmid = Column('pubmed', Integer)
+    tab_name = Column('tab_name', String)
+    primary_key = Column('primary_key', Integer)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+
+    def __repr__(self):
+        data = self.pmid, self.primary_key
+        return 'RefBad(pubmed_id=%s, dbxref_id=%s)' % data
     
 class Author(Base, EqualityByIDMixin):
     __tablename__ = 'author'

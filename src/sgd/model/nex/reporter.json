@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Phenotype",
+    "title": "Reporter",
     "type": "object",
     "properties": {
         "id": {
@@ -31,14 +31,6 @@
             "title": "Source",
             "$ref": "source.json"
         },
-        "observable_id": {
-            "title": "Observable ID",
-            "type": "integer"
-        },
-        "qualifier_id": {
-            "title": "Qualifier ID",
-            "type": "integer"
-        },
         "date_created": {
             "title": "Date Created",
             "type": "string",
@@ -56,5 +48,5 @@
             "type": "string"
         }
     },
-    "required": ["observable"]
+    "required": ["display_name"]
 }

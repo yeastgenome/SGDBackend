@@ -9,10 +9,10 @@ from src.sgd.model.nex.source import Source
 
 __author__ = 'sweng66'
 
-class Allele(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
-    __tablename__ = 'allele'
+class Reporter(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
+    __tablename__ = 'reporter'
 
-    id = Column('allele_id', Integer, primary_key=True)
+    id = Column('reporter_id', Integer, primary_key=True)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)

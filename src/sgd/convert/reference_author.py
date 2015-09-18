@@ -19,16 +19,16 @@ def reference_author_starter(bud_session_maker):
             
             reference_id = get_sgdid_to_reference_id(ref_obj.dbxref_id)
 
-            ref_source = 'SGD'
-            if 'PubMed' in ref_obj.source:
-                ref_source = 'NCBI'
+            source = 'SGD'
+            if ref_obj.pubmed_id is not None:
+                source = 'NCBI'
             elif 'PDB' in ref_obj.source:
-                ref_source = 'PDB'
+                source = 'PDB'
             elif 'YPD' in ref_obj.source:
-                ref_source = 'YPD'
+                source = 'YPD'
 
             yield {'display_name': author_ref_obj.author_name,
-                   'source': {'display_name': ref_source},
+                   'source': {'display_name': source},
                    'author_order': author_ref_obj.order,
                    'author_type': author_ref_obj.type,
                    'reference_id': reference_id, 
