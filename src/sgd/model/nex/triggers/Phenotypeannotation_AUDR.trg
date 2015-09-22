@@ -25,9 +25,9 @@ BEGIN
         AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'BUD_ID', :old.annotation_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
-    IF  (:old.strain_id != :new.strain_id)
+    IF  (:old.taxonomy_id != :new.taxonomy_id)
     THEN
-        AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'STRAIN_ID', :old.annotation_id, :old.strain_id, :new.strain_id, USER);
+        AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'TAXONOMY_ID', :old.annotation_id, :old.taxonomy_id, :new.taxonomy_id, USER);
     END IF;
 
     IF (:old.reference_id != :new.reference_id)
@@ -79,7 +79,7 @@ BEGIN
 
     v_row := :old.annotation_id || '[:]' || :old.locus_id || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.strain_id || '[:]' || :old.reference_id || '[:]' ||
+             :old.taxonomy_id || '[:]' || :old.reference_id || '[:]' ||
              :old.phenotype_id || '[:]' || :old.experiment_id || '[:]' ||
              :old.mutant_id || '[:]' || :old.allele_id || '[:]' ||
              :old.reporter_id || '[:]' || :old.chebi_id || '[:]' ||

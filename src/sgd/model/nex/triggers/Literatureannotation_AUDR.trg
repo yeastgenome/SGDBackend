@@ -25,9 +25,9 @@ BEGIN
         AuditLog.InsertUpdateLog('LITERATUREANNOTATION', 'BUD_ID', :old.annotation_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
-    IF  (((:old.strain_id IS NULL) AND (:new.strain_id IS NOT NULL)) OR ((:old.strain_id IS NOT NULL) AND (:new.strain_id IS NULL)) OR (:old.strain_id != :new.strain_id))
+    IF  (((:old.taxonomy_id IS NULL) AND (:new.taxonomy_id IS NOT NULL)) OR ((:old.taxonomy_id IS NOT NULL) AND (:new.taxonomy_id IS NULL)) OR (:old.taxonomy_id != :new.taxonomy_id))
     THEN
-        AuditLog.InsertUpdateLog('LITERATUREANNOTATION', 'STRAIN_ID', :old.annotation_id, :old.strain_id, :new.strain_id, USER);
+        AuditLog.InsertUpdateLog('LITERATUREANNOTATION', 'TAXONOMY_ID', :old.annotation_id, :old.taxonomy_id, :new.taxonomy_id, USER);
     END IF;
 
     IF (:old.reference_id != :new.reference_id)
@@ -44,7 +44,7 @@ BEGIN
 
     v_row := :old.annotation_id || '[:]' || :old.locus_id || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.strain_id || '[:]' || :old.reference_id || '[:]' ||
+             :old.taxonomy_id || '[:]' || :old.reference_id || '[:]' ||
              :old.topic || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
