@@ -26,11 +26,14 @@ def chebi_starter(bud_session_maker):
     #                            'created_by': bud_obj.created_by})
 
     # for bud_obj in bud_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')).all():
-    #    yield {'display_name': bud_obj.value,
-    #           'bud_id': bud_obj.id,
-    #           'source': {'display_name': 'SGD'},
-    #           'date_created': str(bud_obj.date_created),
-    #           'created_by': bud_obj.created_by}
+    
+    for bud_obj in bud_session.query(ExperimentProperty).filter(ExperimentProperty.type=='Chemical_pending'):
+        yield {'display_name': bud_obj.value,
+               'bud_id': bud_obj.id,
+               'chebiid': "NTR:" + str(bud_obj.id),
+               'source': {'display_name': 'SGD'},
+               'date_created': str(bud_obj.date_created),
+               'created_by': bud_obj.created_by}
     
     parent_to_children = dict()
     source = 'EBI'
