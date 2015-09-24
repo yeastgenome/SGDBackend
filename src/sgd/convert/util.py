@@ -68,7 +68,8 @@ def children_from_obo(filename, ancestor):
                 parent_to_children[parent] = []
             parent_to_children[parent].append(child)
         if pieces[0] == 'property_value' and pieces[1].startswith('has_rank NCBITaxon:'):
-            id_to_rank[child] = pieces[1].replace("has_rank NCBITaxon:", "") 
+            # id_to_rank[child] = pieces[1].replace("has_rank NCBITaxon:", "") 
+            id_to_rank[child] = pieces[1].replace("has_rank ", "")   
 
     # do breadth first search of parent_to_children
     # populate filtered_parent_set

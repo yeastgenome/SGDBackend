@@ -6,8 +6,8 @@ from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
 from src.sgd.model.nex.source import Source
 from src.sgd.model.nex.ro import Ro
 
-__author__ = 'kelley'
-## updated by sweng66
+__author__ = 'kelley, sweng66'
+
 
 class Taxonomy(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'taxonomy'

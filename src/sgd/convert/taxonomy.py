@@ -35,8 +35,8 @@ def taxonomy_starter(bud_session_maker):
                 terms.append(term)
                 term = None
             if pieces[1] in filtered_set:
-                taxid = pieces[1].replace("NCBITaxon:", "")
-                term = {'taxid': int(taxid),
+                # taxid = pieces[1].replace("NCBITaxon:", "")
+                term = {'taxid': pieces[1],
                         'aliases': [],
                         'source': {'display_name': source},
                         'urls': []}
@@ -57,8 +57,8 @@ def taxonomy_starter(bud_session_maker):
                     rank = id_to_rank.get(parent)
                     if rank is None:
                         rank = 'no rank'
-                    parent = parent.replace("NCBITaxon:", "")
-                    parent = int(parent)
+                    # parent = parent.replace("NCBITaxon:", "")
+                    # parent = int(parent)
                     if parent not in parent_to_children:
                         parent_to_children[parent] = []
                     parent_to_children[parent].append({'taxid': term['taxid'], 'display_name': term['display_name'], 'source': {'display_name': source}, 'rank': rank, 'ro_id': get_relation_to_ro_id('is a')})
@@ -69,7 +69,8 @@ def taxonomy_starter(bud_session_maker):
                         text = quotation_split[1]
                     term[key_switch[pieces[0]]] = text
                 elif pieces[0] == 'property_value' and pieces[1].startswith('has_rank NCBITaxon:'):
-                    term['rank'] = pieces[1].replace("has_rank NCBITaxon:", "")
+                    # term['rank'] = pieces[1].replace("has_rank NCBITaxon:", "")
+                    term['rank'] = pieces[1].replace("has_rank ", "")
     f.close()
 
     print "updating the database"
