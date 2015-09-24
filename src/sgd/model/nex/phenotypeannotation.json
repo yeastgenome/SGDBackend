@@ -1,0 +1,122 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "PhenotypeAnnotation",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+	"locus_id": {
+	    "title": "LOCUS ID",
+            "type": "integer"
+	},
+        "taxonomy_id": {
+            "title": "Taxonomy ID",
+            "type": "integer"
+        },
+        "reference_id": {
+            "title": "Reference ID",
+            "type": "integer"
+        },
+	"phenotype_id": {
+            "title": "Phenotype ID",
+            "type": "integer"
+        },
+	"experiment_id": {
+            "title": "Experiment ID",
+            "type": "integer"
+        },
+	"mutant_id": {
+            "title": "Mutant ID",
+            "type": "integer"
+        },
+	"allele_id": {
+            "title": "Allele ID",
+            "type": "integer"
+        },
+	"reporter_id": {
+            "title": "Repporter ID",
+            "type": "integer"
+        },
+	"chebi_id": {
+            "title": "Chebi ID",
+            "type": "integer"
+        },
+	"assay_id": {
+            "title": "Assay ID",
+            "type": "integer"
+        },
+	"analysis_id": {
+            "title": "Analysis ID",
+            "type": "integer"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        },
+        "phenoDetails": {
+            "title": "Phenotype Details",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "detail_type": {
+                        "title": "Detail Type",
+                        "type": "string"
+                    },
+                    "detail_name": {
+                        "title": "Detail Name",
+                        "type": "string"
+                    },
+                    "detail_value": {
+                        "title": "Detail Value",
+                        "type": "string"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["detail_type", "detail_name", "detail_value"]
+            }
+        }
+    },
+    "required": ["source", "locus_id", "phenotype_id", "reference_id"]
+}
