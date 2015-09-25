@@ -856,6 +856,34 @@ Comment on column LITERATUREANNOTATION.TOPIC is 'Topic or category assigned to a
 Comment on column LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table GOANNOTATION is 'GO annotations.';
+Comment on column GOANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GOANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column GOANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column GOANNOTATION.BUD_ID is 'From BUD.GO_ANNOTATION.GO_ANNOTATION_NO.';
+Comment on column GOANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column GOANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column GOANNOTATION.GO_ID is 'FK to GO.GO_ID.';
+Comment on column GOANNOTATION.ECO_ID is 'FK to ECO.ECO_ID.';
+Comment on column GOANNOTATION.ANNOTATION_TYPE is 'Type of GO annotation (high-throughput, manually curated, computational).';
+Comment on column GOANNOTATION.GO_QUALIFIER is 'Qualifier of the GO annotation (NOT, colocalizes_with, contributed_to).';
+Comment on column GOANNOTATION.DATE_ASSIGNED is 'Date the GO annotation was assigned.';
+Comment on column GOANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GOANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table GOSLIMANNOTATION is 'A subset of GO annotations that provide a broad overview and often used to summarize results.';
+Comment on column GOSLIMANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GOSLIMANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column GOSLIMANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column GOSLIMANNOTATION.BUD_ID is 'From BUD.GO_SET.GO_SET.';
+Comment on column GOSLIMANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column GOSLIMANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column GOSLIMANNOTATION.GO_ID is 'FK to GO.GO_ID.';
+Comment on column GOSLIMANNOTATION.SLIM_NAME is 'Name of the subset of GO terms.';
+Comment on column GOSLIMANNOTATION.GENOME_COUNT	is 'Count used in the GO tools.';
+Comment on column GOSLIMANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GOSLIMANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table PHENOTYPEANNOTATION is 'Annotations associated with a phenotype.';
 Comment on column PHENOTYPEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column PHENOTYPEANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
