@@ -8,6 +8,7 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ManageSgdid.spb
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckPubmed.fnc
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckPhenotype.fnc
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/CheckChebi.fnc
 
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DeleteLog_BUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/UpdateLog_BUDR.trg

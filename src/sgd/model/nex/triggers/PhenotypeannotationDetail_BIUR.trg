@@ -13,6 +13,14 @@ BEGIN
         SELECT detail_seq.NEXTVAL INTO :new.detail_id FROM DUAL;
     END IF; 
 
+    IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'CHEBI')) THEN
+        v_DoesChebiExist := CheckChebi(:new.chebi_id, 'CHEBI');
+    END IF;
+
+    IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'Pending')) THEN 
+        v_DoesChebiExist := CheckChebi(:new.chebi_id, 'NTR');
+    END IF;
+
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
@@ -20,6 +28,14 @@ BEGIN
     IF (:new.detail_id != :old.detail_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
+    END IF;
+
+    IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'CHEBI')) THEN
+        v_DoesChebiExist := CheckChebi(:new.chebi_id, 'CHEBI');
+    END IF;
+
+    IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'Pending')) THEN 
+        v_DoesChebiExist := CheckChebi(:new.chebi_id, 'NTR');
     END IF;
 
     IF (:new.date_created != :old.date_created) THEN    

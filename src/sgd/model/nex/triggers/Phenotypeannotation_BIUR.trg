@@ -13,6 +13,9 @@ BEGIN
         SELECT annotation_seq.NEXTVAL INTO :new.annotation_id FROM DUAL;
     END IF; 
 
+    v_DoesPhenotypeExist := CheckPhenotype(:new.experiment_id, 'experiment_type');
+    v_DoesPhenotypeExist := CheckPhenotype(:new.mutant_id, 'mutant_type');
+
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
@@ -21,6 +24,9 @@ BEGIN
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
+
+    v_DoesPhenotypeExist := CheckPhenotype(:new.experiment_id, 'experiment_type');
+    v_DoesPhenotypeExist := CheckPhenotype(:new.mutant_id, 'mutant_type');
 
     IF (:new.date_created != :old.date_created) THEN    
         RAISE_APPLICATION_ERROR

@@ -60,11 +60,6 @@ BEGIN
         AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'REPORTER_ID', :old.annotation_id, :old.reporter_id, :new.reporter_id, USER);
     END IF;
 
-    IF  (((:old.chebi_id IS NULL) AND (:new.chebi_id IS NOT NULL)) OR ((:old.chebi_id IS NOT NULL) AND (:new.chebi_id IS NULL)) OR (:old.chebi_id != :new.chebi_id))
-    THEN
-        AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'CHEBI_ID', :old.annotation_id, :old.chebi_id, :new.chebi_id, USER);
-    END IF;
-
     IF  (((:old.assay_id IS NULL) AND (:new.assay_id IS NOT NULL)) OR ((:old.assay_id IS NOT NULL) AND (:new.assay_id IS NULL)) OR (:old.assay_id != :new.assay_id))
     THEN
         AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'ASSAY_ID', :old.annotation_id, :old.assay_id, :new.assay_id, USER);
@@ -82,7 +77,7 @@ BEGIN
              :old.taxonomy_id || '[:]' || :old.reference_id || '[:]' ||
              :old.phenotype_id || '[:]' || :old.experiment_id || '[:]' ||
              :old.mutant_id || '[:]' || :old.allele_id || '[:]' ||
-             :old.reporter_id || '[:]' || :old.chebi_id || '[:]' ||
+             :old.reporter_id || '[:]' || 
              :old.assay_id || '[:]' || :old.analysis_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
