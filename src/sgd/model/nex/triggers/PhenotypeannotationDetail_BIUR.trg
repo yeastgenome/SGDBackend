@@ -6,6 +6,7 @@ CREATE OR REPLACE TRIGGER PhenotypeannotationDetail_BIUR
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
+  v_DoesChebiExist      chebi.chebi_id%TYPE;
 BEGIN
   IF INSERTING THEN
 
