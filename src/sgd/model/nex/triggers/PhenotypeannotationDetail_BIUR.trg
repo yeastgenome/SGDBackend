@@ -15,11 +15,11 @@ BEGIN
     END IF; 
 
     IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'CHEBI')) THEN
-        v_DoesChebiExist := CheckChebi(:new.chebi_id, 'CHEBI');
+        v_DoesChebiExist := CheckChebi(:new.detail_value, 'CHEBI');
     END IF;
 
     IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'Pending')) THEN 
-        v_DoesChebiExist := CheckChebi(:new.chebi_id, 'NTR');
+        v_DoesChebiExist := CheckChebi(:new.detail_value, 'NTR');
     END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);
@@ -32,11 +32,11 @@ BEGIN
     END IF;
 
     IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'CHEBI')) THEN
-        v_DoesChebiExist := CheckChebi(:new.chebi_id, 'CHEBI');
+        v_DoesChebiExist := CheckChebi(:new.detail_value, 'CHEBI');
     END IF;
 
     IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'Pending')) THEN 
-        v_DoesChebiExist := CheckChebi(:new.chebi_id, 'NTR');
+        v_DoesChebiExist := CheckChebi(:new.detail_value, 'NTR');
     END IF;
 
     IF (:new.date_created != :old.date_created) THEN    
