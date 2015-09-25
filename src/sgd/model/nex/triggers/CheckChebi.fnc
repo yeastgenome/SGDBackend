@@ -8,7 +8,7 @@ CREATE OR REPLACE FUNCTION CheckChebi (
     p_chebi_type IN VARCHAR2)
     RETURN NUMBER
 IS
-    v_ChebiId	  chibi.chebi_id%TYPE;
+    v_ChebiId	  chebi.chebi_id%TYPE;
 BEGIN
 
 	IF (p_chebi_type = 'CHEBI') THEN
