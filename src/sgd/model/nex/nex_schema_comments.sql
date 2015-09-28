@@ -667,7 +667,7 @@ Comment on column REFERENCE_DELETED.CREATED_BY is 'Username of the person who en
 
 Comment on table COLLEAGUE is 'A researcher or associate who registered with the database.';
 Comment on column COLLEAGUE.COLLEAGUE_ID is 'Unique identifier (Oracle sequence).';
-Comment on column COLLEAGUE.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column COLLEAGUE.FORMAT_NAME is 'Unique name to create download files ([first_name]_[last_name]_[sequentialnumber].';
 Comment on column COLLEAGUE.DISPLAY_NAME is 'Public display name.';
 Comment on column COLLEAGUE.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column COLLEAGUE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
