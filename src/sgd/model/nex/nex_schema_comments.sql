@@ -806,6 +806,21 @@ Comment on column RESERVEDNAME.DESCRIPTION is 'Description or comment.';
 Comment on column RESERVEDNAME.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column RESERVEDNAME.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
+/* GO Slim */
+Comment on table GOSLIM is 'Broader upper level GO terms grouped into useful sub-sets.';
+Comment on column GOSLIM.GOSLIM_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GOSLIM.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column GOSLIM.DISPLAY_NAME is 'Public display name.';
+Comment on column GOSLIM.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column GOSLIM.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column GOSLIM.BUD_ID is 'PK from BUD.GO_SET.GO_SET_NO.';
+Comment on column GOSLIM.GO_ID is 'FK to GO.GO_ID.';
+Comment on column GOSLIM.SLIM_NAME is 'Name of the grouping of GO terms (Yeast GO-Slim, Macromolecular complex terms, Generic GO-Slim).';
+Comment on column GOSLIM.GENOME_COUNT is 'Number of dbentities assigned to this GO slim term, used by the GO Tools.';
+Comment on column GOSLIM.DESCRIPTION is 'Description or comment.';
+Comment on column GOSLIM.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GOSLIM.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 /* Phenotype */
 
 Comment on table PHENOTYPE is 'Phenotypes defined by the Ascomycete Phenotype Ontology (APO) as an observable:qualifier combination.';
@@ -827,7 +842,7 @@ Comment on column ALLELE.FORMAT_NAME is 'Unique name to create download files.';
 Comment on column ALLELE.DISPLAY_NAME is 'Public display name.';
 Comment on column ALLELE.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column ALLELE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column ALLELE.BUD_ID is 'PK from BUD.EXPT_PROPERTY.EXPT_PROPERTY_NO';
+Comment on column ALLELE.BUD_ID is 'PK from BUD.EXPT_PROPERTY.EXPT_PROPERTY_NO.';
 Comment on column ALLELE.DESCRIPTION is 'Description or comment.';
 Comment on column ALLELE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column ALLELE.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -838,7 +853,7 @@ Comment on column REPORTER.FORMAT_NAME is 'Unique name to create download files.
 Comment on column REPORTER.DISPLAY_NAME is 'Public display name.';
 Comment on column REPORTER.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column REPORTER.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column REPORTER.BUD_ID is 'PK from BUD.EXPT_PROPERTY.EXPT_PROPERTY_NO';
+Comment on column REPORTER.BUD_ID is 'PK from BUD.EXPT_PROPERTY.EXPT_PROPERTY_NO.';
 Comment on column REPORTER.DESCRIPTION is 'Description or comment.';
 Comment on column REPORTER.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REPORTER.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -892,8 +907,8 @@ Comment on column PHENOTYPEANNOTATION.BUD_ID is 'From BUD.PHENO_ANNOTATION.PHENO
 Comment on column PHENOTYPEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
 Comment on column PHENOTYPEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
 Comment on column PHENOTYPEANNOTATION.PHENOTYPE_ID is 'FK to PHENOTYPE.PHENOTYPE_ID.';
-Comment on column PHENOTYPEANNOTATION.EXPERIMENT_ID is 'FK to APO.APO_ID.';
-Comment on column PHENOTYPEANNOTATION.MUTANT_ID is 'FK to APO.APO_ID.';
+Comment on column PHENOTYPEANNOTATION.EXPERIMENT_TYPE is 'FK to APO.APO_ID.';
+Comment on column PHENOTYPEANNOTATION.MUTANT_TYPE is 'FK to APO.APO_ID.';
 Comment on column PHENOTYPEANNOTATION.ALLELE_ID is 'FK to ALLELE.ALLELE_ID.';
 Comment on column PHENOTYPEANNOTATION.REPORTER_ID is 'FK to REPORTER.REPORTER_ID.';
 Comment on column PHENOTYPEANNOTATION.ASSAY_ID is 'FK to OBI.OBI_ID.';
