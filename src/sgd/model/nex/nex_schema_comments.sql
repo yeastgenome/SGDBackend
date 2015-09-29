@@ -44,6 +44,7 @@ Comment on column SOURCE.CREATED_BY is 'Username of the person who entered the r
 
 Comment on table SGDID is 'SGD accession identifier for dbentity objects consisting of a letter (S or L) followed by 9 zero-padded numbers (e.g., S000151155).';
 Comment on column SGDID.SGDID_ID is 'Unique identifier (Oracle sequence).';
+Comment on column SGDID.FORMAT_NAME is 'Unique name to create download files.';
 Comment on column SGDID.DISPLAY_NAME is 'Public display name.';
 Comment on column SGDID.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column SGDID.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
@@ -53,6 +54,18 @@ Comment on column SGDID.SGDID_STATUS is 'State of the SGDID (Primary, Secondary,
 Comment on column SGDID.DESCRIPTION is 'Comment about or reason why the SGDID was deleted.';
 Comment on column SGDID.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column SGDID.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DBXREF is 'External database identifiers used for cross referencing.';
+Comment on column DBXREF.DBXREF_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DBXREF.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column DBXREF.DISPLAY_NAME is 'Public display name.';
+Comment on column DBXREF.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column DBXREF.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DBXREF.BUD_ID is 'PK from BUD.DBXREF.DBXREF_NO.';
+Comment on column DBXREF.DBXREF_TYPE is 'Type of external database identifier.';
+Comment on column DBXREF.DESCRIPTION is 'Description or comment.';
+Comment on column DBXREF.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DBXREF.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* Ontologies and CVs */
 
@@ -881,21 +894,19 @@ Comment on column GOANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_
 Comment on column GOANNOTATION.GO_ID is 'FK to GO.GO_ID.';
 Comment on column GOANNOTATION.ECO_ID is 'FK to ECO.ECO_ID.';
 Comment on column GOANNOTATION.ANNOTATION_TYPE is 'Type of GO annotation (high-throughput, manually curated, computational).';
-Comment on column GOANNOTATION.GO_QUALIFIER is 'Qualifier of the GO annotation (NOT, colocalizes_with, contributed_to).';
+Comment on column GOANNOTATION.GO_QUALIFIER is 'Qualifier of the GO annotation (enables, involved in, part of, NOT, colocalizes_with, contributed_to).';
 Comment on column GOANNOTATION.DATE_ASSIGNED is 'Date the GO annotation was assigned.';
 Comment on column GOANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GOANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table GOSLIMANNOTATION is 'A subset of GO annotations that provide a broad overview and often used to summarize results.';
+Comment on table GOSLIMANNOTATION is 'A subset of GO annotations that provide a broad overview, often used to summarize results.';
 Comment on column GOSLIMANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column GOSLIMANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
 Comment on column GOSLIMANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column GOSLIMANNOTATION.BUD_ID is 'From BUD.GO_SET.GO_SET.';
+Comment on column GOSLIMANNOTATION.BUD_ID is 'From BUD.GO_SET.GO_SET_NO.';
 Comment on column GOSLIMANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
 Comment on column GOSLIMANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
-Comment on column GOSLIMANNOTATION.GO_ID is 'FK to GO.GO_ID.';
-Comment on column GOSLIMANNOTATION.SLIM_NAME is 'Name of the subset of GO terms.';
-Comment on column GOSLIMANNOTATION.GENOME_COUNT	is 'Count used in the GO tools.';
+Comment on column GOSLIMANNOTATION.GOSLIM_ID is 'FK to GOSLIM.GOSLIM_ID.';
 Comment on column GOSLIMANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GOSLIMANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
