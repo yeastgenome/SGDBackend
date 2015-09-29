@@ -145,6 +145,10 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainSummaryReference_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslim_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslim_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotype_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotype_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Allele_BIUR.trg
