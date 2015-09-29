@@ -899,6 +899,26 @@ Comment on column GOANNOTATION.DATE_ASSIGNED is 'Date the GO annotation was assi
 Comment on column GOANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GOANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table GOSUPPORTINGEVIDENCE is 'Evidence to support the GO annotation (column 8 of the GAF file).';
+Comment on column GOSUPPORTINGEVIDENCE.GOSUPPORTINGEVIDENCE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GOSUPPORTINGEVIDENCE.ANNOTATION_ID is 'FK to GOANNOTATION.ANNOTATION_ID.';
+Comment on column GOSUPPORTINGEVIDENCE.GROUP_ID is 'A numerical identifier (Oracle sequence) used for grouping.';
+Comment on column GOSUPPORTINGEVIDENCE.DBXREF_ID is 'FK to DBXREF.DBXREF_ID.';
+Comment on column GOSUPPORTINGEVIDENCE.EVIDENCE_TYPE is 'How the supporting evidence is associated with the GO annotation (with, from).';
+Comment on column GOSUPPORTINGEVIDENCE.OPERATOR is 'Whether annotations are grouped (AND, OR).';
+Comment on column GOSUPPORTINGEVIDENCE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GOSUPPORTINGEVIDENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table GOEXTENSION is 'Cross references used to qualify or enhance the GO annotation.';
+Comment on column GOEXTENSION.GOEXTENSION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GOEXTENSION.ANNOTATION_ID is 'FK to GOANNOTATION.ANNOTATION_ID.';
+Comment on column GOEXTENSION.GROUP_ID is 'A numerical identifier (Oracle sequence) used for grouping.';
+Comment on column GOEXTENSION.DBXREF_ID is 'FK to DBXREF.DBXREF_ID.';
+Comment on column GOEXTENSION.RO_ID is 'FK to RO.RO_ID.';
+Comment on column GOEXTENSION.OPERATOR is 'Whether annotations are grouped (AND, OR).';
+Comment on column GOEXTENSION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GOEXTENSION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table GOSLIMANNOTATION is 'A subset of GO annotations that provide a broad overview, often used to summarize results.';
 Comment on column GOSLIMANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column GOSLIMANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
