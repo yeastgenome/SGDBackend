@@ -20,7 +20,7 @@ BEGIN
         AuditLog.InsertUpdateLog('DBXREF', 'DISPLAY_NAME', :old.dbxref_id, :old.display_name, :new.display_name, USER);
     END IF;
 
-    IF (:old.obj_url_id != :new.obj_url_id)
+    IF (:old.obj_url != :new.obj_url)
     THEN
         AuditLog.InsertUpdateLog('DBXREF', 'OBJ_URL', :old.dbxref_id, :old.obj_url, :new.obj_url, USER);
     END IF;
