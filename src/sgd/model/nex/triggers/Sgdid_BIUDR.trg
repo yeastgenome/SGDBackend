@@ -23,6 +23,11 @@ BEGIN
             (-20000, 'Primary key cannot be updated');
     END IF;
 
+    IF (:new.format_name != :old.format_name) THEN
+        RAISE_APPLICATION_ERROR
+           (-20028, 'SGDID cannot be updated.');
+    END IF;
+
     IF (:new.display_name != :old.display_name) THEN
         RAISE_APPLICATION_ERROR
            (-20028, 'SGDID cannot be updated.');
