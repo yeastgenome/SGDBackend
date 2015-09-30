@@ -884,7 +884,7 @@ Comment on column LITERATUREANNOTATION.TOPIC is 'Topic or category assigned to a
 Comment on column LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table GOANNOTATION is 'GO annotations.';
+Comment on table GOANNOTATION is 'Gene Ontology annotations.';
 Comment on column GOANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column GOANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
 Comment on column GOANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
