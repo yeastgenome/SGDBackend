@@ -909,7 +909,7 @@ Comment on column GOSUPPORTINGEVIDENCE.OPERATOR is 'Whether annotations are grou
 Comment on column GOSUPPORTINGEVIDENCE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GOSUPPORTINGEVIDENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table GOEXTENSION is 'Cross references used to qualify or enhance the GO annotation.';
+Comment on table GOEXTENSION is 'Cross references used to qualify or enhance the GO annotation (column 16 of the GAF file).';
 Comment on column GOEXTENSION.GOEXTENSION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column GOEXTENSION.ANNOTATION_ID is 'FK to GOANNOTATION.ANNOTATION_ID.';
 Comment on column GOEXTENSION.GROUP_ID is 'A numerical identifier (Oracle sequence) used for grouping.';
