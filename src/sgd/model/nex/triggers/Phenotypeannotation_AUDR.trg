@@ -65,11 +65,6 @@ BEGIN
         AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'ASSAY_ID', :old.annotation_id, :old.assay_id, :new.assay_id, USER);
     END IF;
 
-    IF  (((:old.analysis_id IS NULL) AND (:new.analysis_id IS NOT NULL)) OR ((:old.analysis_id IS NOT NULL) AND (:new.analysis_id IS NULL)) OR (:old.analysis_id != :new.analysis_id))
-    THEN
-        AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'ANALYSIS_ID', :old.annotation_id, :old.analysis_id, :new.analysis_id, USER);
-    END IF;
-
   ELSE
 
     v_row := :old.annotation_id || '[:]' || :old.locus_id || '[:]' ||
@@ -77,8 +72,7 @@ BEGIN
              :old.taxonomy_id || '[:]' || :old.reference_id || '[:]' ||
              :old.phenotype_id || '[:]' || :old.experiment_id || '[:]' ||
              :old.mutant_id || '[:]' || :old.allele_id || '[:]' ||
-             :old.reporter_id || '[:]' || 
-             :old.assay_id || '[:]' || :old.analysis_id || '[:]' ||
+             :old.reporter_id || '[:]' || :old.assay_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('PHENOTYPEANNOTATION', :old.annotation_id, v_row, USER);

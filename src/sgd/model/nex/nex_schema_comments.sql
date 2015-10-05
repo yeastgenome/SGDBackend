@@ -895,7 +895,7 @@ Comment on column GOANNOTATION.GO_ID is 'FK to GO.GO_ID.';
 Comment on column GOANNOTATION.ECO_ID is 'FK to ECO.ECO_ID.';
 Comment on column GOANNOTATION.ANNOTATION_TYPE is 'Type of GO annotation (high-throughput, manually curated, computational).';
 Comment on column GOANNOTATION.GO_QUALIFIER is 'Qualifier of the GO annotation (enables, involved in, part of, NOT, colocalizes_with, contributed_to).';
-Comment on column GOANNOTATION.DATE_ASSIGNED is 'Date the GO annotation was assigned.';
+Comment on column GOANNOTATION.DATE_ASSIGNED is 'Date the GO annotation was assigned or last reviewed.';
 Comment on column GOANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GOANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -943,7 +943,6 @@ Comment on column PHENOTYPEANNOTATION.MUTANT_ID is 'FK to APO.APO_ID.';
 Comment on column PHENOTYPEANNOTATION.ALLELE_ID is 'FK to ALLELE.ALLELE_ID.';
 Comment on column PHENOTYPEANNOTATION.REPORTER_ID is 'FK to REPORTER.REPORTER_ID.';
 Comment on column PHENOTYPEANNOTATION.ASSAY_ID is 'FK to OBI.OBI_ID.';
-Comment on column PHENOTYPEANNOTATION.ANALYSIS_ID is 'FK to OBI.OBI_ID.';
 Comment on column PHENOTYPEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PHENOTYPEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
