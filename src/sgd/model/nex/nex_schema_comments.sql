@@ -950,7 +950,7 @@ Comment on column CONTIG_URL.OBJ_URL is 'URL of the object (relative for local l
 Comment on column CONTIG_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column CONTIG_URL.BUD_ID is 'Not from BUD.';
 Comment on column CONTIG_URL.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
-Comment on column CONTIG_URL.URL_TYPE is 'Type of URL.';
+Comment on column CONTIG_URL.URL_TYPE is 'Type of URL (GenBank).';
 Comment on column CONTIG_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CONTIG_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -973,7 +973,7 @@ Comment on column PROTEINDOMAIN_URL.OBJ_URL is 'URL of the object (relative for 
 Comment on column PROTEINDOMAIN_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column PROTEINDOMAIN_URL.BUD_ID is 'Not from BUD.';
 Comment on column PROTEINDOMAIN_URL.PROTEINDOMAIN_ID is 'FK to PROTEINDOMAIN.PROTEINDOMAIN_ID.';
-Comment on column PROTEINDOMAIN_URL.URL_TYPE is 'Type of URL (InterPro, External).';
+Comment on column PROTEINDOMAIN_URL.URL_TYPE is 'Type of URL (InterPro,PROSITE,HAMAP,Pfam,PRINTS,ProDom,SMART,TIGRFAM,PIRSF,SUPERFAMILY,GENE3D,PANTHER).';
 Comment on column PROTEINDOMAIN_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PROTEINDOMAIN_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
