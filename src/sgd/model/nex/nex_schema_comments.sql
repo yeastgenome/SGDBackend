@@ -676,6 +676,31 @@ Comment on column REFERENCE_DELETED.BUD_ID is 'PK in BUD is PubMed ID.';
 Comment on column REFERENCE_DELETED.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_DELETED.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+/* File */
+
+Comment on table FILEDBENTITY is 'Details about files loaded into or dumped from the database or associated with the Download Server.';
+Comment on column FILEDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
+Comment on column FILEDBENTITY.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column FILEDBENTITY.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
+Comment on column FILEDBENTITY.PREVIOUS_FILE_NAME is 'File name on the Download Server.';
+Comment on column FILEDBENTITY.FILE_STATUS is 'Status of the file (current, archived, removed, etc.)'
+Comment on column FILEDBENTITY.FILE_DATA_TYPE is 'File type, FK to EDAM data.';
+Comment on column FILEDBENTITY.FILE_OPERATION is 'File purpose or contents, FK to EDAM operation.';
+Comment on column FILEDBENTITY.FILE_VERSION is 'File version or release.';
+Comment on column FILEDBENTITY.FILE_FORMAT is 'Standard file format, FK to EDAM format.';
+Comment on column FILEDBENTITY.FILE_EXTENSION is 'File name extension (.gff, .tsv, .fsa.gz, .jpg, etc.).';
+
+Comment on table FILE_RELATION is 'Relationship between two files.';
+Comment on column FILE_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column FILE_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column FILE_RELATION.BUD_ID is 'Not in BUD.';
+Comment on column FILE_RELATION.PARENT_ID is 'FK to FILE_ID.';
+Comment on column FILE_RELATION.CHILD_ID is 'FK to FILE_ID.';
+Comment on column FILE_RELATION.RO_ID is 'FK TO RO.RO_ID.';
+Comment on column FILE_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column FILE_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 /* Colleague */
 
 Comment on table COLLEAGUE is 'A researcher or associate who registered with the database.';
@@ -871,6 +896,87 @@ Comment on column REPORTER.DESCRIPTION is 'Description or comment.';
 Comment on column REPORTER.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REPORTER.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+/* Sequence objects - Genome Release, Contig, Protein Domain */
+
+Comment on table GENOMERELEASE is 'S288C reference genome release numbers.';
+Comment on column GENOMERELEASE.GENOMERELEASE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GENOMERELEASE.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column GENOMERELEASE.DISPLAY_NAME is 'Public display name.';
+Comment on column GENOMERELEASE.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column GENOMERELEASE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column GENOMERELEASE.BUD_ID is 'From BUD.RELEASE.RELEASE_NO.';
+Comment on column GENOMERELEASE.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
+Comment on column GENOMERELEASE.GENOME_RELEASE is 'Unique name for a genome release, in the format [sequence release]-[annotation release]-[curation release] (e.g., 64-1-1).';
+Comment on column GENOMERELEASE.SEQUENCE_RELEASE is 'Release or version number of the sequence.';
+Comment on column GENOMERELEASE.ANNOTATION_RELEASE is 'Annotation release associated with a particular sequence release, incremented when feature coordinates change or features are added, merged or deleted.';
+Comment on column GENOMERELEASE.CURATION_RELEASE is 'Incremented when new annotation files added to the Download Server.';
+Comment on column GENOMERELEASE.RELEASE_DATE is 'Date the genome release was made.';
+Comment on column GENOMERELEASE.DESCRIPTION is 'Description or comment.';
+Comment on column GENOMERELEASE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GENOMERELEASE.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table CONTIG is 'Whole chromosome or contig sequences.';
+Comment on column CONTIG.CONTIG_ID is 'Unique identifier (Oracle sequence).';
+Comment on column CONTIG.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column CONTIG.DISPLAY_NAME is 'Public display name.';
+Comment on column CONTIG.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column CONTIG.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column CONTIG.BUD_ID is 'PK from BUD.SEQ.SEQ_NO.';
+Comment on column CONTIG.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column CONTIG.IS_CHROMOSOME is 'Whether the contig is a fully assembled chromosome.';
+Comment on column CONTIG.CENTROMERE_START is 'Start coordinate of the centromere.';
+Comment on column CONTIG.CENTROMERE_END is 'End coordinate of the centromere.';
+Comment on column CONTIG.GENBANK_ACCESSION is 'GenBank Accession id including version number (e.g., BK006939.2).';
+Comment on column CONTIG.GI_NUMBER is 'GenInfo identifier assigned by NCBI.';
+Comment on column CONTIG.REFSEQ_ID is 'REFerence SEQuence identifier assigned by NCBI.';
+Comment on column CONTIG.REFERENCE_CHROMOSOME_ID is 'FK to CONTIG.CONTIG_ID.';
+Comment on column CONTIG.REFERENCE_START is 'Start coordinate relative to the reference sequence S288C.';
+Comment on column CONTIG.REFERENCE_END is 'End coordinate relative to the reference sequence S288C.';
+Comment on column CONTIG.REFERENCE_PERCENT_IDENTITY is 'Percent identify to the reference sequence S288C.';
+Comment on column CONTIG.REFERENCE_ALIGNMENT_LENGTH is 'Length of the sequence alignment to the reference sequence S288C.';
+Comment on column CONTIG.SEQ_VERSION is 'From BUD.SEQ.SEQ_VERSION.';
+Comment on column CONTIG.COORD_VERSION is 'From BUD.FEAT_LOCATION.COORD_VERSION.';
+Comment on column CONTIG.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
+Comment on column CONTIG.HEADER is 'Header line of the download file.';
+Comment on column CONTIG.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
+Comment on column CONTIG.RESIDUES is 'Full DNA sequence of the chromosome or contig.';
+Comment on column CONTIG.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column CONTIG.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table CONTIG_URL is 'URLs associated with chromosomes or contigs.';
+Comment on column CONTIG_URL.URL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column CONTIG_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column CONTIG_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column CONTIG_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column CONTIG_URL.BUD_ID is 'Not from BUD.';
+Comment on column CONTIG_URL.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
+Comment on column CONTIG_URL.URL_TYPE is 'Type of URL.';
+Comment on column CONTIG_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column CONTIG_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table PROTEINDOMAIN is 'Collection of computationally identified domains and motifs, determined by InterProScan analysis.';
+Comment on column PROTEINDOMAIN.PROTEINDOMAIN_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PROTEINDOMAIN.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column PROTEINDOMAIN.DISPLAY_NAME is 'Public display name.';
+Comment on column PROTEINDOMAIN.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column PROTEINDOMAIN.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PROTEINDOMAIN.BUD_ID is 'Not from BUD.';
+Comment on column PROTEINDOMAIN.INTERPRO_ID is 'InterPro Identifier from EBI.';
+Comment on column PROTEINDOMAIN.DESCRIPTION is 'Description or comment.';
+Comment on column PROTEINDOMAIN.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PROTEINDOMAIN.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table PROTEINDOMAIN_URL is 'URLs associated with protein domaines.';
+Comment on column PROTEINDOMAIN_URL.URL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PROTEINDOMAIN_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column PROTEINDOMAIN_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column PROTEINDOMAIN_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PROTEINDOMAIN_URL.BUD_ID is 'Not from BUD.';
+Comment on column PROTEINDOMAIN_URL.PROTEINDOMAIN_ID is 'FK to PROTEINDOMAIN.PROTEINDOMAIN_ID.';
+Comment on column PROTEINDOMAIN_URL.URL_TYPE is 'Type of URL (InterPro, External).';
+Comment on column PROTEINDOMAIN_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PROTEINDOMAIN_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 /* Annotations */
 
 Comment on table LITERATUREANNOTATION is 'Literature topics or categories assigned to references.';
@@ -954,26 +1060,3 @@ Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_NAME is 'Specific detail nam
 Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_VALUE is 'Actual detail value (30 deg C, with 6% ethanol, 1000 ug/ml, etc.).';
 Comment on column PHENOTYPEANNOTATION_DETAIL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PHENOTYPEANNOTATION_DETAIL.CREATED_BY is 'Username of the person who entered the record into the database.';
-
-/* File */
-
-Comment on table FILEDBENTITY is 'Details about files loaded into or dumped from the database.';
-Comment on column FILEDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
-Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
-Comment on column FILEDBENTITY.FILE_VERSION is 'Version or release of the file.';
-Comment on column FILEDBENTITY.FILE_FORMAT is 'Standard file format.';
-Comment on column FILEDBENTITY.FILE_EXTENSION is 'Extension of the file name.';
-Comment on column FILEDBENTITY.FILE_CATEGORY is 'Type or category of file.';
-Comment on column FILEDBENTITY.FILE_OUTPUT_TYPE is 'Description of the purpose or contents of the file.';
-Comment on column FILEDBENTITY.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
-Comment on column FILEDBENTITY.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID, need species as well as strains.';
-
-Comment on table FILE_RELATION is 'Relationship between two files.';
-Comment on column FILE_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column FILE_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column FILE_RELATON.BUD_ID is 'Not in BUD.';
-Comment on column FILE_RELATION.PARENT_ID is 'FK to FILE_ID.';
-Comment on column FILE_RELATION.CHILD_ID is 'FK to FILE_ID.';
-Comment on column FILE_RELATION.RO_ID is 'FK TO RO.RO_ID.';
-Comment on column FILE_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column FILE_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
