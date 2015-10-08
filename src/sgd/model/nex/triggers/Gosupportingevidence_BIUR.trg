@@ -24,6 +24,11 @@ BEGIN
             (-20000, 'Primary key cannot be updated');
     END IF;
 
+    IF (:new.group_id != :old.group_id) THEN
+        RAISE_APPLICATION_ERROR
+            (-20029, 'This column cannot be updated.');
+    END IF;
+
     IF (:new.date_created != :old.date_created) THEN    
         RAISE_APPLICATION_ERROR
             (-20001, 'Audit columns cannot be updated.');

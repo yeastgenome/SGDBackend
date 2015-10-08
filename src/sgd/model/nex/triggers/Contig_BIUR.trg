@@ -1,32 +1,25 @@
-Create OR REPLACE TRIGGER Goextension_BIUR
+Create OR REPLACE TRIGGER Contig_BIUR
 --
--- Before insert or update trigger for goextension table
+-- Before insert or update trigger for contig table
 --
-  BEFORE INSERT OR UPDATE ON goextension
+  BEFORE INSERT OR UPDATE ON contig
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.goextension_id IS NULL) THEN
-        SELECT goextension_seq.NEXTVAL INTO :new.goextension_id FROM DUAL;
+    IF (:new.contig_id IS NULL) THEN
+        SELECT object_seq.NEXTVAL INTO :new.contig_id FROM DUAL;
     END IF;
-
-   SELECT group_seq.NEXTVAL INTO :new.group_id FROM DUAL;
 
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
 
-    IF (:new.goextension_id != :old.goextension_id) THEN    
+    IF (:new.contig_id != :old.contig_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
-    END IF;
-
-    IF (:new.group_id != :old.group_id) THEN
-        RAISE_APPLICATION_ERROR
-            (-20029, 'This column cannot be updated.');
     END IF;
 
     IF (:new.date_created != :old.date_created) THEN    
@@ -41,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Goextension_BIUR;
+END Contig_BIUR;
 /
 SHOW ERROR

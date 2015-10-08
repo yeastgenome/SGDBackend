@@ -15,11 +15,6 @@ BEGIN
         AuditLog.InsertUpdateLog('GOEXTENSION', 'ANNOTATION_ID', :old.goextension_id, :old.annotation_id, :new.annotation_id, USER);
     END IF;
 
-	 IF (:old.group_id != :new.group_id)
-    THEN
-        AuditLog.InsertUpdateLog('GOEXTENSION', 'GROUP_ID', :old.goextension_id, :old.group_id, :new.group_id, USER);
-    END IF;
-
      IF (:old.dbxref_id != :new.dbxref_id)
     THEN
         AuditLog.InsertUpdateLog('GOEXTENSION', 'DBXREF_ID', :old.goextension_id, :old.dbxref_id, :new.dbxref_id, USER);

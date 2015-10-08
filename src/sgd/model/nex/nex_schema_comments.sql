@@ -680,14 +680,14 @@ Comment on column REFERENCE_DELETED.CREATED_BY is 'Username of the person who en
 
 Comment on table FILEDBENTITY is 'Details about files loaded into or dumped from the database or associated with the Download Server.';
 Comment on column FILEDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
+Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
 Comment on column FILEDBENTITY.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
 Comment on column FILEDBENTITY.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
-Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
 Comment on column FILEDBENTITY.PREVIOUS_FILE_NAME is 'File name on the Download Server.';
 Comment on column FILEDBENTITY.FILE_STATUS is 'Status of the file (current, archived, removed, etc.)'
 Comment on column FILEDBENTITY.FILE_DATA_TYPE is 'File type, FK to EDAM data.';
 Comment on column FILEDBENTITY.FILE_OPERATION is 'File purpose or contents, FK to EDAM operation.';
-Comment on column FILEDBENTITY.FILE_VERSION is 'File version or release.';
+Comment on column FILEDBENTITY.FILE_VERSION is 'File version or release date.';
 Comment on column FILEDBENTITY.FILE_FORMAT is 'Standard file format, FK to EDAM format.';
 Comment on column FILEDBENTITY.FILE_EXTENSION is 'File name extension (.gff, .tsv, .fsa.gz, .jpg, etc.).';
 
@@ -898,7 +898,7 @@ Comment on column REPORTER.CREATED_BY is 'Username of the person who entered the
 
 /* Sequence objects - Genome Release, Contig, Protein Domain */
 
-Comment on table GENOMERELEASE is 'S288C reference genome release numbers.';
+Comment on table GENOMERELEASE is 'S288C reference genome release numbers, in the format R[sequence release]-[annotation release]-[curation release] (e.g., R64-1-1).';
 Comment on column GENOMERELEASE.GENOMERELEASE_ID is 'Unique identifier (Oracle sequence).';
 Comment on column GENOMERELEASE.FORMAT_NAME is 'Unique name to create download files.';
 Comment on column GENOMERELEASE.DISPLAY_NAME is 'Public display name.';
@@ -906,7 +906,6 @@ Comment on column GENOMERELEASE.OBJ_URL is 'URL of the object (relative for loca
 Comment on column GENOMERELEASE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column GENOMERELEASE.BUD_ID is 'From BUD.RELEASE.RELEASE_NO.';
 Comment on column GENOMERELEASE.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
-Comment on column GENOMERELEASE.GENOME_RELEASE is 'Unique name for a genome release, in the format [sequence release]-[annotation release]-[curation release] (e.g., 64-1-1).';
 Comment on column GENOMERELEASE.SEQUENCE_RELEASE is 'Release or version number of the sequence.';
 Comment on column GENOMERELEASE.ANNOTATION_RELEASE is 'Annotation release associated with a particular sequence release, incremented when feature coordinates change or features are added, merged or deleted.';
 Comment on column GENOMERELEASE.CURATION_RELEASE is 'Incremented when new annotation files added to the Download Server.';
@@ -966,7 +965,7 @@ Comment on column PROTEINDOMAIN.DESCRIPTION is 'Description or comment.';
 Comment on column PROTEINDOMAIN.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PROTEINDOMAIN.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
-Comment on table PROTEINDOMAIN_URL is 'URLs associated with protein domaines.';
+Comment on table PROTEINDOMAIN_URL is 'URLs associated with protein domains.';
 Comment on column PROTEINDOMAIN_URL.URL_ID is 'Unique identifier (Oracle sequence).';
 Comment on column PROTEINDOMAIN_URL.DISPLAY_NAME is 'Public display name.';
 Comment on column PROTEINDOMAIN_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';

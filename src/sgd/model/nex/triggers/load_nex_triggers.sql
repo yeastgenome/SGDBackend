@@ -18,10 +18,8 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Source_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Sgdid_BIUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Sgdid_AUR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbxref_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbxref_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Ro_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Ro_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/RoUrl_BIUR.trg
@@ -157,6 +155,17 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Allele_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reporter_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reporter_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Genomerelease_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Genomerelease_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Contig_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Contig_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ContigUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ContigUrl_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomain_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomain_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteindomainUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteindomainUrl_AUDR.trg
 
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_AUDR.trg

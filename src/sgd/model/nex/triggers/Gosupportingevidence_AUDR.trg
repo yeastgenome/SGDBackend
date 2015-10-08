@@ -15,11 +15,6 @@ BEGIN
         AuditLog.InsertUpdateLog('GOSUPPORTINGEVIDENCE', 'ANNOTATION_ID', :old.gosupportingevidence_id, :old.annotation_id, :new.annotation_id, USER);
     END IF;
 
-	 IF (:old.group_id != :new.group_id)
-    THEN
-        AuditLog.InsertUpdateLog('GOSUPPORTINGEVIDENCE', 'GROUP_ID', :old.gosupportingevidence_id, :old.group_id, :new.group_id, USER);
-    END IF;
-
      IF (:old.dbxref_id != :new.dbxref_id)
     THEN
         AuditLog.InsertUpdateLog('GOSUPPORTINGEVIDENCE', 'DBXREF_ID', :old.gosupportingevidence_id, :old.dbxref_id, :new.dbxref_id, USER);
