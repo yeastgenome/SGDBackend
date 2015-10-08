@@ -14,11 +14,11 @@ BEGIN
         SELECT detail_seq.NEXTVAL INTO :new.detail_id FROM DUAL;
     END IF; 
 
-    IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'CHEBI')) THEN
+    IF ((:new.detail_type = 'Chemical') AND (:new.detail_type = 'CHEBI')) THEN
         v_DoesChebiExist := CheckChebi(:new.detail_value, 'CHEBI');
     END IF;
 
-    IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'Pending')) THEN 
+    IF ((:new.detail_type = 'Chemical') AND (:new.detail_type = 'Chemical pending')) THEN 
         v_DoesChebiExist := CheckChebi(:new.detail_value, 'NTR');
     END IF;
 
@@ -31,11 +31,11 @@ BEGIN
             (-20000, 'Primary key cannot be updated');
     END IF;
 
-    IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'CHEBI')) THEN
+    IF ((:new.detail_type = 'Chemical') AND (:new.detail_type = 'CHEBI')) THEN
         v_DoesChebiExist := CheckChebi(:new.detail_value, 'CHEBI');
     END IF;
 
-    IF ((:new.detail_type = 'Chemical') AND (:new.detail_name = 'Pending')) THEN 
+    IF ((:new.detail_type = 'Chemical') AND (:new.detail_type = 'Chemical pending')) THEN 
         v_DoesChebiExist := CheckChebi(:new.detail_value, 'NTR');
     END IF;
 
