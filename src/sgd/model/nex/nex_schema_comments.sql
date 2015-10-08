@@ -1054,8 +1054,10 @@ Comment on column PHENOTYPEANNOTATION.CREATED_BY is 'Username of the person who 
 Comment on table PHENOTYPEANNOTATION_DETAIL is 'Treatments, conditions and other details associated with a phenotype annotation.';
 Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_ID is 'Unique identifier (Oracle sequence).';
 Comment on column PHENOTYPEANNOTATION_DETAIL.ANNOTATION_ID is 'FK to PHENOTYPEANNOTATION.ANNOTATION_ID.';
-Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_TYPE is 'Category or type of detail (treatment, growth condition, chemical, etc.).';
-Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_NAME is 'Specific detail name (temperature, YPD medium, miconazole, etc.).';
-Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_VALUE is 'Actual detail value (30 deg C, with 6% ethanol, 1000 ug/ml, etc.).';
+Comment on column PHENOTYPEANNOTATION_DETAIL.CATEGORY is 'Broad category for grouping types of phenotype details.';
+Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_TYPE is 'Type of phenotype detail (Chemical pending, Temperature, Media, etc.).';
+Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_VALUE is 'Actual phenotype detail value (nystatin, elevated temperature, YPD, etc.).';
+Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_NUMBER is 'Numerical value associated with the phenotype detail value (12, 0.6, 37, etc.).';
+Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_UNIT is 'Unit associated with the phenotype detail number (C, hr, %, mM, etc.).';
 Comment on column PHENOTYPEANNOTATION_DETAIL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PHENOTYPEANNOTATION_DETAIL.CREATED_BY is 'Username of the person who entered the record into the database.';
