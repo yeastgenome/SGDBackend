@@ -1,0 +1,76 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "GoAnnotation",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+	"locus_id": {
+	    "title": "LOCUS ID",
+            "type": "integer"
+	},
+        "taxonomy_id": {
+            "title": "Taxonomy ID",
+            "type": "integer"
+        },
+        "reference_id": {
+            "title": "Reference ID",
+            "type": "integer"
+        },
+	"go_id": {
+            "title": "GO ID",
+            "type": "integer"
+        },
+        "eco_id": {
+            "title": "ECO ID",
+            "type": "integer"
+        },
+	"annotation_type": {
+	    "title": "Annotation Type",
+	    "type": "string"
+	},
+	"go_qualifier": {
+            "title": "GO Qualifier",
+            "type": "string"
+        },
+	"date_assigned": {
+            "title": "Date Assigned",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+	},
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        }
+    },
+    "required": ["source", "locus_id", "go_id", "reference_id", "eco_id", "annotation_type"]
+}
