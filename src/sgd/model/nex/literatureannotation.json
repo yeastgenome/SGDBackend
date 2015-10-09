@@ -1,0 +1,52 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "LiteratureAnnotation",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+	"locus_id": {
+	    "title": "LOCUS ID",
+            "type": "integer"
+	},
+        "taxonomy_id": {
+            "title": "Taxonomy ID",
+            "type": "integer"
+        },
+        "reference_id": {
+            "title": "Reference ID",
+            "type": "integer"
+        },
+	"topic": {
+	    "title": "Topic",
+	    "type": "string"
+	},
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        }
+    },
+    "required": ["source", "locus_id", "topic", "reference_id"]
+}
