@@ -32,9 +32,7 @@ def colleague_starter(bud_session_maker):
     
     for bud_obj in bud_session.query(Colleague).all():
 
-        print "bud_id:", bud_obj.id, 'last_name:', bud_obj.last_name, 'first_name:', bud_obj.first_name, 'research_interest:', interests.get(bud_obj.id), "\n"
-
-        # print 'bud_id', bud_obj.id, 'last_name', bud_obj.last_name, 'first_name', bud_obj.first_name, 'other_last_name', bud_obj.other_last_name, 'job_title', bud_obj.job_title, 'institution', bud_obj.institution, 'address1', bud_obj.address1, 'address2', bud_obj.address2, 'address3', bud_obj.address3, 'city', bud_obj.city, 'country', bud_obj.country, 'work_phone', bud_obj.work_phone, 'other_phone', bud_obj.other_phone, 'fax', bud_obj.fax, 'email', bud_obj.email, 'is_pi', 1 if bud_obj.is_pi == 'Y' else 0, 'is_contact', 1 if bud_obj.is_contact == 'Y' else 0, 'display_email', 1 if bud_obj.display_email == 'Y' else 0, 'suffix', bud_obj.suffix, 'state', bud_obj.state if bud_obj.state is not None else bud_obj.region, 'profession', bud_obj.profession, 'research_interest', interests.get(bud_obj.id), 'postal_code', bud_obj.postal_code, 'date_last_modified', str(bud_obj.date_last_modified), "\n"
+        print "research_interest: ", interests.get(bud_obj.id), "\n"
 
         obj_json = remove_nones({
             'bud_id': bud_obj.id,
@@ -72,5 +70,5 @@ def colleague_starter(bud_session_maker):
 
 if __name__ == '__main__':
     from src.sgd.convert import config
-    basic_convert(config.BUD_HOST, config.NEX_HOST, colleague_starter, 'colleague', lambda x: (x['first_name'], x['last_name'], None if 'institution' not in x else x['institution'], None if 'email' not in x else x['email']))
+    basic_convert(config.BUD_HOST, config.NEX_HOST, colleague_starter, 'colleague', lambda x: (x['first_name'], x['last_name'], x['bud_id']))
 

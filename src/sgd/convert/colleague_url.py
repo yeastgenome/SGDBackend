@@ -22,6 +22,7 @@ def colleague_url_starter(bud_session_maker):
 
         yield { "colleague_id": coll_id,
                 "display_name": bud_obj.url.url,
+                "link": bud_obj.url.url,
                 "url_type": bud_obj.url.url_type,
                 "bud_id": bud_obj.url.id,
                 "source": { "display_name": "Direct submission"}}

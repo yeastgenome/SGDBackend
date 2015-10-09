@@ -44,6 +44,7 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     email = Column('email', String)
     is_pi = Column('is_pi', Boolean)
     is_contact = Column('is_contact', Boolean)
+    research_interest = Column('research_interest', String)
     display_email = Column('display_email', Boolean)
     date_last_modified = Column('date_last_modified', Date, server_default=FetchedValue())
 
@@ -57,7 +58,7 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                      'profession', 'job_title', 'institution', 'address1', 'address2', 
                      'address3', 'city', 'state', 'country', 'postal_code', 'work_phone',
                      'other_phone', 'fax', 'email', 'is_pi', 'is_contact', 'display_email', 
-                     'date_last_modified']
+                     'research_interest', 'date_last_modified']
     __eq_fks__ = [('source', Source, False)]
     #              ('urls', 'colleague.ColleagueUrl', True),
     #              ('associates', 'colleague.ColleagueAssociation', False)]
@@ -76,7 +77,7 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     @classmethod
     def __create_format_name__(cls, obj_json):
-        return create_format_name('_'.join([x for x in [obj_json['first_name'], obj_json['last_name'], None if 'email' not in obj_json else obj_json['email'],  None if 'institution' not in obj_json else obj_json['institution']] if x is not None])[0:100])
+        return create_format_name('_'.join([x for x in [obj_json['first_name'], obj_json['last_name'], str(obj_json['bud_id']) ]]))
 
     @classmethod
     def __create_display_name__(cls, obj_json):
@@ -86,7 +87,7 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
         obj_json = ToJsonMixin.to_json(self)
 
         #Urls
-        obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
+        # obj_json['urls'] = [x.to_json() for x in sorted(self.urls, key=lambda x: x.display_name)]
 
         #Relations
         # obj_json['associates'] = [x.to_json() for x in self.associates]
@@ -115,7 +116,7 @@ class ColleagueUrl(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     created_by = Column('created_by', String, server_default=FetchedValue())
 
     #Relationships
-    colleague = relationship(Colleague, uselist=False, backref=backref('urls', cascade="all, delete-orphan", passive_deletes=True))
+    # colleague = relationship(Colleague, uselist=False, backref=backref('urls', cascade="all, delete-orphan", passive_deletes=True))
     source = relationship(Source, uselist=False)
 
     __eq_values__ = ['id', 'display_name', 'link', 'bud_id', 'url_type',
