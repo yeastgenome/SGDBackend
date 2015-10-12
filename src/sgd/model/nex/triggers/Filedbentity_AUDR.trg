@@ -59,8 +59,8 @@ BEGIN
 
     v_row := :old.dbentity_id || '[:]' || :old.md5sum || '[:]' ||
              :old.taxonomy_id || '[:]' || :old.reference_id || '[:]' ||
-             :old.previous_file_name || '[:]' || :old.status || '[:]' || 
-             :old.file_file_data_type || '[:]' || :old.operation || '[:]' || 
+             :old.previous_file_name || '[:]' || :old.file_status || '[:]' || 
+             :old.file_data_type || '[:]' || :old.file_operation || '[:]' || 
              :old.file_version || '[:]' || :old.file_format || '[:]' || 
              :old.file_extension;
 
