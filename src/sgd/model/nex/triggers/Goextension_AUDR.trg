@@ -20,10 +20,14 @@ BEGIN
         AuditLog.InsertUpdateLog('GOEXTENSION', 'GROUP_ID', :old.goextension_id, :old.group_id, :new.group_id, USER);
     END IF;
 
-
      IF (:old.dbxref_id != :new.dbxref_id)
     THEN
         AuditLog.InsertUpdateLog('GOEXTENSION', 'DBXREF_ID', :old.goextension_id, :old.dbxref_id, :new.dbxref_id, USER);
+    END IF;
+
+     IF (:old.obj_url != :new.obj_url)
+    THEN
+        AuditLog.InsertUpdateLog('GOEXTENSION', 'OBJ_URL', :old.goextension_id, :old.obj_url, :new.obj_url, USER);
     END IF;
 
      IF (:old.ro_id != :new.ro_id)
@@ -34,8 +38,8 @@ BEGIN
   ELSE
 
     v_row := :old.goextension_id || '[:]' || :old.annotation_id || '[:]' ||
-		  	 :old.group_id || '[:]' || :old.dbxref_id || '[:]' ||
-             :old.ro_id || '[:]' ||
+             :old.group_id || '[:]' || :old.dbxref_id || '[:]' ||
+             :old.obj_url || '[:]' || :old.ro_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('GOEXTENSION', :old.goextension_id, v_row, USER);

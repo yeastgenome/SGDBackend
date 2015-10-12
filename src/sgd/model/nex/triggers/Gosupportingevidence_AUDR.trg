@@ -25,6 +25,11 @@ BEGIN
         AuditLog.InsertUpdateLog('GOSUPPORTINGEVIDENCE', 'DBXREF_ID', :old.gosupportingevidence_id, :old.dbxref_id, :new.dbxref_id, USER);
     END IF;
 
+     IF (:old.obj_url != :new.obj_url)
+    THEN
+        AuditLog.InsertUpdateLog('GOSUPPORTINGEVIDENCE', 'OBJ_URL', :old.gosupportingevidence_id, :old.obj_url, :new.obj_url, USER);
+    END IF;
+
      IF (:old.evidence_type != :new.evidence_type)
     THEN
         AuditLog.InsertUpdateLog('GOSUPPORTINGEVIDENCE', 'EVIDENCE_TYPE', :old.gosupportingevidence_id, :old.evidence_type, :new.evidence_type, USER);
@@ -33,8 +38,8 @@ BEGIN
   ELSE
 
     v_row := :old.gosupportingevidence_id || '[:]' || :old.annotation_id || '[:]' ||
-		  	 :old.group_id || '[:]' || :old.dbxref_id || '[:]' ||
-             :old.evidence_type || '[:]' ||
+             :old.group_id || '[:]' || :old.dbxref_id || '[:]' ||
+             :old.obj_url || '[:]' || :old.evidence_type || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('GOSUPPORTINGEVIDENCE', :old.gosupportingevidence_id, v_row, USER);

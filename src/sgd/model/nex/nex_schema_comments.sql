@@ -997,6 +997,7 @@ Comment on column GOSUPPORTINGEVIDENCE.GOSUPPORTINGEVIDENCE_ID is 'Unique identi
 Comment on column GOSUPPORTINGEVIDENCE.ANNOTATION_ID is 'FK to GOANNOTATION.ANNOTATION_ID.';
 Comment on column GOSUPPORTINGEVIDENCE.GROUP_ID is 'A grouping number.';
 Comment on column GOSUPPORTINGEVIDENCE.DBXREF_ID is 'External cross reference identifier.';
+Comment on column GOSUPPORTINGEVIDENCE.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column GOSUPPORTINGEVIDENCE.EVIDENCE_TYPE is 'How the supporting evidence is associated with the GO annotation (with, from).';
 Comment on column GOSUPPORTINGEVIDENCE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GOSUPPORTINGEVIDENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -1006,6 +1007,7 @@ Comment on column GOEXTENSION.GOEXTENSION_ID is 'Unique identifier (Oracle seque
 Comment on column GOEXTENSION.ANNOTATION_ID is 'FK to GOANNOTATION.ANNOTATION_ID.';
 Comment on column GOEXTENSION.GROUP_ID is 'A grouping number.';
 Comment on column GOEXTENSION.DBXREF_ID is 'External cross reference identifier.';
+Comment on column GOEXTENSION.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column GOEXTENSION.RO_ID is 'FK to RO.RO_ID.';
 Comment on column GOEXTENSION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GOEXTENSION.CREATED_BY is 'Username of the person who entered the record into the database.';
