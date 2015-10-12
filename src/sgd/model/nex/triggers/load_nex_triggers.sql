@@ -18,8 +18,6 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Source_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Sgdid_BIUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Sgdid_AUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbxref_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbxref_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Ro_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Ro_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/RoUrl_BIUR.trg

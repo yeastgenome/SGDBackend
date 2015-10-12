@@ -13,8 +13,6 @@ BEGIN
         SELECT goextension_seq.NEXTVAL INTO :new.goextension_id FROM DUAL;
     END IF;
 
-   SELECT group_seq.NEXTVAL INTO :new.group_id FROM DUAL;
-
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
@@ -22,11 +20,6 @@ BEGIN
     IF (:new.goextension_id != :old.goextension_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
-    END IF;
-
-    IF (:new.group_id != :old.group_id) THEN
-        RAISE_APPLICATION_ERROR
-            (-20029, 'This column cannot be updated.');
     END IF;
 
     IF (:new.date_created != :old.date_created) THEN    
