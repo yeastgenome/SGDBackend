@@ -123,6 +123,12 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceUnlink_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Filedbentity_BUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Filedbentity_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/FileRelation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/FileRelation_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Colleague_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Colleague_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueUrl_BIUR.trg
@@ -153,7 +159,6 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Allele_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reporter_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reporter_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Genomerelease_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Genomerelease_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Contig_BIUR.trg

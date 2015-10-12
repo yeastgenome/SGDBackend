@@ -672,9 +672,9 @@ Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of th
 Comment on column FILEDBENTITY.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
 Comment on column FILEDBENTITY.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
 Comment on column FILEDBENTITY.PREVIOUS_FILE_NAME is 'File name on the Download Server.';
-Comment on column FILEDBENTITY.FILE_STATUS is 'Status of the file (current, archived, removed, etc.)'
+Comment on column FILEDBENTITY.FILE_STATUS is 'Status of the file (current, archived, removed, etc.)';
 Comment on column FILEDBENTITY.FILE_DATA_TYPE is 'File type, FK to EDAM data.';
-Comment on column FILEDBENTITY.FILE_OPERATION is 'File purpose or contents, FK to EDAM operation.';
+Comment on column FILEDBENTITY.FILE_OPERATION is 'A function or process performed generating the file output, FK to EDAM operation.';
 Comment on column FILEDBENTITY.FILE_VERSION is 'File version or release date.';
 Comment on column FILEDBENTITY.FILE_FORMAT is 'Standard file format, FK to EDAM format.';
 Comment on column FILEDBENTITY.FILE_EXTENSION is 'File name extension (.gff, .tsv, .fsa.gz, .jpg, etc.).';

@@ -1,4 +1,4 @@
-CREATE OR REPLACE TRIGGER Referencdbeentity_BIUR
+CREATE OR REPLACE TRIGGER Referencedbentity_BIUR
 --
 -- Before insert or update trigger for referencedbentity table
 --
