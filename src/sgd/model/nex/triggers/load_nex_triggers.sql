@@ -170,6 +170,17 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteindomainUrl_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteindomainUrl_AUDR.trg
 
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goannotation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Gosupportingevidence_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Gosupportingevidence_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goextension_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goextension_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslimannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslimannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_BIUR.trg
