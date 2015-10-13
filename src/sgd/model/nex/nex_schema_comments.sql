@@ -966,6 +966,17 @@ Comment on column PROTEINDOMAIN_URL.CREATED_BY is 'Username of the person who en
 
 /* Annotations */
 
+Comment on table ENZYMEANNOTATION is 'EC number annotations.';
+Comment on column ENZYMEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column ENZYMEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column ENZYMEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ENZYMEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column ENZYMEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column ENZYMEANNOTATION.BUD_ID is 'Not from BUD.';
+Comment on column ENZYMEANNOTATION.EC_ID is 'FK to EC.EC_ID.';
+Comment on column ENZYMEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ENZYMEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table LITERATUREANNOTATION is 'Literature topics or categories assigned to references.';
 Comment on column LITERATUREANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column LITERATUREANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
