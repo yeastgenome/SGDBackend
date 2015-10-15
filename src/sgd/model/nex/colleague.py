@@ -67,13 +67,15 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __filter_values__ = ['last_name', 'first_name', 'institution', 'is_pi', 'is_contact']
 
     def __init__(self, obj_json, session):
+        obj_json['link'] = '/colleague/' + self.__create_format_name__(obj_json)
+        self.link = obj_json['link']
         UpdateWithJsonMixin.__init__(self, obj_json, session)
         if "is_pi" not in obj_json:
             self.is_pi = False
         if "is_contact" not in obj_json:
             self.is_contact = False
         if "display_email" not in obj_json:
-            self.display_name = False
+            self.display_email = False
 
     @classmethod
     def __create_format_name__(cls, obj_json):
