@@ -1060,3 +1060,17 @@ Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_NUMBER is 'Numerical value a
 Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_UNIT is 'Unit associated with the phenotype detail number (C, hr, %, mM, etc.).';
 Comment on column PHENOTYPEANNOTATION_DETAIL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PHENOTYPEANNOTATION_DETAIL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table PROTEINDOMAINANNOTATION is 'Protein domains as predicted by InterProScan.';
+Comment on column PROTEINDOMAINANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PROTEINDOMAINANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column PROTEINDOMAINANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PROTEINDOMAINANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column PROTEINDOMAINANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column PROTEINDOMAINANNOTATION.BUD_ID is 'Not from BUD.';
+Comment on column PROTEINDOMAINANNOTATION.PROTEINDOMAIN_ID is 'FK to PROTEINDOMAIN.PROTEINDOMAIN_ID.';
+Comment on column PROTEINDOMAINANNOTATION.START_INDEX is 'Start coordinate of the protein domain relative to the locus.';
+Comment on column PROTEINDOMAINANNOTATION.END_INDEX is 'End coordinate of the protein domain relative to the locus.';
+Comment on column PROTEINDOMAINANNOTATION.DATE_OF_RUN is 'When the InterProScan analysis was run.';
+Comment on column PROTEINDOMAINANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PROTEINDOMAINANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';

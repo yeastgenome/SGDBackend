@@ -172,7 +172,6 @@
 
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Gosupportingevidence_BIUR.trg
@@ -187,3 +186,6 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationDetail_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationDetail_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_AUDR.trg
