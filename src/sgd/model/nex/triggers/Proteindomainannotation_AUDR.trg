@@ -23,7 +23,7 @@ BEGIN
     IF (:old.taxonomy_id != :new.taxonomy_id)
     THEN
         AuditLog.InsertUpdateLog('PROTEINDOMAINANNOTATION', 'TAXONOMY_ID', :old.annotation_id, :old.taxonomy_id, :new.taxonomy_id, USER);
-    END IF
+    END IF;
 
     IF  (((:old.reference_id IS NULL) AND (:new.reference_id IS NOT NULL)) OR ((:old.reference_id IS NOT NULL) AND (:new.reference_id IS NULL)) OR (:old.reference_id != :new.reference_id))
     THEN
