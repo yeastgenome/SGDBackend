@@ -2,6 +2,13 @@ from src.sgd.convert import basic_convert
 
 __author__ = 'sweng66'
 
+# detail_category_mapping = {'Chemical_pending': 'Chemical',
+#                           'chebi_ontology': 'Chemical',
+#                           'Condition': 'Condition',
+#                           
+#                       'strain_name', 'Numerical_value', 'Condition', 'Details'
+
+
 def phenotypeannotation_starter(bud_session_maker):
     from src.sgd.model.bud.phenotype import PhenotypeFeature
     from src.sgd.model.bud.reference import Reflink
@@ -75,14 +82,15 @@ def phenotypeannotation_starter(bud_session_maker):
         ## allele - data from expt_property
         ## reporter - data from expt_property
 
-        strain_taxid_mapping = { "S288C":   'NCBITaxon:559292',
-                                 "CEN.PK":  'NCBITaxon:889517',
-                                 "FL100":   'NCBITaxon:947036',
-                                 "RM11-1a": 'NCBITaxon:285006',
-                                 "SK1":     'NCBITaxon:580239',
-                                 "W303":    'NCBITaxon:580240',
-                                 "Y55":     'NCBITaxon:580230',
-                                 'Other':   'NCBITaxon:4932' }
+        strain_taxid_mapping = { "S288C":   559292,
+                                 "CEN.PK":  889517,
+                                 "FL100":   947036,
+                                 "RM11-1a": 285006,
+                                 "SK1":     580239,
+                                 "W303":    580240,
+                                 "Y55":     580230,
+                                 'Other':   4932    
+        }
 
         #  "D273-10B",  "JK9-3d", "SEY6210", "Sigma1278b", "X2180-1A"
         
@@ -102,10 +110,7 @@ def phenotypeannotation_starter(bud_session_maker):
         reporter_id = ''
         # print locus_id, phenotype_id, experiment_id, mutant_id, reference_id
 
-
         detail_data = []
-
-
 
         if bud_obj.experiment_properties is not None:
             for exptProp in bud_obj.experiment_properties:
@@ -122,9 +127,11 @@ def phenotypeannotation_starter(bud_session_maker):
                     if reporter_id is None:
                         print "\t\tReporter: ", exptProp.value, " is not in Reporter table."
                 if exptProp.type in ['Chemical_pending', 'chebi_ontology', 'strain_name', 'Numerical_value', 'Condition', 'Details']:
+                    
                     detail_data.append({ 'detail_type': ?,
-                                         'detail_name': ?,
-                                         'detail_value':?,
+                                         'detail_value': ?,
+                                         'detail_number': ?,
+                                         'detail_unit':?,
                                          'date_created': str(exptProp.date_created), 
                                          'created_by': exptProp.created_by })
 

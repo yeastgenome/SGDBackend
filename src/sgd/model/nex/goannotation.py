@@ -2,6 +2,7 @@ from sqlalchemy.schema import Column, ForeignKey, FetchedValue
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.associationproxy import association_proxy
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
@@ -11,6 +12,7 @@ from src.sgd.model.nex.taxonomy import Taxonomy
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.go import Go
 from src.sgd.model.nex.eco import Eco
+from src.sgd.model.nex.ro import Ro
 
 __author__ = 'sweng66'
 
@@ -38,14 +40,19 @@ class Goannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     reference = relationship(Reference, uselist=False)
     go = relationship(Go, uselist=False)
     eco = relationship(Eco, uselist=False)
+    goextension = relationship('goannotation.Goextension', uselist=False)
+    gosupportingevidence = relationship('goannotation.Gosupportingevidence', uselist=False)
 
-    __eq_values__ = ['id', 'annotation_type', 'bud_id', 'date_assigned', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'annotation_type', 'bud_id', 'locus_id', 'taxonomy_id', 'reference_id', 'go_id', 'eco_id', 
+                     'go_qualifier', 'date_assigned', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False),
                   ('locus', Locus, False),
                   ('reference', Reference, False),
                   ('taxonomy', Taxonomy, False),
                   ('go', Go, False),
-                  ('eco', Eco, False)]
+                  ('eco', Eco, False),
+                  ('goextension', 'goannotation.Goextension', True),
+                  ('gosupportingevidence', 'goannotation.Gosupportingevidence', True)]
     __id_values__ = ['id']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
     __filter_values__ = ['locus_id', 'reference_id', 'go_id']
@@ -79,4 +86,122 @@ class Goannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
         return obj_json
 
  
+class Goextension(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'goextension'
 
+    id = Column('goextension_id', Integer, primary_key=True)
+    annotation_id = Column('annotation_id', Integer, ForeignKey(Goannotation.id, ondelete='CASCADE'))
+    link = Column('obj_url', String)
+    group_id = Column('group_id', Integer)
+    dbxref_id = Column('dbxref_id', String)
+    ro_id = Column('ro_id', Integer, ForeignKey(Ro.id))
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships                                                                                                                           
+    # annotation = relationship(Goannotation, uselist=False, backref=backref('goextension', cascade="all, delete-orphan", passive_deletes=True))
+    ro = relationship('Ro')
+    role = association_proxy('ro', 'display_name')
+
+    __eq_values__ = ['id', 'link', 'group_id', 'ro_id', 'dbxref_id']
+    __eq_fks__ = []
+    __id_values__ = []
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
+
+    def __init__(self, obj_json, session):
+        self.group_id = obj_json['group_id']
+        self.dbxref_id = obj_json['dbxref_id']
+        self.link = obj_json['link']
+        self.ro_id = obj_json['ro_id']
+        print "GO_EXTENSION-obj_json: ", obj_json
+        self.update(obj_json, session)
+
+    def unique_key(self):
+        return self.group_id, self.dbxref_id, self.link, self.ro_id
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            newly_created_object.annotation_id = parent_obj.id
+
+        current_obj = session.query(cls)\
+            .filter_by(group_id=newly_created_object.group_id)\
+            .filter_by(ro_id=newly_created_object.ro_id)\
+            .filter_by(dbxref_id=newly_created_object.dbxref_id)\
+            .filter_by(link=newly_created_object.link).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
+
+    def to_json(self, size='small'):
+        return {
+            'group_id': self.group_id,
+            'dbxref_id': self.dbxref_id,
+            'link': self.link,
+            'role': self.role
+        }
+
+class Gosupportingevidence(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
+    __tablename__ = 'gosupportingevidence'
+
+    id = Column('gosupportingevidence_id', Integer, primary_key=True)
+    annotation_id = Column('annotation_id', Integer, ForeignKey(Goannotation.id, ondelete='CASCADE'))
+    link = Column('obj_url', String)
+    group_id = Column('group_id', Integer)
+    dbxref_id = Column('dbxref_id', String)
+    evidence_type = Column('evidence_type', String)
+    date_created = Column('date_created', Date, server_default=FetchedValue())
+    created_by = Column('created_by', String, server_default=FetchedValue())
+
+    #Relationships                 
+    # annotation = relationship(Goannotation, uselist=False, backref=backref('gosupportingevidence', cascade="all, delete-orphan", passive_deletes=True))
+
+    __eq_values__ = ['id', 'link', 'group_id', 'evidence_type', 'dbxref_id']
+    __eq_fks__ = []
+    __id_values__ = []
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
+    __filter_values__ = []
+
+    def __init__(self, obj_json, session):
+        # print "GO_SUPPORT-obj_json: ", obj_json
+        self.group_id = obj_json['group_id']
+        self.dbxref_id = obj_json['dbxref_id']
+        self.evidence_type = obj_json['evidence_type']
+        self.link = obj_json['link']
+        self.update(obj_json, session)
+
+    def unique_key(self):
+        return self.group_id, self.dbxref_id, self.link, self.evidence_type
+
+    @classmethod
+    def create_or_find(cls, obj_json, session, parent_obj=None):
+        if obj_json is None:
+            return None
+        newly_created_object = cls(obj_json, session)
+        if parent_obj is not None:
+            newly_created_object.annotation_id = parent_obj.id
+
+        current_obj = session.query(cls)\
+            .filter_by(group_id=newly_created_object.group_id)\
+            .filter_by(evidence_type=newly_created_object.evidence_type)\
+            .filter_by(dbxref_id=newly_created_object.dbxref_id)\
+            .filter_by(link=newly_created_object.link).first()
+
+        if current_obj is None:
+            return newly_created_object, 'Created'
+        else:
+            return current_obj, 'Found'
+
+    def to_json(self, size='small'):
+        return {
+            'group_id': self.group_id,
+            'dbxref_id': self.dbxref_id,
+            'link': self.link,
+            'evidence': self.evidence_type
+        }
