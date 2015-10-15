@@ -94,53 +94,53 @@ def load_urls(bud_locus, bud_session):
                      'date_created': str(old_url.date_created),
                      'created_by': old_url.created_by})
 
-    urls.append(
-        {'display_name': 'SPELL',
-         'source': {'display_name': 'SGD'},
-         'bud_id': bud_locus.id,
-         'link': 'http://spell.yeastgenome.org/search/show_results?search_string=' + bud_locus.name,
-         'url_type': 'Systematic name',
-         'placement': 'LOCUS_EXPRESSION'})
+    # urls.append(
+    #    {'display_name': 'SPELL',
+    #     'source': {'display_name': 'SGD'},
+    #     'bud_id': bud_locus.id,
+    #     'link': 'http://spell.yeastgenome.org/search/show_results?search_string=' + bud_locus.name,
+    #     'url_type': 'Systematic name',
+    #     'placement': 'LOCUS_EXPRESSION_RESOURCES'})
 
-    urls.append(
-        {'display_name': 'Gene/Sequence Resources',
-         'source': {'display_name': 'SGD'},
-         'bud_id': bud_locus.id,
-         'link': '/cgi-bin/seqTools?back=1&seqname=' + bud_locus.name,
-         'url_type': 'Systematic name',
-         'placement': 'LOCUS_SEQUENCE'})
+    # urls.append(
+    #    {'display_name': 'Gene/Sequence Resources',
+    #     'source': {'display_name': 'SGD'},
+    #     'bud_id': bud_locus.id,
+    #     'link': '/cgi-bin/seqTools?back=1&seqname=' + bud_locus.name,
+    #     'url_type': 'Systematic name',
+    #     'placement': 'LOCUS_SEQUENCE_RESOURCES'})
 
-    urls.append(
-        {'display_name': 'ORF Map',
-         'source': {'display_name': 'SGD'},
-         'bud_id': bud_locus.id,
-         'link': '/cgi-bin/ORFMAP/ORFmap?dbid=' + bud_locus.dbxref_id,
-         'url_type': 'SGDID',
-         'placement': 'LOCUS_SEQUENCE'})
+    # urls.append(
+    #    {'display_name': 'ORF Map',
+    #     'source': {'display_name': 'SGD'},
+    #     'bud_id': bud_locus.id,
+    #     'link': '/cgi-bin/ORFMAP/ORFmap?dbid=' + bud_locus.dbxref_id,
+    #     'url_type': 'SGDID',
+    #     'placement': 'LOCUS_SEQUENCE_RESOURCES'})
 
-    urls.append(
-        {'display_name': 'GBrowse',
-         'source': {'display_name': 'SGD'},
-         'bud_id': bud_locus.id,
-         'link': 'http://browse.yeastgenome.org/fgb2/gbrowse/scgenome/?name=' + bud_locus.name,
-         'url_type': 'Systematic name',
-         'placement': 'LOCUS_SEQUENCE'})
+    # urls.append(
+    #    {'display_name': 'GBrowse',
+    #     'source': {'display_name': 'SGD'},
+    #     'bud_id': bud_locus.id,
+    #     'link': 'http://browse.yeastgenome.org/fgb2/gbrowse/scgenome/?name=' + bud_locus.name,
+    #     'url_type': 'Systematic name',
+    #     'placement': 'LOCUS_SEQUENCE_RESOURCES'})
 
-    urls.append(
-        {'display_name': 'BLASTN',
-         'source': {'display_name': 'SGD'},
-         'bud_id': bud_locus.id,
-         'link': '/blast-sgd?name=' + bud_locus.name,
-         'url_type': 'Systematic name',
-         'placement': 'LOCUS_SEQUENCE_SECTION'})
+    #  urls.append(
+    #    {'display_name': 'BLASTN',
+    #     'source': {'display_name': 'SGD'},
+    #     'bud_id': bud_locus.id,
+    #     'link': '/blast-sgd?name=' + bud_locus.name,
+    #     'url_type': 'Systematic name',
+    #     'placement': 'LOCUS_SEQUENCE_SECTION'})
 
-    urls.append(
-        {'display_name': 'BLASTP',
-         'source': {'display_name': 'SGD'},
-         'bud_id': bud_locus.id,
-         'link': '/blast-sgd?name=' + bud_locus.name + '&suffix=prot',
-         'url_type': 'Systematic name',
-         'placement': 'LOCUS_SEQUENCE_SECTION'})
+    # urls.append(
+    #    {'display_name': 'BLASTP',
+    #     'source': {'display_name': 'SGD'},
+    #     'bud_id': bud_locus.id,
+    #     'link': '/blast-sgd?name=' + bud_locus.name + '&suffix=prot',
+    #     'url_type': 'Systematic name',
+    #     'placement': 'LOCUS_SEQUENCE_SECTION'})
 
     urls.append(
         {'display_name': 'Yeast Phenotype Ontology',
@@ -148,7 +148,7 @@ def load_urls(bud_locus, bud_session):
          'bud_id': bud_locus.id,
          'link': '/ontology/phenotype/ypo/overview',
          'url_type': 'Internal web service',
-         'placement': 'LOCUS_PHENOTYPE_ONTOLOGY'})
+         'placement': 'LOCUS_PHENOTYPE_RESOURCES_ONTOLOGY'})
 
     make_unique = dict([((x['display_name'], x['placement'], x['link']), x) for x in urls])
     return make_unique.values()
