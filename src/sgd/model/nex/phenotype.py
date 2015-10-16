@@ -42,16 +42,15 @@ class Phenotype(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     def __init__(self, obj_json, session):
         self.observable_id = obj_json['observable_id']
         self.qualifier_id = obj_json.get('qualifier_id')
+        self.link = obj_json.get('link')
         UpdateWithJsonMixin.__init__(self, obj_json, session)
 
     @classmethod
     def __create_format_name__(cls, obj_json):
-        # return create_format_name(('' if 'qualifier' not in obj_json else obj_json['qualifier']['display_name'] + '.') + obj_json['observable']['display_name'])[:100]
         return create_format_name(('' if 'qualifier' not in obj_json else obj_json['qualifier'] + '.') + obj_json['observable'])[:100]  
 
     @classmethod
     def __create_display_name__(cls, obj_json):
-        # return (obj_json['observable']['display_name'] + ('' if 'qualifier' not in obj_json else ': ' + obj_json['qualifier']['display_name']))[:500]
         return (obj_json['observable'] + ('' if 'qualifier' not in obj_json else ': ' + obj_json['qualifier']))[:500] 
 
 

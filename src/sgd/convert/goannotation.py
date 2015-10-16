@@ -1,4 +1,5 @@
 from src.sgd.convert import basic_convert
+from src.sgd.convert.util import get_relation_to_ro_id
 from src.sgd.convert.gpad_config import curator_id, computational_created_by,  \
     go_db_code_mapping, go_ref_mapping, current_go_qualifier, email_receiver, \
     email_subject
@@ -185,29 +186,85 @@ def goannotation_starter(bud_session_maker):
             date_assigned = date_created
             annotation_type = 'computational'
 
+        ## GO extensions
+        goextension = []        
+        if field[10]:
+            groups = field[10].split('|')
+            group_id = 0
+            for group in groups:
+                members = group.split(',')
+                group_id = group_id + 1
+                for member in members:
+                    print "member=", member
+                    pieces = member.split('(')
+                    role = pieces[0].replace('_', ' ')
+                    ro_id = get_relation_to_ro_id(role)
+                    if ro_id is None:
+                        print role, " is not in RO table."
+                        continue
+                    dbxref_id = pieces[1][:-1]
+                    link = get_link(dbxref_id)
+                    if link.startswith('Unknown'):
+                        print "unknown ID: ", dbxref_id
+                        continue
+                    goextension.append({ 'group_id': group_id,
+                                         'ro_id': ro_id,
+                                         'dbxref_id': dbxref_id,
+                                         'link': link })
+        
+        ## go supporting evidences
+        gosupportingevidence = []
+        if field[6]:
+            groups = field[6].split('|')
+            group_id = 0
+            for group in groups:
+                if group.startswith('With:Not_supplied'):
+                    break
+                dbxref_ids = group.split(',')
+                group_id = group_id + 1
+                for dbxref_id in dbxref_ids:
+                    link = get_link(dbxref_id)
+                    if link.startswith('Unknown'):
+                        print "Unknown ID: ", dbxref_id
+                        continue
+                    evidence_type = 'with'
+                    if dbxref_id.startswith('GO:'):
+                        evidence_type = 'from'
+                        gosupportingevidence.append({ 'group_id': group_id,
+                                                      'evidence_type': evidence_type,
+                                                      'dbxref_id': dbxref_id,
+                                                      'link': link })
         for sgdid in sgdid_list:
             locus_id = sgdid_to_locus_id.get(sgdid)
             if locus_id is None:
                 print "The sgdid = ", sgdid, " is not in LOCUSDBENTITY table."
                 continue
-            yield { 'source': {'display_name': source},
-                    'locus_id': locus_id,
-                    'reference_id': reference_id,
-                    'taxonomy_id': taxonomy_id,
-                    'go_id': go_id,
-                    'eco_id': eco_id,
-                    'annotation_type': annotation_type,
-                    'go_qualifier': go_qualifier,
-                    'date_assigned': date_assigned,
-                    'date_created': date_created,
-                    'created_by': created_by }
+            obj_json = { 'source': {'display_name': source},
+                         'locus_id': locus_id,
+                         'reference_id': reference_id,
+                         'taxonomy_id': taxonomy_id,
+                         'go_id': go_id,
+                         'eco_id': eco_id,
+                         'annotation_type': annotation_type,
+                         'go_qualifier': go_qualifier,
+                         'date_assigned': date_assigned,
+                         'date_created': date_created,
+                         'created_by': created_by }
+            if len(goextension) > 0:
+                obj_json['goextension'] = goextension
+            if len(gosupportingevidence) > 0:
+                obj_json['gosupportingevidence'] = gosupportingevidence
+            yield obj_json
 
     f.close()
 
     ## only load the annotations with annotation_type = 'manually curated' and source != 'SGD'
     ## and the annotations with annotation_type = 'high-throughput' and source = 'SGD'
     ## into NEX2 from BUD
-    
+
+    goref_dbxref = get_go_supporting_data(bud_session)
+    ## goref_dbxref[x.goref_id] = [x.support_type, id]
+
     for bud_obj in bud_session.query(GoRef).all():
 
         annotation = bud_obj.go_annotation
@@ -243,19 +300,29 @@ def goannotation_starter(bud_session_maker):
         if qualifier is None:
             qualifier = goid_to_qualifier[goid]
 
-        yield { 'source': {'display_name': annotation.source},
-                'locus_id': locus_id,
-                'reference_id': reference_id,
-                'taxonomy_id': taxonomy_id,
-                'go_id': go_id,
-                'eco_id': eco_id,
-                'annotation_type': annotation.annotation_type,
-                'go_qualifier': qualifier,
-                'bud_id': bud_obj.id,
-                'date_assigned': str(annotation.date_last_reviewed),
-                'date_created': str(bud_obj.date_created),
-                'created_by': bud_obj.created_by }
+        goextension = []
+        gosupportingevidence = goref_dbxref.get(bud_obj.id)
+        if gosupportingevidence is None:
+            gosupportingevidence = []
 
+        obj_json = { 'source': {'display_name': annotation.source},
+                     'locus_id': locus_id,
+                     'reference_id': reference_id,
+                     'taxonomy_id': taxonomy_id,
+                     'go_id': go_id,
+                     'eco_id': eco_id,
+                     'annotation_type': annotation.annotation_type,
+                     'go_qualifier': qualifier,
+                     'bud_id': bud_obj.id,
+                     'date_assigned': str(annotation.date_last_reviewed),
+                     'date_created': str(bud_obj.date_created),
+                     'created_by': bud_obj.created_by }
+        if len(goextension) > 0:
+            obj_json['goextension'] = goextension
+        if len(gosupportingevidence) > 0:
+            obj_json['gosupportingevidence'] = gosupportingevidence
+        yield obj_json
+        
     bud_session.close()
 
 def annot_prop_to_dict(annot_prop):
@@ -266,7 +333,104 @@ def annot_prop_to_dict(annot_prop):
         annot_prop_dict[annot[0]] = annot[1]
     return annot_prop_dict
 
+def get_go_supporting_data(bud_session):
 
+    from src.sgd.model.bud.go import GorefDbxref
+
+    goref_dbxref = {}
+    for x in bud_session.query(GorefDbxref).all():
+        id = ''
+        if x.dbxref.dbxref_type.startswith('DBID'):
+            id = 'SGD:' + x.dbxref.dbxref_id
+        elif x.dbxref.dbxref_type.startswith('EC'):
+            id = 'EC:' + x.dbxref.dbxref_id
+        elif x.dbxref.dbxref_type.startswith('UniProt/Swiss'):
+            id = 'UniProtKB:' + x.dbxref.dbxref_id
+        elif x.dbxref.dbxref_type.startswith('UniProtKB Subcellular'):
+            id = 'UniProtKB-SubCell:' + x.dbxref.dbxref_id
+        elif x.dbxref.dbxref_type.startswith('UniProtKB Keyword'):
+            id = 'UniProtKB-KW:' + x.dbxref.dbxref_id
+        elif x.dbxref.dbxref_type.startswith('UniPathway'):
+            id = 'UniPathway:' + x.dbxref.dbxref_id
+        elif x.dbxref.dbxref_type.startswith('InterPro'):
+            id = 'InterPro:' + x.dbxref.dbxref_id
+        elif x.dbxref.dbxref_type.startswith('DNA accession'):
+            id = 'EMBL:' + x.dbxref.dbxref_id
+        elif x.dbxref.dbxref_type.startswith('Protein version'):
+            id = 'protein_id:' + x.dbxref.dbxref_id
+        elif x.dbxref.source == 'MGI':
+            id = 'MGI:' + x.dbxref.dbxref_id
+        elif x.dbxref.dbxref_type.startswith('PANTHER'):
+            id = 'PANTHER:' + x.dbxref.dbxref_id
+        elif x.dbxref.dbxref_type.startswith('HAMAP'):
+            id = 'HAMAP:' + x.dbxref.dbxref_id
+        link = get_link(id)
+        if link == 'Unknown':
+            print "Unknown DBXREF ID: ", id
+            continue
+        group = []
+        group_id = 1
+        if x.goref_id in goref_dbxref:
+            group = goref_dbxref[x.goref_id]
+            group_id = len(goref_dbxref[x.goref_id]) + 1    
+        group.append({ 'group_id': group_id,
+                       'evidence_type': x.support_type,
+                       'dbxref_id': id,
+                       'link': link })
+        goref_dbxref[x.goref_id] = group
+
+    return goref_dbxref
+
+
+def get_link(dbxref_id):
+
+    if dbxref_id.startswith('SGD:S'):
+        sgdid = dbxref_id.replace('SGD:', '')
+        return "/locus/" + sgdid + "/overview"
+    if dbxref_id.startswith('GO:'):
+        return "http://amigo.geneontology.org/amigo/term/" + dbxref_id
+    if dbxref_id.startswith('UniProtKB:'):
+        uniprotID = dbxref_id.replace('UniProtKB:', '')
+        return "http://www.uniprot.org/uniprot/" + uniprotID
+    if dbxref_id.startswith('CHEBI:'):
+        return "http://www.ebi.ac.uk/chebi/searchId.do?chebiId=" + dbxref_id
+    if dbxref_id.startswith('SO:'):
+        return "http://www.sequenceontology.org/browser/current_svn/term/" + dbxref_id
+    if dbxref_id.startswith('RNAcentral:'):
+        id = dbxref_id.replace('RNAcentral:', '')
+        return "http://rnacentral.org/rna/" + id
+    if dbxref_id.startswith('UniProtKB-KW:'):
+        id = dbxref_id.replace('UniProtKB-KW:', '')
+        return "http://www.uniprot.org/keywords/" + id
+    if dbxref_id.startswith('UniProtKB-SubCell:'):
+        id = dbxref_id.replace('UniProtKB-SubCell:', '')
+        return "http://www.uniprot.org/locations/" + id
+    if dbxref_id.startswith('InterPro:'):
+        id = dbxref_id.replace('InterPro:', '')
+        return "http://www.ebi.ac.uk/interpro/entry/" + id
+    if dbxref_id.startswith('EC:'):
+        EC = dbxref_id.replace('EC:', ' ')
+        return "http://enzyme.expasy.org/EC/" + EC
+    if dbxref_id.startswith('UniPathway:'):
+        id = dbxref_id.replace('UniPathway:', '')
+        return "http://www.grenoble.prabi.fr/obiwarehouse/unipathway/upa?upid=" + id
+    if dbxref_id.startswith('HAMAP:'):
+        id = dbxref_id.replace('HAMAP:', '')
+        return "http://hamap.expasy.org/unirule/" + id
+    if dbxref_id.startswith('protein_id:'):
+        id = dbxref_id.replace('protein_id:', '')
+        return "http://www.ncbi.nlm.nih.gov/protein/" + id
+    if dbxref_id.startswith('EMBL:'):
+        id = dbxref_id.replace('EMBL:', '')
+        return "http://www.ebi.ac.uk/Tools/dbfetch/emblfetch?style=html&id=" + id
+    if dbxref_id.startswith('MGI:'):
+        id = dbxref_id.replace('MGI:', '')
+        return "http://uswest.ensembl.org/Drosophila_melanogaster/Gene/Summary?g=" + id 
+    if dbxref_id.startswith('PANTHER:'):
+        id = dbxref_id.replace('PANTHER:', '')
+        return 
+    return "Unknown"
+   
 def get_nex_session():
 
     from src.sgd.convert.util import prepare_schema_connection
@@ -276,7 +440,6 @@ def get_nex_session():
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
 
     return nex_session_maker()
-
 
 if __name__ == '__main__':
     from src.sgd.convert import config
