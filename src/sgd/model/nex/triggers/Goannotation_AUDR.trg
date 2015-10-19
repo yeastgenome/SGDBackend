@@ -10,9 +10,9 @@ DECLARE
 BEGIN
   IF UPDATING THEN
 
-    IF (:old.locus_id != :new.locus_id)
+    IF (:old.dbentity_id != :new.dbentity_id)
     THEN
-        AuditLog.InsertUpdateLog('GOANNOTATION', 'LOCUS_ID', :old.annotation_id, :old.locus_id, :new.locus_id, USER);
+        AuditLog.InsertUpdateLog('GOANNOTATION', 'DBENTITY_ID', :old.annotation_id, :old.dbentity_id, :new.dbentity_id, USER);
     END IF;
 
      IF (:old.source_id != :new.source_id)
@@ -62,7 +62,7 @@ BEGIN
 
   ELSE
 
-    v_row := :old.annotation_id || '[:]' || :old.locus_id || '[:]' ||
+    v_row := :old.annotation_id || '[:]' || :old.dbentity_id || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.taxonomy_id || '[:]' || :old.reference_id || '[:]' ||
              :old.go_id || '[:]' || :old.eco_id || '[:]' ||

@@ -444,7 +444,7 @@ Comment on column DBENTITY.OBJ_URL is 'URL of the object (relative for local lin
 Comment on column DBENTITY.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DBENTITY.BUD_ID is 'PK from BUD.FEATURE.FEATURE_NO.';
 Comment on column DBENTITY.SGDID is 'SGD accession identifier.';
-Comment on column DBENTITY.SUBCLASS is 'What object inherits from DBENTITY (DBENTITY, FILE, LOCUS, REFERENCE, STRAIN).';
+Comment on column DBENTITY.SUBCLASS is 'What object inherits from DBENTITY (FILE, LOCUS, REFERENCE, STRAIN).';
 Comment on column DBENTITY.DBENTITY_STATUS is 'Current state of the dbentity (Active, Merged, Deleted, Archived).';
 Comment on column DBENTITY.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DBENTITY.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -977,20 +977,9 @@ Comment on column ENZYMEANNOTATION.EC_ID is 'FK to EC.EC_ID.';
 Comment on column ENZYMEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column ENZYMEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table LITERATUREANNOTATION is 'Literature topics or categories assigned to references.';
-Comment on column LITERATUREANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column LITERATUREANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
-Comment on column LITERATUREANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column LITERATUREANNOTATION.BUD_ID is 'From BUD.LIT_GUIDE.LIT_GUIDE_NO.';
-Comment on column LITERATUREANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
-Comment on column LITERATUREANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
-Comment on column LITERATUREANNOTATION.TOPIC is 'Topic or category assigned to a reference (Additional Literature, Omics, Primary Literature, Reviews).';
-Comment on column LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
-
 Comment on table GOANNOTATION is 'Gene Ontology annotations.';
 Comment on column GOANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column GOANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column GOANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
 Comment on column GOANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column GOANNOTATION.BUD_ID is 'From BUD.GO_ANNOTATION.GO_ANNOTATION_NO.';
 Comment on column GOANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
@@ -1025,7 +1014,7 @@ Comment on column GOEXTENSION.CREATED_BY is 'Username of the person who entered 
 
 Comment on table GOSLIMANNOTATION is 'A subset of GO annotations that provide a broad overview, often used to summarize results.';
 Comment on column GOSLIMANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column GOSLIMANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column GOSLIMANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
 Comment on column GOSLIMANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column GOSLIMANNOTATION.BUD_ID is 'From BUD.GO_SET.GO_SET_NO.';
 Comment on column GOSLIMANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
@@ -1034,9 +1023,20 @@ Comment on column GOSLIMANNOTATION.GOSLIM_ID is 'FK to GOSLIM.GOSLIM_ID.';
 Comment on column GOSLIMANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GOSLIMANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table LITERATUREANNOTATION is 'Literature topics or categories assigned to references.';
+Comment on column LITERATUREANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column LITERATUREANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column LITERATUREANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column LITERATUREANNOTATION.BUD_ID is 'From BUD.LIT_GUIDE.LIT_GUIDE_NO.';
+Comment on column LITERATUREANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column LITERATUREANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column LITERATUREANNOTATION.TOPIC is 'Topic or category assigned to a reference (Additional Literature, Omics, Primary Literature, Reviews).';
+Comment on column LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table PHENOTYPEANNOTATION is 'Annotations associated with a phenotype.';
 Comment on column PHENOTYPEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column PHENOTYPEANNOTATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column PHENOTYPEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
 Comment on column PHENOTYPEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column PHENOTYPEANNOTATION.BUD_ID is 'From BUD.PHENO_ANNOTATION.PHENO_ANNOTATION_NO.';
 Comment on column PHENOTYPEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';

@@ -15,9 +15,9 @@ BEGIN
         AuditLog.InsertUpdateLog('REFERENCE_UNLINK', 'REFERENCE_ID', :old.reference_unlink_id, :old.reference_id, :new.reference_id, USER);
     END IF;
 
-    IF (:old.locus_id != :new.locus_id) 
+    IF (:old.dbentity_id != :new.dbentity_id) 
     THEN
-        AuditLog.InsertUpdateLog('REFERENCE_UNLINK', 'LOCUS_ID', :old.reference_unlink_id, :old.locus_id, :new.locus_id, USER);
+        AuditLog.InsertUpdateLog('REFERENCE_UNLINK', 'DBENTITY_ID', :old.reference_unlink_id, :old.dbentity_id, :new.dbentity_id, USER);
     END IF;
 
     IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id)) 
@@ -28,7 +28,7 @@ BEGIN
   ELSE
 
     v_row := :old.reference_unlink_id || '[:]' || :old.reference_id || '[:]' || 
-             :old.locus_id || '[:]' || :old.bud_id || '[:]' ||
+             :old.dbentity_id || '[:]' || :old.bud_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('REFERENCE_UNLINK', :old.reference_unlink_id, v_row, USER);

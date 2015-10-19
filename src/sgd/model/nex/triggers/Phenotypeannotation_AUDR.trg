@@ -10,9 +10,9 @@ DECLARE
 BEGIN
   IF UPDATING THEN
 
-    IF (:old.locus_id != :new.locus_id)
+    IF (:old.dbentity_id != :new.dbentity_id)
     THEN
-        AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'LOCUS_ID', :old.annotation_id, :old.locus_id, :new.locus_id, USER);
+        AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'DBENTITY_ID', :old.annotation_id, :old.dbentity_id, :new.dbentity_id, USER);
     END IF;
 
      IF (:old.source_id != :new.source_id)
@@ -67,7 +67,7 @@ BEGIN
 
   ELSE
 
-    v_row := :old.annotation_id || '[:]' || :old.locus_id || '[:]' ||
+    v_row := :old.annotation_id || '[:]' || :old.dbentity_id || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.taxonomy_id || '[:]' || :old.reference_id || '[:]' ||
              :old.phenotype_id || '[:]' || :old.experiment_id || '[:]' ||
