@@ -9,7 +9,7 @@ CLIENT_ADDRESS= 'http://localhost:9200'
 INDEX_NAME = 'searchable_items'
 DOC_TYPE = 'searchable_item'
 RESET_INDEX = False
-es = Elasticsearch(CLIENT_ADDRESS)
+es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
 
 # prep session
 nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
@@ -19,6 +19,8 @@ from src.sgd.model.perf.core import Bioentity as PerfBioentity
 from src.sgd.model.nex.reference import Author
 from src.sgd.model.nex.misc import Strain
 from src.sgd.model.nex.bioconcept import Go
+from src.sgd.model.nex.bioconcept import Phenotype
+from src.sgd.model.nex.reference import Reference
 nex_session = nex_session_maker()
 perf_session = perf_session_maker()
 
@@ -56,7 +58,17 @@ def index_genes():
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
 
 def index_phenotypes():
-    return
+    print 'indexing phenotypes'
+    all_phenotypes = nex_session.query(Phenotype).all()
+    for phenotype in all_phenotypes:
+        obj = {
+            'name': phenotype.display_name,
+            'href': phenotype.link,
+            'description': phenotype.description,
+            'category': 'phenotype',
+            'data': {}
+        }
+        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=phenotype.sgdid)
 
 def index_authors():
     print 'indexing authors'
@@ -98,13 +110,27 @@ def index_go_terms():
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=go.sgdid)
 
+def index_references():
+    print 'indexing references'
+    all_references = nex_session.query(Reference).all()
+    for reference in all_references:
+        obj = {
+            'name': reference.citation,
+            'href': reference.link,
+            'description': reference.abstract,
+            'category': 'reference',
+            'data': {}
+        }
+        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=reference.sgdid)
+
 def main():
-    setup_index()
-    index_genes()
-    index_phenotypes()
-    index_authors()
-    index_strains()
-    index_go_terms()
+    # setup_index()
+    # index_genes()
+    # index_phenotypes()
+    # index_authors()
+    # index_strains()
+    # index_go_terms()
+    index_references()
 
     # experiments
     # pages
