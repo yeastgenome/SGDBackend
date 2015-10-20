@@ -105,7 +105,7 @@ def index_go_terms():
             'name': go.display_name,
             'href': go.link,
             'description': go.description,
-            'category': 'function',
+            'category': go.go_aspect,
             'data': {}
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=go.sgdid)
@@ -129,8 +129,8 @@ def main():
     # index_phenotypes()
     # index_authors()
     # index_strains()
-    # index_go_terms()
-    index_references()
+    index_go_terms()
+    # index_references()
 
     # experiments
     # pages
