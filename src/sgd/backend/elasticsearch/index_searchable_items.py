@@ -5,7 +5,7 @@ from src.sgd.model import nex
 from src.sgd.model import perf
 from elasticsearch import Elasticsearch
 
-CLIENT_ADDRESS= 'http://localhost:9200'
+CLIENT_ADDRESS = 'http://localhost:9200'
 INDEX_NAME = 'searchable_items'
 DOC_TYPE = 'searchable_item'
 RESET_INDEX = False
@@ -105,7 +105,7 @@ def index_go_terms():
             'name': go.display_name,
             'href': go.link,
             'description': go.description,
-            'category': go.go_aspect,
+            'category': go.go_aspect.replace(' ', '_'),
             'data': {}
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=go.sgdid)
