@@ -1,0 +1,64 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "GoSlim",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+	"format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+	"display_name": {
+            "title": "Display Name",
+            "type": "string"
+        },
+	"link": {
+            "title": "Object URL",
+            "type": "string"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+	"go_id": {
+	    "title": "GO ID",
+            "type": "integer"
+	},
+	"slim_name": {
+	    "title": "Slim Name",
+	    "type": "string"
+	},
+	"genome_count": {
+            "title": "Genome Count",
+            "type": "integer"
+        },
+	"description": {
+            "title": "Description",
+            "type": "string"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        }
+    }, 
+    "required": ["source", "go_id", "genome_count", "slim_name"]
+}
