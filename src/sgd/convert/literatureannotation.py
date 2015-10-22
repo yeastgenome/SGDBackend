@@ -41,7 +41,7 @@ def literatureannotation_starter(bud_session_maker):
             continue
         
         yield { 'source': {'display_name': 'SGD'},
-                'locus_id': locus_id,
+                'dbentity_id': locus_id,
                 'reference_id': reference_id,
                 'taxonomy_id': taxonomy_id,
                 'topic': litguide.topic,
@@ -65,6 +65,6 @@ def get_nex_session():
 
 if __name__ == '__main__':
     from src.sgd.convert import config
-    basic_convert(config.BUD_HOST, config.NEX_HOST, literatureannotation_starter, 'literatureannotation', lambda x: (x['locus_id'], x['topic'], x['reference_id']))
+    basic_convert(config.BUD_HOST, config.NEX_HOST, literatureannotation_starter, 'literatureannotation', lambda x: (x['dbentity_id'], x['topic'], x['reference_id']))
 
 

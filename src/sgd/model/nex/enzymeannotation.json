@@ -27,9 +27,9 @@
             "title": "Reference ID",
             "type": "integer"
         },
-	"topic": {
-	    "title": "Topic",
-	    "type": "string"
+	"ec_id": {
+	    "title": "EC ID",
+	    "type": "integer"
 	},
         "date_created": {
             "title": "Date Created",
@@ -48,5 +48,5 @@
             "type": "string"
         }
     },
-    "required": ["source", "dbentity_id", "topic", "reference_id"]
+    "required": ["source", "dbentity_id", "ec_id", "reference_id"]
 }

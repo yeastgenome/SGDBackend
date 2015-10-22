@@ -15,8 +15,8 @@
             "title": "Source",
             "$ref": "source.json"
         },
-	"locus_id": {
-	    "title": "LOCUS ID",
+	"dbentity_id": {
+	    "title": "DBENTITY ID",
             "type": "integer"
 	},
         "taxonomy_id": {
@@ -70,7 +70,99 @@
         "created_by": {
             "title": "Name",
             "type": "string"
+        },
+        "goextensions": {
+            "title": "GO Extension",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+		    "group_id": {
+		        "title": "Group ID",
+                        "type": "integer"
+		    },
+                    "dbxref_id": {
+                        "title": "DBXREF ID",
+                        "type": "string"
+                    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
+                    "ro_id": {
+                        "title": "ROID",
+                        "type": "integer"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["group_id", "dbxref_id", "link", "ro_id"]
+            }
+        },
+	"gosupportingevidences": {
+            "title": "GO Supporting Evidence",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+		    "group_id": {
+		        "title": "Group ID",
+                        "type": "integer"
+		    },
+                    "dbxref_id": {
+                        "title": "DBXREF ID",
+                        "type": "string"
+                    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
+                    "evidence_type": {
+                        "title": "Evidence Type",
+                        "type": "string"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["group_id", "dbxref_id", "link", "evidence_type"]
+            }
         }
-    },
-    "required": ["source", "locus_id", "go_id", "reference_id", "eco_id", "annotation_type"]
+    }, 
+    "required": ["source", "dbentity_id", "go_id", "reference_id", "eco_id", "annotation_type"]
 }

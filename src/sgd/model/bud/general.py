@@ -22,7 +22,7 @@ class Dbxref(Base, EqualityByIDMixin):
     
     #Relationships
     urls = association_proxy('dbxref_urls', 'url')
-
+    
 class Url(Base, EqualityByIDMixin):
     __tablename__ = 'url'
 

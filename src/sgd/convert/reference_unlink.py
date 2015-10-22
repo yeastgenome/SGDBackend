@@ -24,7 +24,7 @@ def reference_unlink_starter(bud_session_maker):
             continue
         
         yield {'reference_id': reference_id,
-               'locus_id': locus_id, 
+               'dbentity_id': locus_id, 
                'bud_id': bud_obj.id,
                'date_created': str(bud_obj.date_created),
                'created_by': bud_obj.created_by}
@@ -43,5 +43,5 @@ def get_nex_session():
 
 if __name__ == '__main__':
     from src.sgd.convert import config
-    basic_convert(config.BUD_HOST, config.NEX_HOST, reference_unlink_starter, 'reference_unlink', lambda x: (x['locus_id'], x['reference_id']))
+    basic_convert(config.BUD_HOST, config.NEX_HOST, reference_unlink_starter, 'reference_unlink', lambda x: (x['dbentity_id'], x['reference_id']))
 

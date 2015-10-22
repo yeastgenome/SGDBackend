@@ -10,8 +10,8 @@
                 "title": "Reference ID",
                 "type": "integer"
             },
-            "locus_id": {
-                "title": "Locus ID",
+            "dbentity_id": {
+                "title": "DBENTITY ID",
                 "type": "integer"
             },
             "bud_id": {
@@ -35,6 +35,6 @@
                 "type": "string"
             }
         },
-        "required": ["reference_id", "locus_id"]
+        "required": ["reference_id", "dbentity_id"]
 
 }

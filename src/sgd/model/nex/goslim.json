@@ -1,11 +1,23 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "LiteratureAnnotation",
+    "title": "GoSlim",
     "type": "object",
     "properties": {
         "id": {
             "title": "ID",
             "type": "integer"
+        },
+	"format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+	"display_name": {
+            "title": "Display Name",
+            "type": "string"
+        },
+	"link": {
+            "title": "Object URL",
+            "type": "string"
         },
         "bud_id": {
             "title": "Bud ID",
@@ -15,22 +27,22 @@
             "title": "Source",
             "$ref": "source.json"
         },
-	"dbentity_id": {
-	    "title": "DBENTITY ID",
+	"go_id": {
+	    "title": "GO ID",
             "type": "integer"
 	},
-        "taxonomy_id": {
-            "title": "Taxonomy ID",
-            "type": "integer"
-        },
-        "reference_id": {
-            "title": "Reference ID",
-            "type": "integer"
-        },
-	"topic": {
-	    "title": "Topic",
+	"slim_name": {
+	    "title": "Slim Name",
 	    "type": "string"
 	},
+	"genome_count": {
+            "title": "Genome Count",
+            "type": "integer"
+        },
+	"description": {
+            "title": "Description",
+            "type": "string"
+        },
         "date_created": {
             "title": "Date Created",
             "type": "string",
@@ -47,6 +59,6 @@
             "title": "Name",
             "type": "string"
         }
-    },
-    "required": ["source", "dbentity_id", "topic", "reference_id"]
+    }, 
+    "required": ["source", "go_id", "genome_count", "slim_name"]
 }

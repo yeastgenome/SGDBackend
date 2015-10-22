@@ -6,7 +6,6 @@ from src.sgd.convert.gpad_config import curator_id, computational_created_by,  \
 
 __author__ = 'sweng66'
 
-# TAXON_ID = 'NCBITaxon:559292'
 TAXON_ID = 4932
 
 qualifier_mapping = { "P": "involved in", "F": "enables", "C": "part of" }
@@ -240,7 +239,7 @@ def goannotation_starter(bud_session_maker):
                 print "The sgdid = ", sgdid, " is not in LOCUSDBENTITY table."
                 continue
             obj_json = { 'source': {'display_name': source},
-                         'locus_id': locus_id,
+                         'dbentity_id': locus_id,
                          'reference_id': reference_id,
                          'taxonomy_id': taxonomy_id,
                          'go_id': go_id,
@@ -251,9 +250,11 @@ def goannotation_starter(bud_session_maker):
                          'date_created': date_created,
                          'created_by': created_by }
             if len(goextension) > 0:
-                obj_json['goextension'] = goextension
+                print "GO_EXTENSION: ", goextension
+                obj_json['goextensions'] = goextension
             if len(gosupportingevidence) > 0:
-                obj_json['gosupportingevidence'] = gosupportingevidence
+                print "GO_SUPPORTING_DEVIDENCE: ", gosupportingevidence
+                obj_json['gosupportingevidences'] = gosupportingevidence
             yield obj_json
 
     f.close()
@@ -306,7 +307,7 @@ def goannotation_starter(bud_session_maker):
             gosupportingevidence = []
 
         obj_json = { 'source': {'display_name': annotation.source},
-                     'locus_id': locus_id,
+                     'dbentity_id': locus_id,
                      'reference_id': reference_id,
                      'taxonomy_id': taxonomy_id,
                      'go_id': go_id,
@@ -318,9 +319,11 @@ def goannotation_starter(bud_session_maker):
                      'date_created': str(bud_obj.date_created),
                      'created_by': bud_obj.created_by }
         if len(goextension) > 0:
-            obj_json['goextension'] = goextension
+            print "GO_EXTENSION_BUD: ", goextension
+            obj_json['goextensions'] = goextension
         if len(gosupportingevidence) > 0:
-            obj_json['gosupportingevidence'] = gosupportingevidence
+            print "GO_SUPPORTING_EVDIENCE_BUD: ", gosupportingevidence
+            obj_json['gosupportingevidences'] = gosupportingevidence
         yield obj_json
         
     bud_session.close()
@@ -443,6 +446,6 @@ def get_nex_session():
 
 if __name__ == '__main__':
     from src.sgd.convert import config
-    basic_convert(config.BUD_HOST, config.NEX_HOST, goannotation_starter, 'goannotation', lambda x: (x['locus_id'], x['annotation_type'], x['reference_id'], x['go_id'], x['eco_id']))
+    basic_convert(config.BUD_HOST, config.NEX_HOST, goannotation_starter, 'goannotation', lambda x: (x['dbentity_id'], x['annotation_type'], x['reference_id'], x['go_id'], x['eco_id']))
 
 
