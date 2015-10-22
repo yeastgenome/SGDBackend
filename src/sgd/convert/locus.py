@@ -176,11 +176,11 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
             continue
         if alias_type == 'DBID Secondary':
             alias_type = 'SGDID Secondary'
-        if alias_type.startswith('UniProt'):
+        if alias_type.startswith('UniProt') or alias_type.startswith('Uniprot') :
             alias_type = 'UniProtKB ID'
         display_name = bud_obj.dbxref.dbxref_id
 
-        if alias_type.startswith('UniProt/Swiss'):
+        if alias_type.startswith('UniProt'):
             found_uniprot[display_name] = 1
 
         link = None
@@ -204,8 +204,8 @@ def load_aliases(bud_locus, bud_session, uniprot_id):
 
     if uniprot_id is not None and uniprot_id not in found_uniprot:
         aliases.append({'display_name': uniprot_id,
-                        'source': {'display_name': 'Uniprot'},
-                        'alias_type': 'Uniprot ID/Swiss-Prot ID'})
+                        'source': {'display_name': 'EBI'},
+                        'alias_type': 'UniProtKB ID'})
 
     return aliases
 
@@ -336,19 +336,23 @@ def locus_starter(bud_session_maker):
 
 def url_placement():
 
-    return {'Mutant Strains': 'LOCUS_PHENOTYPE_MUTANT_STRAINS',
-            'Phenotype Resources': 'LOCUS_PHENOTYPE_PHENOTYPE_RESOURCES',
-            'Interaction Resources': 'LOCUS_INTERACTION',
-            'Expression Resources': 'LOCUS_EXPRESSION',
-            'Regulatory Role Resources': 'LOCUS_REGULATION',
-            'Protein Information Homologs': 'LOCUS_PROTEIN_HOMOLOGS',
-            'Protein databases/Other': 'LOCUS_PROTEIN_PROTEIN_DATABASES',
-            'Localization Resources': 'LOCUS_PROEIN_LOCALIZATION',
-            'Post-translational modifications': 'LOCUS_PROTEIN_MODIFICATIONS',
-            'Analyze Sequence S288C only': 'LOCUS_SEQUENCE_S288C',
-            'Analyze Sequence S288C vs. other species': 'LOCUS_SEQUENCE_OTHER_SPECIES',
-            'Analyze Sequence S288C vs. other strains': 'LOCUS_SEQUENCE_OTHER_STRAINS',
-            'Resources External Links': 'LOCUS_LSP'}
+    return { 'Analyze Sequence S288C only': 'LOCUS_SEQUENCE_S288C',
+             'Analyze Sequence S288C vs. other strains': 'LOCUS_SEQUENCE_OTHER_STRAINS',
+             'Analyze Sequence S288C vs. other species': 'LOCUS_SEQUENCE_OTHER_SPECIES', 
+             'Expression Resources': 'LOCUS_EXPRESSION_RESOURCES',
+             'Homologs': 'LOCUS_PROTEIN_RESOURCES_HOMOLOGS',
+             'Interaction Resources': 'LOCUS_INTERACTION_RESOURCES',
+             'Localization Resources': 'LOCUS_PROTEIN_RESOURCES_LOCALIZATION',
+             'Maps & Displays': 'GENE_SEQ_RESOURCES_DISPLAY_MAPS',
+             'Mutant Strains': 'LOCUS_PHENOTYPE_RESOURCES_MUTANT_STRAINS',
+             'Phenotype Resources': 'LOCUS_PHENOTYPE_RESOURCES_PHENOTYPE_RESOURCES',
+             'Post-translational modifications': 'LOCUS_PROTEIN_RESOURCES_PTM',
+             'Protein databases': 'LOCUS_PROTEIN_RESOURCES_PROTEIN_DATABASES',
+             'Regulation Resources': 'LOCUS_REGULATION_RESOURCES',
+             'Resources External Links': 'LOCUS_LSP_RESOURCES',
+             'Retrieve Sequences': 'CHROMOSOME_RETRIEVE_SEQUENCES',
+             'Sequence Analysis Tools': 'CHROMOSOME_SEQUENCE_ANALYSIS_TOOLS',
+             'Sequence Information Retrieve sequences': 'GENE_SEQ_RESOURCES_SEQUENCE_RETRIEVAL'}
 
 
 def load_go_paragraphs():
