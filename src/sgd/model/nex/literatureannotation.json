@@ -15,8 +15,8 @@
             "title": "Source",
             "$ref": "source.json"
         },
-	"locus_id": {
-	    "title": "LOCUS ID",
+	"dbentity_id": {
+	    "title": "DBENTITY ID",
             "type": "integer"
 	},
         "taxonomy_id": {
@@ -48,5 +48,5 @@
             "type": "string"
         }
     },
-    "required": ["source", "locus_id", "topic", "reference_id"]
+    "required": ["source", "dbentity_id", "topic", "reference_id"]
 }
