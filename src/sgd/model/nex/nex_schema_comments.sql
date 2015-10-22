@@ -346,6 +346,39 @@ Comment on column OBI_RELATION.RO_ID is 'FK to RO.RO_ID.';
 Comment on column OBI_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column OBI_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table PSIMOD is 'Protein modification ontology (PSI-MOD) developed by the Proteomics Standards Initiative (PSI).';
+Comment on column PSIMOD.PSIMOD_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PSIMOD.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column PSIMOD.DISPLAY_NAME is 'Public display name.';
+Comment on column PSIMOD.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column PSIMOD.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PSIMOD.BUD_ID is 'Not from BUD.';
+Comment on column PSIMOD.PSIMODID is 'Protein modification ontology identifier (e.g., MOD:01152).';
+Comment on column PSIMOD.DESCRIPTION is 'Description or comment.';
+Comment on column PSIMOD.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PSIMOD.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table PSIMOD_URL is 'URLs associated with the protein modification ontology.';
+Comment on column PSIMOD_URL.URL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PSIMOD_URL.DISPLAY_NAME is 'Public display name (BioPortal, OLS).';
+Comment on column PSIMOD_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column PSIMOD_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PSIMOD_URL.BUD_ID is 'Not from BUD.';
+Comment on column PSIMOD_URL.PSIMOD_ID is 'FK to PSIMOD.PSIMOD_ID.';
+Comment on column PSIMOD_URL.URL_TYPE is 'Type of URL (BioPortal, OLS).';
+Comment on column PSIMOD_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PSIMOD_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table PSIMOD_RELATION is 'Relationship between two protein modification ontology terms.';
+Comment on column PSIMOD_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PSIMOD_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PSIMOD_RELATION.BUD_ID is 'Not from BUD.';
+Comment on column PSIMOD_RELATION.PARENT_ID is 'FK to PSIMOD.PSIMOD_ID.';
+Comment on column PSIMOD_RELATION.CHILD_ID is 'FK to PSIMOD.PSIMOD_ID.';
+Comment on column PSIMOD_RELATION.RO_ID is 'FK to RO.RO_ID.';
+Comment on column PSIMOD_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PSIMOD_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table SO is 'Sequence features as defined by the Sequence Ontology (SO).';
 Comment on column SO.SO_ID is 'Unique identifier (Oracle sequence).';
 Comment on column SO.FORMAT_NAME is 'Unique name to create download files.';
@@ -651,7 +684,7 @@ Comment on column REFERENCE_AUTHOR.CREATED_BY is 'Username of the person who ent
 Comment on table REFERENCE_UNLINK is 'References that should not be associated with a specific locus, but should remain in the database.';
 Comment on column REFERENCE_UNLINK.REFERENCE_UNLINK_ID is 'Unique identifier (Oracle sequence).';
 Comment on column REFERENCE_UNLINK.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
-Comment on column REFERENCE_UNLINK.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_UNLINK.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
 Comment on column REFERENCE_UNLINK.BUD_ID is 'PK from BUD.REF_UNLINK.REF_UNLINK_NO.';
 Comment on column REFERENCE_UNLINK.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_UNLINK.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -1060,6 +1093,19 @@ Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_NUMBER is 'Numerical value a
 Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_UNIT is 'Unit associated with the phenotype detail number (C, hr, %, mM, etc.).';
 Comment on column PHENOTYPEANNOTATION_DETAIL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PHENOTYPEANNOTATION_DETAIL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table POSTTRANSLATIONALANNOTATION is 'Post-translational protein modification annotations.';
+Comment on column POSTTRANSLATIONALANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column POSTTRANSLATIONALANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column POSTTRANSLATIONALANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column POSTTRANSLATIONALANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column POSTTRANSLATIONALANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column POSTTRANSLATIONALANNOTATION.SITE_INDEX is 'Start coordinate of the PTM.';
+Comment on column POSTTRANSLATIONALANNOTATION.SITE_RESIDUE is 'Residue of the PTM.';
+Comment on column POSTTRANSLATIONALANNOTATION.PSIMOD_ID is	'FK to PSIMOD.PSIMOD_ID.';
+Comment on column POSTTRANSLATIONALANNOTATION.MODIFIER_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column POSTTRANSLATIONALANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column POSTTRANSLATIONALANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table PROTEINDOMAINANNOTATION is 'Protein domains as predicted by InterProScan.';
 Comment on column PROTEINDOMAINANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
