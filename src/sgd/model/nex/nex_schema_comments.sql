@@ -360,12 +360,12 @@ Comment on column PSIMOD.CREATED_BY  is 'Username of the person who entered the 
 
 Comment on table PSIMOD_URL is 'URLs associated with the protein modification ontology.';
 Comment on column PSIMOD_URL.URL_ID is 'Unique identifier (Oracle sequence).';
-Comment on column PSIMOD_URL.DISPLAY_NAME is 'Public display name (BioPortal, OLS).';
+Comment on column PSIMOD_URL.DISPLAY_NAME is 'Public display name (BioPortal, OLS, Ontobee).';
 Comment on column PSIMOD_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column PSIMOD_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column PSIMOD_URL.BUD_ID is 'Not from BUD.';
 Comment on column PSIMOD_URL.PSIMOD_ID is 'FK to PSIMOD.PSIMOD_ID.';
-Comment on column PSIMOD_URL.URL_TYPE is 'Type of URL (BioPortal, OLS).';
+Comment on column PSIMOD_URL.URL_TYPE is 'Type of URL (BioPortal, OLS, Ontobee).';
 Comment on column PSIMOD_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PSIMOD_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
