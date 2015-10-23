@@ -508,6 +508,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('posttranslational_details'),
                     route_name='posttranslational_details')
 
+    config.add_route('get_search_results', '/get_search_results')
+    config.add_view(lambda request: chosen_backend.response_wrapper('get_search_results', request)(getattr(chosen_backend, 'get_search_results')(params=request.GET)),
+                     renderer=chosen_backend.get_renderer('get_search_results'),
+                     route_name='get_search_results')
+
     
 def prepare_backend(backend_type):
     configurator = Configurator()
@@ -516,7 +521,7 @@ def prepare_backend(backend_type):
     chosen_backend = None
     if backend_type == 'nex':
         from nex import SGDBackend
-        chosen_backend = SGDBackend(config.DBTYPE, config.NEX_DBHOST, config.DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.sgdbackend_log_directory)
+        chosen_backend = SGDBackend(config.DBTYPE, config.NEX_DBHOST, config.DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS, config.sgdbackend_log_directory, config.elasticsearch_address)
     elif backend_type == 'perf':
         from perf import PerfBackend
         chosen_backend = PerfBackend(config.DBTYPE, config.PERF_DBHOST, config.DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS, config.perfbackend_log_directory)

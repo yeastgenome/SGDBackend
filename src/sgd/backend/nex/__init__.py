@@ -16,16 +16,18 @@ from src.sgd.model import nex
 import random
 from sqlalchemy.orm import joinedload
 
+from elasticsearch import Elasticsearch
+
 __author__ = 'kpaskov'
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 query_limit = 25000
 
 class SGDBackend(BackendInterface):
-    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
+    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory, esearch_addr=None):
         class Base(object):
             __table_args__ = {'schema': schema, 'extend_existing':True}
-                
+
         nex.Base = declarative_base(cls=Base)
         engine = create_engine("%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname), pool_recycle=3600)
 
@@ -33,6 +35,10 @@ class SGDBackend(BackendInterface):
         nex.Base.metadata.bind = engine
         
         self.log = set_up_logging(log_directory, 'nex')
+
+        if esearch_addr:
+            self.es = Elasticsearch(esearch_addr, timeout=5, retry_on_timeout=True)
+
         
     def get_renderer(self, method_name):
         return 'string'
@@ -768,6 +774,70 @@ class SGDBackend(BackendInterface):
     def all_disambigs(self, chunk_size, offset):
         from src.sgd.model.nex.auxiliary import Disambig
         return [x.to_json() for x in DBSession.query(Disambig).order_by(Disambig.id.desc()).limit(chunk_size).offset(offset).all()]
+
+    def get_search_results(self, params):
+        # format params
+        query = params['q'] if 'q' in params.keys() else ''
+        limit = params['limit'] if 'limit' in params.keys() else 10
+        offset = params['offset'] if 'offset' in params.keys() else 0
+        categories = params['categories'] if 'categories' in params.keys() else ''
+        # formar query obj
+        if query == '':
+            es_query = { 'match_all': {} }
+        else:
+            es_query = {
+                'bool': {
+                    'must': {
+                        'match': { '_all': query }
+                    },
+                    'should': {
+                        'match': { 'category': 'locus' }
+                    }
+                }
+            }
+        # filter by category, if provided
+        if categories != '':
+            cat_query = {
+                'filtered': {
+                    'query': es_query,
+                    'filter': {
+                        'terms': { 'category': categories.split(',') }
+                    }
+                }
+            }
+        else:
+            cat_query = es_query
+
+        # query for results
+        results_search_body = {
+            'query': cat_query,
+        }
+        results_search_body['_source'] = ['name', 'href', 'description', 'category']
+        # run search
+        search_results = self.es.search(index='searchable_items', body=results_search_body, size=limit, from_=offset)
+        # format results
+        formatted_results = map(lambda x: x.get('_source'), search_results['hits']['hits'])        
+        # query for aggs on categories WITHOUT filtering by category
+        agg_query_body = {
+            'query': es_query,
+            'aggs': {
+                'categories': {
+                    'terms': { 'field': 'category' }
+                }
+            }
+        }
+        agg_response = self.es.search(index='searchable_items', body=agg_query_body)
+        # format agg
+        formatted_agg = []
+        for cat in agg_response['aggregations']['categories']['buckets']:
+            formatted_agg.append({ 'name': cat['key'], 'total': cat['doc_count'] })
+        response_obj = {
+            'results': formatted_results,
+            'total': search_results['hits']['total'],
+            'aggregations': formatted_agg
+        }
+        return json.dumps(response_obj)
+
       
 #Useful methods
 def create_simple_table(objs, f, **kwargs):
