@@ -1093,7 +1093,7 @@ Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_NUMBER is 'Numerical value a
 Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_UNIT is 'Unit associated with the phenotype detail number (C, hr, %, mM, etc.).';
 Comment on column PHENOTYPEANNOTATION_DETAIL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PHENOTYPEANNOTATION_DETAIL.CREATED_BY is 'Username of the person who entered the record into the database.';
-x
+
 Comment on table POSTTRANSLATIONANNOTATION is 'Post-translational protein modification annotations.';
 Comment on column POSTTRANSLATIONANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column POSTTRANSLATIONANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
