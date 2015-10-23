@@ -1093,19 +1093,19 @@ Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_NUMBER is 'Numerical value a
 Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_UNIT is 'Unit associated with the phenotype detail number (C, hr, %, mM, etc.).';
 Comment on column PHENOTYPEANNOTATION_DETAIL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PHENOTYPEANNOTATION_DETAIL.CREATED_BY is 'Username of the person who entered the record into the database.';
-
-Comment on table POSTTRANSLATIONALANNOTATION is 'Post-translational protein modification annotations.';
-Comment on column POSTTRANSLATIONALANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column POSTTRANSLATIONALANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
-Comment on column POSTTRANSLATIONALANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column POSTTRANSLATIONALANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
-Comment on column POSTTRANSLATIONALANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
-Comment on column POSTTRANSLATIONALANNOTATION.SITE_INDEX is 'Start coordinate of the PTM.';
-Comment on column POSTTRANSLATIONALANNOTATION.SITE_RESIDUE is 'Residue of the PTM.';
-Comment on column POSTTRANSLATIONALANNOTATION.PSIMOD_ID is	'FK to PSIMOD.PSIMOD_ID.';
-Comment on column POSTTRANSLATIONALANNOTATION.MODIFIER_ID is 'FK to DBENTITY.DBENTITY_ID.';
-Comment on column POSTTRANSLATIONALANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column POSTTRANSLATIONALANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+x
+Comment on table POSTTRANSLATIONANNOTATION is 'Post-translational protein modification annotations.';
+Comment on column POSTTRANSLATIONANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column POSTTRANSLATIONANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column POSTTRANSLATIONANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column POSTTRANSLATIONANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column POSTTRANSLATIONANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column POSTTRANSLATIONANNOTATION.SITE_INDEX is 'Start coordinate of the PTM.';
+Comment on column POSTTRANSLATIONANNOTATION.SITE_RESIDUE is 'Residue of the PTM.';
+Comment on column POSTTRANSLATIONANNOTATION.PSIMOD_ID is	'FK to PSIMOD.PSIMOD_ID.';
+Comment on column POSTTRANSLATIONANNOTATION.MODIFIER_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column POSTTRANSLATIONANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column POSTTRANSLATIONANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table PROTEINDOMAINANNOTATION is 'Protein domains as predicted by InterProScan.';
 Comment on column PROTEINDOMAINANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';

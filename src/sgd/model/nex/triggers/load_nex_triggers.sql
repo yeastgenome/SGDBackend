@@ -195,5 +195,5 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_AUDR.trg
 
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationalainannotation_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationalannotation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationannotation_AUDR.trg

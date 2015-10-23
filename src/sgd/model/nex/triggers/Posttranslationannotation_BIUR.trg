@@ -1,8 +1,8 @@
-CREATE OR REPLACE TRIGGER Posttranslationalannotation_BIUR
+CREATE OR REPLACE TRIGGER Posttranslationannotation_BIUR
 --
--- Before insert or update trigger for the posttranslationalannotation table
+-- Before insert or update trigger for the posttranslationannotation table
 --
-  BEFORE INSERT OR UPDATE ON posttranslationalannotation
+  BEFORE INSERT OR UPDATE ON posttranslationannotation
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Posttranslationalannotation_BIUR;
+END Posttranslationannotation_BIUR;
 /
 SHOW ERROR
