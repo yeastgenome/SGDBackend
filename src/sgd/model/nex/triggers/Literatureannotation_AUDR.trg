@@ -25,7 +25,7 @@ BEGIN
         AuditLog.InsertUpdateLog('LITERATUREANNOTATION', 'BUD_ID', :old.annotation_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
-    IF  (((:old.taxonomy_id IS NULL) AND (:new.taxonomy_id IS NOT NULL)) OR ((:old.taxonomy_id IS NOT NULL) AND (:new.taxonomy_id IS NULL)) OR (:old.taxonomy_id != :new.taxonomy_id))
+    IF  (:old.taxonomy_id != :new.taxonomy_id)
     THEN
         AuditLog.InsertUpdateLog('LITERATUREANNOTATION', 'TAXONOMY_ID', :old.annotation_id, :old.taxonomy_id, :new.taxonomy_id, USER);
     END IF;

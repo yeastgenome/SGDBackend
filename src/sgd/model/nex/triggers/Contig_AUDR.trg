@@ -20,7 +20,7 @@ BEGIN
         AuditLog.InsertUpdateLog('CONTIG', 'DISPLAY_NAME', :old.contig_id, :old.display_name, :new.display_name, USER);
     END IF;
 
-    IF (((:old.obj_url IS NULL) AND (:new.obj_url IS NOT NULL)) OR ((:old.obj_url IS NOT NULL) AND (:new.obj_url IS NULL)) OR (:old.obj_url != :new.obj_url))
+    IF (:old.obj_url != :new.obj_url)
     THEN
         AuditLog.InsertUpdateLog('CONTIG', 'OBJ_URL', :old.contig_id, :old.obj_url, :new.obj_url, USER);
     END IF;

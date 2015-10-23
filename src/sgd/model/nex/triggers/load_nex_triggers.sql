@@ -70,6 +70,14 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObiUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObiRelation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObiRelation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Psimod_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Psimod_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PsimodUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PsimodUrl_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PsimodRelation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PsimodRelation_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/So_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/So_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/SoAlias_BIUR.trg
@@ -87,8 +95,8 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_BIUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AUDR.trg  # only for initial data load
---@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AIUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AUDR.trg
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AIUDR.trg   # only for initial data load
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusAlias_BIUR.trg
@@ -123,12 +131,10 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceUnlink_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Filedbentity_BUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Filedbentity_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/FileRelation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/FileRelation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Colleague_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Colleague_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueUrl_BIUR.trg
@@ -186,6 +192,8 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationDetail_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationDetail_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationalainannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationalannotation_AUDR.trg
