@@ -513,6 +513,11 @@ def prep_views(chosen_backend, config):
                      renderer=chosen_backend.get_renderer('get_search_results'),
                      route_name='get_search_results')
 
+    config.add_route('search_sequence_objects', '/search_sequence_objects')
+    config.add_view(lambda request: chosen_backend.response_wrapper('search_sequence_objects', request)(getattr(chosen_backend, 'search_sequence_objects')(params=request.GET)),
+                    renderer=chosen_backend.get_renderer('search_sequence_objects'),
+                    route_name='search_sequence_objects')
+
     
 def prepare_backend(backend_type):
     configurator = Configurator()

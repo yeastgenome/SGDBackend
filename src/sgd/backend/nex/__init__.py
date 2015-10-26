@@ -838,6 +838,57 @@ class SGDBackend(BackendInterface):
         }
         return json.dumps(response_obj)
 
+    def search_sequence_objects(self, params):
+        query = params['query'] if 'query' in params.keys() else ''
+        query = query.lower()
+        offset = int(params['offset']) if 'offset' in params.keys() else 0
+        limit = int(params['limit']) if 'limit' in params.keys() else 1000
+
+        query_type = 'wildcard' if '*' in query else 'match_phrase'
+        if query == '':
+            search_body = {
+                'query': { 'match_all': {} },
+                'sort': { 'absolute_genetic_start': { 'order': 'asc' }}
+            }
+        elif ',' in query:
+            original_query_list = query.split(',')
+            query_list = []
+            for item in original_query_list:
+                query_list.append(item.strip())
+            search_body = {
+                'query': {
+                    'filtered': {
+                        'filter': {
+                            'terms': {
+                                '_all': query_list
+                            }
+                        }
+                    }
+                }
+            }
+        else:
+            search_body = {
+                'query': {
+                    query_type: {
+                        '_all': query
+                    }
+                }
+            }
+
+        search_body['_source'] = ['sgdid', 'name', 'href', 'absolute_genetic_start', 'format_name', 'dna_scores', 'protein_scores', 'snp_seqs']
+        res = self.es.search(index='sequence_objects', body=search_body, size=limit, from_=offset)
+        simple_hits = []
+        for hit in res['hits']['hits']:
+            simple_hits.append(hit['_source'])
+        formatted_response = {
+            'loci': simple_hits,
+            'total': res['hits']['total'],
+            'offset': offset
+        }
+        return json.dumps(formatted_response)
+
+
+
       
 #Useful methods
 def create_simple_table(objs, f, **kwargs):
