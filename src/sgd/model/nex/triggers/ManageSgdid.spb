@@ -50,7 +50,7 @@ BEGIN
     ELSE
 
        RAISE_APPLICATION_ERROR
-          (-20020, 'SGDID "' || p_Sgdid || '" does NOT exists in the SGDID table.');
+          (-20020, 'SGDID "' || p_sgdid || '" does NOT exists in the SGDID table.');
        RETURN (0);
 
     END IF;
