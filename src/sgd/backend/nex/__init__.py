@@ -16,7 +16,7 @@ from src.sgd.model import nex
 import random
 from sqlalchemy.orm import joinedload
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, TransportError
 
 __author__ = 'kpaskov'
 
@@ -49,6 +49,10 @@ class SGDBackend(BackendInterface):
         self.log.info(request_id + ' ' + method_name + ('' if 'identifier' not in request.matchdict else ' ' + request.matchdict['identifier']))
         def f(data):
             self.log.info(request_id + ' end')
+
+            if isinstance(data, Response):
+                return data
+
             if callback is not None:
                 return Response(body="%s(%s)" % (callback, data), content_type='application/json')
             else:
@@ -887,7 +891,14 @@ class SGDBackend(BackendInterface):
         }
         return json.dumps(formatted_response)
 
-
+    # get individual feature
+    def get_sequence_object(self, locus_repr):
+        id = locus_repr.upper()
+        try:
+            res = self.es.get(index='sequence_objects', id=id)['_source']
+            return json.dumps(res)
+        except TransportError:
+            return Response(status_code=404)
 
       
 #Useful methods
