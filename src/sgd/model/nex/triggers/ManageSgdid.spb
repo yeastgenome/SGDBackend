@@ -22,9 +22,9 @@ BEGIN
     v_objurl := CONCAT('/sgdid/', p_sgdid);
 
     INSERT INTO sgdid 
-        (sgdid_id, display_name, obj_url, source_id, subclass, sgdid_status, created_by)
+        (sgdid_id, format_name, display_name, obj_url, source_id, subclass, sgdid_status, created_by)
     VALUES
-        (v_sgdid_id, p_sgdid, v_objurl, v_source_id, p_sgdidClass, p_sgdidStatus, p_user);
+        (v_sgdid_id, p_sgdid, p_sgdid, v_objurl, v_source_id, p_sgdidClass, p_sgdidStatus, p_user);
 
 END InsertSgdid;
 
