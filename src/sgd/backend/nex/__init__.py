@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 import uuid
+import re
 from math import ceil
 
 from pyramid.response import Response
@@ -899,6 +900,73 @@ class SGDBackend(BackendInterface):
             return json.dumps(res)
         except TransportError:
             return Response(status_code=404)
+
+    def autocomplete_results(self, params):
+        if params.get("term") is None:
+            return Response(status_code=422)
+
+        query = params['term']
+        search_body = {
+            'query': {
+                'bool': {
+                    'must': {
+                        'match': {
+                            'term': {
+                                'query': query,
+                                'analyzer': 'standard'
+                            }
+                        }
+                    },
+                    'must_not': { 'match': { 'type': 'paper' }},
+                    'should': [
+                        {
+                            'match': {
+                                'type': {
+                                    'query': 'gene_name',
+                                    'boost': 4
+                                }
+                            }
+                        },
+                        { 'match': { 'type': 'GO' }},
+                        { 'match': { 'type': 'phenotyoe' }},
+                        { 'match': { 'type': 'strain' }},
+                        { 'match': { 'type': 'paper' }},
+                        { 'match': { 'type': 'description' }},
+                    ]
+                }
+            }
+        }
+        res = self.es.search(index='sgdlite', body=search_body)
+        simplified_results = []
+        for hit in res['hits']['hits']:
+            # add matching words from description, not whole description
+            if hit['_source']['type'] == 'description':
+                for word in hit['_source']['term'].split(" "):
+                    if word.lower().find(query.lower()) > -1:
+                        item = re.sub('[;,.]', '', word)
+                        obj = {
+                            'name': word,
+                            'type': 'suggestion'
+                        }
+                        simplified_results.append(obj)
+                        break
+            else:
+                print hit['_source']
+                obj = {
+                    'name': hit['_source']['term'],
+                    'href': hit['_source']['link_url'],
+                    'type': hit['_source']['type']
+                }
+                simplified_results.append(obj)
+
+        # filter duplicates
+        unique = []
+        for hit in simplified_results:
+            if hit not in unique:
+                unique.append(hit)
+
+        return json.dumps(unique)
+
 
       
 #Useful methods

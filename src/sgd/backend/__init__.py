@@ -523,6 +523,11 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('get_sequence_object'),
                     route_name='get_sequence_object')
 
+    config.add_route('autocomplete_results', '/autocomplete_results')
+    config.add_view(lambda request: chosen_backend.response_wrapper('autocomplete_results', request)(getattr(chosen_backend, 'autocomplete_results')(params=request.GET)),
+                    renderer=chosen_backend.get_renderer('autocomplete_results'),
+                    route_name='autocomplete_results')
+
     
 def prepare_backend(backend_type):
     configurator = Configurator()
