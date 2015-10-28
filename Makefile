@@ -6,7 +6,7 @@ BOOTSTRAP = bootstrap.py
 build: bootstrap
 	./bin/buildout
 
-buid-deploy: bootstrap
+build-deploy: bootstrap
 	./bin/buildout -c $(BUILDOUT_DEPLOY)
 
 bootstrap:
