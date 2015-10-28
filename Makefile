@@ -3,6 +3,12 @@ SGD_PERF = perfbackend_development.ini
 BUILDOUT_DEPLOY = buildout_deploy.cfg
 BOOTSTRAP = bootstrap.py
 
+dev-deploy:
+	. dev_deploy_variables.sh && cap dev deploy
+
+prod-deploy:
+	. prod_deploy_variables.sh && cap prod deploy
+
 build: bootstrap
 	./bin/buildout
 
