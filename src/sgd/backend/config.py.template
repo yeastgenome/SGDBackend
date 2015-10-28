@@ -1,0 +1,17 @@
+DBTYPE = $(DBTYPE)
+DBNAME = $(DBNAME)
+
+NEX_DBHOST = $(NEX_DBHOST)
+NEX_SCHEMA = $(NEX_SCHEMA)
+NEX_DBUSER = $(NEX_DBUSER)
+NEX_DBPASS = $(NEX_DBPASS)
+
+PERF_DBHOST = $(PERF_DBHOST)
+PERF_SCHEMA = $(PERF_SCHEMA)
+PERF_DBUSER = $(PERF_DBUSER)
+PERF_DBPASS = $(PERF_DBPASS)
+
+sgdbackend_log_directory = None
+perfbackend_log_directory = None
+
+elasticsearch_address = $(ELASTICSEARCH_ADDRESS)
