@@ -1,6 +1,7 @@
 *.class
 *.pyc
 *.pyo
+*~
 bin
 develop
 develop-eggs
@@ -17,5 +18,5 @@ src/sgd/convert/data/*
 src/sgd/convert/alignments/*
 src/sgd/convert/strain_sequences/*
 .idea/*
-
-
+dev_deploy_variables.sh
+prod_deploy_variables.sh
