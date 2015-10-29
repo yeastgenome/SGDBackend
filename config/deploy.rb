@@ -1,16 +1,19 @@
 lock '3.4.0'
 
 set :application, 'SGDBackend'
+
 set :repo_url, 'git://github.com/yeastgenome/SGDBackend.git'
-
+set :branch, ENV['BRANCH'] || $1 if `git branch` =~ /\* (\S+)\s/m
 set :deploy_to, '/data/www/' + fetch(:application) + '_app'
+set :tmp_dir, "/home/#{fetch(:user)}/tmp"
 
-set :format, :pretty
-set :log_level, :debug
+set :user, ask('Username', nil)
 
 set :default_stage, "dev"
 
 set :keep_releases, 5
+set :format, :pretty
+set :log_level, :debug
 
 namespace :deploy do
   desc 'Build application'
@@ -41,4 +44,16 @@ namespace :deploy do
       execute "echo \"#{config_file_content}\" >> #{current_path}/src/sgd/backend/config.py && rm #{current_path}/src/sgd/backend/config.py.template"
     end
   end
+
+  desc 'Recreates symbolic link if broken'
+  task :verify_symlink do
+    on roles(:app), in: :sequence do
+      execute "cd #{current_path}/../../ && if [ -h SGDBackend ] && [ $(readlink SGDBackend_app/current) != $(readlink SGDBackend) ]; then echo \"Restoring symlink...\" && rm SGDBackend && ln -s SGDBackend_app/current SGDBackend; fi"
+    end
+  end
+
+  after :finishing, :write_config
+  after :finishing, :build
+  after :finishing, :verify_symlink
+  after :finishing, :restart
 end
