@@ -10,6 +10,7 @@ parts
 .idea
 .installed.cfg
 .mr.developer.cfg
+.cache
 SGDBackend.egg-info
 src/sgd/backend/config.py
 src/sgd/convert/config.py
