@@ -107,7 +107,7 @@ def test_domain_structure(model, identifier='PTHR11937'):
     assert 'link' in response  ## no longer external_link
     assert 'interpro_id' in response
 
-def test_contig_structure(model, identifier='S288C_Chromosome_12'):
+def test_contig_structure(model, identifier='230682'):
     response = json.loads(model.contig(contig_identifier=identifier))
     assert response is not None
     check_obj(response)
