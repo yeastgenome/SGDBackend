@@ -1,6 +1,7 @@
 *.class
 *.pyc
 *.pyo
+*~
 bin
 develop
 develop-eggs
