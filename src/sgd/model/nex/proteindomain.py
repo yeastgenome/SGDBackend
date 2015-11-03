@@ -3,10 +3,10 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
-from src.sgd.model.curate import Base, ToJsonMixin, UpdateWithJsonMixin
-from src.sgd.model.curate.source import Source
+from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin
+from src.sgd.model.nex.source import Source
 
-__author__ = 'kelley'
+__author__ = 'kelley, sweng66'
 
 class Proteindomain(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     __tablename__ = 'proteindomain'
@@ -25,8 +25,8 @@ class Proteindomain(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by',
-                     'interpro_id']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 
+                     'bud_id', 'date_created', 'created_by', 'interpro_id']
     __eq_fks__ = [('source', Source, False),
                   ('urls', 'proteindomain.ProteindomainUrl', True)]
     __id_values__ = ['id', 'display_name', 'interpro_id', 'format_name']

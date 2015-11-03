@@ -47,5 +47,7 @@ class Dbentity(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
 
     @classmethod
     def __create_link__(cls, obj_json):
-        return '/' + cls.__name__.lower() + '/' + obj_json['sgdid']
-
+        if obj_json.get('sgdid'):
+            return '/' + cls.__name__.lower() + '/' + obj_json['sgdid']
+        else:
+            return ''

@@ -19,10 +19,6 @@
             "title": "Link",
             "type": "string"
         },
-        "description": {
-            "title": "Description",
-            "type": "string"
-        },
         "bud_id": {
             "title": "Bud ID",
             "type": "integer"
@@ -47,8 +43,52 @@
             "title": "Name",
             "type": "string"
         },
-        "documents": {
-            "title": "Documents",
+	"sgdid": {
+	    "title": "SGDID",
+            "type": "string"
+	},
+	"dbentity_status": {
+            "title": "DBentity Status",
+            "type": "string"
+        },
+	"strain_type": {
+            "title": "Strain Type",
+            "type": "string"
+        },
+	"genotype": {
+            "title": "GenoType",
+            "type": "string"
+        },
+	"genbank_id": {
+            "title": "GenBank ID",
+            "type": "string"
+        },
+	"assembly_size": {
+            "title": "Assembly Size",
+            "type": "number"
+        },
+	"fold_coverage": {
+            "title": "Fold Converage",
+            "type": "number"
+        },
+	"scafford_number": {
+            "title": "Scafford Number",
+            "type": "number"
+        },
+	"longest_scafford": {
+            "title": "Longest Scafford",
+            "type": "number"
+        },
+	"scafford_nfifty": {
+            "title": "Scafford nFifty",
+            "type": "number"
+        },
+	"feature_count": {
+            "title": "Feature Count",
+            "type": "number"
+        },
+        "summaries": {
+            "title": "Summaries",
             "type": "array",
             "items": {
                 "type": "object",
@@ -65,8 +105,8 @@
                         "title": "HTML",
                         "type": "string"
                     },
-                    "document_type": {
-                        "title": "Document Type",
+                    "summary_type": {
+                        "title": "Summary Type",
                         "type": "string"
                     },
                     "source": {
@@ -103,7 +143,7 @@
                         "type": "string"
                     }
                 },
-                "required": ["text", "document_type", "source"]
+                "required": ["text", "summary_type", "source"]
             }
         },
         "urls": {
