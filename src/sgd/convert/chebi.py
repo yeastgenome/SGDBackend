@@ -8,33 +8,12 @@ key_switch = {'id': 'chebiid', 'name': 'display_name', 'def': 'description'}
 
 def chebi_starter(bud_session_maker):
     
-    from src.sgd.model.bud.cv import CVTerm
     from src.sgd.model.bud.phenotype import ExperimentProperty
 
     bud_session = bud_session_maker()
 
     chebi_to_date_created = {}
-    # for bud_obj in bud_session.query(CVTerm).filter(CVTerm.cv_no == 3).all():
-    #    if bud_obj.dbxref_id is not None:
-    #        chebi_to_date_created[bud_obj.dbxref_id] = (str(bud_obj.date_created), bud_obj.created_by)
-    #    else:
-    #        yield remove_nones({'display_name': bud_obj.name,
-    #                            'source': {'display_name': 'SGD'},
-    #                            'bud_id': bud_obj.id,
-    #                            'description': bud_obj.definition,
-    #                            'date_created': str(bud_obj.date_created),
-    #                            'created_by': bud_obj.created_by})
-
-    # for bud_obj in bud_session.query(ExperimentProperty).filter(or_(ExperimentProperty.type=='Chemical_pending', ExperimentProperty.type == 'chebi_ontology')).all():
-    
-    for bud_obj in bud_session.query(ExperimentProperty).filter(ExperimentProperty.type=='Chemical_pending'):
-        yield {'display_name': bud_obj.value,
-               'bud_id': bud_obj.id,
-               'chebiid': "NTR:" + str(bud_obj.id),
-               'source': {'display_name': 'SGD'},
-               'date_created': str(bud_obj.date_created),
-               'created_by': bud_obj.created_by}
-    
+        
     parent_to_children = dict()
     source = 'EBI'
     is_obsolete_id = dict()
@@ -46,8 +25,14 @@ def chebi_starter(bud_session_maker):
                      is_obsolete_id,
                      source, 
                      source)
-    
+
+    loaded = []
+
     for term in terms:
+
+        name = term['display_name']
+        loaded.append(name.lower())
+
         chebiid = term['chebiid']
         if chebiid in is_obsolete_id:
             continue
@@ -66,6 +51,17 @@ def chebi_starter(bud_session_maker):
                               'source': {'display_name': source},
                               'url_type': 'ChEBI'})
         yield term
+
+    for bud_obj in bud_session.query(ExperimentProperty).filter(ExperimentProperty.type=='Chemical_pending'):
+        name = bud.obj.value.lower()
+        if name in loaded:
+            continue
+        yield {'display_name': bud_obj.value,
+               'bud_id': bud_obj.id,
+               'chebiid': "NTR:" + str(bud_obj.id),
+               'source': {'display_name': 'SGD'},
+               'date_created': str(bud_obj.date_created),
+               'created_by': bud_obj.created_by}
 
     bud_session.close()
 
