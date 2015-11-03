@@ -2,6 +2,10 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.declarative.api import declarative_base
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy import not_
+from src.sgd.convert.gpad_config import curator_id, computational_created_by,  \
+    go_db_code_mapping, go_ref_mapping, current_go_qualifier, email_receiver, \
+    email_subject
+
 
 from src.sgd.convert.config import log_directory
 
@@ -51,6 +55,250 @@ def is_number(str_value):
     except:
         return False
 
+def read_gpad_file(filename, bud_session, nex_session, uniprot_to_date_assigned, uniprot_to_sgdid_list, get_extension=None, get_support=None):
+
+    from src.sgd.model.nex.reference import Reference
+    from src.sgd.model.nex.locus import Locus
+    from src.sgd.model.nex.go import Go
+    from src.sgd.model.nex.eco import EcoAlias
+
+    from src.sgd.model.bud.go import Go as Go_bud 
+    
+    from src.sgd.model import nex
+    from src.sgd.convert import config
+
+    goid_to_go_id = dict([(x.goid, x.id) for x in nex_session.query(Go).all()])
+    evidence_to_eco_id = dict([(x.display_name, x.eco_id) for x in nex_session.query(EcoAlias).all()])
+
+    pmid_to_reference_id = {}
+    sgdid_to_reference_id = {}
+    for x in nex_session.query(Reference).all():
+        pmid_to_reference_id[x.pmid] = x.id
+        sgdid_to_reference_id[x.sgdid] = x.id
+
+    sgdid_to_locus_id = dict([(x.sgdid, x.id) for x in nex_session.query(Locus).all()])
+
+    f = open(filename)
+    
+    read_line = {}
+    bad_ref = []
+
+    data = []
+
+    for line in f:
+
+        if line.startswith('!'):
+            continue
+
+        field = line.strip().split('\t')
+        if field[9] != 'SGD' and not field[11].startswith('go_evidence=IEA'):
+            continue
+
+        ## get rid of duplicate lines...                                                                    
+        if line in read_line:
+            continue
+        read_line[line] = 1
+
+        if get_extension == 1 and field[10] == '':
+            continue
+        if get_support == 1 and field[6] == '':
+            continue
+
+        ## uniprot ID & SGDIDs                                                                              
+        uniprotID = field[1]
+        sgdid_list = uniprot_to_sgdid_list.get(uniprotID)
+        if sgdid_list is None:
+            print "The UniProt ID = ", uniprotID, " is not mapped to any SGDID."
+            continue
+
+        ## go_qualifier                                                                                     
+        go_qualifier = field[2]
+        if go_qualifier == 'part_of':
+            go_qualifier = 'part of'
+        if go_qualifier == 'involved_in':
+            go_qualifier = 'involved in'
+        if 'NOT' in go_qualifier:
+            go_qualifier = 'NOT'
+
+        ## go_id                                                                                            
+        goid = field[3]
+        go_id = goid_to_go_id.get(goid)
+        if go_id is None:
+            print "The GOID = ", goid, " is not in GO table."
+            continue
+
+        ## eco_id                                                                                           
+        # go_evidence=IMP|id=2113463881|curator_name=Kimberly Van Auken                                     
+        annot_prop_dict = annot_prop_to_dict(field[11])
+        go_evidence = annot_prop_dict.get('go_evidence')
+        eco_id = evidence_to_eco_id.get(go_evidence)
+        if eco_id is None:
+            print "The go_evidence = ", annotation.go_evidence, " is not in the ECO table."
+            continue
+
+        ## source                                                                                           
+        source = field[9]
+
+        ## created_by                                                                                       
+        if source != 'SGD' and go_evidence == 'IEA':
+            created_by = computational_created_by
+        else:
+            created_by = curator_id.get(annot_prop_dict.get('curator_name'))
+
+        ## reference_id                                                                                     
+        reference_id = None
+        if field[4].startswith('PMID:'):
+            pmid = field[4][5:]    # PMID:1234567; need to be 1234567                                       
+            reference_id = pmid_to_reference_id.get(int(pmid))
+        else:
+            ref_sgdid = go_ref_mapping.get(field[4])
+            if ref_sgdid is None:
+                if field[4] not in bad_ref:
+                    bad_ref.append(field[4])
+                print "UNKNOWN REF: ", field[4], ", line=", line
+                continue
+            reference_id = sgdid_to_reference_id.get(ref_sgdid)
+        if reference_id is None:
+            print "The PMID = " + str(pmid) + " is not in the REFERENCEDBENTITY table."
+            continue
+
+        # assigned_group = field[9]           
+        # eg, SGD for manual cuartion;
+        # Interpro, UniPathway, UniProtKB, GOC, RefGenome for computational annotation
+        # taxon_id = field[7]                  
+        
+        date_created = str(field[8][0:4]) + '-' + str(field[8][4:6]) + '-' + str(field[8][6:])
+        if source == 'SGD':
+            date_assigned = uniprot_to_date_assigned.get(uniprotID)
+            annotation_type = 'manually curated'
+        else:
+            date_assigned = date_created
+            annotation_type = 'computational'
+        
+        sgdid_list = uniprot_to_sgdid_list.get(uniprotID)
+        if sgdid_list is None:
+            print "UniProt ID ", uniprotID, " is not in GPI file."
+            continue
+
+        for sgdid in sgdid_list:
+            if sgdid == '':
+                continue
+            locus_id = sgdid_to_locus_id.get(sgdid)
+            if locus_id is None:
+                print "The sgdid = ", sgdid, " is not in LOCUSDBENTITY table."
+                continue
+    
+            entry = { 'source': source,
+                      'dbentity_id': locus_id,
+                      'reference_id': reference_id,
+                      'go_id': go_id,
+                      'eco_id': eco_id,
+                      'annotation_type': annotation_type,
+                      'go_qualifier': go_qualifier,
+                      'date_assigned': date_assigned,
+                      'date_created': date_created,
+                      'created_by': created_by } 
+        
+            if get_extension == 1:
+                entry['goextension'] = field[10]
+            if get_support == 1:
+                entry['gosupport'] = field[6]
+
+            data.append(entry)
+       
+    return data
+
+def annot_prop_to_dict(annot_prop):
+
+    annot_prop_dict = {}
+    for annot_prop in annot_prop.split('|'):
+        annot = annot_prop.split('=')
+        annot_prop_dict[annot[0]] = annot[1]
+    return annot_prop_dict
+        
+def read_gpi_file(filename):
+
+    f = open(filename)
+
+    uniprot_to_date_assigned = {}
+    uniprot_to_sgdid_list = {}
+    for line  in f:
+
+        if line.startswith('!'):
+            continue
+
+        field = line.strip().split('\t')
+
+        if len(field) < 10:
+            continue
+
+        # same uniprot ID for multiple RNA entries                                                  
+        
+        uniprotID = field[1]
+        sgdid = field[8].replace('SGD:', '')
+        sgdid_list = [] if uniprot_to_sgdid_list.get(uniprotID) is None else uniprot_to_sgdid_list.get(uniprotID)
+        sgdid_list.append(sgdid)
+        uniprot_to_sgdid_list[uniprotID] = sgdid_list
+
+        for pair in field[9].split('|'):
+            if not pair.startswith('go_annotation_complete'):
+                continue
+            property = pair.split('=')
+            date = property[1]
+            uniprot_to_date_assigned[uniprotID] = str(date[0:4]) + '-' + str(date[4:6]) + '-' + str(date[6:])
+
+    f.close()
+
+    return [uniprot_to_date_assigned, uniprot_to_sgdid_list]
+
+def get_go_extension_link(dbxref_id):
+
+    if dbxref_id.startswith('SGD:S'):
+        sgdid = dbxref_id.replace('SGD:', '')
+        return "/locus/" + sgdid + "/overview"
+    if dbxref_id.startswith('GO:'):
+        return "http://amigo.geneontology.org/amigo/term/" + dbxref_id
+    if dbxref_id.startswith('UniProtKB:'):
+        uniprotID = dbxref_id.replace('UniProtKB:', '')
+        return "http://www.uniprot.org/uniprot/" + uniprotID
+    if dbxref_id.startswith('CHEBI:'):
+        return "http://www.ebi.ac.uk/chebi/searchId.do?chebiId=" + dbxref_id
+    if dbxref_id.startswith('SO:'):
+        return "http://www.sequenceontology.org/browser/current_svn/term/" + dbxref_id
+    if dbxref_id.startswith('RNAcentral:'):
+        id = dbxref_id.replace('RNAcentral:', '')
+        return "http://rnacentral.org/rna/" + id
+    if dbxref_id.startswith('UniProtKB-KW:'):
+        id = dbxref_id.replace('UniProtKB-KW:', '')
+        return "http://www.uniprot.org/keywords/" + id
+    if dbxref_id.startswith('UniProtKB-SubCell:'):
+        id = dbxref_id.replace('UniProtKB-SubCell:', '')
+        return "http://www.uniprot.org/locations/" + id
+    if dbxref_id.startswith('InterPro:'):
+        id = dbxref_id.replace('InterPro:', '')
+        return "http://www.ebi.ac.uk/interpro/entry/" + id
+    if dbxref_id.startswith('EC:'):
+        EC = dbxref_id.replace('EC:', ' ')
+        return "http://enzyme.expasy.org/EC/" + EC
+    if dbxref_id.startswith('UniPathway:'):
+        id = dbxref_id.replace('UniPathway:', '')
+        return "http://www.grenoble.prabi.fr/obiwarehouse/unipathway/upa?upid=" + id
+    if dbxref_id.startswith('HAMAP:'):
+        id = dbxref_id.replace('HAMAP:', '')
+        return "http://hamap.expasy.org/unirule/" + id
+    if dbxref_id.startswith('protein_id:'):
+        id = dbxref_id.replace('protein_id:', '')
+        return "http://www.ncbi.nlm.nih.gov/protein/" + id
+    if dbxref_id.startswith('EMBL:'):
+        id = dbxref_id.replace('EMBL:', '')
+        return "http://www.ebi.ac.uk/Tools/dbfetch/emblfetch?style=html&id=" + id
+    if dbxref_id.startswith('MGI:'):
+        id = dbxref_id.replace('MGI:', '')
+        return "http://uswest.ensembl.org/Drosophila_melanogaster/Gene/Summary?g=" + id
+    if dbxref_id.startswith('PANTHER:'):
+        id = dbxref_id.replace('PANTHER:', '')
+        return "http://pantree.org/node/annotationNode.jsp?id=" + id
+    return "Unknown"
 
 def children_from_obo(filename, ancestor):
     f = open(filename, 'r')
