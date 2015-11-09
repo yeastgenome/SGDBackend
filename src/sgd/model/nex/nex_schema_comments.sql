@@ -957,7 +957,7 @@ Comment on column CONTIG.SEQ_VERSION is 'From BUD.SEQ.SEQ_VERSION.';
 Comment on column CONTIG.COORD_VERSION is 'From BUD.FEAT_LOCATION.COORD_VERSION.';
 Comment on column CONTIG.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
 Comment on column CONTIG.FILE_HEADER is 'Header line of the download file.';
-Comment on column CONTIG.DOWNLOAD_FILENAME is 'User interface download filename.'
+Comment on column CONTIG.DOWNLOAD_FILENAME is 'User interface download filename.';
 Comment on column CONTIG.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
 Comment on column CONTIG.RESIDUES is 'DNA sequence of the contig, chromosome or plasmid.';
 Comment on column CONTIG.DATE_CREATED is 'Date the record was entered into the database.';
