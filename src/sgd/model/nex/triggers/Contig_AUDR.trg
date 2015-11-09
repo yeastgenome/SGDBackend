@@ -30,19 +30,19 @@ BEGIN
         AuditLog.InsertUpdateLog('CONTIG', 'SOURCE_ID', :old.contig_id, :old.source_id, :new.source_id, USER);
     END IF;
 
-    IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id))
-    THEN
-        AuditLog.InsertUpdateLog('CONTIG', 'BUD_ID', :old.contig_id, :old.bud_id, :new.bud_id, USER);
-    END IF;
-
      IF (:old.taxonomy_id != :new.taxonomy_id)
     THEN
         AuditLog.InsertUpdateLog('CONTIG', 'TAXONOMY_ID', :old.contig_id, :old.taxonomy_id, :new.taxonomy_id, USER);
     END IF;
 
-     IF (:old.is_chromosome != :new.is_chromosome)
+    IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id))
     THEN
-        AuditLog.InsertUpdateLog('CONTIG', 'IS_CHROMOSOME', :old.contig_id, :old.is_chromosome, :new.is_chromosome, USER);
+        AuditLog.InsertUpdateLog('CONTIG', 'BUD_ID', :old.contig_id, :old.bud_id, :new.bud_id, USER);
+    END IF;
+
+     IF (:old.so_id != :new.so_id)
+    THEN
+        AuditLog.InsertUpdateLog('CONTIG', 'SO_ID', :old.contig_id, :old.so_id, :new.so_id, USER);
     END IF;
 
     IF (((:old.centromere_start IS NULL) AND (:new.centromere_start IS NOT NULL)) OR ((:old.centromere_start IS NOT NULL) AND (:new.centromere_start IS NULL)) OR (:old.centromere_start != :new.centromere_start))
@@ -55,7 +55,7 @@ BEGIN
         AuditLog.InsertUpdateLog('CONTIG', 'CENTROMERE_END', :old.contig_id, :old.centromere_end, :new.centromere_end, USER);
     END IF;
 
-    IF (((:old.genbank_accession IS NULL) AND (:new.genbank_accession IS NOT NULL)) OR ((:old.genbank_accession IS NOT NULL) AND (:new.genbank_accession IS NULL)) OR (:old.genbank_accession != :new.genbank_accession))
+    IF (:old.genbank_accession != :new.genbank_accession)
     THEN
         AuditLog.InsertUpdateLog('CONTIG', 'GENBANK_ACCESSION', :old.contig_id, :old.genbank_accession, :new.genbank_accession, USER);
     END IF;
@@ -110,9 +110,14 @@ BEGIN
         AuditLog.InsertUpdateLog('CONTIG', 'GENOMERELEASE_ID', :old.contig_id, :old.genomerelease_id, :new.genomerelease_id, USER);
     END IF;
 
-    IF (((:old.header IS NULL) AND (:new.header IS NOT NULL)) OR ((:old.header IS NOT NULL) AND (:new.header IS NULL)) OR (:old.header != :new.header))
+    IF (:old.file_header != :new.file_header)
     THEN
-        AuditLog.InsertUpdateLog('CONTIG', 'HEADER', :old.contig_id, :old.header, :new.header, USER);
+        AuditLog.InsertUpdateLog('CONTIG', 'FILE_HEADER', :old.contig_id, :old.file_header, :new.file_header, USER);
+    END IF;
+
+    IF (:old.download_filename != :new.download_filename)
+    THEN
+        AuditLog.InsertUpdateLog('CONTIG', 'DOWNLOAD_FILENAME', :old.contig_id, :old.download_filename, :new.download_filename, USER);
     END IF;
 
     IF (((:old.file_id IS NULL) AND (:new.file_id IS NOT NULL)) OR ((:old.file_id IS NOT NULL) AND (:new.file_id IS NULL)) OR (:old.file_id != :new.file_id))
@@ -130,14 +135,15 @@ BEGIN
     v_row := :old.contig_id || '[:]' || :old.format_name || '[:]' ||
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.taxonomy_id || '[:]' || :old.is_chromosome || '[:]' ||
+             :old.taxonomy_id || '[:]' || :old.so_id || '[:]' ||
              :old.centromere_start || '[:]' || :old.centromere_end || '[:]' ||
              :old.genbank_accession || '[:]' || :old.gi_number || '[:]' ||
              :old.refseq_id || '[:]' || :old.reference_chromosome_id || '[:]' ||
              :old.reference_start || '[:]' || :old.reference_end || '[:]' ||
              :old.reference_percent_identity || '[:]' || :old.reference_alignment_length || '[:]' ||
              :old.seq_version || '[:]' || :old.coord_version || '[:]' ||
-             :old.genomerelease_id || '[:]' || :old.header || '[:]' ||
+             :old.genomerelease_id || '[:]' || :old.file_header || '[:]' ||
+             :old.download_filename || '[:]' ||
              :old.file_id || '[:]' || :old.residues || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 

@@ -487,7 +487,6 @@ Comment on column DBENTITY.CREATED_BY is 'Username of the person who entered the
 Comment on table LOCUSDBENTITY is 'Features located on a sequence, that are associate with a locus. Inherits from DBENTITY.';
 Comment on column LOCUSDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
 Comment on column LOCUSDBENTITY.SYSTEMATIC_NAME is 'Unique name for the dbentity. Subfeatures have a number appended after the systematic name.';
-Comment on column LOCUSDBENTITY.SO_ID is 'FK to SO.SO_ID.';
 Comment on column LOCUSDBENTITY.GENE_NAME is 'Registered gene name consisting of 3 letters followed by an integer (e.g., ADE12).';
 Comment on column LOCUSDBENTITY.QUALIFIER is 'Categorization of the gene (Verified, Uncharacterized, Dubious).';
 Comment on column LOCUSDBENTITY.GENETIC_POSITION is 'Genetic position of the locus.';
@@ -943,7 +942,7 @@ Comment on column CONTIG.OBJ_URL is 'URL of the object (relative for local links
 Comment on column CONTIG.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column CONTIG.BUD_ID is 'PK from BUD.SEQ.SEQ_NO.';
 Comment on column CONTIG.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
-Comment on column CONTIG.IS_CHROMOSOME is 'Whether the contig is a fully assembled chromosome.';
+Comment on column CONTIG.SO_ID is 'FK to SO.SO_ID (contig, chromosome, plasmid).';
 Comment on column CONTIG.CENTROMERE_START is 'Start coordinate of the centromere.';
 Comment on column CONTIG.CENTROMERE_END is 'End coordinate of the centromere.';
 Comment on column CONTIG.GENBANK_ACCESSION is 'GenBank Accession id including version number (e.g., BK006939.2).';
@@ -957,9 +956,10 @@ Comment on column CONTIG.REFERENCE_ALIGNMENT_LENGTH is 'Length of the sequence a
 Comment on column CONTIG.SEQ_VERSION is 'From BUD.SEQ.SEQ_VERSION.';
 Comment on column CONTIG.COORD_VERSION is 'From BUD.FEAT_LOCATION.COORD_VERSION.';
 Comment on column CONTIG.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
-Comment on column CONTIG.HEADER is 'Header line of the download file.';
+Comment on column CONTIG.FILE_HEADER is 'Header line of the download file.';
+Comment on column CONTIG.DOWNLOAD_FILENAME is 'User interface download filename.'
 Comment on column CONTIG.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
-Comment on column CONTIG.RESIDUES is 'Full DNA sequence of the chromosome or contig.';
+Comment on column CONTIG.RESIDUES is 'DNA sequence of the contig, chromosome or plasmid.';
 Comment on column CONTIG.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CONTIG.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
