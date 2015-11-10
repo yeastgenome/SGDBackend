@@ -9,15 +9,15 @@ DECLARE
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.dnasequenceannotation_id IS NULL) THEN
-        SELECT object_seq.NEXTVAL INTO :new.dnasequenceannotation_id FROM DUAL;
+    IF (:new.annotation_id IS NULL) THEN
+        SELECT object_seq.NEXTVAL INTO :new.annotation_id FROM DUAL;
     END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
 
-    IF (:new.dnasequenceannotation_id != :old.dnasequenceannotation_id) THEN    
+    IF (:new.annotation_id != :old.annotation_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
