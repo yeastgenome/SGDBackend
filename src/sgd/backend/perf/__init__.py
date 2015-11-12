@@ -259,7 +259,7 @@ class PerfBackend(BackendInterface):
         return get_bioentity_graph(bioent_id, 'INTERACTION')
 
     #Literature
-    def literature_details(self, locus_identifier=None, reference_identifier=None, are_ids=False):
+    def literature_details(self, locus_identifier=None, reference_identifier=None, are_ids=False, topic=None):
         if locus_identifier is not None:
             if are_ids:
                 bioent_id = locus_identifier
