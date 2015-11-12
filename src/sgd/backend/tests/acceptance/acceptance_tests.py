@@ -37,14 +37,11 @@ testing_routes = [
     {"name": "phenotype_obs_details_all", "route": "/observable/{identifier}/locus_details_all", "param": "43854"},
     {"name": "phenotype_chem_details", "route": "/chemical/{identifier}/phenotype_details", "param": "50011"},
     {"name": "phenotype_ref_details", "route": "/reference/{identifier}/phenotype_details", "param": "94544"},
-    {"name": "phenotype_resources", "route": "/locus/{identifier}/phenotype_resources", "param": "233"},
     {"name": "phenotype_graph", "route": "/locus/{identifier}/phenotype_graph", "param": "233"},
     {"name": "phenotype_ontology_graph", "route": "/observable/{identifier}/ontology_graph", "param": "43854"},
-    {"name": "locus_graph", "route": "/locus/{identifier}/locus_graph", "param": "233"},
     {"name": "interaction_bioent_details", "route": "/locus/{identifier}/interaction_details", "param": "233"},
     {"name": "interaction_ref_details", "route": "/reference/{identifier}/interaction_details", "param": "94544"},
     {"name": "interaction_graph", "route": "/locus/{identifier}/interaction_graph", "param": "233"},
-    {"name": "interaction_resources", "route": "/locus/{identifier}/interaction_resources", "param": "233"},
     {"name": "regulation_bioent_details", "route": "/locus/{identifier}/regulation_details", "param": "233"},
     {"name": "regulation_ref_details", "route": "/reference/{identifier}/regulation_details", "param": "94544"},
     {"name": "regulation_target_enrichment", "route": "/locus/{identifier}/regulation_target_enrichment", "param": "233"},
@@ -58,7 +55,6 @@ testing_routes = [
     {"name": "domain", "route": "/domain/{identifier}/overview", "param": "10198"},
     {"name": "domain_enrichment", "route": "/domain/{identifier}/enrichment", "param": "10198"},
     {"name": "protein_domain_graph", "route": "/locus/{identifier}/protein_domain_graph", "param": "233"},
-    {"name": "protein_resources", "route": "/locus/{identifier}/protein_resources", "param": "233"},
     {"name": "binding_site_bioent_details", "route": "/locus/{identifier}/binding_site_details", "param": "233"},
     {"name": "ecnumber", "route": "/ecnumber/{identifier}/overview", "param": "1623808"},
     {"name": "ecnumber_bioent_details", "route": "/locus/{identifier}/ecnumber_details", "param": "233"},
@@ -66,7 +62,6 @@ testing_routes = [
     {"name": "sequence_bioent_details", "route": "/locus/{identifier}/sequence_details", "param": "233"},
     {"name": "sequence_contig_details", "route": "/contig/{identifier}/sequence_details", "param": "230728"},
     {"name": "sequence_neighbor_details", "route": "/locus/{identifier}/neighbor_sequence_details", "param": "233"},
-    {"name": "alignment_details", "route": "/locus/{identifier}/alignment_details", "param": "233"},
     {"name": "protein_phosphorylation_details", "route": "/locus/{identifier}/protein_phosphorylation_details", "param": "233"},
     {"name": "protein_experiment_details", "route": "/locus/{identifier}/protein_experiment_details", "param": "233"},
     {"name": "history_details", "route": "/locus/{identifier}/history_details", "param": "233"},
@@ -83,7 +78,7 @@ testing_routes = [
 
 RESPONSES_FILE = "prod_responses.pickle"
 PROD_HOST="http://yeastgenome.org/webservice"
-QA_HOST="http://sgd-qa.stanford.edu/webservice"
+QA_HOST="http://localhost:6543"
 
 class TestEnpoints(unittest.TestCase):
 
