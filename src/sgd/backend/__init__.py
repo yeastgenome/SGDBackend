@@ -21,11 +21,6 @@ codon_table = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L',
                'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
                'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R',
                'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G'}
-def translate(codon):
-    if codon in codon_table:
-        return codon_table[codon]
-    else:
-        return None
 
 
 def check_snp_type(index, intron_indices, ref_seq, aligned_seq):
@@ -63,8 +58,8 @@ def check_snp_type(index, intron_indices, ref_seq, aligned_seq):
             codon = []
 
     codon = index_to_frame[index_coding]
-    ref_amino_acid = translate(''.join([ref_seq_coding[i] for i in codon]))
-    aligned_amino_acid = translate(''.join([aligned_seq_coding[i] for i in codon]))
+    ref_amino_acid = codon_table.get(''.join([ref_seq_coding[i] for i in codon]), None)
+    aligned_amino_acid = codon_table.get(''.join([aligned_seq_coding[i] for i in codon]), None)
 
     if ref_amino_acid is None or aligned_amino_acid is None:
         return 'Untranslatable SNP'
@@ -285,11 +280,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('phenotype_details'),
                     route_name='phenotype_ref_details')
 
-    config.add_route('phenotype_resources', '/locus/{identifier}/phenotype_resources')
-    config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_resources', request)(getattr(chosen_backend, 'phenotype_resources')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('phenotype_resources'),
-                    route_name='phenotype_resources')
-
     config.add_route('phenotype_graph', '/locus/{identifier}/phenotype_graph')
     config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_graph', request)(getattr(chosen_backend, 'phenotype_graph')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('phenotype_graph'),
@@ -299,11 +289,6 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('phenotype_ontology_graph', request)(getattr(chosen_backend, 'phenotype_ontology_graph')(request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('phenotype_ontology_graph'),
                     route_name='phenotype_ontology_graph')
-
-    config.add_route('locus_graph', '/locus/{identifier}/locus_graph')
-    config.add_view(lambda request: chosen_backend.response_wrapper('locus_graph', request)(getattr(chosen_backend, 'locus_graph')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('locus_graph'),
-                    route_name='locus_graph')
 
     #Interaction views
     config.add_route('interaction_bioent_details', '/locus/{identifier}/interaction_details')
@@ -320,11 +305,6 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('interaction_graph', request)(getattr(chosen_backend, 'interaction_graph')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('interaction_graph'),
                     route_name='interaction_graph')
-    
-    config.add_route('interaction_resources', '/locus/{identifier}/interaction_resources')
-    config.add_view(lambda request: chosen_backend.response_wrapper('interaction_resources', request)(getattr(chosen_backend, 'interaction_resources')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('interaction_resources'),
-                    route_name='interaction_resources')
     
     #Regulation views
     config.add_route('regulation_bioent_details', '/locus/{identifier}/regulation_details')
@@ -394,11 +374,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('protein_domain_graph'),
                     route_name='protein_domain_graph')
 
-    config.add_route('protein_resources', '/locus/{identifier}/protein_resources')
-    config.add_view(lambda request: chosen_backend.response_wrapper('protein_resources', request)(getattr(chosen_backend, 'protein_resources')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('protein_resources'),
-                    route_name='protein_resources')
-
     config.add_route('binding_site_bioent_details', '/locus/{identifier}/binding_site_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('binding_site_details', request)(getattr(chosen_backend, 'binding_site_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('binding_site_details'),
@@ -435,11 +410,6 @@ def prep_views(chosen_backend, config):
     config.add_view(lambda request: chosen_backend.response_wrapper('neighbor_sequence_details', request)(getattr(chosen_backend, 'neighbor_sequence_details')(locus_identifier=request.matchdict['identifier'])),
                     renderer=chosen_backend.get_renderer('neighbor_sequence_details'),
                     route_name='sequence_neighbor_details')
-
-    config.add_route('alignment_details', '/locus/{identifier}/alignment_details')
-    config.add_view(lambda request: chosen_backend.response_wrapper('alignment_details', request)(getattr(chosen_backend, 'alignment_details')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('alignment_details'),
-                    route_name='alignment_details')
 
     config.add_route('protein_phosphorylation_details', '/locus/{identifier}/protein_phosphorylation_details')
     config.add_view(lambda request: chosen_backend.response_wrapper('protein_phosphorylation_details', request)(getattr(chosen_backend, 'protein_phosphorylation_details')(locus_identifier=request.matchdict['identifier'])),
