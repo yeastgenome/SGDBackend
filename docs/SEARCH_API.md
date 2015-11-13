@@ -30,7 +30,12 @@ the response object includes the following fields
     * `href`, string, may be null for entried with category "download"
     * `description`, string, may be null
     * `download_metadata`, object, only present for downloads, and omitted otherwise, contains the following fields
-* `aggregations` array of objects
+        * `pubmed_ids`, array of strings
+        * `geo_ids`, array of strings
+        * `download_url`, string, required, 
+* `aggregations` array of objects, each with the following fields
+    * `total`, required integers
+    * `name`, required string
 
 example response
 ```json
