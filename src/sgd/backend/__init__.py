@@ -421,11 +421,6 @@ def prep_views(chosen_backend, config):
                     renderer=chosen_backend.get_renderer('protein_experiment_details'),
                     route_name='protein_experiment_details')
 
-    config.add_route('history_details', '/locus/{identifier}/history_details')
-    config.add_view(lambda request: chosen_backend.response_wrapper('history_details', request)(getattr(chosen_backend, 'history_details')(locus_identifier=request.matchdict['identifier'])),
-                    renderer=chosen_backend.get_renderer('history_details'),
-                    route_name='history_details')
-
     config.add_route('alignment_bioent', '/alignments/{identifier}')
     config.add_view(lambda request: chosen_backend.response_wrapper('alignment_bioent', request)(getattr(chosen_backend, 'alignment_bioent')(locus_identifier=request.matchdict['identifier'], strain_ids=None if 'strain_id' not in request.GET else request.GET.getall('strain_id'))),
                     renderer=chosen_backend.get_renderer('alignment_bioent'),
