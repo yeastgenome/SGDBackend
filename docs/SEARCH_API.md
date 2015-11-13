@@ -2,8 +2,6 @@
 
 This is a specification of desired behavior for the HTTP search API.
 
-======
-
 ## search results
 
 #### request
@@ -252,4 +250,74 @@ example response
 }
 ```
 
+## autocomplete results
 
+#### request
+
+url: GET `/autocomplete_results`
+
+parameters
+
+* `q`, string, the query from the user, optional and defaults to empty string.
+
+#### response
+
+the response object includes the following fields
+
+* `results` array of objects, each with the following fields
+    * `name`, string, required
+    * `category`, string, optional
+    * `href`, string, optional and present for results where users can go directly
+
+example response
+
+```json
+{  
+   "results":[  
+      {  
+         "category":"suggestion",
+         "name":"ACTin"
+      },
+      {  
+         "href":"/go/GO:0019211/overview",
+         "category":"GO",
+         "name":"phosphatase activator activity"
+      },
+      {  
+         "href":"/go/GO:0044692/overview",
+         "category":"GO",
+         "name":"exoribonuclease activator activity"
+      },
+      {  
+         "href":"/go/GO:0005096/overview",
+         "category":"GO",
+         "name":"GTPase activator activity"
+      },
+      {  
+         "href":"/go/GO:0008047/overview",
+         "category":"GO",
+         "name":"enzyme activator activity"
+      },
+      {  
+         "href":"/go/GO:0016504/overview",
+         "category":"GO",
+         "name":"peptidase activator activity"
+      },
+      {  
+         "href":"/go/GO:0001671/overview",
+         "category":"GO",
+         "name":"ATPase activator activity"
+      },
+      {  
+         "href":"/go/GO:0019781/overview",
+         "category":"GO",
+         "name":"NEDD8 activating enzyme activity"
+      },
+      {  
+         "href":"/go/GO:0035800/overview",
+         "category":"GO",
+         "name":"deubiquitinase activator activity"
+      }
+   ]
+}
+```
