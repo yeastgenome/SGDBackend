@@ -25,11 +25,11 @@ the response object includes the following fields
 
 * `total` integer, total results
 * `results` array of objects, each with following fields
-⋅⋅* `name`, string, required
-⋅⋅* `category`, string, required
-⋅⋅* `href`, string, may be null for entried with category "download"
-⋅⋅* `description`, string, may be null
-⋅⋅* `download_metadata`, object, only present for downloads, and omitted otherwise, contains the following fields
+`name`, string, required
+    * `category`, string, required
+    * `href`, string, may be null for entried with category "download"
+    * `description`, string, may be null
+    * `download_metadata`, object, only present for downloads, and omitted otherwise, contains the following fields
 * `aggregations` array of objects
 
 example response
