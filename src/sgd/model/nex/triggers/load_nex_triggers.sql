@@ -180,9 +180,12 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasequenceannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasubsequence_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasubsequence_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Geninteractionannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Geninteractionannotation_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Gosupportingevidence_BIUR.trg
@@ -197,6 +200,10 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationDetail_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationDetail_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Physinteractionannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Physinteractionannotation_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationannotation_BIUR.trg
