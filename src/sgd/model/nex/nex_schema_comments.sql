@@ -1054,6 +1054,22 @@ Comment on column DNASUBSEQUENCE.RESIDUES is 'DNA sequence.';
 Comment on column DNASUBSEQUENCE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DNASUBSEQUENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table GENINTERACTIONANNOTATION is 'Genetic interaction annotations from BioGRID.';
+Comment on column GENINTERACTIONANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column GENINTERACTIONANNOTATION.DBENTITY1_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column GENINTERACTIONANNOTATION.DBENTITY2_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column GENINTERACTIONANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column GENINTERACTIONANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column GENINTERACTIONANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column GENINTERACTIONANNOTATION.BUD_ID is 'From BUD.INTERACTION.INTERACTION_NO.';
+Comment on column GENINTERACTIONANNOTATION.PHENOTYPE_ID is 'FK to PHENOTYPE.PHENOTYPE_ID.';
+Comment on column GENINTERACTIONANNOTATION.BIOGRID_EXPERIMENTAL_SYSTEM is 'Experimental system as defined by BIOGRID.';
+Comment on column GENINTERACTIONANNOTATION.ANNOTATION_TYPE is 'Type of annotation (high-throughput, manually curated).';
+Comment on column GENINTERACTIONANNOTATION.BAIT_HIT is 'Direction of the genetic interaction (Bait-Hit, Hit-Bait).';
+Comment on column GENINTERACTIONANNOTATION.DESCRIPTION is 'Extended description or note.';
+Comment on column GENINTERACTIONANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column GENINTERACTIONANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table GOANNOTATION is 'Gene Ontology annotations.';
 Comment on column GOANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column GOANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
@@ -1137,6 +1153,22 @@ Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_NUMBER is 'Numerical value a
 Comment on column PHENOTYPEANNOTATION_DETAIL.DETAIL_UNIT is 'Unit associated with the phenotype detail number (C, hr, %, mM, etc.).';
 Comment on column PHENOTYPEANNOTATION_DETAIL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PHENOTYPEANNOTATION_DETAIL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table PHYSINTERACTIONANNOTATION is 'Physical interaction annotations from BioGRID.';
+Comment on column PHYSINTERACTIONANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PHYSINTERACTIONANNOTATION.DBENTITY1_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column PHYSINTERACTIONANNOTATION.DBENTITY2_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column PHYSINTERACTIONANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PHYSINTERACTIONANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column PHYSINTERACTIONANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column PHYSINTERACTIONANNOTATION.BUD_ID is 'From BUD.INTERACTION.INTERACTION_NO.';
+Comment on column PHYSINTERACTIONANNOTATION.PSIMOD_ID is 'FK to PSIMOD.PSIMOD_ID.';
+Comment on column PHYSINTERACTIONANNOTATION.BIOGRID_EXPERIMENTAL_SYSTEM is 'Experimental system as defined by BIOGRID.';
+Comment on column PHYSINTERACTIONANNOTATION.ANNOTATION_TYPE is 'Type of annotation (high-throughput, manually curated).';
+Comment on column PHYSINTERACTIONANNOTATION.BAIT_HIT is 'Direction of the genetic interaction (Bait-Hit, Hit-Bait).';
+Comment on column PHYSINTERACTIONANNOTATION.DESCRIPTION is 'Extended description or note.';
+Comment on column PHYSINTERACTIONANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PHYSINTERACTIONANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table POSTTRANSLATIONANNOTATION is 'Post-translational protein modification annotations.';
 Comment on column POSTTRANSLATIONANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
