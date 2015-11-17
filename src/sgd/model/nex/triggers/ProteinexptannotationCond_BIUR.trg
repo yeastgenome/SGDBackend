@@ -1,0 +1,56 @@
+CREATE OR REPLACE TRIGGER ProteinexptannotationCond_BIUR
+--
+-- Before insert or update trigger for the proteinexptannotation_cond table
+--
+  BEFORE INSERT OR UPDATE ON proteinexptannotation_cond
+  FOR EACH ROW
+DECLARE
+  v_IsValidUser         dbuser.username%TYPE;
+  v_DoesChebiExist      chebi.chebi_id%TYPE;
+BEGIN
+  IF INSERTING THEN
+
+    IF (:new.condition_id IS NULL) THEN
+        SELECT condition_seq.NEXTVAL INTO :new.condition_id FROM DUAL;
+    END IF; 
+
+    IF ((:new.condition_type = 'Chemical') AND (:new.condition_type = 'CHEBI')) THEN
+        v_DoesChebiExist := CheckChebi(:new.condition_value, 'CHEBI');
+    END IF;
+
+    IF ((:new.condition_type = 'Chemical') AND (:new.condition_type = 'Chemical pending')) THEN 
+        v_DoesChebiExist := CheckChebi(:new.condition_value, 'NTR');
+    END IF;
+
+    v_IsValidUser := CheckUser(:new.created_by);
+
+  ELSE
+
+    IF (:new.condition_id != :old.condition_id) THEN    
+        RAISE_APPLICATION_ERROR
+            (-20000, 'Primary key cannot be updated');
+    END IF;
+
+    IF ((:new.condition_type = 'Chemical') AND (:new.condition_type = 'CHEBI')) THEN
+        v_DoesChebiExist := CheckChebi(:new.condition_value, 'CHEBI');
+    END IF;
+
+    IF ((:new.condition_type = 'Chemical') AND (:new.condition_type = 'Chemical pending')) THEN 
+        v_DoesChebiExist := CheckChebi(:new.condition_value, 'NTR');
+    END IF;
+
+    IF (:new.date_created != :old.date_created) THEN    
+        RAISE_APPLICATION_ERROR
+            (-20001, 'Audit columns cannot be updated.');
+    END IF;
+
+    IF (:new.created_by != :old.created_by) THEN    
+        RAISE_APPLICATION_ERROR
+            (-20001, 'Audit columns cannot be updated.');
+    END IF;
+
+  END IF;
+
+END ProteinexptannotationCond_BIUR;
+/
+SHOW ERROR

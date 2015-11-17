@@ -200,7 +200,12 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationCond_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Physinteractionannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Physinteractionannotation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationannotation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationannotation_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationannotation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteinexptannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteinexptannotation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinexptannotationCond_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinexptannotationCond_AUDR.trg
