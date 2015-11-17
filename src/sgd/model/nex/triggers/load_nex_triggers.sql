@@ -18,6 +18,7 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Source_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Sgdid_BIUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Sgdid_AUR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Ro_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Ro_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/RoUrl_BIUR.trg
@@ -70,14 +71,12 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObiUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObiRelation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ObiRelation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Psimod_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Psimod_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PsimodUrl_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PsimodUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PsimodRelation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PsimodRelation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/So_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/So_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/SoAlias_BIUR.trg
@@ -94,6 +93,7 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_BIUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AUDR.trg
 --@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AIUDR.trg   # only for initial data load
@@ -182,10 +182,8 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasubsequence_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Geninteractionannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Geninteractionannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Gosupportingevidence_BIUR.trg
@@ -198,12 +196,10 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationDetail_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationDetail_AUDR.trg
-
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationCond_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationCond_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Physinteractionannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Physinteractionannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationannotation_BIUR.trg
