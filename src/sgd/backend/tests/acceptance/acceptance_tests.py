@@ -80,6 +80,7 @@ RESPONSES_FILE = "responses.pickle"
 class TestEndpoints(unittest.TestCase):
     def executeRequests(self, test, setup):
         setup["requests"] = {}
+        
         for attempt in range(5):
             try:
                 if test.get("payload"):
