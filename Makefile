@@ -2,6 +2,7 @@ SGD_NEX = sgdbackend_development.ini
 SGD_PERF = perfbackend_development.ini
 BUILDOUT_DEPLOY = buildout_deploy.cfg
 BOOTSTRAP = bootstrap.py
+ACCEPTANCE_PATH = src/sgd/backend/tests/acceptance/acceptance_tests.py
 
 dev-deploy:
 	. dev_deploy_variables.sh && cap dev deploy
@@ -30,3 +31,8 @@ test-sgd:
 test-perf:
 	bin/test src/sgd/backend/tests --model perf
 
+acceptance-test-single:
+	. dev_deploy_variables.sh && python $(ACCEPTANCE_PATH) TestEndpoints.testSingleEndpoint
+
+acceptance-test-compare:
+	. dev_deploy_variables.sh && python $(ACCEPTANCE_PATH) TestEndpoints.testCompares
