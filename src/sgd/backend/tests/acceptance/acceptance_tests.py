@@ -4,7 +4,7 @@ import unittest
 import requests
 import re
 import pickle
-import os.path
+import os
 import json
 
 testing_routes = [
@@ -37,14 +37,11 @@ testing_routes = [
     {"name": "phenotype_obs_details_all", "route": "/observable/{identifier}/locus_details_all", "param": "43854"},
     {"name": "phenotype_chem_details", "route": "/chemical/{identifier}/phenotype_details", "param": "50011"},
     {"name": "phenotype_ref_details", "route": "/reference/{identifier}/phenotype_details", "param": "94544"},
-    {"name": "phenotype_resources", "route": "/locus/{identifier}/phenotype_resources", "param": "233"},
     {"name": "phenotype_graph", "route": "/locus/{identifier}/phenotype_graph", "param": "233"},
     {"name": "phenotype_ontology_graph", "route": "/observable/{identifier}/ontology_graph", "param": "43854"},
-    {"name": "locus_graph", "route": "/locus/{identifier}/locus_graph", "param": "233"},
     {"name": "interaction_bioent_details", "route": "/locus/{identifier}/interaction_details", "param": "233"},
     {"name": "interaction_ref_details", "route": "/reference/{identifier}/interaction_details", "param": "94544"},
     {"name": "interaction_graph", "route": "/locus/{identifier}/interaction_graph", "param": "233"},
-    {"name": "interaction_resources", "route": "/locus/{identifier}/interaction_resources", "param": "233"},
     {"name": "regulation_bioent_details", "route": "/locus/{identifier}/regulation_details", "param": "233"},
     {"name": "regulation_ref_details", "route": "/reference/{identifier}/regulation_details", "param": "94544"},
     {"name": "regulation_target_enrichment", "route": "/locus/{identifier}/regulation_target_enrichment", "param": "233"},
@@ -58,7 +55,6 @@ testing_routes = [
     {"name": "domain", "route": "/domain/{identifier}/overview", "param": "10198"},
     {"name": "domain_enrichment", "route": "/domain/{identifier}/enrichment", "param": "10198"},
     {"name": "protein_domain_graph", "route": "/locus/{identifier}/protein_domain_graph", "param": "233"},
-    {"name": "protein_resources", "route": "/locus/{identifier}/protein_resources", "param": "233"},
     {"name": "binding_site_bioent_details", "route": "/locus/{identifier}/binding_site_details", "param": "233"},
     {"name": "ecnumber", "route": "/ecnumber/{identifier}/overview", "param": "1623808"},
     {"name": "ecnumber_bioent_details", "route": "/locus/{identifier}/ecnumber_details", "param": "233"},
@@ -66,10 +62,8 @@ testing_routes = [
     {"name": "sequence_bioent_details", "route": "/locus/{identifier}/sequence_details", "param": "233"},
     {"name": "sequence_contig_details", "route": "/contig/{identifier}/sequence_details", "param": "230728"},
     {"name": "sequence_neighbor_details", "route": "/locus/{identifier}/neighbor_sequence_details", "param": "233"},
-    {"name": "alignment_details", "route": "/locus/{identifier}/alignment_details", "param": "233"},
     {"name": "protein_phosphorylation_details", "route": "/locus/{identifier}/protein_phosphorylation_details", "param": "233"},
     {"name": "protein_experiment_details", "route": "/locus/{identifier}/protein_experiment_details", "param": "233"},
-    {"name": "history_details", "route": "/locus/{identifier}/history_details", "param": "233"},
     {"name": "contig", "route": "/contig/{identifier}/overview", "param": "230728"},
     {"name": "dataset", "route": "/dataset/{identifier}/overview", "param": "258996"},
     {"name": "tag", "route": "/tag/{identifier}/overview", "param": "22"},
@@ -81,54 +75,85 @@ testing_routes = [
     {"name": "posttranslational_details", "route": "/locus/{identifier}/posttranslational_details", "param": "233"}
 ]
 
-RESPONSES_FILE = "prod_responses.pickle"
-PROD_HOST="http://yeastgenome.org/webservice"
-QA_HOST="http://sgd-qa.stanford.edu/webservice"
+RESPONSES_FILE = "responses.pickle"
 
-class TestEnpoints(unittest.TestCase):
+class TestEndpoints(unittest.TestCase):
+    def executeRequests(self, test, setup):
+        setup["requests"] = {}
+        for attempt in range(5):
+            try:
+                if test.get("payload"):
+                    for url in setup["urls"]:
+                        setup["requests"][url] = requests.post(setup["urls"][url], data = test.get("payload"))
+                else:
+                    for url in setup["urls"]:
+                        setup["requests"][url] = requests.get(setup["urls"][url])
+            except:
+                print "Retrying..."
+            else:
+                break
+
+        for r in setup["requests"]:
+            url = setup["requests"][r].url
+            status_code = setup["requests"][r].status_code
+
+            if status_code != 200:
+                self.status_500.append(url)
+                continue
+            else:
+                self.assertEqual(status_code, 200, url)
+                
+            text = setup["requests"][r].text
+            rjson = json.loads(text) if text != "" else {}
+            
+            if self.responses.get(url):
+                self.assertEqual(rjson, self.responses[url])
+            else:
+                self.responses[url] = rjson
+    
+    def testSingleEndpoint(self):
+        self.status_500 = []
+
+        for test in testing_routes:
+            setup = {}
+            setup["urls"] = {}
+
+            setup["urls"][os.environ["HOST"]] = os.environ["HOST"] + re.sub("\{identifier\}", test["param"], test["route"])
+
+            print " <~> ".join([setup["urls"][h] for h in setup["urls"]])
+
+            self.executeRequests(test, setup)
+
+        if len(self.status_500) > 0:
+            print "\nALERT: The following endpoints are broken (500):"
+            for url in self.status_500:
+                print url
 
     def testCompares(self):
-        status_500 = []
+        self.status_500 = []
+
         for test in testing_routes:
-            prod_url = PROD_HOST + re.sub("\{identifier\}", test["param"], test["route"])
-            qa_url = QA_HOST + re.sub("\{identifier\}", test["param"], test["route"])
-            print prod_url + " <~> " + qa_url
+            setup = {}
+            setup["urls"] = {}
+
+            for h in [os.environ["HOST_1"], os.environ["HOST_2"]]:
+                setup["urls"][h] = h + re.sub("\{identifier\}", test["param"], test["route"])
+
+            print " <~> ".join([setup["urls"][h] for h in setup["urls"]])
+
+            self.executeRequests(test, setup)
             
-            for attempt in range(5):
-                try:
-                    if test.get("payload"):
-                        prod_r = requests.post(prod_url, data = test.get("payload"))
-                        qa_r = requests.post(qa_url, data = test.get("payload"))
-                    else:
-                        prod_r = requests.get(prod_url)
-                        qa_r = requests.get(qa_url)
-                except:
-                    print "Retrying..."
-                else:
-                    break
-            
-            if prod_r.status_code == 500:
-                status_500.append(prod_r.url)
-                continue
-            else:
-                self.assertEqual(prod_r.status_code, 200, prod_r.url)
-
-            if qa_r.status_code == 500:
-                status_500.append(qa_r.url)
-                continue
-            else:
-                self.assertEqual(qa_r.status_code, 200, qa_r.url)
-
-            if self.responses.get(test["name"]):
-                self.assertEqual(prod_r.json(), self.responses[test["name"]])
-            else:
-                self.responses[test["name"]] = json.loads(prod_r.text) if prod_r.text != "" else {}
-
-        self.assertEqual(json.loads(prod_r.text) if prod_r.text != "" else {}, json.loads(qa_r.text) if qa_r.text != "" else {})
+            keys = setup["requests"].keys()
+            for i in xrange(len(keys)):
+                for j in xrange(i, len(keys)):
+                    r_1 = setup["requests"][keys[i]]
+                    r_2 = setup["requests"][keys[j]]
+                    if r_1.status_code == 200 and r_2.status_code == 200:
+                        self.assertEqual(json.loads(r_1.text) if r_1.text != "" else {}, json.loads(r_2.text) if r_2.text != "" else {})
                 
-        if len(status_500) > 0:
-            print "ALERT: The following endpoints are broken (500):"
-            for url in status_500:
+        if len(self.status_500) > 0:
+            print "\nALERT: The following endpoints are broken (500):"
+            for url in self.status_500:
                 print url
                 
     def setUp(self):
@@ -140,7 +165,6 @@ class TestEnpoints(unittest.TestCase):
     def tearDown(self):
         with open(RESPONSES_FILE, "wb") as f:
             pickle.dump(self.responses, f)
-            
 
 if __name__ == '__main__':
     unittest.main()
