@@ -1196,3 +1196,28 @@ Comment on column PROTEINDOMAINANNOTATION.END_INDEX is 'End coordinate of the pr
 Comment on column PROTEINDOMAINANNOTATION.DATE_OF_RUN is 'When the InterProScan analysis was run.';
 Comment on column PROTEINDOMAINANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PROTEINDOMAINANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table PROTEINEXPTANNOTATION is 'Protein experiment data gathered from literature.';
+Comment on column PROTEINEXPTANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PROTEINEXPTANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column PROTEINEXPTANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PROTEINEXPTANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column PROTEINEXPTANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column PROTEINEXPTANNOTATION.BUD_ID is 'Not from BUD.';
+Comment on column PROTEINEXPTANNOTATION.EXPERIMENT_TYPE is 'Type of protein experiment (abundance, localization).';
+Comment on column PROTEINEXPTANNOTATION.OBI_ID is 'FK to OBI.OBI_ID.';
+Comment on column PROTEINEXPTANNOTATION.DATA_VALUE is 'Protein experimental value.';
+Comment on column PROTEINEXPTANNOTATION.DATA_UNIT is 'Units for the protein experimental value.';
+Comment on column PROTEINEXPTANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PROTEINEXPTANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table PROTEINEXPTANNOTATION_COND is 'Conditions associated with a protein experiment annotation.';
+Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PROTEINEXPTANNOTATION_COND.ANNOTATION_ID is 'FK to PROTEINEXPTANNOTATION.ANNOTATION_ID.';
+Comment on column PROTEINEXPTANNOTATION_COND.GROUP_ID is 'A grouping number.';
+Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_CLASS is 'Broad category for a set of conditions.';
+Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_TYPE is 'Type of condition (temperature, growth media, strain name, etc.).';
+Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_VALUE is 'Actual value of the condition.';
+Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_UNIT is 'Unit associated with a numerical condition value (C, hr, %, mM, etc.).';
+Comment on column PROTEINEXPTANNOTATION_COND.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PROTEINEXPTANNOTATION_COND.CREATED_BY is 'Username of the person who entered the record into the database.';
