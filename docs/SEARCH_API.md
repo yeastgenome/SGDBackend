@@ -28,7 +28,7 @@ the response object includes the following fields
     * `href`, string, may be null for entried with category "download"
     * `description`, string, may be null
     * `download_metadata`, object, only present for downloads, and omitted otherwise, contains the following fields
-        * `pubmed_id`, string
+        * `pubmed_ids`, array of string
         * `geo_ids`, array of strings
         * `download_url`, string, required, 
 * `aggregations` array of objects, each with the following fields
