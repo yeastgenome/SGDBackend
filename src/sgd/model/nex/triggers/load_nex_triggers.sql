@@ -204,8 +204,12 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Posttranslationannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomainannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteinexptannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteinexptannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinexptannotationCond_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinexptannotationCond_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteinsequenceannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteinsequenceannotation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinsequenceDetail_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinsequenceDetail_AUDR.trg

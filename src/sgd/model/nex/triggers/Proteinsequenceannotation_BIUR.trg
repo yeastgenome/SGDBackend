@@ -1,17 +1,17 @@
-Create OR REPLACE TRIGGER Dnasequenceannotation_BIUR
+CREATE OR REPLACE TRIGGER Proteinsequenceannotation_BIUR
 --
--- Before insert or update trigger for dnasequenceannotation table
+-- Before insert or update trigger for proteinsequenceannotation table
 --
-  BEFORE INSERT OR UPDATE ON dnasequenceannotation
+  BEFORE INSERT OR UPDATE ON proteinsequenceannotation
   FOR EACH ROW
 DECLARE
-  v_IsValidUser         dbuser.username%TYPE;
+  v_IsValidUser     dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
     IF (:new.annotation_id IS NULL) THEN
         SELECT annotation_seq.NEXTVAL INTO :new.annotation_id FROM DUAL;
-    END IF;
+    END IF; 
 
     v_IsValidUser := CheckUser(:new.created_by);
 
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Dnasequenceannotation_BIUR;
+END Proteinsequenceannotation_BIUR;
 /
 SHOW ERROR

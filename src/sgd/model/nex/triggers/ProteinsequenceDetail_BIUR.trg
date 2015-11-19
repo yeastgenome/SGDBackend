@@ -1,23 +1,23 @@
-Create OR REPLACE TRIGGER Dnasequenceannotation_BIUR
+Create OR REPLACE TRIGGER ProteinsequenceDetail_BIUR
 --
--- Before insert or update trigger for dnasequenceannotation table
+-- Before insert or update trigger for proteinsequence_detail table
 --
-  BEFORE INSERT OR UPDATE ON dnasequenceannotation
+  BEFORE INSERT OR UPDATE ON proteinsequence_detail
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.annotation_id IS NULL) THEN
-        SELECT annotation_seq.NEXTVAL INTO :new.annotation_id FROM DUAL;
+    IF (:new.detail_id IS NULL) THEN
+        SELECT detail_seq.NEXTVAL INTO :new.detail_id FROM DUAL;
     END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
 
-    IF (:new.annotation_id != :old.annotation_id) THEN    
+    IF (:new.detail_id != :old.detail_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Dnasequenceannotation_BIUR;
+END ProteinsequenceDetail_BIUR;
 /
 SHOW ERROR

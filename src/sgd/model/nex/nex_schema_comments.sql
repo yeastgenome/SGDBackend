@@ -1229,6 +1229,7 @@ Comment on column PROTEINSEQUENCEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID
 Comment on column PROTEINSEQUENCEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
 Comment on column PROTEINSEQUENCEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
 Comment on column PROTEINSEQUENCEANNOTATION.BUD_ID is 'From BUD.PROTEIN.INFO.';
+Comment on column PROTEINSEQUENCEANNOTATION.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
 Comment on column PROTEINSEQUENCEANNOTATION.SEQ_VERSION is 'Date of the protein sequence release.';
 Comment on column PROTEINSEQUENCEANNOTATION.COORD_VERSION is 'Date of the protein coordinate release.';
 Comment on column PROTEINSEQUENCEANNOTATION.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
@@ -1244,10 +1245,11 @@ Comment on column PROTEINSEQUENCE_DETAIL.ANNOTATION_ID is 'Unique identifier (Or
 Comment on column PROTEINSEQUENCE_DETAIL.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
 Comment on column PROTEINSEQUENCE_DETAIL.BUD_ID is 'From BUD.PROTEIN.INFO and BUD.PROTEIN_DETAIL.';
 Comment on column PROTEINSEQUENCE_DETAIL.MOLECULAR_WEIGHT is 'Molecular weight of the protein.';
-Comment on column PROTEINSEQUENCE_DETAIL.PI is 'Isoelectric point of the protein.';
-Comment on column PROTEINSEQUENCE_DETAIL.CAI is 'Codon adaptation index.';
+Comment on column PROTEINSEQUENCE_DETAIL.PROTEIN_LENGTH is 'Length of the protein.';
 Comment on column PROTEINSEQUENCE_DETAIL.N_TERM_SEQ is 'N terminal sequence of the protein.';
 Comment on column PROTEINSEQUENCE_DETAIL.C_TERM_SEQ is 'C terminal sequence of the protein.';
+Comment on column PROTEINSEQUENCE_DETAIL.PI is 'Isoelectric point of the protein.';
+Comment on column PROTEINSEQUENCE_DETAIL.CAI is 'Codon adaptation index.';
 Comment on column PROTEINSEQUENCE_DETAIL.CODON_BIAS is 'Codon bias of the protein.';
 Comment on column PROTEINSEQUENCE_DETAIL.FOP_SCORE is 'Frequency of optimal condons (ratio of optimal codons to synonymous codons).';
 Comment on column PROTEINSEQUENCE_DETAIL.GRAVY_SCORE is 'General average hydropathicity score for the hypothetical translated gene product.';
