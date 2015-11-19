@@ -254,7 +254,14 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
         for row in make_file_starter('src/sgd/convert/data/domains.tab')():
-            source_key = row[3].strip()
+	    source_key = row[3].strip()
+            if source_key.startswith('ProSite'):
+                source_key = 'Prosite'
+            if source_key.startswith('SignalP'):
+                source_key = 'SignalP'
+            if source_key.startswith('Hamap'):
+                source_key = 'HAMAP'
+
             start = row[6].strip()
             end = row[7].strip()
             evalue = row[8].strip()

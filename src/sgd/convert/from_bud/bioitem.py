@@ -118,7 +118,12 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
 
         for row in make_file_starter('src/sgd/convert/data/domains.tab')():
             source_key = row[3].strip()
-
+            if source_key.startswith('ProSite'):
+                source_key = 'Prosite'
+            if source_key.startswith('SignalP'):
+                source_key = 'SignalP'
+            if source_key.startswith('Hamap'):
+                source_key = 'HAMAP'
             if source_key == 'Coils':
                 source_key = '-'
 
@@ -632,9 +637,7 @@ def make_bioitem_url_starter(nex_session_maker):
                 link = "http://prodom.prabi.fr/prodom/current/cgi-bin/request.pl?question=DBEN&amp;query=" + display_name
             elif bioitem_type == 'PIRSF':
                 link = "http://pir.georgetown.edu/cgi-bin/ipcSF?id=" + display_name
-            elif bioitem_type == 'PROSITE':
-                link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
-            elif bioitem_type == 'PROSITE':
+            elif bioitem_type == 'PROSITE' or bioitem_type == 'Prosite':
                 link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
             elif bioitem_type == 'Phobius':
                 link = None
