@@ -1241,8 +1241,8 @@ Comment on column PROTEINSEQUENCEANNOTATION.DATE_CREATED is 'Date the record was
 Comment on column PROTEINSEQUENCEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table PROTEINSEQUENCE_DETAIL is 'Properties of the protein sequence.';
-Comment on column PROTEINSEQUENCE_DETAIL.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column PROTEINSEQUENCE_DETAIL.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column PROTEINSEQUENCE_DETAIL.DETAIL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PROTEINSEQUENCE_DETAIL.ANNOTATION_ID is 'FK to PROTEINSEQUENCEANNOTATION.ANNOTATION_ID.';
 Comment on column PROTEINSEQUENCE_DETAIL.BUD_ID is 'From BUD.PROTEIN.INFO and BUD.PROTEIN_DETAIL.';
 Comment on column PROTEINSEQUENCE_DETAIL.MOLECULAR_WEIGHT is 'Molecular weight of the protein.';
 Comment on column PROTEINSEQUENCE_DETAIL.PROTEIN_LENGTH is 'Length of the protein.';
@@ -1255,7 +1255,7 @@ Comment on column PROTEINSEQUENCE_DETAIL.FOP_SCORE is 'Frequency of optimal cond
 Comment on column PROTEINSEQUENCE_DETAIL.GRAVY_SCORE is 'General average hydropathicity score for the hypothetical translated gene product.';
 Comment on column PROTEINSEQUENCE_DETAIL.AROMATICITY_SCORE is 'Frequency of aromatic amino acids (Phe, Tyr, Trp) in the hypothetical translated gene product.';
 Comment on column PROTEINSEQUENCE_DETAIL.ALIPHATIC_INDEX is 'Relative volume occupied by aliphatic side chains (alanine, valine, isoleucine, and leucine).';
-Comment on column PROTEINSEQUENCE_DETAIL.INSTABILITY_INDEX ia 'Correlation between stability of a protein and its dipeptide composition.';
+Comment on column PROTEINSEQUENCE_DETAIL.INSTABILITY_INDEX is 'Correlation between stability of a protein and its dipeptide composition.';
 Comment on column PROTEINSEQUENCE_DETAIL.ALA is 'Number of alanines in the protein.';
 Comment on column PROTEINSEQUENCE_DETAIL.ARG is 'Number of arginines in the protein.';
 Comment on column PROTEINSEQUENCE_DETAIL.ASN is 'Number of asparagines in the protein.';
