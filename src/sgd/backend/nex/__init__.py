@@ -817,11 +817,27 @@ class SGDBackend(BackendInterface):
         results_search_body = {
             'query': cat_query,
         }
-        results_search_body['_source'] = ['name', 'href', 'description', 'category']
+        results_search_body['_source'] = ['name', 'href', 'description', 'category', 'data']
         # run search
         search_results = self.es.search(index='searchable_items', body=results_search_body, size=limit, from_=offset)
         # format results
-        formatted_results = map(lambda x: x.get('_source'), search_results['hits']['hits'])        
+        formatted_results = []
+
+        for r in search_results['hits']['hits']:
+            raw_obj = r.get('_source')
+
+            obj = {}
+            for field in ["name", "href", "description", "category"]:
+                obj[field] = raw_obj.get(field)
+
+            if obj["category"] == "download":
+                obj["download_metadata"] = {}
+                obj["download_metadata"]["pubmed_ids"] = raw_obj["data"].get("Series_pubmed_id")
+                obj["download_metadata"]["geo_ids"] = raw_obj["data"].get("Sample_geo_accession")
+                obj["download_metadata"]["download_url"] = "http://yeastgenome.org/download-fake-geo/" + obj["name"]
+
+            formatted_results.append(obj)
+
         # query for aggs on categories WITHOUT filtering by category
         agg_query_body = {
             'query': es_query,
