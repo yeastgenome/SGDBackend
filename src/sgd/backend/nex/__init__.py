@@ -918,10 +918,10 @@ class SGDBackend(BackendInterface):
             return Response(status_code=404)
 
     def autocomplete_results(self, params):
-        if params.get("term") is None:
+        if params.get("q") is None:
             return Response(status_code=422)
 
-        query = params['term']
+        query = params['q']
         search_body = {
             'query': {
                 'bool': {
@@ -981,7 +981,7 @@ class SGDBackend(BackendInterface):
             if hit not in unique:
                 unique.append(hit)
 
-        return json.dumps(unique)
+        return json.dumps({"results": unique})
 
 
       
