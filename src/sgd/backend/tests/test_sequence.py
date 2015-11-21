@@ -51,7 +51,7 @@ def test_sequence_bioent_details_structure(model, identifier='GAL4'):
     for entry in response['genomic_dna']:
         check_genomic_sequence_evidence(entry)
 
-def test_sequence_contig_details_structure(model, identifier='S288C_Chromosome_12'):
+def test_sequence_contig_details_structure(model, identifier='230682'):
     response = json.loads(model.sequence_details(contig_identifier=identifier))
     assert response is not None
     assert 'protein' in response
