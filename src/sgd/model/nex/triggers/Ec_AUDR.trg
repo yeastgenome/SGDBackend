@@ -35,9 +35,9 @@ BEGIN
         AuditLog.InsertUpdateLog('EC', 'BUD_ID', :old.ec_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
-     IF (:old.ec_number != :new.ec_number)
+     IF (:old.ecid != :new.ecid)
     THEN
-        AuditLog.InsertUpdateLog('EC', 'EC_NUMBER', :old.ec_id, :old.ec_number, :new.ec_number, USER);
+        AuditLog.InsertUpdateLog('EC', 'ECID', :old.ec_id, :old.ecid, :new.ecid, USER);
     END IF;
 
     IF (((:old.description IS NULL) AND (:new.description IS NOT NULL)) OR ((:old.description IS NOT NULL) AND (:new.description IS NULL)) OR (:old.description != :new.description))
@@ -51,7 +51,7 @@ BEGIN
     v_row := :old.ec_id || '[:]' || :old.format_name || '[:]' ||
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.ec_number || '[:]' || :old.description || '[:]' ||
+             :old.ecid || '[:]' || :old.description || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('EC', :old.ec_id, v_row, USER);

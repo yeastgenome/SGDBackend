@@ -30,7 +30,7 @@ BEGIN
         AuditLog.InsertUpdateLog('TAXONOMY', 'SOURCE_ID', :old.taxonomy_id, :old.source_id, :new.source_id, USER);
     END IF;
 
-    IF (((:old.taxid IS NULL) AND (:new.taxid IS NOT NULL)) OR ((:old.taxid IS NOT NULL) AND (:new.taxid IS NULL)) OR (:old.taxid != :new.taxid))
+    IF (:old.taxid != :new.taxid)
     THEN
         AuditLog.InsertUpdateLog('TAXONOMY', 'TAXID', :old.taxonomy_id, :old.taxid, :new.taxid, USER);
     END IF;
@@ -48,7 +48,7 @@ BEGIN
   ELSE
 
     v_row := :old.taxonomy_id || '[:]' || :old.format_name || '[:]' ||
-		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
+             :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.taxid || '[:]' ||
              :old.common_name || '[:]' || :old.rank || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
