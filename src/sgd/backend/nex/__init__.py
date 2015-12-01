@@ -962,7 +962,7 @@ class SGDBackend(BackendInterface):
                         item = re.sub('[;,.]', '', word)
                         obj = {
                             'name': word,
-                            'type': 'suggestion'
+                            'category': 'suggestion'
                         }
                         simplified_results.append(obj)
                         break
@@ -971,7 +971,7 @@ class SGDBackend(BackendInterface):
                 obj = {
                     'name': hit['_source']['term'],
                     'href': hit['_source']['link_url'],
-                    'type': hit['_source']['type']
+                    'category': hit['_source']['type']
                 }
                 simplified_results.append(obj)
 
