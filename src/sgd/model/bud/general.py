@@ -7,7 +7,7 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.bud import Base
 from feature import Feature
 
-__author__ = 'kpaskov'
+__author__ = 'kpaskov, sweng66'
 
 class Dbxref(Base, EqualityByIDMixin):
     __tablename__ = 'dbxref'

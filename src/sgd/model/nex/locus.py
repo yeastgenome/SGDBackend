@@ -7,7 +7,6 @@ from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin
 from src.sgd.model.nex.dbentity import Dbentity
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.source import Source
-from src.sgd.model.nex.so import So
 from src.sgd.model.nex.ro import Ro
 
 __author__ = 'kelley, sweng66'
@@ -17,7 +16,6 @@ class Locus(Dbentity):
 
     id = Column('dbentity_id', Integer, ForeignKey(Dbentity.id), primary_key=True)
     systematic_name = Column('systematic_name', String)
-    so_id = Column('so_id', Integer, ForeignKey(So.id))
     gene_name = Column('gene_name', String)
     qualifier = Column('qualifier', String)
     genetic_position = Column('genetic_position', String)
@@ -52,11 +50,10 @@ class Locus(Dbentity):
     #              ('children', 'locus.LocusRelation', False)]
     __id_values__ = ['sgdid', 'format_name', 'id', 'gene_name', 'systematic_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
-    __filter_values__ = ['so_id', 'qualifier']
+    __filter_values__ = ['qualifier']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
-        self.so_id = obj_json.get('so_id')
         tabs = obj_json['tabs']
         for tab in tabs:
             setattr(self, tab, tabs[tab])
@@ -86,7 +83,6 @@ class Locus(Dbentity):
     def to_semi_json(self):
         obj_json = ToJsonMixin.to_min_json(self)
         obj_json['description'] = self.description
-        obj_json['so'] = self.so
         return obj_json
 
 

@@ -20,6 +20,12 @@ def proteindomain_starter(bud_session_maker):
     for line in f:
         row = line.split('\t')
         source = row[3].strip()
+        if source.startswith('ProSite'):
+            source = 'PROSITE'
+        if source.startswith('SignalP'):
+            source = 'SignalP'
+        if source == 'Hamap':
+            source = 'HAMAP'
         if source == 'Coils':
             source = '-'
 
@@ -44,6 +50,7 @@ def proteindomain_starter(bud_session_maker):
         })
         obj_json['urls'] = load_urls(obj_json)
         yield obj_json
+
     f.close()
 
     f = open('src/sgd/convert/data/TF_family_class_accession04302013.txt', 'r')
@@ -85,17 +92,19 @@ def load_urls(obj_json):
     source = obj_json['source']['display_name']
     display_name = obj_json['display_name']
 
-    if source == 'JASPAR':
+    link = None
+    if source == 'JASPAR':   
         link = 'http://jaspar.binf.ku.dk/cgi-bin/jaspar_db.pl?rm=present&collection=CORE&ID=' + display_name
     elif source == 'SMART':
         link = "http://smart.embl-heidelberg.de/smart/do_annotation.pl?DOMAIN=" + display_name
     elif source == 'Pfam':
         link = "http://pfam.sanger.ac.uk/family?type=Family&entry=" + display_name
     elif source == 'Gene3D':
+        source = 'GENE3D'
         link = "http://www.cathdb.info/version/latest/superfamily/" + display_name[6:]
     elif source == 'SUPERFAMILY':
         link = "http://supfam.org/SUPERFAMILY/cgi-bin/scop.cgi?ipid=" + display_name
-    elif source == 'SignalP':
+    elif source == 'SignalP': 
         link = None
     elif source == 'PANTHER':
         link = "http://www.pantherdb.org/panther/family.do?clsAccession=" + display_name
@@ -109,24 +118,22 @@ def load_urls(obj_json):
         link = "http://pir.georgetown.edu/cgi-bin/ipcSF?id=" + display_name
     elif source == 'PROSITE':
         link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
-    elif source == 'PROSITE':
-        link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
     elif source == 'Phobius':
         link = None
     elif source == '-':
         link = None
-
+        
     if link is not None:
         urls.append({'display_name': display_name,
                      'link': link,
                      'source': {'display_name': 'SGD'},
-                     'url_type': 'External'})
+                     'url_type': source})
 
     if 'interpro_id' in obj_json:
         urls.append({'display_name': obj_json['interpro_id'],
                      'link': 'http://www.ebi.ac.uk/interpro/entry/' + obj_json['interpro_id'],
                      'source': {'display_name': 'InterPro'},
-                     'url_type': 'Interpro'})
+                     'url_type': 'InterPro'})
     return urls
 
 

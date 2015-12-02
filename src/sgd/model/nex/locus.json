@@ -54,10 +54,6 @@
             "title": "DBentity Status",
             "type": "string"
         },
-        "so_id": {
-            "title": "SO ID",
-            "type": "integer"
-        },
         "name_description": {
             "title": "Name Description",
             "type": "string"
@@ -362,6 +358,6 @@
             }
         }
     },
-    "required": ["systematic_name", "source", "sgdid", "so_id", "dbentity_status"]
+    "required": ["systematic_name", "source", "sgdid", "dbentity_status"]
 
 }

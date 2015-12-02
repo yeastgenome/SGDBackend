@@ -254,7 +254,7 @@ def load_summaries(bud_feature, bud_session):
 
 def locus_starter(bud_session_maker):
     from src.sgd.model.bud.feature import Feature
-    from src.sgd.model.nex.so import So
+    # from src.sgd.model.nex.so import So
 
     bud_session = bud_session_maker()
 
@@ -272,7 +272,7 @@ def locus_starter(bud_session_maker):
     systematic_name_to_reg_paragraph = load_reg_paragraphs()
 
     nex_session = get_nex_session() 
-    term_to_so = dict([(x.display_name, x) for x in nex_session.query(So).all()])
+    # term_to_so = dict([(x.display_name, x) for x in nex_session.query(So).all()])
 
     #Create features
     for bud_obj in bud_session.query(Feature).options(joinedload('annotation')).all():
@@ -285,6 +285,7 @@ def locus_starter(bud_session_maker):
         if feature_type.startswith('TF') or feature_type.startswith('not physically'):
             continue
 
+        # 'so_id': term_to_so[feature_type].id,
         obj_json = {'gene_name': bud_obj.gene_name,
                     'systematic_name': systematic_name,
                     'source': {
@@ -293,7 +294,6 @@ def locus_starter(bud_session_maker):
                     'bud_id': bud_obj.id,
                     'sgdid': sgdid,
                     'dbentity_status': bud_obj.status,
-                    'so_id': term_to_so[feature_type].id,
                     'date_created': str(bud_obj.date_created),
                     'created_by': bud_obj.created_by}
 
