@@ -1,51 +1,43 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "DNA Sequence Annotation",
+    "title": "DNASequenceAnnotation",
     "type": "object",
     "properties": {
         "id": {
             "title": "ID",
             "type": "integer"
         },
-        "format_name": {
-            "title": "Format Name",
-            "type": "string"
+        "dbentity_id": {
+            "title": "DBENTITY ID",
+            "type": "integer"
         },
         "bud_id": {
             "title": "Bud ID",
             "type": "integer"
         },
-        "dbentity": {
-            "title": "DBentity",
-            "$ref": "dbentity.json"
-        },
         "source": {
             "title": "Source",
             "$ref": "source.json"
         },
-        "reference": {
-            "title": "Reference",
-            "$ref": "reference.json"
+        "taxonomy_id": {
+            "title": "Taxonomy ID",
+            "type": "integer"
         },
-        "taxonomy": {
-            "title": "Taxonomy",
-            "$ref": "taxonomy.json"
+	"reference_id": {
+            "title": "Reference ID",
+            "type": "integer"
         },
-        "contig": {
-            "title": "Contig",
-            "$ref": "contig.json"
+        "so_id": {
+            "title": "SO ID",
+            "type": "integer"
         },
-        "genomerelease": {
-            "title": "Genomerelease",
-            "$ref": "genomerelease.json"
-        },
-        "dna_type": {
+	"dna_type": {
             "title": "DNA Type",
             "type": "string"
         },
-        "residues": {
-            "title": "Residues",
-            "type": "string"
+	"contig_id": {
+            "title": "Contig ID",
+            "type": "integer"
         },
         "seq_version": {
             "title": "Sequence Version",
@@ -71,24 +63,36 @@
                 }
             ]
         },
-        "start_index": {
+	"genomerelease_id": {
+            "title": "Genomerelease ID",
+            "type": "integer"
+        },
+	"start_index": {
             "title": "Start Index",
             "type": "integer"
         },
-        "end_index": {
+	"end_index": {
             "title": "End Index",
             "type": "integer"
         },
-        "strand": {
+	"strand": {
             "title": "Strand",
             "type": "string"
         },
-        "header": {
-            "title": "Header",
+        "file_header": {
+            "title": "File Header",
             "type": "string"
         },
-        "filename": {
-            "title": "Filename",
+	"download_filename": {
+            "title": "Download Filename",
+            "type": "string"
+        },
+        "file_id": {
+            "title": "File ID",
+            "type": "integer"
+        },
+        "residues": {
+            "title": "Residues",
             "type": "string"
         },
         "date_created": {
@@ -104,9 +108,9 @@
             ]
         },
         "created_by": {
-            "title": "Created By",
+            "title": "Name",
             "type": "string"
         }
     },
-    "required": ["dbentity", "source", "dna_type", "residues"]
+    "required": ["dbentity_id", "source", "taxonomy_id", "so_id", "dna_type", "contig_id", "start_index", "end_index", "strand", "file_header", "download_filename", "residues"]
 }

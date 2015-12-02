@@ -1,5 +1,5 @@
 from src.sgd.convert import basic_convert
-
+from src.sgd.convert.util import get_strain_taxid_mapping
 __author__ = 'sweng66'
 
 # detail_category_mapping = {'Chemical_pending': 'Chemical',
@@ -82,17 +82,9 @@ def phenotypeannotation_starter(bud_session_maker):
         ## allele - data from expt_property
         ## reporter - data from expt_property
 
-        strain_taxid_mapping = { "S288C":   559292,
-                                 "CEN.PK":  889517,
-                                 "FL100":   947036,
-                                 "RM11-1a": 285006,
-                                 "SK1":     580239,
-                                 "W303":    580240,
-                                 "Y55":     580230,
-                                 'Other':   4932    
-        }
+        ## 
 
-        #  "D273-10B",  "JK9-3d", "SEY6210", "Sigma1278b", "X2180-1A"
+
         
         ## PROPERTY_TYPE                                                                                  
         # Chemical_pending                                                                                
