@@ -14,7 +14,7 @@ def ec_starter(bud_session_maker):
     for line in f:
         if line.startswith("//") and data.get('display_name'):
             ## new entry
-            data['ec_number'] = data['display_name']
+            data['ecid'] = data['display_name']
             data['description'] = data['description'].rstrip('.')
             data['source'] = {'display_name': 'ExPASy'}
             data['urls'] = [ {'display_name': 'ExPASy',
@@ -39,7 +39,7 @@ def ec_starter(bud_session_maker):
             continue
         field[1] = field[1].rstrip()  
         if field[0] == 'ID' and 'n' not in field[1]:
-            data['display_name'] = field[1]
+            data['display_name'] = "EC:" + field[1]
         if data.get('display_name') != None and field[0] == 'DE':
             if data.get('description') != None:
                 data['description'] = data['description'] + " " + field[1]

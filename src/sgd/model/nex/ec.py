@@ -17,7 +17,7 @@ class Ec(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     format_name = Column('format_name', String)
     link = Column('obj_url', String)
     bud_id = Column('bud_id', Integer)
-    ec_number = Column('ec_number', String)
+    ecid = Column('ecid', String)
     description = Column('description', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
@@ -25,7 +25,7 @@ class Ec(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'ec_number', 'description', 'bud_id', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'ecid', 'description', 'bud_id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False),
                   ('aliases', 'ec.EcAlias', True),
                   ('urls', 'ec.EcUrl', True)]

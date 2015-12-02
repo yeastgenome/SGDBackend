@@ -19,8 +19,8 @@
             "title": "Link",
             "type": "string"
         },
-	"ec_number": {
-	    "title": "EC Number",
+	"ecid": {
+	    "title": "ECID",
 	    "type": "string"
 	},
         "description": {
