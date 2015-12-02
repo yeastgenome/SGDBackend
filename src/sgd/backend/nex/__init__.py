@@ -952,7 +952,7 @@ class SGDBackend(BackendInterface):
                 }
             }
         }
-        res = self.es.search(index='searchable_items', body=search_body)
+        res = self.es.search(index='sgdlite', body=search_body)
         simplified_results = []
         for hit in res['hits']['hits']:
             # add matching words from description, not whole description
