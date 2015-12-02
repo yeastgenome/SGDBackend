@@ -16,7 +16,7 @@ class Taxonomy(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     display_name = Column('display_name', String)
     format_name = Column('format_name', String)
-    taxid = Column('taxid', Integer)
+    taxid = Column('taxid', String)
     link = Column('obj_url', String)
     common_name = Column('common_name', String)
     rank = Column('rank', String)

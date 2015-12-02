@@ -35,7 +35,7 @@ def taxonomy_starter(bud_session_maker):
                 terms.append(term)
                 term = None
             if pieces[1] in filtered_set:
-                # taxid = pieces[1].replace("NCBITaxon:", "")
+                taxid = pieces[1].replace("NCBITaxon:", "TAX:")
                 term = {'taxid': pieces[1],
                         'aliases': [],
                         'source': {'display_name': source},
@@ -57,10 +57,10 @@ def taxonomy_starter(bud_session_maker):
                     rank = id_to_rank.get(parent)
                     if rank is None:
                         rank = 'no rank'
-                    # parent = parent.replace("NCBITaxon:", "")
-                    # parent = int(parent)
+                    parent = parent.replace("NCBITaxon:", "TAX:")
                     if parent not in parent_to_children:
                         parent_to_children[parent] = []
+                    term['taxid'] = term['taxid'].replace("NCBITaxon:", "TAX:")    
                     parent_to_children[parent].append({'taxid': term['taxid'], 'display_name': term['display_name'], 'source': {'display_name': source}, 'rank': rank, 'ro_id': get_relation_to_ro_id('is a')})
                 elif pieces[0] in key_switch:
                     text = pieces[1]
@@ -69,23 +69,38 @@ def taxonomy_starter(bud_session_maker):
                         text = quotation_split[1]
                     term[key_switch[pieces[0]]] = text
                 elif pieces[0] == 'property_value' and pieces[1].startswith('has_rank NCBITaxon:'):
-                    # term['rank'] = pieces[1].replace("has_rank NCBITaxon:", "")
-                    term['rank'] = pieces[1].replace("has_rank ", "")
+                    term['rank'] = pieces[1].replace("has_rank NCBITaxon:", "")
+                    # term['rank'] = pieces[1].replace("has_rank ", "")
     f.close()
 
     print "updating the database"
 
     for term in terms:
-        taxid = term['taxid']
+        term['taxid'] = term['taxid'].replace('NCBITaxon:', 'TAX:')
+        taxid = term['taxid']    
         print taxid
         if term.get('rank') is None:
             term['rank'] = 'no rank'
         term['children'] = [] if taxid not in parent_to_children else parent_to_children[taxid]
+        
+        taxid = taxid.replace('TAX:', '')
 
         term['urls'] = [{"display_name": 'NCBI Taxonomy',
                          "url_type": 'NCBI Taxonomy',
                          "source": {'display_name': source},
-                         "link": "http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id="+str(taxid)}]
+                         "link": "http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id="+taxid}]
+        yield term
+
+    index = 100
+    for strain in ["BY4742", "D273-10B", "DBVPG6044", "FY1679", "JK9-3d", "K11", "L1528", "SEY6210", "X2180-1A", "YPH499", "YPS128", "YS9", "Y55"]:
+        term = {}
+        term['taxid'] = 'NTR:' + str(index)
+        term['format_name'] = 'Saccharomyces_cerevisiae_' + strain
+        term['display_name'] = 'Saccharomyces cerevisiae ' + strain
+        term['obj_url'] = '/taxonomy/' + term['format_name']
+        term['source'] = { 'display_name': 'SGD' }
+        term['rank'] = 'no rank'
+        index = index + 1
         yield term
 
 

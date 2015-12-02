@@ -2,7 +2,7 @@ from src.sgd.convert import basic_convert
 
 __author__ = 'sweng66'
 
-TAXON_ID = 4932
+TAXON_ID = "TAX:4932"
 
 def enzymeannotation_starter(bud_session_maker):
     from src.sgd.model.bud.general import Dbxref, DbxrefFeat
@@ -15,7 +15,7 @@ def enzymeannotation_starter(bud_session_maker):
     bud_session = bud_session_maker()
     nex_session = get_nex_session()
 
-    ec_number_to_ec_id = dict([(x.ec_number, x.id) for x in nex_session.query(Ec).all()])
+    ecid_to_ec_id = dict([(x.ecid, x.id) for x in nex_session.query(Ec).all()])
     bud_id_to_locus_id = dict([(x.bud_id, x.id) for x in nex_session.query(Locus).all()])
     # bud_id_to_ec_number = dict([(x.id, x.dbxref_id) for x in bud_session.query(Dbxref).filter_by(dbxref_type='EC number').all()])
     ref_bud_id_to_reference_id = dict([(x.bud_id, x.id) for x in nex_session.query(Reference).all()])
@@ -46,7 +46,7 @@ def enzymeannotation_starter(bud_session_maker):
             continue    
         
         dbxref = x.dbxref
-        ec_id = ec_number_to_ec_id.get(dbxref.dbxref_id)
+        ec_id = ecid_to_ec_id.get("EC:" + dbxref.dbxref_id)
         if ec_id is None:
             print "The ec_number = ", dbxref.dbxref_id, " is not found in EC table."
             continue

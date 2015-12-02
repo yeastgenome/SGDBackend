@@ -3,7 +3,7 @@ from src.sgd.convert import basic_convert, remove_nones
 __author__ = 'sweng66'
 
 SRC = 'SGD'
-TAXON_ID = 4932
+TAXON_ID = "TAX:4932"
 
 def posttranslationannotation_starter(bud_session_maker):
  
@@ -37,10 +37,11 @@ def posttranslationannotation_starter(bud_session_maker):
                   'src/sgd/convert/data/PTMs_20150623.txt',
                   'src/sgd/convert/data/PTMsites062615.txt',
                   'src/sgd/convert/data/PTMsites091715.txt',
-                  'src/sgd/convert/data/PTMsites102315.txt']
+                  'src/sgd/convert/data/PTMsites102315.txt',
+		  'src/sgd/convert/data/PTMsites112115.txt']
     
     for file_name in file_names:
-        print file_name
+        print "LOADING DATA from: ", file_name
         f = open(file_name, 'r')
         header = True
         for line in f:

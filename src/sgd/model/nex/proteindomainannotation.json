@@ -68,5 +68,5 @@
             "type": "string"
         }
     }, 
-    "required": ["source", "dbentity_id", "proteindomain_id", "reference_id", "start_index", "end_index"]
+    "required": ["source", "dbentity_id", "proteindomain_id", "start_index", "end_index"]
 }

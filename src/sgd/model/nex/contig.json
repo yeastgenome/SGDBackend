@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Proteindomain",
+    "title": "Contig",
     "type": "object",
     "properties": {
         "id": {
@@ -19,10 +19,6 @@
             "title": "Link",
             "type": "string"
         },
-        "description": {
-            "title": "Description",
-            "type": "string"
-        },
         "bud_id": {
             "title": "Bud ID",
             "type": "integer"
@@ -31,9 +27,9 @@
             "title": "Source",
             "$ref": "source.json"
         },
-        "taxonomy": {
-            "title": "Taxonomy",
-            "$ref": "taxonomy.json"
+        "taxonomy_id": {
+            "title": "Taxonomy ID",
+            "type": "integer"
         },
         "reference_chromosome": {
             "type": "object",
@@ -49,9 +45,9 @@
             "title": "Genome Release",
             "$ref": "genomerelease.json"
         },
-        "is_chromosome": {
-            "title": "Chromosome?",
-            "type": "boolean"
+        "so_id": {
+            "title": "SO ID",
+            "type": "integer"
         },
         "centromere_start": {
             "title": "Centromere Start",
@@ -113,13 +109,17 @@
                 }
             ]
         },
-        "header": {
-            "title": "Header",
+        "file_header": {
+            "title": "File Header",
             "type": "string"
         },
-        "filename": {
-            "title": "Filename",
+	"download_filename": {
+            "title": "Download Filename",
             "type": "string"
+        },
+        "file_id": {
+            "title": "File ID",
+            "type": "integer"
         },
         "residues": {
             "title": "Residues",
@@ -188,5 +188,5 @@
             }
         }
     },
-    "required": ["taxonomy", "is_chromosome", "residues"]
+    "required": ["display_name", "genbank_accession", "so_id", "residues"]
 }

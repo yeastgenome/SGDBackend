@@ -1,9 +1,10 @@
 from src.sgd.convert import basic_convert, remove_nones
+from src.sgd.convert.util import get_strain_taxid_mapping
 
 __author__ = 'sweng66'
 
+DEFAULT_TAXON_ID = "TAX:4932"
 SRC = 'SGD'
-DEFAULT_TAXON_ID = 4932
 
 def strain_starter(bud_session_maker):
  
@@ -164,26 +165,6 @@ def get_nex_session():
     nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
 
     return nex_session_maker()
-
-
-def get_strain_taxid_mapping():
-
-    #  need to figure the taxid for "D273-10B",  "JK9-3d", "SEY6210", "Sigma1278b", "X2180-1A"     
-
-    return { "S288C":      559292,
-             "CEN.PK":     889517,
-             "FL100":      947036,
-             "RM11-1a":    285006,
-             "SK1":        580239,
-             "W303":       580240,
-             "Y55":        580230,
-             "Sigma1278b": 658763,
-             "D273-10B":   DEFAULT_TAXON_ID,
-             "JK9-3d":     DEFAULT_TAXON_ID,
-             "SEY6210":    DEFAULT_TAXON_ID,
-             "X2180-1A":   DEFAULT_TAXON_ID,
-             'Other':      DEFAULT_TAXON_ID }
-
 
 def load_urls(strain, genbank_id, wiki_strains, sequence_download_strains, strain_to_source, strain_to_euroscarf):
     urls = []

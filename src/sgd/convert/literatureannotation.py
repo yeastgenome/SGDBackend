@@ -2,8 +2,7 @@ from src.sgd.convert import basic_convert
 
 __author__ = 'sweng66'
 
-# TAXON_ID = 'NCBITaxon:559292'
-TAXON_ID = 4932
+TAXON_ID = "TAX:4932"
 
 def literatureannotation_starter(bud_session_maker):
     from src.sgd.model.bud.reference import LitguideFeat

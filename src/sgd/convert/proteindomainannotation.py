@@ -6,7 +6,7 @@ from src.sgd.convert.gpad_config import curator_id, computational_created_by,  \
 
 __author__ = 'sweng66'
 
-TAXON_ID = 4932
+TAXON_ID = "TAX:4932"
 
 def proteindomainannotation_starter(bud_session_maker):
 
@@ -32,7 +32,7 @@ def proteindomainannotation_starter(bud_session_maker):
 
     f = open('src/sgd/convert/data/domains.tab', 'r')
     for line in f:
-        row = line.split('\t')
+        row = line.strip().split('\t')
         dbentity_id = name_to_dbentity_id.get(row[0])
         if dbentity_id is None:
             print "The feature name=", row[0], " is not in LOCUSDBENTITY table."
@@ -41,13 +41,18 @@ def proteindomainannotation_starter(bud_session_maker):
         if proteindomain_id is None:
             print "The domain name=", row[4], " is not in PROTEINDOMAIN table."
             continue
+        if row[9] != 'T':
+            continue
+
+        date = row[10].split('-')
+        date_of_run = date[2] + '-' + date[0] + '-' + date[1]
         yield { "source": { "display_name": source},
                 "dbentity_id": dbentity_id,
                 "taxonomy_id": taxonomy_id,
                 "proteindomain_id": proteindomain_id,
                 "start_index": int(row[6]),
                 "end_index": int(row[7]),
-                "date_of_run": row[10] }
+                "date_of_run": date_of_run}
 
 
     bud_session.close()

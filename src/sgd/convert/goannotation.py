@@ -3,7 +3,7 @@ from src.sgd.convert.util import get_relation_to_ro_id, read_gpi_file, read_gpad
 
 __author__ = 'sweng66'
 
-TAXON_ID = 4932
+TAXON_ID = "TAX:4932"
 GPI_FILE = 'src/sgd/convert/data/gp_information.559292_sgd'
 GPAD_FILE = 'src/sgd/convert/data/gp_association.559292_sgd'
 

@@ -9,7 +9,7 @@
         },
 	"taxid": {
 	    "title": "TAXON_ID",
-            "type": "integer"
+            "type": "string"
 	},
         "display_name": {
             "title": "Display Name",

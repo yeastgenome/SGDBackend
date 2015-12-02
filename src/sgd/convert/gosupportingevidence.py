@@ -58,8 +58,6 @@ def gosupportingevidence_starter(bud_session_maker):
                         'dbxref_id': dbxref_id,
                         'link': link }
 
-    f.close()
-
     ## only load the annotations with annotation_type = 'manually curated' and source != 'SGD'
     ## and the annotations with annotation_type = 'high-throughput' and source = 'SGD'
     ## into NEX2 from BUD
@@ -175,7 +173,7 @@ def get_go_supporting_data(bud_session):
             id = 'PANTHER:' + x.dbxref.dbxref_id
         elif x.dbxref.dbxref_type.startswith('HAMAP'):
             id = 'HAMAP:' + x.dbxref.dbxref_id
-        link = get_link(id)
+        link = get_go_extension_link(id)
         if link == 'Unknown':
             print "Unknown DBXREF ID: ", id
             continue
