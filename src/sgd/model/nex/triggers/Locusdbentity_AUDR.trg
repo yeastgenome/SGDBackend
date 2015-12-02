@@ -15,11 +15,6 @@ BEGIN
         AuditLog.InsertUpdateLog('LOCUSDBENTITY', 'SYSTEMATIC_NAME', :old.dbentity_id, :old.systematic_name, :new.systematic_name, USER);
     END IF;
 
-    IF (:old.so_id != :new.so_id)
-    THEN
-        AuditLog.InsertUpdateLog('LOCUSDBENTITY', 'SO_ID', :old.dbentity_id, :old.so_id, :new.so_id, USER);
-    END IF;
-
 	 IF (((:old.gene_name IS NULL) AND (:new.gene_name IS NOT NULL)) OR ((:old.gene_name IS NOT NULL) AND (:new.gene_name IS NULL)) OR (:old.gene_name != :new.gene_name)) 
     THEN
         AuditLog.InsertUpdateLog('LOCUSDBENTITY', 'GENE_NAME', :old.dbentity_id, :old.gene_name, :new.gene_name, USER);
@@ -109,8 +104,7 @@ BEGIN
 
   ELSE
 
-    v_row := :old.dbentity_id || '[:]' ||
-             :old.systematic_name || '[:]' || :old.so_id || '[:]' ||
+    v_row := :old.dbentity_id || '[:]' || :old.systematic_name || '[:]' ||
              :old.gene_name || '[:]' || :old.qualifier || '[:]' || 
              :old.genetic_position || '[:]' || :old.name_description || '[:]' || 
              :old.headline || '[:]' || :old.description || '[:]' || 
