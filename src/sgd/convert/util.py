@@ -55,6 +55,117 @@ def is_number(str_value):
     except:
         return False
 
+
+def get_sequence_library_fsa(fsa_file):
+
+    id_to_sequence = {}
+    on_sequence = False
+    current_id = None
+    current_sequence = []
+    header = None
+    for line in fsa_file:
+        line = line.replace("\r\n","").replace("\n", "")
+        if line.startswith('>'):
+            if current_id is not None:
+                id_to_sequence[current_id] = (header, ''.join(current_sequence))
+            current_id = line[1:]
+            if '_' in current_id:
+                current_id = current_id[0:current_id.index('_')]
+            if ' ' in current_id:
+                current_id = current_id[0:current_id.index(' ')]
+            current_sequence = []
+            on_sequence = True
+            header = line.split('Genome Release 64-2-1')[0] + 'Genome Release 64-2-1'
+        elif on_sequence:
+            current_sequence.append(line)
+
+    if current_id is not None:
+        id_to_sequence[current_id] = (header, ''.join(current_sequence))
+
+    return id_to_sequence
+
+
+def make_fasta_file_starter(filename):
+
+    def fasta_file_starter():
+        f = open(filename, 'r')
+        on_sequence = False
+        current_id = None
+        header = None
+        current_sequence = []
+        for line in f:
+            line = line.replace("\r\n","").replace("\n", "")
+            if not on_sequence and line == '##FASTA':
+                on_sequence = True
+            elif line.startswith('>'):
+                on_sequence = True
+                if current_id is not None:
+                    yield current_id, header, ''.join(current_sequence)
+                current_id = line[1:]
+                current_sequence = []
+                header = line
+            elif on_sequence:
+                current_sequence.append(line)
+
+        if current_id is not None:
+            yield current_id, header, ''.join(current_sequence)
+        f.close()
+    return fasta_file_starter
+
+
+def get_strain_taxid_mapping():
+
+    return { "S288C":           "TAX:559292",
+             "CENPK":           "TAX:889517",
+             "FL100":           "TAX:947036",
+             "RM11-1a":         "TAX:285006",
+             "SK1":             "TAX:580239",
+             "W303":            "TAX:580240",
+             "Y55":             "TAX:580230",
+             "Sigma1278b":      "TAX:658763",
+             "AWRI1631":        "TAX:545124",
+             "AWRI796":         "TAX:764097",
+             "BY4741":          "TAX:1247190",
+             "CBS7960":         "TAX:929587",
+             "CLIB215":         "TAX:464025",
+             "CLIB324":         "TAX:929629",
+             "CLIB382":         "TAX:947035",
+             "EC1118":          "TAX:643680",
+             "EC9-8":           "TAX:1095001",
+             "FostersB":        "TAX:764102",
+             "FostersO":        "TAX:764101",
+             "JAY291":          "TAX:574961",
+             "Kyokai7":         "TAX:721032",
+             "LalvinQA23":      "TAX:764098",
+             "M22":             "TAX:538975",
+             "PW5":             "TAX:947039",
+             "RedStar":         "TAX:1337438",
+             "T7":              "TAX:929585",
+             "T73":             "TAX:471859",
+             "UC5":             "TAX:947040",
+             "VIN13":           "TAX:764099",
+             "VL3":             "TAX:764100",
+             "Y10":             "TAX:462210",
+             "YJM269":          "TAX:929586",
+             "YJM339":          "TAX:1337529",
+             "YJM789":          "TAX:307796",
+             "YPS163":          "TAX:538976",
+             "ZTW1":            "TAX:1227742",
+             "BY4742":          "NTR:100",
+             "D273-10B":        "NTR:101",
+             "DBVPG6044":       "NTR:102",
+             "FY1679":          "NTR:103",
+             "JK9-3d":          "NTR:104",
+             "K11":             "NTR:105",
+             "L1528":           "NTR:106",
+             "SEY6210":         "NTR:107",
+             "X2180-1A":        "NTR:108",
+             "YPH499":          "NTR:109",
+             "YPS128":          "NTR:110",
+             "YS9":             "NTR:111",
+             "Y55":             "NTR:112",
+             'Other':           "TAX:4932" }
+
 def read_gpad_file(filename, bud_session, nex_session, uniprot_to_date_assigned, uniprot_to_sgdid_list, get_extension=None, get_support=None):
 
     from src.sgd.model.nex.reference import Reference
@@ -316,8 +427,8 @@ def children_from_obo(filename, ancestor):
                 parent_to_children[parent] = []
             parent_to_children[parent].append(child)
         if pieces[0] == 'property_value' and pieces[1].startswith('has_rank NCBITaxon:'):
-            # id_to_rank[child] = pieces[1].replace("has_rank NCBITaxon:", "") 
-            id_to_rank[child] = pieces[1].replace("has_rank ", "")   
+            id_to_rank[child] = pieces[1].replace("has_rank NCBITaxon:", "") 
+            # id_to_rank[child] = pieces[1].replace("has_rank ", "")   
 
     # do breadth first search of parent_to_children
     # populate filtered_parent_set
