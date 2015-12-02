@@ -53,7 +53,7 @@ def chebi_starter(bud_session_maker):
         yield term
 
     for bud_obj in bud_session.query(ExperimentProperty).filter(ExperimentProperty.type=='Chemical_pending'):
-        name = bud.obj.value.lower()
+        name = bud_obj.value.lower()
         if name in loaded:
             continue
         yield {'display_name': bud_obj.value,

@@ -1,33 +1,31 @@
-from src.sgd.convert.into_curate import basic_convert, remove_nones
+from src.sgd.convert import basic_convert, remove_nones
 
-__author__ = 'kpaskov'
-
+__author__ = 'sweng66'
 
 def genomerelease_starter(bud_session_maker):
     from src.sgd.model.bud.sequence import Release
-
     bud_session = bud_session_maker()
 
-    for bud_obj in bud_session.query(Release).all():
-        obj_json = remove_nones({
-            'bud_id': bud_obj.id,
-            'source': {'display_name': 'SGD'},
-            'genome_release': bud_obj.genome_release,
-            'sequence_release': bud_obj.sequence_release,
-            'annotation_release': bud_obj.annotation_release,
-            'curation_release': bud_obj.curation_release,
-            'filename': bud_obj.filename,
-            'release_date': str(bud_obj.release_date),
-            'date_created': str(bud_obj.date_created),
-            'created_by': bud_obj.created_by})
-        yield obj_json
+    for x in bud_session.query(Release).all():
+
+        yield remove_nones({
+                'source': {'display_name': 'SGD'},
+                'display_name': x.genome_release,
+                'format_name': x.genome_release,
+                'bud_id': x.id,   
+                'sequence_release': x.sequence_release,
+                'annotation_release': x.annotation_release,
+                'curation_release': x.curation_release,
+                'release_date': str(x.release_date),
+                'date_created': str(x.date_created),
+                'created_by': x.created_by})
 
     bud_session.close()
 
 
-def convert(bud_db, nex_db):
-    basic_convert(bud_db, nex_db, genomerelease_starter, 'genomerelease', lambda x: x['genome_release'])
-
 if __name__ == '__main__':
-    convert('pastry.stanford.edu:1521', 'curator-dev-db')
+    from src.sgd.convert import config
+    basic_convert(config.BUD_HOST, config.NEX_HOST, genomerelease_starter, 'genomerelease', lambda x: x['display_name'])
+
+
 
