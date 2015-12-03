@@ -1132,40 +1132,40 @@ def make_posttranslational_evidence_starter(nex_session_maker):
         pmid_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
         #Phosphorylation
-        for row in make_file_starter('src/sgd/convert/data/phosphosites.txt')():
-            if len(row) == 19:
-                bioentity_key = (row[0], 'LOCUS')
+        # for row in make_file_starter('src/sgd/convert/data/phosphosites.txt')():
+        #    if len(row) == 19:
+        #        bioentity_key = (row[0], 'LOCUS')
+        #
+        #        conditions = {}
+        #
+        #        site_functions = row[7]
+        #        if site_functions != '-':
+        #            for site_function in site_functions.split('|'):
+        #                condition = Generalproperty({'note': site_function.capitalize()})
+        #                conditions[condition.unique_key()] = condition
+        #
+        #        kinases = row[9]
+        #        if kinases != '-':
+        #            for kinase in kinases.split('|'):
+        #                bioent_key = (kinase, 'LOCUS')
+        #                if bioent_key in key_to_bioentity:
+        #                    condition = Bioentityproperty({'role': 'Kinase', 'bioentity': key_to_bioentity[bioent_key]})
+        #                    conditions[condition.unique_key()] = condition
+        #                else:
+        #                    print 'Bioentity not found: ' + str(bioent_key)
+        #
+        #        if bioentity_key in key_to_bioentity:
+        #            yield {'source': key_to_source['PhosphoGRID'],
+        #                   'locus': key_to_bioentity[bioentity_key],
+        #                   'site_index': int(row[2][1:]),
+        #                   'site_residue': row[2][0],
+        #                   'type': 'phosphorylation',
+        #                   'properties': conditions.values()}
+        #        else:
+        #            print 'Bioentity not found: ' + str(bioentity_key)
 
-                conditions = {}
 
-                site_functions = row[7]
-                if site_functions != '-':
-                    for site_function in site_functions.split('|'):
-                        condition = Generalproperty({'note': site_function.capitalize()})
-                        conditions[condition.unique_key()] = condition
-
-                kinases = row[9]
-                if kinases != '-':
-                    for kinase in kinases.split('|'):
-                        bioent_key = (kinase, 'LOCUS')
-                        if bioent_key in key_to_bioentity:
-                            condition = Bioentityproperty({'role': 'Kinase', 'bioentity': key_to_bioentity[bioent_key]})
-                            conditions[condition.unique_key()] = condition
-                        else:
-                            print 'Bioentity not found: ' + str(bioent_key)
-
-                if bioentity_key in key_to_bioentity:
-                    yield {'source': key_to_source['PhosphoGRID'],
-                           'locus': key_to_bioentity[bioentity_key],
-                           'site_index': int(row[2][1:]),
-                           'site_residue': row[2][0],
-                           'type': 'phosphorylation',
-                           'properties': conditions.values()}
-                else:
-                    print 'Bioentity not found: ' + str(bioentity_key)
-
-        #Other sites
-
+        ## Other sites
 
         file_names = ['src/sgd/convert/data/methylationSitesPMID25109467.txt',
                       'src/sgd/convert/data/ubiquitinationSites090314.txt',
