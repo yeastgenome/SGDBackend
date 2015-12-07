@@ -29,8 +29,8 @@ the response object includes the following fields
    * `description`, string, may be null
    * `download_metadata`, object, only present for downloads, and omitted otherwise, contains the following fields
       * `title`, string
-      * `citation`, string
-      * `experiment_type`, array of strings
+      * `citations`, array of strings
+      * `experiment_types`, array of strings
       * `summary`, string
       * `keywords`, array of strings
       * `pubmed_ids`, array of string
