@@ -288,7 +288,7 @@ Comment on column EDAM_URL.OBJ_URL is 'URL of the object (relative for local lin
 Comment on column EDAM_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column EDAM_URL.BUD_ID is 'Not from BUD.';
 Comment on column EDAM_URL.EDAM_ID is 'FK to EDAM.EDAM_ID.';
-Comment on column EDAM_URL.URL_TYPE is 'Type of URL (BioPortal, OLS).';
+Comment on column EDAM_URL.URL_TYPE is 'Type of URL (BioPortal, Ontobee).';
 Comment on column EDAM_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column EDAM_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
