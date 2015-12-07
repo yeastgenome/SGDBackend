@@ -6,7 +6,7 @@ CREATE OR REPLACE TRIGGER Contig_AUDR
     AFTER UPDATE OR DELETE ON contig
     FOR EACH ROW
 DECLARE
-    v_row       delete_log.deleted_row%TYPE
+    v_row       delete_log.deleted_row%TYPE;
     v_part       delete_log.deleted_row%TYPE;
 BEGIN
   IF UPDATING THEN
