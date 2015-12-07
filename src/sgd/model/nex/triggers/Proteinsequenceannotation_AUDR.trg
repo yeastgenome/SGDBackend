@@ -7,6 +7,7 @@ CREATE OR REPLACE TRIGGER Proteinsequenceannotation_AUDR
     FOR EACH ROW
 DECLARE
     v_row       delete_log.deleted_row%TYPE;
+    v_part       delete_log.deleted_row%TYPE;
 BEGIN
   IF UPDATING THEN
 
@@ -77,14 +78,16 @@ BEGIN
 
   ELSE
 
-    v_row := :old.annotation_id || '[:]' || :old.dbentity_id || '[:]' ||
+    v_part := :old.annotation_id || '[:]' || :old.dbentity_id || '[:]' ||
              :old.source_id || '[:]' || :old.taxonomy_id || '[:]' ||
              :old.reference_id || '[:]' || :old.bud_id || '[:]' ||
              :old.contig_id || '[:]' || :old.seq_version || '[:]' || 
              :old.coord_version || '[:]' || :old.genomerelease_id || '[:]' || 
              :old.file_header || '[:]' || :old.download_filename || '[:]' ||
-             :old.file_id || '[:]' || :old.residues || '[:]' ||
+             :old.file_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
+
+    v_row := concat(concat(v_part, '[:]'), :old.residues);
 
     AuditLog.InsertDeleteLog('PROTEINSEQUENCEANNOTATION', :old.annotation_id, v_row, USER);
 

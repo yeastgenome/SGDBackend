@@ -7,6 +7,7 @@ CREATE OR REPLACE TRIGGER Dnasubsequence_AUDR
     FOR EACH ROW
 DECLARE
     v_row       delete_log.deleted_row%TYPE;
+    v_part       delete_log.deleted_row%TYPE;
 BEGIN
   IF UPDATING THEN
 
@@ -92,16 +93,17 @@ BEGIN
 
   ELSE
 
-    v_row := :old.dnasubsequence_id || '[:]' || :old.annotation_id || '[:]' ||
+    v_part := :old.dnasubsequence_id || '[:]' || :old.annotation_id || '[:]' ||
              :old.dbentity_id || '[:]' || :old.display_name || '[:]' ||
              :old.bud_id || '[:]' || :old.so_id || '[:]' ||
              :old.relative_start_index || '[:]' || :old.relative_end_index || '[:]' ||
              :old.contig_start_index || '[:]' || :old.contig_end_index || '[:]' ||
              :old.seq_version || '[:]' || :old.coord_version || '[:]' ||
              :old.genomerelease_id || '[:]' || :old.file_header || '[:]' ||
-             :old.download_filename || '[:]' ||
-             :old.file_id || '[:]' || :old.residues || '[:]' ||
+             :old.download_filename || '[:]' || :old.file_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
+
+    v_row := concat(concat(v_part, '[:]'), :old.residues);
 
     AuditLog.InsertDeleteLog('DNASUBSEQUENCE', :old.dnasubsequence_id, v_row, USER);
 

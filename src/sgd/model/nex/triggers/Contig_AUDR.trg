@@ -6,7 +6,8 @@ CREATE OR REPLACE TRIGGER Contig_AUDR
     AFTER UPDATE OR DELETE ON contig
     FOR EACH ROW
 DECLARE
-    v_row       delete_log.deleted_row%TYPE;
+    v_row       delete_log.deleted_row%TYPE
+    v_part       delete_log.deleted_row%TYPE;
 BEGIN
   IF UPDATING THEN
 
@@ -132,8 +133,8 @@ BEGIN
 
   ELSE
 
-    v_row := :old.contig_id || '[:]' || :old.format_name || '[:]' ||
-		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
+    v_part := :old.contig_id || '[:]' || :old.format_name || '[:]' ||
+             :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.taxonomy_id || '[:]' || :old.so_id || '[:]' ||
              :old.centromere_start || '[:]' || :old.centromere_end || '[:]' ||
@@ -143,9 +144,10 @@ BEGIN
              :old.reference_percent_identity || '[:]' || :old.reference_alignment_length || '[:]' ||
              :old.seq_version || '[:]' || :old.coord_version || '[:]' ||
              :old.genomerelease_id || '[:]' || :old.file_header || '[:]' ||
-             :old.download_filename || '[:]' ||
-             :old.file_id || '[:]' || :old.residues || '[:]' ||
+             :old.download_filename || '[:]' || :old.file_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
+
+    v_row := concat(concat(v_part, '[:]'), :old.residues);
 
     AuditLog.InsertDeleteLog('CONTIG', :old.contig_id, v_row, USER);
 

@@ -7,6 +7,8 @@ CREATE OR REPLACE TRIGGER StrainSummary_AUDR
     FOR EACH ROW
 DECLARE
     v_row       delete_log.deleted_row%TYPE;
+    v_part1       delete_log.deleted_row%TYPE;
+    v_part2       delete_log.deleted_row%TYPE;
 BEGIN
   IF UPDATING THEN
 
@@ -42,11 +44,14 @@ BEGIN
 
   ELSE
 
-    v_row := :old.summary_id || '[:]' || :old.source_id || '[:]' ||
+    v_part1 := :old.summary_id || '[:]' || :old.source_id || '[:]' ||
              :old.bud_id || '[:]' || :old.strain_id || '[:]' ||
              :old.summary_type || '[:]' || 
-             :old.text || '[:]' || :old.html || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
+
+    v_part2 := concat(concat(v_part1, '[:]'), :old.text);
+
+    v_row := concat(concat(v_part2, '[:]'), :old.html);
 
     AuditLog.InsertDeleteLog('STRAIN_SUMMARY', :old.summary_id, v_row, USER);
 
