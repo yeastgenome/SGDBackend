@@ -257,6 +257,51 @@ Comment on column ECO_RELATION.RO_ID is 'FK to RO.RO_ID.';
 Comment on column ECO_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column ECO_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table EDAM is 'EDAM is an ontology of bioinformatics topics, operations, types of data including identifiers, and data formats.';
+Comment on column EDAM.EDAM_ID is 'Unique identifier (Oracle sequence).';
+Comment on column EDAM.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column EDAM.DISPLAY_NAME is 'Public display name.';
+Comment on column EDAM.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column EDAM.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column EDAM.BUD_ID is 'Not from BUD.';
+Comment on column EDAM.EDAMID is 'EDAM identifier (e.g. EDAM:0928).';
+Comment on column EDAM.EDAM_NAMESPACE is 'Four separate domains or namespaces (data, format, operation, topic).';
+Comment on column EDAM.DESCRIPTION is 'Description or comment.';
+Comment on column EDAM.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column EDAM.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table EDAM_ALIAS is 'Other names or synonyms for a EDAM term.';
+Comment on column EDAM_ALIAS.ALIAS_ID is 'Unique identifier (Oracle sequence).';
+Comment on column EDAM_ALIAS.DISPLAY_NAME is 'Public display name.';
+Comment on column EDAM_ALIAS.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column EDAM_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column EDAM_ALIAS.BUD_ID is 'Not from BUD.';
+Comment on column EDAM_ALIAS.EDAM_ID is 'FK to EDAM.EDAM_ID.';
+Comment on column EDAM_ALIAS.ALIAS_TYPE is 'Type of alias (BROAD, EXACT, RELATED, NARROW).';
+Comment on column EDAM_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column EDAM_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table EDAM_URL is 'URLs associated with EDAM terms.';
+Comment on column EDAM_URL.URL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column EDAM_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column EDAM_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column EDAM_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column EDAM_URL.BUD_ID is 'Not from BUD.';
+Comment on column EDAM_URL.EDAM_ID is 'FK to EDAM.EDAM_ID.';
+Comment on column EDAM_URL.URL_TYPE is 'Type of URL (BioPortal, OLS).';
+Comment on column EDAM_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column EDAM_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table EDAM_RELATION is 'Relationship between two EDAM terms.';
+Comment on column EDAM_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column EDAM_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column EDAM_RELATION.BUD_ID is 'Not from BUD.';
+Comment on column EDAM_RELATION.PARENT_ID is 'FK to EDAM.EDAM_ID.';
+Comment on column EDAM_RELATION.CHILD_ID is 'FK to EDAM.EDAM_ID.';
+Comment on column EDAM_RELATION.RO_ID is 'FK to RO.RO_ID.';
+Comment on column EDAM_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column EDAM_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table GO is 'Gene Ontology (GO) terms used to describe genes and gene products.';
 Comment on column GO.GO_ID is 'Unique identifier (Oracle sequence).';
 Comment on column GO.FORMAT_NAME is 'Unique name to create download files.';
