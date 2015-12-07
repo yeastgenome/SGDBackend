@@ -55,6 +55,16 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EcoUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EcoRelation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EcoRelation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Edam_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Edam_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EdamAlias_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EdamAlias_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EdamUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EdamUrl_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EdamRelation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EdamRelation_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Go_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Go_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/GoAlias_BIUR.trg
@@ -208,7 +218,6 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteinexptannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinexptannotationCond_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinexptannotationCond_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteinsequenceannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteinsequenceannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinsequenceDetail_BIUR.trg
