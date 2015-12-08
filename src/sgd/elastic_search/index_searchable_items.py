@@ -7,9 +7,8 @@ from elasticsearch import Elasticsearch
 import xlrd
 import json
 
-#CLIENT_ADDRESS = 'http://localhost:9200'
-CLIENT_ADDRESS = 'http://54.200.43.123:9200/'
-INDEX_NAME = 'searchable_items'
+CLIENT_ADDRESS = 'http://localhost:9200'
+INDEX_NAME = 'searchable_items2' # TEMP
 DOC_TYPE = 'searchable_item'
 RESET_INDEX = False
 es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
@@ -49,16 +48,19 @@ def index_genes():
             _name = gene.display_name
         else:
             _name = gene.display_name + ' / ' + gene.format_name
+        # TODO, get more limited amount of indexing fields
+
         # get perf doc
         perf_result = perf_session.query(PerfBioentity).filter_by(id=gene.id).first()
+        print perf_result.to_json().keys()
         obj = {
             'name': _name,
             'href': gene.link,
             'description': gene.headline,
             'category': 'locus',
-            'data': perf_result.to_json()
+            'data': {}
         }
-        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
+        # es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
 
 def index_phenotypes():
     print 'indexing phenotypes'
@@ -252,11 +254,11 @@ def index_toolbar_links():
 def main():
     setup_index()
     index_genes()
-    index_phenotypes()
-    index_authors()
-    index_strains()
-    index_go_terms()
-    index_references()
+    # index_phenotypes()
+    # index_authors()
+    # index_strains()
+    # index_go_terms()
+    # index_references()
 
 #    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
 
