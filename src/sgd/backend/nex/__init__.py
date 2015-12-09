@@ -792,15 +792,16 @@ class SGDBackend(BackendInterface):
         else:
             es_query = {
                 "bool": {
-                    "should": {
-                        "match": {
-                            "name": {
-                                "query": query,
-                                "analyzer": "standard",
-                                "boost": 4
-                            }
-                        },
+                    "should": [
                         {
+                            "match": {
+                                "name": {
+                                    "query": query,
+                                    "analyzer": "standard",
+                                    "boost": 4
+                                }
+                            }
+                        }, {
                             "match": {
                                 "description": {
                                     "query": query,
@@ -808,7 +809,7 @@ class SGDBackend(BackendInterface):
                                 }
                             }
                         }
-                    }
+                    ]
                 }
             }
 
