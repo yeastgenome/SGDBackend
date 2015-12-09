@@ -24,6 +24,8 @@ __author__ = 'kpaskov'
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 query_limit = 25000
 
+SEARCH_ES_INDEX = 'searchable_items5'
+
 class SGDBackend(BackendInterface):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory, esearch_addr=None):
         class Base(object):
@@ -792,12 +794,18 @@ class SGDBackend(BackendInterface):
         else:
             es_query = {
                 'bool': {
-                    'must': {
-                        'match': { '_all': query }
+                    'should': {
+                        'match': { '_all': query },
                     },
                     'should': {
-                        'match': { 'category': 'locus' }
-                    }
+                        'match': {
+                            'name': {
+                                'query': query,
+                                'analyzer': 'standard'
+                            }
+                        }
+                    },
+
                 }
             }
         # filter by category, if provided
@@ -819,7 +827,7 @@ class SGDBackend(BackendInterface):
         }
         results_search_body['_source'] = ['name', 'href', 'description', 'category', 'data']
         # run search
-        search_results = self.es.search(index='searchable_items', body=results_search_body, size=limit, from_=offset)
+        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)
         # format results
         formatted_results = []
 
@@ -852,7 +860,7 @@ class SGDBackend(BackendInterface):
                 }
             }
         }
-        agg_response = self.es.search(index='searchable_items', body=agg_query_body)
+        agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
         # format agg
         formatted_agg = []
         for cat in agg_response['aggregations']['categories']['buckets']:

@@ -8,7 +8,7 @@ import xlrd
 import json
 
 CLIENT_ADDRESS = 'http://localhost:9200'
-INDEX_NAME = 'searchable_items2' # TEMP
+INDEX_NAME = 'searchable_items5' # TEMP
 DOC_TYPE = 'searchable_item'
 RESET_INDEX = False
 es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
@@ -33,34 +33,125 @@ def setup_index():
     exists = es.indices.exists(INDEX_NAME)
     if not exists:
         es.indices.create(INDEX_NAME)
-        put_mapping()
+        # only set filters when creating new one, may need to wait or run step-by-step, or wait for certain index health
+        set_filters()
+        set_mapping()
     return
 
-def put_mapping():
-    return
+def set_filters():
+    new_settings = {
+        "analysis": {
+            "filter": {
+                "autocomplete_filter": { 
+                    "type":     "edge_ngram",
+                    "min_gram": 1,
+                    "max_gram": 20
+                }
+            },
+            "analyzer": {
+                "autocomplete": {
+                    "type":      "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "autocomplete_filter" 
+                    ]
+                },
+                "raw": {
+                    "type": "custom",
+                    "tokenizer": "keyword",
+                    "filter": [
+                        "lowercase"
+                    ]
+                }
+            }
+
+        }
+    }
+    # add autocomplete setting, needs to close and reopen
+    es.indices.close(index=INDEX_NAME)
+    es.indices.put_settings(index=INDEX_NAME, body=new_settings)
+    es.indices.open(index=INDEX_NAME)
+
+def set_mapping():
+    mapping_settings = {
+        DOC_TYPE: {
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "analyzer": "autocomplete",
+                    "fields": {
+                        "raw": {
+                            "type": "string",
+                            "analyzer": "raw"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    # drop index and re-create
+    es.indices.delete(index=INDEX_NAME, ignore=404)
+    es.indices.create(index=INDEX_NAME)
+    es.cluster.health(wait_for_status='yellow', request_timeout=5)
+    set_filters()
+    es.indices.put_mapping(index=INDEX_NAME, doc_type=DOC_TYPE, body=mapping_settings)
+
+def get_unique_go_term_names(go_obj, go_type):
+    if go_type == 'biological_component':
+        raw_terms = go_obj['manual_biological_process_terms'] + go_obj['htp_biological_process_terms']
+    elif go_type == 'molecular_function':
+        raw_terms = go_obj['manual_molecular_function_terms'] + go_obj['htp_molecular_function_terms']
+    else:
+        raw_terms = []
+
+    simple_terms = []
+    for term in raw_terms:
+        name = term['term']['display_name']
+        if name not in simple_terms:
+            simple_terms.append(name)
+
+    return simple_terms
 
 def index_genes():
     print 'indexing genes'
     # get nex format of all genes
     all_genes = nex_session.query(Bioentity).all()
-    for gene in all_genes:
+    for i, gene in enumerate(all_genes):
         if gene.display_name == gene.format_name:
             _name = gene.display_name
         else:
             _name = gene.display_name + ' / ' + gene.format_name
-        # TODO, get more limited amount of indexing fields
 
+        print (i / float(len(all_genes)))
         # get perf doc
-        perf_result = perf_session.query(PerfBioentity).filter_by(id=gene.id).first()
-        print perf_result.to_json().keys()
+        perf_result = perf_session.query(PerfBioentity).filter_by(id=gene.id).first().to_json()
+        # format paragraph
+        if perf_result['paragraph']:
+            paragraph = perf_result['paragraph']['text']
+        else:
+            paragraph = None
+        # get GO terms
+        biological_component_terms = get_unique_go_term_names(perf_result['go_overview'], 'biological_component')
+        cellular_location_terms = get_unique_go_term_names(perf_result['go_overview'], 'cellular_location')
+        molecular_function_terms = get_unique_go_term_names(perf_result['go_overview'], 'molecular_function')
+
+        data_obj = {
+            # 'paragraph': paragraph,
+            'go_biological_process': biological_component_terms,
+            'go_cellular_component': cellular_location_terms,
+            'go_molecular_function': molecular_function_terms,
+            # 'phenotype': perf_result['name_description'],
+            'name_description': perf_result['name_description'],
+        }
         obj = {
             'name': _name,
             'href': gene.link,
             'description': gene.headline,
             'category': 'locus',
-            'data': {}
+            'data': data_obj
         }
-        # es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
+        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
 
 def index_phenotypes():
     print 'indexing phenotypes'
@@ -231,6 +322,7 @@ def index_toolbar_links():
              ("Submit a Gene Registration", "http://www.yeastgenome.org/cgi-bin/registry/geneRegistry", None, 'resource', None),
              ("Gene Registry", "http://www.yeastgenome.org/help/community/gene-registry", None, 'resource', None),
              ("Nomenclature Conventions", "http://www.yeastgenome.org/help/community/nomenclature-conventions", None, 'resource', None),
+             ("Yeastmine", "http://yeastmine.yeastgenome.org/yeastmine/begin.do", None, 'resource', None),
              ("Global Gene Hunter", "http://www.yeastgenome.org/cgi-bin/geneHunter", None, 'resource', None),
              ("Strains and Constructs", "http://wiki.yeastgenome.org/index.php/Strains", None, 'resource', None),
              ("Reagents", "http://wiki.yeastgenome.org/index.php/Reagents", None, 'resource', None),
@@ -254,15 +346,15 @@ def index_toolbar_links():
 def main():
     setup_index()
     index_genes()
-    # index_phenotypes()
-    # index_authors()
-    # index_strains()
-    # index_go_terms()
-    # index_references()
+    index_phenotypes()
+    index_authors()
+    index_strains()
+    index_go_terms()
+    index_references()
 
 #    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
 
-    index_toolbar_links()
+    # index_toolbar_links()
 
     # experiments
     # pages

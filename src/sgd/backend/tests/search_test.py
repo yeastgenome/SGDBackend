@@ -14,18 +14,18 @@ def query_search(query):
 # search "rad54", get rad54 LSP as top result
 response = query_search('rad54')
 assert response['results'][0]['href'] == '/locus/S000003131/overview'
-# search for ATG, get 36 locus results
+# search for ATG, get less than 40 locus results, maybe should be another number
 response = query_search('ATG')
 aggs = response['aggregations']
 for agg in aggs:
 	if agg['name'] == 'locus':
-		assert agg['total' == 36]
+		assert agg['total'] < 40
 # search BLAST, BLAST should be top result
 response = query_search('blast')
-assert response['results'][0]['href'] == '/blast-sgd'
+assert response['results'][0]['href'] == 'http://yeastgenome.org/blast-sgd'
 # search variant viewer, vv should be top result
 response = query_search('variant viewer')
-assert response['results'][0]['href'] == 'variant-viewer'
+assert response['results'][0]['href'] == 'http://www.yeastgenome.org/variant-viewer'
 # search for "phosphoprotein phosphatase activity," see less than 100 gene results
 response = query_search('phosphoprotein phosphatase activity')
 aggs = response['aggregations']
