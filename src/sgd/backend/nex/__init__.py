@@ -795,17 +795,16 @@ class SGDBackend(BackendInterface):
             es_query = {
                 'bool': {
                     'should': {
-                        'match': { '_all': query },
-                    },
-                    'should': {
                         'match': {
                             'name': {
                                 'query': query,
                                 'analyzer': 'standard'
                             }
                         }
-                    },
-
+                       # 'match': {
+                       #      '_all': query
+                       #  }
+                    }
                 }
             }
         # filter by category, if provided
@@ -940,53 +939,52 @@ class SGDBackend(BackendInterface):
                 'bool': {
                     'must': {
                         'match': {
-                            'term': {
+                            'name': {
                                 'query': query,
                                 'analyzer': 'standard'
                             }
                         }
                     },
-                    'must_not': { 'match': { 'type': 'paper' }},
+                    'must_not': { 'match': { 'category': 'paper' }},
                     'should': [
                         {
                             'match': {
-                                'type': {
-                                    'query': 'gene_name',
+                                'category': {
+                                    'query': 'locus',
                                     'boost': 4
                                 }
                             }
                         },
-                        { 'match': { 'type': 'GO' }},
-                        { 'match': { 'type': 'phenotyoe' }},
-                        { 'match': { 'type': 'strain' }},
-                        { 'match': { 'type': 'paper' }},
-                        { 'match': { 'type': 'description' }},
+                        # { 'match': { 'type': 'GO' }},
+                        # { 'match': { 'type': 'phenotyoe' }},
+                        # { 'match': { 'type': 'strain' }},
+                        # { 'match': { 'type': 'paper' }},
+                        # { 'match': { 'type': 'description' }},
                     ]
                 }
             }
         }
-        res = self.es.search(index='sgdlite', body=search_body)
+        res = self.es.search(index=SEARCH_ES_INDEX, body=search_body)
         simplified_results = []
         for hit in res['hits']['hits']:
             # add matching words from description, not whole description
-            if hit['_source']['type'] == 'description':
-                for word in hit['_source']['term'].split(" "):
-                    if word.lower().find(query.lower()) > -1:
-                        item = re.sub('[;,.]', '', word)
-                        obj = {
-                            'name': word,
-                            'category': 'suggestion'
-                        }
-                        simplified_results.append(obj)
-                        break
-            else:
-                print hit['_source']
-                obj = {
-                    'name': hit['_source']['term'],
-                    'href': hit['_source']['link_url'],
-                    'category': hit['_source']['type']
-                }
-                simplified_results.append(obj)
+            # if hit['_source']['type'] == 'description':
+            #     for word in hit['_source']['name'].split(" "):
+            #         if word.lower().find(query.lower()) > -1:
+            #             item = re.sub('[;,.]', '', word)
+            #             obj = {
+            #                 'name': word,
+            #                 'category': 'suggestion'
+            #             }
+            #             simplified_results.append(obj)
+            #             break
+            # else:
+            obj = {
+                'name': hit['_source']['name'],
+                'href': hit['_source']['href'],
+                'category': hit['_source']['category']
+            }
+            simplified_results.append(obj)
 
         # filter duplicates
         unique = []
