@@ -26,15 +26,15 @@ assert response['results'][0]['href'] == 'http://yeastgenome.org/blast-sgd'
 # search variant viewer, vv should be top result
 response = query_search('variant viewer')
 assert response['results'][0]['href'] == 'http://www.yeastgenome.org/variant-viewer'
-# search for "phosphoprotein phosphatase activity," see less than 100 gene results, but more than 40 (should be about 45)
-response = query_search('phosphoprotein phosphatase activity')
+# search for "kinase," see some gene results (but less than 200)
+response = query_search('kinase')
 aggs = response['aggregations']
 for agg in aggs:
 	has_locus = False
 	if agg['name'] == 'locus':
 		has_locus = True
-		assert agg['total' < 100]
-		assert agg['total' > 40]
+		assert agg['total' < 200]
+		assert agg['total' > 100]
 assert has_locus
 
 
