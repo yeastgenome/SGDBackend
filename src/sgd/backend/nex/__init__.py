@@ -801,6 +801,8 @@ class SGDBackend(BackendInterface):
                                 'analyzer': 'standard'
                             }
                         }
+
+                        
                        # 'match': {
                        #      '_all': query
                        #  }
