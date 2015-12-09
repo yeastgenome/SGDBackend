@@ -791,14 +791,42 @@ class SGDBackend(BackendInterface):
             es_query = { 'match_all': {} }
         else:
             es_query = {
-                'bool': {
-                    'must': {
-                        'match': { '_all': query }
+            "bool": {
+                    "must": {
+                        "match": {
+                            "name": {
+                                "query": query,
+                                "analyzer": "standard"
+                            }
+                        }
                     },
-                    'should': {
-                        'match': { 'category': 'locus' }
-                    }
+                    "should": [
+                        {
+                            "match": {
+                                "name": {
+                                    "query": query,
+                                    "boost": 4
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "description": {
+                                    "query": query,
+                                    "boost": 3
+                                }
+                            }
+                        }
+                    ]
                 }
+                # 'bool': {
+                #     'must': {
+                #         'match': { '_all': query }
+                #     },
+                #     'should': {
+                #         'match': { 'category': 'locus' }
+                #     }
+                # }
             }
         # filter by category, if provided
         if categories != '':
