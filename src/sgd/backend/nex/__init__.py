@@ -970,8 +970,8 @@ class SGDBackend(BackendInterface):
         simplified_results = set([])
         for hit in res['hits']['hits']:
             obj = {
-                'name': hit['_source']['term'],
-                'href': hit['_source']['link_url'],
+                'name': hit['_source']['name'],
+                'href': hit['_source']['href'],
                 'category': hit['_source']['category']
             }
             simplified_results.add(obj)
