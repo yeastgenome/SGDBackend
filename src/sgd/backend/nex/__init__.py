@@ -946,7 +946,7 @@ class SGDBackend(BackendInterface):
                 "bool": {
                     "must": {
                         "match": {
-                            "name": {
+                            "term": {
                                 "query": query,
                                 "analyzer": "standard"
                             }
@@ -967,35 +967,16 @@ class SGDBackend(BackendInterface):
             }
         }
         res = self.es.search(index=SEARCH_ES_INDEX, body=search_body)
-        simplified_results = []
+        simplified_results = set([])
         for hit in res['hits']['hits']:
-            # add matching words from description, not whole description
-            if hit['_source']['type'] == 'description':
-                for word in hit['_source']['term'].split(" "):
-                    if word.lower().find(query.lower()) > -1:
-                        item = re.sub('[;,.]', '', word)
-                        obj = {
-                            'name': word,
-                            'category': 'suggestion'
-                        }
-                        simplified_results.append(obj)
-                        break
-            else:
-                print hit['_source']
-                obj = {
-                    'name': hit['_source']['term'],
-                    'href': hit['_source']['link_url'],
-                    'category': hit['_source']['type']
-                }
-                simplified_results.append(obj)
+            obj = {
+                'name': hit['_source']['term'],
+                'href': hit['_source']['link_url'],
+                'category': hit['_source']['category']
+            }
+            simplified_results.add(obj)
 
-        # filter duplicates
-        unique = []
-        for hit in simplified_results:
-            if hit not in unique:
-                unique.append(hit)
-
-        return json.dumps({"results": unique})
+        return json.dumps({"results": list(simplified_results)})
 
 
       
