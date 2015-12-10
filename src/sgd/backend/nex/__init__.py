@@ -946,7 +946,7 @@ class SGDBackend(BackendInterface):
                 "bool": {
                     "must": {
                         "match": {
-                            "term": {
+                            "name": {
                                 "query": query,
                                 "analyzer": "standard"
                             }
