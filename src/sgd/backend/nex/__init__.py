@@ -967,16 +967,21 @@ class SGDBackend(BackendInterface):
             }
         }
         res = self.es.search(index=SEARCH_ES_INDEX, body=search_body)
-        simplified_results = set([])
+        simplified_results = []
         for hit in res['hits']['hits']:
             obj = {
                 'name': hit['_source']['name'],
                 'href': hit['_source']['href'],
                 'category': hit['_source']['category']
             }
-            simplified_results.add(obj)
+            simplified_results.append(obj)
 
-        return json.dumps({"results": list(simplified_results)})
+        unique = []
+        for hit in simplified_results:
+            if hit not in unique:
+                unique.append(hit)
+
+        return json.dumps({"results": unique})
 
 
       
