@@ -952,7 +952,7 @@ class SGDBackend(BackendInterface):
                             }
                         }
                     },
-                    "must_not": { "match": { "type": "paper" }},
+                    "must_not": { "match": { "type": "reference" }},
                     "should": [
                         {
                             "match": {
