@@ -942,31 +942,26 @@ class SGDBackend(BackendInterface):
 
         query = params['q']
         search_body = {
-            'query': {
-                'bool': {
-                    'must': {
-                        'match': {
-                            'term': {
-                                'query': query,
-                                'analyzer': 'standard'
+            "query": {
+                "bool": {
+                    "must": {
+                        "match": {
+                            "term": {
+                                "query": query,
+                                "analyzer": "standard"
                             }
                         }
                     },
-                    'must_not': { 'match': { 'type': 'paper' }},
-                    'should': [
+                    "must_not": { "match": { "type": "paper" }},
+                    "should": [
                         {
-                            'match': {
-                                'type': {
-                                    'query': 'gene_name',
-                                    'boost': 4
+                            "match": {
+                                "type": {
+                                    "query": "gene_name",
+                                    "boost": 4
                                 }
                             }
-                        },
-                        { 'match': { 'type': 'GO' }},
-                        { 'match': { 'type': 'phenotyoe' }},
-                        { 'match': { 'type': 'strain' }},
-                        { 'match': { 'type': 'paper' }},
-                        { 'match': { 'type': 'description' }},
+                        }
                     ]
                 }
             }
