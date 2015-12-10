@@ -24,6 +24,8 @@ __author__ = 'kpaskov'
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 query_limit = 25000
 
+SEARCH_ES_INDEX = 'searchable_items'
+
 class SGDBackend(BackendInterface):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory, esearch_addr=None):
         class Base(object):
@@ -798,7 +800,7 @@ class SGDBackend(BackendInterface):
                                 "name": {
                                     "query": query,
                                     "boost": 4,
-                                    "max_expansions": 8
+                                    "max_expansions": 30
                                 }
                             }
                         }, {
@@ -831,7 +833,7 @@ class SGDBackend(BackendInterface):
         }
         results_search_body['_source'] = ['name', 'href', 'description', 'category', 'data']
         # run search
-        search_results = self.es.search(index='searchable_items', body=results_search_body, size=limit, from_=offset)
+        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)
         # format results
         formatted_results = []
 
@@ -864,7 +866,7 @@ class SGDBackend(BackendInterface):
                 }
             }
         }
-        agg_response = self.es.search(index='searchable_items', body=agg_query_body)
+        agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
         # format agg
         formatted_agg = []
         for cat in agg_response['aggregations']['categories']['buckets']:
@@ -969,7 +971,7 @@ class SGDBackend(BackendInterface):
                 }
             }
         }
-        res = self.es.search(index='sgdlite', body=search_body)
+        res = self.es.search(index=SEARCH_ES_INDEX, body=search_body)
         simplified_results = []
         for hit in res['hits']['hits']:
             # add matching words from description, not whole description
