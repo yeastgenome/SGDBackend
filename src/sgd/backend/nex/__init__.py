@@ -794,11 +794,11 @@ class SGDBackend(BackendInterface):
                 "bool": {
                     "should": [
                         {
-                            "match": {
+                            "match_phrase_prefix": {
                                 "name": {
                                     "query": query,
-                                    "analyzer": "standard",
-                                    "boost": 4
+                                    "boost": 4,
+                                    "max_expansions": 8
                                 }
                             }
                         }, {
