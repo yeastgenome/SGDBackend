@@ -954,12 +954,12 @@ class SGDBackend(BackendInterface):
                             }
                         }
                     },
-                    "must_not": { "match": { "type": "reference" }},
+                    "must_not": { "match": { "category": "reference" }},
                     "should": [
                         {
                             "match": {
-                                "type": {
-                                    "query": "gene_name",
+                                "category": {
+                                    "query": "locus",
                                     "boost": 4
                                 }
                             }
