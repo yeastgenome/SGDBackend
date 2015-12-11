@@ -800,14 +800,16 @@ class SGDBackend(BackendInterface):
                                 "name": {
                                     "query": query,
                                     "boost": 4,
-                                    "max_expansions": 30
+                                    "max_expansions": 30,
+                                    "analyzer": "standard"
                                 }
                             }
                         }, {
                             "match": {
                                 "description": {
                                     "query": query,
-                                    "boost": 3
+                                    "boost": 3,
+                                    "analyzer": "standard"
                                 }
                             }
                         }
