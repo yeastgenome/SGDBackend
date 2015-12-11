@@ -808,7 +808,7 @@ class SGDBackend(BackendInterface):
                         {
                             "match_phrase": {
                                 "name": {
-                                    "query": "blast",
+                                    "query": query,
                                     "boost": 10,
                                     "analyzer": "standard"
                                 }
