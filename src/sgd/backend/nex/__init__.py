@@ -804,7 +804,17 @@ class SGDBackend(BackendInterface):
                                     "analyzer": "standard"
                                 }
                             }
-                        }, {
+                        },
+                        {
+                            "match_phrase": {
+                                "name": {
+                                    "query": "blast",
+                                    "boost": 10,
+                                    "analyzer": "standard"
+                                }
+                            }
+                        },                        
+                        {
                             "match": {
                                 "description": {
                                     "query": query,
