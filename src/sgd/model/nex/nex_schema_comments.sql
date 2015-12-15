@@ -746,15 +746,12 @@ Comment on column REFERENCE_DELETED.CREATED_BY is 'Username of the person who en
 Comment on table FILEDBENTITY is 'Details about files loaded into or dumped from the database or associated with the Download Server.';
 Comment on column FILEDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
 Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
-Comment on column FILEDBENTITY.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
-Comment on column FILEDBENTITY.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
 Comment on column FILEDBENTITY.PREVIOUS_FILE_NAME is 'File name on the Download Server.';
-Comment on column FILEDBENTITY.FILE_STATUS is 'Status of the file (current, archived, removed)';
-Comment on column FILEDBENTITY.FILE_DATA_TYPE is 'File type, FK to EDAM data.';
-Comment on column FILEDBENTITY.FILE_OPERATION is 'A function or process performed generating the file output, FK to EDAM operation.';
-Comment on column FILEDBENTITY.FILE_VERSION is 'File version or release date.';
-Comment on column FILEDBENTITY.FILE_FORMAT is 'Standard file format, FK to EDAM format.';
-Comment on column FILEDBENTITY.FILE_EXTENSION is 'File name extension (.gff, .tsv, .fsa.gz, .jpg, etc.).';
+Comment on column FILEDBENTITY.TOPIC_ID is 'A broad domain or category of the file, FK to EDAM topic namespace.';
+Comment on column FILEDBENTITY.OPERATION_ID is 'A function or process performed generating the file output, FK to EDAM operation namespace.';
+Comment on column FILEDBENTITY.FORMAT_ID is 'Standard file format, FK to EDAM format namespace.';
+Comment on column FILEDBENTITY.EXTENSION_ID is 'File name extension, FK to EDAM format namespace.';
+Comment on column FILEDBENTITY.VERSION is 'File version or release date.';
 
 Comment on table FILE_RELATION is 'Relationship between two files.';
 Comment on column FILE_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
@@ -961,6 +958,89 @@ Comment on column REPORTER.DESCRIPTION is 'Description or comment.';
 Comment on column REPORTER.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REPORTER.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+/* Expression */
+
+Comment on table DATASET is 'High throughput gene expression data from NCBI’s GEO database and displayed using SPELL.';
+Comment on column DATASET.DATASET_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASET.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column DATASET.DISPLAY_NAME is 'Public display name.';
+Comment on column DATASET.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column DATASET.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASET.BUD_ID is 'Not in BUD.';
+Comment on column DATASET.DBXREF_ID is 'GEO Series ID (GSE), ArrayExpress ID, or other external database identifier.';
+Comment on column DATASET.FILE_ID is 'PCL filename used to load SPELL. FK to FILEDBENTITY.FILE_ID.';
+Comment on column DATASET.ASSAY_ID is 'FK to OBI.OBI_ID.';
+Comment on column DATASET.CHANNEL_COUNT is 'Number of channels (1 or 2) in the experiment.';
+Comment on column DATASET.SAMPLE_COUNT is 'Number of samples in the experiment.';
+Comment on column DATASET.TAXONOMY_ID is 'Strain background. FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column DATASET.DESCRIPTION is 'Description or summary.';
+Comment on column DATASET.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DATASET.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table DATASET_LAB is 'Laboratory which conducted the dataset experiment.';
+Comment on column DATASET_LAB.DATASET_LAB_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASET_LAB.DATASET_ID is 'FK to DATASET.DATASET_ID.';
+Comment on column DATASET_LAB.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASET_LAB.LAB_NAME is 'PI last name.';
+Comment on column DATASET_LAB.LAB_LOCATION is 'Institution or location of the PI.';
+Comment on column DATASET_LAB.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column DATASET_LAB.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DATASET_LAB.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table DATASET_URL is 'URLs associated with a dataset.';
+Comment on column DATASET_URL.URL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASET_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column DATASET_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column DATASET_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASET_URL.BUD_ID is 'Not from BUD.';
+Comment on column DATASET_URL.DATASET_ID is 'FK to DATASET.DATASET_ID.';
+Comment on column DATASET_URL.URL_TYPE is 'Type of URL (GSE, ArrayExpress, SRA).';
+Comment on column DATASET_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DATASET_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DATASET_KEYWORD is 'A category or keyword that describes the whole dataset.';
+Comment on column DATASET_KEYWORD.DATASET_KEYWORD_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASET_KEYWORD.KEYWORD_ID is 'FK to KEYWORD.KEYWORD_ID.';
+Comment on column DATASET_KEYWORD.DATASET_ID is 'FK to DATASET.DATASET_ID.';
+Comment on column DATASET_KEYWORD.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASET_KEYWORD.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DATASET_KEYWORD.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DATASET_REFERENCE is 'References associated with a dataset.';
+Comment on column DATASET_REFERENCE.DATASET_REFERENCE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASET_REFERENCE.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column DATASET_REFERENCE.DATASET_ID is 'FK to DATASET.DATASET_ID.';
+Comment on column DATASET_REFERENCE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASET_REFERENCE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DATASET_REFERENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DATASET_FILE is 'Files associated with a dataset.';
+Comment on column DATASET_FILE.DATASET_FILE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASET_FILE.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
+Comment on column DATASET_FILE.DATASET_ID is 'FK to DATASET.DATASET_ID.';
+Comment on column DATASET_FILE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASET_FILE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DATASET_FILE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DATASETSAMPLE is 'Samples or experiments in a dataset.';
+Comment on column DATASETSAMPLE.DATASETSAMPLE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASETSAMPLE.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column DATASETSAMPLE.DISPLAY_NAME is 'Public display name.';
+Comment on column DATASETSAMPLE.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column DATASETSAMPLE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASETSAMPLE.BUD_ID is 'Not in BUD.';
+Comment on column DATASETSAMPLE.DATASET_ID is 'FK to DATASET.DATASET_ID.';
+Comment on column DATASETSAMPLE.DBXREF_ID is 'GEO Sample identifier (GSM) or other identifier.';
+Comment on column DATASETSAMPLE.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
+Comment on column DATASETSAMPLE.BIOSAMPLE1_ID is 'FK to OBI.OBI_ID.';
+Comment on column DATASETSAMPLE.BIOSAMPLE2_ID is 'FK to OBI.OBI_ID.';
+Comment on column DATASETSAMPLE.STRAIN_CHANNEL1_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column DATASETSAMPLE.STRAIN_CHANNEL2_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column DATASETSAMPLE.SAMPLE_ORDER is 'Order to display the samples.';
+Comment on column DATASETSAMPLE.DESCRIPTION is 'Description or summary of the sample.';
+Comment on column DATASETSAMPLE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DATASETSAMPLE.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
 /* Sequence objects - Genome Release, Contig, Protein Domain */
 
 Comment on table GENOMERELEASE is 'S288C reference genome release numbers, in the format R[sequence release]-[annotation release]-[curation release] (e.g., R64-1-1).';
@@ -1044,17 +1124,6 @@ Comment on column PROTEINDOMAIN_URL.CREATED_BY is 'Username of the person who en
 
 /* Annotations */
 
-Comment on table ENZYMEANNOTATION is 'EC number annotations.';
-Comment on column ENZYMEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column ENZYMEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
-Comment on column ENZYMEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column ENZYMEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
-Comment on column ENZYMEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
-Comment on column ENZYMEANNOTATION.BUD_ID is 'Not from BUD.';
-Comment on column ENZYMEANNOTATION.EC_ID is 'FK to EC.EC_ID.';
-Comment on column ENZYMEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column ENZYMEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
-
 Comment on table DNASEQUENCEANNOTATION is 'Current DNA sequence details for contig, chromosomal, or plasmid features.';
 Comment on column DNASEQUENCEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column DNASEQUENCEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
@@ -1098,6 +1167,29 @@ Comment on column DNASUBSEQUENCE.FILE_ID is 'FK to FILE.FILE_ID.';
 Comment on column DNASUBSEQUENCE.RESIDUES is 'DNA sequence.';
 Comment on column DNASUBSEQUENCE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DNASUBSEQUENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table ENZYMEANNOTATION is 'EC number annotations.';
+Comment on column ENZYMEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column ENZYMEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column ENZYMEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ENZYMEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column ENZYMEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column ENZYMEANNOTATION.BUD_ID is 'Not from BUD.';
+Comment on column ENZYMEANNOTATION.EC_ID is 'FK to EC.EC_ID.';
+Comment on column ENZYMEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ENZYMEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table EXPRESSIONANNOTATION is 'High throughput gene expression annotations from GEO.';
+Comment on column EXPRESSIONANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column EXPRESSIONANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column EXPRESSIONANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column EXPRESSIONANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column EXPRESSIONANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column EXPRESSIONANNOTATION.BUD_ID is 'Not from BUD.';
+Comment on column EXPRESSIONANNOTATION.DTASETSAMPLE_ID is 'FK to DATASAMPLE.DATASAMPLE_ID.';
+Comment on column EXPRESSIONANNOTATION.EXPRESSION_VALUE is 'Numerical value of the expression annotation.';
+Comment on column EXPRESSIONANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column EXPRESSIONANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table GENINTERACTIONANNOTATION is 'Genetic interaction annotations from BioGRID.';
 Comment on column GENINTERACTIONANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
