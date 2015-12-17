@@ -1031,7 +1031,7 @@ Comment on column DATASETSAMPLE.OBJ_URL is 'URL of the object (relative for loca
 Comment on column DATASETSAMPLE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DATASETSAMPLE.BUD_ID is 'Not in BUD.';
 Comment on column DATASETSAMPLE.DATASET_ID is 'FK to DATASET.DATASET_ID.';
-Comment on column DATASETSAMPLE.DBXREF_ID is 'GEO Sample identifier (GSM) or other identifier.';
+Comment on column DATASETSAMPLE.DBXREF_ID is 'GEO Sample identifier (GSM) or other external database identifier.';
 Comment on column DATASETSAMPLE.DBXREF_TYPE is 'Type of database cross reference (GEO,ArrayExpress,SRA,Trace Archive).';
 Comment on column DATASETSAMPLE.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
 Comment on column DATASETSAMPLE.BIOSAMPLE1_ID is 'FK to OBI.OBI_ID.';
