@@ -974,6 +974,7 @@ Comment on column DATASET.ASSAY_ID is 'FK to OBI.OBI_ID.';
 Comment on column DATASET.CHANNEL_COUNT is 'Number of channels (1 or 2) in the experiment.';
 Comment on column DATASET.SAMPLE_COUNT is 'Number of samples in the experiment.';
 Comment on column DATASET.TAXONOMY_ID is 'Strain background. FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column DATASET.IS_IN_SPELL is 'Whether this dataset has been loaded into SPELL.';
 Comment on column DATASET.DESCRIPTION is 'Description or summary.';
 Comment on column DATASET.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DATASET.CREATED_BY  is 'Username of the person who entered the record into the database.';

@@ -70,6 +70,11 @@ BEGIN
         AuditLog.InsertUpdateLog('DATASET', 'SAMPLE_COUNT', :old.dataset_id, :old.sample_count, :new.sample_count, USER);
     END IF;
 
+    IF (:old.is_in_spell != :new.is_in_spell)
+    THEN
+        AuditLog.InsertUpdateLog('DATASET', 'IS_IN_SPELL', :old.dataset_id, :old.is_in_spell, :new.is_in_spell, USER);
+    END IF;
+
     IF (((:old.description IS NULL) AND (:new.description IS NOT NULL)) OR ((:old.description IS NOT NULL) AND (:new.description IS NULL)) OR (:old.description != :new.description))
     THEN
         AuditLog.InsertUpdateLog('DATASET', 'DESCRIPTION', :old.dataset_id, :old.description, :new.description, USER);
@@ -84,7 +89,8 @@ BEGIN
              :old.dbxref_id || '[:]' || :old.dbxref_type || '[:]' ||
              :old.file_id || '[:]' || :old.assay_id || '[:]' ||
              :old.taxonomy_id || '[:]' || :old.channel_count || '[:]' ||
-             :old.sample_count || '[:]' || :old.description || '[:]' ||
+             :old.sample_count || '[:]' || :old.is_in_spell || '[:]' ||
+             :old.description || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('DATASET', :old.dataset_id, v_row, USER);
