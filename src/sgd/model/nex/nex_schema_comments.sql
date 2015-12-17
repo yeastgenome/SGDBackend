@@ -958,7 +958,7 @@ Comment on column REPORTER.DESCRIPTION is 'Description or comment.';
 Comment on column REPORTER.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REPORTER.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-/* Expression */
+/* Dataset */
 
 Comment on table DATASET is 'High throughput gene expression data from NCBI’s GEO database and displayed using SPELL.';
 Comment on column DATASET.DATASET_ID is 'Unique identifier (Oracle sequence).';
