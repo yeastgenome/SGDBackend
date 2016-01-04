@@ -753,16 +753,6 @@ Comment on column FILEDBENTITY.FORMAT_ID is 'Standard file format, FK to EDAM fo
 Comment on column FILEDBENTITY.EXTENSION_ID is 'File name extension, FK to EDAM format namespace.';
 Comment on column FILEDBENTITY.VERSION is 'File version or release date.';
 
-Comment on table FILE_RELATION is 'Relationship between two files.';
-Comment on column FILE_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column FILE_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column FILE_RELATION.BUD_ID is 'Not in BUD.';
-Comment on column FILE_RELATION.PARENT_ID is 'FK to FILE_ID.';
-Comment on column FILE_RELATION.CHILD_ID is 'FK to FILE_ID.';
-Comment on column FILE_RELATION.RO_ID is 'FK TO RO.RO_ID.';
-Comment on column FILE_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column FILE_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
-
 /* Colleague */
 
 Comment on table COLLEAGUE is 'A researcher or associate who registered with the database.';
