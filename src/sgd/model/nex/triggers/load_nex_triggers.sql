@@ -200,16 +200,17 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteindomainUrl_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteindomainUrl_AUDR.trg
 
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Bindingmotifannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Bindingmotifannotation_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasequenceannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasequenceannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasubsequence_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasubsequence_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Expressionannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Expressionannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Geninteractionannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Geninteractionannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goannotation_BIUR.trg

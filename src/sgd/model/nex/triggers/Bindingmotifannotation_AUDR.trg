@@ -45,12 +45,18 @@ BEGIN
         AuditLog.InsertUpdateLog('BINDINGMOTIFANNOTATION', 'MOTIF_ID', :old.annotation_id, :old.motif_id, :new.motif_id, USER);
     END IF;
 
+    IF (:old.logo_url != :new.logo_url)
+    THEN
+        AuditLog.InsertUpdateLog('BINDINGMOTIFANNOTATION', 'LOGO_URL', :old.annotation_id, :old.logo_url, :new.logo_url, USER);
+    END IF;
+
   ELSE
 
     v_row := :old.annotation_id || '[:]' || :old.dbentity_id || '[:]' ||
              :old.source_id || '[:]' || :old.taxonomy_id || '[:]' || 
              :old.reference_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.motif_id || '[:]' || :old.motif_id || '[:]' ||
+             :old.obj_url || '[:]' || :old.motif_id || '[:]' ||
+             :old.logo_url || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('BINDINGMOTIFANNOTATION', :old.annotation_id, v_row, USER);

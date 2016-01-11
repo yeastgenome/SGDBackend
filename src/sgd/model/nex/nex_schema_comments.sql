@@ -1126,6 +1126,7 @@ Comment on column BINDINGMOTIFANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY
 Comment on column BINDINGMOTIFANNOTATION.BUD_ID is 'From BUD.SEQ.SEQ_NO.';
 Comment on column BINDINGMOTIFANNOTATION.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column BINDINGMOTIFANNOTATION.MOTIF_ID is 'Motif ID from the YeTFaSCo database.';
+Comment on column BINDINGMOTIFANNOTATION.LOGO_URL is 'URL to the motif logo.';
 Comment on column BINDINGMOTIFANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column BINDINGMOTIFANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
