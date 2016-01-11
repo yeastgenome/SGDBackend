@@ -40,7 +40,7 @@ BEGIN
         AuditLog.InsertUpdateLog('GENINTERACTIONANNOTATION', 'BUD_ID', :old.annotation_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
-    IF (:old.phenotype_id != :new.phenotype_id) 
+    IF (((:old.phenotype_id IS NULL) AND (:new.phenotype_id IS NOT NULL)) OR ((:old.phenotype_id IS NOT NULL) AND (:new.phenotype_id IS NULL)) OR (:old.phenotype_id != :new.phenotype_id))
     THEN
         AuditLog.InsertUpdateLog('GENINTERACTIONANNOTATION', 'PHENOTYPE_ID', :old.annotation_id, :old.phenotype_id, :new.phenotype_id, USER);
     END IF;
