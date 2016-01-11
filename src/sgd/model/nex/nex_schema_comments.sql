@@ -1117,6 +1117,18 @@ Comment on column PROTEINDOMAIN_URL.CREATED_BY is 'Username of the person who en
 
 /* Annotations */
 
+Comment on table BINDINGMOTIFANNOTATION is 'Transcription factor motif logos from the YeTFaSCo database.';
+Comment on column BINDINGMOTIFANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column BINDINGMOTIFANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column BINDINGMOTIFANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column BINDINGMOTIFANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column BINDINGMOTIFANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column BINDINGMOTIFANNOTATION.BUD_ID is 'From BUD.SEQ.SEQ_NO.';
+Comment on column BINDINGMOTIFANNOTATION.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column BINDINGMOTIFANNOTATION.MOTIF_ID is 'Motif ID from the YeTFaSCo database.';
+Comment on column BINDINGMOTIFANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column BINDINGMOTIFANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table DNASEQUENCEANNOTATION is 'Current DNA sequence details for contig, chromosomal, or plasmid features.';
 Comment on column DNASEQUENCEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column DNASEQUENCEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
