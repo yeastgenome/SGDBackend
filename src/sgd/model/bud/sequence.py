@@ -80,6 +80,17 @@ class FeatLocation_Rel(Base, EqualityByIDMixin):
     feature_location = relationship(Feat_Location, uselist=False, backref='featlocation_rels')
     release = relationship(Release, uselist=False)
 
+class SeqRel(Base, EqualityByIDMixin):
+    __tablename__ = 'seq_rel'
+
+    id = Column('seq_rel_no', Integer, primary_key=True)
+    seq_id = Column('seq_no', Integer, ForeignKey(Sequence.id))
+    release_id = Column('release_no', Integer, ForeignKey(Release.id))
+
+    seq = relationship(Sequence, uselist=False, backref='seq_rels')
+    release = relationship(Release, uselist=False)
+
+
 class ProteinInfo(Base, EqualityByIDMixin):
     __tablename__ = 'protein_info'
     

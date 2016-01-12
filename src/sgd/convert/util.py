@@ -55,8 +55,106 @@ def is_number(str_value):
     except:
         return False
 
+def get_sequence(parent_id, start, end, strand, sequence_library):
+    if parent_id in sequence_library:
+        residues = sequence_library[parent_id][start-1:end]
+        if strand == '-':
+            residues = reverse_complement(residues)
+        return residues
+    else:
+        print 'Parent not found: ' + parent_id
+        
+def reverse_complement(residues):
+    basecomplement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 't': 'a', 'a': 't', 'c': 'g', 'g': 'c', 'n': 'n', 'W': 'W', 'Y': 'R', 'R': 'Y', 'S': 'S', 'K':'M', 'M':'K', 'B':'V', 'D':'H', 'H':'D', 'V':'B', 'N':'N'}
+    letters = list(residues)
+    letters = [basecomplement[base] for base in letters][::-1]
+    return ''.join(letters)
+
+
+def get_dna_sequence_library(gff3_file, remove_spaces=False):
+    id_to_sequence = {}
+    on_sequence = False
+    current_id = None
+    current_sequence = []
+    for line in gff3_file:
+        line = line.replace("\r\n","").replace("\n", "")
+        if not on_sequence and line.startswith('>'):
+            on_sequence = True
+        if line.startswith('>'):
+            if current_id is not None:
+                id_to_sequence[current_id] = ''.join(current_sequence)
+            current_id = line[1:]
+            if remove_spaces:
+                current_id = current_id.split(' ')[0]
+            current_sequence = []
+        elif on_sequence:
+            current_sequence.append(line)
+
+    if current_id is not None:
+        id_to_sequence[current_id] = ''.join(current_sequence)
+
+    return id_to_sequence
 
 def get_sequence_library_fsa(fsa_file):
+    id_to_sequence = {}
+    on_sequence = False
+    current_id = None
+    current_sequence = []
+    for line in fsa_file:
+        line = line.replace("\r\n","").replace("\n", "")
+        if line.startswith('>'):
+            if current_id is not None:
+                id_to_sequence[current_id] = ''.join(current_sequence)
+            current_id = line[1:]
+            if '_' in current_id:
+                current_id = current_id[0:current_id.index('_')]
+            if ' ' in current_id:
+                current_id = current_id[0:current_id.index(' ')]
+            current_sequence = []
+            on_sequence = True
+        elif on_sequence:
+            current_sequence.append(line)
+
+    if current_id is not None:
+        id_to_sequence[current_id] = ''.join(current_sequence)
+
+    return id_to_sequence
+
+
+def get_sequence_with_contig_library_fsa(fsa_file):
+    id_to_sequence = {}
+    on_sequence = False
+    current_id = None
+    current_sequence = []
+    contig = None
+    for line in fsa_file:
+        line = line.replace("\r\n","").replace("\n", "")
+        if line.startswith('>'):
+            if current_id is not None:
+                id_to_sequence[(current_id, contig)] = ''.join(current_sequence)
+            current_id = line[1:]
+            if '_' in current_id:
+                current_id = current_id[0:current_id.index('_')]
+            if ' ' in current_id:
+                current_id = current_id[0:current_id.index(' ')]
+            current_sequence = []
+            on_sequence = True
+            if "gi|" in line:
+                items = line.split(" ")
+                if "gi|" in items[2]:
+                    contig = items[2].split("|")[3]
+                if "gi|" in items[1]:
+                    contig = items[1].split("|")[3]
+        elif on_sequence:
+            current_sequence.append(line)
+
+    if current_id is not None:
+        id_to_sequence[(current_id, contig)] = ''.join(current_sequence)
+
+    return id_to_sequence
+
+
+def get_ref_sequence_library_fsa(fsa_file):
 
     id_to_sequence = {}
     on_sequence = False
@@ -75,12 +173,51 @@ def get_sequence_library_fsa(fsa_file):
                 current_id = current_id[0:current_id.index(' ')]
             current_sequence = []
             on_sequence = True
-            header = line.split('Genome Release 64-2-1')[0] + 'Genome Release 64-2-1'
+            items = line.split(' Chr ')
+            if '2-micron plasmid' in line:
+                items = line.split(' 2-micron plasmid')
+            items[1] = items[1].split(', Genome Release 64-2-1')[0]            
+            items[1] = items[1].replace(' from ', ':')
+            items[1] = items[1].replace('-', '..')
+            header = items[0] + ' chr'
+            if '2-micron plasmid' in line:
+                header = items[0] + ' 2-micron plasmid'               
+            header = header + items[1] + ' [Genome Release 64-2-1]'
+                
         elif on_sequence:
             current_sequence.append(line)
 
     if current_id is not None:
         id_to_sequence[current_id] = (header, ''.join(current_sequence))
+
+    return id_to_sequence
+
+def get_protein_sequence_library_fsa(fsa_file):
+
+    id_to_sequence = {}
+    on_sequence = False
+    current_id = None
+    current_sequence = []
+    header = None
+    for line in fsa_file:
+        line = line.replace("\r\n","").replace("\n", "")
+        if line.startswith('>'):
+            if current_id is not None:
+                id_to_sequence[(current_id, header)] = ''.join(current_sequence)
+            current_id = line[1:]
+            if '_' in current_id:
+                current_id = current_id[0:current_id.index('_')]
+            if ' ' in current_id:
+                current_id = current_id[0:current_id.index(' ')]
+            current_sequence = []
+            on_sequence = True
+            items = line.split(' ')
+            header = ' '.join(items[0:4])
+        elif on_sequence:
+            current_sequence.append(line)
+
+    if current_id is not None:
+        id_to_sequence[(current_id, header)] = ''.join(current_sequence)
 
     return id_to_sequence
 
@@ -115,8 +252,9 @@ def make_fasta_file_starter(filename):
 
 def get_strain_taxid_mapping():
 
+    # "CENPK":           "TAX:889517",
+
     return { "S288C":           "TAX:559292",
-             "CENPK":           "TAX:889517",
              "FL100":           "TAX:947036",
              "RM11-1a":         "TAX:285006",
              "SK1":             "TAX:580239",
@@ -164,6 +302,9 @@ def get_strain_taxid_mapping():
              "YPS128":          "NTR:110",
              "YS9":             "NTR:111",
              "Y55":             "NTR:112",
+             "BC187":           "NTR:113",
+             "UWOPSS":          "NTR:114",
+             "CENPK":           "NTR:115",
              'Other':           "TAX:4932" }
 
 def read_gpad_file(filename, bud_session, nex_session, uniprot_to_date_assigned, uniprot_to_sgdid_list, get_extension=None, get_support=None):

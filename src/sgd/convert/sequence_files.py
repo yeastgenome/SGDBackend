@@ -49,6 +49,21 @@ new_sequence_files = [("src/sgd/convert/data/strains/Sigma1278b-10560-6B_JRIQ000
 
 ]
 
+
+protein_sequence_files_for_alt_strains = [
+                      ('src/sgd/convert/data/strains/Sigma1278b-10560-6B_JRIQ00000000_SGD_pep.fsa', 'Sigma1278b'),
+                      ('src/sgd/convert/data/strains/CEN.PK2-1Ca_JRIV01000000_SGD_pep.fsa', 'CENPK'),
+                      ('src/sgd/convert/data/strains/D273-10B_JRIY00000000_SGD_pep.fsa', 'D273-10B'),
+                      ('src/sgd/convert/data/strains/FL100_JRIT00000000_SGD_pep.fsa', 'FL100'),
+                      ('src/sgd/convert/data/strains/JK9-3d_JRIZ00000000_SGD_pep.fsa', 'JK9-3d'),
+                      ('src/sgd/convert/data/strains/RM11-1A_JRIP00000000_SGD_pep.fsa', 'RM11-1a'),
+                      ('src/sgd/convert/data/strains/SEY6210_JRIW00000000_SGD_pep.fsa', 'SEY6210'),
+                      ('src/sgd/convert/data/strains/SK1_JRIH00000000_SGD_pep.fsa', 'SK1'),
+                      ('src/sgd/convert/data/strains/W303_JRIU00000000_SGD_pep.fsa', 'W303'),
+                      ('src/sgd/convert/data/strains/X2180-1A_JRIX00000000_SGD_pep.fsa', 'X2180-1A'),
+                      ('src/sgd/convert/data/strains/Y55_JRIF00000000_SGD_pep.fsa', 'Y55')]
+
+
 protein_sequence_files = [
                       ("src/sgd/convert/data/strains/orf_trans_all.fasta", 'S288C'),
                       ('src/sgd/convert/data/strains/Sigma1278b-10560-6B_JRIQ00000000_SGD_pep.fsa', 'Sigma1278b'),
