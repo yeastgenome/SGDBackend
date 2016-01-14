@@ -29,7 +29,7 @@ Comment on column DBUSER.BUD_ID is 'PK from BUD.DBUSER.DBUSER_NO.';
 Comment on column DBUSER.FIRST_NAME is 'First name of the database user.';
 Comment on column DBUSER.LAST_NAME is 'Last name of the database user.';
 Comment on column DBUSER.STATUS is 'Current state of the database user (Current, Former).';
-Comment on column DBUSER.IS_CURATOR is 'Whether the user is a curator, which determines database privileges.';
+Comment on column DBUSER.IS_CURATOR is 'Whether the user is a curator.';
 Comment on column DBUSER.EMAIL is 'Email address of the database user.';
 Comment on column DBUSER.DATE_CREATED is 'Date the record was entered into the database.';
 

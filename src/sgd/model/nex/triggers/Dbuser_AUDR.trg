@@ -15,9 +15,9 @@ BEGIN
         AuditLog.InsertUpdateLog('DBUSER', 'USERNAME', :old.dbuser_id, :old.username, :new.username, USER);
     END IF;
 
-    IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id)) THEN
-         RAISE_APPLICATION_ERROR
-             (-20029, 'This column cannot be updated.');
+    IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id)) 
+    THEN
+        AuditLog.InsertUpdateLog('DBUSER', 'BUD_ID', :old.dbuser_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
     IF (:old.first_name != :new.first_name)
@@ -35,6 +35,11 @@ BEGIN
         AuditLog.InsertUpdateLog('DBUSER', 'STATUS', :old.dbuser_id, :old.status, :new.status, USER);
     END IF;
 
+    IF (:old.is_curator != :new.is_curator)
+    THEN
+        AuditLog.InsertUpdateLog('DBUSER', 'IS_CURATOR', :old.dbuser_id, :old.is_curator, :new.is_curator, USER);
+    END IF;
+
     IF (:old.email != :new.email)
     THEN
         AuditLog.InsertUpdateLog('DBUSER', 'EMAIL', :old.dbuser_id, :old.email, :new.email, USER);
@@ -45,8 +50,8 @@ BEGIN
     v_row := :old.dbuser_id || '[:]' || :old.username || '[:]' ||
 		  	 :old.bud_id || '[:]' ||
              :old.first_name || '[:]' || :old.last_name || '[:]' || 
-             :old.status || '[:]' || :old.email || '[:]' || 
-             :old.date_created;
+             :old.status || '[:]' || :old.is_curator || '[:]' || 
+             :old.email || '[:]' || :old.date_created;
 
     AuditLog.InsertDeleteLog('DBUSER', :old.dbuser_id, v_row, USER);
 
