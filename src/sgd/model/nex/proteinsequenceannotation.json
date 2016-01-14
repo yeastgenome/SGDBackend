@@ -1,0 +1,84 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "ProteinSequenceAnnotation",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "dbentity_id": {
+            "title": "DBENTITY ID",
+            "type": "integer"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "taxonomy_id": {
+            "title": "Taxonomy ID",
+            "type": "integer"
+        },
+	"reference_id": {
+            "title": "Reference ID",
+            "type": "integer"
+        },
+	"contig_id": {
+            "title": "Contig ID",
+            "type": "integer"
+        },
+        "seq_version": {
+            "title": "Sequence Version",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+	"genomerelease_id": {
+            "title": "Genomerelease ID",
+            "type": "integer"
+        },
+        "file_header": {
+            "title": "File Header",
+            "type": "string"
+        },
+	"download_filename": {
+            "title": "Download Filename",
+            "type": "string"
+        },
+        "file_id": {
+            "title": "File ID",
+            "type": "integer"
+        },
+        "residues": {
+            "title": "Residues",
+            "type": "string"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        }
+    },
+    "required": ["dbentity_id", "source", "taxonomy_id", "contig_id", "file_header", "download_filename", "residues"]
+}

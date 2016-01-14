@@ -30,10 +30,16 @@ def phenotype_starter(bud_session_maker):
             'date_created': str(bud_obj.date_created),
             'created_by': bud_obj.created_by
             }
+
+        print "observable: ", bud_obj.observable
+
         if bud_obj.qualifier is not None and qualifier_to_id.get(bud_obj.qualifier) is not None:
             obj_json['qualifier'] = bud_obj.qualifier
             obj_json['qualifier_id'] = qualifier_to_id.get(bud_obj.qualifier)
-        format_name = ('' if 'qualifier' not in obj_json else obj_json['qualifier'] + '.' + obj_json['observable'])[:100]
+
+            print "qualifier: ", bud_obj.qualifier
+
+        format_name = (('' if 'qualifier' not in obj_json else obj_json['qualifier'] + '.') + obj_json['observable'])[:100]
         obj_json['format_name'] = format_name.replace(' ', '_')
         obj_json['link'] = '/phenotype/' + obj_json['format_name']
     

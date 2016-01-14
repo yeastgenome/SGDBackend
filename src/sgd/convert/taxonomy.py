@@ -92,7 +92,7 @@ def taxonomy_starter(bud_session_maker):
         yield term
 
     index = 100
-    for strain in ["BY4742", "D273-10B", "DBVPG6044", "FY1679", "JK9-3d", "K11", "L1528", "SEY6210", "X2180-1A", "YPH499", "YPS128", "YS9", "Y55"]:
+    for strain in ["BY4742", "D273-10B", "DBVPG6044", "FY1679", "JK9-3d", "K11", "L1528", "SEY6210", "X2180-1A", "YPH499", "YPS128", "YS9", "Y55", "BC187", "UWOPSS", "CENPK"]:
         term = {}
         term['taxid'] = 'NTR:' + str(index)
         term['format_name'] = 'Saccharomyces_cerevisiae_' + strain
