@@ -29,6 +29,7 @@ Comment on column DBUSER.BUD_ID is 'PK from BUD.DBUSER.DBUSER_NO.';
 Comment on column DBUSER.FIRST_NAME is 'First name of the database user.';
 Comment on column DBUSER.LAST_NAME is 'Last name of the database user.';
 Comment on column DBUSER.STATUS is 'Current state of the database user (Current, Former).';
+Comment on column DBUSER.IS_CURATOR is 'Whether the user is a curator, which determines database privileges.';
 Comment on column DBUSER.EMAIL is 'Email address of the database user.';
 Comment on column DBUSER.DATE_CREATED is 'Date the record was entered into the database.';
 
@@ -1263,9 +1264,9 @@ Comment on table LITERATUREANNOTATION is 'Literature topics or categories assign
 Comment on column LITERATUREANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column LITERATUREANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
 Comment on column LITERATUREANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column LITERATUREANNOTATION.BUD_ID is 'From BUD.LIT_GUIDE.LIT_GUIDE_NO.';
 Comment on column LITERATUREANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
 Comment on column LITERATUREANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column LITERATUREANNOTATION.BUD_ID is 'From BUD.LIT_GUIDE.LIT_GUIDE_NO.';
 Comment on column LITERATUREANNOTATION.TOPIC is 'Topic or category assigned to a reference (Additional Literature, Omics, Primary Literature, Reviews).';
 Comment on column LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -1428,3 +1429,19 @@ Comment on column PROTEINSEQUENCE_DETAIL.NO_CYS_EXT_COEFF is 'No Cys residues ap
 Comment on column PROTEINSEQUENCE_DETAIL.ALL_CYS_EXT_COEFF is 'All Cys residues appear as half cystines.';
 Comment on column PROTEINSEQUENCE_DETAIL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PROTEINSEQUENCE_DETAIL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+/* Curation tables */
+
+/* Archive tables */
+
+Comment on table ARCH_LITERATUREANNOTATION is 'Archived literature topics or categories assigned to references.';
+Comment on column ARCH_LITERATUREANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column ARCH_LITERATUREANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column ARCH_LITERATUREANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ARCH_LITERATUREANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column ARCH_LITERATUREANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column ARCH_LITERATUREANNOTATION.BUD_ID is 'From BUD.LIT_GUIDE.LIT_GUIDE_NO.';
+Comment on column ARCH_LITERATUREANNOTATION.TOPIC is 'Topic or category assigned to a reference.';
+Comment on column ARCH_LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ARCH_LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+Comment on column ARCH_LITERATUREANNOTATION.DATE_ARCHIVED is 'Date the record was archived.';
