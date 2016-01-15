@@ -113,6 +113,10 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusRelation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusRelation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusChange_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusChange_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Straindbentity_BUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Straindbentity_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainUrl_BIUR.trg
@@ -199,10 +203,8 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Proteindomain_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteindomainUrl_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteindomainUrl_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Bindingmotifannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Bindingmotifannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasequenceannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasequenceannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasubsequence_BIUR.trg
