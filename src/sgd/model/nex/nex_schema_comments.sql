@@ -585,6 +585,18 @@ Comment on column LOCUS_RELATION.RO_ID is 'FK to RO.RO_ID.';
 Comment on column LOCUS_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LOCUS_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table LOCUS_CHANGE is 'Changes to a locus which have a historical significance.';
+Comment on column LOCUS_CHANGE.CHANGE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column LOCUS_CHANGE.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column LOCUS_CHANGE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column LOCUS_CHANGE.BUD_ID is 'From BUD.ARCHIVE.ARCHIVE_NO.';
+Comment on column LOCUS_CHANGE.CHANGE_TYPE is 'Type of locus change (Status, Qualifier, Gene name).';
+Comment	on column LOCUS_CHANGE.OLD_VALUE is 'Previous value before change.';
+Comment on column LOCUS_CHANGE.NEW_VALUE is 'New value after change.';
+Comment on column LOCUS_CHANGE.DATE_CHANGE_MADE is 'Date the change was made.';
+Comment on column LOCUS_CHANGE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column LOCUS_CHANGE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 /* Strain */
 
 Comment on table STRAINDBENTITY is 'A yeast strain which has sequence data. Inherits from DBENTITY';
