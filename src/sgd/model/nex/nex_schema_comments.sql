@@ -585,18 +585,6 @@ Comment on column LOCUS_RELATION.RO_ID is 'FK to RO.RO_ID.';
 Comment on column LOCUS_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LOCUS_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table LOCUS_CHANGE is 'Changes to a locus which have a historical significance.';
-Comment on column LOCUS_CHANGE.CHANGE_ID is 'Unique identifier (Oracle sequence).';
-Comment on column LOCUS_CHANGE.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
-Comment on column LOCUS_CHANGE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column LOCUS_CHANGE.BUD_ID is 'From BUD.ARCHIVE.ARCHIVE_NO.';
-Comment on column LOCUS_CHANGE.CHANGE_TYPE is 'Type of locus change (Status, Qualifier, Gene name).';
-Comment	on column LOCUS_CHANGE.OLD_VALUE is 'Previous value before change.';
-Comment on column LOCUS_CHANGE.NEW_VALUE is 'New value after change.';
-Comment on column LOCUS_CHANGE.DATE_CHANGE_MADE is 'Date the change was made.';
-Comment on column LOCUS_CHANGE.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column LOCUS_CHANGE.CREATED_BY is 'Username of the person who entered the record into the database.';
-
 /* Strain */
 
 Comment on table STRAINDBENTITY is 'A yeast strain which has sequence data. Inherits from DBENTITY';
@@ -1065,7 +1053,7 @@ Comment on column GENOMERELEASE.DESCRIPTION is 'Description or comment.';
 Comment on column GENOMERELEASE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GENOMERELEASE.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
-Comment on table CONTIG is 'Whole chromosome or contig sequences.';
+Comment on table CONTIG is 'Current whole chromosome or contig sequences.';
 Comment on column CONTIG.CONTIG_ID is 'Unique identifier (Oracle sequence).';
 Comment on column CONTIG.FORMAT_NAME is 'Unique name to create download files.';
 Comment on column CONTIG.DISPLAY_NAME is 'Public display name.';
@@ -1162,7 +1150,7 @@ Comment on column DNASEQUENCEANNOTATION.STRAND is 'Which strand the sequence is 
 Comment on column DNASEQUENCEANNOTATION.FILE_HEADER is 'Fasta header line of the download file.';
 Comment on column DNASEQUENCEANNOTATION.DOWNLOAD_FILENAME is 'User interface download filename.';
 Comment on column DNASEQUENCEANNOTATION.FILE_ID is 'FK to FILE.FILE_ID.';
-Comment on column DNASEQUENCEANNOTATION.RESIDUES is 'DNA sequence.';
+Comment on column DNASEQUENCEANNOTATION.RESIDUES is 'DNA sequence of the feature.';
 Comment on column DNASEQUENCEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DNASEQUENCEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -1183,7 +1171,7 @@ Comment on column DNASUBSEQUENCE.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOME
 Comment on column DNASUBSEQUENCE.FILE_HEADER is 'Fasta header line of the download file.';
 Comment on column DNASUBSEQUENCE.DOWNLOAD_FILENAME is 'User interface download filename.';
 Comment on column DNASUBSEQUENCE.FILE_ID is 'FK to FILE.FILE_ID.';
-Comment on column DNASUBSEQUENCE.RESIDUES is 'DNA sequence.';
+Comment on column DNASUBSEQUENCE.RESIDUES is 'DNA subfeature sequence.';
 Comment on column DNASUBSEQUENCE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DNASUBSEQUENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -1389,14 +1377,14 @@ Comment on column PROTEINSEQUENCEANNOTATION.CONTIG_ID is 'FK to CONTIG.CONTIG_ID
 Comment on column PROTEINSEQUENCEANNOTATION.SEQ_VERSION is 'Date of the protein sequence release.';
 Comment on column PROTEINSEQUENCEANNOTATION.COORD_VERSION is 'Date of the protein coordinate release.';
 Comment on column PROTEINSEQUENCEANNOTATION.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
-Comment on column PROTEINSEQUENCEANNOTATION.RESIDUES is 'Current sequence of the protein.';
 Comment on column PROTEINSEQUENCEANNOTATION.FILE_ID is 'FK to FILE.FILE_ID.';
 Comment on column PROTEINSEQUENCEANNOTATION.FILE_HEADER is 'Fasta header line of the download file.';
 Comment on column PROTEINSEQUENCEANNOTATION.DOWNLOAD_FILENAME is 'User interface download filename.';
+Comment on column PROTEINSEQUENCEANNOTATION.RESIDUES is 'Current sequence of the protein.';
 Comment on column PROTEINSEQUENCEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PROTEINSEQUENCEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table PROTEINSEQUENCE_DETAIL is 'Properties of the protein sequence.';
+Comment on table PROTEINSEQUENCE_DETAIL is 'Properties of the current protein sequence.';
 Comment on column PROTEINSEQUENCE_DETAIL.DETAIL_ID is 'Unique identifier (Oracle sequence).';
 Comment on column PROTEINSEQUENCE_DETAIL.ANNOTATION_ID is 'FK to PROTEINSEQUENCEANNOTATION.ANNOTATION_ID.';
 Comment on column PROTEINSEQUENCE_DETAIL.BUD_ID is 'From BUD.PROTEIN.INFO and BUD.PROTEIN_DETAIL.';
@@ -1444,7 +1432,59 @@ Comment on column PROTEINSEQUENCE_DETAIL.CREATED_BY is 'Username of the person w
 
 /* Curation tables */
 
+Comment on table CURATION is 'Tags and notes associated with locus and reference curation.';
+Comment on column CURATION.CURATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column CURATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column CURATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column CURATION.BUD_ID is 'Not from BUD.';
+Comment on column CURATION.SUBCLASS is 'Type of curation (Locus, Reference).';
+Comment on column CURATION.CURATION_TAG is 'Type of curation tag ().';
+Comment on column CURATION.CURATION_NOTE is 'Description or comment.';
+Comment on column CURATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column CURATION.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table AUTHORRESPONSE is 'Replies from the Author Reponse System.';
+Comment on column AUTHORRESPONSE.CURATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column AUTHORRESPONSE.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column AUTHORRESPONSE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column AUTHORRESPONSE.BUD_ID is 'Not from BUD.';
+Comment on column AUTHORRESPONSE.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column AUTHORRESPONSE.AUTHOR_EMAIL is 'Email address of the author.';
+Comment on column AUTHORRESPONSE.HAS_NOVEL_RESEARCH is 'Whether there is novel research in the paper.';
+Comment on column AUTHORRESPONSE.HAS_LARGE_SCALE_DATA is 'Whether there is large scale data in the paper.';
+Comment on column AUTHORRESPONSE.HAS_FAST_TRACK_TAG is 'Whether a fast track tag has been attached to this paper.';
+Comment on column AUTHORRESPONSE.CURATOR_CHECKED_DATASETS is 'Whether a curator has checked the datasets in the paper.';
+Comment on column AUTHORRESPONSE.CURATOR_CHECKED_GENELIST is 'Whether a curator has checked the submitted gene list.';
+Comment on column AUTHORRESPONSE.NO_ACTION_REQUIRED is 'Whether any further action is needed.';
+Comment on column AUTHORRESPONSE.RESEARCH_RESULTS is 'Research results submitted by the author.';
+Comment on column AUTHORRESPONSE.GENE_LIST is 'List of gene names contained in the paper submitted by the author.';
+Comment on column AUTHORRESPONSE.DATASET_DESCRIPTION is 'Description of the dataset submitted by the author.';
+Comment on column AUTHORRESPONSE.OTHER_DESCRIPTION is 'Any other description submitted by the author.';
+Comment on column AUTHORRESPONSE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column AUTHORRESPONSE.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
+Comment on table REFERENCETRIAGE is 'Papers obtained via the reference triage system.';
+Comment on column REFERENCETRIAGE.CURATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column REFERENCETRIAGE.PMID is 'Pubmed identifier for the paper.';
+Comment on column REFERENCETRIAGE.CITATION is 'Full citation of the paper.';
+Comment on column REFERENCETRIAGE.FULLTEXT_URL is 'URL to the fulltext of the paper.';
+Comment on column REFERENCETRIAGE.ABSTRACT is 'Paper abstract.';
+Comment on column REFERENCETRIAGE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REFERENCETRIAGE.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
 /* Archive tables */
+
+Comment on table ARCH_LOCUSCHANGE is 'Archived changes to a locus that have historical significance.';
+Comment on column ARCH_LOCUSCHANGE.CHANGE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column ARCH_LOCUSCHANGE.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID.';
+Comment on column ARCH_LOCUSCHANGE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ARCH_LOCUSCHANGE.BUD_ID is 'From BUD.ARCHIVE.ARCHIVE_NO.';
+Comment on column ARCH_LOCUSCHANGE.CHANGE_TYPE is 'Type of locus change (Status, Qualifier, Gene name).';
+Comment	on column ARCH_LOCUSCHANGE.OLD_VALUE is 'Previous value before change.';
+Comment on column ARCH_LOCUSCHANGE.NEW_VALUE is 'New value after change.';
+Comment on column ARCH_LOCUSCHANGE.DATE_CHANGE_MADE is 'Date the change was made.';
+Comment on column ARCH_LOCUSCHANGE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ARCH_LOCUSCHANGE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table ARCH_LITERATUREANNOTATION is 'Archived literature topics or categories assigned to references.';
 Comment on column ARCH_LITERATUREANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
@@ -1457,3 +1497,112 @@ Comment on column ARCH_LITERATUREANNOTATION.TOPIC is 'Topic or category assigned
 Comment on column ARCH_LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column ARCH_LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 Comment on column ARCH_LITERATUREANNOTATION.DATE_ARCHIVED is 'Date the record was archived.';
+
+Comment on table ARCH_CONTIG is 'Archived whole chromosome or contig sequences.';
+Comment on column ARCH_CONTIG.CONTIG_ID is 'Unique identifier (Oracle sequence).';
+Comment on column ARCH_CONTIG.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column ARCH_CONTIG.DISPLAY_NAME is 'Public display name.';
+Comment on column ARCH_CONTIG.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column ARCH_CONTIG.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ARCH_CONTIG.BUD_ID is 'PK from BUD.SEQ.SEQ_NO.';
+Comment on column ARCH_CONTIG.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column ARCH_CONTIG.SO_ID is 'FK to SO.SO_ID (contig, chromosome, plasmid).';
+Comment on column ARCH_CONTIG.CENTROMERE_START is 'Start coordinate of the centromere.';
+Comment on column ARCH_CONTIG.CENTROMERE_END is 'End coordinate of the centromere.';
+Comment on column ARCH_CONTIG.GENBANK_ACCESSION is 'GenBank Accession id including version number (e.g., BK006939.2).';
+Comment on column ARCH_CONTIG.GI_NUMBER is 'GenInfo identifier assigned by NCBI.';
+Comment on column ARCH_CONTIG.REFSEQ_ID is 'REFerence SEQuence identifier assigned by NCBI.';
+Comment on column ARCH_CONTIG.REFERENCE_CHROMOSOME_ID is 'FK to CONTIG.CONTIG_ID.';
+Comment on column ARCH_CONTIG.REFERENCE_START is 'Start coordinate relative to the reference sequence S288C.';
+Comment on column ARCH_CONTIG.REFERENCE_END is 'End coordinate relative to the reference sequence S288C.';
+Comment on column ARCH_CONTIG.REFERENCE_PERCENT_IDENTITY is 'Percent identify to the reference sequence S288C.';
+Comment on column ARCH_CONTIG.REFERENCE_ALIGNMENT_LENGTH is 'Length of the sequence alignment to the reference sequence S288C.';
+Comment on column ARCH_CONTIG.SEQ_VERSION is 'From BUD.SEQ.SEQ_VERSION.';
+Comment on column ARCH_CONTIG.COORD_VERSION is 'From BUD.FEAT_LOCATION.COORD_VERSION.';
+Comment on column ARCH_CONTIG.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
+Comment on column ARCH_CONTIG.FILE_HEADER is 'Header line of the download file.';
+Comment on column ARCH_CONTIG.DOWNLOAD_FILENAME is 'User interface download filename.';
+Comment on column ARCH_CONTIG.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
+Comment on column ARCH_CONTIG.RESIDUES is 'DNA sequence of the contig, chromosome or plasmid.';
+Comment on column ARCH_CONTIG.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ARCH_CONTIG.CREATED_BY  is 'Username of the person who entered the record into the database.';
+Comment on column ARCH_CONTIG.DATE_ARCHIVED is 'Date the record was archived.';
+
+Comment	on table ARCH_CONTIGCHANGE is 'Archived individual changes to the S288C reference chromosome sequence.';
+Comment on column ARCH_CONTIGCHANGE.CHANGE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column ARCH_CONTIGCHANGE.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
+Comment on column ARCH_CONTIGCHANGE.BUD_ID is 'From BUD.SEQ_CHANGE_ARCHIVE.SEQ_CHANGE_ARCHIVE_NO.';
+Comment on column ARCH_CONTIGCHANGE.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
+Comment on column ARCH_CONTIGCHANGE.CHANGE_TYPE is 'Type of sequence change (Deletion, Insertion, Substitution).';
+Comment on column ARCH_CONTIGCHANGE.CHANGE_MIN_COORD is 'Minimum coordinate of the change relative to the whole chromosome.';
+Comment on column ARCH_CONTIGCHANGE.CHANGE_MAX_COORD is 'Maximum coordinate of the change relative to the whole chromosome.';
+Comment on column ARCH_CONTIGCHANGE.OLD_VALUE is 'Sequence prior to the change.';
+Comment on column ARCH_CONTIGCHANGE.NEW_VALUE is 'Sequence after the change.';
+Comment on column ARCH_CONTIGCHANGE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ARCH_CONTIGCHANGE.CREATED_BY  is 'Username of the person who entered the record into the database.';
+Comment on column ARCH_CONTIGCHANGE.DATE_ARCHIVED is 'Date the record was archived.';
+
+Comment on table ARCH_DNASEQUENCEANNOTATION is 'Archived DNA sequence details for contig, chromosomal, or plasmid features.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column ARCH_DNASEQUENCEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.BUD_ID is 'From BUD.SEQ.SEQ_NO.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.SO_ID is 'FK to SO.SO_ID.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.DNA_TYPE is 'Type of DNA sequence (CODING, 1KB, GENOMIC).';
+Comment on column ARCH_DNASEQUENCEANNOTATION.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
+Comment on column ARCH_DNASEQUENCEANNOTATIONSEQ_VERSION is 'Date of the sequence version.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.COORD_VERSION is 'Date of the coordinate version.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.START_INDEX is 'Start coordinate.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.END_INDEX is 'End coordinate.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.STRAND is 'Which strand the sequence is on (Watson = +, Crick = -, None = 0).';
+Comment on column ARCH_DNASEQUENCEANNOTATION.FILE_HEADER is 'Fasta header line of the download file.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.DOWNLOAD_FILENAME is 'User interface download filename.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.FILE_ID is 'FK to FILE.FILE_ID.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.RESIDUES is 'DNA sequence of the feature.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.DATE_ARCHIVED is 'Date the record was archived.';
+
+Comment on table ARCH_DNASUBSEQUENCE is 'Archived DNA sequence details for subfeatures.';
+Comment on column ARCH_DNASUBSEQUENCE.DNASUBSEQUENCE_ID is  'Unique identifier (Oracle sequence).';
+Comment on column ARCH_DNASUBSEQUENCE.ANNOTATION_ID is 'FK to DNASEQUENCEANNOTATION.ANNOTATION_ID.';
+Comment on column ARCH_DNASUBSEQUENCE.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column ARCH_DNASUBSEQUENCE.DISPLAY_NAME is 'Public display name.';
+Comment on column ARCH_DNASUBSEQUENCE.BUD_ID is 'From BUD.SEQ.SEQ_NO.';
+Comment on column ARCH_DNASUBSEQUENCE.SO_ID is 'FK to the SO.SO_ID.';
+Comment on column ARCH_DNASUBSEQUENCE.RELATIVE_START_INDEX is 'Relative start coordinate based on the dbentity (feature).';
+Comment on column ARCH_DNASUBSEQUENCE.RELATIVE_END_INDEX is 'Relative stop coordinate based on the dbentity (feature).';
+Comment on column ARCH_DNASUBSEQUENCE.CONTIG_START_INDEX is 'Start coordinate based on the contig.';
+Comment on column ARCH_DNASUBSEQUENCE.CONTIG_END_INDEX is 'Stop coordinate based on the contig.';
+Comment on column ARCH_DNASUBSEQUENCE.SEQ_VERSION is 'Date of the sequence version.';
+Comment on column ARCH_DNASUBSEQUENCE.COORD_VERSION is 'Date of the coordinate version.';
+Comment on column ARCH_DNASUBSEQUENCE.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
+Comment on column ARCH_DNASUBSEQUENCE.FILE_HEADER is 'Fasta header line of the download file.';
+Comment on column ARCH_DNASUBSEQUENCE.DOWNLOAD_FILENAME is 'User interface download filename.';
+Comment on column ARCH_DNASUBSEQUENCE.FILE_ID is 'FK to FILE.FILE_ID.';
+Comment on column ARCH_DNASUBSEQUENCE.RESIDUES is 'DNA subfeature sequence.';
+Comment on column ARCH_DNASUBSEQUENCE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ARCH_DNASUBSEQUENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
+Comment on column ARCH_DNASUBSEQUENCE.DATE_ARCHIVED is 'Date the record was archived.';
+
+Comment on table ARCH_PROTEINSEQUENCEANNOTATION is 'Archived protein sequence information.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.BUD_ID is 'From BUD.PROTEIN.INFO.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.SEQ_VERSION is 'Date of the protein sequence release.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.COORD_VERSION is 'Date of the protein coordinate release.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.FILE_HEADER is 'Fasta header line of the download file.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.DOWNLOAD_FILENAME is 'User interface download filename.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.FILE_ID is 'FK to FILE.FILE_ID.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.RESIDUES is 'Sequence of the protein.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+Comment on column ARCH_PROTEINSEQUENCEANNOTATION.DATE_ARCHIVED is 'Date the record was archived.';
