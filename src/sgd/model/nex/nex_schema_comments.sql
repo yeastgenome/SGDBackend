@@ -1552,7 +1552,7 @@ Comment on column ARCH_DNASEQUENCEANNOTATION.BUD_ID is 'From BUD.SEQ.SEQ_NO.';
 Comment on column ARCH_DNASEQUENCEANNOTATION.SO_ID is 'FK to SO.SO_ID.';
 Comment on column ARCH_DNASEQUENCEANNOTATION.DNA_TYPE is 'Type of DNA sequence (CODING, 1KB, GENOMIC).';
 Comment on column ARCH_DNASEQUENCEANNOTATION.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
-Comment on column ARCH_DNASEQUENCEANNOTATIONSEQ_VERSION is 'Date of the sequence version.';
+Comment on column ARCH_DNASEQUENCEANNOTATION.SEQ_VERSION is 'Date of the sequence version.';
 Comment on column ARCH_DNASEQUENCEANNOTATION.COORD_VERSION is 'Date of the coordinate version.';
 Comment on column ARCH_DNASEQUENCEANNOTATION.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
 Comment on column ARCH_DNASEQUENCEANNOTATION.START_INDEX is 'Start coordinate.';
@@ -1597,7 +1597,6 @@ Comment on column ARCH_PROTEINSEQUENCEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.
 Comment on column ARCH_PROTEINSEQUENCEANNOTATION.BUD_ID is 'From BUD.PROTEIN.INFO.';
 Comment on column ARCH_PROTEINSEQUENCEANNOTATION.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
 Comment on column ARCH_PROTEINSEQUENCEANNOTATION.SEQ_VERSION is 'Date of the protein sequence release.';
-Comment on column ARCH_PROTEINSEQUENCEANNOTATION.COORD_VERSION is 'Date of the protein coordinate release.';
 Comment on column ARCH_PROTEINSEQUENCEANNOTATION.GENOMERELEASE_ID is 'FK to GENOMERELEASE.GENOMERELEASE_ID.';
 Comment on column ARCH_PROTEINSEQUENCEANNOTATION.FILE_HEADER is 'Fasta header line of the download file.';
 Comment on column ARCH_PROTEINSEQUENCEANNOTATION.DOWNLOAD_FILENAME is 'User interface download filename.';
