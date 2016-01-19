@@ -1,8 +1,8 @@
-Create OR REPLACE TRIGGER LocusChange_BIUR
+Create OR REPLACE TRIGGER ArchLocuschange_BIUR
 --
--- Before insert or update trigger for locus_change table
+-- Before insert or update trigger for arch_locuschange table
 --
-  BEFORE INSERT OR UPDATE ON locus_change
+  BEFORE INSERT OR UPDATE ON arch_locuschange
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
@@ -13,7 +13,7 @@ BEGIN
         SELECT change_seq.NEXTVAL INTO :new.change_id FROM DUAL;
     END IF;
 
-    v_IsValidUser := CheckUser(:new.created_by);
+    v_IsValidUser := CheckUser(:new.changed_by);
 
   ELSE
 
@@ -22,18 +22,13 @@ BEGIN
             (-20000, 'Primary key cannot be updated');
     END IF;
 
-    IF (:new.date_created != :old.date_created) THEN    
-        RAISE_APPLICATION_ERROR
-            (-20001, 'Audit columns cannot be updated.');
-    END IF;
-
-    IF (:new.created_by != :old.created_by) THEN    
+    IF (:new.date_archived != :old.date_archived) THEN    
         RAISE_APPLICATION_ERROR
             (-20001, 'Audit columns cannot be updated.');
     END IF;
 
   END IF;
 
-END LocusChange_BIUR;
+END ArchLocuschange_BIUR;
 /
 SHOW ERROR

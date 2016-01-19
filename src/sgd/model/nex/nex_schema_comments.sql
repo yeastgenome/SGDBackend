@@ -1482,9 +1482,9 @@ Comment on column ARCH_LOCUSCHANGE.BUD_ID is 'From BUD.ARCHIVE.ARCHIVE_NO.';
 Comment on column ARCH_LOCUSCHANGE.CHANGE_TYPE is 'Type of locus change (Status, Qualifier, Gene name).';
 Comment	on column ARCH_LOCUSCHANGE.OLD_VALUE is 'Previous value before change.';
 Comment on column ARCH_LOCUSCHANGE.NEW_VALUE is 'New value after change.';
-Comment on column ARCH_LOCUSCHANGE.DATE_CHANGE_MADE is 'Date the change was made.';
-Comment on column ARCH_LOCUSCHANGE.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column ARCH_LOCUSCHANGE.CREATED_BY is 'Username of the person who entered the record into the database.';
+Comment on column ARCH_LOCUSCHANGE.DATE_CHANGED is 'Date the change was made.';
+Comment on column ARCH_LOCUSCHANGE.CHANGED_BY is 'Username of the person who made the change.';
+Comment on column ARCH_LOCUSCHANGE.DATE_ARCHIVED is 'Date the record was archived.';
 
 Comment on table ARCH_LITERATUREANNOTATION is 'Archived literature topics or categories assigned to references.';
 Comment on column ARCH_LITERATUREANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
@@ -1538,8 +1538,8 @@ Comment on column ARCH_CONTIGCHANGE.CHANGE_MIN_COORD is 'Minimum coordinate of t
 Comment on column ARCH_CONTIGCHANGE.CHANGE_MAX_COORD is 'Maximum coordinate of the change relative to the whole chromosome.';
 Comment on column ARCH_CONTIGCHANGE.OLD_VALUE is 'Sequence prior to the change.';
 Comment on column ARCH_CONTIGCHANGE.NEW_VALUE is 'Sequence after the change.';
-Comment on column ARCH_CONTIGCHANGE.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column ARCH_CONTIGCHANGE.CREATED_BY  is 'Username of the person who entered the record into the database.';
+Comment on column ARCH_CONTIGCHANGE.DATE_CHANGED is 'Date the change was made.';
+Comment on column ARCH_CONTIGCHANGE.CHANGED_BY is 'Username of the person who made the change.';
 Comment on column ARCH_CONTIGCHANGE.DATE_ARCHIVED is 'Date the record was archived.';
 
 Comment on table ARCH_DNASEQUENCEANNOTATION is 'Archived DNA sequence details for contig, chromosomal, or plasmid features.';
