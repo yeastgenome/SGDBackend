@@ -23,7 +23,7 @@ BEGIN
             (-20000, 'Primary key cannot be updated');
     END IF;
 
-    IF (:new.locus_id != :old.locus_id) THEN
+    IF (:new.dbentity_id != :old.dbentity_id) THEN
         RAISE_APPLICATION_ERROR
              (-20029, 'This column cannot be updated.');
     END IF;
