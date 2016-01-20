@@ -5,7 +5,8 @@ Create OR REPLACE TRIGGER ArchContigchange_BIUDR
   BEFORE INSERT OR UPDATE OR DELETE ON arch_contigchange
   FOR EACH ROW
 DECLARE
-  v_IsValidUser         dbuser.username%TYPE;
+  v_IsValidUser     dbuser.username%TYPE;
+  v_CanDelete       NUMBER;
 BEGIN
   IF INSERTING THEN
 
