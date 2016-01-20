@@ -10,8 +10,6 @@ PROCEDURE InsertLocusChange(p_dbentityId IN VARCHAR2,
                         p_changeDate IN DATE,
                         p_user IN VARCHAR2);
 
-END InsertLocusChange;
-
 END InsertArchive;
 /
 GRANT EXECUTE ON InsertArchive to PUBLIC
