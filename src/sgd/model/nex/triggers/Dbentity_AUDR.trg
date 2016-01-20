@@ -49,7 +49,7 @@ BEGIN
     IF (:old.dbentity_status != :new.dbentity_status)
     THEN
         AuditLog.InsertUpdateLog('DBENTITY', 'DBENTITY_STATUS', :old.dbentity_id, :old.dbentity_status, :new.dbentity_status, USER);
---		InsertHistory.InsertHistory(:old.dbentity_id, 'SGD', SYSDATE, 'DBENTITY', 'Dbentity status', :old.dbentity_status, :new.dbentity_status, 'Dbentity status change', USER);
+		InsertArchive.InsertLocusChange(:old.dbentity_id, 'SGD', 'Status', :old.dbentity_status, :new.dbentity_status, SYSDATE, USER);
     END IF;
 
   ELSE

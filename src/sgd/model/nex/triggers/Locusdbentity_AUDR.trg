@@ -18,13 +18,13 @@ BEGIN
 	 IF (((:old.gene_name IS NULL) AND (:new.gene_name IS NOT NULL)) OR ((:old.gene_name IS NOT NULL) AND (:new.gene_name IS NULL)) OR (:old.gene_name != :new.gene_name)) 
     THEN
         AuditLog.InsertUpdateLog('LOCUSDBENTITY', 'GENE_NAME', :old.dbentity_id, :old.gene_name, :new.gene_name, USER);
---        InsertHistory.InsertHistory(:old.dbentity_id, 'SGD', SYSDATE, 'LOCUS', 'Gene name', :old.gene_name, :new.gene_name, 'Gene name change.', USER);
+        InsertArchive.InsertLocusChange(:old.dbentity_id, 'SGD', 'Gene name', :old.gene_name, :new.gene_name, SYSDATE, USER);
     END IF;
 
     IF (((:old.qualifier IS NULL) AND (:new.qualifier IS NOT NULL)) OR ((:old.qualifier IS NOT NULL) AND (:new.qualifier IS NULL)) OR (:old.qualifier != :new.qualifier)) 
     THEN
         AuditLog.InsertUpdateLog('LOCUSDBENTITY', 'QUALIFIER', :old.dbentity_id, :old.qualifier, :new.qualifier, USER);
---		InsertHistory.InsertHistory(:old.dbentity_id, 'SGD', SYSDATE, 'LOCUS', 'Feature qualifier', :old.qualifier, :new.qualifier, 'Feature qualifier change.', USER);
+		InsertArchive.InsertLocusChange(:old.dbentity_id, 'SGD', 'Qualifier', :old.qualifier, :new.qualifier, SYSDATE, USER);
     END IF;
 
     IF (((:old.genetic_position IS NULL) AND (:new.genetic_position IS NOT NULL)) OR ((:old.genetic_position IS NOT NULL) AND (:new.genetic_position IS NULL)) OR (:old.genetic_position != :new.genetic_position)) 

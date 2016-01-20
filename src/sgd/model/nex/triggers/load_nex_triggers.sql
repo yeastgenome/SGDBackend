@@ -240,17 +240,10 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinsequenceDetail_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinsequenceDetail_AUDR.trg
 
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchLocuschange_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchLocuschange_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchLiteratureannotation_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchLiteratureannotation_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchContig_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchContig_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchContigchange_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchContigchange_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchDnaseqannotation_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchDnaseqannotation_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchDnasubsequence_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchDnasubsequence_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchProteinseqannotation_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchProteinseqannotation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchLocuschange_BIUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchLiteratureannotation_BIUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchContig_BIUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchContigchange_BIUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchDnaseqannotation_BIUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchDnasubsequence_BIUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchProteinseqannotation_BIUDR.trg
