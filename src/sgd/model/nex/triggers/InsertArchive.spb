@@ -2,7 +2,7 @@ CREATE OR REPLACE PACKAGE BODY InsertArchive AS
 --
 -- Automatic insert into the historyannotation table for gene_names and qualifiers
 --
-PROCEDURE InsertLocusChange(p_locusId IN VARCHAR2,
+PROCEDURE InsertLocusChange(p_dbentityId IN VARCHAR2,
                         p_sourceName IN VARCHAR2,
                         p_changeType IN VARCHAR2,
                         p_oldValue IN VARCHAR2,
@@ -19,11 +19,9 @@ BEGIN
 	WHERE display_name = p_sourceName;
 
     INSERT INTO arch_locuschange
-        (archive_id, locus_id, source_id, change_type, old_value, new_value, date_changed, changed_by)
+        (archive_id, dbentity_id, source_id, change_type, old_value, new_value, date_changed, changed_by)
     VALUES
-        (archive_seq.NEXTVAL, p_locusID, v_sourceID, p_changeType, p_oldValue, p_newValue, p_changeDate, p_user);
-
-END InsertLocusChange;
+        (archive_seq.NEXTVAL, p_dbentityID, v_sourceID, p_changeType, p_oldValue, p_newValue, p_changeDate, p_user);
 
 END InsertArchive;
 /
