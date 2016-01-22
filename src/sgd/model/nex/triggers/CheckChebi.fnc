@@ -4,30 +4,15 @@ CREATE OR REPLACE FUNCTION CheckChebi (
 -- Returns TRUE if the chebi_id is found
 -- or FALSE if no match was found
 --
-    p_chebi IN VARCHAR2,
-    p_chebi_type IN VARCHAR2)
+    p_chebi IN VARCHAR2)
     RETURN NUMBER
 IS
     v_ChebiId	  chebi.chebi_id%TYPE;
 BEGIN
 
-	IF (p_chebi_type = 'CHEBI') THEN
-
-	    SELECT count(chebi_id) INTO v_ChebiId
-    	FROM chebi
-    	WHERE chebi_id = p_chebi
-    	AND REGEXP_LIKE (format_name, '^CHEBI:\d+$');
-
-	ELSE
-		IF (p_chebi_type = 'NTR') THEN
-
-		    SELECT count(chebi_id) INTO v_ChebiId
-        	FROM chebi
-        	WHERE chebi_id = p_chebi
-        	AND REGEXP_LIKE (format_name, '^NTR:\d+$');
-
-		END IF;
-	END IF;
+    SELECT count(chebi_id) INTO v_ChebiId
+    FROM chebi
+    WHERE chebi_id = p_chebi;
 
     IF v_ChebiId = 0 
     THEN 

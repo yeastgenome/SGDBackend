@@ -14,12 +14,8 @@ BEGIN
         SELECT condition_seq.NEXTVAL INTO :new.condition_id FROM DUAL;
     END IF; 
 
-    IF ((:new.condition_type = 'Chemical') AND (:new.condition_type = 'CHEBI')) THEN
-        v_DoesChebiExist := CheckChebi(:new.condition_value, 'CHEBI');
-    END IF;
-
-    IF ((:new.condition_type = 'Chemical') AND (:new.condition_type = 'Chemical pending')) THEN 
-        v_DoesChebiExist := CheckChebi(:new.condition_value, 'NTR');
+    IF (:new.condition_type = 'Chemical') THEN
+        v_DoesChebiExist := CheckChebi(:new.condition_name);
     END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);
@@ -31,12 +27,8 @@ BEGIN
             (-20000, 'Primary key cannot be updated');
     END IF;
 
-    IF ((:new.condition_type = 'Chemical') AND (:new.condition_type = 'CHEBI')) THEN
-        v_DoesChebiExist := CheckChebi(:new.condition_value, 'CHEBI');
-    END IF;
-
-    IF ((:new.condition_type = 'Chemical') AND (:new.condition_type = 'Chemical pending')) THEN 
-        v_DoesChebiExist := CheckChebi(:new.condition_value, 'NTR');
+    IF (:new.condition_type = 'Chemical') THEN
+        v_DoesChebiExist := CheckChebi(:new.condition_name);
     END IF;
 
     IF (:new.date_created != :old.date_created) THEN    

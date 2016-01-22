@@ -40,11 +40,6 @@ BEGIN
         AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION', 'EXPERIMENT_TYPE', :old.annotation_id, :old.experiment_type, :new.experiment_type, USER);
     END IF;
 
-    IF (:old.obi_id != :new.obi_id) 
-    THEN
-        AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION', 'OBI_ID', :old.annotation_id, :old.obi_id, :new.obi_id, USER);
-    END IF;
-
     IF (:old.data_value != :new.data_value)
     THEN
         AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION', 'DATA_VALUE', :old.annotation_id, :old.data_value, :new.data_value, USER);
@@ -55,13 +50,18 @@ BEGIN
         AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION', 'DATA_UNIT', :old.annotation_id, :old.data_unit, :new.data_unit, USER);
     END IF;
 
+    IF (((:old.assay_id IS NULL) AND (:new.assay_id IS NOT NULL)) OR ((:old.assay_id IS NOT NULL) AND (:new.assay_id IS NULL)) OR (:old.assay_id != :new.assay_id))
+    THEN
+        AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION', 'ASSAY_ID', :old.annotation_id, :old.assay_id, :new.assay_id, USER);
+    END IF;
+
   ELSE
 
     v_row := :old.annotation_id || '[:]' || :old.dbentity_id || '[:]' ||
              :old.source_id || '[:]' || :old.taxonomy_id || '[:]' ||
              :old.reference_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.experiment_type || '[:]' || :old.obi_id || '[:]' || 
-             :old.data_value || '[:]' || :old.data_unit || '[:]' || 
+             :old.experiment_type || '[:]' || :old.data_value || '[:]' || 
+             :old.data_unit || '[:]' || :old.assay_id || '[:]' || 
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('PROTEINEXPTANNOTATION', :old.annotation_id, v_row, USER);

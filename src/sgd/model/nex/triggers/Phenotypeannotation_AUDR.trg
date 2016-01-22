@@ -65,6 +65,16 @@ BEGIN
         AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'ASSAY_ID', :old.annotation_id, :old.assay_id, :new.assay_id, USER);
     END IF;
 
+    IF  (((:old.strain_name IS NULL) AND (:new.strain_name IS NOT NULL)) OR ((:old.strain_name IS NOT NULL) AND (:new.strain_name IS NULL)) OR (:old.strain_name != :new.strain_name))
+    THEN
+        AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'STRAIN_NAME', :old.annotation_id, :old.strain_name, :new.strain_name, USER);
+    END IF;
+
+    IF  (((:old.details IS NULL) AND (:new.details IS NOT NULL)) OR ((:old.details IS NOT NULL) AND (:new.details IS NULL)) OR (:old.details != :new.details))
+    THEN
+        AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION', 'DETAILS', :old.annotation_id, :old.details, :new.details, USER);
+    END IF;
+
   ELSE
 
     v_row := :old.annotation_id || '[:]' || :old.dbentity_id || '[:]' ||
@@ -73,6 +83,7 @@ BEGIN
              :old.phenotype_id || '[:]' || :old.experiment_id || '[:]' ||
              :old.mutant_id || '[:]' || :old.allele_id || '[:]' ||
              :old.reporter_id || '[:]' || :old.assay_id || '[:]' ||
+             :old.strain_name || '[:]' || :old.details || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('PHENOTYPEANNOTATION', :old.annotation_id, v_row, USER);

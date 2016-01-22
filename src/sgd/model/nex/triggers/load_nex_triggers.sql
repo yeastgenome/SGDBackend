@@ -173,7 +173,6 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Allele_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reporter_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reporter_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dataset_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dataset_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DatasetLab_BIUR.trg
@@ -188,7 +187,6 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DatasetFile_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Datasetsample_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Datasetsample_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Genomerelease_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Genomerelease_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Contig_BIUR.trg

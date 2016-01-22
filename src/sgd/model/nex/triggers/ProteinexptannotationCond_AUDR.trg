@@ -15,22 +15,17 @@ BEGIN
         AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION_COND', 'ANNOTATION_ID', :old.condition_id, :old.annotation_id, :new.annotation_id, USER);
     END IF;
 
-     IF (:old.group_id != :new.group_id)
-    THEN
-        AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION_COND', 'GROUP_ID', :old.condition_id, :old.group_id, :new.group_id, USER);
-    END IF;
-
-     IF (:old.condition_class != :new.condition_class)
-    THEN
-        AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION_COND', 'CONDITION_CLASS', :old.condition_id, :old.condition_class, :new.condition_class, USER);
-    END IF;
-
      IF (:old.condition_type != :new.condition_type)
     THEN
         AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION_COND', 'CONDITION_TYPE', :old.condition_id, :old.condition_type, :new.condition_type, USER);
     END IF;
 
-     IF (:old.condition_value != :new.condition_value)
+     IF (:old.condition_name != :new.condition_name)
+    THEN
+        AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION_COND', 'CONDITION_NAME', :old.condition_id, :old.condition_name, :new.condition_name, USER);
+    END IF;
+
+    IF (((:old.condition_value IS NULL) AND (:new.condition_value IS NOT NULL)) OR ((:old.condition_value IS NOT NULL) AND (:new.condition_value IS NULL)) OR (:old.condition_value != :new.condition_value))
     THEN
         AuditLog.InsertUpdateLog('PROTEINEXPTANNOTATION_COND', 'CONDITION_VALUE', :old.condition_id, :old.condition_value, :new.condition_value, USER);
     END IF;
@@ -43,9 +38,8 @@ BEGIN
   ELSE
 
     v_row := :old.condition_id || '[:]' || :old.annotation_id || '[:]' ||
-             :old.group_id || '[:]' || :old.condition_class || '[:]' || 
-             :old.condition_type || '[:]' || :old.condition_value || '[:]' || 
-             :old.condition_unit || '[:]' ||
+             :old.condition_type || '[:]' || :old.condition_name || '[:]' || 
+             :old.condition_value || '[:]' || :old.condition_unit || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('PROTEINEXPTANNOTATION_COND', :old.condition_id, v_row, USER);
