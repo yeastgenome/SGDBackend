@@ -611,6 +611,23 @@ Comment on column STRAIN_URL.URL_TYPE is 'Type of URL (External id, Wiki, PubMed
 Comment on column STRAIN_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column STRAIN_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+/* Pathway */
+
+Comment on table PATHWAYDBENTITY is 'A biochemical pathway. Inherits from DBENTITY';
+Comment on column PATHWAYDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PATHWAYDBENTITY.BIOCYC_ID is  'Unique identifier for the pathway from BioCyc.';
+
+Comment on table PATHWAY_URL is 'URLs associated with a pathway.';
+Comment on column PATHWAY_URL.URL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PATHWAY_URL.DISPLAY_NAME is 'Public display name.';
+Comment on column PATHWAY_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column PATHWAY_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PATHWAY_URL.BUD_ID is 'Not from BUD';
+Comment on column PATHWAY_URL.PATHWAY_ID is 'FK to PATHWAYDBENTITY.DBENTITY_ID.';
+Comment on column PATHWAY_URL.URL_TYPE is 'Type of URL (BioCyc, Yeastpathways).';
+Comment on column PATHWAY_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PATHWAY_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 /* Reference */
 
 Comment on table BOOK is 'Details about book references.';
@@ -878,6 +895,26 @@ Comment on column STRAIN_SUMMARY_REFERENCE.REFERENCE_ORDER is 'Order of the refe
 Comment on column STRAIN_SUMMARY_REFERENCE.SOURCE_ID is  'FK to SOURCE.SOURCE_ID.';
 Comment on column STRAIN_SUMMARY_REFERENCE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column STRAIN_SUMMARY_REFERENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table PATHWAY_SUMMARY is 'Summaries or paragraphs associated with pathways.';
+Comment on column PATHWAY_SUMMARY.SUMMARY_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PATHWAY_SUMMARY.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PATHWAY_SUMMARY.BUD_ID is 'Not from BUD.';
+Comment on column PATHWAY_SUMMARY.PATHWAY_ID is 'FK to PATHWAYDBENTITY.DBENTITY_ID.';
+Comment on column PATHWAY_SUMMARY.SUMMARY_TYPE is 'Type of summary (Metabolic).';
+Comment on column PATHWAY_SUMMARY.TEXT is 'Summary plain text.';
+Comment on column PATHWAY_SUMMARY.HTML is 'Summary HTML mark-up.';
+Comment on column PATHWAY_SUMMARY.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PATHWAY_SUMMARY.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table PATHWAY_SUMMARY_REFERENCE is 'References associatd with a paragraph summary.';
+Comment on column PATHWAY_SUMMARY_REFERENCE.SUMMARY_REFERENCE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PATHWAY_SUMMARY_REFERENCE.SUMMARY_ID is 'FK to PATHWAY_SUMMARY.SUMMARY_ID.';
+Comment on column PATHWAY_SUMMARY_REFERENCE.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column PATHWAY_SUMMARY_REFERENCE.REFERENCE_ORDER is 'Order of the references in the summary.';
+Comment on column PATHWAY_SUMMARY_REFERENCE.SOURCE_ID is  'FK to SOURCE.SOURCE_ID.';
+Comment on column PATHWAY_SUMMARY_REFERENCE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PATHWAY_SUMMARY_REFERENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* Gene reservations */
 
@@ -1270,6 +1307,18 @@ Comment on column LITERATUREANNOTATION.BUD_ID is 'From BUD.LIT_GUIDE.LIT_GUIDE_N
 Comment on column LITERATUREANNOTATION.TOPIC is 'Topic or category assigned to a reference (Additional Literature, Omics, Primary Literature, Reviews).';
 Comment on column LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table PATHWAYANNOTATION is 'Annotations associated with a pathway.';
+Comment on column PATHWAYANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column PATHWAYANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column PATHWAYANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column PATHWAYANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column PATHWAYANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column PATHWAYANNOTATION.BUD_ID is 'Not from BUD.';
+Comment on column PATHWAYANNOTATION.PATHWAY_ID is 'FK to PATHWAYDBENTITY.DBENTITY_ID.';
+Comment on column PATHWAYANNOTATION.EC_ID is 'FK to EC.EC_ID.';
+Comment on column PATHWAYANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column PATHWAYANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table PHENOTYPEANNOTATION is 'Annotations associated with a phenotype.';
 Comment on column PHENOTYPEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';

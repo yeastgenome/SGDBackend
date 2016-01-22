@@ -117,6 +117,12 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Straindbentity_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainUrl_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainUrl_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwaydbentity_BUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwaydbentity_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayUrl_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Book_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Book_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Journal_BIUR.trg
@@ -163,6 +169,12 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainSummary_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainSummaryReference_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainSummaryReference_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwaySummary_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwaySummary_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwaySummaryReference_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwaySummaryReference_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslim_BIUR.trg
@@ -219,6 +231,10 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslimannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwayannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwayannotation_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PhenotypeannotationCond_BIUR.trg
