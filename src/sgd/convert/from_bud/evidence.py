@@ -1177,7 +1177,8 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                       'src/sgd/convert/data/PTMsites062615.txt',
                       'src/sgd/convert/data/PTMsites091715.txt',
                       'src/sgd/convert/data/PTMsites102315.txt',
-                      'src/sgd/convert/data/PTMsites112115.txt']
+                      'src/sgd/convert/data/PTMsites112115.txt',
+                      'src/sgd/convert/data/PTMsites011516.txt']
 
         for file_name in file_names:
             print file_name
@@ -1192,11 +1193,23 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                     site = pieces[1].strip()
                     site_residue = site[0]
                     site_index = int(site[1:])
-                    site_functions = pieces[2]
-                    modification_type = pieces[3]
-                    modifiers = pieces[4]
-                    source_key = pieces[5]
-                    pmid = int(pieces[6].replace('PMID:', ''))
+                    modification_type = ''
+                    modifiers = ''
+                    source_key = 'SGD'
+                    pmid = ''
+                    site_functions = ''
+                    if file_name.endswith('16.txt'):
+                        # new file format
+                        modification_type = pieces[2]
+                        modifiers = pieces[3]
+                        pmid = int(pieces[4].replace('PMID:', ''))
+                    else:
+                        # old files
+                        site_functions = pieces[2]
+                        modification_type = pieces[3]
+                        modifiers = pieces[4]
+                        source_key = pieces[5]
+                        pmid = int(pieces[6].replace('PMID:', ''))
 
                     conditions = {}
 
