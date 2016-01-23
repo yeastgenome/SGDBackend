@@ -250,7 +250,8 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                       'src/sgd/convert/data/15-8regulationSummaries.txt',
                       'src/sgd/convert/data/15-9regulationSummaries.txt',
                       'src/sgd/convert/data/15-10regulationSummaries.txt',
-                      'src/sgd/convert/data/15-11regulationSummaries.txt']
+                      'src/sgd/convert/data/15-11regulationSummaries.txt',
+                      'src/sgd/convert/data/16-1regulationSummaries.txt']
 
         for file_name in file_names:
             for row in make_file_starter(file_name)():
@@ -276,7 +277,9 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                       'src/sgd/convert/data/15-8phenoSummaries.txt',
                       'src/sgd/convert/data/15-9phenoSummaries.txt',
                       'src/sgd/convert/data/15-10phenoSummaries.txt',
-                      'src/sgd/convert/data/15-11phenoSummaries.txt']
+                      'src/sgd/convert/data/15-11phenoSummaries.txt',
+                      'src/sgd/convert/data/15-12phenoSummaries.txt',
+                      'src/sgd/convert/data/16-1phenoSummaries.txt']
 
         for file_name in file_names:
             for row in make_file_starter(file_name)():
@@ -389,7 +392,8 @@ def make_paragraph_reference_starter(nex_session_maker):
                       'src/sgd/convert/data/15-8regulationSummaries.txt',
                       'src/sgd/convert/data/15-9regulationSummaries.txt',
                       'src/sgd/convert/data/15-10regulationSummaries.txt',
-                      'src/sgd/convert/data/15-11regulationSummaries.txt']
+                      'src/sgd/convert/data/15-11regulationSummaries.txt',
+                      'src/sgd/convert/data/16-1regulationSummaries.txt']
 
         for file_name in file_names:
             for row in make_file_starter(file_name)():
