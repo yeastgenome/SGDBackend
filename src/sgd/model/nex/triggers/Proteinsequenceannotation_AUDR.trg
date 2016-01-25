@@ -46,11 +46,6 @@ BEGIN
         AuditLog.InsertUpdateLog('PROTEINSEQUENCEANNOTATION', 'SEQ_VERSION', :old.annotation_id, :old.seq_version, :new.seq_version, USER);
     END IF;
 
-    IF (((:old.coord_version IS NULL) AND (:new.coord_version IS NOT NULL)) OR ((:old.coord_version IS NOT NULL) AND (:new.coord_version IS NULL)) OR (:old.coord_version != :new.coord_version))
-    THEN
-        AuditLog.InsertUpdateLog('PROTEINSEQUENCEANNOTATION', 'COORD_VERSION', :old.annotation_id, :old.coord_version, :new.coord_version, USER);
-    END IF;
-
     IF (((:old.genomerelease_id IS NULL) AND (:new.genomerelease_id IS NOT NULL)) OR ((:old.genomerelease_id IS NOT NULL) AND (:new.genomerelease_id IS NULL)) OR (:old.genomerelease_id != :new.genomerelease_id))
     THEN
         AuditLog.InsertUpdateLog('PROTEINSEQUENCEANNOTATION', 'GENOMERELEASE_ID', :old.annotation_id, :old.genomerelease_id, :new.genomerelease_id, USER);
@@ -82,9 +77,8 @@ BEGIN
              :old.source_id || '[:]' || :old.taxonomy_id || '[:]' ||
              :old.reference_id || '[:]' || :old.bud_id || '[:]' ||
              :old.contig_id || '[:]' || :old.seq_version || '[:]' || 
-             :old.coord_version || '[:]' || :old.genomerelease_id || '[:]' || 
-             :old.file_header || '[:]' || :old.download_filename || '[:]' ||
-             :old.file_id || '[:]' ||
+             :old.genomerelease_id || '[:]' || :old.file_header || '[:]' || 
+             :old.download_filename || '[:]' || :old.file_id || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     v_row := concat(concat(v_part, '[:]'), :old.residues);
