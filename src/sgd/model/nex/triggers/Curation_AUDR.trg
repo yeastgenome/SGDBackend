@@ -43,8 +43,7 @@ BEGIN
   ELSE
 
     v_row := :old.curation_id || '[:]' || :old.dbentity_id || '[:]' ||
-             :old.source_id || '[:]' || :old.taxonomy_id || '[:]' || 
-             :old.reference_id || '[:]' || :old.bud_id || '[:]' ||
+             :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.subclass || '[:]' || :old.curation_task || '[:]' ||
              :old.curator_comment || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
