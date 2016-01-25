@@ -1502,7 +1502,7 @@ Comment on column CURATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column CURATION.BUD_ID is 'Not from BUD.';
 Comment on column CURATION.SUBCLASS is 'Type of curation (Locus, Reference).';
 Comment on column CURATION.CURATION_TASK is 'Type of curation task ().';
-Comment on column CURATION.CURATION_NOTE is 'Description or comment.';
+Comment on column CURATION.CURATOR_COMMENT is 'Comment or note.';
 Comment on column CURATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CURATION.CREATED_BY  is 'Username of the person who entered the record into the database.';
 

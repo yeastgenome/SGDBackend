@@ -35,9 +35,9 @@ BEGIN
         AuditLog.InsertUpdateLog('CURATION', 'CURATION_TASK', :old.curation_id, :old.curation_task, :new.curation_task, USER);
     END IF;
 
-    IF (((:old.curation_note IS NULL) AND (:new.curation_note IS NOT NULL)) OR ((:old.curation_note IS NOT NULL) AND (:new.curation_note IS NULL)) OR (:old.curation_note != :new.curation_note))
+    IF (((:old.curator_comment IS NULL) AND (:new.curator_comment IS NOT NULL)) OR ((:old.curator_comment IS NOT NULL) AND (:new.curator_comment IS NULL)) OR (:old.curator_comment != :new.curator_comment))
     THEN
-        AuditLog.InsertUpdateLog('CURATION', 'CURATION_NOTE', :old.curation_id, :old.curation_note, :new.curation_note, USER);
+        AuditLog.InsertUpdateLog('CURATION', 'CURATOR_COMMENT', :old.curation_id, :old.curator_comment, :new.curator_comment, USER);
     END IF;
 
   ELSE
@@ -46,7 +46,7 @@ BEGIN
              :old.source_id || '[:]' || :old.taxonomy_id || '[:]' || 
              :old.reference_id || '[:]' || :old.bud_id || '[:]' ||
              :old.subclass || '[:]' || :old.curation_task || '[:]' ||
-             :old.curation_note || '[:]' ||
+             :old.curator_comment || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('CURATION', :old.curation_id, v_row, USER);
