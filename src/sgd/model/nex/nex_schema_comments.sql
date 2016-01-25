@@ -799,6 +799,7 @@ Comment on column COLLEAGUE.WORK_PHONE is 'Colleague work phone number.';
 Comment on column COLLEAGUE.OTHER_PHONE is 'Another phone number for the colleague.';
 Comment on column COLLEAGUE.FAX is 'Fax number.';
 Comment on column COLLEAGUE.EMAIL is 'Email address.';
+Comment	on column COLLEAGUE.COLLEAGUE_NOTE is 'Note or comment about the colleague.';
 Comment on column COLLEAGUE.RESEARCH_INTEREST is 'Research interests of the colleague.';
 Comment on column COLLEAGUE.IS_PI is 'Whether the colleague is a PI.';
 Comment on column COLLEAGUE.IS_CONTACT is 'Whether the colleague is a contact for SGD.';
@@ -1307,6 +1308,19 @@ Comment on column LITERATUREANNOTATION.BUD_ID is 'From BUD.LIT_GUIDE.LIT_GUIDE_N
 Comment on column LITERATUREANNOTATION.TOPIC is 'Topic or category assigned to a reference (Additional Literature, Omics, Primary Literature, Reviews).';
 Comment on column LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table NOTEANNOTATION is 'Historical and informative notes.';
+Comment on column NOTEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column NOTEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column NOTEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column NOTEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column NOTEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column NOTEANNOTATION.BUD_ID is 'From BUD.LIT_GUIDE.LIT_GUIDE_NO.';
+Comment on column NOTEANNOTATION.NOTE_TYPE is 'What type of data the note is about (Locus, Sequence).';
+Comment on column NOTEANNOTATION.DISPLAY_NAME is 'Public display name.';
+Comment on column NOTEANNOTATION.NOTE is 'Note or comment.';
+Comment on column NOTEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column NOTEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table PATHWAYANNOTATION is 'Annotations associated with a pathway.';
 Comment on column PATHWAYANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
