@@ -130,6 +130,11 @@ BEGIN
         AuditLog.InsertUpdateLog('COLLEAGUE', 'EMAIL', :old.colleague_id, :old.email, :new.email, USER);
     END IF;
 
+    IF (((:old.colleague_note IS NULL) AND (:new.colleague_note IS NOT NULL)) OR ((:old.colleague_note IS NOT NULL) AND (:new.colleague_note IS NULL)) OR (:old.colleague_note != :new.colleague_note))
+    THEN
+        AuditLog.InsertUpdateLog('COLLEAGUE', 'COLLEAGUE_NOTE', :old.colleague_id, :old.colleague_note, :new.colleague_note, USER);
+    END IF;
+
     IF (((:old.research_interest IS NULL) AND (:new.research_interest IS NOT NULL)) OR ((:old.research_interest IS NOT NULL) AND (:new.research_interest IS NULL)) OR (:old.research_interest != :new.research_interest))
     THEN
         AuditLog.InsertUpdateLog('COLLEAGUE', 'RESEARCH_INTEREST', :old.colleague_id, :old.research_interest, :new.research_interest, USER);
@@ -160,17 +165,17 @@ BEGIN
     v_row := :old.colleague_id || '[:]' || :old.format_name || '[:]' ||
              :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.orcid || '[:]' ||
-             :old.last_name || '[:]' || :old.first_name || '[:]' || 
-             :old.suffix || '[:]' || :old.other_last_name || '[:]' || 
-             :old.profession || '[:]' || :old.job_title || '[:]' || 
-             :old.institution || '[:]' || :old.address1 || '[:]' || 
-             :old.address2 || '[:]' || :old.address3 || '[:]' || 
-             :old.city || '[:]' || :old.state || '[:]' || 
-             :old.country || '[:]' || 
+             :old.orcid || '[:]' || :old.last_name || '[:]' || 
+             :old.first_name || '[:]' || :old.suffix || '[:]' || 
+             :old.other_last_name || '[:]' || :old.profession || '[:]' || 
+             :old.job_title || '[:]' || :old.institution || '[:]' || 
+             :old.address1 || '[:]' || :old.address2 || '[:]' || 
+             :old.address3 || '[:]' || :old.city || '[:]' || 
+             :old.state || '[:]' || :old.country || '[:]' || 
              :old.postal_code || '[:]' || :old.work_phone || '[:]' ||
              :old.other_phone || '[:]' || :old.fax || '[:]' ||
-             :old.email || '[:]' || :old.research_interest || '[:]' ||
+             :old.email || '[:]' || :old.colleague_note || '[:]' ||
+             :old.research_interest || '[:]' ||
              :old.is_pi || '[:]' || :old.is_contact || '[:]' ||
              :old.display_email || '[:]' || :old.date_last_modified || '[:]' || 
              :old.date_created || '[:]' || :old.created_by;
