@@ -1495,7 +1495,7 @@ Comment on column PROTEINSEQUENCE_DETAIL.CREATED_BY is 'Username of the person w
 
 /* Curation tables */
 
-Comment on table CURATION is 'Tags and notes associated with locus and reference curation.';
+Comment on table CURATION is 'Tasks and notes associated with locus and reference curation.';
 Comment on column CURATION.CURATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column CURATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
 Comment on column CURATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
