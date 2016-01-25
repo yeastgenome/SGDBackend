@@ -252,6 +252,13 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinsequenceDetail_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ProteinsequenceDetail_AUDR.trg
 
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Curation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Curation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Authorresponse_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Authorresponse_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Referencetriage_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Referencetriage_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchLocuschange_BIUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchLiteratureannotation_BIUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchContig_BIUDR.trg
