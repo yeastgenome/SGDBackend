@@ -756,6 +756,7 @@ Comment on column REFERENCE_DELETED.REFERENCE_DELETED_ID is 'Unique identifier (
 Comment on column REFERENCE_DELETED.PMID is 'PubMed ID of the reference from NCBI.';
 Comment on column REFERENCE_DELETED.SGDID is 'SGDID of the reference assigned before removal from the database.';
 Comment on column REFERENCE_DELETED.BUD_ID is 'PK in BUD is PubMed ID.';
+Comment on column REFERENCE_DELETED.REASON_DELETED is 'Why the reference was deleted from the database.';
 Comment on column REFERENCE_DELETED.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_DELETED.CREATED_BY is 'Username of the person who entered the record into the database.';
 

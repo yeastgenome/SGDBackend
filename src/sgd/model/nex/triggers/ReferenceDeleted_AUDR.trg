@@ -26,10 +26,16 @@ BEGIN
         AuditLog.InsertUpdateLog('REFERENCE_DELETED', 'BUD_ID', :old.reference_deleted_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
+    IF (((:old.reason_deleted IS NULL) AND (:new.reason_deleted IS NOT NULL)) OR ((:old.reason_deleted IS NOT NULL) AND (:new.reason_deleted IS NULL)) OR (:old.reason_deleted != :new.reason_deleted))
+    THEN
+        AuditLog.InsertUpdateLog('REFERENCE_DELETED', 'REASON_DELETED', :old.reference_deleted_id, :old.reason_deleted, :new.reason_deleted, USER);
+    END IF;
+
   ELSE
 
      v_row := :old.reference_deleted_id || '[:]' || :old.pmid || '[:]' || 
               :old.sgdid || '[:]' || :old.bud_id || '[:]' ||
+              :old.reason_deleted || '[:]' ||
               :old.date_created || '[:]' || :old.created_by;
 
      AuditLog.InsertDeleteLog('REFERENCE_DELETED', :old.reference_deleted_id, v_row, USER);
