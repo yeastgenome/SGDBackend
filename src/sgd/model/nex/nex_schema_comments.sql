@@ -826,7 +826,7 @@ Comment on column COLLEAGUE_ASSOCIATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column COLLEAGUE_ASSOCIATION.BUD_ID is 'PK from BUD.COLL_RELATIONSHIP.COLL_RELATIONSHIP_NO.';
 Comment on column COLLEAGUE_ASSOCIATION.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
 Comment on column COLLEAGUE_ASSOCIATION.ASSOCIATE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
-Comment on column COLLEAGUE_ASSOCIATION.ASSOCIATION_TYPE is 'Type of association or relationship (Associate, Lab member).';
+Comment on column COLLEAGUE_ASSOCIATION.ASSOCIATION_TYPE is 'Type of association or relationship (Associate, Lab member, Head of Lab).';
 Comment on column COLLEAGUE_ASSOCIATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column COLLEAGUE_ASSOCIATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
