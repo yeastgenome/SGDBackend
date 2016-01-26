@@ -86,15 +86,23 @@ def set_mapping():
                             "analyzer": "raw"
                         }
                     }
+                },
+                "go_molecular_functions": {
+                    "type": "nested",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         }
     }
     # drop index and re-create
-    es.indices.delete(index=INDEX_NAME, ignore=404)
-    es.indices.create(index=INDEX_NAME)
-    es.cluster.health(wait_for_status='yellow', request_timeout=5)
-    set_filters()
+    # es.indices.delete(index=INDEX_NAME, ignore=404)
+    # es.indices.create(index=INDEX_NAME)
+    # es.cluster.health(wait_for_status='yellow', request_timeout=5)
+    # set_filters()
     es.indices.put_mapping(index=INDEX_NAME, doc_type=DOC_TYPE, body=mapping_settings)
 
 def get_unique_go_term_names(go_obj, go_type):
@@ -344,13 +352,16 @@ def index_toolbar_links():
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=l[1])
     
 def main():
-    setup_index()
-    index_genes()
-    index_phenotypes()
-    index_authors()
-    index_strains()
-    index_go_terms()
-    index_references()
+    # TEMP
+    set_mapping()
+
+    # setup_index()
+    # index_genes()
+    # index_phenotypes()
+    # index_authors()
+    # index_strains()
+    # index_go_terms()
+    # index_references()
 
 #    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
 
