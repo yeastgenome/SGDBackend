@@ -511,7 +511,7 @@ def prep_views(chosen_backend, config):
     
 def prepare_backend(backend_type):
     configurator = Configurator()
-    configurator.add_static_view('static', 'static', cache_max_age=3600)
+    configurator.add_static_view('curate', 'src:sgd/backend/static', cache_max_age=3600)
 
     chosen_backend = None
     if backend_type == 'nex':

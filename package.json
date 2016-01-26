@@ -1,0 +1,14 @@
+{
+  "name": "SGDBackend",
+  "version": "0.1.0",
+  "description": "Interface for SGD file and content management.",
+  "main": "index.js",
+  "scripts": {
+    "compile": "NODE_ENV=production webpack"
+  },
+  "license": "MIT",
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}

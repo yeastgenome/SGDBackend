@@ -10,6 +10,9 @@ parts
 .installed.cfg
 .mr.developer.cfg
 SGDBackend.egg-info
+src/sgd/backend/static/js
+src/sgd/backend/static/css
+src/sgd/backend/static/font-awesome
 src/sgd/backend/config.py
 src/sgd/convert/config.py
 src/sgd/convert/logs/*
