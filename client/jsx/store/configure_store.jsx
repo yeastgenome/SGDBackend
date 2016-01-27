@@ -3,7 +3,7 @@ import thunk from 'redux-thunk';
 import { routeReducer } from 'redux-simple-router';
 
 // custom reducers
-const authReducer = require('../reducers/auth_reducer.js');
+const authReducer = require('../reducers/auth_reducer.jsx');
 
 // add history to reducer and thunk to dispatch functions as actions
 const ConfigureStore = (useRouterReducer, initialState) => {

@@ -12,9 +12,8 @@ const ReduxApplication = React.createClass({
   render() {
     // configure store, with history in redux state
     let store = ConfigureStore(true);
-
     let history = useQueries(createHashHistory)();
-    syncReduxAndRouter(history, store);
+    // syncReduxAndRouter(history, store);
 
     return (
       <Provider store={store}>

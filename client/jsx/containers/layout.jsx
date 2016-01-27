@@ -18,10 +18,7 @@ const AppLayout = React.createClass({
             </div>
             <div id='navbar' className='navbar-collapse collapse'>
               <ul className='nav navbar-nav navbar-right'>
-                <li><a href='#'><span className='glyphicon glyphicon-dashboard'></span> Dashboard</a></li>
-                <li><a href='#'><span className='glyphicon glyphicon-cog'></span> Settings</a></li>
-                <li><a href='#'><span className='glyphicon glyphicon-user'></span> Profile</a></li>
-                <li><a href='#'><span className='glyphicon glyphicon-question-sign'></span> Help</a></li>
+                <li><a href='#'><span className='glyphicon glyphicon-log-out'></span> Logout</a></li>
               </ul>
             </div>
           </div>
