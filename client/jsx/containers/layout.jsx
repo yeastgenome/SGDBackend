@@ -23,9 +23,6 @@ const AppLayout = React.createClass({
                 <li><a href='#'><span className='glyphicon glyphicon-user'></span> Profile</a></li>
                 <li><a href='#'><span className='glyphicon glyphicon-question-sign'></span> Help</a></li>
               </ul>
-              <form className='navbar-form navbar-right'>
-                <input type='text' className='form-control' placeholder='Search...'>
-              </form>
             </div>
           </div>
         </nav>
