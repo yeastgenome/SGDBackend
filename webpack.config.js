@@ -1,5 +1,5 @@
 module.exports = {
-  entry: __dirname + '/client/jsx/application.jsx',
+  entry: __dirname + '/client/jsx/application.js',
   output: {
     path: __dirname + '/src/sgd/backend/static/js/',
     filename: 'application.js'

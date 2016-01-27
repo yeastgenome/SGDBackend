@@ -1,12 +1,12 @@
 import { createStore, compose, applyMiddleware, combineReducers } from 'redux';
 import thunk from 'redux-thunk';
-import { routeReducer } from 'redux-simple-router';
+import { routeReducer, syncHistory } from 'react-router-redux';
 
 // custom reducers
-const authReducer = require('../reducers/auth_reducer.jsx');
+import authReducer from '../reducers/auth_reducer';
 
 // add history to reducer and thunk to dispatch functions as actions
-const ConfigureStore = (useRouterReducer, initialState) => {
+const ConfigureStore = (initialState, history) => {
   let reducerObj = {
     auth: authReducer,
     routing: routeReducer,
@@ -14,7 +14,8 @@ const ConfigureStore = (useRouterReducer, initialState) => {
   const reducer = combineReducers(reducerObj);
 
   let store = compose(
-    applyMiddleware(thunk)
+    applyMiddleware(thunk),
+	applyMiddleware(syncHistory(history))
   )(createStore)(reducer, initialState);
   return store;
 };

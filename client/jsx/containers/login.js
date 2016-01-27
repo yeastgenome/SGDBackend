@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import * as AuthActions from '../actions/auth_actions.jsx';
+import * as AuthActions from '../actions/auth_actions';
 
 const Login = React.createClass({
   render() {
