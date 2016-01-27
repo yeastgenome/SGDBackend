@@ -1,21 +1,19 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
+import * as AuthActions from '../actions/auth_actions.jsx';
+
 const Login = React.createClass({
   render() {
-      // TEMP
-    let loginAction = {
-      type: 'AUTHENTICATE_USER'
-    };
     let _onClick = e => {
       e.preventDefault()
-      this.props.dispatch(loginAction);
+      this.props.dispatch(AuthActions.authenticateUser());
     };
 
     return (
       <div>
         <h1>Login</h1>
-        <a className='btn btn-default' href='#' onClick={_onClick}>Login</a>
+        <a className='btn btn-default' onClick={_onClick}>Login</a>
       </div>
     );
   }

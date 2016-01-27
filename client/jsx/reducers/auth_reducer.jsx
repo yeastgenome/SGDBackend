@@ -1,11 +1,13 @@
+import _ from 'underscore';
+
 const DEFAULT_STATE = {
   isAuthenticated: false,
   isAuthenticating: false,
   username: null
 };
 
-const authReducer = function (state, action) {
-  console.log(action)
+const authReducer = function (_state, action) {
+  let state = _.clone(_state);
   if (typeof state === 'undefined') {
     return DEFAULT_STATE;
   };

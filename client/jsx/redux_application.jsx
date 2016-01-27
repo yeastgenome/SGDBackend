@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Router, Route } from 'react-router';
-import { syncReduxAndRouter } from 'redux-simple-router';
+// import { syncReduxAndRouter } from 'redux-simple-router';
 import { Provider } from 'react-redux';
 import { createHashHistory, useQueries } from 'history'
 

@@ -2,10 +2,13 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 
+import * as AuthActions from '../actions/auth_actions.jsx';
+
 const AppLayout = React.createClass({
   render() {
+    let onClickLogout = e => { this.props.dispatch(AuthActions.logout()); };
     let authNodes = this.props.isAuthenticated ?
-      <ul className='nav navbar-nav navbar-right'><li><a href='#'><span className='glyphicon glyphicon-user'></span> {this.props.username}</a></li><li><a href='#'><span className='glyphicon glyphicon-log-out'></span> Logout</a></li></ul> :
+      <ul className='nav navbar-nav navbar-right'><li><Link to='/account'><span className='glyphicon glyphicon-user'></span> {this.props.username}</Link></li><li><a onClick={onClickLogout}><span className='glyphicon glyphicon-log-out'></span> Logout</a></li></ul> :
       <ul className='nav navbar-nav navbar-right'><li><Link to='/login'><span className='glyphicon glyphicon-log-in'></span> Login</Link></li></ul>
     return (
       <div>
@@ -45,6 +48,6 @@ function mapStateToProps(_state) {
     isAuthenticating: state.isAuthenticating,
     username: state.username
   };
-}
+};
 
 module.exports = connect(mapStateToProps)(AppLayout);
