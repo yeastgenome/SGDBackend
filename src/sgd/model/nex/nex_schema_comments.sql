@@ -1502,7 +1502,10 @@ Comment on column CURATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
 Comment on column CURATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column CURATION.BUD_ID is 'Not from BUD.';
 Comment on column CURATION.SUBCLASS is 'Type of curation (Locus, Reference).';
-Comment on column CURATION.CURATION_TASK is 'Type of curation task ().';
+Comment on column CURATION.CURATION_TASK is 'Type of curation task (Classical phenotype information,Delay,Fast Track,
+GO information,GO needs review,Gene model,Headline needs review,Headline reviewed,Headline information,High Priority,Homology/Disease,
+HTP phenotype,Non-phenotype HTP,Not yet curated,Paragraph needs review,Paragraph not needed,Pathways,Phenotype needs review,
+Phenotype uncuratable,Post-translational modifications,Regulation information).';
 Comment on column CURATION.CURATOR_COMMENT is 'Comment or note.';
 Comment on column CURATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CURATION.CREATED_BY  is 'Username of the person who entered the record into the database.';
