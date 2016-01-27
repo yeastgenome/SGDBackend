@@ -1,8 +1,12 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router';
 
 const AppLayout = React.createClass({
   render() {
+    let authNodes = this.props.isAuthenticated ?
+      <ul className='nav navbar-nav navbar-right'><li><a href='#'><span className='glyphicon glyphicon-user'></span> {this.props.username}</a></li><li><a href='#'><span className='glyphicon glyphicon-log-out'></span> Logout</a></li></ul> :
+      <ul className='nav navbar-nav navbar-right'><li><Link to='/login'><span className='glyphicon glyphicon-log-in'></span> Login</Link></li></ul>
     return (
       <div>
         <nav className='navbar navbar-inverse navbar-fixed-top'>
@@ -17,17 +21,15 @@ const AppLayout = React.createClass({
               <a className='navbar-brand' href='#'>SGD Admin</a>
             </div>
             <div id='navbar' className='navbar-collapse collapse'>
-              <ul className='nav navbar-nav navbar-right'>
-                <li><a href='#'><span className='glyphicon glyphicon-log-out'></span> Logout</a></li>
-              </ul>
+              {authNodes}
             </div>
           </div>
         </nav>
 
         <div className='container-fluid'>
           <div className='row application-row'>
-            <div className='col-sm-12 main'>
-              <h1>Hola Mundo</h1>
+            <div className='col-sm-12 main' style={{ marginTop: '3rem' }}>
+              {this.props.children}
             </div>
           </div>
         </div>
@@ -37,7 +39,11 @@ const AppLayout = React.createClass({
 });
 
 function mapStateToProps(_state) {
+  let state = _state.auth;
   return {
+    isAuthenticated: state.isAuthenticated,
+    isAuthenticating: state.isAuthenticating,
+    username: state.username
   };
 }
 
