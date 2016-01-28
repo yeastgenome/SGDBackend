@@ -1,0 +1,60 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Binding Motif Annotation",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "dbentity_id": {
+            "title": "DBENTITY ID",
+            "type": "integer"
+        },
+        "taxonomy_id": {
+            "title": "TAXONOMY ID",
+            "type": "integer"
+        },
+	"reference_id": {
+            "title": "REFERENCE ID",
+            "type": "integer"
+        },
+	"bud_id": {
+            "title": "BUD ID",
+            "type": "integer"
+        },
+        "link": {
+            "title": "Link",
+            "type": "string"
+        },
+	"motif_id": {
+            "title": "MOTIF ID",
+            "type": "integer"
+        },
+        "logo_url": {
+            "title": "LOGO URL",
+            "type": "string"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        }
+    },
+    "required": ["dbentity_id", "taxonomy_id", "motif_id"]
+}
