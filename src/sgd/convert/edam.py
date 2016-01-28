@@ -2,13 +2,10 @@ from src.sgd.convert import basic_convert
 
 __author__ = 'sweng66'
 
-def chebi_starter(bud_session_maker):
-
-    chebi_to_date_created = {}
+def edam_starter(bud_session_maker):
         
     parent_to_children = dict()
-    source = 'EMBI'
-    ontology = 'EDAM'
+    source = 'EDAM'
     is_obsolete_id = dict()
     # downloaded from http://edamontology.org/EDAM.owl
     file = 'src/sgd/convert/data/EDAM.owl'
@@ -21,7 +18,10 @@ def chebi_starter(bud_session_maker):
 
     for term in terms:
 
-        name = term['display_name']
+        name = term.get('display_name')
+        if name is None:
+            print "no name found for ", term['edamid']
+            continue
         loaded.append(name.lower())
 
         edamid = term['edamid']
@@ -37,8 +37,8 @@ def chebi_starter(bud_session_maker):
                 if child_id not in is_obsolete_id:
                     children.append(child)
             term['children'] = children
-            id = term['edamid'].replace('EDAM:', '')
-            link_id = term['edam_namespace'] + '_' + id 
+        id = term['edamid'].replace('EDAM:', '')
+        link_id = term['edam_namespace'] + '_' + id 
         term['urls'] = [{'display_name': 'BioPortal',
                          'link': 'http://bioportal.bioontology.org/ontologies/EDAM?p=classes&conceptid=' + link_id,
                          'source': {'display_name': source},
@@ -61,10 +61,10 @@ def read_owl(filename, parent_to_children, is_obsolete_id, source):
     parent_child_pair = {}
 
     start_ontology = 0
-
+    parents = []
     for line in f:
         line = line.strip()
-        if ontology == 'EDAM' and '<owl:Class rdf:about="http://edamontology.org/' in line:
+        if '<owl:Class rdf:about="http://edamontology.org/' in line:
             start_ontology = 1
             line = line.replace('<owl:Class rdf:about="http://edamontology.org/', '')
             line = line.replace('"', '')
@@ -73,21 +73,35 @@ def read_owl(filename, parent_to_children, is_obsolete_id, source):
             term = { 'source': { 'display_name': source },
                      'edamid': 'EDAM:' + pieces[1],
                      'format_name': 'EDAM:' + pieces[1],
-                     'edam_namespace': pieces[0] }
+                     'edam_namespace': pieces[0],
+                     'aliases': []}
             continue
         if '</owl:Class>' in line:
             start_ontology = 0 
             if term is not None:
+                if len(parents) > 0 and term.get('display_name') is not None:
+                    for parent in parents:
+                        if parent not in parent_to_children:
+                            parent_to_children[parent] = []
+                        parent_to_children[parent].append({'edamid': term['edamid'],
+                                                           'format_name': term['format_name'],
+                                                           'display_name': term.get('display_name'),
+                                                           'edam_namespace': term['edam_namespace'],
+                                                           'source': {'display_name': source}, 
+                                                           'description': "CHILD:" + str(term.get('description')),
+                                                           'ro_id': ro_id})
                 terms.append(term)
+                parents = []
                 term = None
             continue
+
         if start_ontology == 0:
             continue
         if '<rdfs:label>' in line:
             line = line.replace('<rdfs:label>', '')
             line = line.replace('</rdfs:label>', '')
             term['display_name'] = line
-        if '<ExactSynonym>' in line or 'BroadSynonym' in line or 'NarrowSynonym' in line or 'RelatedSynonym' in line:
+        if 'ExactSynonym' in line or 'BroadSynonym' in line or 'NarrowSynonym' in line or 'RelatedSynonym' in line:
             if 'aliases' not in term:
                 term['aliases'] = []
             pieces = line.split('>')
@@ -95,9 +109,16 @@ def read_owl(filename, parent_to_children, is_obsolete_id, source):
             alias_type = pieces[0].replace('<oboInOwl:has', '')
             alias_type = alias_type.replace('Synonym', '')
             alias_type = alias_type.upper()            
-            term['aliases'].append({'display_name': alias_name, 
+
+            if alias_name == '':
+                # print "ALIAS LINE: ", line
+                # print "ALIAS TYPE: ", alias_type
+                # print "ALIAS NAME: ", alias_name, "\n"
+                continue
+            term['aliases'].append({"display_name": alias_name, 
                                     "alias_type": alias_type, 
-                                    "source": {"display_name": source}})  
+                                    "source": {"display_name": source}})
+
         if '<oboInOwl:hasDefinition>' in line:
             line = line.replace('<oboInOwl:hasDefinition>', '')
             line = line.replace('</oboInOwl:hasDefinition>', '')
@@ -107,16 +128,8 @@ def read_owl(filename, parent_to_children, is_obsolete_id, source):
             line = line.replace('"', '')
             line = line.replace('>', '')
             pieces = line.split('_')
-            parent = 'EDAM:' + pieces[1]
-            if parent not in parent_to_children:
-                parent_to_children[parent] = []
-            parent_to_children[parent].append({'edamid': term['edamid'], 
-                                               'display_name': term['display_name'],
-                                               'format_name': term['format_name'],
-                                               'edam_namespace': term['edam_namespace'],
-                                               'description': term['description'],
-                                               'source': {'display_name': source}, 
-                                               'ro_id': ro_id})
+            parent = 'EDAM:' + pieces[1].replace('/', '')
+            parents.append(parent)
         if 'obsolete_since' in line:
             is_obsolete_id[term['edamid']] = 1
 
