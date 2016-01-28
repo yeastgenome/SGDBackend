@@ -36,32 +36,32 @@ BEGIN
         AuditLog.InsertUpdateLog('AUTHORRESPONSE', 'AUTHOR_EMAIL', :old.curation_id, :old.author_email, :new.author_email, USER);
     END IF;
 
-    IF (:old.has_novel_research != :new.has_novel_research)
+    IF (((:old.has_novel_research IS NULL) AND (:new.has_novel_research IS NOT NULL)) OR ((:old.has_novel_research IS NOT NULL) AND (:new.has_novel_research IS NULL)) OR (:old.has_novel_research != :new.has_novel_research))
     THEN
         AuditLog.InsertUpdateLog('AUTHORRESPONSE', 'HAS_NOVEL_RESEARCH', :old.curation_id, :old.has_novel_research, :new.has_novel_research, USER);
     END IF;
 
-    IF (:old.has_large_scale_data != :new.has_large_scale_data)
+    IF (((:old.has_large_scale_data IS NULL) AND (:new.has_large_scale_data IS NOT NULL)) OR ((:old.has_large_scale_data IS NOT NULL) AND (:new.has_large_scale_data IS NULL)) OR (:old.has_large_scale_data != :new.has_large_scale_data))
     THEN
         AuditLog.InsertUpdateLog('AUTHORRESPONSE', 'HAS_LARGE_SCALE_DATA', :old.curation_id, :old.has_large_scale_data, :new.has_large_scale_data, USER);
     END IF;
 
-    IF (:old.has_fast_track_tag != :new.has_fast_track_tag)
+    IF (((:old.has_fast_track_tag IS NULL) AND (:new.has_fast_track_tag IS NOT NULL)) OR ((:old.has_fast_track_tag IS NOT NULL) AND (:new.has_fast_track_tag IS NULL)) OR (:old.has_fast_track_tag != :new.has_fast_track_tag))
     THEN
         AuditLog.InsertUpdateLog('AUTHORRESPONSE', 'HAS_FAST_TRACK_TAG', :old.curation_id, :old.has_fast_track_tag, :new.has_fast_track_tag, USER);
     END IF;
 
-    IF (:old.curator_checked_datasets != :new.curator_checked_datasets)
+    IF (((:old.curator_checked_datasets IS NULL) AND (:new.curator_checked_datasets IS NOT NULL)) OR ((:old.curator_checked_datasets IS NOT NULL) AND (:new.curator_checked_datasets IS NULL)) OR (:old.curator_checked_datasets != :new.curator_checked_datasets))
     THEN
         AuditLog.InsertUpdateLog('AUTHORRESPONSE', 'CURATOR_CHECKED_DATASETS', :old.curation_id, :old.curator_checked_datasets, :new.curator_checked_datasets, USER);
     END IF;
 
-    IF (:old.curator_checked_genelist != :new.curator_checked_genelist)
+    IF (((:old.curator_checked_genelist IS NULL) AND (:new.curator_checked_genelist IS NOT NULL)) OR ((:old.curator_checked_genelist IS NOT NULL) AND (:new.curator_checked_genelist IS NULL)) OR (:old.curator_checked_genelist != :new.curator_checked_genelist))
     THEN
         AuditLog.InsertUpdateLog('AUTHORRESPONSE', 'CURATOR_CHECKED_GENELIST', :old.curation_id, :old.curator_checked_genelist, :new.curator_checked_genelist, USER);
     END IF;
 
-    IF (:old.no_action_required != :new.no_action_required)
+    IF (((:old.no_action_required IS NULL) AND (:new.no_action_required IS NOT NULL)) OR ((:old.no_action_required IS NOT NULL) AND (:new.no_action_required IS NULL)) OR (:old.no_action_required != :new.no_action_required))
     THEN
         AuditLog.InsertUpdateLog('AUTHORRESPONSE', 'NO_ACTION_REQUIRED', :old.curation_id, :old.no_action_required, :new.no_action_required, USER);
     END IF;
