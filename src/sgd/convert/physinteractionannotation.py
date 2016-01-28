@@ -19,18 +19,23 @@ def physinteractionannotation_starter(bud_session_maker):
         return
     sgdid_to_dbentity_id = dict([(x.sgdid, x.id) for x in nex_session.query(Locus).all()])
     pmid_to_reference_id = dict([(x.pmid, x.id) for x in nex_session.query(Reference).all()])
-    term_to_psimod_id = dict([(x.display_name, x.id) for x in nex_session.query(Psimod).all()])
+    psimodid_to_psimod_id = dict([(x.psimodid, x.id) for x in nex_session.query(Psimod).all()])
 
     f = open("src/sgd/convert/data/PSI-MOD2SGD-PTMmapping112115.txt")
-    modification_to_term = {}
+    modification_to_psimod_id = {}
     for line in f:
+        if line.startswith('BUD'):
+            continue
         pieces = line.strip().split('\t')
-        if len(pieces) < 3:
+        if len(pieces) < 5:
             continue
-        if pieces[0] == '' or pieces[2] == '':
+        if pieces[0] == '':
             continue
-        modification_to_term[pieces[0]] = pieces[2]
-
+        psimodid = pieces[4]
+        psimod_id = psimodid_to_psimod_id.get(psimodid)
+        modification_to_psimod_id[pieces[0]] = psimod_id
+        print pieces[0], psimodid, psimod_id
+    
     f.close()
 
     # from: http://www.thebiogrid.org/downloads/datasets/SGD.tab.txt
@@ -43,14 +48,14 @@ def physinteractionannotation_starter(bud_session_maker):
         row = line.strip().split('\t')
         if len(row) == 12 and row[4] and row[4] in genetic_types:
             # it is a genetic interaction
-            print "GI: ", line
+            # print "GI: ", line
             continue
 
         if len(row) == 12: 
             if header:
                 header = False
             else:         
-                print "PI: ", line
+                # print "PI: ", line
                 reference_id = pmid_to_reference_id.get(int(row[6]))
                 if reference_id is None:
                     print "The PMID: ", row[6], " is not in the REFERENCEDBENTITY table."
@@ -76,15 +81,13 @@ def physinteractionannotation_starter(bud_session_maker):
                 }
 
                 if row[8] != '-' and row[8] != 'No Modification':
-                    term = modification_to_term.get(row[8])
-                    if term is None:
-                        print "The modification term: ", row[8], " is not in the mapping file." 
-                    psimod_id = term_to_psimod_id.get(term)
+                    psimod_id = modification_to_psimod_id.get(row[8])
                     if psimod_id is None:
                         print "The modification term: ", row[8], " is not in PSIMOD table."
                         continue
                     obj_json['psimod_id'] = psimod_id
-                                
+                    print "MODIFICATION=", row[8], ", PSIMOD_ID=", psimod_id
+
                 # row[11] = vegetative growth
 
                 id1 = int(row[2].lstrip("S").lstrip("0"))
@@ -135,7 +138,7 @@ def get_nex_session():
 
 if __name__ == '__main__':
     from src.sgd.convert import config
-    basic_convert(config.BUD_HOST, config.NEX_HOST, physinteractionannotation_starter, 'physinteractionannotation', lambda x: (x['dbentity1_id'], x['dbentity2_id'], x['reference_id'], x['taxonomy_id'], x['annotation_type']))
+    basic_convert(config.BUD_HOST, config.NEX_HOST, physinteractionannotation_starter, 'physinteractionannotation', lambda x: (x['dbentity1_id'], x['dbentity2_id'], x['reference_id'], x['taxonomy_id'], x['bait_hit'], x['biogrid_experimental_system'], x['annotation_type']))
 
 
 

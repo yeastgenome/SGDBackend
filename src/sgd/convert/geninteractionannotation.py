@@ -82,13 +82,11 @@ def geninteractionannotation_starter(bud_session_maker):
                     phenotype_id = phenotype_to_phenotype_id.get(newPheno)
                     if phenotype_id is None:
                         print "The phenotype: ", newPheno, " is not in the Phenotype table."
-                        continue
-                    obj_json['phenotype_id'] = phenotype_id
+                    else:
+                        obj_json['phenotype_id'] = phenotype_id
                 else:
                     print "The phenotype: ", oldPheno, " can not be mapped to a new one."
-                    continue
-                ## what is biogrid_experimental_system
-
+            
                 yield obj_json
 
     f.close()
@@ -112,18 +110,6 @@ def get_genetic_type_to_pheno_mapping():
 
 def get_old_to_new_pheno_mapping():
 
-    # return { 'inviable'    : {'experiment_type' : 'classical genetics',
-    #                         'mutant_type'     : 'unspecified',
-    #                         'observable'      : 'inviable'},
-    #        'slow growth'  : {'experiment_type' : 'classical genetics',
-    #                          'mutant_type'     : 'unspecified',
-    #                          'qualifier'       : 'decreased',
-    #                          'observable'      : 'vegetative growth'},
-    #        'wildtype'     : {'experiment_type' : 'classical genetics',
-    #                          'mutant_type'     : 'unspecified',
-    #                          'qualifier'       : 'normal',
-    #                          'observable'      : 'vegetative growth'} }
-
     return { 'inviable'    : 'inviable',
              'slow growth' : 'vegetative growth: decreased',
              'wildtype'    : 'vegetative growth: normal' }
@@ -141,7 +127,7 @@ def get_nex_session():
 
 if __name__ == '__main__':
     from src.sgd.convert import config
-    basic_convert(config.BUD_HOST, config.NEX_HOST, geninteractionannotation_starter, 'geninteractionannotation', lambda x: (x['dbentity1_id'], x['dbentity2_id'], x['reference_id'], x['taxonomy_id'], x['phenotype_id'], x['annotation_type']))
+    basic_convert(config.BUD_HOST, config.NEX_HOST, geninteractionannotation_starter, 'geninteractionannotation', lambda x: (x['dbentity1_id'], x['dbentity2_id'], x['reference_id'], x['taxonomy_id'], x.get('phenotype_id'), x['bait_hit'], x['biogrid_experimental_system'], x['annotation_type']))
 
 
 
