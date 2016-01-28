@@ -68,5 +68,5 @@
             "type": "string"
         }
     }, 
-    "required": ["source", "dbentity1_id", "dbentity2_id", "phenotype_id", "reference_id", "annotation_type", "bait_hit", "biogrid_experimental_system"]
+    "required": ["source", "dbentity1_id", "dbentity2_id", "reference_id", "annotation_type", "bait_hit", "biogrid_experimental_system"]
 }

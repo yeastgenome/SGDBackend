@@ -59,7 +59,7 @@ class Geninteractionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJ
         self.dbentity2_id = obj_json['dbentity2_id']
         self.reference_id = obj_json['reference_id']
         self.taxonomy_id = obj_json['taxonomy_id']
-	self.phenotype_id = obj_json['phenotype_id']
+	self.phenotype_id = obj_json.get('phenotype_id')
         self.biogrid_experimental_system = obj_json['biogrid_experimental_system']
         self.annotation_type = obj_json['annotation_type']
         self.bait_hit = obj_json['bait_hit']
