@@ -21,7 +21,7 @@ def colleague_url_starter(bud_session_maker):
             continue
 
         yield { "colleague_id": coll_id,
-                "display_name": bud_obj.url.url,
+                "display_name": bud_obj.url.url_type,
                 "link": bud_obj.url.url,
                 "url_type": bud_obj.url.url_type,
                 "bud_id": bud_obj.url.id,
