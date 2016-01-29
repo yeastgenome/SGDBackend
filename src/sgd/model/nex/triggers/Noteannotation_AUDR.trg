@@ -54,7 +54,7 @@ BEGIN
 
     v_row := :old.annotation_id || '[:]' || :old.dbentity_id || '[:]' ||
              :old.source_id || '[:]' || :old.taxonomy_id || '[:]' || 
-             :old.reference_id || '[:]' || :old.bud_id_id || '[:]' ||
+             :old.reference_id || '[:]' || :old.bud_id || '[:]' ||
              :old.note_type || '[:]' || :old.display_name || '[:]' ||
              :old.note || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
