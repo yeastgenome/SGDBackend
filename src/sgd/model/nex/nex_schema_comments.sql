@@ -800,7 +800,7 @@ Comment on column COLLEAGUE.WORK_PHONE is 'Colleague work phone number.';
 Comment on column COLLEAGUE.OTHER_PHONE is 'Another phone number for the colleague.';
 Comment on column COLLEAGUE.FAX is 'Fax number.';
 Comment on column COLLEAGUE.EMAIL is 'Email address.';
-Comment	on column COLLEAGUE.COLLEAGUE_NOTE is 'Note or comment about the colleague.';
+Comment	on column COLLEAGUE.COLLEAGUE_NOTE is 'Note or comment about the colleague entered by a curator.';
 Comment on column COLLEAGUE.RESEARCH_INTEREST is 'Research interests of the colleague.';
 Comment on column COLLEAGUE.IS_PI is 'Whether the colleague is a PI.';
 Comment on column COLLEAGUE.IS_CONTACT is 'Whether the colleague is a contact for SGD.';
