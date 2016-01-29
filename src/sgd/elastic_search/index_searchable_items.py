@@ -4,13 +4,14 @@ from src.sgd.convert import config
 from src.sgd.model import nex
 from src.sgd.model import perf
 from elasticsearch import Elasticsearch
+from time import sleep
 import xlrd
 import json
 
 CLIENT_ADDRESS = 'http://localhost:9200'
-INDEX_NAME = 'searchable_items5' # TEMP
+INDEX_NAME = 'searchable_items2' # TEMP
 DOC_TYPE = 'searchable_item'
-RESET_INDEX = False
+RESET_INDEX = True
 es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
 
 # prep session
@@ -33,6 +34,7 @@ def setup_index():
     exists = es.indices.exists(INDEX_NAME)
     if not exists:
         es.indices.create(INDEX_NAME)
+        sleep(2)
         # only set filters when creating new one, may need to wait or run step-by-step, or wait for certain index health
         set_filters()
         set_mapping()
@@ -91,7 +93,8 @@ def set_mapping():
                     "type": "nested",
                     "properties": {
                         "name": {
-                            "type": "string"
+                            "type": "string",
+                            "index": "not_analyzed"
                         }
                     }
                 }
@@ -117,7 +120,7 @@ def get_unique_go_term_names(go_obj, go_type):
     for term in raw_terms:
         name = term['term']['display_name']
         if name not in simple_terms:
-            simple_terms.append(name)
+            simple_terms.append({ 'name': name })
 
     return simple_terms
 
@@ -140,24 +143,24 @@ def index_genes():
         else:
             paragraph = None
         # get GO terms
-        biological_component_terms = get_unique_go_term_names(perf_result['go_overview'], 'biological_component')
-        cellular_location_terms = get_unique_go_term_names(perf_result['go_overview'], 'cellular_location')
+        # biological_component_terms = get_unique_go_term_names(perf_result['go_overview'], 'biological_component')
+        # cellular_location_terms = get_unique_go_term_names(perf_result['go_overview'], 'cellular_location')
         molecular_function_terms = get_unique_go_term_names(perf_result['go_overview'], 'molecular_function')
 
-        data_obj = {
-            # 'paragraph': paragraph,
-            'go_biological_process': biological_component_terms,
-            'go_cellular_component': cellular_location_terms,
-            'go_molecular_function': molecular_function_terms,
-            # 'phenotype': perf_result['name_description'],
-            'name_description': perf_result['name_description'],
-        }
+        # data_obj = {
+        #     # 'paragraph': paragraph,
+        #     'go_biological_process': biological_component_terms,
+        #     'go_cellular_component': cellular_location_terms,
+        #     'go_molecular_function': molecular_function_terms,
+        #     # 'phenotype': perf_result['name_description'],
+        #     'name_description': perf_result['name_description'],
+        # }
         obj = {
             'name': _name,
             'href': gene.link,
             'description': gene.headline,
             'category': 'locus',
-            'data': data_obj
+            'go_molecular_functions': molecular_function_terms
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
 
@@ -352,11 +355,8 @@ def index_toolbar_links():
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=l[1])
     
 def main():
-    # TEMP
-    set_mapping()
-
-    # setup_index()
-    # index_genes()
+    setup_index()
+    index_genes()
     # index_phenotypes()
     # index_authors()
     # index_strains()

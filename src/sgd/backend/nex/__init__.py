@@ -24,7 +24,7 @@ __author__ = 'kpaskov'
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 query_limit = 25000
 
-SEARCH_ES_INDEX = 'searchable_items5'
+SEARCH_ES_INDEX = 'searchable_items2'
 
 class SGDBackend(BackendInterface):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory, esearch_addr=None):
