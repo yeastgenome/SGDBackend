@@ -9,13 +9,15 @@
   "license": "MIT",
   "dependencies": {
     "babel": "^5.8.23",
+    "babel-core": "^6.4.5",
     "history": "^1.17.0",
+    "radium": "^0.16.5",
     "react": "^0.14.6",
     "react-dom": "^0.14.2",
     "react-redux": "^4.0.6",
     "react-router": "^1.0.2",
-    "redux": "^3.0.2",
     "react-router-redux": "^2.1.0",
+    "redux": "^3.0.2",
     "redux-thunk": "^1.0.0",
     "underscore": "^1.8.3"
   },
