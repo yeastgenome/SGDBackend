@@ -30,7 +30,7 @@ Comment on column DBUSER.FIRST_NAME is 'First name of the database user.';
 Comment on column DBUSER.LAST_NAME is 'Last name of the database user.';
 Comment on column DBUSER.STATUS is 'Current state of the database user (Current, Former).';
 Comment on column DBUSER.IS_CURATOR is 'Whether the user is a curator.';
-Comment on column DBUSER.EMAIL is 'Email address of the database user.';
+Comment on column DBUSER.EMAIL is 'SUNet ID email address of the database user.';
 Comment on column DBUSER.DATE_CREATED is 'Date the record was entered into the database.';
 
 Comment on table SOURCE is 'Origin or source of the data.';
@@ -523,7 +523,7 @@ Comment on column DBENTITY.OBJ_URL is 'URL of the object (relative for local lin
 Comment on column DBENTITY.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DBENTITY.BUD_ID is 'PK from BUD.FEATURE.FEATURE_NO.';
 Comment on column DBENTITY.SGDID is 'SGD accession identifier.';
-Comment on column DBENTITY.SUBCLASS is 'What object inherits from DBENTITY (FILE, LOCUS, REFERENCE, STRAIN).';
+Comment on column DBENTITY.SUBCLASS is 'What object inherits from DBENTITY (FILE, LOCUS, REFERENCE, STRAIN, PATHWAY).';
 Comment on column DBENTITY.DBENTITY_STATUS is 'Current state of the dbentity (Active, Merged, Deleted, Archived).';
 Comment on column DBENTITY.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DBENTITY.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -624,9 +624,40 @@ Comment on column PATHWAY_URL.OBJ_URL is 'URL of the object (relative for local 
 Comment on column PATHWAY_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column PATHWAY_URL.BUD_ID is 'Not from BUD';
 Comment on column PATHWAY_URL.PATHWAY_ID is 'FK to PATHWAYDBENTITY.DBENTITY_ID.';
-Comment on column PATHWAY_URL.URL_TYPE is 'Type of URL (BioCyc, Yeastpathways).';
+Comment on column PATHWAY_URL.URL_TYPE is 'Type of URL (BioCyc, YeastPathways).';
 Comment on column PATHWAY_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PATHWAY_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+/* File */
+
+Comment on table FILEPATH is 'Virtual path to a file for browsing purposes.';
+Comment on column FILEPATH.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column FILEPATH.FILEPATH is 'Virtual path to a file for browsing purposes.';
+Comment on column FILEPATH.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column FILEPATH.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table FILEDBENTITY is 'Details about files loaded into or dumped from the database or associated with the Download Server.';
+Comment on column FILEDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
+Comment on column FILEDBENTITY.TOPIC_ID is 'A broad domain or category of the file, FK to EDAM topic namespace.';
+Comment on column FILEDBENTITY.FORMAT_ID is 'Standard file format, FK to EDAM format namespace.';
+Comment on column FILEDBENTITY.EXTENSION_ID is 'File name extension, FK to EDAM format namespace.';
+Comment on column FILEDBENTITY.FILE_DATE is 'Release date or date the file was created.';
+Comment on column FILEDBENTITY.IS_PUBLIC is 'Whether the file is viewable to the public.';
+Comment on column FILEDBENTITY.USED_FOR_SPELL is 'Whether the file was loaded into SPELL.';
+Comment on column FILEDBENTITY.USED_FOR_JBROWSE is 'Whether the file was loaded into JBrowse.';
+Comment on column FILEDBENTITY.VERSION is 'File version.';
+Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
+Comment on column FILEDBENTITY.FILEPATH_ID is 'FK to FILEPATH.FILEPATH_ID.';
+Comment on column FILEDBENTITY.PREVIOUS_FILE_NAME is 'File name on the Download Server.';
+Comment on column FILEDBENTITY.README_URL is 'URL of the README associated with this file, if exists.';
+
+Comment on table FILE_KEYWORD is 'Keywords associated with a file.';
+Comment on column FILE_KEYWORD.FILE_KEYWORD_ID is 'Unique identifier (Oracle sequence).';
+Comment on column FILE_KEYWORD.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
+Comment on column FILE_KEYWORD.KEYWORD_ID is 'FK to KEYWORD.KEYWORD_ID.';
+Comment on column FILE_KEYWORD.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column FILE_KEYWORD.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column FILE_KEYWORD.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* Reference */
 
@@ -743,6 +774,14 @@ Comment on column REFERENCE_AUTHOR.AUTHOR_TYPE is 'Type of author (Author, Edito
 Comment on column REFERENCE_AUTHOR.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_AUTHOR.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table REFERENCE_FILE is 'Files associated with a reference.';
+Comment on column REFERENCE_FILE.REFERENCE_FILE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column REFERENCE_FILE.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_FILE.FILE_ID is 'FK to FILEDBENTITY.DBENTITY_ID.';
+Comment on column REFERENCE_FILE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REFERENCE_FILE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REFERENCE_FILE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table REFERENCE_UNLINK is 'References that should not be associated with a specific locus, but should remain in the database.';
 Comment on column REFERENCE_UNLINK.REFERENCE_UNLINK_ID is 'Unique identifier (Oracle sequence).';
 Comment on column REFERENCE_UNLINK.REFERENCE_ID is 'FK to REFERENCEDBENTITY.DBENTITY_ID.';
@@ -759,18 +798,6 @@ Comment on column REFERENCE_DELETED.BUD_ID is 'PK in BUD is PubMed ID.';
 Comment on column REFERENCE_DELETED.REASON_DELETED is 'Why the reference was deleted from the database.';
 Comment on column REFERENCE_DELETED.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCE_DELETED.CREATED_BY is 'Username of the person who entered the record into the database.';
-
-/* File */
-
-Comment on table FILEDBENTITY is 'Details about files loaded into or dumped from the database or associated with the Download Server.';
-Comment on column FILEDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
-Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
-Comment on column FILEDBENTITY.PREVIOUS_FILE_NAME is 'File name on the Download Server.';
-Comment on column FILEDBENTITY.TOPIC_ID is 'A broad domain or category of the file, FK to EDAM topic namespace.';
-Comment on column FILEDBENTITY.OPERATION_ID is 'A function or process performed generating the file output, FK to EDAM operation namespace.';
-Comment on column FILEDBENTITY.FORMAT_ID is 'Standard file format, FK to EDAM format namespace.';
-Comment on column FILEDBENTITY.EXTENSION_ID is 'File name extension, FK to EDAM format namespace.';
-Comment on column FILEDBENTITY.VERSION is 'File version or release date.';
 
 /* Colleague */
 
@@ -999,7 +1026,6 @@ Comment on column DATASET.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DATASET.BUD_ID is 'Not in BUD.';
 Comment on column DATASET.DBXREF_ID is 'GEO Series ID (GSE), ArrayExpress ID, or other external database identifier.';
 Comment on column DATASET.DBXREF_TYPE is 'Type of database cross reference (GEO,ArrayExpress,SRA,Trace Archive).';
-Comment on column DATASET.FILE_ID is 'PCL filename used to load SPELL. FK to FILEDBENTITY.FILE_ID.';
 Comment on column DATASET.ASSAY_ID is 'FK to OBI.OBI_ID.';
 Comment on column DATASET.CHANNEL_COUNT is 'Number of channels (1 or 2) in the experiment.';
 Comment on column DATASET.SAMPLE_COUNT is 'Number of samples in the experiment.';
