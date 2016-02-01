@@ -45,11 +45,6 @@ BEGIN
         AuditLog.InsertUpdateLog('DATASET', 'DBXREF_TYPE', :old.dataset_id, :old.dbxref_type, :new.dbxref_type, USER);
     END IF;
 
-    IF (((:old.file_id IS NULL) AND (:new.file_id IS NOT NULL)) OR ((:old.file_id IS NOT NULL) AND (:new.file_id IS NULL)) OR (:old.file_id != :new.file_id))
-    THEN
-        AuditLog.InsertUpdateLog('DATASET', 'FILE_ID', :old.dataset_id, :old.file_id, :new.file_id, USER);
-    END IF;
-
     IF (:old.assay_id != :new.assay_id)
     THEN
         AuditLog.InsertUpdateLog('DATASET', 'ASSAY_ID', :old.dataset_id, :old.assay_id, :new.assay_id, USER);
@@ -87,10 +82,9 @@ BEGIN
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.dbxref_id || '[:]' || :old.dbxref_type || '[:]' ||
-             :old.file_id || '[:]' || :old.assay_id || '[:]' ||
-             :old.taxonomy_id || '[:]' || :old.channel_count || '[:]' ||
-             :old.sample_count || '[:]' || :old.is_in_spell || '[:]' ||
-             :old.description || '[:]' ||
+             :old.assay_id || '[:]' || :old.taxonomy_id || '[:]' || 
+             :old.channel_count || '[:]' || :old.sample_count || '[:]' || 
+             :old.is_in_spell || '[:]' || :old.description || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('DATASET', :old.dataset_id, v_row, USER);
