@@ -10,7 +10,7 @@ BEGIN
   IF INSERTING THEN
 
     IF (:new.dataset_reference_id IS NULL) THEN
-        SELECT dataset_reference_seq.NEXTVAL INTO :new.dataset_reference_id FROM DUAL;
+        SELECT link_seq.NEXTVAL INTO :new.dataset_reference_id FROM DUAL;
     END IF; 
 
     v_IsValidUser := CheckUser(:new.created_by);

@@ -1,23 +1,23 @@
-CREATE OR REPLACE TRIGGER DatasetFile_BIUR
+CREATE OR REPLACE TRIGGER ReferenceFile_BIUR
 --
--- Before insert or update trigger for dataset_file table
+-- Before insert or update trigger for reference_file table
 --
-  BEFORE INSERT OR UPDATE ON dataset_file
+  BEFORE INSERT OR UPDATE ON reference_file
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.dataset_file_id IS NULL) THEN
-        SELECT link_seq.NEXTVAL INTO :new.dataset_file_id FROM DUAL;
+    IF (:new.reference_file_id IS NULL) THEN
+        SELECT link_seq.NEXTVAL INTO :new.reference_file_id FROM DUAL;
     END IF; 
 
     v_IsValidUser := CheckUser(:new.created_by);
  
   ELSE
 
-    IF (:new.dataset_file_id != :old.dataset_file_id) THEN    
+    IF (:new.reference_file_id != :old.reference_file_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END DatasetFile_BIUR;
+END ReferenceFile_BIUR;
 /
 SHOW ERROR

@@ -1,23 +1,23 @@
-CREATE OR REPLACE TRIGGER DatasetLab_BIUR
+CREATE OR REPLACE TRIGGER Datasetlab_BIUR
 --
--- Before insert or update trigger for dataset_lab table
+-- Before insert or update trigger for datasetlab table
 --
-  BEFORE INSERT OR UPDATE ON dataset_lab
+  BEFORE INSERT OR UPDATE ON datasetlab
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.dataset_lab_id IS NULL) THEN
-        SELECT dataset_lab_seq.NEXTVAL INTO :new.dataset_lab_id FROM DUAL;
+    IF (:new.datasetlab_id IS NULL) THEN
+        SELECT object_seq.NEXTVAL INTO :new.datasetlab_id FROM DUAL;
     END IF; 
 
     v_IsValidUser := CheckUser(:new.created_by);
  
   ELSE
 
-    IF (:new.dataset_lab_id != :old.dataset_lab_id) THEN    
+    IF (:new.datasetlab_id != :old.datasetlab_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END DatasetLab_BIUR;
+END Datasetlab_BIUR;
 /
 SHOW ERROR

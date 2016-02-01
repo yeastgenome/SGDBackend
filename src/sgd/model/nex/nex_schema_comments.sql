@@ -1035,15 +1035,15 @@ Comment on column DATASET.DESCRIPTION is 'Description or summary.';
 Comment on column DATASET.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DATASET.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
-Comment on table DATASET_LAB is 'Laboratory which conducted the dataset experiment.';
-Comment on column DATASET_LAB.DATASET_LAB_ID is 'Unique identifier (Oracle sequence).';
-Comment on column DATASET_LAB.DATASET_ID is 'FK to DATASET.DATASET_ID.';
-Comment on column DATASET_LAB.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column DATASET_LAB.LAB_NAME is 'PI last name.';
-Comment on column DATASET_LAB.LAB_LOCATION is 'Institution or location of the PI.';
-Comment on column DATASET_LAB.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
-Comment on column DATASET_LAB.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column DATASET_LAB.CREATED_BY  is 'Username of the person who entered the record into the database.';
+Comment on table DATASETLAB is 'Laboratory which conducted the dataset experiment.';
+Comment on column DATASETLAB.DATASETLAB_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASETLAB.DATASET_ID is 'FK to DATASET.DATASET_ID.';
+Comment on column DATASETLAB.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASETLAB.LAB_NAME is 'PI last name.';
+Comment on column DATASETLAB.LAB_LOCATION is 'Institution or location of the PI.';
+Comment on column DATASETLAB.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column DATASETLAB.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DATASETLAB.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
 Comment on table DATASET_URL is 'URLs associated with a dataset.';
 Comment on column DATASET_URL.URL_ID is 'Unique identifier (Oracle sequence).';
