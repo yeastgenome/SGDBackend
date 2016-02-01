@@ -35,6 +35,11 @@ BEGIN
         AuditLog.InsertUpdateLog('NOTEANNOTATION', 'REFERENCE_ID', :old.annotation_id, :old.reference_id, :new.reference_id, USER);
     END IF;
 
+    IF (((:old.contig_id IS NULL) AND (:new.contig_id IS NOT NULL)) OR ((:old.contig_id IS NOT NULL) AND (:new.contig_id IS NULL)) OR (:old.contig_id != :new.contig_id))
+    THEN
+        AuditLog.InsertUpdateLog('NOTEANNOTATION', 'CONTIG_ID', :old.annotation_id, :old.contig_id, :new.contig_id, USER);
+    END IF;
+
     IF (:old.note_type != :new.note_type) 
     THEN
         AuditLog.InsertUpdateLog('NOTEANNOTATION', 'NOTE_TYPE', :old.annotation_id, :old.note_type, :new.note_type, USER);
@@ -54,9 +59,9 @@ BEGIN
 
     v_row := :old.annotation_id || '[:]' || :old.dbentity_id || '[:]' ||
              :old.source_id || '[:]' || :old.taxonomy_id || '[:]' || 
-             :old.reference_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.note_type || '[:]' || :old.display_name || '[:]' ||
-             :old.note || '[:]' ||
+             :old.reference_id || '[:]' || :old.contig_id || '[:]' ||
+             :old.bud_id || '[:]' || :old.note_type || '[:]' || 
+             :old.display_name || '[:]' || :old.note || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('NOTEANNOTATION', :old.annotation_id, v_row, USER);

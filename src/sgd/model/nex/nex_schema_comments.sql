@@ -1342,6 +1342,7 @@ Comment on column NOTEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
 Comment on column NOTEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column NOTEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
 Comment on column NOTEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column NOTEANNOTATION.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
 Comment on column NOTEANNOTATION.BUD_ID is 'From BUD.NOTE.NOTE_NO.';
 Comment on column NOTEANNOTATION.NOTE_TYPE is 'What type of data the note is about (Locus, Sequence).';
 Comment on column NOTEANNOTATION.DISPLAY_NAME is 'Public display name.';
