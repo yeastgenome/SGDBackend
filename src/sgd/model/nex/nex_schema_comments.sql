@@ -645,7 +645,7 @@ Comment on column FILEDBENTITY.FILE_DATE is 'Release date or date the file was c
 Comment on column FILEDBENTITY.IS_PUBLIC is 'Whether the file is viewable to the public.';
 Comment on column FILEDBENTITY.USED_FOR_SPELL is 'Whether the file was loaded into SPELL.';
 Comment on column FILEDBENTITY.USED_FOR_JBROWSE is 'Whether the file was loaded into JBrowse.';
-Comment on column FILEDBENTITY.VERSION is 'File version.';
+Comment on column FILEDBENTITY.FILE_VERSION is 'File version.';
 Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
 Comment on column FILEDBENTITY.FILEPATH_ID is 'FK to FILEPATH.FILEPATH_ID.';
 Comment on column FILEDBENTITY.PREVIOUS_FILE_NAME is 'File name on the Download Server.';
@@ -1196,6 +1196,19 @@ Comment on column BINDINGMOTIFANNOTATION.LOGO_URL is 'URL to the motif logo.';
 Comment on column BINDINGMOTIFANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column BINDINGMOTIFANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table CONTIGNOTEANNOTATION is 'Notes about chromosomes or contigs.';
+Comment on column CONTIGNOTEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column CONTIGNOTEANNOTATION.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
+Comment on column CONTIGNOTEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column CONTIGNOTEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column CONTIGNOTEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column CONTIGNOTEANNOTATION.BUD_ID is 'From BUD.NOTE.NOTE_NO for SEQ_CHANGE_ARCHIVE.';
+Comment on column CONTIGNOTEANNOTATION.NOTE_TYPE is 'What type of data the note is about (Chromosome).';
+Comment on column CONTIGNOTEANNOTATION.DISPLAY_NAME is 'Public display name.';
+Comment on column CONTIGNOTEANNOTATION.NOTE is 'Note or comment.';
+Comment on column CONTIGNOTEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column CONTIGNOTEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 Comment on table DNASEQUENCEANNOTATION is 'Current DNA sequence details for contig, chromosomal, or plasmid features.';
 Comment on column DNASEQUENCEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column DNASEQUENCEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
@@ -1336,19 +1349,18 @@ Comment on column LITERATUREANNOTATION.TOPIC is 'Topic or category assigned to a
 Comment on column LITERATUREANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column LITERATUREANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-Comment on table NOTEANNOTATION is 'Historical and informative notes.';
-Comment on column NOTEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
-Comment on column NOTEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
-Comment on column NOTEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column NOTEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
-Comment on column NOTEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
-Comment on column NOTEANNOTATION.CONTIG_ID is 'FK to CONTIG.CONTIG_ID.';
-Comment on column NOTEANNOTATION.BUD_ID is 'From BUD.NOTE.NOTE_NO.';
-Comment on column NOTEANNOTATION.NOTE_TYPE is 'What type of data the note is about (Locus, Sequence).';
-Comment on column NOTEANNOTATION.DISPLAY_NAME is 'Public display name.';
-Comment on column NOTEANNOTATION.NOTE is 'Note or comment.';
-Comment on column NOTEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
-Comment on column NOTEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+Comment on table LOCUSNOTEANNOTATION is 'Historical and informative notes about loci and their sequences.';
+Comment on column LOCUSNOTEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column LOCUSNOTEANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column LOCUSNOTEANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column LOCUSNOTEANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column LOCUSNOTEANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column LOCUSNOTEANNOTATION.BUD_ID is 'From BUD.NOTE.NOTE_NO.';
+Comment on column LOCUSNOTEANNOTATION.NOTE_TYPE is 'What type of data the note is about (Locus, Sequence).';
+Comment on column LOCUSNOTEANNOTATION.DISPLAY_NAME is 'Public display name.';
+Comment on column LOCUSNOTEANNOTATION.NOTE is 'Note or comment.';
+Comment on column LOCUSNOTEANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column LOCUSNOTEANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table PATHWAYANNOTATION is 'Annotations associated with a pathway.';
 Comment on column PATHWAYANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
