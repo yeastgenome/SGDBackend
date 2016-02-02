@@ -10,19 +10,19 @@ DECLARE
 BEGIN
   IF UPDATING THEN
 
-    IF (:old.file_operation != :new.file_operation)
+    IF (:old.topic_id != :new.topic_id)
     THEN
-        AuditLog.InsertUpdateLog('FILEDBENTITY', 'FILE_OPERATION', :old.dbentity_id, :old.file_operation, :new.file_operation, USER);
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'TOPIC_ID', :old.dbentity_id, :old.topic_id, :new.topic_id, USER);
     END IF;
 
-    IF (:old.file_format != :new.file_format)
+    IF (:old.format_id != :new.format_id)
     THEN
-        AuditLog.InsertUpdateLog('FILEDBENTITY', 'FILE_FORMAT', :old.dbentity_id, :old.file_format, :new.file_format, USER);
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'FORMAT_ID', :old.dbentity_id, :old.format_id, :new.format_id, USER);
     END IF;
 
-    IF (:old.file_extension != :new.file_extension)
+    IF (:old.extension_id != :new.extension_id)
     THEN
-        AuditLog.InsertUpdateLog('FILEDBENTITY', 'FILE_EXTENSION', :old.dbentity_id, :old.file_extension, :new.file_extension, USER);
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'EXTENSION_ID', :old.dbentity_id, :old.extension_id, :new.extension_id, USER);
     END IF;
 
     IF (:old.file_date != :new.file_date)
