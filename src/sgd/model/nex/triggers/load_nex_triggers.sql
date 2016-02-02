@@ -218,6 +218,10 @@
 
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Bindingmotifannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Bindingmotifannotation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Contignoteannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Contignoteannotation_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasequenceannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasequenceannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasubsequence_BIUR.trg
@@ -238,8 +242,10 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslimannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_AUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Noteannotation_BIUR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Noteannotation_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusnoteannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusnoteannotation_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwayannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwayannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_BIUR.trg

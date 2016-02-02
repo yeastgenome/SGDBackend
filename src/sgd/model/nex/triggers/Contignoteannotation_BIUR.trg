@@ -1,8 +1,8 @@
-CREATE OR REPLACE TRIGGER Noteannotation_BIUR
+CREATE OR REPLACE TRIGGER Contignoteannotation_BIUR
 --
--- Before insert or update trigger for the noteannotation table
+-- Before insert or update trigger for the contignoteannotation table
 --
-  BEFORE INSERT OR UPDATE ON noteannotation
+  BEFORE INSERT OR UPDATE ON contignoteannotation
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Noteannotation_BIUR;
+END Contignoteannotation_BIUR;
 /
 SHOW ERROR
