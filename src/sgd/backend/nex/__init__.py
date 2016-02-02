@@ -787,35 +787,53 @@ class SGDBackend(BackendInterface):
         query = params['q'] if 'q' in params.keys() else ''
         limit = params['limit'] if 'limit' in params.keys() else 10
         offset = params['offset'] if 'offset' in params.keys() else 0
-        categories = params['categories'] if 'categories' in params.keys() else ''
+        category = params['category'] if 'category' in params.keys() else ''
+        molecular_functions = params['molecular_functions'] if 'molecular_functions' in params.keys() else ''
         # formar query obj
         if query == '':
             es_query = { 'match_all': {} }
         else:
             es_query = {
-                'bool': {
-                    'should': {
-                        'match': {
-                            'name': {
-                                'query': query,
-                                'analyzer': 'standard'
+                "bool": {
+                    "should": [
+                        {
+                            "match_phrase_prefix": {
+                                "name": {
+                                    "query": query,
+                                    "boost": 4,
+                                    "max_expansions": 30,
+                                    "analyzer": "standard"
+                                }
+                            }
+                        },
+                        {
+                            "match_phrase": {
+                                "name": {
+                                    "query": query,
+                                    "boost": 10,
+                                    "analyzer": "standard"
+                                }
+                            }
+                        },                        
+                        {
+                            "match": {
+                                "description": {
+                                    "query": query,
+                                    "boost": 3,
+                                    "analyzer": "standard"
+                                }
                             }
                         }
-
-                        
-                       # 'match': {
-                       #      '_all': query
-                       #  }
-                    }
+                    ]
                 }
             }
         # filter by category, if provided
-        if categories != '':
+        if category != '':
             cat_query = {
-                'filtered': {
-                    'query': es_query,
-                    'filter': {
-                        'terms': { 'category': categories.split(',') }
+                "filtered": {
+                    "query": es_query,
+                    "filter": {
+                        "terms": { "category": [category] }
                     }
                 }
             }
@@ -838,34 +856,74 @@ class SGDBackend(BackendInterface):
             obj = {}
             for field in ["name", "href", "description", "category"]:
                 obj[field] = raw_obj.get(field)
-
-            if obj["category"] == "download":
-                obj["download_metadata"] = {}
-                obj["download_metadata"]["pubmed_ids"] = raw_obj["data"].get("Series_pubmed_id")
-                obj["download_metadata"]["sample_ids"] = raw_obj["data"].get("Sample_geo_accession")
-                obj["download_metadata"]["download_url"] = "http://yeastgenome.org/download-fake-geo/" + obj["name"]
-                obj["download_metadata"]["title"] = raw_obj["data"].get("Series_title")
-                obj["download_metadata"]["citations"] = ["Park E, et al. (2015) Structure of a Bud6/Actin Complex Reveals a Novel WH2-like Actin Monomer Recruitment Motif. Structure 23(8):1492-9"]
-                obj["download_metadata"]["summary"] = raw_obj["data"].get("Series_summary")
-                obj["download_metadata"]["experiment_types"] = raw_obj["data"].get("Series_type")
-                obj["download_metadata"]["keywords"] = raw_obj["data"].get("Spell_tags")
-
             formatted_results.append(obj)
 
-        # query for aggs on categories WITHOUT filtering by category
-        agg_query_body = {
-            'query': es_query,
-            'aggs': {
-                'categories': {
-                    'terms': { 'field': 'category' }
+        # gene ags
+        if (category == ''):
+            agg_query_body = {
+                'query': es_query,
+                'aggs': {
+                    'cat_agg': {
+                        'terms': { 'field': 'category' }
+                    }
                 }
             }
-        }
+        else:
+            agg_query_body = {
+                'query': cat_query,
+                "aggs": {
+                    "nested_agg": {
+                        "nested": {
+                            "path": "go_molecular_functions"
+                        },
+                        "aggs": {
+                            "mf_counts": {
+                                "terms": {
+                                    "field": "go_molecular_functions.name"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
         agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
         # format agg
         formatted_agg = []
-        for cat in agg_response['aggregations']['categories']['buckets']:
-            formatted_agg.append({ 'name': cat['key'], 'total': cat['doc_count'] })
+        print 'STUFF !!'
+        print agg_response['aggregations']
+        if (category == ''):
+            raw_aggs = agg_response['aggregations']['cat_agg']['buckets']
+            for cat in raw_aggs:
+                formatted_agg.append({ 'key': cat['key'], 'total': cat['doc_count'] })
+        else:
+            raw_aggs = agg_response['aggregations']['nested_agg']['mf_counts']['buckets']
+            raw_mfs = []
+            for cat in raw_aggs:
+                raw_mfs.append({ 'key': cat['key'], 'total': cat['doc_count'] })
+            formatted_agg.append({ 'key': 'molecular_functions', 'values': raw_mfs })
+
+        if (category != ''):
+            # TEMP
+            formatted_agg.append(
+                {
+                    'key': 'qualifier',
+                    'values': [
+                        { 'key': 'verified', 'total': 99 },
+                        { 'key': 'unverified', 'total': 99 },
+                        { 'key': 'dubious', 'total': 99 }
+                    ]
+                }
+            )
+            formatted_agg.append(
+                {
+                    'key': 'feature_type',
+                    'values': [
+                        { 'key': 'f1', 'total': 99 },
+                        { 'key': 'f2', 'total': 99 }
+                    ]
+                }
+            )
         response_obj = {
             'results': formatted_results,
             'total': search_results['hits']['total'],
