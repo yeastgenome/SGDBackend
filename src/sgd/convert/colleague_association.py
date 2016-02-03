@@ -3,7 +3,6 @@ from src.sgd.convert import basic_convert
 
 __author__ = 'sweng66'
 
-
 def colleague_association_starter(bud_session_maker):
     from src.sgd.model.bud.colleague import ColleagueRelation
     from src.sgd.model.nex.colleague import Colleague
@@ -21,13 +20,25 @@ def colleague_association_starter(bud_session_maker):
         if coll_id is None or assoc_id is None:
             continue
 
-        yield { "colleague_id": coll_id,
-                "associate_id": assoc_id,
-                "bud_id": bud_obj.id,
-                "association_type": bud_obj.relationship_type,
-                "source": { "display_name": "Direct submission"},
-                "date_created": str(bud_obj.date_created),
-                "created_by": bud_obj.created_by }
+        data = [ { "colleague_id": coll_id,
+                   "associate_id": assoc_id,
+                   "bud_id": bud_obj.id,
+                   "association_type": bud_obj.relationship_type,
+                   "source": { "display_name": "Direct submission"},
+                   "date_created": str(bud_obj.date_created),
+                   "created_by": bud_obj.created_by } ]
+
+        if bud_obj.relationship_type == 'Lab member':
+            data.append( { "colleague_id": assoc_id,
+                           "associate_id": coll_id,
+                           "bud_id": bud_obj.id,
+                           "association_type": 'Head of Lab',
+                           "source": { "display_name": "Direct submission"},
+                           "date_created": str(bud_obj.date_created),
+                           "created_by": bud_obj.created_by } )
+
+        for x in data:
+            yield x
 
     bud_session.close()
 
