@@ -45,6 +45,7 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     is_pi = Column('is_pi', Boolean)
     is_contact = Column('is_contact', Boolean)
     research_interest = Column('research_interest', String)
+    colleague_note = Column('colleague_note', String)
     display_email = Column('display_email', Boolean)
     date_last_modified = Column('date_last_modified', Date, server_default=FetchedValue())
 
@@ -58,7 +59,7 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                      'profession', 'job_title', 'institution', 'address1', 'address2', 
                      'address3', 'city', 'state', 'country', 'postal_code', 'work_phone',
                      'other_phone', 'fax', 'email', 'is_pi', 'is_contact', 'display_email', 
-                     'research_interest', 'date_last_modified']
+                     'research_interest', 'colleague_note', 'date_last_modified']
     __eq_fks__ = [('source', Source, False)]
     #              ('urls', 'colleague.ColleagueUrl', True),
     #              ('associates', 'colleague.ColleagueAssociation', False)]
