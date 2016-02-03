@@ -37,10 +37,10 @@ class Sequence(Base, EqualityByIDMixin):
     def __repr__(self):
         data = self.id, self.seq_type, self.is_current
         return 'Sequence(id=%s, type=%s, is_current=%s)' % data
-    
+
 class Feat_Location(Base, EqualityByIDMixin):
     __tablename__ = 'feat_location'
-    
+
     id = Column('feat_location_no', Integer, primary_key=True)
     feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
     sequence_id = Column('seq_no', Integer, ForeignKey(Sequence.id))
@@ -55,7 +55,23 @@ class Feat_Location(Base, EqualityByIDMixin):
 
     sequence = relationship(Sequence, uselist=False, primaryjoin="Feat_Location.sequence_id==Sequence.id")
     feature = relationship(Feature, uselist=False, backref='feat_locations')
+    
+class Seq_Change_Archive(Base, EqualityByIDMixin):
+    __tablename__ = 'seq_change_archive'
+    
+    id = Column('seq_change_archive_no', Integer, primary_key=True)
+    sequence_id = Column('seq_no', Integer, ForeignKey(Sequence.id))
+    seq_change_type = Column('seq_change_type', String)
+    change_min_coord = Column('change_min_coord', Integer)
+    change_max_coord = Column('change_max_coord', Integer)
+    old_seq = Column('old_seq', String)
+    new_seq = Column('new_seq', String)
+    genome_release = Column('genome_release', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
 
+    sequence = relationship(Sequence, uselist=False, primaryjoin="Seq_Change_Archive.sequence_id==Sequence.id")
+    
 class Release(Base, EqualityByIDMixin):
     __tablename__ = 'release'
 
