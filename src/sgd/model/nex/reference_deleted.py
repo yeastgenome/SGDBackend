@@ -16,10 +16,11 @@ class ReferenceDeleted(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin
     pmid = Column('pmid', Integer)
     sgdid = Column('sgdid', String)
     bud_id = Column('bud_id', Integer)
+    reason_deleted = Column('reason_deleted', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
-    __eq_values__ = ['id', 'pmid', 'sgdid', 'bud_id', 'created_by', 'date_created']
+    __eq_values__ = ['id', 'pmid', 'sgdid', 'bud_id', 'reason_deleted', 'created_by', 'date_created']
     __id_values__ = ['id']
     __eq_fks__ = []
     __no_edit_values__ = ['id', 'date_created', 'created_by']
