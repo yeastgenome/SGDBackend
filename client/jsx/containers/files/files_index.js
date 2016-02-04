@@ -1,9 +1,15 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router';
 
 const FilesIndex = React.createClass({
   render() {
-    return <h1>Files#Index</h1>
+    return (
+      <div>
+        <h1>Datasets</h1>
+        <Link to='/dashboard/files/new'className='button'><i className='fa fa-plus'/> New Dataset</Link>
+      </div>
+    );
   }
 });
 
