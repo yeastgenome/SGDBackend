@@ -623,7 +623,7 @@ Comment on column PATHWAY_ALIAS.DISPLAY_NAME is 'Public display name.';
 Comment on column PATHWAY_ALIAS.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column PATHWAY_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column PATHWAY_ALIAS.BUD_ID is 'From yeastbase.ocelot file';
-Comment on column PATHWAY_ALIAS.LOCUS_ID is 'FK to PATHWAYDBENTITY.DBENTITY_ID.';
+Comment on column PATHWAY_ALIAS.PATHWAY_ID is 'FK to PATHWAYDBENTITY.DBENTITY_ID.';
 Comment on column PATHWAY_ALIAS.ALIAS_TYPE is 'Type of alias or dbxref (Synonym).';
 Comment on column PATHWAY_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PATHWAY_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
