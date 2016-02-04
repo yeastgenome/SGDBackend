@@ -1575,6 +1575,14 @@ Comment on column REFERENCETRIAGE.ABSTRACT is 'Paper abstract.';
 Comment on column REFERENCETRIAGE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column REFERENCETRIAGE.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
+Comment on table COLLEAGUETRIAGE is 'New and update colleague submissions.';
+Comment on column COLLEAGUETRIAGE.CURATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column COLLEAGUETRIAGE.TRIAGE_TYPE is 'Type of colleague submission (New, Update).';
+Comment on column COLLEAGUETRIAGE.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column COLLEAGUETRIAGE.COLLEAGUE_DATA is 'JSON object of the submitted colleague information.';
+Comment on column COLLEAGUETRIAGE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column COLLEAGUETRIAGE.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
 /* Archive tables */
 
 Comment on table ARCH_LOCUSCHANGE is 'Archived changes to a locus that have historical significance.';
