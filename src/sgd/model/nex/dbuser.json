@@ -31,6 +31,10 @@
             "title": "Bud ID",
             "type": "integer"
         },
+	"is_curator": {
+            "title": "Is Curator",
+            "type": "integer"
+        },
         "date_created": {
             "title": "Date Created",
             "type": "string",

@@ -8,14 +8,22 @@ def dbuser_starter(bud_session_maker):
  
     bud_session = bud_session_maker()
 
+    not_curator_list = ['KKARRA', 'GAIL', 'CHERRY', 'SHUAI', 'OTTO', 'VIVIAN',
+                        'MKALOPER', 'QDONG', 'MAYANK', 'HITZ', 'GUEST', 'KPASKOV',
+                        'PEDROH', 'TSHEPP']
+
     for bud_obj in bud_session.query(Dbuser).all():
 
+        is_curator = 1
+        if bud_obj.username in not_curator_list:
+            is_curator = 0
         yield {"username": bud_obj.username,
                "first_name": bud_obj.first_name,
                "last_name": bud_obj.last_name,
                "status": bud_obj.status,
                "email": bud_obj.email,
                "bud_id": bud_obj.id,
+               "is_curator": is_curator,
                "date_created": str(bud_obj.date_created)}
          
     bud_session.close()

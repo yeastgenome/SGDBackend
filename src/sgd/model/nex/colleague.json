@@ -130,6 +130,10 @@
             "title": "Display Email?",
             "type": "boolean"
         },
+	"colleague_note": {
+            "title": "Colleague Note",
+            "type": "string"
+        },
         "date_last_modified": {
             "title": "Date Last Modified",
             "type": "string",

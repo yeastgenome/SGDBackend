@@ -18,6 +18,10 @@
                 "title": "Bud ID",
                 "type": "integer"
             },
+	    "reason_deleted": {
+                "title": "Reason Deleted",
+                "type": "string"
+            },
             "date_created": {
                 "title": "Date Created",
                 "type": "string",

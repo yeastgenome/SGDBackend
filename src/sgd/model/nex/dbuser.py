@@ -17,9 +17,10 @@ class Dbuser(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     email = Column('email', String)
     status = Column('status', String)
     bud_id = Column('bud_id', Integer)
+    is_curator = Column('is_curator', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     
-    __eq_values__ = ['id', 'username', 'first_name', 'last_name', 'email', 'status', 'bud_id', 'date_created']
+    __eq_values__ = ['id', 'username', 'first_name', 'last_name', 'email', 'status', 'bud_id', 'is_curator', 'date_created']
     __eq_fks__ = []
     # __id_values__ = ['id', 'username']
     __id_values__ = ['id'] 
