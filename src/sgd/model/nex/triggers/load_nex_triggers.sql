@@ -119,6 +119,10 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwaydbentity_BUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwaydbentity_AUDR.trg
+
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayAlias_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayAlias_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayUrl_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Filepath_BIUR.trg
