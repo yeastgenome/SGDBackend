@@ -1016,7 +1016,15 @@ Comment on column REPORTER.CREATED_BY is 'Username of the person who entered the
 
 /* Dataset */
 
-Comment on table DATASET is 'High throughput gene expression data from NCBI’s GEO database and displayed using SPELL.';
+
+Comment on table DATASETLAB is 'Laboratory which conducted the dataset experiment.';
+Comment on column DATASETLAB.DATASETLAB_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASETLAB.DATASET_ID is 'FK to DATASET.DATASET_ID.';
+Comment on column DATASETLAB.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASETLAB.LAB_NAME is 'PI last name.';
+Comment on column DATASETLAB.LAB_LOCATION is 'Institution or location of the PI.';
+Comment on column DATASETLAB.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column DATASETLAB.DATE_CREATED is 'Date the record Comment on table DATASET is 'High throughput gene expression data from NCBI’s GEO database and displayed using SPELL.';
 Comment on column DATASET.DATASET_ID is 'Unique identifier (Oracle sequence).';
 Comment on column DATASET.FORMAT_NAME is 'Unique name to create download files.';
 Comment on column DATASET.DISPLAY_NAME is 'Public display name.';
@@ -1034,15 +1042,7 @@ Comment on column DATASET.IS_IN_BROWSER is 'Whether this dataset has been loaded
 Comment on column DATASET.DESCRIPTION is 'Description or summary.';
 Comment on column DATASET.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DATASET.CREATED_BY  is 'Username of the person who entered the record into the database.';
-
-Comment on table DATASETLAB is 'Laboratory which conducted the dataset experiment.';
-Comment on column DATASETLAB.DATASETLAB_ID is 'Unique identifier (Oracle sequence).';
-Comment on column DATASETLAB.DATASET_ID is 'FK to DATASET.DATASET_ID.';
-Comment on column DATASETLAB.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column DATASETLAB.LAB_NAME is 'PI last name.';
-Comment on column DATASETLAB.LAB_LOCATION is 'Institution or location of the PI.';
-Comment on column DATASETLAB.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
-Comment on column DATASETLAB.DATE_CREATED is 'Date the record was entered into the database.';
+was entered into the database.';
 Comment on column DATASETLAB.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
 Comment on table DATASET_URL is 'URLs associated with a dataset.';

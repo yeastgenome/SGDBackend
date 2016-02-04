@@ -10,7 +10,7 @@ BEGIN
   IF INSERTING THEN
 
     IF (:new.datasetsample_id IS NULL) THEN
-        SELECT datasetsample_seq.NEXTVAL INTO :new.datasetsample_id FROM DUAL;
+        SELECT object_seq.NEXTVAL INTO :new.datasetsample_id FROM DUAL;
     END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);

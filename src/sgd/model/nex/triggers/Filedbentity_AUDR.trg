@@ -35,19 +35,14 @@ BEGIN
         AuditLog.InsertUpdateLog('FILEDBENTITY', 'IS_PUBLIC', :old.dbentity_id, :old.is_public, :new.is_public, USER);
     END IF;
 
-    IF (:old.used_for_spell != :new.used_for_spell)
+    IF (:old.is_in_spell != :new.is_in_spell)
     THEN
-        AuditLog.InsertUpdateLog('FILEDBENTITY', 'USED_FOR_SPELL', :old.dbentity_id, :old.used_for_spell, :new.used_for_spell, USER);
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'IS_IN_SPELL', :old.dbentity_id, :old.is_in_spell, :new.is_in_spell, USER);
     END IF;
 
-    IF (:old.used_for_jbrowse != :new.used_for_jbrowse)
+    IF (:old.is_in_browser != :new.is_in_browser)
     THEN
-        AuditLog.InsertUpdateLog('FILEDBENTITY', 'USED_FOR_JBROWSE', :old.dbentity_id, :old.used_for_jbrowse, :new.used_for_jbrowse, USER);
-    END IF;
-
-    IF (:old.file_version != :new.file_version)
-    THEN
-        AuditLog.InsertUpdateLog('FILEDBENTITY', 'FILE_VERSION', :old.dbentity_id, :old.file_version, :new.file_version, USER);
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'IS_IN_BROWSER', :old.dbentity_id, :old.is_in_browser, :new.is_in_browser, USER);
     END IF;
 
      IF (((:old.md5sum IS NULL) AND (:new.md5sum IS NOT NULL)) OR ((:old.md5sum IS NOT NULL) AND (:new.md5sum IS NULL)) OR (:old.md5sum != :new.md5sum))
@@ -75,10 +70,9 @@ BEGIN
     v_row := :old.dbentity_id || '[:]' || :old.topic_id || '[:]' ||
              :old.format_id || '[:]' || :old.extension_id || '[:]' ||
              :old.file_date || '[:]' || :old.is_public || '[:]' || 
-             :old.used_for_spell || '[:]' || :old.used_for_jbrowse || '[:]' || 
-             :old.file_version || '[:]' || :old.md5sum || '[:]' || 
-             :old.filepath_id || '[:]' || :old.previous_file_name || '[:]' ||
-             :old.readme_url;
+             :old.is_in_spell || '[:]' || :old.is_in_browser || '[:]' || 
+             :old.md5sum || '[:]' || :old.filepath_id || '[:]' || 
+             :old.previous_file_name || '[:]' || :old.readme_url;
 
     AuditLog.InsertDeleteLog('FILEDBENTITY', :old.dbentity_id, v_row, USER);
 
