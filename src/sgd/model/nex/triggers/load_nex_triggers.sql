@@ -121,14 +121,12 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwaydbentity_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayUrl_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayUrl_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Filepath_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Filepath_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Filedbentity_BUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Filedbentity_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/FileKeyword_BUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/FileKeyword_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Book_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Book_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Journal_BIUR.trg
@@ -147,14 +145,13 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDocument_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceAuthor_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceAuthor_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceFile_BUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceFile_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceUnlink_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceUnlink_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ReferenceDeleted_AUDR.trg
+
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Colleague_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Colleague_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueUrl_BIUR.trg
@@ -167,7 +164,6 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueLocus_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueReference_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ColleagueReference_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusSummary_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusSummary_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusSummaryReference_BIUR.trg
@@ -180,7 +176,6 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwaySummary_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwaySummaryReference_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwaySummaryReference_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslim_BIUR.trg
@@ -218,10 +213,8 @@
 
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Bindingmotifannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Bindingmotifannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Contignoteannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Contignoteannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasequenceannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasequenceannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasubsequence_BIUR.trg
@@ -242,10 +235,8 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslimannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Literatureannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusnoteannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusnoteannotation_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwayannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwayannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotypeannotation_BIUR.trg
@@ -273,6 +264,8 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Authorresponse_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Referencetriage_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Referencetriage_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Colleaguetriage_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Colleaguetriage_AUDR.trg
 
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchLocuschange_BIUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ArchLiteratureannotation_BIUDR.trg
