@@ -879,7 +879,8 @@ class SGDBackend(BackendInterface):
                         "aggs": {
                             "mf_counts": {
                                 "terms": {
-                                    "field": "go_molecular_functions.name"
+                                    "field": "go_molecular_functions.name",
+                                    "size": 25
                                 }
                             }
                         }
