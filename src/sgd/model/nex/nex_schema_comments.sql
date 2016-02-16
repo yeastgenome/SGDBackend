@@ -1547,7 +1547,7 @@ Comment on table CURATION is 'Tasks and notes associated with locus and referenc
 Comment on column CURATION.CURATION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column CURATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
 Comment on column CURATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column CURATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID. Used only when SUBCLASS = REFERENCE.;
+Comment on column CURATION.LOCUS_ID is 'FK to LOCUSDBENTITY.DBENTITY_ID. Used only when SUBCLASS = REFERENCE.';
 Comment on column CURATION.BUD_ID is 'From BUD.REF_CURATION.REF_CURATION_NO and BUD.FEAT_CURATION.FEAT_CURATION_NO.';
 Comment on column CURATION.SUBCLASS is 'Type of curation (LOCUS, REFERENCE).';
 Comment on column CURATION.CURATION_TASK is 'Type of curation task (Classical phenotype information,Delay,Fast Track,GO information,GO needs review,Gene model,Headline needs review,Headline reviewed,Headline information,High Priority,Homology/Disease,HTP phenotype,Non-phenotype HTP,Not yet curated,Paragraph needs review,Paragraph not needed,Pathways,Phenotype needs review,Phenotype uncuratable,Post-translational modifications,Regulation information).';
