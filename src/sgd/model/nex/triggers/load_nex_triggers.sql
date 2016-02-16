@@ -103,8 +103,8 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/TaxonomyRelation_AUDR.trg
 
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_BIUDR.trg
-@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AUDR.trg
---@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AIUDR.trg   # only for initial data load
+--@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AUDR.trg   # only for initial data load
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dbentity_AIUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Locusdbentity_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/LocusAlias_BIUR.trg
@@ -119,10 +119,8 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/StrainUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwaydbentity_BUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Pathwaydbentity_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayAlias_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayAlias_AUDR.trg
-
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayUrl_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/PathwayUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Filepath_BIUR.trg

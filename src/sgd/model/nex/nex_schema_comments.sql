@@ -50,7 +50,7 @@ Comment on column SGDID.DISPLAY_NAME is 'Public display name.';
 Comment on column SGDID.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column SGDID.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column SGDID.BUD_ID is 'PK from BUD.DBXREF.DBXREF_NO.';
-Comment on column SGDID.SUBCLASS is 'Type of dbentity assigned the SGDID (LOCUS, REFERENCE, STRAIN, FILE).';
+Comment on column SGDID.SUBCLASS is 'Type of dbentity assigned the SGDID (LOCUS, REFERENCE, STRAIN, FILE, PATHWAY).';
 Comment on column SGDID.SGDID_STATUS is 'State of the SGDID (Primary, Secondary, Deleted, Unassigned).';
 Comment on column SGDID.DESCRIPTION is 'Comment about or reason why the SGDID was deleted.';
 Comment on column SGDID.DATE_CREATED is 'Date the record was entered into the database.';
