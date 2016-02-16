@@ -13,6 +13,11 @@ BEGIN
         SELECT curation_seq.NEXTVAL INTO :new.curation_id FROM DUAL;
     END IF; 
 
+    IF ((:new.subclass = 'LOCUS') AND (:new.locus_id IS NOT NULL)) THEN
+         RAISE_APPLICATION_ERROR
+              (-20044, 'LOCUS_ID is NOT NULL only when subclass = REFERENCE.'); 
+    END IF;
+
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSE
@@ -21,6 +26,11 @@ BEGIN
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
+
+    IF ((:new.subclass = 'LOCUS') AND (:new.locus_id IS	NOT NULL)) THEN
+        RAISE_APPLICATION_ERROR
+      	      (-20044, 'LOCUS_ID is NOT NULL only when subclass = REFERENCE.');
+    END		  IF;
 
     IF (:new.date_created != :old.date_created) THEN    
         RAISE_APPLICATION_ERROR
