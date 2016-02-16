@@ -20,6 +20,11 @@ BEGIN
         AuditLog.InsertUpdateLog('CURATION', 'SOURCE_ID', :old.curation_id, :old.source_id, :new.source_id, USER);
     END IF;
 
+    IF (((:old.locus_id IS NULL) AND (:new.locus_id IS NOT NULL)) OR ((:old.locus_id IS NOT NULL) AND (:new.locus_id IS NULL)) OR (:old.locus_id != :new.locus_id))
+    THEN
+        AuditLog.InsertUpdateLog('CURATION', 'LOCUS_ID', :old.curation_id, :old.locus_id, :new.locus_id, USER);
+    END IF;
+
     IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id))
     THEN
         AuditLog.InsertUpdateLog('CURATION', 'BUD_ID', :old.curation_id, :old.bud_id, :new.bud_id, USER);
@@ -43,9 +48,9 @@ BEGIN
   ELSE
 
     v_row := :old.curation_id || '[:]' || :old.dbentity_id || '[:]' ||
-             :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.subclass || '[:]' || :old.curation_task || '[:]' ||
-             :old.curator_comment || '[:]' ||
+             :old.source_id || '[:]' || :old.locus_id || '[:]' ||
+             :old.bud_id || '[:]' || :old.subclass || '[:]' || 
+             :old.curation_task || '[:]' || :old.curator_comment || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('CURATION', :old.curation_id, v_row, USER);
