@@ -11,7 +11,7 @@ import json
 CLIENT_ADDRESS = 'http://localhost:9200'
 INDEX_NAME = 'searchable_items2' # TEMP
 DOC_TYPE = 'searchable_item'
-RESET_INDEX = True
+RESET_INDEX = False
 es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
 
 # prep session
@@ -89,7 +89,34 @@ def set_mapping():
                         }
                     }
                 },
-                "go_molecular_functions": {
+                "phenotypes": {
+                    "type": "nested",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "index": "not_analyzed"
+                        }
+                    }
+                },
+                "go_biological_process": {
+                    "type": "nested",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "index": "not_analyzed"
+                        }
+                    }
+                },
+                "go_cellular_component": {
+                    "type": "nested",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "index": "not_analyzed"
+                        }
+                    }
+                },
+                "go_molecular_function": {
                     "type": "nested",
                     "properties": {
                         "name": {
@@ -137,30 +164,40 @@ def index_genes():
         print (i / float(len(all_genes)))
         # get perf doc
         perf_result = perf_session.query(PerfBioentity).filter_by(id=gene.id).first().to_json()
+
+        if perf_result['class_type'] != 'LOCUS': continue
+        
+
+        feature_type = perf_result['locus_type'].replace('_', ' ')
+        # format phenotypes as array of [{ name: 'apoptosis: decreased' }]
+        raw_phenotypes = []
+        formatted_phenotypes = []
+        raw_phenotypes = raw_phenotypes + perf_result['phenotype_overview']['large_scale_phenotypes'].items()
+        raw_phenotypes = raw_phenotypes + perf_result['phenotype_overview']['classical_phenotypes'].items()
+        for phenos in raw_phenotypes:
+            for phen_item in phenos[1]:
+                formatted_phenotypes.append({ 'name': phen_item['display_name'] })
+
         # format paragraph
         if perf_result['paragraph']:
             paragraph = perf_result['paragraph']['text']
         else:
             paragraph = None
-        # get GO terms
-        # biological_component_terms = get_unique_go_term_names(perf_result['go_overview'], 'biological_component')
-        # cellular_location_terms = get_unique_go_term_names(perf_result['go_overview'], 'cellular_location')
-        molecular_function_terms = get_unique_go_term_names(perf_result['go_overview'], 'molecular_function')
 
-        # data_obj = {
-        #     # 'paragraph': paragraph,
-        #     'go_biological_process': biological_component_terms,
-        #     'go_cellular_component': cellular_location_terms,
-        #     'go_molecular_function': molecular_function_terms,
-        #     # 'phenotype': perf_result['name_description'],
-        #     'name_description': perf_result['name_description'],
-        # }
+        # get GO terms
+        biological_component_terms = get_unique_go_term_names(perf_result['go_overview'], 'biological_component')
+        cellular_location_terms = get_unique_go_term_names(perf_result['go_overview'], 'cellular_location')
+        molecular_function_terms = get_unique_go_term_names(perf_result['go_overview'], 'molecular_function')
         obj = {
             'name': _name,
             'href': gene.link,
             'description': gene.headline,
             'category': 'locus',
-            'go_molecular_functions': molecular_function_terms
+            'feature_type': feature_type,
+            'phenotypes': formatted_phenotypes,
+            'go_biological_process': biological_component_terms,
+            'go_cellular_component': cellular_location_terms,
+            'go_molecular_function': molecular_function_terms
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
 
@@ -355,12 +392,12 @@ def index_toolbar_links():
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=l[1])
     
 def main():
-    setup_index()
-    index_genes()
+    # setup_index()
+    # index_genes()
     # index_phenotypes()
     # index_authors()
     # index_strains()
-    # index_go_terms()
+    index_go_terms()
     # index_references()
 
 #    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
