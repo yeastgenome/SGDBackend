@@ -38,6 +38,16 @@ BEGIN
            (-20028, 'SGDID cannot be updated.');
     END IF;
 
+    IF (:new.source != :old.source) THEN
+        RAISE_APPLICATION_ERROR
+           (-20028, 'SGDID cannot be updated.');
+    END IF;
+
+    IF (:new.subclass != :old.subclass) THEN
+        RAISE_APPLICATION_ERROR
+           (-20028, 'SGDID cannot be updated.');
+    END IF;
+
     IF (:new.date_created != :old.date_created) THEN    
         RAISE_APPLICATION_ERROR
             (-20001, 'Audit columns cannot be updated.');

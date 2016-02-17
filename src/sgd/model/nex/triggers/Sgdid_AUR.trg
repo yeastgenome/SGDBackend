@@ -8,19 +8,9 @@ CREATE OR REPLACE TRIGGER Sgdid_AUR
 BEGIN
   IF UPDATING THEN
 
-    IF (:old.source_id != :new.source_id)
-    THEN
-        AuditLog.InsertUpdateLog('SGDID', 'SOURCE_ID', :old.sgdid_id, :old.source_id, :new.source_id, USER);
-    END IF;
-
     IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id))
     THEN
         AuditLog.InsertUpdateLog('SGDID', 'BUD_ID', :old.sgdid_id, :old.bud_id, :new.bud_id, USER);
-    END IF;
-
-    IF (:old.subclass != :new.subclass)
-    THEN
-        AuditLog.InsertUpdateLog('SGDID', 'SUBCLASS', :old.sgdid_id, :old.subclass, :new.subclass, USER);
     END IF;
 
     IF (:old.sgdid_status != :new.sgdid_status)
