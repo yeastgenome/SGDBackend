@@ -38,7 +38,7 @@ BEGIN
            (-20028, 'SGDID cannot be updated.');
     END IF;
 
-    IF (:new.source != :old.source) THEN
+    IF (:new.source_id != :old.source_id) THEN
         RAISE_APPLICATION_ERROR
            (-20028, 'SGDID cannot be updated.');
     END IF;
