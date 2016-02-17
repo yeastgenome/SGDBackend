@@ -7,6 +7,7 @@ CREATE OR REPLACE TRIGGER Dbentity_BIUDR
 DECLARE
   v_IsValidUser   dbuser.username%TYPE;
   v_IsSgdidValid  sgdid.display_name%TYPE;
+  v_LowerSubclass  dbentity.subclass%TYPE;
 BEGIN
   IF INSERTING THEN
 
@@ -20,6 +21,11 @@ BEGIN
         :new.sgdid := UPPER(:new.sgdid);
          v_IsSgdidValid := ManageSgdid.CheckSgdid(:new.sgdid);
     END IF;
+
+   IF (:new.obj_url is NULL) THEN
+        v_LowerSubclass := LOWER(:new.subclass);
+        :new.obj_url := CONCAT('/'||v_LowerSubclass||'/', :new.sgdid);
+   END IF;
 
     IF (:new.subclass = 'LOCUS') THEN
         IF (:new.dbentity_status = 'Archived') THEN
