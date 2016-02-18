@@ -23,12 +23,7 @@ BEGIN
             (-20000, 'Primary key cannot be updated');
     END IF;
 
-    IF (:new.annotation_id != :old.annotation_id) THEN
-        RAISE_APPLICATION_ERROR
-             (-20029, 'This column cannot be updated.');
-    END IF;
-
-    IF (:new.dbentity_id != :old.dbentity_id) THEN
+    IF (:new.reference_id != :old.reference_id) THEN
         RAISE_APPLICATION_ERROR
              (-20029, 'This column cannot be updated.');
     END IF;
@@ -38,12 +33,12 @@ BEGIN
              (-20029, 'This column cannot be updated.');
     END IF;
 
-    IF (:new.reference_id != :old.reference_id) THEN
+    IF (:new.taxonomy_id != :old.taxonomy_id) THEN
         RAISE_APPLICATION_ERROR
              (-20029, 'This column cannot be updated.');
     END IF;
 
-    IF (:new.taxonomy_id != :old.taxonomy_id) THEN
+    IF (:new.locus_id != :old.locus_id) THEN
         RAISE_APPLICATION_ERROR
              (-20029, 'This column cannot be updated.');
     END IF;
