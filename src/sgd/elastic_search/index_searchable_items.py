@@ -128,11 +128,6 @@ def set_mapping():
             }
         }
     }
-    # drop index and re-create
-    # es.indices.delete(index=INDEX_NAME, ignore=404)
-    # es.indices.create(index=INDEX_NAME)
-    # es.cluster.health(wait_for_status='yellow', request_timeout=5)
-    # set_filters()
     es.indices.put_mapping(index=INDEX_NAME, doc_type=DOC_TYPE, body=mapping_settings)
 
 def get_unique_go_term_names(go_obj, go_type):
