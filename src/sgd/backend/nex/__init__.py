@@ -891,7 +891,6 @@ class SGDBackend(BackendInterface):
         agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
         # format agg
         formatted_agg = []
-        print 'STUFF !!'
         print agg_response['aggregations']
         if (category == ''):
             raw_aggs = agg_response['aggregations']['cat_agg']['buckets']

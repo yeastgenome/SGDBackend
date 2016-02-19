@@ -37,9 +37,11 @@ for agg in aggs:
 		assert agg['total' > 100]
 assert has_locus
 
+# secondary filter params for loci
 
-# AUTOCOMPLETE results
-
-# get ATG genes for q "atg"
-# act1 top result for q "act1"
-# variant viewer top result for q "variant"
+# search locus category with blank query and feature type "telomere", all results should be TELXXX-y
+response = query_search('&category=locus&feature%20type=telomere')
+# search by phenotype, search locus category for query "ADH," and phenotype "UV resistance: decreased," ADH1 should be only result
+response = query_search('ADH&category=locus&fphenotype=UV%20resistance%3A%20decreased')
+# search by cellular component, search locus cat for query "REP" and cellular component "nucleus," only results should be REP1, and REP2
+response = query_search('REP&category=locus&cellular%20component=nucleus')
