@@ -10,18 +10,9 @@ DECLARE
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.archive_id IS NULL) THEN
-        SELECT annotation_seq.NEXTVAL INTO :new.archive_id FROM DUAL;
-    END IF; 
-
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSIF UPDATING THEN
-
-    IF (:new.archive_id != :old.archive_id) THEN    
-        RAISE_APPLICATION_ERROR
-            (-20000, 'Primary key cannot be updated');
-    END IF;
 
     IF (:new.annotation_id != :old.annotation_id) THEN
         RAISE_APPLICATION_ERROR

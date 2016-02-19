@@ -1608,7 +1608,7 @@ Comment on column ARCH_LOCUSCHANGE.DATE_ARCHIVED is 'Date the record was archive
 
 Comment on table ARCH_LITERATUREANNOTATION is 'Archived literature topics or categories assigned to references from BUD.';
 Comment on column ARCH_LITERATUREANNOTATION.ARCHIVE_ID is 'Unique identifier (Oracle sequence).';
-Comment on column ARCH_LITERATUREANNOTATION.REFERENCE_ID is 'From REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column ARCH_LITERATUREANNOTATION.REFERENCE_ID is 'From REFERENCEDBENTITY.DBENTITY_ID.';
 Comment on column ARCH_LITERATUREANNOTATION.SOURCE_ID is 'From SOURCE.SOURCE_ID.';
 Comment on column ARCH_LITERATUREANNOTATION.TAXONOMY_ID is 'From TAXONOMY.TAXONOMY_ID.';
 Comment on column ARCH_LITERATUREANNOTATION.LOCUS_ID is 'From LOCUSDBENTITY.DBENTITY_ID.';
@@ -1619,7 +1619,6 @@ Comment on column ARCH_LITERATUREANNOTATION.CREATED_BY is 'Username of the perso
 Comment on column ARCH_LITERATUREANNOTATION.DATE_ARCHIVED is 'Date the record was archived.';
 
 Comment on table ARCH_CONTIG is 'Archived whole chromosome or contig sequences.';
-Comment on column ARCH_CONTIG.ARCHIVE_ID is 'Unique identifier (Oracle sequence).';
 Comment on column ARCH_CONTIG.CONTIG_ID is 'From CONTIG.CONTIG_ID.';
 Comment on column ARCH_CONTIG.FORMAT_NAME is 'Unique name to create download files.';
 Comment on column ARCH_CONTIG.DISPLAY_NAME is 'Public display name.';
@@ -1664,7 +1663,6 @@ Comment on column ARCH_CONTIGCHANGE.CHANGED_BY is 'Username of the person who ma
 Comment on column ARCH_CONTIGCHANGE.DATE_ARCHIVED is 'Date the record was archived.';
 
 Comment on table ARCH_DNASEQANNOTATION is 'Archived DNA sequence details for contig, chromosomal, or plasmid features.';
-Comment on column ARCH_DNASEQANNOTATION.ARCHIVE_ID is 'Unique identifier (Oracle sequence).';
 Comment on column ARCH_DNASEQANNOTATION.ANNOTATION_ID is 'From DNASEQUENCEANNOTATION.ANNOTATION_ID.';
 Comment on column ARCH_DNASEQANNOTATION.DBENTITY_ID is 'From DBENTITY.DBENTITY_ID.';
 Comment on column ARCH_DNASEQANNOTATION.SOURCE_ID is 'From SOURCE.SOURCE_ID.';
@@ -1689,7 +1687,6 @@ Comment on column ARCH_DNASEQANNOTATION.CREATED_BY is 'Username of the person wh
 Comment on column ARCH_DNASEQANNOTATION.DATE_ARCHIVED is 'Date the record was archived.';
 
 Comment on table ARCH_DNASUBSEQUENCE is 'Archived DNA sequence details for subfeatures.';
-Comment on column ARCH_DNASUBSEQUENCE.ARCHIVE_ID is 'Unique identifier (Oracle sequence).';
 Comment on column ARCH_DNASUBSEQUENCE.DNASUBSEQUENCE_ID is 'From DNASUBSEQUENCE.DNASUBSEQUENCE_ID.';
 Comment on column ARCH_DNASUBSEQUENCE.ANNOTATION_ID is 'From DNASEQUENCEANNOTATION.ANNOTATION_ID.';
 Comment on column ARCH_DNASUBSEQUENCE.DBENTITY_ID is 'From DBENTITY.DBENTITY_ID.';
@@ -1712,7 +1709,6 @@ Comment on column ARCH_DNASUBSEQUENCE.CREATED_BY is 'Username of the person who 
 Comment on column ARCH_DNASUBSEQUENCE.DATE_ARCHIVED is 'Date the record was archived.';
 
 Comment on table ARCH_PROTEINSEQANNOTATION is 'Archived protein sequence information.';
-Comment on column ARCH_PROTEINSEQANNOTATION.ARCHIVE_ID is 'Unique identifier (Oracle sequence).';
 Comment on column ARCH_PROTEINSEQANNOTATION.ANNOTATION_ID is 'FROM PROTEINSEQUENCEANNOTATION.ANNOTATION_ID.';
 Comment on column ARCH_PROTEINSEQANNOTATION.DBENTITY_ID is 'From DBENTITY.DBENTITY_ID.';
 Comment on column ARCH_PROTEINSEQANNOTATION.SOURCE_ID is 'From SOURCE.SOURCE_ID.';
