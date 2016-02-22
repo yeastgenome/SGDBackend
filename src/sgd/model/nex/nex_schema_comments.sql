@@ -651,7 +651,7 @@ Comment on table FILEDBENTITY is 'Details about files loaded into or dumped from
 Comment on column FILEDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
 Comment on column FILEDBENTITY.TOPIC_ID is 'A broad domain or category of the file, FK to EDAM topic namespace.';
 Comment on column FILEDBENTITY.FORMAT_ID is 'Standard file format, FK to EDAM format namespace.';
-Comment on column FILEDBENTITY.EXTENSION_ID is 'File name extension, FK to EDAM format namespace.';
+Comment on column FILEDBENTITY.FILE_EXTENSION is 'File name extension (tsv,xls,xlsx,gff,bed,pcl,pdf,fasta,fsa,html,txt,xml,jpg,doc,docx).';
 Comment on column FILEDBENTITY.FILE_DATE is 'Release date or date the file was created.';
 Comment on column FILEDBENTITY.IS_PUBLIC is 'Whether the file is viewable to the public.';
 Comment on column FILEDBENTITY.IS_IN_SPELL is 'Whether the file was loaded into SPELL.';

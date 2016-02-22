@@ -20,9 +20,9 @@ BEGIN
         AuditLog.InsertUpdateLog('FILEDBENTITY', 'FORMAT_ID', :old.dbentity_id, :old.format_id, :new.format_id, USER);
     END IF;
 
-    IF (:old.extension_id != :new.extension_id)
+    IF (:old.file_extension != :new.file_extension)
     THEN
-        AuditLog.InsertUpdateLog('FILEDBENTITY', 'EXTENSION_ID', :old.dbentity_id, :old.extension_id, :new.extension_id, USER);
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'FILE_EXTENSION', :old.dbentity_id, :old.file_extension, :new.file_extension, USER);
     END IF;
 
     IF (:old.file_date != :new.file_date)
@@ -68,7 +68,7 @@ BEGIN
   ELSE
 
     v_row := :old.dbentity_id || '[:]' || :old.topic_id || '[:]' ||
-             :old.format_id || '[:]' || :old.extension_id || '[:]' ||
+             :old.format_id || '[:]' || :old.file_extension || '[:]' ||
              :old.file_date || '[:]' || :old.is_public || '[:]' || 
              :old.is_in_spell || '[:]' || :old.is_in_browser || '[:]' || 
              :old.md5sum || '[:]' || :old.filepath_id || '[:]' || 
