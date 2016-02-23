@@ -24,11 +24,6 @@ BEGIN
         AuditLog.InsertUpdateLog('DBENTITY', 'DISPLAY_NAME', :old.dbentity_id, :old.display_name, :new.display_name, USER);
     END IF;
 
-    IF (:old.obj_url != :new.obj_url)
-    THEN
-        AuditLog.InsertUpdateLog('DBENTITY', 'OBJ_URL', :old.dbentity_id, :old.obj_url, :new.obj_url, USER);
-    END IF;
-
     IF (:old.source_id != :new.source_id)
     THEN
         AuditLog.InsertUpdateLog('DBENTITY', 'SOURCE_ID', :old.dbentity_id, :old.source_id, :new.source_id, USER);
@@ -37,16 +32,6 @@ BEGIN
     IF (((:old.bud_id IS NULL) AND (:new.bud_id IS NOT NULL)) OR ((:old.bud_id IS NOT NULL) AND (:new.bud_id IS NULL)) OR (:old.bud_id != :new.bud_id))
     THEN
         AuditLog.InsertUpdateLog('DBENTITY', 'BUD_ID', :old.dbentity_id, :old.bud_id, :new.bud_id, USER);
-    END IF;
-
-    IF (:old.sgdid != :new.sgdid)
-    THEN
-        AuditLog.InsertUpdateLog('DBENTITY', 'SGDID', :old.dbentity_id, :old.sgdid, :new.sgdid, USER);
-    END IF;
-
-    IF (:old.subclass != :new.subclass)
-    THEN
-        AuditLog.InsertUpdateLog('DBENTITY', 'SUBCLASS', :old.dbentity_id, :old.subclass, :new.subclass, USER);
     END IF;
 
     IF (:old.dbentity_status != :new.dbentity_status)

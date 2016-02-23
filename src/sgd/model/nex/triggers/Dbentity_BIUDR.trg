@@ -58,6 +58,16 @@ BEGIN
             (-20029, 'This column cannot be updated.');
     END IF;
 
+    IF (:new.subclass != :old.subclass) THEN
+        RAISE_APPLICATION_ERROR
+            (-20029, 'This column cannot be updated.');
+    END IF;
+
+    IF (:new.obj_url != :old.obj_url) THEN
+        RAISE_APPLICATION_ERROR
+            (-20029, 'This column cannot be updated.');
+    END IF;
+
     IF (:new.subclass = 'LOCUS') THEN
 	    IF (:new.dbentity_status = 'Archived') THEN
             RAISE_APPLICATION_ERROR
