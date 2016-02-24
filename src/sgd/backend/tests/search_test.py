@@ -38,7 +38,8 @@ for agg in aggs:
 assert has_locus
 
 # secondary filter params for loci
-
+# category locus should have aggregations for feature type, phenotype, cellular component, biological process, and molecular function
+response = query_search('kinase&category=locus')
 # search locus category with blank query and feature type "telomere", all results should be TELXXX-y
 response = query_search('&category=locus&feature%20type=telomere')
 # search by phenotype, search locus category for query "ADH," and phenotype "UV resistance: decreased," ADH1 should be only result
