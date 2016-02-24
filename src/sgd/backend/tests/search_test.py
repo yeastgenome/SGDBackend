@@ -5,6 +5,60 @@ import requests
 BASE_URL = 'http://0.0.0.0:6543/'
 SEARCH_URL = BASE_URL + 'get_search_results'
 
+fake_response = {
+	'results': [
+		'name': 'TELXXX',
+		'href': '/locus/1234/overview'
+	],
+	'aggregations': [
+		{
+			'key': 'feature type',
+			'values': [
+				{
+					'key': 'ORF',
+					'total': 99
+				}
+			]
+		},
+		{
+			'key': 'phenotype',
+			'values': [
+				{
+					'key': 'UV resistance: decreased',
+					'total': 99
+				}
+			]
+		},
+		{
+			'key': 'cellular location',
+			'values': [
+				{
+					'key': 'nucleus',
+					'total': 99
+				}
+			]
+		},
+		{
+			'key': 'molecular function',
+			'values': [
+				{
+					'key': 'hydrolase activity',
+					'total': 99
+				}
+			]
+		},
+		{
+			'key': 'biological process',
+			'values': [
+				{
+					'key': 'mRNA processing',
+					'total': 99
+				}
+			]
+		}		
+	]
+}
+
 def query_search(query):
 	url = SEARCH_URL +'?q=' + query
 	response = requests.get(url).json()
