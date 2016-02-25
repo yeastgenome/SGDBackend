@@ -7,8 +7,10 @@ SEARCH_URL = BASE_URL + 'get_search_results'
 
 fake_response = {
 	'results': [
-		'name': 'TELXXX',
-		'href': '/locus/1234/overview'
+		{
+			'name': 'TELXXX',
+			'href': '/locus/1234/overview'
+		}
 	],
 	'aggregations': [
 		{
@@ -30,7 +32,7 @@ fake_response = {
 			]
 		},
 		{
-			'key': 'cellular location',
+			'key': 'cellular component',
 			'values': [
 				{
 					'key': 'nucleus',
@@ -94,9 +96,19 @@ assert has_locus
 # secondary filter params for loci
 # category locus should have aggregations for feature type, phenotype, cellular component, biological process, and molecular function
 response = query_search('kinase&category=locus')
-# search locus category with blank query and feature type "telomere", all results should be TELXXX-y
+assert len(filter(lambda x: x['key'] == 'feature type', response['aggregations'])) > 0
+assert len(filter(lambda x: x['key'] == 'phenotype', response['aggregations'])) > 0
+assert len(filter(lambda x: x['key'] == 'cellular component', response['aggregations'])) > 0
+assert len(filter(lambda x: x['key'] == 'biological process', response['aggregations'])) > 0
+assert len(filter(lambda x: x['key'] == 'molecular function', response['aggregations'])) > 0
+
+# search locus category with blank query and feature type "telomere", all results should have a name that start with "TEL"
 response = query_search('&category=locus&feature%20type=telomere')
+assert len(filter(lambda x: x['name'][:3] != 'TEL', response['results'])) == 0
 # search by phenotype, search locus category for query "ADH," and phenotype "UV resistance: decreased," ADH1 should be only result
 response = query_search('ADH&category=locus&fphenotype=UV%20resistance%3A%20decreased')
+assert response['results'][0]['name'] == 'ADH1'
 # search by cellular component, search locus cat for query "REP" and cellular component "nucleus," only results should be REP1, and REP2
 response = query_search('REP&category=locus&cellular%20component=nucleus')
+assert len(filter(lambda x: x['name'] == 'REP1', response['results'])) == 1
+assert len(filter(lambda x: x['name'] == 'REP2', response['results'])) == 1
