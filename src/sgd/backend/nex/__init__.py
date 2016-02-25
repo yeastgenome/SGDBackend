@@ -782,154 +782,83 @@ class SGDBackend(BackendInterface):
         from src.sgd.model.nex.auxiliary import Disambig
         return [x.to_json() for x in DBSession.query(Disambig).order_by(Disambig.id.desc()).limit(chunk_size).offset(offset).all()]
 
+    # FAKE response
     def get_search_results(self, params):
-        # format params
-        query = params['q'] if 'q' in params.keys() else ''
-        limit = params['limit'] if 'limit' in params.keys() else 10
-        offset = params['offset'] if 'offset' in params.keys() else 0
+        fake_response = {
+            'results': [
+                {
+                    'name': 'TELXXX',
+                    'href': '/locus/1234/overview'
+                }
+            ]
+        }
         category = params['category'] if 'category' in params.keys() else ''
-        molecular_functions = params['molecular_functions'] if 'molecular_functions' in params.keys() else ''
-        # formar query obj
-        if query == '':
-            es_query = { 'match_all': {} }
-        else:
-            es_query = {
-                "bool": {
-                    "should": [
+        if category == '':
+            fake_response['aggregations'] = [
+                {
+                    'key': 'category',
+                    'values': [
                         {
-                            "match_phrase_prefix": {
-                                "name": {
-                                    "query": query,
-                                    "boost": 4,
-                                    "max_expansions": 30,
-                                    "analyzer": "standard"
-                                }
-                            }
+                            'key': 'locus',
+                            'total': 99
                         },
                         {
-                            "match_phrase": {
-                                "name": {
-                                    "query": query,
-                                    "boost": 10,
-                                    "analyzer": "standard"
-                                }
-                            }
-                        },                        
-                        {
-                            "match": {
-                                "description": {
-                                    "query": query,
-                                    "boost": 3,
-                                    "analyzer": "standard"
-                                }
-                            }
+                            'key': 'literature',
+                            'total': 99
                         }
                     ]
                 }
-            }
-        # filter by category, if provided
-        if category != '':
-            cat_query = {
-                "filtered": {
-                    "query": es_query,
-                    "filter": {
-                        "terms": { "category": [category] }
-                    }
-                }
-            }
+            ]
         else:
-            cat_query = es_query
-
-        # query for results
-        results_search_body = {
-            'query': cat_query,
-        }
-        results_search_body['_source'] = ['name', 'href', 'description', 'category', 'data']
-        # run search
-        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)
-        # format results
-        formatted_results = []
-
-        for r in search_results['hits']['hits']:
-            raw_obj = r.get('_source')
-
-            obj = {}
-            for field in ["name", "href", "description", "category"]:
-                obj[field] = raw_obj.get(field)
-            formatted_results.append(obj)
-
-        # gene ags
-        if (category == ''):
-            agg_query_body = {
-                'query': es_query,
-                'aggs': {
-                    'cat_agg': {
-                        'terms': { 'field': 'category' }
-                    }
-                }
-            }
-        else:
-            agg_query_body = {
-                'query': cat_query,
-                "aggs": {
-                    "nested_agg": {
-                        "nested": {
-                            "path": "go_molecular_functions"
-                        },
-                        "aggs": {
-                            "mf_counts": {
-                                "terms": {
-                                    "field": "go_molecular_functions.name",
-                                    "size": 25
-                                }
-                            }
+            fake_response['aggregations'] = [
+                {
+                    'key': 'feature type',
+                    'values': [
+                        {
+                            'key': 'ORF',
+                            'total': 99
                         }
-                    }
-                }
-            }
-
-        agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
-        # format agg
-        formatted_agg = []
-        print agg_response['aggregations']
-        if (category == ''):
-            raw_aggs = agg_response['aggregations']['cat_agg']['buckets']
-            for cat in raw_aggs:
-                formatted_agg.append({ 'key': cat['key'], 'total': cat['doc_count'] })
-        else:
-            raw_aggs = agg_response['aggregations']['nested_agg']['mf_counts']['buckets']
-            raw_mfs = []
-            for cat in raw_aggs:
-                raw_mfs.append({ 'key': cat['key'], 'total': cat['doc_count'] })
-            formatted_agg.append({ 'key': 'molecular_functions', 'values': raw_mfs })
-
-        if (category != ''):
-            # TEMP
-            formatted_agg.append(
-                {
-                    'key': 'qualifier',
-                    'values': [
-                        { 'key': 'verified', 'total': 99 },
-                        { 'key': 'unverified', 'total': 99 },
-                        { 'key': 'dubious', 'total': 99 }
                     ]
-                }
-            )
-            formatted_agg.append(
+                },
                 {
-                    'key': 'feature_type',
+                    'key': 'phenotype',
                     'values': [
-                        { 'key': 'f1', 'total': 99 },
-                        { 'key': 'f2', 'total': 99 }
+                        {
+                            'key': 'UV resistance: decreased',
+                            'total': 99
+                        }
                     ]
-                }
-            )
-        response_obj = {
-            'results': formatted_results,
-            'total': search_results['hits']['total'],
-            'aggregations': formatted_agg
-        }
-        return json.dumps(response_obj)
+                },
+                {
+                    'key': 'cellular component',
+                    'values': [
+                        {
+                            'key': 'nucleus',
+                            'total': 99
+                        }
+                    ]
+                },
+                {
+                    'key': 'molecular function',
+                    'values': [
+                        {
+                            'key': 'hydrolase activity',
+                            'total': 99
+                        }
+                    ]
+                },
+                {
+                    'key': 'biological process',
+                    'values': [
+                        {
+                            'key': 'mRNA processing',
+                            'total': 99
+                        }
+                    ]
+                }       
+            ]
+
+        return json.dumps(fake_response)
 
     def search_sequence_objects(self, params):
         query = params['query'] if 'query' in params.keys() else ''
