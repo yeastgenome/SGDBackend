@@ -9,7 +9,8 @@ fake_response = {
 	'results': [
 		{
 			'name': 'TELXXX',
-			'href': '/locus/1234/overview'
+			'href': '/locus/1234/overview',
+			'cateogry': 'locus'
 		}
 	],
 	'aggregations': [

@@ -785,10 +785,12 @@ class SGDBackend(BackendInterface):
     # FAKE response
     def get_search_results(self, params):
         fake_response = {
+            'total': 100,
             'results': [
                 {
                     'name': 'TELXXX',
-                    'href': '/locus/1234/overview'
+                    'href': '/locus/1234/overview',
+                    'category': 'locus'
                 }
             ]
         }
@@ -834,6 +836,10 @@ class SGDBackend(BackendInterface):
                     'values': [
                         {
                             'key': 'nucleus',
+                            'total': 99
+                        },
+                        {
+                            'key': 'cytoplasm',
                             'total': 99
                         }
                     ]
