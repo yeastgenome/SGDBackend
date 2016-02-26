@@ -22,5 +22,5 @@ src/sgd/convert/alignments/*
 src/sgd/convert/strain_sequences/*
 node_modules
 .idea/*
-
-
+dev_deploy_variables.sh
+prod_deploy_variables.sh
