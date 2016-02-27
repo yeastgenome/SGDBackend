@@ -10,6 +10,10 @@ DECLARE
 BEGIN
   IF INSERTING THEN
 
+    IF (:new.dnasubsequence_id IS NULL) THEN
+        SELECT object_seq.NEXTVAL INTO :new.dnasubsequence_id FROM DUAL;
+    END IF;
+
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSIF UPDATING THEN

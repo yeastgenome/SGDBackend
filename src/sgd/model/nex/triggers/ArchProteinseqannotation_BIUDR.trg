@@ -10,6 +10,10 @@ DECLARE
 BEGIN
   IF INSERTING THEN
 
+    IF (:new.annotation_id IS NULL) THEN
+        SELECT annotation_seq.NEXTVAL INTO :new.annotation_id FROM DUAL;
+    END IF; 
+
     v_IsValidUser := CheckUser(:new.created_by);
 
   ELSIF UPDATING THEN
