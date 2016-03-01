@@ -787,6 +787,12 @@ class SGDBackend(BackendInterface):
         limit = params['limit'] if 'limit' in params.keys() else 10
         offset = params['offset'] if 'offset' in params.keys() else 0
         category = params['category'] if 'category' in params.keys() else ''
+
+        feature_type = params['feature type'] if 'feature type' in params.keys() else ''
+        phenotype = params['phenotype'] if 'phenotype' in params.keys() else ''
+        cellular_component = params['cellular component'] if 'cellular component' in params.keys() else ''
+        biological_process = params['biological process'] if 'biological process' in params.keys() else ''
+        molecular_function = params['molecular function'] if 'molecular function' in params.keys() else ''
         
         if query == '':
             es_query = { 'match_all': {} }
@@ -835,6 +841,7 @@ class SGDBackend(BackendInterface):
                     }
                 }
             }
+            
 
         results_search_body = {
             'query': es_query,
