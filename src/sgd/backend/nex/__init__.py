@@ -783,12 +783,11 @@ class SGDBackend(BackendInterface):
         return [x.to_json() for x in DBSession.query(Disambig).order_by(Disambig.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def get_search_results(self, params):
-        # format params
         query = params['q'] if 'q' in params.keys() else ''
         limit = params['limit'] if 'limit' in params.keys() else 10
         offset = params['offset'] if 'offset' in params.keys() else 0
-        categories = params['categories'] if 'categories' in params.keys() else ''
-        # formar query obj
+        category = params['category'] if 'category' in params.keys() else ''
+        
         if query == '':
             es_query = { 'match_all': {} }
         else:
@@ -827,33 +826,34 @@ class SGDBackend(BackendInterface):
                 }
             }
 
-        if categories != '':
-            cat_query = {
+        if category != '':
+            es_query = {
                 'filtered': {
                     'query': es_query,
                     'filter': {
-                        'terms': { 'category': categories.split(',') }
+                        'terms': { 'category': [category] }
                     }
                 }
             }
-        else:
-            cat_query = es_query
 
-        # query for results
         results_search_body = {
-            'query': cat_query,
+            'query': es_query,
         }
-        results_search_body['_source'] = ['name', 'href', 'description', 'category', 'data']
-        # run search
+        
+        if category == 'locus':
+            results_search_body['_source'] = ['name', 'href', 'description', 'feature_type', 'category', 'phenotypes', 'cellular_component', 'biological_component', 'molecular_function']
+        else:
+            results_search_body['_source'] = ['name', 'href', 'description', 'category']
+
         search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)
-        # format results
+        
         formatted_results = []
 
         for r in search_results['hits']['hits']:
             raw_obj = r.get('_source')
 
             obj = {}
-            for field in ["name", "href", "description", "category"]:
+            for field in results_search_body['_source']:
                 obj[field] = raw_obj.get(field)
 
             if obj["category"] == "download":
@@ -869,25 +869,63 @@ class SGDBackend(BackendInterface):
 
             formatted_results.append(obj)
 
-        # query for aggs on categories WITHOUT filtering by category
-        agg_query_body = {
-            'query': es_query,
-            'aggs': {
-                'categories': {
-                    'terms': { 'field': 'category' }
+        if category == 'locus':
+            agg_query_body = {
+                'query': es_query,
+                'aggs': {
+                    'feature_type': {
+                        'terms': {'field': 'feature_type'}
+                    },
+                    'molecular_function': {
+                        'terms': {'field': 'molecular_function'}
+                    },
+                    'phenotypes': {
+                        'terms': {'field': 'phenotypes'}
+                    },
+                    'cellular_component' : {
+                        'terms': {'field': 'cellular_component'}
+                    },
+                    'biological_process': {
+                        'terms': {'field': 'biological_process'}
+                    }
                 }
             }
-        }
-        agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
-        # format agg
-        formatted_agg = []
-        for cat in agg_response['aggregations']['categories']['buckets']:
-            formatted_agg.append({ 'name': cat['key'], 'total': cat['doc_count'] })
+            
+            agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
+        
+            formatted_agg = []
+
+            for agg_info in [('feature type', 'feature_type'), ('molecular function', 'molecular_function'), ('phenotype', 'phenotypes'), ('cellular component', 'cellular_component'), ('biological process', 'biological_process')]:
+                agg_obj = {'key': agg_info[0], 'values': []}
+                for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
+                    agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
+                formatted_agg.append(agg_obj)
+            
+        else:
+        # query for aggs on categories WITHOUT filtering by category
+            agg_query_body = {
+                'query': es_query,
+                'aggs': {
+                    'categories': {
+                        'terms': { 'field': 'category' }
+                    },
+                    'feature_type': {
+                        'terms': {'field': 'feature_type'}
+                    }
+                }
+            }
+            agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
+        
+            formatted_agg = []
+            for category in agg_response['aggregations']['categories']['buckets']:
+                formatted_agg.append({ 'name': category['key'], 'total': category['doc_count'] })
+            
         response_obj = {
             'results': formatted_results,
             'total': search_results['hits']['total'],
             'aggregations': formatted_agg
         }
+        
         return json.dumps(response_obj)
 
     def search_sequence_objects(self, params):

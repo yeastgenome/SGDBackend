@@ -17,7 +17,7 @@ es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
 # prep session
 nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
 perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.PERF_HOST, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
-from src.sgd.model.nex.bioentity import Bioentity
+from src.sgd.model.nex.bioentity import Bioentity, Locus
 from src.sgd.model.perf.core import Bioentity as PerfBioentity
 from src.sgd.model.nex.reference import Author
 from src.sgd.model.nex.misc import Strain
@@ -38,26 +38,57 @@ def setup_index():
     return
 
 def put_mapping():
-    return
+    #PUT CLIENT_ADDRESS + searchable_items/
+    mapping = '{"settings": {"index": {"analysis": {"analyzer": {"autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "index": "not_analyzed"},"category": {"type": "string"},"cellular_component": {"type": "string", "index": "not_analyzed"},"description": {"type": "string"},"feature_type": {"type": "string", "index": "not_analyzed"},"href": {"type": "string"},"molecular_function": {"type": "string", "index": "not_analyzed"},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}},"phenotypes": {"type": "string","index": "not_analyzed"}}}}}'
+    return mapping
 
 def index_genes():
     print 'indexing genes'
-    # get nex format of all genes
+    
     all_genes = nex_session.query(Bioentity).all()
+
     for gene in all_genes:
         if gene.display_name == gene.format_name:
             _name = gene.display_name
         else:
             _name = gene.display_name + ' / ' + gene.format_name
-        # get perf doc
+
         perf_result = perf_session.query(PerfBioentity).filter_by(id=gene.id).first()
+        perf_json = perf_result.to_json()
+
+        phenotypes = set()
+        for k in ['large_scale_phenotypes', 'classical_phenotypes']:
+            for kk in perf_json['phenotype_overview'][k].keys():
+                for phenotype in perf_json['phenotype_overview'][k][kk]:
+                    phenotypes.add(phenotype['display_name'])
+                    
+        cellular_component = set()
+        for k in ['htp_cellular_component_terms', 'manual_cellular_component_terms']:
+            for term in perf_json['go_overview'][k]:
+                cellular_component.add(term['term']['display_name'])
+        
+        biological_process = set()
+        for k in ['htp_biological_process_terms', 'manual_biological_process_terms']:
+            for term in perf_json['go_overview'][k]:
+                biological_process.add(term['term']['display_name'])
+        
+        molecular_function = set()
+        for k in ['htp_molecular_function_terms', 'manual_molecular_function_terms']:
+            for term in perf_json['go_overview'][k]:
+                molecular_function.add(term['term']['display_name'])
+
         obj = {
             'name': _name,
             'href': gene.link,
             'description': gene.headline,
             'category': 'locus',
-            'data': perf_result.to_json()
+            'feature_type': gene.locus_type,
+            'phenotypes': list(phenotypes),
+            'cellular_component': list(cellular_component),
+            'biological_process': list(biological_process),
+            'molecular_function': list(molecular_function)
         }
+
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
 
 def index_phenotypes():
@@ -68,8 +99,7 @@ def index_phenotypes():
             'name': phenotype.display_name,
             'href': phenotype.link,
             'description': phenotype.description,
-            'category': 'phenotype',
-            'data': {}
+            'category': 'phenotype'
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=phenotype.sgdid)
 
@@ -82,8 +112,7 @@ def index_authors():
             'name': author.display_name,
             'href': author.link,
             'description': '',
-            'category': 'author',
-            'data': {}
+            'category': 'author'
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=author.id)
 
@@ -95,8 +124,7 @@ def index_strains():
             'name': strain.display_name,
             'href': strain.link,
             'description': strain.description,
-            'category': 'strain',
-            'data': {}
+            'category': 'strain'
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=strain.id)
 
@@ -108,8 +136,7 @@ def index_go_terms():
             'name': go.display_name,
             'href': go.link,
             'description': go.description,
-            'category': go.go_aspect.replace(' ', '_'),
-            'data': {}
+            'category': go.go_aspect.replace(' ', '_')
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=go.sgdid)
 
@@ -121,8 +148,7 @@ def index_references():
             'name': reference.citation,
             'href': reference.link,
             'description': reference.abstract,
-            'category': 'reference',
-            'data': {}
+            'category': 'reference'
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=reference.sgdid)
 
@@ -250,15 +276,15 @@ def index_toolbar_links():
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=l[1])
     
 def main():
-    setup_index()
-    index_genes()
+#    setup_index()
+#    index_genes()
     index_phenotypes()
     index_authors()
     index_strains()
     index_go_terms()
     index_references()
 
-#    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
+    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
 
     index_toolbar_links()
 
