@@ -278,7 +278,7 @@ def index_toolbar_links():
 def main():
 #    setup_index()
 #    index_genes()
-    index_phenotypes()
+#    index_phenotypes()
     index_authors()
     index_strains()
     index_go_terms()

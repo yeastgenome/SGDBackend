@@ -788,11 +788,14 @@ class SGDBackend(BackendInterface):
         offset = params['offset'] if 'offset' in params.keys() else 0
         category = params['category'] if 'category' in params.keys() else ''
 
-        feature_type = params['feature type'] if 'feature type' in params.keys() else ''
-        phenotype = params['phenotype'] if 'phenotype' in params.keys() else ''
-        cellular_component = params['cellular component'] if 'cellular component' in params.keys() else ''
-        biological_process = params['biological process'] if 'biological process' in params.keys() else ''
-        molecular_function = params['molecular function'] if 'molecular function' in params.keys() else ''
+        feature_type = params.get('feature type')
+        phenotype = params.get('phenotype')
+        cellular_component = params.get('cellular component')
+        biological_process = params.get('biological process')
+        molecular_function = params.get('molecular function')
+
+        # format: (GET param name, ES param name)
+        locus_subcategories = [('feature type', 'feature_type'), ('molecular function', 'molecular_function'), ('phenotype', 'phenotypes'), ('cellular component', 'cellular_component'), ('biological process', 'biological_process')]
         
         if query == '':
             es_query = { 'match_all': {} }
@@ -837,11 +840,17 @@ class SGDBackend(BackendInterface):
                 'filtered': {
                     'query': es_query,
                     'filter': {
-                        'terms': { 'category': [category] }
+                        'bool': {
+                            'must': [{'term': { 'category': category}}]
+                        }
                     }
                 }
             }
-            
+
+            if category == 'locus':
+                for item in locus_subcategories:
+                    if params.get(item[0]):
+                        es_query['filtered']['filter']['bool']['must'].append({'term': {item[1]: params.get(item[0])}})
 
         results_search_body = {
             'query': es_query,
@@ -876,40 +885,47 @@ class SGDBackend(BackendInterface):
 
             formatted_results.append(obj)
 
+        if search_results['hits']['total'] == 0:
+            response_obj = {
+                'results': formatted_results,
+                'total': search_results['hits']['total'],
+                'aggregations': []
+            }
+            return json.dumps(response_obj)
+            
         if category == 'locus':
             agg_query_body = {
                 'query': es_query,
                 'aggs': {
                     'feature_type': {
-                        'terms': {'field': 'feature_type'}
+                        'terms': {'field': 'feature_type', 'size': 999}
                     },
                     'molecular_function': {
-                        'terms': {'field': 'molecular_function'}
+                        'terms': {'field': 'molecular_function', 'size': 999}
                     },
                     'phenotypes': {
-                        'terms': {'field': 'phenotypes'}
+                        'terms': {'field': 'phenotypes', 'size': 999}
                     },
                     'cellular_component' : {
-                        'terms': {'field': 'cellular_component'}
+                        'terms': {'field': 'cellular_component', 'size': 999}
                     },
                     'biological_process': {
-                        'terms': {'field': 'biological_process'}
+                        'terms': {'field': 'biological_process', 'size': 999}
                     }
                 }
             }
-            
+
             agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
         
             formatted_agg = []
 
-            for agg_info in [('feature type', 'feature_type'), ('molecular function', 'molecular_function'), ('phenotype', 'phenotypes'), ('cellular component', 'cellular_component'), ('biological process', 'biological_process')]:
+            for agg_info in locus_subcategories:
                 agg_obj = {'key': agg_info[0], 'values': []}
                 for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
                     agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
                 formatted_agg.append(agg_obj)
             
         else:
-        # query for aggs on categories WITHOUT filtering by category
             agg_query_body = {
                 'query': es_query,
                 'aggs': {
