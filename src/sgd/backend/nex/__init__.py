@@ -856,10 +856,7 @@ class SGDBackend(BackendInterface):
             'query': es_query,
         }
         
-        if category == 'locus':
-            results_search_body['_source'] = ['name', 'href', 'description', 'feature_type', 'category', 'phenotypes', 'cellular_component', 'biological_component', 'molecular_function']
-        else:
-            results_search_body['_source'] = ['name', 'href', 'description', 'category']
+        results_search_body['_source'] = ['name', 'href', 'description', 'category']
 
         search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)
         
