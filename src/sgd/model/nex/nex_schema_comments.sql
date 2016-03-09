@@ -656,6 +656,7 @@ Comment on column FILEDBENTITY.FILE_DATE is 'Release date or date the file was c
 Comment on column FILEDBENTITY.IS_PUBLIC is 'Whether the file is viewable to the public.';
 Comment on column FILEDBENTITY.IS_IN_SPELL is 'Whether the file was loaded into SPELL.';
 Comment on column FILEDBENTITY.IS_IN_BROWSER is 'Whether the file was loaded into a genome browser, such as JBrowse.';
+Comment on column FILEDBENTITY.S3_URL is 'Amazon S3 URL of the file.';
 Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
 Comment on column FILEDBENTITY.FILEPATH_ID is 'FK to FILEPATH.FILEPATH_ID.';
 Comment on column FILEDBENTITY.PREVIOUS_FILE_NAME is 'File name on the Download Server.';

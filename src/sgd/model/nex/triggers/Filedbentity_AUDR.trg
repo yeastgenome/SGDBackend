@@ -45,6 +45,11 @@ BEGIN
         AuditLog.InsertUpdateLog('FILEDBENTITY', 'IS_IN_BROWSER', :old.dbentity_id, :old.is_in_browser, :new.is_in_browser, USER);
     END IF;
 
+     IF (((:old.s3_url IS NULL) AND (:new.s3_url IS NOT NULL)) OR ((:old.s3_url IS NOT NULL) AND (:new.s3_url IS NULL)) OR (:old.s3_url != :new.s3_url))
+    THEN
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'S3_URL', :old.dbentity_id, :old.s3_url, :new.s3_url, USER);
+    END IF;
+
      IF (((:old.md5sum IS NULL) AND (:new.md5sum IS NOT NULL)) OR ((:old.md5sum IS NOT NULL) AND (:new.md5sum IS NULL)) OR (:old.md5sum != :new.md5sum))
     THEN
         AuditLog.InsertUpdateLog('FILEDBENTITY', 'MD5SUM', :old.dbentity_id, :old.md5sum, :new.md5sum, USER);
@@ -71,7 +76,8 @@ BEGIN
              :old.format_id || '[:]' || :old.file_extension || '[:]' ||
              :old.file_date || '[:]' || :old.is_public || '[:]' || 
              :old.is_in_spell || '[:]' || :old.is_in_browser || '[:]' || 
-             :old.md5sum || '[:]' || :old.filepath_id || '[:]' || 
+             :old.s3_url || '[:]' || :old.md5sum || '[:]' ||
+             :old.filepath_id || '[:]' || 
              :old.previous_file_name || '[:]' || :old.readme_url;
 
     AuditLog.InsertDeleteLog('FILEDBENTITY', :old.dbentity_id, v_row, USER);
