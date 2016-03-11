@@ -759,33 +759,120 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                             #print 'Bioentity not found: ' + str(bioentity_id)
                             yield None
 
+
+        ### FROM HERE
+
+        from src.sgd.model.bud.feature import Archive
+        
+        feature_no_to_date_created = dict([(x.feature_id, x.date_created) for x in bud_session.query(Archive).filter_by(archive_type='Gene name').all()])
+        mon_to_number = { "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4,  "May": 5,  "Jun": 6,
+                          "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12 }
+
         for bioentity in id_to_bioentity.values():
+            ## feature_no = bioentity.id 
+            date_created = feature_no_to_date_created.get(bioentity.id)
             for quality in bioentity.qualities:
                 if quality.display_name == 'Gene Name':
                     for quality_reference in quality.quality_references:
+                        if date_created is None:
+                            date_published = quality_reference.reference.date_published
+                            if date_published and ' ' in date_published:
+                                date_list = date_published.split(' ')
+                                year = int(date_list[0])
+				## sometimes mon = 'Jul-Aug'                                  
+                                mon = date_list[1]
+                            	if "-" in mon:
+                                   mon = date_list[1].split('-')[1]
+				## sometimes mon = 'July'
+                            	mon = mon[0:3]
+                                month = 1
+                                if mon_to_number.get(mon) is not None:
+                                    month = int(mon_to_number[mon])
+       				if len(date_list) > 2:
+                                    if ',' in date_list[2]:
+                                        date_list[2] = date_list[2].replace(',', '-')
+				    if '-' in date_list[2]:
+                                        days = date_list[2].split('-')
+                                        if days[0]:
+                                            day = int(days[0])
+                                        elif days[1]:
+                                            day = int(days[1])
+                                        else:
+                                            day = 1
+                                    else:
+					day = int(date_list[2])
+				else:
+				    day = 1
+                                date_created = datetime(year, month, day)
+                            else:
+                                date_created = datetime(quality_reference.reference.year, 1, 1)
+
+                        # print "NAME=", bioentity.display_name, ", date_created=", date_created
+
                         yield {'source': key_to_source['SGD'],
-                                   'reference': quality_reference.reference,
-                                   'locus': bioentity,
-                                   'category': 'Nomenclature',
-                                   'history_type': 'LSP',
-                                   'note': '<strong>Name:</strong> ' + bioentity.display_name,
-                                   'date_created': datetime(quality_reference.reference.year, 1, 1),
-                                   'created_by': None
-                                }
+                               'reference': quality_reference.reference,
+                               'locus': bioentity,
+                               'category': 'Nomenclature',
+                               'history_type': 'LSP',
+                               'note': '<strong>Name:</strong> ' + bioentity.display_name,
+                               'date_created': str(date_created).split(' ')[0],
+                               'created_by': None }
 
             for alias in bioentity.aliases:
                 if alias.category == 'Alias' or alias.category == 'Gene Product':
                     for alias_reference in alias.alias_references:
+                        date_published = alias_reference.reference.date_published
+                        date_created = None
+                        if date_published and ' ' in date_published:
+                            date_list = date_published.split(' ')
+                            year = int(date_list[0])
+			    ## sometimes mon = 'Jul-Aug'
+                            mon = date_list[1]
+                            if "-" in mon:
+                                mon = date_list[1].split('-')[1]
+                            mon = mon[0:3]
+                            month = 1
+                            if mon_to_number.get(mon) is not None:
+                                month = int(mon_to_number[mon])
+                            if len(date_list) > 2:
+                                if ',' in date_list[2]:
+                                    date_list[2] = date_list[2].replace(',', '-')
+                                if '-' in date_list[2]:
+                                    days = date_list[2].split('-')
+                                    if days[0]:
+                                        day = int(days[0])
+                                    elif days[1]:
+                                        day = int(days[1])
+                                    else:
+                                       day = 1
+                                else:
+                                    day = int(date_list[2])
+                            else:
+                                day = 1
+                            date_created = datetime(year, month, day)
+                        else:
+                            date_created = datetime(alias_reference.reference.year, 1, 1)
+
+
+                        # print "NAME=", bioentity.display_name, ", ALIAS=", alias.display_name, ", date_created=", date_created
+
+
                         yield {'source': key_to_source['SGD'],
                                    'reference': alias_reference.reference,
                                    'locus': bioentity,
                                    'category': 'Nomenclature',
                                    'history_type': 'LSP',
                                    'note': '<strong>Name:</strong> ' + alias.display_name,
-                                   'date_created': datetime(alias_reference.reference.year, 1, 1),
+                                   'date_created': str(date_created).split(' ')[0],
                                    'created_by': None
                                 }
             if bioentity.reserved_name is not None:
+
+
+                # print "RESERVED_NAME=", bioentity.reserved_name.display_name, ", date_created=", bioentity.reserved_name.date_created
+
+
+
                 yield {'source': key_to_source['SGD'],
                                'reference': bioentity.reserved_name.reference,
                                'locus': bioentity,
