@@ -807,7 +807,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                             else:
                                 date_created = datetime(quality_reference.reference.year, 1, 1)
 
-                        # print "NAME=", bioentity.display_name, ", date_created=", date_created
+                        print "NAME=", bioentity.display_name, ", date_created=", date_created
 
                         yield {'source': key_to_source['SGD'],
                                'reference': quality_reference.reference,
@@ -854,7 +854,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                             date_created = datetime(alias_reference.reference.year, 1, 1)
 
 
-                        # print "NAME=", bioentity.display_name, ", ALIAS=", alias.display_name, ", date_created=", date_created
+                        print "NAME=", bioentity.display_name, ", ALIAS=", alias.display_name, ", date_created=", date_created
 
 
                         yield {'source': key_to_source['SGD'],
@@ -869,7 +869,7 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
             if bioentity.reserved_name is not None:
 
 
-                # print "RESERVED_NAME=", bioentity.reserved_name.display_name, ", date_created=", bioentity.reserved_name.date_created
+                print "RESERVED_NAME=", bioentity.reserved_name.display_name, ", date_created=", bioentity.reserved_name.date_created
 
 
 
@@ -1265,7 +1265,8 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                       'src/sgd/convert/data/PTMsites091715.txt',
                       'src/sgd/convert/data/PTMsites102315.txt',
                       'src/sgd/convert/data/PTMsites112115.txt',
-                      'src/sgd/convert/data/PTMsites011516.txt']
+                      'src/sgd/convert/data/PTMsites011516.txt',
+                      'src/sgd/convert/data/Phosphosites031516.txt']
 
         for file_name in file_names:
             print file_name
