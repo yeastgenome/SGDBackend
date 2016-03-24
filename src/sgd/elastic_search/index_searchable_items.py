@@ -207,6 +207,7 @@ def index_references():
             
             'category': 'reference'
         }
+
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=reference.sgdid)
 
 def xls_to_dict(filename):
@@ -339,10 +340,10 @@ def main():
 #    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
 #    index_toolbar_links()
 #    index_go_terms()
-    index_strains()
-#-demora    index_authors()
+#    index_strains()
+#    index_authors()
 
-#    index_references()
+    index_references()
 
 
     # experiments

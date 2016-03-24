@@ -813,6 +813,8 @@ class SGDBackend(BackendInterface):
         phenotype_subcategories = [("qualifier", "qualifier"), ("references", "references"), ("phenotype_locus", "phenotype_loci"), ("chemical", "chemical"), ("mutant_type", "mutant_type")]
 
         go_subcategories = [("go_locus", "go_loci")]
+
+        reference_subcategories = [("author", "author"), ("journal", "journal"), ("year", "year"), ("reference_locus", "reference_loci")]
                             
         if query == '':
             es_query = { 'match_all': {} }
@@ -874,6 +876,11 @@ class SGDBackend(BackendInterface):
                     if params.get(item[0]):
                         es_query['filtered']['filter']['bool']['must'].append({'term': {item[1]: params.get(item[0])}})
 
+            elif category == 'reference':
+                for item in reference_subcategories:
+                    if params.get(item[0]):
+                        es_query['filtered']['filter']['bool']['must'].append({'term': {item[1]: params.get(item[0])}})
+                        
             elif (category in ['biological_process', 'cellular_component', 'molecular_function']):
                 for item in go_subcategories:
                     if params.get(item[0]):
@@ -1003,7 +1010,36 @@ class SGDBackend(BackendInterface):
                 for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
                     agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
                 formatted_agg.append(agg_obj)
-                
+
+        elif category == 'reference':
+            agg_query_body = {
+                'query': es_query,
+                'aggs': {
+                    'author': {
+                        'terms': {'field': 'author', 'size': 999}
+                    },
+                    'journal': {
+                        'terms': {'field': 'journal', 'size': 999}
+                    },
+                    'year': {
+                        'terms': {'field': 'year', 'size': 999}
+                    },
+                    'reference_loci' : {
+                        'terms': {'field': 'reference_loci', 'size': 999}
+                    }
+                }
+            }
+
+            agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
+        
+            formatted_agg = []
+
+            for agg_info in reference_subcategories:
+                agg_obj = {'key': agg_info[0], 'values': []}
+                for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
+                    agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
+                formatted_agg.append(agg_obj)
+
         else:
             agg_query_body = {
                 'query': es_query,
