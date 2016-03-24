@@ -925,8 +925,29 @@ class SGDBackend(BackendInterface):
                 'aggregations': []
             }
             return json.dumps(response_obj)
+
+        if category == '':
+            formatted_agg = []
+            agg_query_body = {
+                'query': es_query,
+                'aggs': {
+                    'categories': {
+                        'terms': { 'field': 'category' }
+                    },
+                    'feature_type': {
+                        'terms': {'field': 'feature_type'}
+                    }
+                }
+            }
+            agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
+        
+            formatted_agg = []
+            category_obj = {'values': [], 'key': 'category'}
+            for category in agg_response['aggregations']['categories']['buckets']:
+                category_obj['values'].append({'key': category['key'], 'total': category['doc_count']})
+            formatted_agg.append(category_obj)
             
-        if category == 'locus':
+        elif category == 'locus':
             agg_query_body = {
                 'query': es_query,
                 'aggs': {
