@@ -891,6 +891,8 @@ class SGDBackend(BackendInterface):
         }
         
         results_search_body['_source'] = ['name', 'href', 'description', 'category']
+        if category == 'download':
+            results_search_body['_source'].append('data')
 
         search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)
         
