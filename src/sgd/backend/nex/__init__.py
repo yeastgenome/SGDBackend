@@ -815,7 +815,7 @@ class SGDBackend(BackendInterface):
         go_subcategories = [("go_locus", "go_loci")]
 
         reference_subcategories = [("author", "author"), ("journal", "journal"), ("year", "year"), ("reference_locus", "reference_loci")]
-                            
+
         if query == '':
             es_query = { 'match_all': {} }
         else:
@@ -888,11 +888,19 @@ class SGDBackend(BackendInterface):
 
         results_search_body = {
             'query': es_query,
+            'highlight' : {
+                'fields' : {}
+            }
         }
         
-        results_search_body['_source'] = ['name', 'href', 'description', 'category', 'cellular_components', 'biological_process', 'molecular_function']
+        results_search_body['_source'] = ['name', 'href', 'description', 'category']
+        highlight_fields = ['name', 'description']
+        
         if category == 'download':
             results_search_body['_source'].append('data')
+
+        for field in highlight_fields:
+            results_search_body['highlight']['fields'][field] = {}
 
         search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)
         
@@ -900,6 +908,10 @@ class SGDBackend(BackendInterface):
 
         for r in search_results['hits']['hits']:
             raw_obj = r.get('_source')
+
+            for field in highlight_fields:
+                if r.get('highlight').get(field):
+                    raw_obj[field] = r.get('highlight').get(field)
 
             obj = {}
             for field in results_search_body['_source']:
