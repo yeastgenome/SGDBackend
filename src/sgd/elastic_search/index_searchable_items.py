@@ -18,7 +18,10 @@ es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
 nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
 perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.PERF_HOST, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 from src.sgd.model.nex.bioentity import Bioentity, Locus
+
 from src.sgd.model.perf.core import Bioentity as PerfBioentity
+from src.sgd.model.perf.bioconcept_data import BioconceptDetails as PerfBioconceptDetails
+from src.sgd.model.perf.reference_data import ReferenceDetails
 from src.sgd.model.nex.reference import Author
 from src.sgd.model.nex.misc import Strain
 from src.sgd.model.nex.bioconcept import Go
@@ -39,7 +42,7 @@ def setup_index():
 
 def put_mapping():
     #PUT CLIENT_ADDRESS + searchable_items/
-    mapping = '{"settings": {"index": {"analysis": {"analyzer": {"autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "index": "not_analyzed"},"category": {"type": "string"},"cellular_component": {"type": "string", "index": "not_analyzed"},"description": {"type": "string"},"feature_type": {"type": "string", "index": "not_analyzed"},"href": {"type": "string"},"molecular_function": {"type": "string", "index": "not_analyzed"},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}},"phenotypes": {"type": "string","index": "not_analyzed"}}}}}'
+    mapping = '{"settings": {"index": {"analysis": {"analyzer": {"autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "index": "not_analyzed"},"category": {"type": "string"}, "observable": {"type": "string", "index": "not_analyzed"}, "qualifier": {"type": "string", "index": "not_analyzed"}, "references": {"type": "string", "index": "not_analyzed"}, "phenotype_loci": {"type": "string", "index": "not_analyzed"}, "chemical": {"type": "string", "index": "not_analyzed"}, "mutant_type": {"type": "string", "index": "not_analyzed"}, "go_loci": {"type": "string", "index": "not_analyzed"}, "author": {"type": "string", "index": "not_analyzed"}, "journal": {"type": "string", "index": "not_analyzed"}, "year": {"type": "string", "index": "not_analyzed"}, "reference_loci": {"type": "string", "index": "not_analyzed"}, "cellular_component": {"type": "string", "index": "not_analyzed"},"description": {"type": "string"},"feature_type": {"type": "string", "index": "not_analyzed"},"href": {"type": "string"},"molecular_function": {"type": "string", "index": "not_analyzed"},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}}, "go_id": {"type": "string"}, "phenotypes": {"type": "string","index": "not_analyzed"}}}}}'
     return mapping
 
 def index_genes():
@@ -95,10 +98,33 @@ def index_phenotypes():
     print 'indexing phenotypes'
     all_phenotypes = nex_session.query(Phenotype).all()
     for phenotype in all_phenotypes:
+        perf_result = perf_session.query(PerfBioconceptDetails).filter_by(obj_id=phenotype.id).filter_by(class_type="PHENOTYPE_LOCUS").first()
+        perf_json = json.loads(perf_result.json)
+
+        loci = set()
+        references = set()
+        chemical = set()
+        mutant_type = set()
+        for annotation in perf_json:
+            loci.add(annotation['locus']['display_name'])
+            references.add(annotation['reference']['display_name'])
+            for prop in annotation['properties']:
+                if prop['class_type'] == 'CHEMICAL':
+                    chemical.add(prop['bioitem']['display_name'])
+            mutant_type.add(annotation['mutant_type'])
+
         obj = {
             'name': phenotype.display_name,
             'href': phenotype.link,
             'description': phenotype.description,
+            
+            'observable': phenotype.observable.display_name,
+            'qualifier': phenotype.qualifier,
+            'references': list(references),
+            'phenotype_loci': list(loci),
+            'chemical': list(chemical),
+            'mutant_type': list(mutant_type),
+            
             'category': 'phenotype'
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=phenotype.sgdid)
@@ -132,10 +158,22 @@ def index_go_terms():
     print 'indexing GO terms'
     all_gos = nex_session.query(Go).all()
     for go in all_gos:
+        loci = set()
+        if go.locus_count > 0:
+            perf_result = perf_session.query(PerfBioconceptDetails).filter_by(obj_id=go.id).filter_by(class_type="GO_LOCUS").first()
+            perf_json = json.loads(perf_result.json)
+            
+            for annotation in perf_json:
+                loci.add(annotation['locus']['display_name'])
+        
         obj = {
             'name': go.display_name,
             'href': go.link,
             'description': go.description,
+
+            'go_id': go.go_id,
+            'go_loci': list(loci),
+            
             'category': go.go_aspect.replace(' ', '_')
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=go.sgdid)
@@ -144,10 +182,29 @@ def index_references():
     print 'indexing references'
     all_references = nex_session.query(Reference).all()
     for reference in all_references:
+        perf_result = perf_session.query(ReferenceDetails).filter_by(obj_id=reference.id).filter_by(class_type="LITERATURE").first()
+
+        loci = set()        
+        if perf_result:
+            perf_json = json.loads(perf_result.json)
+
+            for annotation in perf_json:
+                loci.add(annotation['locus']['display_name'])
+
+        reference_name = None
+        if reference.journal:
+            reference_name = reference.journal.display_name
+                
         obj = {
             'name': reference.citation,
             'href': reference.link,
             'description': reference.abstract,
+
+            'author': list(reference.author_names),
+            'journal': reference_name,
+            'year': reference.year,
+            'reference_loci': list(loci),
+            
             'category': 'reference'
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=reference.sgdid)
@@ -279,14 +336,14 @@ def main():
 #    setup_index()
 #    index_genes()
 #    index_phenotypes()
-    index_authors()
+#    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
+#    index_toolbar_links()
+#    index_go_terms()
     index_strains()
-    index_go_terms()
-    index_references()
+#-demora    index_authors()
 
-    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
+#    index_references()
 
-    index_toolbar_links()
 
     # experiments
     # pages
