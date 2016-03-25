@@ -913,6 +913,8 @@ class SGDBackend(BackendInterface):
             for field in results_search_body['_source']:
                 obj[field] = raw_obj.get(field)
 
+            obj['highlights'] = r.get('highlight')
+
             if obj["category"] == "download":
                 obj["download_metadata"] = {}
                 obj["download_metadata"]["pubmed_ids"] = raw_obj["data"].get("Series_pubmed_id")
@@ -930,8 +932,7 @@ class SGDBackend(BackendInterface):
             response_obj = {
                 'results': formatted_results,
                 'total': search_results['hits']['total'],
-                'aggregations': [],
-                'highlights': search_results['hits']['hits']['highlight']
+                'aggregations': []
             }
             return json.dumps(response_obj)
 
@@ -1078,8 +1079,7 @@ class SGDBackend(BackendInterface):
         response_obj = {
             'results': formatted_results,
             'total': search_results['hits']['total'],
-            'aggregations': formatted_agg,
-            'highlights': search_results['hits']['hits']['highlight']
+            'aggregations': formatted_agg
         }
         
         return json.dumps(response_obj)
