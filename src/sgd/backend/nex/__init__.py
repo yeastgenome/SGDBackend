@@ -910,8 +910,9 @@ class SGDBackend(BackendInterface):
             raw_obj = r.get('_source')
 
             for field in highlight_fields:
-                if r.get('highlight').get(field):
-                    raw_obj[field] = r.get('highlight').get(field)[0]
+                if r.get('highlight'):
+                    if r.get('highlight').get(field):
+                        raw_obj[field] = r.get('highlight').get(field)[0]
 
             obj = {}
             for field in results_search_body['_source']:
