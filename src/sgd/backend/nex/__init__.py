@@ -909,11 +909,6 @@ class SGDBackend(BackendInterface):
         for r in search_results['hits']['hits']:
             raw_obj = r.get('_source')
 
-            for field in highlight_fields:
-                if r.get('highlight'):
-                    if r.get('highlight').get(field):
-                        raw_obj[field] = r.get('highlight').get(field)[0]
-
             obj = {}
             for field in results_search_body['_source']:
                 obj[field] = raw_obj.get(field)
@@ -935,7 +930,8 @@ class SGDBackend(BackendInterface):
             response_obj = {
                 'results': formatted_results,
                 'total': search_results['hits']['total'],
-                'aggregations': []
+                'aggregations': [],
+                'highlights': search_results['hits']['hits']['highlight']
             }
             return json.dumps(response_obj)
 
@@ -1082,7 +1078,8 @@ class SGDBackend(BackendInterface):
         response_obj = {
             'results': formatted_results,
             'total': search_results['hits']['total'],
-            'aggregations': formatted_agg
+            'aggregations': formatted_agg,
+            'highlights': search_results['hits']['hits']['highlight']
         }
         
         return json.dumps(response_obj)
