@@ -15,9 +15,9 @@ BEGIN
         AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION_COND', 'ANNOTATION_ID', :old.condition_id, :old.annotation_id, :new.annotation_id, USER);
     END IF;
 
-     IF (:old.condition_type != :new.condition_type)
+     IF (:old.condition_class != :new.condition_class)
     THEN
-        AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION_COND', 'CONDITION_TYPE', :old.condition_id, :old.condition_type, :new.condition_type, USER);
+        AuditLog.InsertUpdateLog('PHENOTYPEANNOTATION_COND', 'CONDITION_CLASS', :old.condition_id, :old.condition_class, :new.condition_class, USER);
     END IF;
 
      IF (:old.condition_name != :new.condition_name)
@@ -38,7 +38,7 @@ BEGIN
   ELSE
 
     v_row := :old.condition_id || '[:]' || :old.annotation_id || '[:]' ||
-             :old.condition_type || '[:]' || :old.condition_name || '[:]' || 
+             :old.condition_class || '[:]' || :old.condition_name || '[:]' || 
              :old.condition_value || '[:]' || :old.condition_unit || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
