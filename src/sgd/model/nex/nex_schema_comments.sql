@@ -1404,7 +1404,7 @@ Comment on column PHENOTYPEANNOTATION.CREATED_BY is 'Username of the person who 
 Comment on table PHENOTYPEANNOTATION_COND is 'Conditions associated with a phenotype annotation.';
 Comment on column PHENOTYPEANNOTATION_COND.CONDITION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column PHENOTYPEANNOTATION_COND.ANNOTATION_ID is 'FK to PHENOTYPEANNOTATION.ANNOTATION_ID.';
-Comment on column PHENOTYPEANNOTATION_COND.CONDITION_TYPE is 'Type of the condition (Temperature, Chemical, Media, Phase, etc.).';
+Comment on column PHENOTYPEANNOTATION_COND.CONDITION_CLASS is 'Class of the condition (Temperature, Chemical, Media, Phase, etc.).';
 Comment on column PHENOTYPEANNOTATION_COND.CONDITION_NAME is 'Specific name of the condition.';
 Comment on column PHENOTYPEANNOTATION_COND.CONDITION_VALUE is 'Value of the condition, often numeric.';
 Comment on column PHENOTYPEANNOTATION_COND.CONDITION_UNIT is 'Unit associated with a numerical condition value (C, hr, %, mM, etc.).';
@@ -1471,7 +1471,7 @@ Comment on column PROTEINEXPTANNOTATION.CREATED_BY is 'Username of the person wh
 Comment on table PROTEINEXPTANNOTATION_COND is 'Conditions associated with a protein experiment annotation.';
 Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_ID is 'Unique identifier (Oracle sequence).';
 Comment on column PROTEINEXPTANNOTATION_COND.ANNOTATION_ID is 'FK to PROTEINEXPTANNOTATION.ANNOTATION_ID.';
-Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_TYPE is 'Type of the condition (Temperature, Chemical, Media, Phase, etc.).';
+Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_CLASS is 'Class of the condition (Temperature, Chemical, Media, Phase, etc.).';
 Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_NAME is 'Specific name of the condition.';
 Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_VALUE is 'Value of the condition, often numeric.';
 Comment on column PROTEINEXPTANNOTATION_COND.CONDITION_UNIT is 'Unit associated with a numerical condition value (C, hr, %, mM, etc.).';
