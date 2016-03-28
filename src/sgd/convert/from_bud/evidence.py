@@ -445,7 +445,7 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
                     new_children.extend([x.child for x in child.children if x.relation_type == 'is a'])
                 children = new_children
 
-        evidence_key_to_gpad_conditions = dict(filter(None, [make_go_gpad_conditions(x, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept, chebi_id_to_chemical, sgdid_to_bioentity, term_id_to_role) for x in make_file_starter('src/sgd/convert/data/gp_association.559292_sgd')()]))
+        evidence_key_to_gpad_conditions = dict(filter(None, [make_go_gpad_conditions(x, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept, key_to_bioitem, chebi_id_to_chemical, sgdid_to_bioentity, term_id_to_role) for x in make_file_starter('src/sgd/convert/data/gp_association.559292_sgd')()]))
 
         for old_go_feature in bud_session.query(GoFeature).options(joinedload(GoFeature.go_refs)).all():
             go_key = ('GO:' + str(old_go_feature.go.go_go_id).zfill(7), 'GO')
@@ -573,10 +573,10 @@ condition_format_name_to_display_name = {'activated by':	                'activa
                                         'requires target sequence feature':	'requires feature in target',
                                         'stabilizes':	                    'stabilizes'}
 
-def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept,
+def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept, key_to_bioitem,
                               chebi_id_to_chemical, sgdid_to_bioentity, term_id_to_role):
-    from src.sgd.model.nex.evidence import Bioconceptproperty, Bioentityproperty, Chemicalproperty
-
+    from src.sgd.model.nex.evidence import Bioconceptproperty, Bioentityproperty, Chemicalproperty, Bioitemproperty
+    
     if len(gpad) > 1 and gpad[9] == 'SGD':
         go_key = ('GO:' + str(int(gpad[3][3:])).zfill(7), 'GO')
         uniprot_id = gpad[1]
@@ -629,7 +629,12 @@ def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_referenc
                                 conditions.append(Bioentityproperty({'role': role, 'bioentity': uniprot_id_to_bioentity[uniprotid]}))
                             else:
                                 print 'Could not find bioentity: ' + str(uniprotid)
-
+                        elif value.startswith('SO:'):
+                            bioitem_key = (value, 'ORPHAN')
+                            if bioitem_key in key_to_bioitem:
+                                conditions.append(Bioitemproperty({'role': role, 'bioitem': key_to_bioitem[bioitem_key]}))
+                            else:
+                                print 'Could not find bioitem: ' + str(bioitem_key)
                         else:
                             print 'Annotation not handled: ' + str((role, value))
             return evidence_key, conditions
