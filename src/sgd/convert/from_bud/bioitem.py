@@ -28,6 +28,26 @@ def make_orphan_starter(bud_session_maker, nex_session_maker):
                 yield {'display_name': bud_obj.value,
                        'source': key_to_source['SGD']}
 
+        f = open('src/sgd/convert/data/gp_association.559292_sgd')
+        soid = None
+        for line in f:
+            pieces = line.split('\t')
+            if len(pieces) < 11:
+                continue
+            go_extensions = pieces[10]
+            if go_extensions == '' or '(SO:' not in go_extensions:
+                continue
+            items = go_extensions.replace(',', '|').split('|')
+            for item in items:
+                if "(SO:" not in item:
+                    continue
+                soid = item.split('(')[1][:-1]
+                yield { 'display_name': soid,  
+                        'source': key_to_source['SGD'],
+                        'bioitem_type': 'SO' } 
+            
+        f.close()
+        
         for bud_obj in bud_session.query(GorefDbxref).all():
             dbxref = bud_obj.dbxref
             dbxref_type = dbxref.dbxref_type
@@ -76,6 +96,7 @@ def make_orphan_starter(bud_session_maker, nex_session_maker):
                        'source': source,
                        'description': dbxref.dbxref_name,
                       'bioitem_type': bioitem_type}
+        
         bud_session.close()
         nex_session.close()
 
@@ -639,6 +660,8 @@ def make_bioitem_url_starter(nex_session_maker):
                 link = "http://pir.georgetown.edu/cgi-bin/ipcSF?id=" + display_name
             elif bioitem_type == 'PROSITE' or bioitem_type == 'Prosite':
                 link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
+            elif bioitem_type == 'HAMAP':
+                link = "http://hamap.expasy.org/unirule/" + display_name
             elif bioitem_type == 'Phobius':
                 link = None
             elif bioitem_type == '-':
