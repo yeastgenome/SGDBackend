@@ -314,6 +314,7 @@ class SGDBackend(BackendInterface):
         if are_ids:
             locus_id = locus_identifier
         else:
+            import pdb; pdb.set_trace()
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(DBSession.query(Locus).filter_by(id=locus_id).first().to_json())
 
@@ -849,6 +850,15 @@ class SGDBackend(BackendInterface):
                                     "analyzer": "standard"
                                 }
                             }
+                        },
+                        {
+                            "match_phrase": {
+                                "keys": {
+                                    "query": query,
+                                    "boost": 20,
+                                    "analyzer": "standard"
+                                }
+                            }
                         }
                     ]
                 }
@@ -892,27 +902,27 @@ class SGDBackend(BackendInterface):
                 'fields' : {}
             }
         }
-        
-        results_search_body['_source'] = ['name', 'href', 'description', 'category']
-        highlight_fields = ['name', 'description']
-        
+
+        response_fields = ['name', 'href', 'description', 'category']
+        results_search_body['_source'] = response_fields + ['keys']
         if category == 'download':
             results_search_body['_source'].append('data')
 
+        highlight_fields = ['name', 'description']
         for field in highlight_fields:
             results_search_body['highlight']['fields'][field] = {}
 
-        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)
-        
+        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)            
+
         formatted_results = []
 
         for r in search_results['hits']['hits']:
             raw_obj = r.get('_source')
 
             obj = {}
-            for field in results_search_body['_source']:
+            for field in response_fields:
                 obj[field] = raw_obj.get(field)
-
+                
             obj['highlights'] = r.get('highlight')
 
             if obj["category"] == "download":
@@ -936,6 +946,9 @@ class SGDBackend(BackendInterface):
             }
             return json.dumps(response_obj)
 
+        if query.lower().strip() in search_results['hits']['hits'][0].get('_source').get('keys'):
+            formatted_results[0]['is_quick'] = True
+        
         if category == '':
             formatted_agg = []
             agg_query_body = {
