@@ -314,7 +314,6 @@ class SGDBackend(BackendInterface):
         if are_ids:
             locus_id = locus_identifier
         else:
-            import pdb; pdb.set_trace()
             locus_id = get_obj_id(locus_identifier, class_type='BIOENTITY', subclass_type='LOCUS')
         return None if locus_id is None else json.dumps(DBSession.query(Locus).filter_by(id=locus_id).first().to_json())
 
