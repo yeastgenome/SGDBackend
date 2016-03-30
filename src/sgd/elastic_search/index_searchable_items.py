@@ -7,6 +7,14 @@ from elasticsearch import Elasticsearch
 import xlrd
 import json
 
+# 1. Exact match:
+# display_name, standard_name, alias, GO iDs. => locus.
+# PMIDS => paper page.
+# SGDID => whatever is pointed to.
+
+# 2. Search filters:
+# create new categories with parents of documents
+
 #CLIENT_ADDRESS = 'http://localhost:9200'
 CLIENT_ADDRESS = 'http://54.200.43.123:9200/'
 INDEX_NAME = 'searchable_items'
@@ -42,7 +50,134 @@ def setup_index():
 
 def put_mapping():
     #PUT CLIENT_ADDRESS + searchable_items/
-    mapping = '{"settings": {"index": {"analysis": {"analyzer": {"autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "index": "not_analyzed"},"category": {"type": "string"}, "observable": {"type": "string", "index": "not_analyzed"}, "qualifier": {"type": "string", "index": "not_analyzed"}, "references": {"type": "string", "index": "not_analyzed"}, "phenotype_loci": {"type": "string", "index": "not_analyzed"}, "chemical": {"type": "string", "index": "not_analyzed"}, "mutant_type": {"type": "string", "index": "not_analyzed"}, "go_loci": {"type": "string", "index": "not_analyzed"}, "author": {"type": "string", "index": "not_analyzed"}, "journal": {"type": "string", "index": "not_analyzed"}, "year": {"type": "string", "index": "not_analyzed"}, "reference_loci": {"type": "string", "index": "not_analyzed"}, "cellular_component": {"type": "string", "index": "not_analyzed"},"description": {"type": "string"},"feature_type": {"type": "string", "index": "not_analyzed"},"href": {"type": "string"},"molecular_function": {"type": "string", "index": "not_analyzed"},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}}, "go_id": {"type": "string"}, "phenotypes": {"type": "string","index": "not_analyzed"}}}}}'
+    mapping = '{"settings": {"index": {"analysis": {"analyzer": {"autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "index": "not_analyzed"},"category": {"type": "string"}, "observable": {"type": "string", "index": "not_analyzed"}, "qualifier": {"type": "string", "index": "not_analyzed"}, "references": {"type": "string", "index": "not_analyzed"}, "phenotype_loci": {"type": "string", "index": "not_analyzed"}, "keys": {"type": "string", "index": "not_analyzed"}, "chemical": {"type": "string", "index": "not_analyzed"}, "mutant_type": {"type": "string", "index": "not_analyzed"}, "go_loci": {"type": "string", "index": "not_analyzed"}, "author": {"type": "string", "index": "not_analyzed"}, "journal": {"type": "string", "index": "not_analyzed"}, "year": {"type": "string", "index": "not_analyzed"}, "reference_loci": {"type": "string", "index": "not_analyzed"}, "cellular_component": {"type": "string", "index": "not_analyzed"},"description": {"type": "string"},"feature_type": {"type": "string", "index": "not_analyzed"},"href": {"type": "string"},"molecular_function": {"type": "string", "index": "not_analyzed"},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}}, "go_id": {"type": "string"}, "phenotypes": {"type": "string","index": "not_analyzed"}}}}}'
+
+#     mapping = '{
+#     "settings":{
+#       "index":{
+#          "analysis":{
+#             "analyzer":{
+#                "autocomplete":{
+#                   "type":"custom",
+#                   "filter":[
+#                      "lowercase",
+#                      "autocomplete_filter"
+#                   ],
+#                   "tokenizer":"standard"
+#                },
+#                "raw":{
+#                   "type":"custom",
+#                   "filter":[
+#                      "lowercase"
+#                   ],
+#                   "tokenizer":"keyword"
+#                }
+#             },
+#             "filter":{
+#                "autocomplete_filter":{
+#                   "min_gram":"1",
+#                   "type":"edge_ngram",
+#                   "max_gram":"20"
+#                }
+#             }
+#          },
+#          "number_of_replicas":"1",
+#          "number_of_shards":"5"
+#       }
+#    },
+#    "mappings":{
+#       "searchable_item":{
+#          "properties":{
+#             "biological_process":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "category":{
+#                "type":"string"
+#             },
+#             "observable":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "qualifier":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "references":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "phenotype_loci":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "chemical":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "mutant_type":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "go_loci":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "author":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "journal":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "year":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "reference_loci":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "cellular_component":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "description":{
+#                "type":"string"
+#             },
+#             "feature_type":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "href":{
+#                "type":"string"
+#             },
+#             "molecular_function":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             },
+#             "name":{
+#                "type":"string",
+#                "analyzer":"autocomplete",
+#                "fields":{
+#                   "raw":{
+#                      "type":"string",
+#                      "analyzer":"raw"
+#                   }
+#                }
+#             },
+#             "go_id":{
+#                "type":"string"
+#             },
+#             "phenotypes":{
+#                "type":"string",
+#                "index":"not_analyzed"
+#             }
+#          }
+#       }
+#    }
+# }'
     return mapping
 
 def index_genes():
@@ -80,16 +215,30 @@ def index_genes():
             for term in perf_json['go_overview'][k]:
                 molecular_function.add(term['term']['display_name'])
 
+        key_values = [gene.display_name, gene.format_name, gene.sgdid, gene.uniprotid]
+        
+        keys = []
+        for k in key_values:
+            if k is not None:
+                keys.append(k.lower())
+            
+        for alias in perf_json['aliases']:
+            if not alias['protein']:
+                keys.append(alias['display_name'].lower())
+                
         obj = {
             'name': _name,
             'href': gene.link,
             'description': gene.headline,
             'category': 'locus',
             'feature_type': gene.locus_type,
+            
             'phenotypes': list(phenotypes),
             'cellular_component': list(cellular_component),
             'biological_process': list(biological_process),
-            'molecular_function': list(molecular_function)
+            'molecular_function': list(molecular_function),
+
+            'keys': keys
         }
 
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
@@ -113,6 +262,13 @@ def index_phenotypes():
                     chemical.add(prop['bioitem']['display_name'])
             mutant_type.add(annotation['mutant_type'])
 
+        key_values = [phenotype.display_name, phenotype.format_name, phenotype.sgdid]
+        
+        keys = []
+        for k in key_values:
+            if k is not None:
+                keys.append(k.lower())
+
         obj = {
             'name': phenotype.display_name,
             'href': phenotype.link,
@@ -125,8 +281,11 @@ def index_phenotypes():
             'chemical': list(chemical),
             'mutant_type': list(mutant_type),
             
-            'category': 'phenotype'
+            'category': 'phenotype',
+
+            'keys': keys
         }
+
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=phenotype.sgdid)
 
 def index_authors():
@@ -146,12 +305,22 @@ def index_strains():
     print 'indexing strains'
     all_strains = nex_session.query(Strain).all()
     for strain in all_strains:
+        key_values = [strain.display_name, strain.format_name, strain.genbank_id]
+        
+        keys = []
+        for k in key_values:
+            if k is not None:
+                keys.append(k.lower())
+        
         obj = {
             'name': strain.display_name,
             'href': strain.link,
             'description': strain.description,
-            'category': 'strain'
+            'category': 'strain',
+
+            'keys': keys
         }
+        
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=strain.id)
 
 def index_go_terms():
@@ -165,7 +334,14 @@ def index_go_terms():
             
             for annotation in perf_json:
                 loci.add(annotation['locus']['display_name'])
+
+        key_values = [go.display_name, go.format_name, go.sgdid, go.go_id]
         
+        keys = []
+        for k in key_values:
+            if k is not None:
+                keys.append(k.lower())
+            
         obj = {
             'name': go.display_name,
             'href': go.link,
@@ -174,8 +350,11 @@ def index_go_terms():
             'go_id': go.go_id,
             'go_loci': list(loci),
             
-            'category': go.go_aspect.replace(' ', '_')
+            'category': go.go_aspect.replace(' ', '_'),
+
+            'keys': keys
         }
+
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=go.sgdid)
 
 def index_references():
@@ -194,6 +373,13 @@ def index_references():
         reference_name = None
         if reference.journal:
             reference_name = reference.journal.display_name
+            
+        key_values = [reference.pubmed_central_id, reference.pubmed_id, reference.sgdid]
+        
+        keys = []
+        for k in key_values:
+            if k is not None:
+                keys.append(str(k).lower())
                 
         obj = {
             'name': reference.citation,
@@ -205,7 +391,9 @@ def index_references():
             'year': reference.year,
             'reference_loci': list(loci),
             
-            'category': 'reference'
+            'category': 'reference',
+
+            'keys': keys
         }
 
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=reference.sgdid)
@@ -271,7 +459,7 @@ def index_toolbar_links():
              ("Design Primers", "http://www.yeastgenome.org/cgi-bin/web-primer", None, 'resource', None),
              ("Restriction Mapper", "http://www.yeastgenome.org/cgi-bin/PATMATCH/RestrictionMapper", None, 'resource', None),
              ("Download", "http://www.yeastgenome.org/download-data/sequence", None, 'resource', None),
-             ("Genome Browser", "http://browse.yeastgenome.org/fgb2/gbrowse/scgenome/", None, 'resource', None),
+             ("Genome Browser", "http://www.yeastgenome.org/browse/", None, 'resource', None),
              ("Gene/Sequence Resources", "http://www.yeastgenome.org/cgi-bin/seqTools", None, 'resource', None),
              ("Download Genome", "http://downloads.yeastgenome.org/sequence/S288C_reference/genome_releases/", None, 'resource', None),
              ("Genome Snapshot", "http://www.yeastgenome.org/genomesnapshot", None, 'resource', None),
@@ -329,7 +517,8 @@ def index_toolbar_links():
             'href': l[1],
             'description': l[2],
             'category': l[3],
-            'data': l[4]
+            'data': l[4],
+            'keys': []
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=l[1])
     
@@ -337,11 +526,11 @@ def main():
 #    setup_index()
 #    index_genes()
 #    index_phenotypes()
-#    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
+#### - NOPE    index_downloads_from_xls('./src/sgd/elastic_search/geo_datasets_highlighted.xls')
 #    index_toolbar_links()
-#    index_go_terms()
 #    index_strains()
-#    index_authors()
+#    index_go_terms()
+##### - NOPE    index_authors()
 
     index_references()
 
