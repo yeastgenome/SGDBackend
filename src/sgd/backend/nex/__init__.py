@@ -858,6 +858,13 @@ class SGDBackend(BackendInterface):
                                     "analyzer": "standard"
                                 }
                             }
+                        },
+                        {
+                            "multi_match": {
+                                "query": query,
+                                "fields": ["phenotypes", "cellular_component", "biological_process", "molecular_function", "observable", "qualifier", "references", "phenotype_loci", "chemical", "mutant_type", "go_loci", "author", "journal", "year", "reference_loci"],
+                                "boost": 3
+                            }
                         }
                     ]
                 }
@@ -907,7 +914,7 @@ class SGDBackend(BackendInterface):
         if category == 'download':
             results_search_body['_source'].append('data')
 
-        highlight_fields = ['name', 'description']
+        highlight_fields = ['name', 'description'] + es_query["bool"]["should"][-1]["multi_match"]["fields"]
         for field in highlight_fields:
             results_search_body['highlight']['fields'][field] = {}
 
@@ -968,6 +975,8 @@ class SGDBackend(BackendInterface):
             for category in agg_response['aggregations']['categories']['buckets']:
                 category_obj['values'].append({'key': category['key'], 'total': category['doc_count']})
             formatted_agg.append(category_obj)
+
+            
             
         elif category == 'locus':
             agg_query_body = {
