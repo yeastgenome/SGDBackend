@@ -816,6 +816,8 @@ class SGDBackend(BackendInterface):
 
         reference_subcategories = [("author", "author"), ("journal", "journal"), ("year", "year"), ("reference_locus", "reference_loci")]
 
+        multi_match_fields = ["phenotypes", "cellular_component", "biological_process", "molecular_function", "observable", "qualifier", "references", "phenotype_loci", "chemical", "mutant_type", "go_loci", "author", "journal", "year", "reference_loci"]
+
         if query == '':
             es_query = { 'match_all': {} }
         else:
@@ -862,11 +864,13 @@ class SGDBackend(BackendInterface):
                         {
                             "multi_match": {
                                 "query": query,
-                                "fields": ["phenotypes", "cellular_component", "biological_process", "molecular_function", "observable", "qualifier", "references", "phenotype_loci", "chemical", "mutant_type", "go_loci", "author", "journal", "year", "reference_loci"],
+                                "type": "best_fields",
+                                "fields": multi_match_fields,
                                 "boost": 3
                             }
                         }
-                    ]
+                    ],
+                    "minimum_should_match": 1
                 }
             }
 
@@ -909,15 +913,17 @@ class SGDBackend(BackendInterface):
             }
         }
 
+        highlight_fields = ['name', 'description'] + multi_match_fields
+        for field in highlight_fields:
+            results_search_body['highlight']['fields'][field] = {}
+        
         response_fields = ['name', 'href', 'description', 'category']
         results_search_body['_source'] = response_fields + ['keys']
+        
         if category == 'download':
             results_search_body['_source'].append('data')
 
-        highlight_fields = ['name', 'description'] + es_query["bool"]["should"][-1]["multi_match"]["fields"]
-        for field in highlight_fields:
-            results_search_body['highlight']['fields'][field] = {}
-
+        self.log.info(results_search_body)
         search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)            
 
         formatted_results = []
@@ -959,6 +965,7 @@ class SGDBackend(BackendInterface):
             formatted_agg = []
             agg_query_body = {
                 'query': es_query,
+                'size': 0,
                 'aggs': {
                     'categories': {
                         'terms': { 'field': 'category' }
@@ -975,27 +982,26 @@ class SGDBackend(BackendInterface):
             for category in agg_response['aggregations']['categories']['buckets']:
                 category_obj['values'].append({'key': category['key'], 'total': category['doc_count']})
             formatted_agg.append(category_obj)
-
-            
-            
+    
         elif category == 'locus':
             agg_query_body = {
                 'query': es_query,
+                'size': 0,
                 'aggs': {
                     'feature_type': {
-                        'terms': {'field': 'feature_type', 'size': 999}
+                        'terms': {'field': 'feature_type.raw', 'size': 999}
                     },
                     'molecular_function': {
-                        'terms': {'field': 'molecular_function', 'size': 999}
+                        'terms': {'field': 'molecular_function.raw', 'size': 999}
                     },
                     'phenotypes': {
-                        'terms': {'field': 'phenotypes', 'size': 999}
+                        'terms': {'field': 'phenotypes.raw', 'size': 999}
                     },
                     'cellular_component' : {
-                        'terms': {'field': 'cellular_component', 'size': 999}
+                        'terms': {'field': 'cellular_component.raw', 'size': 999}
                     },
                     'biological_process': {
-                        'terms': {'field': 'biological_process', 'size': 999}
+                        'terms': {'field': 'biological_process.raw', 'size': 999}
                     }
                 }
             }
@@ -1013,24 +1019,25 @@ class SGDBackend(BackendInterface):
         elif category == 'phenotype':
             agg_query_body = {
                 'query': es_query,
+                'size': 0,
                 'aggs': {
                     'observable': {
-                        'terms': {'field': 'observable', 'size': 999}
+                        'terms': {'field': 'observable.raw', 'size': 999}
                     },
                     'qualifier': {
-                        'terms': {'field': 'qualifier', 'size': 999}
+                        'terms': {'field': 'qualifier.raw', 'size': 999}
                     },
                     'references': {
-                        'terms': {'field': 'references', 'size': 999}
+                        'terms': {'field': 'references.raw', 'size': 999}
                     },
                     'phenotype_loci' : {
-                        'terms': {'field': 'phenotype_loci', 'size': 999}
+                        'terms': {'field': 'phenotype_loci.raw', 'size': 999}
                     },
                     'chemical': {
-                        'terms': {'field': 'chemical', 'size': 999}
+                        'terms': {'field': 'chemical.raw', 'size': 999}
                     },
                     'mutant_type': {
-                        'terms': {'field': 'mutant_type', 'size': 999}
+                        'terms': {'field': 'mutant_type.raw', 'size': 999}
                     }
                 }
             }
@@ -1048,9 +1055,10 @@ class SGDBackend(BackendInterface):
         elif (category in ['biological_process', 'cellular_component', 'molecular_function']):
             agg_query_body = {
                 'query': es_query,
+                'size': 0,
                 'aggs': {
                     'go_loci': {
-                        'terms': {'field': 'go_loci', 'size': 999}
+                        'terms': {'field': 'go_loci.raw', 'size': 999}
                     }
                 }
             }
@@ -1068,18 +1076,19 @@ class SGDBackend(BackendInterface):
         elif category == 'reference':
             agg_query_body = {
                 'query': es_query,
+                'size': 0,
                 'aggs': {
                     'author': {
-                        'terms': {'field': 'author', 'size': 999}
+                        'terms': {'field': 'author.raw', 'size': 999}
                     },
                     'journal': {
-                        'terms': {'field': 'journal', 'size': 999}
+                        'terms': {'field': 'journal.raw', 'size': 999}
                     },
                     'year': {
-                        'terms': {'field': 'year', 'size': 999}
+                        'terms': {'field': 'year.raw', 'size': 999}
                     },
                     'reference_loci' : {
-                        'terms': {'field': 'reference_loci', 'size': 999}
+                        'terms': {'field': 'reference_loci.raw', 'size': 999}
                     }
                 }
             }
