@@ -923,7 +923,6 @@ class SGDBackend(BackendInterface):
         if category == 'download':
             results_search_body['_source'].append('data')
 
-        self.log.info(results_search_body)
         search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)            
 
         formatted_results = []
