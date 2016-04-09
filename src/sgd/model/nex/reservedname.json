@@ -1,0 +1,88 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "RESERVEDNAME",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "display_name": {
+            "title": "Name",
+            "type": "string"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+        "link": {
+            "title": "Link",
+            "type": "string"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "locus_id": {
+            "title": "Locus ID",
+            "type": "integer"
+        },
+	"reference_id": {
+            "title": "Reference ID",
+            "type": "integer"
+        },
+	"colleague_id": {
+            "title": "Colleague ID",
+            "type": "integer"
+        },
+	"reservation_date": {
+            "title": "Reservation Date",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+	"expiration_date": {
+            "title": "Expiration Date",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+	"description": {
+            "title": "Description",
+            "type": "string"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        }
+    },
+    "required": ["display_name", "colleague_id"]
+}
