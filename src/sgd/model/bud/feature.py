@@ -7,7 +7,6 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.bud import Base
 from taxonomy import Taxonomy
 
-
 __author__ = 'kpaskov'
     
 class Feature(Base, EqualityByIDMixin):
@@ -63,6 +62,32 @@ class AliasFeature(Base, EqualityByIDMixin):
     alias = relationship('Alias')
     alias_name = association_proxy('alias', 'name')
     alias_type = association_proxy('alias', 'type')
+
+class FeatCuration(Base, EqualityByIDMixin):
+    __tablename__ = 'feat_curation'
+
+    id = Column('feat_curation_no', Integer, primary_key = True)
+    task = Column('curation_task', String)
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
+    comment = Column('curator_comment', String)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+
+    def __repr__(self):
+        data = self.task, self.feature_id, self.comment
+        return 'FeatCuration(task=%s, feature_id=%s, comment=%s)' % data
+
+class Archive(Base, EqualityByIDMixin):
+    __tablename__ = 'archive'
+
+    id = Column('archive_no', Integer, primary_key = True)
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
+    archive_type = Column('archive_type', String)
+    old_value = Column('old_value', String)
+    new_value = Column('new_value', String)
+    description = Column('description', String)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
     
 class FeatRel(Base, EqualityByIDMixin):
     __tablename__ = 'feat_relationship'
@@ -121,5 +146,3 @@ class GeneReservation(Base, EqualityByIDMixin):
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
-
-

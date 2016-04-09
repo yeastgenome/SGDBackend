@@ -54,7 +54,10 @@ class UpdateWithJsonMixin(object):
             if key in obj_json:
                 current_obj = session.query(cls).filter(getattr(cls, key) == obj_json[key]).first()
             elif key == 'format_name':
-                current_obj = session.query(cls).filter_by(format_name=cls.__create_format_name__(obj_json)).first()
+                format_name = obj_json.get('format_name')
+                if format_name is None:
+                    format_name = cls.__create_format_name__(obj_json)
+                current_obj = session.query(cls).filter_by(format_name=format_name).first()
             if current_obj is not None:
                 break
 

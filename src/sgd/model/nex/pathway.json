@@ -1,64 +1,211 @@
 {
+    "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Pathway",
-        "type": "object",
-        "properties": {
-            "id": {
-                "title": "ID",
-                "type": "integer"
-            },
-            "display_name": {
-                "title": "Name",
-                "type": "string"
-            },
-            "format_name": {
-                "title": "Format Name",
-                "type": "string"
-            },
-            "link": {
-                "title": "Link",
-                "type": "string"
-            },
-            "description": {
-                "title": "Description",
-                "type": "string"
-            },
-            "source": {
-                "title": "Source",
-                "$ref": "source.json"
-            },
-            "bud_id": {
-                "title": "Bud ID",
-                "type": "integer"
-            },
-            "date_created": {
-                "title": "Date Created",
-                "type": "string",
-                "anyOf": [
-                    {
-                        "format": "date-time"
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "display_name": {
+            "title": "Name",
+            "type": "string"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+        "link": {
+            "title": "Link",
+            "type": "string"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        },
+	"sgdid": {
+	    "title": "SGDID",
+            "type": "string"
+	},
+	"dbentity_status": {
+            "title": "DBentity Status",
+            "type": "string"
+        },
+	"biocyc_id": {
+            "title": "Biocyc ID",
+            "type": "string"
+        },
+        "summaries": {
+            "title": "Summaries",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
                     },
-                    {
-                        "format": "date"
+                    "text": {
+                        "title": "Text",
+                        "type": "string"
+                    },
+                    "html": {
+                        "title": "HTML",
+                        "type": "string"
+                    },
+                    "summary_type": {
+                        "title": "Summary Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "references": {
+                        "title": "References",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "title": "ID",
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
                     }
-                ]
-            },
-            "created_by": {
-                "title": "Created By",
-                "type": "string"
-            },
-            "sgdid": {
-                "title": "SGD ID",
-                "type": "string"
-            },
-            "uniprotid": {
-                "title": "Uniprot ID",
-                "type": "string"
-            },
-            "dbentity_status": {
-                "title": "DBentity Status",
-                "type": "string"
+                },
+                "required": ["text", "summary_type", "source"]
             }
         },
-        "required": ["source", "sgdid", "display_name"]
-
+        "urls": {
+            "title": "Urls",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
+                    "url_type": {
+                        "title": "Url Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["display_name", "link", "url_type", "source"]
+            }
+        },
+	"aliases": {
+            "title": "Aliases",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
+                    "alias_type": {
+                        "title": "Alias Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["display_name", "alias_type", "source"]
+            }
+        }
+    },
+    "required": ["display_name"]
 }

@@ -6,7 +6,7 @@ from sqlalchemy.types import Integer, String, Date
 
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.bud import Base
-from feature import Feature
+from feature import Feature, GeneReservation
 from general import Dbxref, Url
 
 
@@ -108,3 +108,13 @@ class ColleagueRemark(Base):
 
 
     colleague = relationship(Colleague, uselist=False)
+
+class CollGeneres(Base, EqualityByIDMixin):
+    __tablename__ = 'coll_generes'
+
+    id = Column('coll_generes_no', Integer, primary_key=True)
+    feature_id = Column('feature_no', Integer, ForeignKey(GeneReservation.id))
+    colleague_id = Column('colleague_no', Integer, ForeignKey(Colleague.id))
+
+    genereservation = relationship(GeneReservation)
+

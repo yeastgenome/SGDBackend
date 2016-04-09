@@ -24,6 +24,8 @@ class Sequence(Base, EqualityByIDMixin):
     created_by = Column('created_by', String)
     
     feat_locations = relationship('Feat_Location', primaryjoin="Feat_Location.sequence_id==Sequence.id")
+    # seq_rels = relationship('SeqRel', primaryjoin="SeqRel.seq_id==Sequence.id", backref='seq')
+
     feature = relationship('Feature', backref='sequences')
     
     @hybrid_property

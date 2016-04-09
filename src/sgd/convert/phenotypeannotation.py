@@ -8,6 +8,16 @@ __author__ = 'sweng66'
 #                           
 #                       'strain_name', 'Numerical_value', 'Condition', 'Details'
 
+# Chemical_pending
+# chebi_ontology
+# Allele
+# Reporter
+# strain_background
+# strain_name
+# Numerical_value
+# Condition
+# Details
+
 
 def phenotypeannotation_starter(bud_session_maker):
     from src.sgd.model.bud.phenotype import PhenotypeFeature
@@ -24,7 +34,7 @@ def phenotypeannotation_starter(bud_session_maker):
     bud_session = bud_session_maker()
     nex_session = get_nex_session()
 
-    bud_id_to_locus_id = dict([(x.bud_id, x.id) for x in nex_session.query(Locus).all()])
+    bud_id_to_dbentity_id = dict([(x.bud_id, x.id) for x in nex_session.query(Locus).all()])
     phenotype_to_phenotype_id = dict([(x.display_name, x.id) for x in nex_session.query(Phenotype).all()])
     ref_bud_id_to_reference_id = dict([(x.bud_id, x.id) for x in nex_session.query(Reference).all()])
     taxid_to_taxonomy_id =  dict([(x.taxid, x.id) for x in nex_session.query(Taxonomy).all()])
@@ -47,9 +57,9 @@ def phenotypeannotation_starter(bud_session_maker):
 
     for bud_obj in bud_session.query(PhenotypeFeature).all():
 
-        ## locus
-        locus_id = bud_id_to_locus_id.get(bud_obj.feature_id)
-        if locus_id is None:
+        ## features
+        dbentity_id = bud_id_to_dbentity_id.get(bud_obj.feature_id)
+        if dbentity_id is None:
             print "The feature_no (bud_id) = ", bud_obj.feature_id, " is not found in Locusdbentity table." 
             continue
 
@@ -81,9 +91,7 @@ def phenotypeannotation_starter(bud_session_maker):
         ## taxonomy - data from expt_property => strain_background: S288C, W303, Other
         ## allele - data from expt_property
         ## reporter - data from expt_property
-
         ## 
-
 
         
         ## PROPERTY_TYPE                                                                                  
@@ -100,10 +108,11 @@ def phenotypeannotation_starter(bud_session_maker):
         taxonomy_id = ''
         allele_id = ''
         reporter_id = ''
+
         # print locus_id, phenotype_id, experiment_id, mutant_id, reference_id
 
-        detail_data = []
-
+        strain_name = ""
+        details = ""
         if bud_obj.experiment_properties is not None:
             for exptProp in bud_obj.experiment_properties:
                 print "\t", exptProp.type, exptProp.value
@@ -118,18 +127,16 @@ def phenotypeannotation_starter(bud_session_maker):
                     reporter_id =reporter_to_id.get(exptProp.value)
                     if reporter_id is None:
                         print "\t\tReporter: ", exptProp.value, " is not in Reporter table."
-                if exptProp.type in ['Chemical_pending', 'chebi_ontology', 'strain_name', 'Numerical_value', 'Condition', 'Details']:
-                    
-                    detail_data.append({ 'detail_type': ?,
-                                         'detail_value': ?,
-                                         'detail_number': ?,
-                                         'detail_unit':?,
-                                         'date_created': str(exptProp.date_created), 
-                                         'created_by': exptProp.created_by })
+                if exptProp.type == 'strain_name':
+                    strain_name = exptProp.value
+                if exptProp.type == 'Details':
+                    details = exptProp.value
+                    if exptProp.description:
+                        details = details + "; " + exptProp.description
 
         obj_json = {
             'source': {'display_name': 'SGD'},
-            'locus_id': locus_id,
+            'dbentity_id': dbentity_id,
             'phenotype_id': phenotype_id,
             'experiment_id': experiment_id,
             'mutant_id': mutant_id,
@@ -145,7 +152,7 @@ def phenotypeannotation_starter(bud_session_maker):
         if reporter_id is not None:
             obj_json['reporter_id'] = reporter_id
         if len(detail_data) > 0:
-            obj_json['detail_data'] = detail_data
+            obj_json['details'] = details
 
         yield obj_json
 
@@ -165,6 +172,6 @@ def get_nex_session():
 
 if __name__ == '__main__':
     from src.sgd.convert import config
-    basic_convert(config.BUD_HOST, config.NEX_HOST, phenotypeannotation_starter, 'phenotypeannotation', lambda x: (x['locus_id'], x['phenotype_id'], x['mutant_id'], x['experiment_id'], x['reference_id']))
+    basic_convert(config.BUD_HOST, config.NEX_HOST, phenotypeannotation_starter, 'phenotypeannotation', lambda x: (x['dbentity_id'], x['phenotype_id'], x['mutant_id'], x['experiment_id'], x['reference_id']))
 
 
