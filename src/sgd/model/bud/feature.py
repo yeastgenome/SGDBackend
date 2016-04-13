@@ -115,5 +115,17 @@ class GeneReservation(Base, EqualityByIDMixin):
     date_created = Column('date_created', Date)
     created_by = Column('created_by', String)
     
+class Archive(Base, EqualityByIDMixin):
+    __tablename__ = 'archive'
 
+    id = Column('archive_no', Integer, primary_key=True)
+    feature_id = Column('feature_no', Integer, ForeignKey(Feature.id))
+    archive_type = Column('archive_type', String)
+    old_value = Column('old_value', String)
+    new_value = Column('new_value', String)
+    description = Column('description', String)
+    date_created = Column('date_created', Date)
+    created_by = Column('created_by', String)
+
+    
 

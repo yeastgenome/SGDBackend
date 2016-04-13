@@ -381,7 +381,7 @@ def make_bioentity_alias_starter(bud_session_maker, nex_session_maker):
 
                 yield {'display_name': display_name,
                        'link': link,
-                       'source': key_to_source[bud_obj.dbxref.source.replace('/', '-')],
+                       'source': key_to_source[bud_obj.dbxref.source.replace('/', '-').replace(' ', '_')],
                        'category': bud_obj.dbxref.dbxref_type,
                        'bioentity_id': bioentity_id,
                        'is_external_id': 1,

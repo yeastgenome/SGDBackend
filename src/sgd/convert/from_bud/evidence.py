@@ -254,7 +254,14 @@ def make_domain_evidence_starter(bud_session_maker, nex_session_maker):
         pubmed_id_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
         for row in make_file_starter('src/sgd/convert/data/domains.tab')():
-            source_key = row[3].strip()
+	    source_key = row[3].strip()
+            if source_key.startswith('ProSite'):
+                source_key = 'Prosite'
+            if source_key.startswith('SignalP'):
+                source_key = 'SignalP'
+            if source_key.startswith('Hamap'):
+                source_key = 'HAMAP'
+
             start = row[6].strip()
             end = row[7].strip()
             evalue = row[8].strip()
@@ -438,7 +445,7 @@ def make_go_evidence_starter(bud_session_maker, nex_session_maker):
                     new_children.extend([x.child for x in child.children if x.relation_type == 'is a'])
                 children = new_children
 
-        evidence_key_to_gpad_conditions = dict(filter(None, [make_go_gpad_conditions(x, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept, chebi_id_to_chemical, sgdid_to_bioentity, term_id_to_role) for x in make_file_starter('src/sgd/convert/data/gp_association.559292_sgd')()]))
+        evidence_key_to_gpad_conditions = dict(filter(None, [make_go_gpad_conditions(x, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept, key_to_bioitem, chebi_id_to_chemical, sgdid_to_bioentity, term_id_to_role) for x in make_file_starter('src/sgd/convert/data/gp_association.559292_sgd')()]))
 
         for old_go_feature in bud_session.query(GoFeature).options(joinedload(GoFeature.go_refs)).all():
             go_key = ('GO:' + str(old_go_feature.go.go_go_id).zfill(7), 'GO')
@@ -566,10 +573,10 @@ condition_format_name_to_display_name = {'activated by':	                'activa
                                         'requires target sequence feature':	'requires feature in target',
                                         'stabilizes':	                    'stabilizes'}
 
-def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept,
+def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_reference, key_to_bioconcept, key_to_bioitem,
                               chebi_id_to_chemical, sgdid_to_bioentity, term_id_to_role):
-    from src.sgd.model.nex.evidence import Bioconceptproperty, Bioentityproperty, Chemicalproperty
-
+    from src.sgd.model.nex.evidence import Bioconceptproperty, Bioentityproperty, Chemicalproperty, Bioitemproperty
+    
     if len(gpad) > 1 and gpad[9] == 'SGD':
         go_key = ('GO:' + str(int(gpad[3][3:])).zfill(7), 'GO')
         uniprot_id = gpad[1]
@@ -622,7 +629,12 @@ def make_go_gpad_conditions(gpad, uniprot_id_to_bioentity, pubmed_id_to_referenc
                                 conditions.append(Bioentityproperty({'role': role, 'bioentity': uniprot_id_to_bioentity[uniprotid]}))
                             else:
                                 print 'Could not find bioentity: ' + str(uniprotid)
-
+                        elif value.startswith('SO:'):
+                            bioitem_key = (value, 'ORPHAN')
+                            if bioitem_key in key_to_bioitem:
+                                conditions.append(Bioitemproperty({'role': role, 'bioitem': key_to_bioitem[bioitem_key]}))
+                            else:
+                                print 'Could not find bioitem: ' + str(bioitem_key)
                         else:
                             print 'Annotation not handled: ' + str((role, value))
             return evidence_key, conditions
@@ -752,33 +764,120 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                             #print 'Bioentity not found: ' + str(bioentity_id)
                             yield None
 
+
+        ### FROM HERE
+
+        from src.sgd.model.bud.feature import Archive
+        
+        feature_no_to_date_created = dict([(x.feature_id, x.date_created) for x in bud_session.query(Archive).filter_by(archive_type='Gene name').all()])
+        mon_to_number = { "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4,  "May": 5,  "Jun": 6,
+                          "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12 }
+
         for bioentity in id_to_bioentity.values():
+            ## feature_no = bioentity.id 
+            date_created = feature_no_to_date_created.get(bioentity.id)
             for quality in bioentity.qualities:
                 if quality.display_name == 'Gene Name':
                     for quality_reference in quality.quality_references:
+                        if date_created is None:
+                            date_published = quality_reference.reference.date_published
+                            if date_published and ' ' in date_published:
+                                date_list = date_published.split(' ')
+                                year = int(date_list[0])
+				## sometimes mon = 'Jul-Aug'                                  
+                                mon = date_list[1]
+                            	if "-" in mon:
+                                   mon = date_list[1].split('-')[1]
+				## sometimes mon = 'July'
+                            	mon = mon[0:3]
+                                month = 1
+                                if mon_to_number.get(mon) is not None:
+                                    month = int(mon_to_number[mon])
+       				if len(date_list) > 2:
+                                    if ',' in date_list[2]:
+                                        date_list[2] = date_list[2].replace(',', '-')
+				    if '-' in date_list[2]:
+                                        days = date_list[2].split('-')
+                                        if days[0]:
+                                            day = int(days[0])
+                                        elif days[1]:
+                                            day = int(days[1])
+                                        else:
+                                            day = 1
+                                    else:
+					day = int(date_list[2])
+				else:
+				    day = 1
+                                date_created = datetime(year, month, day)
+                            else:
+                                date_created = datetime(quality_reference.reference.year, 1, 1)
+
+                        print "NAME=", bioentity.display_name, ", date_created=", date_created
+
                         yield {'source': key_to_source['SGD'],
-                                   'reference': quality_reference.reference,
-                                   'locus': bioentity,
-                                   'category': 'Nomenclature',
-                                   'history_type': 'LSP',
-                                   'note': '<strong>Name:</strong> ' + bioentity.display_name,
-                                   'date_created': datetime(quality_reference.reference.year, 1, 1),
-                                   'created_by': None
-                                }
+                               'reference': quality_reference.reference,
+                               'locus': bioentity,
+                               'category': 'Nomenclature',
+                               'history_type': 'LSP',
+                               'note': '<strong>Name:</strong> ' + bioentity.display_name,
+                               'date_created': str(date_created).split(' ')[0],
+                               'created_by': None }
 
             for alias in bioentity.aliases:
                 if alias.category == 'Alias' or alias.category == 'Gene Product':
                     for alias_reference in alias.alias_references:
+                        date_published = alias_reference.reference.date_published
+                        date_created = None
+                        if date_published and ' ' in date_published:
+                            date_list = date_published.split(' ')
+                            year = int(date_list[0])
+			    ## sometimes mon = 'Jul-Aug'
+                            mon = date_list[1]
+                            if "-" in mon:
+                                mon = date_list[1].split('-')[1]
+                            mon = mon[0:3]
+                            month = 1
+                            if mon_to_number.get(mon) is not None:
+                                month = int(mon_to_number[mon])
+                            if len(date_list) > 2:
+                                if ',' in date_list[2]:
+                                    date_list[2] = date_list[2].replace(',', '-')
+                                if '-' in date_list[2]:
+                                    days = date_list[2].split('-')
+                                    if days[0]:
+                                        day = int(days[0])
+                                    elif days[1]:
+                                        day = int(days[1])
+                                    else:
+                                       day = 1
+                                else:
+                                    day = int(date_list[2])
+                            else:
+                                day = 1
+                            date_created = datetime(year, month, day)
+                        else:
+                            date_created = datetime(alias_reference.reference.year, 1, 1)
+
+
+                        print "NAME=", bioentity.display_name, ", ALIAS=", alias.display_name, ", date_created=", date_created
+
+
                         yield {'source': key_to_source['SGD'],
                                    'reference': alias_reference.reference,
                                    'locus': bioentity,
                                    'category': 'Nomenclature',
                                    'history_type': 'LSP',
                                    'note': '<strong>Name:</strong> ' + alias.display_name,
-                                   'date_created': datetime(alias_reference.reference.year, 1, 1),
+                                   'date_created': str(date_created).split(' ')[0],
                                    'created_by': None
                                 }
             if bioentity.reserved_name is not None:
+
+
+                print "RESERVED_NAME=", bioentity.reserved_name.display_name, ", date_created=", bioentity.reserved_name.date_created
+
+
+
                 yield {'source': key_to_source['SGD'],
                                'reference': bioentity.reserved_name.reference,
                                'locus': bioentity,
@@ -1125,40 +1224,40 @@ def make_posttranslational_evidence_starter(nex_session_maker):
         pmid_to_reference = dict([(x.pubmed_id, x) for x in nex_session.query(Reference).all()])
 
         #Phosphorylation
-        for row in make_file_starter('src/sgd/convert/data/phosphosites.txt')():
-            if len(row) == 19:
-                bioentity_key = (row[0], 'LOCUS')
+        # for row in make_file_starter('src/sgd/convert/data/phosphosites.txt')():
+        #    if len(row) == 19:
+        #        bioentity_key = (row[0], 'LOCUS')
+        #
+        #        conditions = {}
+        #
+        #        site_functions = row[7]
+        #        if site_functions != '-':
+        #            for site_function in site_functions.split('|'):
+        #                condition = Generalproperty({'note': site_function.capitalize()})
+        #                conditions[condition.unique_key()] = condition
+        #
+        #        kinases = row[9]
+        #        if kinases != '-':
+        #            for kinase in kinases.split('|'):
+        #                bioent_key = (kinase, 'LOCUS')
+        #                if bioent_key in key_to_bioentity:
+        #                    condition = Bioentityproperty({'role': 'Kinase', 'bioentity': key_to_bioentity[bioent_key]})
+        #                    conditions[condition.unique_key()] = condition
+        #                else:
+        #                    print 'Bioentity not found: ' + str(bioent_key)
+        #
+        #        if bioentity_key in key_to_bioentity:
+        #            yield {'source': key_to_source['PhosphoGRID'],
+        #                   'locus': key_to_bioentity[bioentity_key],
+        #                   'site_index': int(row[2][1:]),
+        #                   'site_residue': row[2][0],
+        #                   'type': 'phosphorylation',
+        #                   'properties': conditions.values()}
+        #        else:
+        #            print 'Bioentity not found: ' + str(bioentity_key)
 
-                conditions = {}
 
-                site_functions = row[7]
-                if site_functions != '-':
-                    for site_function in site_functions.split('|'):
-                        condition = Generalproperty({'note': site_function.capitalize()})
-                        conditions[condition.unique_key()] = condition
-
-                kinases = row[9]
-                if kinases != '-':
-                    for kinase in kinases.split('|'):
-                        bioent_key = (kinase, 'LOCUS')
-                        if bioent_key in key_to_bioentity:
-                            condition = Bioentityproperty({'role': 'Kinase', 'bioentity': key_to_bioentity[bioent_key]})
-                            conditions[condition.unique_key()] = condition
-                        else:
-                            print 'Bioentity not found: ' + str(bioent_key)
-
-                if bioentity_key in key_to_bioentity:
-                    yield {'source': key_to_source['PhosphoGRID'],
-                           'locus': key_to_bioentity[bioentity_key],
-                           'site_index': int(row[2][1:]),
-                           'site_residue': row[2][0],
-                           'type': 'phosphorylation',
-                           'properties': conditions.values()}
-                else:
-                    print 'Bioentity not found: ' + str(bioentity_key)
-
-        #Other sites
-
+        ## Other sites
 
         file_names = ['src/sgd/convert/data/methylationSitesPMID25109467.txt',
                       'src/sgd/convert/data/ubiquitinationSites090314.txt',
@@ -1169,7 +1268,10 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                       'src/sgd/convert/data/PTMs_20150623.txt',
                       'src/sgd/convert/data/PTMsites062615.txt',
                       'src/sgd/convert/data/PTMsites091715.txt',
-                      'src/sgd/convert/data/PTMsites102315.txt']
+                      'src/sgd/convert/data/PTMsites102315.txt',
+                      'src/sgd/convert/data/PTMsites112115.txt',
+                      'src/sgd/convert/data/PTMsites011516.txt',
+                      'src/sgd/convert/data/Phosphosites031516.txt']
 
         for file_name in file_names:
             print file_name
@@ -1184,11 +1286,23 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                     site = pieces[1].strip()
                     site_residue = site[0]
                     site_index = int(site[1:])
-                    site_functions = pieces[2]
-                    modification_type = pieces[3]
-                    modifiers = pieces[4]
-                    source_key = pieces[5]
-                    pmid = int(pieces[6].replace('PMID:', ''))
+                    modification_type = ''
+                    modifiers = ''
+                    source_key = 'SGD'
+                    pmid = ''
+                    site_functions = ''
+                    if file_name.endswith('16.txt'):
+                        # new file format
+                        modification_type = pieces[2]
+                        modifiers = pieces[3]
+                        pmid = int(pieces[4].replace('PMID:', ''))
+                    else:
+                        # old files
+                        site_functions = pieces[2]
+                        modification_type = pieces[3]
+                        modifiers = pieces[4]
+                        source_key = pieces[5]
+                        pmid = int(pieces[6].replace('PMID:', ''))
 
                     conditions = {}
 

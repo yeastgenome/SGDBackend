@@ -28,6 +28,26 @@ def make_orphan_starter(bud_session_maker, nex_session_maker):
                 yield {'display_name': bud_obj.value,
                        'source': key_to_source['SGD']}
 
+        f = open('src/sgd/convert/data/gp_association.559292_sgd')
+        soid = None
+        for line in f:
+            pieces = line.split('\t')
+            if len(pieces) < 11:
+                continue
+            go_extensions = pieces[10]
+            if go_extensions == '' or '(SO:' not in go_extensions:
+                continue
+            items = go_extensions.replace(',', '|').split('|')
+            for item in items:
+                if "(SO:" not in item:
+                    continue
+                soid = item.split('(')[1][:-1]
+                yield { 'display_name': soid,  
+                        'source': key_to_source['SGD'],
+                        'bioitem_type': 'SO' } 
+            
+        f.close()
+        
         for bud_obj in bud_session.query(GorefDbxref).all():
             dbxref = bud_obj.dbxref
             dbxref_type = dbxref.dbxref_type
@@ -76,6 +96,7 @@ def make_orphan_starter(bud_session_maker, nex_session_maker):
                        'source': source,
                        'description': dbxref.dbxref_name,
                       'bioitem_type': bioitem_type}
+        
         bud_session.close()
         nex_session.close()
 
@@ -118,7 +139,12 @@ def make_domain_starter(bud_session_maker, nex_session_maker):
 
         for row in make_file_starter('src/sgd/convert/data/domains.tab')():
             source_key = row[3].strip()
-
+            if source_key.startswith('ProSite'):
+                source_key = 'Prosite'
+            if source_key.startswith('SignalP'):
+                source_key = 'SignalP'
+            if source_key.startswith('Hamap'):
+                source_key = 'HAMAP'
             if source_key == 'Coils':
                 source_key = '-'
 
@@ -632,10 +658,10 @@ def make_bioitem_url_starter(nex_session_maker):
                 link = "http://prodom.prabi.fr/prodom/current/cgi-bin/request.pl?question=DBEN&amp;query=" + display_name
             elif bioitem_type == 'PIRSF':
                 link = "http://pir.georgetown.edu/cgi-bin/ipcSF?id=" + display_name
-            elif bioitem_type == 'PROSITE':
+            elif bioitem_type == 'PROSITE' or bioitem_type == 'Prosite':
                 link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
-            elif bioitem_type == 'PROSITE':
-                link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
+            elif bioitem_type == 'HAMAP':
+                link = "http://hamap.expasy.org/unirule/" + display_name
             elif bioitem_type == 'Phobius':
                 link = None
             elif bioitem_type == '-':

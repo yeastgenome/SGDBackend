@@ -174,6 +174,8 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
     from src.sgd.model.bud.general import ParagraphFeat
     from src.sgd.model.bud.go import GoFeature
     from src.sgd.model.bud.feature import Feature
+    from datetime import datetime
+
     def bioentity_paragraph_starter():
         bud_session = bud_session_maker()
         nex_session = nex_session_maker()
@@ -191,12 +193,29 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
             if len(paragraph_feats) > 0 and feature.id in id_to_bioentity:
                 paragraph_feats.sort(key=lambda x: x.order)
                 paragraph_html, paragraph_text = clean_paragraph(id_to_bioentity[feature.id], '<p>' + ('</p><p>'.join([x.paragraph.text for x in paragraph_feats])) + '</p>', str([x.paragraph.id for x in paragraph_feats]), sgdid_to_reference, sgdid_to_bioentity, goid_to_go)
+                
+                date_edited = None
+                year = 0
+                month = 0
+                day = 0
+                for paragraph_feat in paragraph_feats:
+                    my_date = paragraph_feat.paragraph.date_edited
+                    this_date = str(my_date).split(' ')[0].replace('-0', '-').split('-')
+                    this_year = int(this_date[0])
+                    this_month = int(this_date[1])
+                    this_day = int(this_date[2])
+                    if date_edited is None or datetime(this_year, this_month, this_day) > datetime(year, month, day):
+                        date_edited = my_date
+                        year = this_year
+                        month = this_month
+                        day = this_day
+
                 yield {
                     'bioentity': id_to_bioentity[feature.id],
                     'source': key_to_source['SGD'],
                     'text': paragraph_text,
                     'html': paragraph_html,
-                    'date_edited': paragraph_feats[0].paragraph.date_edited,
+                    'date_edited': date_edited,
                     'date_created': paragraph_feats[0].paragraph.date_created,
                     'created_by': paragraph_feats[0].paragraph.created_by,
                     'category': 'LSP'
@@ -249,7 +268,11 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
         file_names = ['src/sgd/convert/data/regulationSummaries',
                       'src/sgd/convert/data/15-8regulationSummaries.txt',
                       'src/sgd/convert/data/15-9regulationSummaries.txt',
-                      'src/sgd/convert/data/15-10regulationSummaries.txt']
+                      'src/sgd/convert/data/15-10regulationSummaries.txt',
+                      'src/sgd/convert/data/15-11regulationSummaries.txt',
+                      'src/sgd/convert/data/16-1regulationSummaries.txt',
+                      'src/sgd/convert/data/16-2regulationSummaries.txt',
+                      'src/sgd/convert/data/16-3regulationSummaries.txt']
 
         for file_name in file_names:
             for row in make_file_starter(file_name)():
@@ -274,7 +297,12 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                       'src/sgd/convert/data/15-7phenoSummaries.txt',
                       'src/sgd/convert/data/15-8phenoSummaries.txt',
                       'src/sgd/convert/data/15-9phenoSummaries.txt',
-                      'src/sgd/convert/data/15-10phenoSummaries.txt']
+                      'src/sgd/convert/data/15-10phenoSummaries.txt',
+                      'src/sgd/convert/data/15-11phenoSummaries.txt',
+                      'src/sgd/convert/data/15-12phenoSummaries.txt',
+                      'src/sgd/convert/data/16-1phenoSummaries.txt',
+                      'src/sgd/convert/data/16-2phenoSummaries.txt',
+                      'src/sgd/convert/data/16-3phenoSummaries.txt']
 
         for file_name in file_names:
             for row in make_file_starter(file_name)():
@@ -386,7 +414,11 @@ def make_paragraph_reference_starter(nex_session_maker):
         file_names = ['src/sgd/convert/data/regulationSummaries',
                       'src/sgd/convert/data/15-8regulationSummaries.txt',
                       'src/sgd/convert/data/15-9regulationSummaries.txt',
-                      'src/sgd/convert/data/15-10regulationSummaries.txt']
+                      'src/sgd/convert/data/15-10regulationSummaries.txt',
+                      'src/sgd/convert/data/15-11regulationSummaries.txt',
+                      'src/sgd/convert/data/16-1regulationSummaries.txt',
+                      'src/sgd/convert/data/16-2regulationSummaries.txt',
+                      'src/sgd/convert/data/16-3regulationSummaries.txt']
 
         for file_name in file_names:
             for row in make_file_starter(file_name)():

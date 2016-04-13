@@ -226,10 +226,10 @@ class Alias(Base, EqualityByIDMixin, UpdateByJsonMixin):
     def to_json(self):
         obj_json = UpdateByJsonMixin.to_json(self)
         obj_json['references'] = [x.reference.to_min_json() for x in self.alias_references]
-        if self.category in {'PDB identifier', 'UniParc ID', 'UniProt/Swiss-Prot ID', 'UniProt/TrEMBL ID',
-            'UniProtKB Subcellular Location', 'Protein version ID', 'EC number', 'InterPro', 'RefSeq protein version ID',
-            'RefSeq nucleotide version ID', 'TPA protein version ID', 'DNA version ID', 'NCBI protein GI', 'TPA Accession',
-            'PDB ID', 'RefSeq Accession', 'TC number', 'PANTHER'}:
+        if self.category in {'PDB identifier', 'UniParc ID', 'UniProtKB/Swiss-Prot ID', 'UniProtKB/TrEMBL ID',
+            'UniProtKB Subcellular Location', 'Protein version ID', 'EC number', 'InterPro ID', 'RefSeq protein version ID',
+            'RefSeq nucleotide version ID', 'TPA protein version ID', 'DNA version ID', 'protein GI', 'TPA Accession ID',
+            'PDB ID', 'RefSeq Accession ID', 'TC number', 'PANTHER'}:
             obj_json['protein'] = True
         else:
             obj_json['protein'] = False
