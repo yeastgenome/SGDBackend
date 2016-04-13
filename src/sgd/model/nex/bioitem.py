@@ -238,7 +238,7 @@ class Contig(Bioitem):
         obj_json = UpdateByJsonMixin.to_json(self)
         overview_counts = {}
         for evidence in [x for x in self.dnasequence_evidences if x.dna_type== 'GENOMIC']:
-            if x.locus.bioent_status == 'Active':
+            if evidence.locus.bioent_status == 'Active':
                 if evidence.locus.locus_type in overview_counts:
                     overview_counts[evidence.locus.locus_type] += 1
                 else:
