@@ -15,6 +15,11 @@ BEGIN
         AuditLog.InsertUpdateLog('FILEDBENTITY', 'TOPIC_ID', :old.dbentity_id, :old.topic_id, :new.topic_id, USER);
     END IF;
 
+    IF (:old.data_id != :new.data_id)
+    THEN
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'DATA_ID', :old.dbentity_id, :old.data_id, :new.data_id, USER);
+    END IF;
+
     IF (:old.format_id != :new.format_id)
     THEN
         AuditLog.InsertUpdateLog('FILEDBENTITY', 'FORMAT_ID', :old.dbentity_id, :old.format_id, :new.format_id, USER);
@@ -45,14 +50,14 @@ BEGIN
         AuditLog.InsertUpdateLog('FILEDBENTITY', 'IS_IN_BROWSER', :old.dbentity_id, :old.is_in_browser, :new.is_in_browser, USER);
     END IF;
 
-     IF (((:old.s3_url IS NULL) AND (:new.s3_url IS NOT NULL)) OR ((:old.s3_url IS NOT NULL) AND (:new.s3_url IS NULL)) OR (:old.s3_url != :new.s3_url))
-    THEN
-        AuditLog.InsertUpdateLog('FILEDBENTITY', 'S3_URL', :old.dbentity_id, :old.s3_url, :new.s3_url, USER);
-    END IF;
-
      IF (((:old.md5sum IS NULL) AND (:new.md5sum IS NOT NULL)) OR ((:old.md5sum IS NOT NULL) AND (:new.md5sum IS NULL)) OR (:old.md5sum != :new.md5sum))
     THEN
         AuditLog.InsertUpdateLog('FILEDBENTITY', 'MD5SUM', :old.dbentity_id, :old.md5sum, :new.md5sum, USER);
+    END IF;
+
+     IF (((:old.s3_url IS NULL) AND (:new.s3_url IS NOT NULL)) OR ((:old.s3_url IS NOT NULL) AND (:new.s3_url IS NULL)) OR (:old.s3_url != :new.s3_url))
+    THEN
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'S3_URL', :old.dbentity_id, :old.s3_url, :new.s3_url, USER);
     END IF;
 
      IF (((:old.filepath_id IS NULL) AND (:new.filepath_id IS NOT NULL)) OR ((:old.filepath_id IS NOT NULL) AND (:new.filepath_id IS NULL)) OR (:old.filepath_id != :new.filepath_id))
@@ -65,20 +70,26 @@ BEGIN
         AuditLog.InsertUpdateLog('FILEDBENTITY', 'PREVIOUS_FILE_NAME', :old.dbentity_id, :old.previous_file_name, :new.previous_file_name, USER);
     END IF;
 
-     IF (((:old.readme_url IS NULL) AND (:new.readme_url IS NOT NULL)) OR ((:old.readme_url IS NOT NULL) AND (:new.readme_url IS NULL)) OR (:old.readme_url != :new.readme_url))
+     IF (((:old.readme_file_id IS NULL) AND (:new.readme_file_id IS NOT NULL)) OR ((:old.readme_file_id IS NOT NULL) AND (:new.readme_file_id IS NULL)) OR (:old.readme_file_id != :new.readme_file_id))
     THEN
-        AuditLog.InsertUpdateLog('FILEDBENTITY', 'README_URL', :old.dbentity_id, :old.readme_url, :new.readme_url, USER);
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'README_FILE_ID', :old.dbentity_id, :old.readme_file_id, :new.readme_file_id, USER);
+    END IF;
+
+     IF (((:old.description IS NULL) AND (:new.description IS NOT NULL)) OR ((:old.description IS NOT NULL) AND (:new.description IS NULL)) OR (:old.description != :new.description))
+    THEN
+        AuditLog.InsertUpdateLog('FILEDBENTITY', 'DESCRIPTION', :old.dbentity_id, :old.description, :new.description, USER);
     END IF;
 
   ELSE
 
     v_row := :old.dbentity_id || '[:]' || :old.topic_id || '[:]' ||
-             :old.format_id || '[:]' || :old.file_extension || '[:]' ||
-             :old.file_date || '[:]' || :old.is_public || '[:]' || 
-             :old.is_in_spell || '[:]' || :old.is_in_browser || '[:]' || 
-             :old.s3_url || '[:]' || :old.md5sum || '[:]' ||
-             :old.filepath_id || '[:]' || 
-             :old.previous_file_name || '[:]' || :old.readme_url;
+             :old.data_id || '[:]' || :old.format_id || '[:]' || 
+             :old.file_extension || '[:]' || :old.file_date || '[:]' || 
+             :old.is_public || '[:]' || :old.is_in_spell || '[:]' || 
+             :old.is_in_browser || '[:]' || :old.md5sum || '[:]' || 
+             :old.s3_url || '[:]' || :old.filepath_id || '[:]' ||
+             :old.previous_file_name || '[:]' || :old.readme_file_id || '[:]' || 
+             :old.description;
 
     AuditLog.InsertDeleteLog('FILEDBENTITY', :old.dbentity_id, v_row, USER);
 
