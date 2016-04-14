@@ -22,7 +22,7 @@ class Phenotypeannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMi
     __tablename__ = 'phenotypeannotation'
 
     id = Column('annotation_id', Integer, primary_key=True)
-    locus_id = Column('locus_id', Integer, ForeignKey(Locus.id))
+    dbentity_id = Column('dbentity_id', Integer, ForeignKey(Locus.id))
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
     bud_id = Column('bud_id', Integer)
     taxonomy_id = Column('taxonomy_id', Integer, ForeignKey(Taxonomy.id))
@@ -33,7 +33,8 @@ class Phenotypeannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMi
     allele_id = Column('allele_id', Integer, ForeignKey(Allele.id))
     reporter_id = Column('reporter_id', Integer, ForeignKey(Reporter.id))
     assay_id = Column('assay_id', Integer, ForeignKey(Obi.id))
-    analysis_id = Column('analysis_id', Integer, ForeignKey(Obi.id))
+    strain_name = Column('strain_name', String)
+    details = Column('details', String)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 
@@ -47,18 +48,17 @@ class Phenotypeannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMi
     mutant = relationship(Apo, uselist=False)
     allele = relationship(Allele, uselist=False)
     reporter = relationship(Reporter, uselist=False)
-    
+    assay = relationship(Obi, uselist=False)
+
     __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False),
                   ('locus', Locus, False),
-                  ('reference', Reference, False),
-                  ('phenoDetails', phenotypeannotation.PhenotypeDetail, True)]
+                  ('reference', Reference, False)]
     __id_values__ = ['id', 'format_name']
     __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
     __filter_values__ = ['locus_id', 'reference_id', 'phenotype_id']
 
     def __init__(self, obj_json, session):
-        # self.qualifier_id = obj_json.get('qualifier_id')
         UpdateWithJsonMixin.__init__(self, obj_json, session)
 
     @classmethod
@@ -88,62 +88,5 @@ class Phenotypeannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMi
         obj_json['reference'] = self.reference.citation
         obj_json['allele'] = self.allele.display_name
         obj_json['reporter'] = self.reporter.display_name
-        obj_json['phenoDetailss'] = [x.to_json() for x in self.phenoDetails]
         return obj_json
-
-
-class PhenotypeDetail(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
-    __tablename__ = 'phenotypeannotation_detail'
-
-    id = Column('detail_id', Integer, primary_key=True)
-    annotation_id = Column('annotation_id', Integer, ForeignKey(Phenotypeannotation.id, ondelete='CASCADE'))
-    detail_type = Column('detail_type', String)
-    detail_name = Column('detail_name', String)
-    detail_value = Column('detail_value', String)
-    date_created = Column('date_created', Date, server_default=FetchedValue())
-    created_by = Column('created_by', String, server_default=FetchedValue())
-
-    #Relationships
-    annotation = relationship(Phenotypeannotation, uselist=False, backref=backref('urls', cascade="all, delete-orphan", passive_deletes=True))
-
-    __eq_values__ = ['id', 'detail_type', 'detail_name', 'detail_value', 'detail_type', 'date_created', 'created_by']
-    __eq_fks__ = []
-    __id_values__ = []
-    __no_edit_values__ = ['id', 'date_created', 'created_by']
-    __filter_values__ = []
-
-    def __init__(self, obj_json, session):
-        self.update(obj_json, session)
-
-    def unique_key(self):
-        return (None if self.annotation is None else self.annotation.unique_key()), self.detail_type, self.detail_name, self.detail_value
-
-    @classmethod
-    def create_or_find(cls, obj_json, session, parent_obj=None):
-        if obj_json is None:
-            return None
-
-        newly_created_object = cls(obj_json, session)
-        if parent_obj is not None:
-            newly_created_object.annotation_id = parent_obj.id
-
-        current_obj = session.query(cls)\
-            .filter_by(annotation_id=newly_created_object.annotation_id)\
-            .filter_by(detail_type=newly_created_object.detail_type)\
-            .filter_by(detail_name=newly_created_object.detail_name)\
-            .filter_by(detail_value=newly_created_object.detail_value).first()
-
-        if current_obj is None:
-            return newly_created_object, 'Created'
-        else:
-            return current_obj, 'Found'
-
-    def to_json(self, size='small'):
-        return {
-            'detail_type': self.detail_type,
-            'detail_name': self.detail_name,
-            'detail_value': self.detail_value
-        }
-
- 
 

@@ -1,0 +1,128 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "ARCH DNASeqAnnotation",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "dbentity_id": {
+            "title": "DBENTITY ID",
+            "type": "integer"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "taxonomy_id": {
+            "title": "Taxonomy ID",
+            "type": "integer"
+        },
+	"reference_id": {
+            "title": "Reference ID",
+            "type": "integer"
+        },
+        "so_id": {
+            "title": "SO ID",
+            "type": "integer"
+        },
+	"dna_type": {
+            "title": "DNA Type",
+            "type": "string"
+        },
+	"contig_id": {
+            "title": "Contig ID",
+            "type": "integer"
+        },
+        "seq_version": {
+            "title": "Sequence Version",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "coord_version": {
+            "title": "Coordinate Version",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+	"genomerelease_id": {
+            "title": "Genomerelease ID",
+            "type": "integer"
+        },
+	"start_index": {
+            "title": "Start Index",
+            "type": "integer"
+        },
+	"end_index": {
+            "title": "End Index",
+            "type": "integer"
+        },
+	"strand": {
+            "title": "Strand",
+            "type": "string"
+        },
+        "file_header": {
+            "title": "File Header",
+            "type": "string"
+        },
+	"download_filename": {
+            "title": "Download Filename",
+            "type": "string"
+        },
+        "file_id": {
+            "title": "File ID",
+            "type": "integer"
+        },
+        "residues": {
+            "title": "Residues",
+            "type": "string"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        },
+	"date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+	        },
+                {
+                    "format": "date"
+		}
+            ]
+	}
+    },
+    "required": ["dbentity_id", "source", "taxonomy_id", "so_id", "dna_type", "contig_id", "start_index", "end_index", "strand", "file_header", "download_filename", "residues"]
+}

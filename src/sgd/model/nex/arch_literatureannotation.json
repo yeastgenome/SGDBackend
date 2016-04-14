@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "PhenotypeAnnotation",
+    "title": "Archive LiteratureAnnotation",
     "type": "object",
     "properties": {
         "id": {
@@ -15,8 +15,8 @@
             "title": "Source",
             "$ref": "source.json"
         },
-	"dbentity_id": {
-	    "title": "Dbentity ID",
+	"locus_id": {
+	    "title": "Locus ID",
             "type": "integer"
 	},
         "taxonomy_id": {
@@ -27,38 +27,10 @@
             "title": "Reference ID",
             "type": "integer"
         },
-	"phenotype_id": {
-            "title": "Phenotype ID",
-            "type": "integer"
-        },
-	"experiment_id": {
-            "title": "Experiment ID",
-            "type": "integer"
-        },
-	"mutant_id": {
-            "title": "Mutant ID",
-            "type": "integer"
-        },
-	"allele_id": {
-            "title": "Allele ID",
-            "type": "integer"
-        },
-	"reporter_id": {
-            "title": "Repporter ID",
-            "type": "integer"
-        },
-	"assay_id": {
-            "title": "Assay ID",
-            "type": "integer"
-        },
-	"strain_name": {
-            "title": "Strain Name",
-            "type": "string"
-        },
-	"details": {
-            "title": "Details",
-            "type": "string"
-        },
+	"topic": {
+	    "title": "Topic",
+	    "type": "string"
+	},
         "date_created": {
             "title": "Date Created",
             "type": "string",
@@ -74,7 +46,19 @@
         "created_by": {
             "title": "Name",
             "type": "string"
+        },
+	"date_archived": {
+            "title": "Date Archived",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
         }
     },
-    "required": ["source", "dbentity_id", "phenotype_id", "reference_id", "mutant_id", "experiment_id"]
+    "required": ["source", "topic", "reference_id"]
 }

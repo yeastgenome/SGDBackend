@@ -135,10 +135,11 @@ def proteinsequenceannotation_starter(bud_session_maker):
             items = header.split(' ')
             if items[0].startswith('>UNDEF'):
                 continue
-            gene = items[1]
-            if "|" in gene:
-                items[2] = gene
-                gene = name
+            gene_name = items[1]
+            if "|" in gene_name:
+                items[3] = items[2]
+                items[2] = gene_name
+                gene_name = name
             dbentity_id = locus_to_dbentity_id.get(name)
             if dbentity_id is None:
                 print "The feature name:", name, " is not in DBENTITY table."

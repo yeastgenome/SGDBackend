@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "PhenotypeAnnotation",
+    "title": "PathwayAnnotation",
     "type": "object",
     "properties": {
         "id": {
@@ -16,7 +16,7 @@
             "$ref": "source.json"
         },
 	"dbentity_id": {
-	    "title": "Dbentity ID",
+	    "title": "DBENTITY ID",
             "type": "integer"
 	},
         "taxonomy_id": {
@@ -27,37 +27,13 @@
             "title": "Reference ID",
             "type": "integer"
         },
-	"phenotype_id": {
-            "title": "Phenotype ID",
+	"ec_id": {
+	    "title": "EC ID",
+	    "type": "integer"
+	},
+	"pathway_id": {
+            "title": "Pathway ID",
             "type": "integer"
-        },
-	"experiment_id": {
-            "title": "Experiment ID",
-            "type": "integer"
-        },
-	"mutant_id": {
-            "title": "Mutant ID",
-            "type": "integer"
-        },
-	"allele_id": {
-            "title": "Allele ID",
-            "type": "integer"
-        },
-	"reporter_id": {
-            "title": "Repporter ID",
-            "type": "integer"
-        },
-	"assay_id": {
-            "title": "Assay ID",
-            "type": "integer"
-        },
-	"strain_name": {
-            "title": "Strain Name",
-            "type": "string"
-        },
-	"details": {
-            "title": "Details",
-            "type": "string"
         },
         "date_created": {
             "title": "Date Created",
@@ -76,5 +52,5 @@
             "type": "string"
         }
     },
-    "required": ["source", "dbentity_id", "phenotype_id", "reference_id", "mutant_id", "experiment_id"]
+    "required": ["source", "dbentity_id", "pathway_id"]
 }

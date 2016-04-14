@@ -1,0 +1,76 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "ArchContigChange",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "contig_id": {
+            "title": "Contig ID",
+            "type": "integer"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+	"genomerelease_id": {
+            "title": "Genomerelease ID",
+            "type": "integer"
+        },
+	"change_type": {
+            "title": "Change Type",
+            "type": "string"
+        },
+	"change_min_coord": {
+            "title": "Change Min Coord",
+            "type": "integer"
+        },
+	"change_max_coord": {
+            "title": "Change Max Coord",
+            "type": "integer"
+        },
+        "old_value": {
+            "title": "Old Value",
+            "type": "string"
+        },
+	"new_value": {
+            "title": "New Value",
+            "type": "string"
+        },
+        "date_changed": {
+            "title": "Date Changed",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "changed_by": {
+            "title": "Changed BY",
+            "type": "string"
+        },
+	"date_archived": {
+            "title": "Date Archived",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        }
+    },
+    "required": ["contig_id", "source", "genomerelease_id", "change_type", "change_min_coord", "change_max_coord"]
+}
