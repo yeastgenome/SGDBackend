@@ -87,6 +87,7 @@ def arch_proteinseqannotation_starter(bud_session_maker):
         yield { 'dbentity_id': dbentity_id,
                 'source': { 'display_name': 'SGD' },
                 'taxonomy_id': taxonomy_id,
+                'genomerelease_id': genomerelease_id,
                 'contig_id': arch_contig_id,
                 'seq_version': str(pieces[5]),
                 'created_by': pieces[6],
