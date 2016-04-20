@@ -650,17 +650,19 @@ Comment on column FILEPATH.CREATED_BY is 'Username of the person who entered the
 Comment on table FILEDBENTITY is 'Details about files loaded into or dumped from the database or associated with the Download Server.';
 Comment on column FILEDBENTITY.DBENTITY_ID is 'Unique identifier (Oracle sequence).';
 Comment on column FILEDBENTITY.TOPIC_ID is 'A broad domain or category of the file, FK to EDAM topic namespace.';
+Comment on column FILEDBENTITY.DATA_ID is 'Type of data in the file, FK to EDAM data namespace.';
 Comment on column FILEDBENTITY.FORMAT_ID is 'Standard file format, FK to EDAM format namespace.';
-Comment on column FILEDBENTITY.FILE_EXTENSION is 'File name extension (tsv,xls,xlsx,gff,bed,pcl,pdf,fasta,fsa,html,txt,xml,jpg,doc,docx).';
+Comment on column FILEDBENTITY.FILE_EXTENSION is 'File name extension.';
 Comment on column FILEDBENTITY.FILE_DATE is 'Release date or date the file was created.';
 Comment on column FILEDBENTITY.IS_PUBLIC is 'Whether the file is viewable to the public.';
 Comment on column FILEDBENTITY.IS_IN_SPELL is 'Whether the file was loaded into SPELL.';
 Comment on column FILEDBENTITY.IS_IN_BROWSER is 'Whether the file was loaded into a genome browser, such as JBrowse.';
-Comment on column FILEDBENTITY.S3_URL is 'Amazon S3 URL of the file.';
 Comment on column FILEDBENTITY.MD5SUM is 'The 128-bit MD5 hash or checksum of the file.';
+Comment on column FILEDBENTITY.S3_URL is 'Amazon S3 URL of the file.';
 Comment on column FILEDBENTITY.FILEPATH_ID is 'FK to FILEPATH.FILEPATH_ID.';
 Comment on column FILEDBENTITY.PREVIOUS_FILE_NAME is 'File name on the Download Server.';
-Comment on column FILEDBENTITY.README_URL is 'URL of the README associated with this file, if exists.';
+Comment on column FILEDBENTITY.README_FILE_ID is 'The README associated with this file, FK to FILEDBENTITY.DBENTITY_ID.';
+Comment on column FILEDBENTITY.DESCRIPTION is 'A description or comment about the file not included elsewhere.';
 
 Comment on table FILE_KEYWORD is 'Keywords associated with a file.';
 Comment on column FILE_KEYWORD.FILE_KEYWORD_ID is 'Unique identifier (Oracle sequence).';
