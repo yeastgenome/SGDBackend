@@ -812,8 +812,6 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                             else:
                                 date_created = datetime(quality_reference.reference.year, 1, 1)
 
-                        print "NAME=", bioentity.display_name, ", date_created=", date_created
-
                         yield {'source': key_to_source['SGD'],
                                'reference': quality_reference.reference,
                                'locus': bioentity,
@@ -858,10 +856,6 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                         else:
                             date_created = datetime(alias_reference.reference.year, 1, 1)
 
-
-                        print "NAME=", bioentity.display_name, ", ALIAS=", alias.display_name, ", date_created=", date_created
-
-
                         yield {'source': key_to_source['SGD'],
                                    'reference': alias_reference.reference,
                                    'locus': bioentity,
@@ -872,12 +866,6 @@ def make_history_evidence_starter(bud_session_maker, nex_session_maker):
                                    'created_by': None
                                 }
             if bioentity.reserved_name is not None:
-
-
-                print "RESERVED_NAME=", bioentity.reserved_name.display_name, ", date_created=", bioentity.reserved_name.date_created
-
-
-
                 yield {'source': key_to_source['SGD'],
                                'reference': bioentity.reserved_name.reference,
                                'locus': bioentity,
@@ -1067,12 +1055,13 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
             else:
                 key_to_reflinks[reflink_key] = [old_reflink]
 
+        found = {}
+
         for old_phenotype_feature in make_db_starter(bud_session.query(PhenotypeFeature).options(joinedload('experiment'), joinedload('phenotype')), 1000)():
             reference_ids = [] if ('PHENO_ANNOTATION_NO', old_phenotype_feature.id) not in key_to_reflinks else [x.reference_id for x in key_to_reflinks[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)]]
             bioentity_id = old_phenotype_feature.feature_id
             experiment_key = create_format_name(old_phenotype_feature.experiment_type)
             source_key = old_phenotype_feature.source
-
             observable = old_phenotype_feature.observable
             qualifier = old_phenotype_feature.qualifier
             if observable == 'chemical compound accumulation' or observable == 'chemical compound excretion' or observable == 'resistance to chemicals':
@@ -1095,7 +1084,7 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
                     note = '; '.join([a if b is None else a + ': ' + b for (a, b) in old_experiment.details])
                 strain_details = None if old_experiment.strain is None else old_experiment.strain[1]
                 experiment_details = None if old_experiment.experiment_comment is None else old_experiment.experiment_comment
-                conditions = make_phenotype_conditions(old_experiment, key_to_bioitem)
+                conditions = make_phenotype_conditions(old_experiment, key_to_bioitem, old_phenotype_feature, found)
                 #Get strain
                 if old_experiment.strain != None:
                     strain_key = old_experiment.strain[0]
@@ -1128,13 +1117,17 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
         nex_session.close()
     return phenotype_evidence_starter
 
-def make_phenotype_conditions(old_experiment, key_to_bioitem):
+def make_phenotype_conditions(old_experiment, key_to_bioitem, old_phenotype_feature, found):
     from src.sgd.model.nex.evidence import Bioitemproperty, Chemicalproperty, Generalproperty
     conditions = []
     #Get reporter
     if old_experiment.reporter is not None:
         reporter_key = (create_format_name(old_experiment.reporter[0]), 'ORPHAN')
+
         if reporter_key in key_to_bioitem:
+
+            # print "REPORTER: feature_no=", old_phenotype_feature.feature_id, ", phenotype_no=", old_phenotype_feature.phenotype_id, reporter_key
+
             conditions.append(Bioitemproperty({'note': old_experiment.reporter[1], 'role': 'Reporter', 'bioitem': key_to_bioitem[reporter_key]}))
         else:
             print 'Reporter not found: ' + str(reporter_key)
@@ -1143,14 +1136,41 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem):
     if old_experiment.allele is not None:
         allele_key = (create_format_name(old_experiment.allele[0]), 'ALLELE')
         if allele_key in key_to_bioitem:
+
+
+
+            # if old_phenotype_feature.feature_id == 6430:
+            #    print "CDC28: ", old_phenotype_feature.phenotype.observable, ":", old_phenotype_feature.phenotype.qualifier, ", allele=", str(old_experiment.allele)
+
+
+            # print "ALLELE: feature_no=", old_phenotype_feature.feature_id, ", phenotype_no=", old_phenotype_feature.phenotype_id, allele_key
+
             conditions.append(Bioitemproperty({'note': old_experiment.allele[1], 'role': 'Allele', 'bioitem': key_to_bioitem[allele_key]}))
         else:
             print 'Allele not found: ' + str(allele_key)
 
+
+
+    # if old_phenotype_feature.feature_id == 6430:
+    #    print "CDC28-CONDITION:", old_phenotype_feature.phenotype.observable, ":", old_phenotype_feature.phenotype.qualifier, ", condition=", str(conditions)
+
+
+
     #Get chemicals
     for (a, b) in old_experiment.chemicals:
         chemical_key = (create_format_name(a)[:95], 'CHEMICAL')
+        
+        this_key = str(old_phenotype_feature.feature_id) + ':' + str(old_phenotype_feature.phenotype_id) + ':' + str(chemical_key)
+
+        if found.get(this_key) is not None:
+            # print "CHEMICAL - Skipped: ", a, b, chemical_key
+            continue
+        found[this_key] = 1
+            
         if chemical_key in key_to_bioitem:
+
+            # print "CHEMICAL: feature_no=", old_phenotype_feature.feature_id, ", phenotype_no=", old_phenotype_feature.phenotype_id, a, b, chemical_key 
+
             chemical_note = None
             amount = None
             if b is not None and contains_digits(b):
@@ -1163,6 +1183,7 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem):
 
     #Get other conditions
     for (a, b) in old_experiment.condition:
+        # print "OTHER CONDITION:", a, b
         conditions.append(Generalproperty({'note': a if b is None else a + ': ' + b}))
     return conditions
 
