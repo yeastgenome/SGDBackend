@@ -2,22 +2,7 @@ from src.sgd.convert import basic_convert
 from src.sgd.convert.util import get_strain_taxid_mapping
 __author__ = 'sweng66'
 
-# detail_category_mapping = {'Chemical_pending': 'Chemical',
-#                           'chebi_ontology': 'Chemical',
-#                           'Condition': 'Condition',
-#                           
-#                       'strain_name', 'Numerical_value', 'Condition', 'Details'
-
-# Chemical_pending
-# chebi_ontology
-# Allele
-# Reporter
-# strain_background
-# strain_name
-# Numerical_value
-# Condition
-# Details
-
+DEFAULT_TAXON_ID = "TAX:4932"
 
 def phenotypeannotation_starter(bud_session_maker):
     from src.sgd.model.bud.phenotype import PhenotypeFeature
@@ -55,6 +40,8 @@ def phenotypeannotation_starter(bud_session_maker):
         if reference_id is not None:
             pheno_annot_bud_id_to_reference_id[bud_obj.primary_key] = reference_id
 
+    strain_taxid_mapping = get_strain_taxid_mapping()
+
     for bud_obj in bud_session.query(PhenotypeFeature).all():
 
         ## features
@@ -88,26 +75,9 @@ def phenotypeannotation_starter(bud_session_maker):
             print "The reference for pheno_annotation_no = ", bud_obj.id, " is not in Reference table."
             continue
 
-        ## taxonomy - data from expt_property => strain_background: S288C, W303, Other
-        ## allele - data from expt_property
-        ## reporter - data from expt_property
-        ## 
-
-        
-        ## PROPERTY_TYPE                                                                                  
-        # Chemical_pending                                                                                
-        # chebi_ontology                                                                                  
-        # Allele                                                                                          
-        # Reporter                                                                                       
-        # strain_background                                                                              
-        # strain_name                                                                                    
-        # Numerical_value                                                                                 
-        # Condition                                                                                       
-        # Details     
-
-        taxonomy_id = ''
-        allele_id = ''
-        reporter_id = ''
+        taxonomy_id = None
+        allele_id = None
+        reporter_id = None
 
         # print locus_id, phenotype_id, experiment_id, mutant_id, reference_id
 
@@ -117,7 +87,12 @@ def phenotypeannotation_starter(bud_session_maker):
             for exptProp in bud_obj.experiment_properties:
                 print "\t", exptProp.type, exptProp.value
                 if exptProp.type == 'strain_background' and exptProp.value in strain_taxid_mapping:
-                    taxid = strain_taxid_mapping[exptProp.value]
+                    strain = exptProp.value
+                    if strain == 'CEN.PK':
+                        strain = 'CENPK'
+                    taxid = strain_taxid_mapping.get(exptProp.value)
+                    if taxid is None:
+                        taxid = DEFAULT_TAXON_ID
                     taxonomy_id = taxid_to_taxonomy_id.get(taxid)
                 if exptProp.type == 'Allele':
                     allele_id = allele_to_id.get(exptProp.value)
@@ -134,26 +109,28 @@ def phenotypeannotation_starter(bud_session_maker):
                     if exptProp.description:
                         details = details + "; " + exptProp.description
 
+        if taxonomy_id is None:
+            print "NO strain_background for feature=", bud_obj.feature_id, " and phenotype=", phenotype
+            taxonomy_id = taxid_to_taxonomy_id.get(DEFAULT_TAXON_ID)
+
         obj_json = {
             'source': {'display_name': 'SGD'},
             'dbentity_id': dbentity_id,
+            'taxonomy_id': taxonomy_id,
             'phenotype_id': phenotype_id,
             'experiment_id': experiment_id,
             'mutant_id': mutant_id,
             'reference_id': reference_id,
             'bud_id': bud_obj.id,
+            'strain_name': strain_name,
+            'details': details,
             'date_created': str(bud_obj.date_created),
             'created_by': bud_obj.created_by
         }
-        if taxonomy_id is not None:
-            obj_json['taxonomy_id'] = taxonomy_id
         if allele_id is not None:
             obj_json['allele_id'] = allele_id
         if reporter_id is not None:
             obj_json['reporter_id'] = reporter_id
-        if len(detail_data) > 0:
-            obj_json['details'] = details
-
         yield obj_json
 
     bud_session.close()
@@ -172,6 +149,6 @@ def get_nex_session():
 
 if __name__ == '__main__':
     from src.sgd.convert import config
-    basic_convert(config.BUD_HOST, config.NEX_HOST, phenotypeannotation_starter, 'phenotypeannotation', lambda x: (x['dbentity_id'], x['phenotype_id'], x['mutant_id'], x['experiment_id'], x['reference_id']))
+    basic_convert(config.BUD_HOST, config.NEX_HOST, phenotypeannotation_starter, 'phenotypeannotation', lambda x: (x['dbentity_id'], x['taxonomy_id'], x['phenotype_id'], x['mutant_id'], x['experiment_id'], x['reference_id']))
 
 

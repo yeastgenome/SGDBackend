@@ -44,49 +44,22 @@ class Phenotypeannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMi
     locus = relationship(Locus, uselist=False)
     reference = relationship(Reference, uselist=False)
     phenotype = relationship(Phenotype, uselist=False)
-    experiment = relationship(Apo, uselist=False)
-    mutant = relationship(Apo, uselist=False)
+    # experiment = relationship(Apo, uselist=False)
+    # mutant = relationship(Apo, uselist=False)
     allele = relationship(Allele, uselist=False)
     reporter = relationship(Reporter, uselist=False)
     assay = relationship(Obi, uselist=False)
 
-    __eq_values__ = ['id', 'display_name', 'format_name', 'link', 'description', 'bud_id', 'date_created', 'created_by']
+    __eq_values__ = ['id', 'dbentity_id', 'taxonomy_id', 'reference_id', 'phenotype_id', 'experiment_id', 'mutant_id', 'allele_id', 'reporter_id',  'assay_id', 'strain_name', 'details', 'bud_id', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False),
                   ('locus', Locus, False),
                   ('reference', Reference, False)]
-    __id_values__ = ['id', 'format_name']
-    __no_edit_values__ = ['id', 'format_name', 'link', 'date_created', 'created_by']
+    __id_values__ = ['id']
+    __no_edit_values__ = ['id', 'date_created', 'created_by']
     __filter_values__ = ['locus_id', 'reference_id', 'phenotype_id']
 
     def __init__(self, obj_json, session):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
 
-    @classmethod
-    def __to_small_json__(self):
-        obj_json = ToJsonMixin.__to_small_json__(self)
-        obj_json['locus'] = self.locus.display_name
-        obj_json['phenotype'] = self.phenotype.display_name
-        obj_json['experiment'] = self.experiment.display_name
-        obj_json['mutant'] = self.mutant.display_name
-        return obj_json
 
-    def __to_medium_json__(self):
-        obj_json = ToJsonMixin.__to_medium_json__(self)
-        obj_json['locus'] = self.locus.display_name
-        obj_json['phenotype'] = self.phenotype.display_name
-        obj_json['experiment'] = self.experiment.display_name
-        obj_json['mutant'] = self.mutant.display_name
-        obj_json['reference'] = self.reference.citation
-        return obj_json
-
-    def __to_large_json__(self):
-        obj_json = ToJsonMixin.__to_large_json__(self)
-        obj_json['locus'] = self.locus.display_name
-        obj_json['phenotype'] = self.phenotype.display_name
-        obj_json['experiment'] = self.experiment.display_name
-        obj_json['mutant'] = self.mutant.display_name
-        obj_json['reference'] = self.reference.citation
-        obj_json['allele'] = self.allele.display_name
-        obj_json['reporter'] = self.reporter.display_name
-        return obj_json
 

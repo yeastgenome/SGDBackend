@@ -39,4 +39,3 @@ class Reporter(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     def __create_format_name__(cls, obj_json):
         return create_format_name(obj_json['display_name'])  
 
-

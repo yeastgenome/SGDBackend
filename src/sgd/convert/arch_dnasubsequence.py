@@ -105,6 +105,7 @@ def arch_dnasubsequence_starter(bud_session_maker):
         yield { 'annotation_id': annotation_id,
                 'dbentity_id': dbentity_id,
                 'display_name': display_name,
+                'genomerelease_id': genomerelease_id,
                 'so_id': so_id,
                 'relative_start_index': relative_start_index,
                 'relative_end_index': relative_end_index,
