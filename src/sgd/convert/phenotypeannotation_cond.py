@@ -22,45 +22,34 @@ def phenotypeannotation_cond_starter(bud_session_maker):
 
     bud_annotation_no_to_annotation_id = dict([(x.bud_id, x.id) for x in nex_session.query(Phenotypeannotation).all()])
 
-    ## load "chebi_ontology" & "Chemical_pending" & Numerical values 
+    ## load "chebi_ontology" & "Chemical_pending" 
     
     for x in bud_session.query(ExperimentProperty).all():
-
-        condition_class = ''
-        condition_name = ''
-        condition_value = ''
-        condition_unit = ''
-        if x.type == 'Numerical_value':
-            condition_class = 'score'
-            condition_name = x.description
-            condition_value = x.value
-        elif x.type in ['chebi_ontology', 'Chemical_pending']:
-            condition_class = 'ChEBI'
+        
+        if x.type in ['chebi_ontology', 'Chemical_pending']:
+            condition_class = 'chemical'
             condition_name = x.value
             condition_value = x.description
-        else:
-            continue
-        if condition_value is None:
-            condition_value = ''
+            if condition_value is None:
+                condition_value = ''
 
-        expt_id = expt_property_id_to_expt_id.get(x.id)
-        bud_annotation_no_list = expt_id_to_bud_annotation_no_list.get(expt_id)
-        if bud_annotation_no_list is None:
-            print "The experiment_no: ", expt_id, " is not in the BUD.pheno_annotation table"
-            continue
-        for bud_annotation_no in bud_annotation_no_list:
-            annotation_id = bud_annotation_no_to_annotation_id.get(bud_annotation_no)
-            if annotation_id is None:
-                print "The bud_id: ", bud_annotation_no, " is not in the PHENOTYPEANNOTATION table."
+            expt_id = expt_property_id_to_expt_id.get(x.id)
+            bud_annotation_no_list = expt_id_to_bud_annotation_no_list.get(expt_id)
+            if bud_annotation_no_list is None:
+                print "The experiment_no: ", expt_id, " is not in the BUD.pheno_annotation table"
                 continue
+            for bud_annotation_no in bud_annotation_no_list:
+                annotation_id = bud_annotation_no_to_annotation_id.get(bud_annotation_no)
+                if annotation_id is None:
+                    print "The bud_id: ", bud_annotation_no, " is not in the PHENOTYPEANNOTATION table."
+                    continue
 
-            yield { 'annotation_id': annotation_id,
-                    'condition_class': condition_class,
-                    'condition_name': condition_name,
-                    'condition_value': condition_value,
-                    'condition_unit': condition_unit,
-                    'date_created': str(x.date_created),
-                    'created_by': x.created_by }
+                yield { 'annotation_id': annotation_id,
+                        'condition_class': condition_class,
+                        'condition_name': condition_name,
+                        'condition_value': condition_value,
+                        'date_created': str(x.date_created),
+                        'created_by': x.created_by }
 
     ## load Condition  
     f = open("src/sgd/convert/data/phenotypeConditions032516.txt")

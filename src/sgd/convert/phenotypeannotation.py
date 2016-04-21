@@ -105,9 +105,15 @@ def phenotypeannotation_starter(bud_session_maker):
                 if exptProp.type == 'strain_name':
                     strain_name = exptProp.value
                 if exptProp.type == 'Details':
-                    details = exptProp.value
+                    if details != "":
+                        details = details + "; "
+                    details = details + exptProp.value
                     if exptProp.description:
                         details = details + "; " + exptProp.description
+                if exptProp.type == 'Numerical_value':
+                    if details != "":
+                        details= details + "; "
+                    details = details + exptProp.description + ": " + exptProp.value
 
         if taxonomy_id is None:
             print "NO strain_background for feature=", bud_obj.feature_id, " and phenotype=", phenotype
