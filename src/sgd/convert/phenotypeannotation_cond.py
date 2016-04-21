@@ -31,13 +31,17 @@ def phenotypeannotation_cond_starter(bud_session_maker):
         condition_value = ''
         condition_unit = ''
         if x.type == 'Numerical_value':
-            condition_class = 'numerical value'
+            condition_class = 'score'
             condition_name = x.description
             condition_value = x.value
         elif x.type in ['chebi_ontology', 'Chemical_pending']:
-            condition_class = 'chebi'
+            condition_class = 'ChEBI'
             condition_name = x.value
             condition_value = x.description
+        else:
+            continue
+        if condition_value is None:
+            condition_value = ''
 
         expt_id = expt_property_id_to_expt_id.get(x.id)
         bud_annotation_no_list = expt_id_to_bud_annotation_no_list.get(expt_id)
@@ -57,10 +61,6 @@ def phenotypeannotation_cond_starter(bud_session_maker):
                     'condition_unit': condition_unit,
                     'date_created': str(x.date_created),
                     'created_by': x.created_by }
-    return
-
-
-    print "Loading condition..."
 
     ## load Condition  
     f = open("src/sgd/convert/data/phenotypeConditions032516.txt")
@@ -117,4 +117,5 @@ def get_nex_session():
 
 if __name__ == '__main__':
     from src.sgd.convert import config
-    basic_convert(config.BUD_HOST, config.NEX_HOST, phenotypeannotation_cond_starter, 'phenotypeannotation_cond', lambda x: (x['annotation_id'], x['condition_class'], x['condition_name'], x['condition_value']))
+    basic_convert(config.BUD_HOST, config.NEX_HOST, phenotypeannotation_cond_starter, 'phenotypeannotation_cond', lambda x: (x['annotation_id'], x['condition_class'], x['condition_name'], x.get('condition_value')))
+ 
