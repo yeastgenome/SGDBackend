@@ -1,23 +1,23 @@
 CREATE OR REPLACE FUNCTION CheckChebi (
 --
--- Checks to see if a chebi_id exists in the CHIBI table
--- Returns TRUE if the chebi_id is found
+-- Checks to see if a chebiid exists in the CHEBI table
+-- Returns TRUE if the chebiid is found
 -- or FALSE if no match was found
 --
     p_chebi IN VARCHAR2)
     RETURN NUMBER
 IS
-    v_ChebiId	  chebi.chebi_id%TYPE;
+    v_ChebiId	  chebi.chebiid%TYPE;
 BEGIN
 
-    SELECT count(chebi_id) INTO v_ChebiId
+    SELECT count(chebiid) INTO v_ChebiId
     FROM chebi
-    WHERE chebi_id = p_chebi;
+    WHERE chebiid = p_chebi;
 
     IF v_ChebiId = 0 
     THEN 
        RAISE_APPLICATION_ERROR
-          (-20044, 'CHEBI_ID "' || p_chebi || '" does NOT exist in the CHEBI table.');
+          (-20044, 'CHEBIID "' || p_chebi || '" does NOT exist in the CHEBI table.');
        RETURN (0);
     END IF;
 
