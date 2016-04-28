@@ -14,7 +14,7 @@ BEGIN
         SELECT condition_seq.NEXTVAL INTO :new.condition_id FROM DUAL;
     END IF; 
 
-    IF (:new.condition_class = 'Chemical') THEN
+    IF (:new.condition_class = 'chemical') THEN
         v_DoesChebiExist := CheckChebi(:new.condition_name);
     END IF;
 
@@ -27,7 +27,7 @@ BEGIN
             (-20000, 'Primary key cannot be updated');
     END IF;
 
-    IF (:new.condition_class = 'Chemical') THEN
+    IF (:new.condition_class = 'chemical') THEN
         v_DoesChebiExist := CheckChebi(:new.condition_name);
     END IF;
 
