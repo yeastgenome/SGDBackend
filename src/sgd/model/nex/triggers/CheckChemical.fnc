@@ -23,9 +23,9 @@ BEGIN
 
     RETURN (1);
 
-End CheckChebi;
+End CheckChemical;
 /
-GRANT EXECUTE ON CheckChebi to PUBLIC
+GRANT EXECUTE ON CheckChemical to PUBLIC
 /
 SHOW ERROR
 

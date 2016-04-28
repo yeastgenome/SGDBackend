@@ -15,7 +15,7 @@ BEGIN
     END IF; 
 
     IF (:new.condition_class = 'chemical') THEN
-        v_DoesChebiExist := CheckChebi(:new.condition_name);
+        v_DoesChebiExist := CheckChemical(:new.condition_name);
     END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);
@@ -28,7 +28,7 @@ BEGIN
     END IF;
 
     IF (:new.condition_class = 'chemical') THEN
-        v_DoesChebiExist := CheckChebi(:new.condition_name);
+        v_DoesChebiExist := CheckChemical(:new.condition_name);
     END IF;
 
     IF (:new.date_created != :old.date_created) THEN    
