@@ -810,7 +810,7 @@ class SGDBackend(BackendInterface):
         # format: (GET param name, ES param name)
         locus_subcategories = [('feature type', 'feature_type'), ('molecular function', 'molecular_function'), ('phenotype', 'phenotypes'), ('cellular component', 'cellular_component'), ('biological process', 'biological_process')]
 
-        phenotype_subcategories = [("qualifier", "qualifier"), ("references", "references"), ("phenotype_locus", "phenotype_loci"), ("chemical", "chemical"), ("mutant_type", "mutant_type")]
+        phenotype_subcategories = [("observable", "observable"), ("qualifier", "qualifier"), ("references", "references"), ("phenotype_locus", "phenotype_loci"), ("chemical", "chemical"), ("mutant_type", "mutant_type")]
 
         go_subcategories = [("go_locus", "go_loci")]
 
