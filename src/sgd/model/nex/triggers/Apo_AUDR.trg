@@ -45,11 +45,15 @@ BEGIN
         AuditLog.InsertUpdateLog('APO', 'APO_NAMESPACE', :old.apo_id, :old.apo_namespace, :new.apo_namespace, USER);
     END IF;
 
+    IF (((:old.namespace_group IS NULL) AND (:new.namespace_group IS NOT NULL)) OR ((:old.namespace_group IS NOT NULL) AND (:new.namespace_group IS NULL)) OR (:old.namespace_group != :new.namespace_group))
+    THEN
+        AuditLog.InsertUpdateLog('APO', 'NAMESPACE_GROUP', :old.apo_id, :old.namespace_group, :new.namespace_group, USER);
+    END IF;
+
     IF (((:old.description IS NULL) AND (:new.description IS NOT NULL)) OR ((:old.description IS NOT NULL) AND (:new.description IS NULL)) OR (:old.description != :new.description))
     THEN
         AuditLog.InsertUpdateLog('APO', 'DESCRIPTION', :old.apo_id, :old.description, :new.description, USER);
     END IF;
-
 
   ELSE
 
@@ -57,7 +61,7 @@ BEGIN
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.apo_id || '[:]' || :old.apo_namespace || '[:]' ||
-             :old.description || '[:]' ||
+             :old.namespace_group || '[:]' || :old.description || '[:]' ||
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('APO', :old.apo_id, v_row, USER);

@@ -100,6 +100,7 @@ Comment on column APO.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column APO.BUD_ID is 'Not in BUD';
 Comment on column APO.APOID is 'Phenotype identifier (e.g., APO:0000009) or new term requests (NTR).';
 Comment	on column APO.APO_NAMESPACE is 'Aspect or vocabulary groupings (observable, qualifier, experiment_type, mutant_type).';
+Comment	on column APO.NAMESPACE_GROUP is 'A way to group terms within a namespace together.';
 Comment on column APO.DESCRIPTION is 'Description or comment.';
 Comment on column APO.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column APO.CREATED_BY is 'Username of the person who entered the record into the database.';
