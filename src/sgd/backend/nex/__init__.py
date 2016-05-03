@@ -874,6 +874,20 @@ class SGDBackend(BackendInterface):
                 }
             }
 
+        if (query[0] in ('"', "'") and query[-1] in ('"', "'")):
+            new_conditions = []
+            for cond in es_query['bool']['should'][2:4]:
+                new_conditions.append({'match_phrase_prefix': cond.pop(cond.keys()[0])})
+            multi_fields = {
+                "multi_match": {
+                    "query": query,
+                    "type": "phrase_prefix",
+                    "fields": multi_match_fields,
+                    "boost": 3
+                }
+            }
+            es_query['bool']['should'] = [es_query['bool']['should'][0]] + new_conditions + [multi_fields]
+
         if category != '':
             es_query = {
                 'filtered': {
