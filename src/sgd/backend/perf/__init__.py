@@ -26,7 +26,7 @@ SEARCH_ES_INDEX = 'searchable_items'
 import datetime
 
 class PerfBackend(BackendInterface):
-    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
+    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory, esearch_addr=None):
         class Base(object):
             __table_args__ = {'schema': schema, 'extend_existing':True}
 
@@ -38,6 +38,9 @@ class PerfBackend(BackendInterface):
         perf.Base.metadata.bind = engine
 
         self.log = set_up_logging(log_directory, 'perf')
+
+        if esearch_addr:
+            self.es = Elasticsearch(esearch_addr, timeout=5, retry_on_timeout=True)
 
     #Renderer
     def get_renderer(self, method_name):
