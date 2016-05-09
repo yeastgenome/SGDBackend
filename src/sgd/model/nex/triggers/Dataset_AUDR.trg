@@ -55,7 +55,7 @@ BEGIN
         AuditLog.InsertUpdateLog('DATASET', 'TAXONOMY_ID', :old.dataset_id, :old.taxonomy_id, :new.taxonomy_id, USER);
     END IF;
 
-    IF (:old.channel_count != :new.channel_count)
+    IF (((:old.channel_count IS NULL) AND (:new.channel_count IS NOT NULL)) OR ((:old.channel_count IS NOT NULL) AND (:new.channel_count IS NULL)) OR (:old.channel_count != :new.channel_count))
     THEN
         AuditLog.InsertUpdateLog('DATASET', 'CHANNEL_COUNT', :old.dataset_id, :old.channel_count, :new.channel_count, USER);
     END IF;
@@ -87,7 +87,7 @@ BEGIN
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.dbxref_id || '[:]' || :old.dbxref_type || '[:]' ||
-             :old.assay_id || '[:]' || :old.taxonomy_id || '[:]' || 
+             :old.assay_id || '[:]' || :old.taxonomy || '[:]' || 
              :old.channel_count || '[:]' || :old.sample_count || '[:]' || 
              :old.is_in_spell || '[:]' || :old.is_in_browser || '[:]' || 
              :old.description || '[:]' ||
