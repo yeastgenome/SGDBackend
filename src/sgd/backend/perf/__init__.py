@@ -801,8 +801,8 @@ class PerfBackend(BackendInterface):
         response_fields = ['name', 'href', 'description', 'category']
         results_search_body['_source'] = response_fields + ['keys']
         
-        if category == 'download':
-            results_search_body['_source'].append('data')
+#        if category == 'download':
+#            results_search_body['_source'].append('data')
 
         search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)            
 
@@ -817,16 +817,16 @@ class PerfBackend(BackendInterface):
                 
             obj['highlights'] = r.get('highlight')
 
-            if obj["category"] == "download":
-                obj["download_metadata"] = {}
-                obj["download_metadata"]["pubmed_ids"] = raw_obj["data"].get("Series_pubmed_id")
-                obj["download_metadata"]["sample_ids"] = raw_obj["data"].get("Sample_geo_accession")
-                obj["download_metadata"]["download_url"] = "http://yeastgenome.org/download-fake-geo/" + obj["name"]
-                obj["download_metadata"]["title"] = raw_obj["data"].get("Series_title")
-                obj["download_metadata"]["citations"] = ["Park E, et al. (2015) Structure of a Bud6/Actin Complex Reveals a Novel WH2-like Actin Monomer Recruitment Motif. Structure 23(8):1492-9"]
-                obj["download_metadata"]["summary"] = raw_obj["data"].get("Series_summary")
-                obj["download_metadata"]["experiment_types"] = raw_obj["data"].get("Series_type")
-                obj["download_metadata"]["keywords"] = raw_obj["data"].get("Spell_tags")
+#            if obj["category"] == "download":
+#                obj["download_metadata"] = {}
+#                obj["download_metadata"]["pubmed_ids"] = raw_obj["data"].get("Series_pubmed_id")
+#                obj["download_metadata"]["sample_ids"] = raw_obj["data"].get("Sample_geo_accession")
+#                obj["download_metadata"]["download_url"] = "http://yeastgenome.org/download-fake-geo/" + obj["name"]
+#                obj["download_metadata"]["title"] = raw_obj["data"].get("Series_title")
+#                obj["download_metadata"]["citations"] = ["Park E, et al. (2015) Structure of a Bud6/Actin Complex Reveals a Novel WH2-like Actin Monomer Recruitment Motif. Structure 23(8):1492-9"]
+#                obj["download_metadata"]["summary"] = raw_obj["data"].get("Series_summary")
+#                obj["download_metadata"]["experiment_types"] = raw_obj["data"].get("Series_type")
+#                obj["download_metadata"]["keywords"] = raw_obj["data"].get("Spell_tags")
 
             formatted_results.append(obj)
 
