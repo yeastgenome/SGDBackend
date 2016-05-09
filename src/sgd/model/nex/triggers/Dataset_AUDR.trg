@@ -87,7 +87,7 @@ BEGIN
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.dbxref_id || '[:]' || :old.dbxref_type || '[:]' ||
-             :old.assay_id || '[:]' || :old.taxonomy || '[:]' || 
+             :old.assay_id || '[:]' || :old.taxonomy_id || '[:]' || 
              :old.channel_count || '[:]' || :old.sample_count || '[:]' || 
              :old.is_in_spell || '[:]' || :old.is_in_browser || '[:]' || 
              :old.description || '[:]' ||
