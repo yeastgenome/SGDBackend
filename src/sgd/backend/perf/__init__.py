@@ -32,7 +32,7 @@ class PerfBackend(BackendInterface):
 
         perf.Base = declarative_base(cls=Base)
 
-        engine = create_engine("%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname), convert_unicode=True, pool_recycle=3600)
+        engine = create_engine("%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname), pool_recycle=3600)
 
         DBSession.configure(bind=engine)
         perf.Base.metadata.bind = engine
@@ -1072,7 +1072,7 @@ class PerfBackend(BackendInterface):
                             }
                         }
                     },
-                    "must_not": { "match": { "category": "reference" }},
+                    "must_not": { "match": { "category": "reference" }, "match": { "category": "download" }},
                     "should": [
                         {
                             "match": {
