@@ -42,7 +42,26 @@ def obi_starter(bud_session_maker):
                          'url_type': 'Ontobee'}]
         yield term
 
-
+    ## add NTR terms:                                                                                        
+    f = open('src/sgd/convert/data/published_datasets_metadata_A-O_201604.txt')
+    found = {}
+    i = 0
+    for line in f:
+        if line.startswith('dataset'):
+            continue
+        line = line.strip()
+        if line:
+            pieces = line.split("\t")
+            if pieces[5].startswith('NTR:'):
+                display_name = pieces[5].replace('NTR:', '')
+                if display_name not in found:
+                    i = i + 1
+                    found[display_name] = 1
+                    yield { 'source': { 'display_name': 'SGD' },
+                            'obiid': 'NTR:' + str(i),
+                            'format_name': 'NTR:' + str(i),
+                            'display_name': display_name }
+        
 if __name__ == '__main__':
     from src.sgd.convert import config
     basic_convert(config.BUD_HOST, config.NEX_HOST, obi_starter, 'obi', lambda x: x['display_name'])

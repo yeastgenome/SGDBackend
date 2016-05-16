@@ -25,7 +25,8 @@ def edam_starter(bud_session_maker):
         loaded.append(name.lower())
 
         edamid = term['edamid']
-        if edamid in is_obsolete_id:
+        namespace = term['edam_namespace']
+        if (edamid, namespace) in is_obsolete_id:
             continue
         print edamid
         if edamid not in parent_to_children:
@@ -48,6 +49,50 @@ def edam_starter(bud_session_maker):
                              'source': {'display_name': source},
                              'url_type': 'Ontobee'})
         yield term
+
+    ## add NTR terms:
+    f = open('src/sgd/convert/data/published_datasets-files_metadata_A-O_201604.txt')
+    found = {}
+    i = 0
+    for line in f:
+        if line.startswith('bun_filepath'):
+            continue
+        line = line.strip()
+        if line:
+            pieces = line.split("\t")
+            if pieces[6].startswith('NTR'):
+                namespace = 'topic'
+                display_name = pieces[5]
+                if (namespace, display_name) not in found:
+                    i = i + 1
+                    found[(namespace, display_name)] = 1
+                    yield { 'source': { 'display_name': 'SGD' },
+                            'edamid': 'NTR:' + str(i),
+                            'format_name': 'NTR:' + str(i),
+                            'edam_namespace': namespace,
+                            'display_name': display_name }
+            if pieces[8].startswith('NTR'):
+                namespace = 'data'
+                display_name = pieces[7]
+                if (namespace, display_name) not in found:
+                    i = i + 1
+                    found[(namespace, display_name)] = 1
+                    yield { 'source': { 'display_name': 'SGD' },
+                            'edamid': 'NTR:' + str(i),
+                            'format_name': 'NTR:' + str(i),
+                            'edam_namespace': namespace,
+                            'display_name': display_name }
+            if pieces[10].startswith('NTR'):
+                namespace = 'format'
+                display_name = pieces[9]
+                if (namespace, display_name) not in found:
+                    i = i + 1
+                    found[(namespace, display_name)] = 1
+                    yield { 'source': { 'display_name': 'SGD' },
+                            'edamid': 'NTR:' + str(i),
+                            'format_name': 'NTR:' + str(i),
+                            'edam_namespace': namespace,
+                            'display_name': display_name }
 
 
 def read_owl(filename, parent_to_children, is_obsolete_id, source):
@@ -131,7 +176,7 @@ def read_owl(filename, parent_to_children, is_obsolete_id, source):
             parent = 'EDAM:' + pieces[1].replace('/', '')
             parents.append(parent)
         if 'obsolete_since' in line:
-            is_obsolete_id[term['edamid']] = 1
+            is_obsolete_id[(term['edamid'], term['edam_namespace'])] = 1
 
     f.close()
 
