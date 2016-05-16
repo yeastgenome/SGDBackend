@@ -1,0 +1,130 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Dataset",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "display_name": {
+            "title": "Name",
+            "type": "string"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+        "link": {
+            "title": "Link",
+            "type": "string"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        },
+	"dbxref_id": {
+	    "title": "DBXREF ID",
+            "type": "string"
+	},
+	"dbxref_type": {
+            "title": "DBXREF Type",
+            "type": "string"
+        },
+	"assay_id": {
+            "title": "Assay ID",
+            "type": "integer"
+        },
+	"taxonomy_id": {
+            "title": "TAXONOMY ID",
+            "type": "integer"
+        },
+	"channel_count": {
+            "title": "Channel Count",
+            "type": "integer"
+        },
+	"sample_count": {
+            "title": "Sample count",
+            "type": "integer"
+        },
+	"description": {
+            "title": "Description",
+            "type": "string"
+        },
+	"is_in_spell": {
+            "title": "Is-in-spell",
+            "type": "integer"
+        },
+	"is_in_browser": {
+            "title": "Is-in-browser",
+            "type": "integer"
+        },
+	"urls": {
+            "title": "Urls",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "ID",
+                        "type": "integer"
+                    },
+                    "display_name": {
+                        "title": "Display Name",
+                        "type": "string"
+                    },
+                    "link": {
+                        "title": "Link",
+                        "type": "string"
+                    },
+                    "url_type": {
+                        "title": "Url Type",
+                        "type": "string"
+                    },
+                    "source": {
+                        "title": "Source",
+                        "$ref": "source.json"
+                    },
+                    "date_created": {
+                        "title": "Date Created",
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "date-time"
+                            },
+                            {
+                                "format": "date"
+                            }
+                        ]
+                    },
+                    "created_by": {
+                        "title": "Created By",
+                        "type": "string"
+                    }
+                },
+                "required": ["display_name", "link", "url_type", "source"]
+            }
+        }
+    },
+    "required": ["format_name", "display_name", "assay_id", "sample_count", "is_in_spell", "is_in_browser"]
+}
