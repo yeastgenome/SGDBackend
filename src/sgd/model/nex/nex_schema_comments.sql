@@ -1021,7 +1021,7 @@ Comment on column RESERVEDNAME.DESCRIPTION is 'Description or comment.';
 Comment on column RESERVEDNAME.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column RESERVEDNAME.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
-/* GO Slim */
+/* Ontology Slims and Subsets */
 Comment on table GOSLIM is 'Broader upper level GO terms grouped into useful sub-sets.';
 Comment on column GOSLIM.GOSLIM_ID is 'Unique identifier (Oracle sequence).';
 Comment on column GOSLIM.FORMAT_NAME is 'Unique name to create download files.';
@@ -1036,7 +1036,6 @@ Comment on column GOSLIM.DESCRIPTION is 'Description or comment.';
 Comment on column GOSLIM.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GOSLIM.CREATED_BY is 'Username of the person who entered the record into the database.';
 
-/* DO Subset */
 Comment on table DOSUBSET is 'Broad groups or sub-sets of disease ontology terms.';
 Comment on column DOSUBSET.DOSUBSET_ID is 'Unique identifier (Oracle sequence).';
 Comment on column DOSUBSET.FORMAT_NAME is 'Unique name to create download files.';
@@ -1046,6 +1045,7 @@ Comment on column DOSUBSET.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DOSUBSET.BUD_ID is 'Not from BUD.';
 Comment on column DOSUBSET.GO_ID is 'FK to DO.DO_ID.';
 Comment on column DOSUBSET.SUBSET_NAME is 'Name of the subset of DO terms (DO_cancer_slim,DO_MGI_slim,DO_rare_slim,GOLD,gram-negative_bacterial_infectious_disease,gram-positive_bacterial_infectious_disease,NCIthesaurus,sexually_transmitted_infectious_disease,tick-borne_infectious_disease,TopNodes_DOcancerslim,zoonotic_infectious_disease).';
+Comment on column DOSUBSET.GENOME_COUNT is 'Number of dbentities assigned to this DO subset.';
 Comment on column DOSUBSET.DESCRIPTION is 'Description or comment.';
 Comment on column DOSUBSET.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DOSUBSET.CREATED_BY is 'Username of the person who entered the record into the database.';
@@ -1322,6 +1322,32 @@ Comment on column DNASUBSEQUENCE.FILE_ID is 'FK to FILE.FILE_ID.';
 Comment on column DNASUBSEQUENCE.RESIDUES is 'DNA subfeature sequence.';
 Comment on column DNASUBSEQUENCE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DNASUBSEQUENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DOANNOTATION is 'Disease Ontology annotations.';
+Comment on column DOANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DOANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column DOANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DOANNOTATION.BUD_ID is 'Not from BUD.';
+Comment on column DOANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column DOANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column DOANNOTATION.DO_ID is 'FK to DO.DO_ID.';
+Comment on column DOANNOTATION.ECO_ID is 'FK to ECO.ECO_ID.';
+Comment on column DOANNOTATION.ANNOTATION_TYPE is 'Type of DO annotation (high-throughput, manually curated, computational).';
+Comment on column DOANNOTATION.DO_QUALIFIER is 'Qualifier of the DO annotation (enables, involved in, contributed_to).';
+Comment on column DOANNOTATION.DATE_ASSIGNED is 'Date the DO annotation was assigned or last reviewed.';
+Comment on column DOANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DOANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DOSUBSETANNOTATION is 'A subset of DO annotations that provide a broad overview, often used to summarize results.';
+Comment on column DOSUBSETANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DOSUBSETANNOTATION.DBENTITY_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column DOSUBSETANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DOSUBSETANNOTATION.BUD_ID is 'Not from BUD.';
+Comment on column DOSUBSETANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column DOSUBSETANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column DOSUBSETANNOTATION.DOSUBSET_ID is 'FK to DOSUBSET.DOSUBSET_ID.';
+Comment on column DOSUBSETANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DOSUBSETANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table ENZYMEANNOTATION is 'EC number annotations.';
 Comment on column ENZYMEANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
