@@ -165,7 +165,7 @@ Comment on column CHEBI_URL.URL_ID is 'Unique identifier (Oracle sequence).';
 Comment on column CHEBI_URL.DISPLAY_NAME is 'Public display name (ChEBI).';
 Comment on column CHEBI_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column CHEBI_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column CHEBI_URL.BUD_ID is 'PK from BUD.URL.URL_NO';
+Comment on column CHEBI_URL.BUD_ID is 'PK from BUD.URL.URL_NO.';
 Comment on column CHEBI_URL.CHEBI_ID is 'FK to CHEBI.CHEBI_ID.';
 Comment on column CHEBI_URL.URL_TYPE is 'Type of URL (ChEBI).';
 Comment on column CHEBI_URL.DATE_CREATED is 'Date the record was entered into the database.';
@@ -180,6 +180,50 @@ Comment on column CHEBI_RELATION.CHILD_ID is 'FK to CHEBI_ID.';
 Comment on column CHEBI_RELATION.RO_ID is 'FK to RO.RO_ID.';
 Comment on column CHEBI_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column CHEBI_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DO is 'Disease Ontology (DO).';
+Comment on column DO.DO_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DO.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column DO.DISPLAY_NAME is 'Public display name.';
+Comment on column DO.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column DO.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DO.BUD_ID is 'Not from BUD.';
+Comment on column DO.DOID is 'Disease ontology identifier (e.g., DOID:4159).';
+Comment on column DO.DESCRIPTION is 'Description or comment.';
+Comment on column DO.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DO.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DO_ALIAS is 'Other names, synonyms or cross references for the disease.';
+Comment on column DO_ALIAS.ALIAS_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DO_ALIAS.DISPLAY_NAME is 'Public display name.';
+Comment on column DO_ALIAS.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column DO_ALIAS.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DO_ALIAS.BUD_ID is 'Not from BUD.';
+Comment on column DO_ALIAS.DO_ID is 'FK to DO.DO_ID.';
+Comment on column DO_ALIAS.ALIAS_TYPE is 'Type of alias (EXACT, RELATED, Alternate ID, DBXREF).';
+Comment on column DO_ALIAS.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DO_ALIAS.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DO_URL is 'URLs associated with diseases.';
+Comment on column DO_URL.URL_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DO_URL.DISPLAY_NAME is 'Public display name (DO, BioPortal, OLS, Ontobee).';
+Comment on column DO_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column DO_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DO_URL.BUD_ID is 'Not from BUD.';
+Comment on column DO_URL.DO_ID is 'FK to DO.DO_ID.';
+Comment on column DO_URL.URL_TYPE is 'Type of URL (DO, BioPortal, OLS, Ontobee).';
+Comment on column DO_URL.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DO_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DO_RELATION is 'Relationship between two diseases.';
+Comment on column DO_RELATION.RELATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DO_RELATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DO_RELATION.BUD_ID is 'Not from BUD.';
+Comment on column DO_RELATION.PARENT_ID is 'FK to DO_ID.';
+Comment on column DO_RELATION.CHILD_ID is 'FK to DO_ID.';
+Comment on column DO_RELATION.RO_ID is 'FK to RO.RO_ID.';
+Comment on column DO_RELATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DO_RELATION.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table EC is 'Enzyme Commission (EC) numbers based on chemical reactions catalyzed by enzymes.';
 Comment on column EC.EC_ID is 'Unique identifier (Oracle sequence).';
@@ -991,6 +1035,20 @@ Comment on column GOSLIM.GENOME_COUNT is 'Number of dbentities assigned to this 
 Comment on column GOSLIM.DESCRIPTION is 'Description or comment.';
 Comment on column GOSLIM.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column GOSLIM.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+/* DO Subset */
+Comment on table DOSUBSET is 'Broad groups or sub-sets of disease ontology terms.';
+Comment on column DOSUBSET.DOSUBSET_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DOSUBSET.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column DOSUBSET.DISPLAY_NAME is 'Public display name.';
+Comment on column DOSUBSET.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column DOSUBSET.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DOSUBSET.BUD_ID is 'Not from BUD.';
+Comment on column DOSUBSET.GO_ID is 'FK to DO.DO_ID.';
+Comment on column DOSUBSET.SUBSET_NAME is 'Name of the subset of DO terms (DO_cancer_slim,DO_MGI_slim,DO_rare_slim,GOLD,gram-negative_bacterial_infectious_disease,gram-positive_bacterial_infectious_disease,NCIthesaurus,sexually_transmitted_infectious_disease,tick-borne_infectious_disease,TopNodes_DOcancerslim,zoonotic_infectious_disease).';
+Comment on column DOSUBSET.DESCRIPTION is 'Description or comment.';
+Comment on column DOSUBSET.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DOSUBSET.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 /* Phenotype */
 
