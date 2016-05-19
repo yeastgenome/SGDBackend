@@ -1,15 +1,15 @@
-Create OR REPLACE TRIGGER Gosupportingevidence_BIUR
+Create OR REPLACE TRIGGER Dosupportingevidence_BIUR
 --
--- Before insert or update trigger for gosupportingevidence table
+-- Before insert or update trigger for dosupportingevidence table
 --
-  BEFORE INSERT OR UPDATE ON gosupportingevidence
+  BEFORE INSERT OR UPDATE ON dosupportingevidence
   FOR EACH ROW
 DECLARE
   v_IsValidUser         dbuser.username%TYPE;
 BEGIN
   IF INSERTING THEN
 
-    IF (:new.gosupportingevidence_id IS NULL) THEN
+    IF (:new.dosupportingevidence_id IS NULL) THEN
         SELECT supportingevidence_seq.NEXTVAL INTO :new.supportingevidence_id FROM DUAL;
     END IF;
 
@@ -17,7 +17,7 @@ BEGIN
 
   ELSE
 
-    IF (:new.gosupportingevidence_id != :old.gosupportingevidence_id) THEN    
+    IF (:new.dosupportingevidence_id != :old.dosupportingevidence_id) THEN    
         RAISE_APPLICATION_ERROR
             (-20000, 'Primary key cannot be updated');
     END IF;
@@ -34,6 +34,6 @@ BEGIN
 
   END IF;
 
-END Gosupportingevidence_BIUR;
+END Dosupportingevidence_BIUR;
 /
 SHOW ERROR

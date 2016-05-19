@@ -1043,7 +1043,7 @@ Comment on column DOSUBSET.DISPLAY_NAME is 'Public display name.';
 Comment on column DOSUBSET.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column DOSUBSET.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DOSUBSET.BUD_ID is 'Not from BUD.';
-Comment on column DOSUBSET.GO_ID is 'FK to DO.DO_ID.';
+Comment on column DOSUBSET.DO_ID is 'FK to DO.DO_ID.';
 Comment on column DOSUBSET.SUBSET_NAME is 'Name of the subset of DO terms (DO_cancer_slim,DO_MGI_slim,DO_rare_slim,GOLD,gram-negative_bacterial_infectious_disease,gram-positive_bacterial_infectious_disease,NCIthesaurus,sexually_transmitted_infectious_disease,tick-borne_infectious_disease,TopNodes_DOcancerslim,zoonotic_infectious_disease).';
 Comment on column DOSUBSET.GENOME_COUNT is 'Number of dbentities assigned to this DO subset.';
 Comment on column DOSUBSET.DESCRIPTION is 'Description or comment.';
@@ -1337,6 +1337,16 @@ Comment on column DOANNOTATION.DO_QUALIFIER is 'Qualifier of the DO annotation (
 Comment on column DOANNOTATION.DATE_ASSIGNED is 'Date the DO annotation was assigned or last reviewed.';
 Comment on column DOANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DOANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
+Comment on table DOSUPPORTINGEVIDENCE is 'Evidence to support the DO annotation.';
+Comment on column DOSUPPORTINGEVIDENCE.DOSUPPORTINGEVIDENCE_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DOSUPPORTINGEVIDENCE.ANNOTATION_ID is 'FK to DOANNOTATION.ANNOTATION_ID.';
+Comment on column DOSUPPORTINGEVIDENCE.GROUP_ID is 'A grouping number.';
+Comment on column DOSUPPORTINGEVIDENCE.DBXREF_ID is 'External cross reference identifier.';
+Comment on column DOSUPPORTINGEVIDENCE.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column DOSUPPORTINGEVIDENCE.EVIDENCE_TYPE is 'How the supporting evidence is associated with the DO annotation (with, from).';
+Comment on column DOSUPPORTINGEVIDENCE.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DOSUPPORTINGEVIDENCE.CREATED_BY is 'Username of the person who entered the record into the database.';
 
 Comment on table DOSUBSETANNOTATION is 'A subset of DO annotations that provide a broad overview, often used to summarize results.';
 Comment on column DOSUBSETANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';

@@ -41,6 +41,14 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ChebiUrl_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ChebiRelation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/ChebiRelation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Do_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Do_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DoAlias_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DoAlias_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DoUrl_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DoUrl_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DoRelation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/DoRelation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Ec_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Ec_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/EcAlias_BIUR.trg
@@ -182,6 +190,8 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Reservedname_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslim_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Goslim_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dosubset_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dosubset_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotype_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Phenotype_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Allele_BIUR.trg
@@ -221,6 +231,12 @@
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasequenceannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasubsequence_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dnasubsequence_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Doannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Doannotation_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dosupportingevidence_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dosupportingevidence_AUDR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dosubsetannotation_BIUR.trg
+@/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Dosubsetannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_BIUR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Enzymeannotation_AUDR.trg
 @/db0/home/oracle/SGDBackend/src/sgd/model/nex/triggers/Expressionannotation_BIUR.trg
