@@ -10,7 +10,7 @@ BEGIN
   IF INSERTING THEN
 
     IF (:new.gosupportingevidence_id IS NULL) THEN
-        SELECT supportingevidence_seq.NEXTVAL INTO :new.supportingevidence_id FROM DUAL;
+        SELECT supportingevidence_seq.NEXTVAL INTO :new.gosupportingevidence_id FROM DUAL;
     END IF;
 
     v_IsValidUser := CheckUser(:new.created_by);
