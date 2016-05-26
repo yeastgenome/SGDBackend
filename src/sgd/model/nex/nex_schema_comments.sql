@@ -77,7 +77,7 @@ Comment on column RO_URL.OBJ_URL is 'URL of the object (relative for local links
 Comment on column RO_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column RO_URL.BUD_ID is 'Not in BUD';
 Comment on column RO_URL.RO_ID is 'FK to RO.RO_ID.';
-Comment on column RO_URL.URL_TYPE is 'Type of URL (Ontobee).';
+Comment on column RO_URL.URL_TYPE is 'Type of URL (Ontobee, OLS).';
 Comment on column RO_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column RO_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -118,12 +118,12 @@ Comment on column APO_ALIAS.CREATED_BY is 'Username of the person who entered th
 
 Comment on table APO_URL is 'URLs associated with phenotype.';
 Comment on column APO_URL.URL_ID is 'Unique identifier (Oracle sequence).';
-Comment on column APO_URL.DISPLAY_NAME is 'Public display name (BioPortal, OLS).';
+Comment on column APO_URL.DISPLAY_NAME is 'Public display name (BioPortal, OLS, Ontobee).';
 Comment on column APO_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column APO_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column APO_URL.BUD_ID is 'Not in BUD.';
 Comment on column APO_URL.APO_ID is 'FK to APO.APO_ID.';
-Comment on column APO_URL.URL_TYPE is 'Type of URL (BioPortal, OLS).';
+Comment on column APO_URL.URL_TYPE is 'Type of URL (BioPortal, OLS, Ontobee).';
 Comment on column APO_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column APO_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -284,12 +284,12 @@ Comment on column ECO_ALIAS.CREATED_BY is 'Username of the person who entered th
 
 Comment on table ECO_URL is 'URLs associated with evidence types.';
 Comment on column ECO_URL.URL_ID is 'Unique identifier (Oracle sequence).';
-Comment on column ECO_URL.DISPLAY_NAME is 'Public display name (BioPortal, OLS).';
+Comment on column ECO_URL.DISPLAY_NAME is 'Public display name (BioPortal, OLS, Ontobee).';
 Comment on column ECO_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column ECO_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column ECO_URL.BUD_ID is 'Not from BUD.';
 Comment on column ECO_URL.ECO_ID is 'FK to ECO.ECO_ID.';
-Comment on column ECO_URL.URL_TYPE is 'Type of URL (BioPortal, OLS).';
+Comment on column ECO_URL.URL_TYPE is 'Type of URL (BioPortal, OLS, Ontobee).';
 Comment on column ECO_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column ECO_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -334,7 +334,7 @@ Comment on column EDAM_URL.OBJ_URL is 'URL of the object (relative for local lin
 Comment on column EDAM_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column EDAM_URL.BUD_ID is 'Not from BUD.';
 Comment on column EDAM_URL.EDAM_ID is 'FK to EDAM.EDAM_ID.';
-Comment on column EDAM_URL.URL_TYPE is 'Type of URL (BioPortal, Ontobee).';
+Comment on column EDAM_URL.URL_TYPE is 'Type of URL (BioPortal, Ontobee, OLS).';
 Comment on column EDAM_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column EDAM_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -418,12 +418,12 @@ Comment on column OBI.CREATED_BY  is 'Username of the person who entered the rec
 
 Comment on table OBI_URL is 'URLs associated with biomedical investigations.';
 Comment on column OBI_URL.URL_ID is 'Unique identifier (Oracle sequence).';
-Comment on column OBI_URL.DISPLAY_NAME is 'Public display name (Ontobee).';
+Comment on column OBI_URL.DISPLAY_NAME is 'Public display name (Ontobee, OLS, BioPortal).';
 Comment on column OBI_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column OBI_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column OBI_URL.BUD_ID is 'Not from BUD.';
 Comment on column OBI_URL.OBI_ID is 'FK to OBI.OBI_ID.';
-Comment on column OBI_URL.URL_TYPE is 'Type of URL (Ontobee).';
+Comment on column OBI_URL.URL_TYPE is 'Type of URL (Ontobee, OLS, BioPortal).';
 Comment on column OBI_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column OBI_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
@@ -495,12 +495,12 @@ Comment on column SO_ALIAS.CREATED_BY is 'Username of the person who entered the
 
 Comment on table SO_URL is 'URLs associated with sequence features.';
 Comment on column SO_URL.URL_ID is 'Unique identifier (Oracle sequence).';
-Comment on column SO_URL.DISPLAY_NAME is 'Public display name (MISO, OLS).';
+Comment on column SO_URL.DISPLAY_NAME is 'Public display name (MISO, OLS, Ontobee, BioPortal).';
 Comment on column SO_URL.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column SO_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column SO_URL.BUD_ID is 'Not from BUD.';
 Comment on column SO_URL.SO_ID is 'FK to SO.SO_ID.';
-Comment on column SO_URL.URL_TYPE is 'Type of URL (MISO, OLS).';
+Comment on column SO_URL.URL_TYPE is 'Type of URL (MISO, OLS, Ontobee, BioPortal).';
 Comment on column SO_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column SO_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
