@@ -19,10 +19,10 @@ bootstrap:
 	python $(BOOTSTRAP)
 
 run-sgd:
-	bin/pserve $(SGD_NEX)
+	bin/pserve $(SGD_NEX) --reload
 
 run-perf:
-	bin/pserve $(SGD_PERF)
+	bin/pserve $(SGD_PERF) --reload
 
 test-sgd:
 	bin/test src/sgd/backend/tests --model nex
