@@ -1089,23 +1089,16 @@ Comment on column REPORTER.CREATED_BY is 'Username of the person who entered the
 
 /* Dataset */
 
-
-Comment on table DATASETLAB is 'Laboratory which conducted the dataset experiment.';
-Comment on column DATASETLAB.DATASETLAB_ID is 'Unique identifier (Oracle sequence).';
-Comment on column DATASETLAB.DATASET_ID is 'FK to DATASET.DATASET_ID.';
-Comment on column DATASETLAB.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
-Comment on column DATASETLAB.LAB_NAME is 'PI last name.';
-Comment on column DATASETLAB.LAB_LOCATION is 'Institution or location of the PI.';
-Comment on column DATASETLAB.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
-Comment on column DATASETLAB.DATE_CREATED is 'Date the record Comment on table DATASET is 'High throughput gene expression data from NCBI’s GEO database and displayed using SPELL.';
+Comment on table DATASET is 'High throughput gene expression data from NCBI’s GEO database and displayed using SPELL.';
 Comment on column DATASET.DATASET_ID is 'Unique identifier (Oracle sequence).';
 Comment on column DATASET.FORMAT_NAME is 'Unique name to create download files.';
 Comment on column DATASET.DISPLAY_NAME is 'Public display name.';
 Comment on column DATASET.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column DATASET.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DATASET.BUD_ID is 'Not in BUD.';
-Comment on column DATASET.DBXREF_ID is 'GEO Series ID (GSE), ArrayExpress ID, or Sequence Read Archive ID.';
-Comment on column DATASET.DBXREF_TYPE is 'Type of database cross reference (GEO,ArrayExpress,SRA).';
+Comment on column DATASET.DBXREF_ID is 'GEO Series ID (GSE), ArrayExpress ID.';
+Comment on column DATASET.DBXREF_TYPE is 'Type of database cross reference (GEO,ArrayExpress).';
+Comment on column DATASET.DATE_PUBLIC is 'Date the dataset was made public or released.';
 Comment on column DATASET.ASSAY_ID is 'FK to OBI.OBI_ID.';
 Comment on column DATASET.CHANNEL_COUNT is 'Number of channels (1 or 2) in the experiment.';
 Comment on column DATASET.SAMPLE_COUNT is 'Number of samples in the experiment.';
@@ -1115,7 +1108,15 @@ Comment on column DATASET.IS_IN_BROWSER is 'Whether this dataset has been loaded
 Comment on column DATASET.DESCRIPTION is 'Description or summary.';
 Comment on column DATASET.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DATASET.CREATED_BY  is 'Username of the person who entered the record into the database.';
-was entered into the database.';
+
+Comment on table DATASETLAB is 'Laboratory which conducted the dataset experiment.';
+Comment on column DATASETLAB.DATASETLAB_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASETLAB.DATASET_ID is 'FK to DATASET.DATASET_ID.';
+Comment on column DATASETLAB.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASETLAB.LAB_NAME is 'PI name.';
+Comment on column DATASETLAB.LAB_LOCATION is 'Institution or location of the PI.';
+Comment on column DATASETLAB.COLLEAGUE_ID is 'FK to COLLEAGUE.COLLEAGUE_ID.';
+Comment on column DATASETLAB.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DATASETLAB.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
 Comment on table DATASET_URL is 'URLs associated with a dataset.';
@@ -1125,7 +1126,7 @@ Comment on column DATASET_URL.OBJ_URL is 'URL of the object (relative for local 
 Comment on column DATASET_URL.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DATASET_URL.BUD_ID is 'Not from BUD.';
 Comment on column DATASET_URL.DATASET_ID is 'FK to DATASET.DATASET_ID.';
-Comment on column DATASET_URL.URL_TYPE is 'Type of URL (GSE, ArrayExpress, SRA).';
+Comment on column DATASET_URL.URL_TYPE is 'Type of URL (GEO, ArrayExpress, Lab website).';
 Comment on column DATASET_URL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DATASET_URL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
