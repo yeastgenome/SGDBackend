@@ -45,6 +45,11 @@ BEGIN
         AuditLog.InsertUpdateLog('DATASET', 'DBXREF_TYPE', :old.dataset_id, :old.dbxref_type, :new.dbxref_type, USER);
     END IF;
 
+    IF (:old.date_public != :new.date_public)
+    THEN
+        AuditLog.InsertUpdateLog('DATASET', 'DATE_PUBLIC', :old.dataset_id, :old.date_public, :new.date_public, USER);
+    END IF;
+
     IF (:old.assay_id != :new.assay_id)
     THEN
         AuditLog.InsertUpdateLog('DATASET', 'ASSAY_ID', :old.dataset_id, :old.assay_id, :new.assay_id, USER);
@@ -87,6 +92,7 @@ BEGIN
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.dbxref_id || '[:]' || :old.dbxref_type || '[:]' ||
+             :old.date_public || '[:]' ||
              :old.assay_id || '[:]' || :old.taxonomy_id || '[:]' || 
              :old.channel_count || '[:]' || :old.sample_count || '[:]' || 
              :old.is_in_spell || '[:]' || :old.is_in_browser || '[:]' || 
