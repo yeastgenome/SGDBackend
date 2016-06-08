@@ -45,9 +45,14 @@ BEGIN
         AuditLog.InsertUpdateLog('DATASET', 'DBXREF_TYPE', :old.dataset_id, :old.dbxref_type, :new.dbxref_type, USER);
     END IF;
 
-    IF (:old.date_public != :new.date_public)
+    IF (((:old.date_public IS NULL) AND (:new.date_public IS NOT NULL)) OR ((:old.date_public IS NOT NULL) AND (:new.date_public IS NULL)) OR (:old.date_public != :new.date_public))
     THEN
         AuditLog.InsertUpdateLog('DATASET', 'DATE_PUBLIC', :old.dataset_id, :old.date_public, :new.date_public, USER);
+    END IF;
+
+    IF (((:old.parent_dataset_id IS NULL) AND (:new.parent_dataset_id IS NOT NULL)) OR ((:old.parent_dataset_id IS NOT NULL) AND (:new.parent_dataset_id IS NULL)) OR (:old.parent_dataset_id != :new.parent_dataset_id))
+    THEN
+        AuditLog.InsertUpdateLog('DATASET', 'PARENT_DATASET_ID', :old.dataset_id, :old.parent_dataset_id, :new.parent_dataset_id, USER);
     END IF;
 
     IF (:old.assay_id != :new.assay_id)
@@ -85,14 +90,13 @@ BEGIN
         AuditLog.InsertUpdateLog('DATASET', 'DESCRIPTION', :old.dataset_id, :old.description, :new.description, USER);
     END IF;
 
-
   ELSE
 
     v_row := :old.dataset_id || '[:]' || :old.format_name || '[:]' ||
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
              :old.dbxref_id || '[:]' || :old.dbxref_type || '[:]' ||
-             :old.date_public || '[:]' ||
+             :old.date_public || '[:]' || :old.parent_dataset_id || '[:]' ||
              :old.assay_id || '[:]' || :old.taxonomy_id || '[:]' || 
              :old.channel_count || '[:]' || :old.sample_count || '[:]' || 
              :old.is_in_spell || '[:]' || :old.is_in_browser || '[:]' || 
