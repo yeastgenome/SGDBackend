@@ -1099,6 +1099,7 @@ Comment on column DATASET.BUD_ID is 'Not in BUD.';
 Comment on column DATASET.DBXREF_ID is 'GEO Series ID (GSE), ArrayExpress ID.';
 Comment on column DATASET.DBXREF_TYPE is 'Type of database cross reference (GEO,ArrayExpress).';
 Comment on column DATASET.DATE_PUBLIC is 'Date the dataset was made public or released.';
+Comment on column DATASET.PARENT_DATASET_ID is 'FK to DATASET.DATASET_ID. Used to associate GEO super- and sub-series.';
 Comment on column DATASET.ASSAY_ID is 'FK to OBI.OBI_ID.';
 Comment on column DATASET.CHANNEL_COUNT is 'Number of channels (1 or 2) in the experiment.';
 Comment on column DATASET.SAMPLE_COUNT is 'Number of samples in the experiment.';
