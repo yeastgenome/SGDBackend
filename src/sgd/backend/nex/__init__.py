@@ -787,6 +787,7 @@ class SGDBackend(BackendInterface):
         limit = params['limit'] if 'limit' in params.keys() else 10
         offset = params['offset'] if 'offset' in params.keys() else 0
         category = params['category'] if 'category' in params.keys() else ''
+        sort_by = params['sort_by'] if 'sort_by' in params.keys() else ''
 
         #locus filters
         feature_type = params.get('feature type')
@@ -926,6 +927,15 @@ class SGDBackend(BackendInterface):
                 'fields' : {}
             }
         }
+
+        if sort_by == 'alphabetical':
+            results_search_body['sort'] = [
+                {
+                    "name.raw": {
+                        "order": "asc"
+                    }
+                }
+            ]
 
         highlight_fields = ['name', 'description'] + multi_match_fields
         for field in highlight_fields:
