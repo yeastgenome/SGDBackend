@@ -936,7 +936,7 @@ class SGDBackend(BackendInterface):
                     }
                 }
             ]
-        elif sort_by == 'annotations':
+        elif sort_by == 'annotation':
             results_search_body['sort'] = [
                 {
                     "number_annotations": {
