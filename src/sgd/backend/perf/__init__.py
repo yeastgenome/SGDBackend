@@ -816,13 +816,13 @@ class PerfBackend(BackendInterface):
         for field in highlight_fields:
             results_search_body['highlight']['fields'][field] = {}
         
-        response_fields = ['name', 'href', 'description', 'category']
+        response_fields = ['name', 'href', 'description', 'category', 'bioentity_id']
         results_search_body['_source'] = response_fields + ['keys']
         
 #        if category == 'download':
 #            results_search_body['_source'].append('data')
 
-        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)            
+        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)
 
         formatted_results = []
 
