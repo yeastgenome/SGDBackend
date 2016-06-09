@@ -936,6 +936,14 @@ class SGDBackend(BackendInterface):
                     }
                 }
             ]
+        elif sort_by == 'annotations':
+            results_search_body['sort'] = [
+                {
+                    "number_annotations": {
+                        "order": "desc"
+                    }
+                }
+            ]
 
         highlight_fields = ['name', 'description'] + multi_match_fields
         for field in highlight_fields:
