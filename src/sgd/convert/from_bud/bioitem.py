@@ -641,7 +641,7 @@ def make_bioitem_url_starter(nex_session_maker):
             elif bioitem_type == 'SMART':
                 link = "http://smart.embl-heidelberg.de/smart/do_annotation.pl?DOMAIN=" + display_name
             elif bioitem_type == 'Pfam':
-                link = "http://pfam.sanger.ac.uk/family?type=Family&entry=" + display_name
+                link = "http://pfam.xfam.org/family/" + display_name
             elif bioitem_type == 'Gene3D':
                 link = "http://www.cathdb.info/version/latest/superfamily/" + display_name[6:]
             elif bioitem_type == 'SUPERFAMILY':
@@ -659,7 +659,8 @@ def make_bioitem_url_starter(nex_session_maker):
             elif bioitem_type == 'PIRSF':
                 link = "http://pir.georgetown.edu/cgi-bin/ipcSF?id=" + display_name
             elif bioitem_type == 'PROSITE' or bioitem_type == 'Prosite':
-                link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
+                link = "http://prosite.expasy.org/cgi-bin/prosite/nicesite.pl?" + display_name
+                # link = "http://prodom.prabi.fr/prodom/cgi-bin/prosite-search-ac?" + display_name
             elif bioitem_type == 'HAMAP':
                 link = "http://hamap.expasy.org/unirule/" + display_name
             elif bioitem_type == 'Phobius':
