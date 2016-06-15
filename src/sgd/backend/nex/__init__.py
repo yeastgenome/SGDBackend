@@ -824,6 +824,12 @@ class SGDBackend(BackendInterface):
         else:
             es_query = {
                 "bool": {
+                    "must_not" : {
+                        "match" : {
+                            "category" : "colleagues"
+                        }
+                    },
+                    
                     "should": [
                         {
                             "match_phrase_prefix": {
@@ -869,7 +875,7 @@ class SGDBackend(BackendInterface):
                                 "fields": multi_match_fields,
                                 "boost": 3
                             }
-                        }
+                        },
                     ],
                     "minimum_should_match": 1
                 }

@@ -691,6 +691,12 @@ class PerfBackend(BackendInterface):
         else:
             es_query = {
                 "bool": {
+                    "must_not" : {
+                        "match" : {
+                            "category" : "colleagues"
+                        }
+                    },
+                    
                     "should": [
                         {
                             "match_phrase_prefix": {
