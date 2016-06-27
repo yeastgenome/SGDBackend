@@ -1074,7 +1074,12 @@ class SGDBackend(BackendInterface):
             formatted_agg = []
 
             for agg_info in phenotype_subcategories:
-                agg_obj = {'key': agg_info[0], 'values': []}
+                if agg_info[0] == 'phenotype_locus':
+                    agg_obj = {'key': 'locus', 'values': []}
+                elif agg_info[0] == 'mutant_type':
+                    agg_obj = {'key': 'mutant type', 'values': []}
+                else:
+                    agg_obj = {'key': agg_info[0], 'values': []}
                 for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
                     agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
                 formatted_agg.append(agg_obj)
@@ -1095,7 +1100,11 @@ class SGDBackend(BackendInterface):
             formatted_agg = []
 
             for agg_info in go_subcategories:
-                agg_obj = {'key': agg_info[0], 'values': []}
+                if agg_info[0] == 'go_locus':
+                    agg_obj = {'key': 'locus', 'values': []}
+                else:
+                    agg_obj = {'key': agg_info[0], 'values': []}
+                    
                 for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
                     agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
                 formatted_agg.append(agg_obj)
@@ -1125,7 +1134,10 @@ class SGDBackend(BackendInterface):
             formatted_agg = []
 
             for agg_info in reference_subcategories:
-                agg_obj = {'key': agg_info[0], 'values': []}
+                if agg_info[0] == 'reference_locus':
+                    agg_obj = {'key': 'locus', 'values': []}
+                else:
+                    agg_obj = {'key': agg_info[0], 'values': []}
                 for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
                     agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
                 formatted_agg.append(agg_obj)
