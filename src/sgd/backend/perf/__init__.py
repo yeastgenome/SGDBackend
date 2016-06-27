@@ -796,6 +796,9 @@ class PerfBackend(BackendInterface):
 
         results_search_body = {
             'query': es_query,
+            'sort': [
+                {'number_annotations': {'order': 'desc'}}
+            ],
             'highlight' : {
                 'fields' : {}
             }

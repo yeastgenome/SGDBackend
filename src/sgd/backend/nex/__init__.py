@@ -904,7 +904,7 @@ class SGDBackend(BackendInterface):
                             'must': [{'term': { 'category': category}}]
                         }
                     }
-                }
+                },
             }
 
             if category == 'locus':
@@ -929,6 +929,9 @@ class SGDBackend(BackendInterface):
 
         results_search_body = {
             'query': es_query,
+            'sort': [
+                {'number_annotations': {'order': 'desc'}}
+            ],
             'highlight' : {
                 'fields' : {}
             }
