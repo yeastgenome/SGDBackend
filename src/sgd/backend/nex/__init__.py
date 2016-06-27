@@ -930,6 +930,7 @@ class SGDBackend(BackendInterface):
         results_search_body = {
             'query': es_query,
             'sort': [
+                '_score',
                 {'number_annotations': {'order': 'desc'}}
             ],
             'highlight' : {
