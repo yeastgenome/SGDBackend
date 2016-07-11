@@ -45,6 +45,11 @@ BEGIN
         AuditLog.InsertUpdateLog('COLLEAGUE', 'LAST_NAME', :old.colleague_id, :old.last_name, :new.last_name, USER);
     END IF;
 
+    IF (((:old.middle_name IS NULL) AND (:new.middle_name IS NOT NULL)) OR ((:old.middle_name IS NOT NULL) AND (:new.middle_name IS NULL)) OR (:old.middle_name != :new.middle_name))
+    THEN
+        AuditLog.InsertUpdateLog('COLLEAGUE', 'MIDDLE_NAME', :old.colleague_id, :old.middle_name, :new.middle_name, USER);
+    END IF;
+
     IF (:old.first_name != :new.first_name) 
     THEN
         AuditLog.InsertUpdateLog('COLLEAGUE', 'FIRST_NAME', :old.colleague_id, :old.first_name, :new.first_name, USER);
@@ -120,11 +125,6 @@ BEGIN
         AuditLog.InsertUpdateLog('COLLEAGUE', 'OTHER_PHONE', :old.colleague_id, :old.other_phone, :new.other_phone, USER);
     END IF;
 
-    IF (((:old.fax IS NULL) AND (:new.fax IS NOT NULL)) OR ((:old.fax IS NOT NULL) AND (:new.fax IS NULL)) OR (:old.fax != :new.fax))
-    THEN
-        AuditLog.InsertUpdateLog('COLLEAGUE', 'FAX', :old.colleague_id, :old.fax, :new.fax, USER);
-    END IF;
-
     IF (((:old.email IS NULL) AND (:new.email IS NOT NULL)) OR ((:old.email IS NOT NULL) AND (:new.email IS NULL)) OR (:old.email != :new.email))
     THEN
         AuditLog.InsertUpdateLog('COLLEAGUE', 'EMAIL', :old.colleague_id, :old.email, :new.email, USER);
@@ -150,6 +150,11 @@ BEGIN
         AuditLog.InsertUpdateLog('COLLEAGUE', 'IS_CONTACT', :old.colleague_id, :old.is_contact, :new.is_contact, USER);
     END IF;
 
+    IF (:old.is_beta_tester != :new.is_beta_tester)
+    THEN
+        AuditLog.InsertUpdateLog('COLLEAGUE', 'IS_BETA_TESTER', :old.colleague_id, :old.is_beta_tester, :new.is_beta_tester, USER);
+    END IF;
+
     IF (:old.display_email != :new.display_email) 
     THEN
         AuditLog.InsertUpdateLog('COLLEAGUE', 'DISPLAY_EMAIL', :old.colleague_id, :old.display_email, :new.display_email, USER);
@@ -165,18 +170,18 @@ BEGIN
     v_row := :old.colleague_id || '[:]' || :old.format_name || '[:]' ||
              :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
-             :old.orcid || '[:]' || :old.last_name || '[:]' || 
-             :old.first_name || '[:]' || :old.suffix || '[:]' || 
-             :old.other_last_name || '[:]' || :old.profession || '[:]' || 
-             :old.job_title || '[:]' || :old.institution || '[:]' || 
-             :old.address1 || '[:]' || :old.address2 || '[:]' || 
-             :old.address3 || '[:]' || :old.city || '[:]' || 
-             :old.state || '[:]' || :old.country || '[:]' || 
-             :old.postal_code || '[:]' || :old.work_phone || '[:]' ||
-             :old.other_phone || '[:]' || :old.fax || '[:]' ||
+             :old.orcid || '[:]' || :old.last_name || '[:]' ||
+             :old.middle_name || '[:]' || :old.first_name || '[:]' || 
+             :old.suffix || '[:]' || :old.other_last_name || '[:]' || 
+             :old.profession || '[:]' || :old.job_title || '[:]' || 
+             :old.institution || '[:]' || :old.address1 || '[:]' || 
+             :old.address2 || '[:]' || :old.address3 || '[:]' || 
+             :old.city || '[:]' || :old.state || '[:]' || 
+             :old.country || '[:]' || :old.postal_code || '[:]' || 
+             :old.work_phone || '[:]' ||:old.other_phone || '[:]' || 
              :old.email || '[:]' || :old.colleague_note || '[:]' ||
-             :old.research_interest || '[:]' ||
-             :old.is_pi || '[:]' || :old.is_contact || '[:]' ||
+             :old.research_interest || '[:]' || :old.is_pi || '[:]' || 
+             :old.is_contact || '[:]' || :old.is_beta_tester || '[:]' ||
              :old.display_email || '[:]' || :old.date_last_modified || '[:]' || 
              :old.date_created || '[:]' || :old.created_by;
 
