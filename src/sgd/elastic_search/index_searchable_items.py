@@ -8,8 +8,6 @@ from elasticsearch import Elasticsearch
 import json
 
 #CLIENT_ADDRESS = 'http://localhost:9200'
-#CLIENT_ADDRESS = 'http://54.200.43.123:9200/' beta
-CLIENT_ADDRESS = 'http://54.149.216.100:9200/' # sgd-nex2
 INDEX_NAME = 'searchable_items'
 DOC_TYPE = 'searchable_item'
 RESET_INDEX = False
@@ -21,6 +19,7 @@ perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.
 from src.sgd.model.nex.bioentity import Bioentity, Locus
 
 from src.sgd.model.perf.core import Bioentity as PerfBioentity
+from src.sgd.model.perf.bioentity_data import BioentityDetails as PerfBioentityDetails
 from src.sgd.model.perf.bioconcept_data import BioconceptDetails as PerfBioconceptDetails
 from src.sgd.model.perf.reference_data import ReferenceDetails
 from src.sgd.model.nex.reference import Author
@@ -78,11 +77,11 @@ def load_go_slim(go_slim_mappingtab_file):
                 genes[entry[2]] = {'cellular_component': [], 'biological_process': [], 'molecular_function': []}
             
             if entry[3] == 'C':
-                genes[entry[2]]['cellular_component'].append(entry[4] + ' (slim)')
+                genes[entry[2]]['cellular_component'].append(entry[4])
             elif entry[3] == 'F':
-                genes[entry[2]]['molecular_function'].append(entry[4] + ' (slim)')
+                genes[entry[2]]['molecular_function'].append(entry[4])
             elif entry[3] == 'P':
-                genes[entry[2]]['biological_process'].append(entry[4] + ' (slim)')
+                genes[entry[2]]['biological_process'].append(entry[4])
 
     return genes
 
@@ -98,6 +97,23 @@ def index_genes():
         else:
             _name = gene.display_name + ' / ' + gene.format_name
 
+        go_annotations = perf_session.query(PerfBioentityDetails).filter_by(obj_id=gene.id, class_type="GO").first()
+        go_annotations_json = json.loads(go_annotations.json)
+
+        cellular_component = set()
+        biological_process = set()
+        molecular_function = set()
+        for go_annotation in go_annotations_json:
+            if go_annotation['go']['go_aspect'] == 'molecular function':
+                molecular_function.add(go_annotation['go']['display_name'] + ' (direct)')
+            elif go_annotation['go']['go_aspect'] == 'cellular component':
+                cellular_component.add(go_annotation['go']['display_name'] + ' (direct)')
+            elif go_annotation['go']['go_aspect'] == 'biological process':
+                biological_process.add(go_annotation['go']['display_name'] + ' (direct)')
+            else:
+                print "GO CATEGORY UNKNOWN! Check this out:"
+                import pdb; pdb.set_trace()
+                
         perf_result = perf_session.query(PerfBioentity).filter_by(id=gene.id).first()
         perf_json = perf_result.to_json()
 
@@ -106,22 +122,7 @@ def index_genes():
             for kk in perf_json['phenotype_overview'][k].keys():
                 for phenotype in perf_json['phenotype_overview'][k][kk]:
                     phenotypes.add(phenotype['display_name'])
-                    
-        cellular_component = set()
-        for k in ['htp_cellular_component_terms', 'manual_cellular_component_terms']:
-            for term in perf_json['go_overview'][k]:
-                cellular_component.add(term['term']['display_name'])
-        
-        biological_process = set()
-        for k in ['htp_biological_process_terms', 'manual_biological_process_terms']:
-            for term in perf_json['go_overview'][k]:
-                biological_process.add(term['term']['display_name'])
-        
-        molecular_function = set()
-        for k in ['htp_molecular_function_terms', 'manual_molecular_function_terms']:
-            for term in perf_json['go_overview'][k]:
-                molecular_function.add(term['term']['display_name'])
-
+                
         go_slim = genes_go_slim.get(gene.sgdid)
         if go_slim:
             if go_slim.get('cellular_component'):
@@ -133,7 +134,7 @@ def index_genes():
             if go_slim.get('biological_process'):
                 for k in go_slim['biological_process']:
                     biological_process.add(k)
-
+                    
         key_values = [gene.display_name, gene.format_name, gene.sgdid, gene.uniprotid]
         if "reserved_name" in perf_json:
             key_values += [perf_json['reserved_name']['display_name']]
@@ -170,7 +171,7 @@ def index_genes():
 
             'keys': list(keys)
         }
-
+        
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
 
 def index_phenotypes():
@@ -179,6 +180,9 @@ def index_phenotypes():
     for phenotype in all_phenotypes:
         perf_result = perf_session.query(PerfBioconceptDetails).filter_by(obj_id=phenotype.id).filter_by(class_type="PHENOTYPE_LOCUS").first()
         perf_json = json.loads(perf_result.json)
+
+        if len(perf_json) == 0:
+            continue
 
         loci = set()
         references = set()
@@ -198,7 +202,7 @@ def index_phenotypes():
         for k in key_values:
             if k is not None:
                 keys.add(k.lower())
-
+                
         obj = {
             'name': phenotype.display_name,
             'href': phenotype.link,
@@ -293,7 +297,10 @@ def index_go_terms():
             for annotation in perf_json:
                 loci.add(annotation['locus']['display_name'])
 
-        key_values = [go.display_name, go.format_name, go.sgdid, go.go_id]
+        if number_annotations == 0:
+            continue
+        
+        key_values = [go.display_name, go.format_name, go.go_id]
         
         keys = set([])
         for k in key_values:
@@ -314,7 +321,7 @@ def index_go_terms():
             'keys': list(keys)
         }
 
-        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=go.sgdid)
+        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=go.go_id)
         
 def index_references():
     print 'indexing references'
@@ -441,6 +448,9 @@ def index_downloads_from_json(filename):
 def index_toolbar_links():
     print "indexing toolbar links"
     links = [("Gene List", "http://yeastmine.yeastgenome.org/yeastmine/bag.do", None, 'resource', None),
+             ("Yeastmine", "http://yeastmine.yeastgenome.org", None, 'resource', None),
+             ("Submit Data", "/cgi-bin/submitData.pl", None, 'resource', None),
+             ("SPELL", "http://spell.yeastgenome.org", None, 'resource', None),
              ("BLAST", "/blast-sgd", None, 'resource', None),
              ("Fungal BLAST", "/blast-fungal", None, 'resource', None),
              ("Go Term Finder", "/cgi-bin/GO/goTermFinder.pl", None, 'resource', None),
@@ -471,7 +481,7 @@ def index_toolbar_links():
              ("Expression", "http://spell.yeastgenome.org/", None, 'resource', None),
              ("Biochemical Pathways", "http://pathway.yeastgenome.org/", None, 'resource', None),
              ("Browse All Phenotypes", "/ontology/phenotype/ypo/overview", None, 'resource', None),
-             ("Interactions", "/cgi-bin/interaction_search", None, 'resource', None),
+             ("Interactions", "/interaction_search", None, 'resource', None),
              ("YeastGFP", "http://yeastgfp.yeastgenome.org/", None, 'resource', None),
              ("GO Consortium", "http://www.geneontology.org/", None, 'resource', None),
              ("BioGRID (U. Toronto)", "http://thebiogrid.org/", None, 'resource', None),
@@ -516,11 +526,13 @@ def main():
 #    setup_index()
     
 #    index_toolbar_links()
-#    index_phenotypes()
-#    index_go_terms()
-    index_genes()
 #    index_strains()
+#    index_phenotypes()
+
+    index_genes()
+
 #    index_contigs()
+    index_go_terms()
 
 #    index_references()
 
