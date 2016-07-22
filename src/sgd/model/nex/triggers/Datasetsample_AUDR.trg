@@ -35,6 +35,11 @@ BEGIN
         AuditLog.InsertUpdateLog('DATASETSAMPLE', 'BUD_ID', :old.datasetsample_id, :old.bud_id, :new.bud_id, USER);
     END IF;
 
+    IF (((:old.taxonomy_id IS NULL) AND (:new.taxonomy_id IS NOT NULL)) OR ((:old.taxonomy_id IS NOT NULL) AND (:new.taxonomy_id IS NULL)) OR (:old.taxonomy_id != :new.taxonomy_id))
+    THEN
+        AuditLog.InsertUpdateLog('DATASETSAMPLE', 'TAXONOMY_ID', :old.datasetsample_id, :old.taxonomy_id, :new.taxonomy_id, USER);
+    END IF;
+
     IF (:old.dataset_id != :new.dataset_id)
     THEN
         AuditLog.InsertUpdateLog('DATASETSAMPLE', 'DATASET_ID', :old.datasetsample_id, :old.dataset_id, :new.dataset_id, USER);
@@ -76,6 +81,7 @@ BEGIN
     v_row := :old.datasetsample_id || '[:]' || :old.format_name || '[:]' ||
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.bud_id || '[:]' ||
+             :old.taxonomy_id || '[:]' ||
              :old.dataset_id || '[:]' || :old.sample_order || '[:]' ||
              :old.dbxref_id || '[:]' || :old.dbxref_type || '[:]' ||
              :old.biosample || '[:]' || :old.strain_name || '[:]' || 

@@ -1104,7 +1104,6 @@ Comment on column DATASET.PARENT_DATASET_ID is 'FK to DATASET.DATASET_ID. Used t
 Comment on column DATASET.ASSAY_ID is 'FK to OBI.OBI_ID.';
 Comment on column DATASET.CHANNEL_COUNT is 'Number of channels (1 or 2) in the experiment.';
 Comment on column DATASET.SAMPLE_COUNT is 'Number of samples in the experiment.';
-Comment on column DATASET.TAXONOMY_ID is 'Strain background. FK to TAXONOMY.TAXONOMY_ID.';
 Comment on column DATASET.IS_IN_SPELL is 'Whether this dataset has been loaded into SPELL.';
 Comment on column DATASET.IS_IN_BROWSER is 'Whether this dataset has been loaded into a genome browser, such as JBrowse.';
 Comment on column DATASET.DESCRIPTION is 'Description or summary.';
@@ -1163,6 +1162,7 @@ Comment on column DATASETSAMPLE.DISPLAY_NAME is 'Public display name.';
 Comment on column DATASETSAMPLE.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
 Comment on column DATASETSAMPLE.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DATASETSAMPLE.BUD_ID is 'Not in BUD.';
+Comment on column DATASETSAMPLE.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
 Comment on column DATASETSAMPLE.DATASET_ID is 'FK to DATASET.DATASET_ID.';
 Comment on column DATASETSAMPLE.SAMPLE_ORDER is 'Order to display the samples.';
 Comment on column DATASETSAMPLE.DBXREF_ID is 'GEO Sample identifier (GSM) or other external database identifier.';
