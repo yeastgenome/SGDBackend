@@ -1173,6 +1173,18 @@ Comment on column DATASETSAMPLE.DESCRIPTION is 'Description or summary of the sa
 Comment on column DATASETSAMPLE.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DATASETSAMPLE.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
+Comment on table DATASETTRACK is 'Genome browser tracks derived from a dataset.';
+Comment on column DATASETTRACK.DATASETTRACK_ID is 'Unique identifier (Oracle sequence).';
+Comment on column DATASETTRACK.FORMAT_NAME is 'Unique name to create download files.';
+Comment on column DATASETTRACK.DISPLAY_NAME is 'Public display name.';
+Comment on column DATASETTRACK.OBJ_URL is 'URL of the object (relative for local links or complete for external links).';
+Comment on column DATASETTRACK.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column DATASETTRACK.DATASET_ID is 'FK to DATASET.DATASET_ID.';
+Comment on column DATASETTRACK.TRACK_ORDER is 'Order to display the tracks in the browser.';
+Comment on column DATASETTRACK.TRACK_FILE_TYPE is 'The track file format or type (GFF3, BIGWIG, VCF, BAM).';
+Comment on column DATASETTRACK.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column DATASETTRACK.CREATED_BY  is 'Username of the person who entered the record into the database.';
+
 /* Sequence objects - Genome Release, Contig, Protein Domain */
 
 Comment on table GENOMERELEASE is 'S288C reference genome release numbers, in the format R[sequence release]-[annotation release]-[curation release] (e.g., R64-1-1).';
