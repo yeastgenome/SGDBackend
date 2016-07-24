@@ -1448,6 +1448,9 @@ def make_protein_experiment_evidence_starter(bud_session_maker, nex_session_make
         for pmid in file_names:
             file_name = file_names[pmid]
             pmid = int(pmid)
+            data_unit = "molecules/cell"
+            if pmid in [26046442, 16699522]:
+                data_unit = "arbitrary fluorescence units"
             f = open(file_name, 'rU')
             header = True
             for line in f:
@@ -1464,7 +1467,7 @@ def make_protein_experiment_evidence_starter(bud_session_maker, nex_session_make
                            'experiment': key_to_experiment['protein_abundance'],
                            'locus': formatname_to_bioentity[field[0]],
                            'data_value': data_value,
-                           'data_unit': "molecules/cell"}
+                           'data_unit': data_unit }
 
         nex_session.close()
 
