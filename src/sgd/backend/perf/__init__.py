@@ -866,12 +866,11 @@ class PerfBackend(BackendInterface):
             }
             return json.dumps(response_obj)
 
-        if query and query.lower().strip() in search_results['hits']['hits'][0].get('_source').get('keys'):
-            if len(search_results['hits']['hits']) > 1:
-                if (query.lower().strip() not in search_results['hits']['hits'][1].get('_source').get('keys')):
-                    formatted_results[0]['is_quick'] = True
-            else:
-                formatted_results[0]['is_quick'] = True
+        if query:
+            for i in xrange(len(search_results['hits']['hits'])):
+                if query.lower().strip() in search_results['hits']['hits'][i].get('_source').get('keys'):
+                    formatted_results[i]['is_quick'] = True
+                    break
         
         if category == '':
             formatted_agg = []
