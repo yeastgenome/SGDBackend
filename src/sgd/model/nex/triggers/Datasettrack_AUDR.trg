@@ -20,9 +20,9 @@ BEGIN
         AuditLog.InsertUpdateLog('DATASETTRACK', 'DISPLAY_NAME', :old.datasettrack_id, :old.display_name, :new.display_name, USER);
     END IF;
 
-    IF (:old.obj_url != :new.obj_url)
+    IF (((:old.obj_url IS NULL) AND (:new.obj_url IS NOT NULL)) OR ((:old.obj_url IS NOT NULL) AND (:new.obj_url IS NULL)) OR (:old.obj_url != :new.obj_url))
     THEN
-        AuditLog.InsertUpdateLog('DATASETTRACK', 'OBJ_URL', :old.datasettrack_id, :old.obj_url, :new.obj_url, USER);
+        AuditLog.InsertUpdateLog('DATASET', 'OBJ_URL', :old.dataset_id, :old.obj_url, :new.obj_url, USER);
     END IF;
 
      IF (:old.source_id != :new.source_id)
