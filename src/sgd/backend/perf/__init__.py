@@ -870,7 +870,6 @@ class PerfBackend(BackendInterface):
             for i in xrange(len(search_results['hits']['hits'])):
                 if query.lower().strip() in search_results['hits']['hits'][i].get('_source').get('keys'):
                     formatted_results[i]['is_quick'] = True
-                    break
         
         if category == '':
             formatted_agg = []
