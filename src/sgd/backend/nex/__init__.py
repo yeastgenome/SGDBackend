@@ -842,6 +842,16 @@ class SGDBackend(BackendInterface):
                             }
                         },
                         {
+                            "match_phrase_prefix": {
+                                "keys": {
+                                    "query": query,
+                                    "boost": 4,
+                                    "max_expansions": 10,
+                                    "analyzer": "standard"
+                                }
+                            }
+                        },
+                        {
                             "match_phrase": {
                                 "name": {
                                     "query": query,
