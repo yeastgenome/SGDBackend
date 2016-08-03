@@ -845,7 +845,7 @@ class SGDBackend(BackendInterface):
                             "match_phrase": {
                                 "name": {
                                     "query": query,
-                                    "boost": 10,
+                                    "boost": 40,
                                     "analyzer": "standard"
                                 }
                             }
