@@ -863,7 +863,7 @@ class SGDBackend(BackendInterface):
                             "match_phrase": {
                                 "keys": {
                                     "query": query,
-                                    "boost": 20,
+                                    "boost": 50,
                                     "analyzer": "standard"
                                 }
                             }
