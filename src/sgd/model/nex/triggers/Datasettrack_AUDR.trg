@@ -40,23 +40,12 @@ BEGIN
         AuditLog.InsertUpdateLog('DATASETTRACK', 'TRACK_ORDER', :old.datasettrack_id, :old.track_order, :new.track_order, USER);
     END IF;
 
-    IF (:old.file_format_id != :new.file_format_id)
-    THEN
-        AuditLog.InsertUpdateLog('DATASETTRACK', 'FILE_FORMAT_ID', :old.datasettrack_id, :old.file_format_id, :new.file_format_id, USER);
-    END IF;
-
-    IF (:old.file_extension != :new.file_extension)
-    THEN
-        AuditLog.InsertUpdateLog('DATASETTRACK', 'FILE_EXTENSION', :old.datasettrack_id, :old.file_extension, :new.file_extension, USER);
-    END IF;
-
   ELSE
 
     v_row := :old.datasettrack_id || '[:]' || :old.format_name || '[:]' ||
 		  	 :old.display_name || '[:]' || :old.obj_url || '[:]' ||
              :old.source_id || '[:]' || :old.dataset_id || '[:]' || 
-             :old.track_order || '[:]' || :old.file_format_id || '[:]' ||
-             :old.file_extension || '[:]' || 
+             :old.track_order || '[:]' || 
              :old.date_created || '[:]' || :old.created_by;
 
     AuditLog.InsertDeleteLog('DATASETTRACK', :old.datasettrack_id, v_row, USER);

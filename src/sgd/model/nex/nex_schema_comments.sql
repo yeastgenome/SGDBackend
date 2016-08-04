@@ -1181,8 +1181,6 @@ Comment on column DATASETTRACK.OBJ_URL is 'URL of the object (relative for local
 Comment on column DATASETTRACK.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
 Comment on column DATASETTRACK.DATASET_ID is 'FK to DATASET.DATASET_ID.';
 Comment on column DATASETTRACK.TRACK_ORDER is 'Order to display the tracks in the browser.';
-Comment on column DATASETTRACK.FILE_FORMAT_ID is 'FK to EDAM.EDAM_ID.';
-Comment on column DATASETTRACK.FILE_EXTENSION is 'The track file format or type (gff3, bw, vcf, bam).';
 Comment on column DATASETTRACK.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column DATASETTRACK.CREATED_BY  is 'Username of the person who entered the record into the database.';
 
