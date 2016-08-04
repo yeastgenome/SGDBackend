@@ -846,7 +846,7 @@ class SGDBackend(BackendInterface):
                                 "keys": {
                                     "query": query,
                                     "boost": 4,
-                                    "max_expansions": 10,
+                                    "max_expansions": 12,
                                     "analyzer": "standard"
                                 }
                             }
