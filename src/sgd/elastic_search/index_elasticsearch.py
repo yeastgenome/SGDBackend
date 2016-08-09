@@ -8,7 +8,7 @@ from elasticsearch import Elasticsearch
 import json
 
 CLIENT_ADDRESS = 'http://52.41.106.165:9200/'# cluster alpha
-INDEX_NAME = 'searchable_items'
+INDEX_NAME = 'searchable_items_green'
 DOC_TYPE = 'searchable_item'
 RESET_INDEX = False
 es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
@@ -46,8 +46,14 @@ def setup_index():
 
 def put_mapping():
     #PUT CLIENT_ADDRESS + searchable_items/
-    mapping = '{"settings": {"index": {"analysis": {"analyzer": {"default": {"type": "standard"}, "autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"category": {"type": "string"}, "observable": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "qualifier": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "references": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "phenotype_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "keys": {"type": "string"}, "chemical": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "mutant_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "go_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "author": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "journal": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "year": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "reference_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "cellular_component": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"description": {"type": "string"}, "summary": {"type":"string"}, "feature_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"href": {"type": "string"}, "molecular_function": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}}, "go_id": {"type": "string"}, "number_annotations": {"type": "integer"}, "name_description": {"type": "string"}, "synonyms": {"type": "string"}, "phenotypes": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}}}}}'
+    mapping = '{"settings": {"index": {"analysis": {"analyzer": {"default": {"type": "standard"}, "with_special_chars": {"type": "custom", "filter": ["lowercase"], "tokenizer": "whitespace"}, "autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"category": {"type": "string"}, "observable": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "qualifier": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "references": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "phenotype_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "keys": {"type": "string"}, "chemical": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "mutant_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "go_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "author": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "journal": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "year": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "reference_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "cellular_component": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"description": {"type": "string", "analyzer": "with_special_chars"}, "summary": {"type":"string", "analyzer": "with_special_chars"}, "feature_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"href": {"type": "string"}, "molecular_function": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}}, "go_id": {"type": "string"}, "number_annotations": {"type": "integer"}, "name_description": {"type": "string", "analyzer": "with_special_chars"}, "synonyms": {"type": "string"}, "phenotypes": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}}}}}'
     return mapping
+
+def load_go_id_blacklist(list_filename):
+    go_id_blacklist = set()
+    for l in open(list_filename, 'r'):
+        go_id_blacklist.add(l[:-1])
+    return go_id_blacklist
 
 from HTMLParser import HTMLParser
 
@@ -299,12 +305,18 @@ def index_strains():
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=strain.id)
 
 def index_go_terms():
+    go_id_blacklist = load_go_id_blacklist('src/sgd/elastic_search/go_id_blacklist.lst')
+    
     all_gos = nex_session.query(Go).all()
 
     num_indexed = 0
     for go in all_gos:
+        if go.go_id in go_id_blacklist:
+            continue
+        
         loci = set()
         number_annotations = 0
+
         if go.locus_count > 0:
             perf_result = perf_session.query(PerfBioconceptDetails).filter_by(obj_id=go.id).filter_by(class_type="GO_LOCUS").first()
             perf_json = json.loads(perf_result.json)
@@ -313,9 +325,6 @@ def index_go_terms():
             
             for annotation in perf_json:
                 loci.add(annotation['locus']['display_name'])
-
-        if number_annotations == 0:
-            continue
 
         synonyms = [alias.display_name for alias in go.aliases]
 
@@ -366,9 +375,8 @@ def index_references():
         if reference.journal:
             reference_name = reference.journal.display_name
 
-        import pdb; pdb.set_trace()
         key_values = [reference.pubmed_central_id, reference.pubmed_id, "pmid: " + str(reference.pubmed_id), "pmid:" + str(reference.pubmed_id), "pmid " + str(reference.pubmed_id), reference.sgdid]
-        
+
         keys = set([])
         for k in key_values:
             if k is not None:
@@ -389,7 +397,7 @@ def index_references():
             'keys': list(keys)
         }
 
-        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=reference.sgdid)
+#        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=reference.sgdid)
 
 def xls_to_dict(filename):
     workbook = xlrd.open_workbook(filename)
@@ -552,13 +560,13 @@ def index_toolbar_links():
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=l[1])
     
 def main():
-#    index_toolbar_links()
-#    index_downloads_from_json('./downloadable_files.json')
-#    index_strains()
-#    index_phenotypes()
-#    index_genes()
-#    index_contigs()
+    index_toolbar_links()
+    index_downloads_from_json('./downloadable_files.json')
+    index_strains()
+    index_phenotypes()
+    index_genes()
+    index_contigs()
     index_go_terms()
-#    index_references()
+    index_references()
 
 main()
