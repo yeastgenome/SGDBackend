@@ -804,16 +804,29 @@ class PerfBackend(BackendInterface):
                     if params.get(item[0]):
                         es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): params.get(item[0])}})
 
-        results_search_body = {
-            'query': es_query,
-            'sort': [
-                '_score',
-                {'number_annotations': {'order': 'desc'}}
-            ],
-            'highlight' : {
-                'fields' : {}
+        if query == '' and category == '':
+            results_search_body = {
+                "query": {
+                    "function_score": {
+                        "query": es_query,
+                        "random_score": { "seed" : 12345 }
+                    }
+                },
+                'highlight' : {
+                    'fields' : {}
+                }
             }
-        }
+        else:
+            results_search_body = {
+                'query': es_query,
+                'sort': [
+                    '_score',
+                    {'number_annotations': {'order': 'desc'}}
+                ],
+                'highlight' : {
+                    'fields' : {}
+                }
+            }
 
         if sort_by == 'alphabetical':
             results_search_body['sort'] = [
