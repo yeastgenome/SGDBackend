@@ -404,6 +404,11 @@ def index_go_terms():
 def index_references():
     all_references = nex_session.query(Reference).all()
 
+    secondary_db = nex_session.query(Alias).filter_by(category="DBID Secondary").all()
+    secondary_sgdids = {}
+    for sid in secondary_db:
+        secondary_sgdids[sid.format_name] = sid.display_name
+
     print 'Indexing ' + str(len(all_references)) + ' references'
 
     for reference in all_references:
@@ -436,6 +441,7 @@ def index_references():
             'journal': reference_name,
             'year': reference.year,
             'reference_loci': list(loci),
+            'secondary_sgdid': secondary_sgdids.get(str(reference.id)),
             
             'category': 'reference',
 
