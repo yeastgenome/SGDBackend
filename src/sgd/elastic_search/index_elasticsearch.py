@@ -216,8 +216,6 @@ def index_genes(delete=False):
             'keys': list(keys)
         }
 
-        import pdb; pdb.set_trace()
-
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
 
 def index_phenotypes():
