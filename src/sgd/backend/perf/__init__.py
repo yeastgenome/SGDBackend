@@ -686,6 +686,12 @@ class PerfBackend(BackendInterface):
 
         multi_match_fields = ["summary", "name_description", "phenotypes", "cellular_component", "biological_process", "molecular_function", "observable", "qualifier", "references", "phenotype_loci", "chemical", "mutant_type", "go_loci", "author", "journal", "year", "reference_loci", "synonyms", "ec_number", "gene_history", "sequence_history", "secondary_sgdid", "tc_number"]
 
+        for special_char in ['-', '.']:
+            if special_char in query:
+                query = "\"" + query + "\""
+                break
+
+
         if query == '':
             es_query = { 'match_all': {} }
         else:
