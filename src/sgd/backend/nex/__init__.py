@@ -783,7 +783,7 @@ class SGDBackend(BackendInterface):
         return [x.to_json() for x in DBSession.query(Disambig).order_by(Disambig.id.desc()).limit(chunk_size).offset(offset).all()]
 
     def get_search_results(self, params):
-        query = params['q'] if 'q' in params.keys() else ''
+        query = params['q'].lower() if 'q' in params.keys() else ''
         limit = params['limit'] if 'limit' in params.keys() else 10
         offset = params['offset'] if 'offset' in params.keys() else 0
         category = params['category'] if 'category' in params.keys() else ''
