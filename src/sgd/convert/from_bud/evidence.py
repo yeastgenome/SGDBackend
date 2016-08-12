@@ -1293,7 +1293,8 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                       'src/sgd/convert/data/PTMsites112115.txt',
                       'src/sgd/convert/data/PTMsites011516.txt',
                       'src/sgd/convert/data/Phosphosites031516.txt',
-                      'src/sgd/convert/data/PTMdata062416.txt']
+                      'src/sgd/convert/data/PTMdata062416.txt',
+                      'src/sgd/convert/data/PTMdata080316PMID17761666.txt']
 
         for file_name in file_names:
             print file_name
@@ -1318,6 +1319,10 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                         modification_type = pieces[2]
                         modifiers = pieces[3]
                         pmid = int(pieces[4].replace('PMID:', ''))
+                    elif file_name.endswith('PMID17761666.txt'):
+                        modification_type = pieces[2]
+                        modifiers = pieces[3]
+                        pmid = 17761666
                     else:
                         # old files
                         site_functions = pieces[2]
