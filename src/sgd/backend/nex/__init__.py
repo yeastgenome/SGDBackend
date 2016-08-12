@@ -924,23 +924,27 @@ class SGDBackend(BackendInterface):
 
             if category == 'locus':
                 for item in locus_subcategories:
-                    if params.get(item[0]):
-                        es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): params.get(item[0])}})
+                    if params.getall(item[0]):
+                        for param in params.getall(item[0]):
+                            es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): param}})
 
             elif category == 'phenotype':
                 for item in phenotype_subcategories:
-                    if params.get(item[0]):
-                        es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): params.get(item[0])}})
+                    if params.getall(item[0]):
+                        for param in params.getall(item[0]):
+                            es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): param}})
 
             elif category == 'reference':
                 for item in reference_subcategories:
-                    if params.get(item[0]):
-                        es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): params.get(item[0])}})
+                    if params.getall(item[0]):
+                        for param in params.getall(item[0]):
+                            es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): param}})
                         
             elif (category in ['biological_process', 'cellular_component', 'molecular_function']):
                 for item in go_subcategories:
-                    if params.get(item[0]):
-                        es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): params.get(item[0])}})
+                    if params.getall(item[0]):
+                        for param in params.getall(item[0]):
+                            es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): param}})
 
         if query == '' and category == '':
             results_search_body = {
