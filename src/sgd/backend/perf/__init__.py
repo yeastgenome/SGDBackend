@@ -684,7 +684,7 @@ class PerfBackend(BackendInterface):
 
         reference_subcategories = [("author", "author"), ("journal", "journal"), ("year", "year"), ("reference_locus", "reference_loci")]
 
-        multi_match_fields = ["summary", "name_description", "phenotypes", "cellular_component", "biological_process", "molecular_function", "observable", "qualifier", "references", "phenotype_loci", "chemical", "mutant_type", "go_loci", "author", "journal", "year", "reference_loci", "synonyms", "ec_numbers", "gene_history", "sequence_history"]
+        multi_match_fields = ["summary", "name_description", "phenotypes", "cellular_component", "biological_process", "molecular_function", "observable", "qualifier", "references", "phenotype_loci", "chemical", "mutant_type", "go_loci", "author", "journal", "year", "reference_loci", "synonyms", "ec_number", "gene_history", "sequence_history", "secondary_sgdid"]
 
         if query == '':
             es_query = { 'match_all': {} }
