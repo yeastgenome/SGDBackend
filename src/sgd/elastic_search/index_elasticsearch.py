@@ -8,7 +8,7 @@ from elasticsearch import Elasticsearch
 import json
 
 CLIENT_ADDRESS = 'http://52.41.106.165:9200/'# cluster alpha
-INDEX_NAME = 'searchable_items_green'
+INDEX_NAME = 'searchable_items'
 DOC_TYPE = 'searchable_item'
 RESET_INDEX = False
 es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
@@ -22,11 +22,12 @@ perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.
 from src.sgd.model.nex.bioentity import Bioentity, Locus
 
 from src.sgd.model.perf.core import Bioentity as PerfBioentity
+from src.sgd.model.perf.core import Reference as PerfReference
 from src.sgd.model.perf.bioentity_data import BioentityDetails as PerfBioentityDetails
 from src.sgd.model.perf.bioconcept_data import BioconceptDetails as PerfBioconceptDetails
 from src.sgd.model.perf.reference_data import ReferenceDetails
 from src.sgd.model.nex.reference import Author
-from src.sgd.model.nex.misc import Strain
+from src.sgd.model.nex.misc import Strain, Alias
 from src.sgd.model.nex.bioconcept import Go
 from src.sgd.model.nex.bioconcept import Phenotype
 from src.sgd.model.nex.reference import Reference
@@ -46,14 +47,8 @@ def setup_index():
 
 def put_mapping():
     #PUT CLIENT_ADDRESS + searchable_items/
-    mapping = '{"settings": {"index": {"analysis": {"analyzer": {"default": {"type": "standard"}, "with_special_chars": {"type": "custom", "filter": ["lowercase"], "tokenizer": "whitespace"}, "autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"category": {"type": "string"}, "observable": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "qualifier": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "references": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "phenotype_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "keys": {"type": "string"}, "chemical": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "mutant_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "go_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "author": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "journal": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "year": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "reference_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "cellular_component": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"description": {"type": "string", "analyzer": "with_special_chars"}, "summary": {"type":"string", "analyzer": "with_special_chars"}, "feature_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"href": {"type": "string"}, "molecular_function": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}}, "go_id": {"type": "string"}, "number_annotations": {"type": "integer"}, "name_description": {"type": "string", "analyzer": "with_special_chars"}, "synonyms": {"type": "string"}, "phenotypes": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}}}}}'
+    mapping = '{"settings": {"index": {"analysis": {"analyzer": {"default": {"type": "standard"}, "with_special_chars": {"type": "custom", "filter": ["lowercase"], "tokenizer": "whitespace"}, "autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"category": {"type": "string"}, "observable": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "qualifier": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "references": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "phenotype_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "keys": {"type": "string"}, "secondary_sgdid": {"type": "string"}, "chemical": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "mutant_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "go_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "author": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "journal": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "year": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "reference_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "ec_number": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "tc_number": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "cellular_component": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"description": {"type": "string", "analyzer": "with_special_chars"}, "sequence_history": {"type": "string"}, "gene_history": {"type": "string"}, "summary": {"type":"string", "analyzer": "with_special_chars"}, "feature_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"href": {"type": "string"}, "molecular_function": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}}, "go_id": {"type": "string"}, "number_annotations": {"type": "integer"}, "name_description": {"type": "string", "analyzer": "with_special_chars"}, "synonyms": {"type": "string"}, "phenotypes": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}}}}}'
     return mapping
-
-def load_go_id_blacklist(list_filename):
-    go_id_blacklist = set()
-    for l in open(list_filename, 'r'):
-        go_id_blacklist.add(l[:-1])
-    return go_id_blacklist
 
 from HTMLParser import HTMLParser
 
@@ -70,6 +65,12 @@ def strip_tags(html):
     s = MLStripper()
     s.feed(html)
     return s.get_data()
+
+def load_go_id_blacklist(list_filename):
+    go_id_blacklist = set()
+    for l in open(list_filename, 'r'):
+        go_id_blacklist.add(l[:-1])
+    return go_id_blacklist
 
 def load_go_slim(go_slim_mappingtab_file):
     genes = {}
@@ -98,6 +99,16 @@ def index_genes(delete=False):
     all_genes = nex_session.query(Bioentity).all()
     genes_go_slim = load_go_slim('../go_slim_mapping.tab')
 
+    tc_numbers_db = nex_session.query(Alias).filter_by(category="TC number").all()
+    tc_numbers = {}
+    for tc in tc_numbers_db:
+        tc_numbers[tc.format_name] = tc.display_name
+
+    secondary_db = nex_session.query(Alias).filter_by(category="DBID Secondary").all()
+    secondary_sgdids = {}
+    for sid in secondary_db:
+        secondary_sgdids[sid.format_name] = sid.display_name
+    
     print 'Indexing ' + str(len(all_genes)) + ' genes'
 
     for gene in all_genes:
@@ -131,6 +142,20 @@ def index_genes(delete=False):
         perf_result = perf_session.query(PerfBioentity).filter_by(id=gene.id).first()
         perf_json = perf_result.to_json()
 
+        history_sequence = set()
+        gene_history = set()
+        if perf_json['history']:
+            for h in perf_json['history']:
+                if h['history_type'] != 'LSP':
+                    history_sequence.add("(" + h['date_created'] + ") " + strip_tags(h['note']))
+                elif h['history_type'] == 'LSP':
+                    gene_history.add("(" + h['date_created'] + ") " + strip_tags(h['note']))
+
+        ecnumbers = set()
+        if perf_json['ecnumbers']:
+            for ec in perf_json['ecnumbers']:
+                ecnumbers.add(ec['display_name'])
+            
         phenotypes = set()
         for k in ['large_scale_phenotypes', 'classical_phenotypes']:
             for kk in perf_json['phenotype_overview'][k].keys():
@@ -180,12 +205,19 @@ def index_genes(delete=False):
             'cellular_component': list(cellular_component - set(["cellular component", "cellular component (direct)"])),
             'biological_process': list(biological_process - set(["biological process", "biological process (direct)"])),
             'molecular_function': list(molecular_function - set(["molecular function", "molecular function (direct)"])),
+            'ec_number': list(ecnumbers),
+            'tc_number': tc_numbers.get(str(gene.id)),
+            'secondary_sgdid': secondary_sgdids.get(str(gene.id)),
+            'sequence_history': list(history_sequence),
+            'gene_history': list(gene_history),
 
             'bioentity_id': gene.id,
 
             'keys': list(keys)
         }
-        
+
+        import pdb; pdb.set_trace()
+
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=gene.sgdid)
 
 def index_phenotypes():
@@ -206,14 +238,20 @@ def index_phenotypes():
         mutant_type = set()
         for annotation in perf_json:
             loci.add(annotation['locus']['display_name'])
-            references.add(annotation['reference']['display_name'])
+
+            reference = json.loads(perf_session.query(PerfReference).filter_by(id=annotation['reference']['id']).first().json)
+            authors = []
+            for author in reference['authors']:
+                authors.append(author['display_name'])
+            references.add(', '.join(authors) + ' (' + str(reference['year']) + ')')
+            
             for prop in annotation['properties']:
                 if prop['class_type'] == 'CHEMICAL':
                     chemical.add(prop['bioitem']['display_name'])
             mutant_type.add(annotation['mutant_type'])
 
         key_values = [phenotype.display_name, phenotype.format_name]
-        
+
         keys = set([])
         for k in key_values:
             if k is not None:
@@ -315,8 +353,8 @@ def index_go_terms():
             continue
         
         loci = set()
+        references = set()
         number_annotations = 0
-
         if go.locus_count > 0:
             perf_result = perf_session.query(PerfBioconceptDetails).filter_by(obj_id=go.id).filter_by(class_type="GO_LOCUS").first()
             perf_json = json.loads(perf_result.json)
@@ -324,7 +362,15 @@ def index_go_terms():
             number_annotations = len(perf_json)
             
             for annotation in perf_json:
-                loci.add(annotation['locus']['display_name'])
+                if annotation['qualifier'] != 'NOT':
+                    loci.add(annotation['locus']['display_name'])
+
+                reference = json.loads(perf_session.query(PerfReference).filter_by(id=annotation['reference']['id']).first().json)
+                authors = []
+                for author in reference['authors']:
+                    authors.append(author['display_name'])
+                references.add(', '.join(authors) + ' (' + str(reference['year']) + ')')
+
 
         synonyms = [alias.display_name for alias in go.aliases]
 
@@ -344,6 +390,7 @@ def index_go_terms():
             'synonyms': synonyms,
             'go_id': go.go_id,
             'go_loci': list(loci),
+            'references': list(references),
             'number_annotations': number_annotations,
             
             'category': go.go_aspect.replace(' ', '_'),
@@ -397,7 +444,7 @@ def index_references():
             'keys': list(keys)
         }
 
-#        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=reference.sgdid)
+        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=reference.sgdid)
 
 def xls_to_dict(filename):
     workbook = xlrd.open_workbook(filename)
