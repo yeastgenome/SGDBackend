@@ -701,13 +701,12 @@ class PerfBackend(BackendInterface):
                             "category" : "colleagues"
                         }
                     },
-                    
                     "should": [
                         {
                             "match_phrase_prefix": {
                                 "name": {
                                     "query": query,
-                                    "boost": 4,
+                                    "boost": 3,
                                     "max_expansions": 30,
                                     "analyzer": "standard"
                                 }
@@ -717,7 +716,7 @@ class PerfBackend(BackendInterface):
                             "match_phrase_prefix": {
                                 "keys": {
                                     "query": query,
-                                    "boost": 4,
+                                    "boost": 3,
                                     "max_expansions": 12,
                                     "analyzer": "standard"
                                 }
@@ -727,7 +726,7 @@ class PerfBackend(BackendInterface):
                             "match_phrase": {
                                 "name": {
                                     "query": query,
-                                    "boost": 40,
+                                    "boost": 100,
                                     "analyzer": "standard"
                                 }
                             }
@@ -736,7 +735,7 @@ class PerfBackend(BackendInterface):
                             "match": {
                                 "description": {
                                     "query": query,
-                                    "boost": 3,
+                                    "boost": 1,
                                     "analyzer": "standard"
                                 }
                             }
@@ -755,7 +754,7 @@ class PerfBackend(BackendInterface):
                                 "query": query,
                                 "type": "best_fields",
                                 "fields": multi_match_fields,
-                                "boost": 3
+                                "boost": 1
                             }
                         }
                     ],
