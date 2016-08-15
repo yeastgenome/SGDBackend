@@ -2,7 +2,7 @@ namespace :deploy do
   desc 'Build application'
   task :build do
     on roles(:app), in: :sequence do
-      execute "export ORACLE_HOME=/data/tools/oracle_instant_client/instantclient_11_2/ && export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME && cd #{release_path} && make build-deploy"
+      execute "export ORACLE_HOME=/data/tools/oracle_instant_client/instantclient_11_2/ && export LD_RUN_PATH=/data/tools/oracle_instant_client/instantclient_11_2 && export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME && cd #{release_path} && make build-deploy"
     end
   end
 
