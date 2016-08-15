@@ -9,7 +9,6 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'pyramid',
     'waitress',
-    'simplejson',
     'requests',
     'mpmath',
     'cx_oracle',
