@@ -850,7 +850,7 @@ class SGDBackend(BackendInterface):
                             "match_phrase_prefix": {
                                 "keys": {
                                     "query": query,
-                                    "boost": 3,
+                                    "boost": 30,
                                     "max_expansions": 12,
                                     "analyzer": "standard"
                                 }
@@ -860,7 +860,7 @@ class SGDBackend(BackendInterface):
                             "match_phrase": {
                                 "name": {
                                     "query": query,
-                                    "boost": 100,
+                                    "boost": 80,
                                     "analyzer": "standard"
                                 }
                             }
