@@ -24,7 +24,7 @@ __author__ = 'kpaskov'
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 query_limit = 25000
 
-SEARCH_ES_INDEX = 'searchable_items'
+SEARCH_ES_INDEX = 'searchable_items_blue'
 
 class SGDBackend(BackendInterface):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory, esearch_addr=None):
@@ -817,7 +817,9 @@ class SGDBackend(BackendInterface):
 
         reference_subcategories = [("author", "author"), ("journal", "journal"), ("year", "year"), ("reference_locus", "reference_loci")]
 
-        multi_match_fields = ["summary", "name_description", "phenotypes", "cellular_component", "biological_process", "molecular_function", "observable", "qualifier", "references", "phenotype_loci", "chemical", "mutant_type", "go_loci", "author", "journal", "year", "reference_loci", "synonyms", "ec_number", "gene_history", "sequence_history", "secondary_sgdid", "tc_number"]
+        contig_subcategories = [("strain", "strain")]
+
+        multi_match_fields = ["summary", "name_description", "phenotypes", "cellular_component", "biological_process", "molecular_function", "observable", "qualifier", "references", "phenotype_loci", "chemical", "mutant_type", "go_loci", "author", "journal", "year", "reference_loci", "synonyms", "ec_number", "gene_history", "sequence_history", "secondary_sgdid", "tc_number", "strain"]
 
         for special_char in ['-', '.']:
             if special_char in query:
@@ -930,6 +932,12 @@ class SGDBackend(BackendInterface):
 
             elif category == 'phenotype':
                 for item in phenotype_subcategories:
+                    if params.getall(item[0]):
+                        for param in params.getall(item[0]):
+                            es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): param}})
+
+            elif category == 'contig':
+                for item in contig_subcategories:
                     if params.getall(item[0]):
                         for param in params.getall(item[0]):
                             es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): param}})
@@ -1117,6 +1125,28 @@ class SGDBackend(BackendInterface):
                 for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
                     agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
                 formatted_agg.append(agg_obj)
+
+        elif category == 'contig':
+            agg_query_body = {
+                'query': es_query,
+                'size': 0,
+                'aggs': {
+                    'strain': {
+                        'terms': {'field': 'strain.raw', 'size': 999}
+                    }
+                }
+            }
+
+            agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
+        
+            formatted_agg = []
+
+            for agg_info in contig_subcategories:
+                agg_obj = {'key': agg_info[0], 'values': []}
+                for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
+                    agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
+                formatted_agg.append(agg_obj)
+
                 
         elif (category in ['biological_process', 'cellular_component', 'molecular_function']):
             agg_query_body = {
