@@ -904,7 +904,7 @@ class PerfBackend(BackendInterface):
 
         if query:
             for i in xrange(len(search_results['hits']['hits'])):
-                if query.lower().strip() in search_results['hits']['hits'][i].get('_source').get('keys'):
+                if query.replace('"', '').lower().strip() in search_results['hits']['hits'][i].get('_source').get('keys'):
                     formatted_results[i]['is_quick'] = True
         
         if category == '':
