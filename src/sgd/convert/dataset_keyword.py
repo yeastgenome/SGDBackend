@@ -11,36 +11,40 @@ def dataset_keyword_starter(bud_session_maker):
 
     dataset_to_id = dict([(x.display_name, x.id) for x in nex_session.query(Dataset).all()])
     keyword_to_id = dict([(x.display_name, x.id) for x in nex_session.query(Keyword).all()])
-    
-    f = open('src/sgd/convert/data/published_datasets_metadata_A-O_201604.txt')
-    
-    for line in f:
-        if line.startswith('dataset'):
-            continue
-        line = line.strip()
-        if line:
-            pieces = line.split("\t")
-            display_name = pieces[1]
-            dataset_id = dataset_to_id.get(display_name)
-            if dataset_id is None:
-                print "The dataset: ", display_name, " is not in DATASET table."
-                continue
-            if len(pieces) <= 15 or pieces[15] == '':
-                continue
-            keywords = pieces[15].split("|")
-            for keyword in keywords:
-                keyword = keyword.replace('"', '')
-                if keyword == 'translation regulation':
-                    keyword = 'translational regulation'
-                keyword_id = keyword_to_id.get(keyword)
-                if keyword_id is None:
-                    print "The keyword: ", keyword, " is not in the KEYWORD table."
-                    continue
-                yield { "source": { "display_name": 'SGD' },
-                        "keyword_id": keyword_id,
-                        "dataset_id": dataset_id }
 
-    f.close()
+    files = ['src/sgd/convert/data/GEO_metadata_reformatted_inSPELL_cleaned-up.tsv_dataset-OWL.txt',
+             'src/sgd/convert/data/GEO_metadata_reformatted_NOTinSPELL.tsv_dataset_OWL.txt',
+             'src/sgd/convert/data/published_datasets_metadata_dataset-20160804.txt',
+             'src/sgd/convert/data/non-GEO-dataset.tsv']
+
+    for file in files:
+        f = open(file)
+        for line in f:
+            if line.startswith('dataset'):
+                continue
+            line = line.strip().replace('"', '')
+            if line:
+                pieces = line.split("\t")
+                display_name = pieces[1]
+                dataset_id = dataset_to_id.get(display_name)
+                if dataset_id is None:
+                    print "The dataset: ", display_name, " is not in DATASET table."
+                    continue
+                if len(pieces) <= 17 or pieces[17] == '':
+                    continue
+                keywords = pieces[17].split("|")
+                for keyword in keywords:
+                    if keyword == 'translation regulation':
+                        keyword = 'translational regulation'
+                    keyword_id = keyword_to_id.get(keyword)
+                    if keyword_id is None:
+                        print "The keyword: ", keyword, " is not in the KEYWORD table."
+                        continue
+                    yield { "source": { "display_name": 'SGD' },
+                            "keyword_id": keyword_id,
+                            "dataset_id": dataset_id }
+
+        f.close()
 
 def get_nex_session():
 

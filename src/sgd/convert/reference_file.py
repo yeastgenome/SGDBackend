@@ -12,28 +12,35 @@ def reference_file_starter(bud_session_maker):
     file_to_id = dict([(x.display_name, x.id) for x in nex_session.query(File).all()])
     pmid_to_id = dict([(x.pmid, x.id) for x in nex_session.query(Reference).all()])
     
-    f = open('src/sgd/convert/data/published_datasets-files_metadata_A-O_201604.txt')
-    
-    for line in f:
-        if line.startswith('bun_filepath'):
-            continue
-        line = line.strip()
-        if line:
-            pieces = line.split("\t")
-            display_name = pieces[3]
-            file_id = file_to_id.get(display_name)
-            if file_id is None:
-                print "The file: ", display_name, " is not in FILEDBENTITY table."
+    # f = open('src/sgd/convert/data/published_datasets-files_metadata_A-O_201604.txt')
+    files = ['src/sgd/convert/data/published_datasets_metadata_file-20160804.txt',
+             'src/sgd/convert/data/GEO_metadata_reformatted_inSPELL_cleaned-up.tsv_file.tsv_round2fix_fixdupRM_fixRMdescriptionEDWs_owl.tsv',
+             'src/sgd/convert/data/non-GEO-file.tsv']
+
+    for file in files:
+        f = open(file)
+        for line in f:
+            if line.startswith('bun_filepath'):
                 continue
-            pmids = pieces[18].split("|")
-            for pmid in pmids:
-                reference_id = pmid_to_id.get(int(pmid))
-                if reference_id is None:
-                    print "The pmid: ", pmid, " is not in the REFERENCEDBENTITY table."
+            line = line.strip()
+            if line:
+                pieces = line.split("\t")
+                display_name = pieces[3]
+                file_id = file_to_id.get(display_name)
+                if file_id is None:
+                    print "The file: ", display_name, " is not in FILEDBENTITY table."
                     continue
-                yield { "source": { "display_name": 'SGD' },
-                        "reference_id": reference_id,
-                        "file_id": file_id }
+                pmids = pieces[18].split("|")
+                for pmid in pmids:
+                    if pmid == '':
+                        continue
+                    reference_id = pmid_to_id.get(int(pmid))
+                    if reference_id is None:
+                        print "The pmid: ", pmid, " is not in the REFERENCEDBENTITY table."
+                        continue
+                    yield { "source": { "display_name": 'SGD' },
+                            "reference_id": reference_id,
+                            "file_id": file_id }
 
     f.close()
 

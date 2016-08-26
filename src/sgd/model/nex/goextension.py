@@ -27,7 +27,7 @@ class Goextension(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     #Relationships                                                               
                                                             
     annotation = relationship(Goannotation, uselist=False, backref=backref('goextensions', cascade="all, delete-orphan", passive_deletes=True))
-    ro = relationship('Ro')
+    ro = relationship(Ro, uselist=False)
     role = association_proxy('ro', 'display_name')
 
     __eq_values__ = ['id', 'annotation_id', 'link', 'group_id', 'ro_id', 'dbxref_id']

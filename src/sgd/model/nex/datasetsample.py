@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship, backref
 from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, UpdateWithJsonMixin, ToJsonMixin
 from src.sgd.model.nex.source import Source
+from src.sgd.model.nex.taxonomy import Taxonomy
 from src.sgd.model.nex.dataset import Dataset
 
 __author__ = 'sweng66'
@@ -14,6 +15,7 @@ class Datasetsample(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     id = Column('datasetsample_id', Integer, primary_key=True)
     source_id = Column('source_id', Integer, ForeignKey(Source.id))
+    taxonomy_id = Column('taxonomy_id', Integer, ForeignKey(Taxonomy.id))
     format_name = Column('format_name', String)
     display_name = Column('display_name', String)
     link = Column('obj_url', String)
@@ -31,7 +33,7 @@ class Datasetsample(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     #Relationships
     source = relationship(Source, uselist=False)
     
-    __eq_values__ = ['id', 'format_name', 'display_name', 'link', 'bud_id', 'dataset_id', 
+    __eq_values__ = ['id', 'format_name', 'display_name', 'link', 'bud_id', 'dataset_id', 'taxonomy_id', 
                      'dbxref_id', 'dbxref_type', 'sample_order', 'description', 'biosample', 
                      'strain_name', 'date_created', 'created_by']
     __eq_fks__ = [('source', Source, False)]
@@ -43,7 +45,7 @@ class Datasetsample(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
         UpdateWithJsonMixin.__init__(self, obj_json, session)
 
     def unique_key(self):
-        return self.lab_name, self.lab_location, self.dataset_id
+        return self.format_name
 
         
 

@@ -61,6 +61,7 @@ class Goannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
         self.go_id = obj_json['go_id']
         self.eco_id = obj_json['eco_id']
         self.go_qualifier = obj_json['go_qualifier']
+        self.annotation_type = obj_json['annotation_type']
         UpdateWithJsonMixin.__init__(self, obj_json, session)
 
     @classmethod

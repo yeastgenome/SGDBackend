@@ -26,6 +26,10 @@
                 "title": "Dataset ID",
                 "type": "integer"
             },
+	    "taxonomy_id": {
+                "title": "Taxonomy ID",
+                "type": "integer"
+            },
 	    "dbxref_id": {
                 "title": "DBXREF ID",
                 "type": "string"

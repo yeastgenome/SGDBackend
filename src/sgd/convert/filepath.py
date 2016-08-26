@@ -9,24 +9,29 @@ def filepath_starter(bud_session_maker):
     nex_session = get_nex_session()
     path_to_id = dict([(x.filepath, x.id) for x in nex_session.query(Filepath).all()])
     
-    f = open('src/sgd/convert/data/published_datasets-files_metadata_A-O_201604.txt')
-
     found = {}
-    for line in f:
-        if line.startswith('bun_filepath'):
-            continue
-        line = line.strip()
-        if line:
-            pieces = line.split("\t")
-            filepath = pieces[1]
-            if filepath is None:
-                continue
-            if filepath in found or path_to_id.get(filepath):
-                continue
-            found[filepath] = 1
 
-            yield { 'source': { 'display_name': 'SGD'},
-                    'filepath': filepath }
+    files = ['src/sgd/convert/data/published_datasets_metadata_file-20160804.txt',
+             'src/sgd/convert/data/GEO_metadata_reformatted_inSPELL_cleaned-up.tsv_file.tsv_round2fix_fixdupRM_fixRMdescriptionEDWs_owl.tsv',
+             'src/sgd/convert/data/non-GEO-file.tsv']
+
+    for file in files:
+        f = open(file)
+        for line in f:
+            if line.startswith('bun_filepath') or line.startswith('bun filepath'):
+                continue
+            line = line.strip()
+            if line:
+                pieces = line.split("\t")
+                filepath = pieces[1]
+                if filepath is None:
+                    continue
+                if filepath in found or path_to_id.get(filepath):
+                    continue
+                found[filepath] = 1
+
+                yield { 'source': { 'display_name': 'SGD'},
+                        'filepath': filepath }
  
     f.close()
 

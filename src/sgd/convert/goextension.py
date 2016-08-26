@@ -24,7 +24,7 @@ def goextension_starter(bud_session_maker):
     [uniprot_to_date_assigned, uniprot_to_sgdid_list] = read_gpi_file(GPI_FILE)
 
     get_extension = 1
-    data = read_gpad_file(GPAD_FILE, bud_session, nex_session, uniprot_to_date_assigned, 
+    data = read_gpad_file(GPAD_FILE, nex_session, uniprot_to_date_assigned, 
                           uniprot_to_sgdid_list, get_extension)
 
     for x in data:

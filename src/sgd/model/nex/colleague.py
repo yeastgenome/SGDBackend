@@ -40,7 +40,7 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     postal_code = Column('postal_code', String)
     work_phone = Column('work_phone', String)
     other_phone = Column('other_phone', String)
-    fax = Column('fax', String)
+    # fax = Column('fax', String)
     email = Column('email', String)
     is_pi = Column('is_pi', Boolean)
     is_contact = Column('is_contact', Boolean)
@@ -58,7 +58,7 @@ class Colleague(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                      'created_by', 'last_name', 'first_name', 'suffix', 'other_last_name', 
                      'profession', 'job_title', 'institution', 'address1', 'address2', 
                      'address3', 'city', 'state', 'country', 'postal_code', 'work_phone',
-                     'other_phone', 'fax', 'email', 'is_pi', 'is_contact', 'display_email', 
+                     'other_phone', 'email', 'is_pi', 'is_contact', 'display_email', 
                      'research_interest', 'colleague_note', 'date_last_modified']
     __eq_fks__ = [('source', Source, False)]
     #              ('urls', 'colleague.ColleagueUrl', True),

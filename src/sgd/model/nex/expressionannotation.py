@@ -24,7 +24,7 @@ class Expressionannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonM
     taxonomy_id = Column('taxonomy_id', Integer, ForeignKey(Taxonomy.id))
     reference_id = Column('reference_id', Integer, ForeignKey(Reference.id))
     datasetsample_id = Column('datasetsample_id', Integer, ForeignKey(Datasetsample.id))
-    expression_value = Column('expression_value', Number)
+    expression_value = Column('expression_value', Integer)
     date_created = Column('date_created', Date, server_default=FetchedValue())
     created_by = Column('created_by', String, server_default=FetchedValue())
 

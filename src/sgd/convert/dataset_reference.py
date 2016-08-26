@@ -12,30 +12,35 @@ def dataset_reference_starter(bud_session_maker):
     dataset_to_id = dict([(x.display_name, x.id) for x in nex_session.query(Dataset).all()])
     pmid_to_id = dict([(x.pmid, x.id) for x in nex_session.query(Reference).all()])
     
-    f = open('src/sgd/convert/data/published_datasets_metadata_A-O_201604.txt')
+    files = ['src/sgd/convert/data/published_datasets_metadata_dataset-20160804.txt',
+             'src/sgd/convert/data/GEO_metadata_reformatted_inSPELL_cleaned-up.tsv_dataset-OWL.txt',
+             'src/sgd/convert/data/GEO_metadata_reformatted_NOTinSPELL.tsv_dataset_OWL.txt',
+             'src/sgd/convert/data/non-GEO-dataset.tsv']
     
-    for line in f:
-        if line.startswith('dataset'):
-            continue
-        line = line.strip()
-        if line:
-            pieces = line.split("\t")
-            display_name = pieces[1]
-            dataset_id = dataset_to_id.get(display_name)
-            if dataset_id is None:
-                print "The dataset: ", display_name, " is not in DATASET table."
+    for file in files:
+        f = open(file)
+        for line in f:
+            if line.startswith('dataset'):
                 continue
-            if len(pieces) <= 16 or pieces[16] == '':
-                continue
-            pmids = pieces[16].split('|')
-            for pmid in pmids:
-                reference_id = pmid_to_id.get(int(pmid))
-                if reference_id is None:
-                    print "The PMID: ", pmid, " is not in REFERENCEDBENTITY table."
+            line = line.strip().replace('"', '')
+            if line:
+                pieces = line.split("\t")
+                display_name = pieces[1]
+                dataset_id = dataset_to_id.get(display_name)
+                if dataset_id is None:
+                    print "The dataset: ", display_name, " is not in DATASET table."
                     continue
-                yield { "source": { "display_name": 'SGD' },
-                        "reference_id": reference_id,
-                        "dataset_id": dataset_id }
+                if len(pieces) <= 18 or pieces[18] == '':
+                    continue
+                pmids = pieces[18].split('|')
+                for pmid in pmids:
+                    reference_id = pmid_to_id.get(int(pmid))
+                    if reference_id is None:
+                        print "The PMID: ", pmid, " is not in REFERENCEDBENTITY table."
+                        continue
+                    yield { "source": { "display_name": 'SGD' },
+                            "reference_id": reference_id,
+                            "dataset_id": dataset_id }
 
     f.close()
 

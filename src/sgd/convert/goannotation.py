@@ -24,7 +24,7 @@ def goannotation_starter(bud_session_maker):
 
     [uniprot_to_date_assigned, uniprot_to_sgdid_list] = read_gpi_file(GPI_FILE)
 
-    data = read_gpad_file(GPAD_FILE, bud_session, nex_session, uniprot_to_date_assigned, uniprot_to_sgdid_list)
+    data = read_gpad_file(GPAD_FILE, nex_session, uniprot_to_date_assigned, uniprot_to_sgdid_list)
 
     for x in data:
         source = x.pop('source')
