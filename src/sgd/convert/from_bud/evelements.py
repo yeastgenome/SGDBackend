@@ -88,6 +88,7 @@ def make_experiment_starter(bud_session_maker, nex_session_maker):
                     'source': key_to_source['YeTFaSCo']}
 
         yield {'display_name': 'protein abundance', 'source': key_to_source['SGD']}
+        yield {'display_name': 'protein half-life', 'source': key_to_source['SGD']}
         yield {'display_name': 'EXP', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/exp-inferred-experiment', 'description': 'Inferred from Experiment'}
         yield {'display_name': 'IDA', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ida-inferred-direct-assay', 'description': 'Inferred from Direct Assay'}
         yield {'display_name': 'IPI', 'source': key_to_source['GO'], 'link': 'http://www.geneontology.org/page/ipi-inferred-physical-interaction', 'description': 'Inferred from Physical Interaction'}
