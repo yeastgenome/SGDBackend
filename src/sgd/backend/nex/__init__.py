@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 import uuid
+import re
 from math import ceil
 
 from pyramid.response import Response
@@ -16,16 +17,20 @@ from src.sgd.model import nex
 import random
 from sqlalchemy.orm import joinedload
 
+from elasticsearch import Elasticsearch, TransportError
+
 __author__ = 'kpaskov'
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 query_limit = 25000
 
+SEARCH_ES_INDEX = 'searchable_items'
+
 class SGDBackend(BackendInterface):
-    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory):
+    def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory, esearch_addr=None):
         class Base(object):
             __table_args__ = {'schema': schema, 'extend_existing':True}
-                
+
         nex.Base = declarative_base(cls=Base)
         engine = create_engine("%s://%s:%s@%s/%s" % (dbtype, dbuser, dbpass, dbhost, dbname), pool_recycle=3600)
 
@@ -33,6 +38,10 @@ class SGDBackend(BackendInterface):
         nex.Base.metadata.bind = engine
         
         self.log = set_up_logging(log_directory, 'nex')
+
+        if esearch_addr:
+            self.es = Elasticsearch(esearch_addr, timeout=5, retry_on_timeout=True)
+
         
     def get_renderer(self, method_name):
         return 'string'
@@ -43,6 +52,10 @@ class SGDBackend(BackendInterface):
         self.log.info(request_id + ' ' + method_name + ('' if 'identifier' not in request.matchdict else ' ' + request.matchdict['identifier']))
         def f(data):
             self.log.info(request_id + ' end')
+
+            if isinstance(data, Response):
+                return data
+
             if callback is not None:
                 return Response(body="%s(%s)" % (callback, data), content_type='application/json')
             else:
@@ -768,6 +781,518 @@ class SGDBackend(BackendInterface):
     def all_disambigs(self, chunk_size, offset):
         from src.sgd.model.nex.auxiliary import Disambig
         return [x.to_json() for x in DBSession.query(Disambig).order_by(Disambig.id.desc()).limit(chunk_size).offset(offset).all()]
+
+    def get_search_results(self, params):
+        query = params['q'].lower() if 'q' in params.keys() else ''
+        limit = params['limit'] if 'limit' in params.keys() else 10
+        offset = params['offset'] if 'offset' in params.keys() else 0
+        category = params['category'] if 'category' in params.keys() else ''
+        sort_by = params['sort_by'] if 'sort_by' in params.keys() else ''
+
+        #locus filters
+        feature_type = params.get('feature type')
+        phenotype = params.get('phenotype')
+        cellular_component = params.get('cellular component')
+        biological_process = params.get('biological process')
+        molecular_function = params.get('molecular function')
+
+        # phenotype filters
+        qualifier = params.get('qualifier')
+        references = params.get('references')
+        phenotype_locus = params.get('phenotype_locus')
+        chemical = params.get('chemical')
+        mutant_type = params.get('mutant_type')
+
+        #go terms
+        go_id = params.get('go_id')
+        term_name = params.get('term_name')
+        go_locus = params.get('go_locus')
+
+        # format: (GET param name, ES param name)
+        locus_subcategories = [('feature type', 'feature_type'), ('molecular function', 'molecular_function'), ('phenotype', 'phenotypes'), ('cellular component', 'cellular_component'), ('biological process', 'biological_process')]
+
+        phenotype_subcategories = [("observable", "observable"), ("qualifier", "qualifier"), ("references", "references"), ("phenotype_locus", "phenotype_loci"), ("chemical", "chemical"), ("mutant_type", "mutant_type")]
+
+        go_subcategories = [("go_locus", "go_loci")]
+
+        reference_subcategories = [("author", "author"), ("journal", "journal"), ("year", "year"), ("reference_locus", "reference_loci")]
+
+        multi_match_fields = ["summary", "name_description", "phenotypes", "cellular_component", "biological_process", "molecular_function", "observable", "qualifier", "references", "phenotype_loci", "chemical", "mutant_type", "go_loci", "author", "journal", "year", "reference_loci", "synonyms", "ec_number", "gene_history", "sequence_history", "secondary_sgdid", "tc_number"]
+
+        for special_char in ['-', '.']:
+            if special_char in query:
+                query = "\"" + query + "\""
+                break
+
+        if query == '':
+            es_query = { 'match_all': {} }
+        else:
+            es_query = {
+                "bool": {
+                    "must_not" : {
+                        "match" : {
+                            "category" : "colleagues"
+                        }
+                    },
+                    
+                    "should": [
+                        {
+                            "match_phrase_prefix": {
+                                "name": {
+                                    "query": query,
+                                    "boost": 3,
+                                    "max_expansions": 30,
+                                    "analyzer": "standard"
+                                }
+                            }
+                        },
+                        {
+                            "match_phrase_prefix": {
+                                "keys": {
+                                    "query": query,
+                                    "boost": 3,
+                                    "max_expansions": 12,
+                                    "analyzer": "standard"
+                                }
+                            }
+                        },
+                        {
+                            "match_phrase": {
+                                "name": {
+                                    "query": query,
+                                    "boost": 100,
+                                    "analyzer": "standard"
+                                }
+                            }
+                        },                        
+                        {
+                            "match": {
+                                "description": {
+                                    "query": query,
+                                    "boost": 1,
+                                    "analyzer": "standard"
+                                }
+                            }
+                        },
+                        {
+                            "match_phrase": {
+                                "keys": {
+                                    "query": query,
+                                    "boost": 50,
+                                    "analyzer": "standard"
+                                }
+                            }
+                        },
+                        {
+                            "multi_match": {
+                                "query": query,
+                                "type": "best_fields",
+                                "fields": multi_match_fields,
+                                "boost": 1
+                            }
+                        },
+                    ],
+                    "minimum_should_match": 1
+                }
+            }
+
+            if (query[0] in ('"', "'") and query[-1] in ('"', "'")):
+                new_conditions = []
+                for cond in es_query['bool']['should'][2:4]:
+                    new_conditions.append({'match_phrase_prefix': cond.pop(cond.keys()[0])})
+                multi_fields = {
+                    "multi_match": {
+                        "query": query,
+                        "type": "phrase_prefix",
+                        "fields": multi_match_fields,
+                        "boost": 3
+                    }
+                }
+                es_query['bool']['should'] = [es_query['bool']['should'][0]] + new_conditions + [multi_fields]
+
+        if category != '':
+            es_query = {
+                'filtered': {
+                    'query': es_query,
+                    'filter': {
+                        'bool': {
+                            'must': [{'term': { 'category': category}}]
+                        }
+                    }
+                },
+            }
+
+            if category == 'locus':
+                for item in locus_subcategories:
+                    if params.getall(item[0]):
+                        for param in params.getall(item[0]):
+                            es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): param}})
+
+            elif category == 'phenotype':
+                for item in phenotype_subcategories:
+                    if params.getall(item[0]):
+                        for param in params.getall(item[0]):
+                            es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): param}})
+
+            elif category == 'reference':
+                for item in reference_subcategories:
+                    if params.getall(item[0]):
+                        for param in params.getall(item[0]):
+                            es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): param}})
+                        
+            elif (category in ['biological_process', 'cellular_component', 'molecular_function']):
+                for item in go_subcategories:
+                    if params.getall(item[0]):
+                        for param in params.getall(item[0]):
+                            es_query['filtered']['filter']['bool']['must'].append({'term': {(item[1]+".raw"): param}})
+
+        if query == '' and category == '':
+            results_search_body = {
+                "query": {
+                    "function_score": {
+                        "query": es_query,
+                        "random_score": { "seed" : 12345 }
+                    }
+                },
+                'highlight' : {
+                    'fields' : {}
+                }
+            }
+        else:
+            results_search_body = {
+                'query': es_query,
+                'sort': [
+                    '_score',
+                    {'number_annotations': {'order': 'desc'}}
+                ],
+                'highlight' : {
+                    'fields' : {}
+                }
+            }
+
+        if sort_by == 'alphabetical':
+            results_search_body['sort'] = [
+                {
+                    "name.raw": {
+                        "order": "asc"
+                    }
+                }
+            ]
+        elif sort_by == 'annotation':
+            results_search_body['sort'] = [
+                {
+                    "number_annotations": {
+                        "order": "desc"
+                    }
+                }
+            ]
+
+        highlight_fields = ['name', 'description'] + multi_match_fields
+        for field in highlight_fields:
+            results_search_body['highlight']['fields'][field] = {}
+        
+        response_fields = ['name', 'href', 'description', 'category', 'bioentity_id', 'phenotype_loci', 'go_loci', 'reference_loci']
+        results_search_body['_source'] = response_fields + ['keys']
+        
+        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)            
+
+        formatted_results = []
+
+        for r in search_results['hits']['hits']:
+            raw_obj = r.get('_source')
+
+            obj = {}
+            for field in response_fields:
+                obj[field] = raw_obj.get(field)
+                
+            obj['highlights'] = r.get('highlight')
+
+            formatted_results.append(obj)
+
+        if search_results['hits']['total'] == 0:
+            response_obj = {
+                'results': formatted_results,
+                'total': search_results['hits']['total'],
+                'aggregations': []
+            }
+            return json.dumps(response_obj)
+
+        if query:
+            for i in xrange(len(search_results['hits']['hits'])):
+                if query.lower().strip() in search_results['hits']['hits'][i].get('_source').get('keys'):
+                    formatted_results[i]['is_quick'] = True
+        
+        if category == '':
+            formatted_agg = []
+            agg_query_body = {
+                'query': es_query,
+                'size': 0,
+                'aggs': {
+                    'categories': {
+                        'terms': { 'field': 'category' }
+                    },
+                    'feature_type': {
+                        'terms': {'field': 'feature_type'}
+                    }
+                }
+            }
+            agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
+        
+            formatted_agg = []
+            category_obj = {'values': [], 'key': 'category'}
+            for category in agg_response['aggregations']['categories']['buckets']:
+                category_obj['values'].append({'key': category['key'], 'total': category['doc_count']})
+            formatted_agg.append(category_obj)
+    
+        elif category == 'locus':
+            agg_query_body = {
+                'query': es_query,
+                'size': 0,
+                'aggs': {
+                    'feature_type': {
+                        'terms': {'field': 'feature_type.raw', 'size': 999}
+                    },
+                    'molecular_function': {
+                        'terms': {'field': 'molecular_function.raw', 'size': 999}
+                    },
+                    'phenotypes': {
+                        'terms': {'field': 'phenotypes.raw', 'size': 999}
+                    },
+                    'cellular_component' : {
+                        'terms': {'field': 'cellular_component.raw', 'size': 999}
+                    },
+                    'biological_process': {
+                        'terms': {'field': 'biological_process.raw', 'size': 999}
+                    }
+                }
+            }
+
+            agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
+        
+            formatted_agg = []
+
+            for agg_info in locus_subcategories:
+                agg_obj = {'key': agg_info[0], 'values': []}
+                for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
+                    agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
+                formatted_agg.append(agg_obj)
+
+        elif category == 'phenotype':
+            agg_query_body = {
+                'query': es_query,
+                'size': 0,
+                'aggs': {
+                    'observable': {
+                        'terms': {'field': 'observable.raw', 'size': 999}
+                    },
+                    'qualifier': {
+                        'terms': {'field': 'qualifier.raw', 'size': 999}
+                    },
+                    'references': {
+                        'terms': {'field': 'references.raw', 'size': 999}
+                    },
+                    'phenotype_loci' : {
+                        'terms': {'field': 'phenotype_loci.raw', 'size': 999}
+                    },
+                    'chemical': {
+                        'terms': {'field': 'chemical.raw', 'size': 999}
+                    },
+                    'mutant_type': {
+                        'terms': {'field': 'mutant_type.raw', 'size': 999}
+                    }
+                }
+            }
+
+            agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
+        
+            formatted_agg = []
+
+            for agg_info in phenotype_subcategories:
+                if agg_info[0] == 'phenotype_locus':
+                    agg_obj = {'key': 'locus', 'values': []}
+                elif agg_info[0] == 'mutant_type':
+                    agg_obj = {'key': 'mutant type', 'values': []}
+                else:
+                    agg_obj = {'key': agg_info[0], 'values': []}
+                for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
+                    agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
+                formatted_agg.append(agg_obj)
+                
+        elif (category in ['biological_process', 'cellular_component', 'molecular_function']):
+            agg_query_body = {
+                'query': es_query,
+                'size': 0,
+                'aggs': {
+                    'go_loci': {
+                        'terms': {'field': 'go_loci.raw', 'size': 999}
+                    }
+                }
+            }
+
+            agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
+        
+            formatted_agg = []
+
+            for agg_info in go_subcategories:
+                if agg_info[0] == 'go_locus':
+                    agg_obj = {'key': 'locus', 'values': []}
+                else:
+                    agg_obj = {'key': agg_info[0], 'values': []}
+                    
+                for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
+                    agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
+                formatted_agg.append(agg_obj)
+
+        elif category == 'reference':
+            agg_query_body = {
+                'query': es_query,
+                'size': 0,
+                'aggs': {
+                    'author': {
+                        'terms': {'field': 'author.raw', 'size': 999}
+                    },
+                    'journal': {
+                        'terms': {'field': 'journal.raw', 'size': 999}
+                    },
+                    'year': {
+                        'terms': {'field': 'year.raw', 'size': 999}
+                    },
+                    'reference_loci' : {
+                        'terms': {'field': 'reference_loci.raw', 'size': 999}
+                    }
+                }
+            }
+
+            agg_response = self.es.search(index=SEARCH_ES_INDEX, body=agg_query_body)
+        
+            formatted_agg = []
+
+            for agg_info in reference_subcategories:
+                if agg_info[0] == 'reference_locus':
+                    agg_obj = {'key': 'locus', 'values': []}
+                else:
+                    agg_obj = {'key': agg_info[0], 'values': []}
+                for agg in agg_response['aggregations'][agg_info[1]]['buckets']:
+                    agg_obj['values'].append({'key': agg['key'], 'total': agg['doc_count']})
+                formatted_agg.append(agg_obj)
+
+        else:
+            formatted_agg = []
+            
+        response_obj = {
+            'results': formatted_results,
+            'total': search_results['hits']['total'],
+            'aggregations': formatted_agg
+        }
+        
+        return json.dumps(response_obj)
+
+    def search_sequence_objects(self, params):
+        query = params['query'] if 'query' in params.keys() else ''
+        query = query.lower()
+        offset = int(params['offset']) if 'offset' in params.keys() else 0
+        limit = int(params['limit']) if 'limit' in params.keys() else 1000
+
+        query_type = 'wildcard' if '*' in query else 'match_phrase'
+        if query == '':
+            search_body = {
+                'query': { 'match_all': {} },
+                'sort': { 'absolute_genetic_start': { 'order': 'asc' }}
+            }
+        elif ',' in query:
+            original_query_list = query.split(',')
+            query_list = []
+            for item in original_query_list:
+                query_list.append(item.strip())
+            search_body = {
+                'query': {
+                    'filtered': {
+                        'filter': {
+                            'terms': {
+                                '_all': query_list
+                            }
+                        }
+                    }
+                }
+            }
+        else:
+            search_body = {
+                'query': {
+                    query_type: {
+                        '_all': query
+                    }
+                }
+            }
+
+        search_body['_source'] = ['sgdid', 'name', 'href', 'absolute_genetic_start', 'format_name', 'dna_scores', 'protein_scores', 'snp_seqs']
+        res = self.es.search(index='sequence_objects', body=search_body, size=limit, from_=offset)
+        simple_hits = []
+        for hit in res['hits']['hits']:
+            simple_hits.append(hit['_source'])
+        formatted_response = {
+            'loci': simple_hits,
+            'total': res['hits']['total'],
+            'offset': offset
+        }
+        return json.dumps(formatted_response)
+
+    # get individual feature
+    def get_sequence_object(self, locus_repr):
+        id = locus_repr.upper()
+        try:
+            res = self.es.get(index='sequence_objects', id=id)['_source']
+            return json.dumps(res)
+        except TransportError:
+            return Response(status_code=404)
+
+    def autocomplete_results(self, params):
+        if params.get("q") is None:
+            return Response(status_code=422)
+
+        query = params['q']
+        search_body = {
+            "query": {
+                "bool": {
+                    "must": {
+                        "match": {
+                            "name": {
+                                "query": query,
+                                "analyzer": "standard"
+                            }
+                        }
+                    },
+                    "must_not": { "match": { "category": "reference" }, "match": { "category": "download" }},
+                    "should": [
+                        {
+                            "match": {
+                                "category": {
+                                    "query": "locus",
+                                    "boost": 4
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        res = self.es.search(index=SEARCH_ES_INDEX, body=search_body)
+        simplified_results = []
+        for hit in res['hits']['hits']:
+            obj = {
+                'name': hit['_source']['name'],
+                'href': hit['_source']['href'],
+                'category': hit['_source']['category']
+            }
+            simplified_results.append(obj)
+
+        unique = []
+        for hit in simplified_results:
+            if hit not in unique:
+                unique.append(hit)
+
+        return json.dumps({"results": unique})
+
+
       
 #Useful methods
 def create_simple_table(objs, f, **kwargs):
