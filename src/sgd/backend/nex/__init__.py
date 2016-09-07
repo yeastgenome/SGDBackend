@@ -24,7 +24,7 @@ __author__ = 'kpaskov'
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 query_limit = 25000
 
-SEARCH_ES_INDEX = 'searchable_items_blue'
+SEARCH_ES_INDEX = 'searchable_items_green'
 
 class SGDBackend(BackendInterface):
     def __init__(self, dbtype, dbhost, dbname, schema, dbuser, dbpass, log_directory, esearch_addr=None):
@@ -1037,10 +1037,10 @@ class SGDBackend(BackendInterface):
                 'size': 0,
                 'aggs': {
                     'categories': {
-                        'terms': { 'field': 'category' }
+                        'terms': {'field': 'category', 'size': 50}
                     },
                     'feature_type': {
-                        'terms': {'field': 'feature_type'}
+                        'terms': {'field': 'feature_type', 'size': 50}
                     }
                 }
             }

@@ -21,7 +21,7 @@ __author__ = 'kpaskov'
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
-SEARCH_ES_INDEX = 'searchable_items_blue'
+SEARCH_ES_INDEX = 'searchable_items_green'
 
 import datetime
 
@@ -914,10 +914,10 @@ class PerfBackend(BackendInterface):
                 'size': 0,
                 'aggs': {
                     'categories': {
-                        'terms': { 'field': 'category' }
+                        'terms': { 'field': 'category', 'size': 50}
                     },
                     'feature_type': {
-                        'terms': {'field': 'feature_type'}
+                        'terms': {'field': 'feature_type', 'size': 50}
                     }
                 }
             }
