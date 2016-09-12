@@ -21,7 +21,7 @@ __author__ = 'kpaskov'
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
-SEARCH_ES_INDEX = 'searchable_items_green'
+SEARCH_ES_INDEX = 'searchable_items_red'
 
 import datetime
 
