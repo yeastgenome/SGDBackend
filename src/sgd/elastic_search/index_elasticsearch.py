@@ -8,7 +8,7 @@ from elasticsearch import Elasticsearch
 import json
 
 CLIENT_ADDRESS = 'http://52.41.106.165:9200/'# cluster alpha
-INDEX_NAME = 'searchable_items_blue'
+INDEX_NAME = 'searchable_items_red'
 DOC_TYPE = 'searchable_item'
 RESET_INDEX = False
 es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
@@ -30,6 +30,7 @@ from src.sgd.model.nex.reference import Author
 from src.sgd.model.nex.misc import Strain, Alias
 from src.sgd.model.nex.bioconcept import Go
 from src.sgd.model.nex.bioconcept import Phenotype
+from src.sgd.model.nex.bioconcept import Observable
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.bioitem import Contig
 nex_session = nex_session_maker()
@@ -47,7 +48,7 @@ def setup_index():
 
 def put_mapping():
     #PUT CLIENT_ADDRESS + searchable_items/
-    mapping = '{"settings": {"index": {"max_result_window": 15000, "analysis": {"analyzer": {"default": {"type": "standard"}, "with_special_chars": {"type": "custom", "filter": ["lowercase"], "tokenizer": "whitespace"}, "autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"category": {"type": "string"}, "observable": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "qualifier": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "references": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "phenotype_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "keys": {"type": "string"}, "secondary_sgdid": {"type": "string"}, "chemical": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "mutant_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "go_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "strain": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "author": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "journal": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "year": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "reference_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "ec_number": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "tc_number": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "cellular_component": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"description": {"type": "string", "analyzer": "with_special_chars"}, "sequence_history": {"type": "string"}, "gene_history": {"type": "string"}, "summary": {"type":"string", "analyzer": "with_special_chars"}, "feature_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"href": {"type": "string"}, "molecular_function": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}}, "go_id": {"type": "string"}, "number_annotations": {"type": "integer"}, "name_description": {"type": "string", "analyzer": "with_special_chars"}, "synonyms": {"type": "string"}, "phenotypes": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}}}}}'
+    mapping = '{"settings": {"index": {"max_result_window": 15000, "analysis": {"analyzer": {"default": {"type": "standard"}, "autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"category": {"type": "string"}, "observable": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "qualifier": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "references": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "phenotype_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "keys": {"type": "string"}, "secondary_sgdid": {"type": "string"}, "chemical": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "mutant_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "go_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "strain": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "author": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "journal": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "year": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "reference_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "ec_number": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "tc_number": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "cellular_component": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"description": {"type": "string"}, "sequence_history": {"type": "string"}, "gene_history": {"type": "string"}, "summary": {"type":"string"}, "feature_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"href": {"type": "string"}, "molecular_function": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}}, "go_id": {"type": "string"}, "number_annotations": {"type": "integer"}, "name_description": {"type": "string"}, "synonyms": {"type": "string"}, "phenotypes": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}}}}}'
     return mapping
 
 from HTMLParser import HTMLParser
@@ -248,13 +249,13 @@ def index_phenotypes():
                     chemical.add(prop['bioitem']['display_name'])
             mutant_type.add(annotation['mutant_type'])
 
-        key_values = [phenotype.display_name, phenotype.format_name]
+        key_values = []
 
         keys = set([])
         for k in key_values:
             if k is not None:
                 keys.add(k.lower())
-                
+
         obj = {
             'name': phenotype.display_name,
             'href': phenotype.link,
@@ -263,7 +264,7 @@ def index_phenotypes():
             'observable': phenotype.observable.display_name,
             'qualifier': phenotype.qualifier,
             'references': list(references),
-            'phenotype_loci': list(loci),
+            'phenotype_loci': sorted(list(loci)),
             'number_annotations': len(perf_json),
             'chemical': list(chemical),
             'mutant_type': list(mutant_type),
@@ -317,6 +318,30 @@ def index_authors():
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=author.id)
 
+def index_observables():
+    all_observables = nex_session.query(Observable).all()
+
+    print 'Indexing ' + str(len(all_observables)) + ' observables'
+
+    for observable in all_observables:
+        key_values = []
+
+        keys = set([])
+        for k in key_values:
+            if k is not None:
+                keys.add(k.lower())
+
+        obj = {
+            'name': observable.display_name,
+            'href': observable.link,
+            'description': observable.description,
+            'category': 'observable',
+
+            'keys': list(keys)
+        }
+
+        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=observable.id)
+        
 def index_strains():
     all_strains = nex_session.query(Strain).all()
 
@@ -374,7 +399,7 @@ def index_go_terms():
         synonyms = [alias.display_name for alias in go.aliases]
 
         numerical_id = go.go_id.split(':')[1]
-        key_values = [go.display_name, go.format_name, go.go_id, 'GO:' + str(int(numerical_id)), numerical_id, str(int(numerical_id))]
+        key_values = [go.go_id, 'GO:' + str(int(numerical_id)), numerical_id, str(int(numerical_id))]
 
         keys = set([])
         for k in key_values:
@@ -388,7 +413,7 @@ def index_go_terms():
 
             'synonyms': synonyms,
             'go_id': go.go_id,
-            'go_loci': list(loci),
+            'go_loci': sorted(list(loci)),
             'references': list(references),
             'number_annotations': number_annotations,
             
@@ -441,7 +466,7 @@ def index_references():
             'author': list(reference.author_names),
             'journal': reference_name,
             'year': reference.year,
-            'reference_loci': list(loci),
+            'reference_loci': sorted(list(loci)),
             'secondary_sgdid': secondary_sgdids.get(str(reference.id)),
             
             'category': 'reference',
@@ -535,68 +560,58 @@ def index_downloads_from_json(filename):
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=processed[d], id=processed[d]['href'])
 
 def index_toolbar_links():
-    links = [("Gene List", "http://yeastmine.yeastgenome.org/yeastmine/bag.do", None, 'resource', None),
-             ("Yeastmine", "http://yeastmine.yeastgenome.org", None, 'resource', None),
-             ("Submit Data", "/cgi-bin/submitData.pl", None, 'resource', None),
-             ("SPELL", "http://spell.yeastgenome.org", None, 'resource', None),
-             ("BLAST", "/blast-sgd", None, 'resource', None),
-             ("Fungal BLAST", "/blast-fungal", None, 'resource', None),
-             ("Pattern Matching", "/cgi-bin/PATMATCH/nph-patmatch", None, 'resource', None),
-             ("Design Primers", "/cgi-bin/web-primer", None, 'resource', None),
-             ("Restriction Mapper", "/cgi-bin/PATMATCH/RestrictionMapper", None, 'resource', None),
-             ("Download", "/download-data/sequence", None, 'resource', None),
-             ("Genome Browser", "/browse", None, 'resource', None),
-             ("Gene/Sequence Resources", "/cgi-bin/seqTools", None, 'resource', None),
-             ("Download Genome", "http://downloads.yeastgenome.org/sequence/S288C_reference/genome_releases/", None, 'resource', None),
-             ("Genome Snapshot", "/genomesnapshot", None, 'resource', None),
-             ("Chromosome History", "/cgi-bin/chromosomeHistory.pl", None, 'resource', None),
-             ("Systematic Sequencing Table", "/cache/chromosomes.shtml", None, 'resource', None),
-             ("Original Sequence Papers", "http://wiki.yeastgenome.org/index.php/Original_Sequence_Papers", None, 'resource', None),
-             ("Variant Viewer", "/variant-viewer", None, 'resource', None),
-             ("Align Strain Sequences", "/cgi-bin/FUNGI/alignment.pl", None, 'resource', None),
-             ("Synteny Viewer", "/cgi-bin/FUNGI/FungiMap", None, 'resource', None),
-             ("Fungal Alignment", "/cgi-bin/FUNGI/showAlign", None, 'resource', None),
-             ("PDB Search", "/cgi-bin/protein/get3d", None, 'resource', None),
-             ("UniProtKB", "http://www.uniprot.org/", None, 'resource', None),
-             ("InterPro (EBI)", "http://www.ebi.ac.uk/interpro/", None, 'resource', None),
-             ("HomoloGene (NCBI)", "http://www.ncbi.nlm.nih.gov/homologene", None, 'resource', None),
-             ("YGOB (Trinity College)", "http://wolfe.gen.tcd.ie/ygob/", None, 'resource', None),
-             ("GO Term Finder", "/cgi-bin/GO/goTermFinder.pl", None, 'resource', None),
-             ("GO Slim Mapper", "/cgi-bin/GO/goSlimMapper.pl", None, 'resource', None),
-             ("GO Slim Mapping File", "http://downloads.yeastgenome.org/curation/literature/go_slim_mapping.tab", None, 'resource', None),
-             ("Expression", "http://spell.yeastgenome.org/#", None, 'resource', None),
-             ("Biochemical Pathways", "http://pathway.yeastgenome.org/", None, 'resource', None),
-             ("Browse All Phenotypes", "/ontology/phenotype/ypo/overview", None, 'resource', None),
-             ("Interactions", "/interaction_search", None, 'resource', None),
-             ("YeastGFP", "http://yeastgfp.yeastgenome.org/", None, 'resource', None),
-             ("GO Consortium", "http://www.geneontology.org/", None, 'resource', None),
-             ("BioGRID (U. Toronto)", "http://thebiogrid.org/", None, 'resource', None),
-             ("Full-text Search", "http://textpresso.yeastgenome.org/", None, 'resource', None),
-             ("New Yeast Papers", "/reference/recent", None, 'resource', None),
-             ("YeastBook", "http://www.genetics.org/site/misc/yeastbook.xhtml", None, 'resource', None),
-             ("Genome-wide Analysis Papers", "/cache/genome-wide-analysis.html", None, 'resource', None),
-             ("PubMed (NCBI)", "http://www.ncbi.nlm.nih.gov/pubmed/", None, 'resource', None),
-             ("PubMed Central (NCBI)", "http://www.ncbi.nlm.nih.gov/pmc/", None, 'resource', None),
-             ("Google Scholar", "http://scholar.google.com/", None, 'resource', None),
-             ("Find a Colleague", "/cgi-bin/colleague/colleagueInfoSearch", None, 'resource', None),
-             ("Add or Update Info", "/cgi-bin/colleague/colleagueSearch", None, 'resource', None),
-             ("Find a Yeast Lab", "/cache/yeastLabs.html", None, 'resource', None),
-             ("Career Resources", "http://wiki.yeastgenome.org/index.php/Career_Resources", None, 'resource', None),
-             ("Future", "http://wiki.yeastgenome.org/index.php/Meetings#Upcoming_Conferences_.26_Courses", None, 'resource', None),
-             ("Yeast Genetics", "http://wiki.yeastgenome.org/index.php/Meetings#Past_Yeast_Meetings", None, 'resource', None),
-             ("Submit a Gene Registration", "/cgi-bin/registry/geneRegistry", None, 'resource', None),
-             ("Gene Registry", "/help/community/gene-registry", None, 'resource', None),
-             ("Nomenclature Conventions", "/help/community/nomenclature-conventions", None, 'resource', None),
-             ("Global Gene Hunter", "/cgi-bin/geneHunter", None, 'resource', None),
-             ("Strains and Constructs", "http://wiki.yeastgenome.org/index.php/Strains", None, 'resource', None),
-             ("Reagents", "http://wiki.yeastgenome.org/index.php/Reagents", None, 'resource', None),
-             ("Protocols and Methods", "http://wiki.yeastgenome.org/index.php/Methods", None, 'resource', None),
-             ("Physical & Genetic Maps", "http://wiki.yeastgenome.org/index.php/Combined_Physical_and_Genetic_Maps_of_S._cerevisiae", None, 'resource', None),
-             ("Genetic Maps", "http://wiki.yeastgenome.org/index.php/Yeast_Mortimer_Maps_-_Edition_12", None, 'resource', None),
-             ("Sequence", "http://wiki.yeastgenome.org/index.php/Historical_Systematic_Sequence_Information", None, 'resource', None),
-             ("Gene Summary Paragraphs", "/cache/geneSummarytable.html", None, 'resource', None),
-             ("Wiki", "http://wiki.yeastgenome.org/index.php/Main_Page", None, 'resource', None),
-             ("Resources", "http://wiki.yeastgenome.org/index.php/External_Links", None, 'resource', None)]
+    links = [("Gene List", "http://yeastmine.yeastgenome.org/yeastmine/bag.do",  []),
+             ("Yeastmine", "http://yeastmine.yeastgenome.org",  'yeastmine'),
+             ("Submit Data", "/cgi-bin/submitData.pl",  []),
+             ("SPELL", "http://spell.yeastgenome.org",  'spell'),
+             ("BLAST", "/blast-sgd",  'blast'),
+             ("Fungal BLAST", "/blast-fungal",  'blast'),
+             ("Pattern Matching", "/cgi-bin/PATMATCH/nph-patmatch",  []),
+             ("Design Primers", "/cgi-bin/web-primer",  []),
+             ("Restriction Mapper", "/cgi-bin/PATMATCH/RestrictionMapper",  []),
+             ("Download", "/download-data/sequence",  'download'),
+             ("Genome Browser", "/browse",  []),
+             ("Gene/Sequence Resources", "/cgi-bin/seqTools",  []),
+             ("Download Genome", "http://downloads.yeastgenome.org/sequence/S288C_reference/genome_releases/",  'download'),
+             ("Genome Snapshot", "/genomesnapshot",  []),
+             ("Chromosome History", "/cgi-bin/chromosomeHistory.pl",  []),
+             ("Systematic Sequencing Table", "/cache/chromosomes.shtml",  []),
+             ("Original Sequence Papers", "http://wiki.yeastgenome.org/index.php/Original_Sequence_Papers",  []),
+             ("Variant Viewer", "/variant-viewer",  []),
+             ("Align Strain Sequences", "/cgi-bin/FUNGI/alignment.pl",  []),
+             ("Synteny Viewer", "/cgi-bin/FUNGI/FungiMap",  []),
+             ("Fungal Alignment", "/cgi-bin/FUNGI/showAlign",  []),
+             ("PDB Search", "/cgi-bin/protein/get3d",  'pdb'),
+             ("GO Term Finder", "/cgi-bin/GO/goTermFinder.pl",  'go'),
+             ("GO Slim Mapper", "/cgi-bin/GO/goSlimMapper.pl",  'go'),
+             ("GO Slim Mapping File", "http://downloads.yeastgenome.org/curation/literature/go_slim_mapping.tab",  'go'),
+             ("Expression", "http://spell.yeastgenome.org/#",  []),
+             ("Biochemical Pathways", "http://pathway.yeastgenome.org/",  []),
+             ("Browse All Phenotypes", "/ontology/phenotype/ypo/overview",  []),
+             ("Interactions", "/interaction_search",  []),
+             ("YeastGFP", "http://yeastgfp.yeastgenome.org/",  'yeastgfp'),
+             ("Full-text Search", "http://textpresso.yeastgenome.org/",  'texxtpresso'),
+             ("New Yeast Papers", "/reference/recent",  []),
+             ("Genome-wide Analysis Papers", "/cache/genome-wide-analysis.html",  []),
+             ("Find a Colleague", "/cgi-bin/colleague/colleagueInfoSearch",  []),
+             ("Add or Update Info", "/cgi-bin/colleague/colleagueSearch",  []),
+             ("Find a Yeast Lab", "/cache/yeastLabs.html",  []),
+             ("Career Resources", "http://wiki.yeastgenome.org/index.php/Career_Resources",  []),
+             ("Future", "http://wiki.yeastgenome.org/index.php/Meetings#Upcoming_Conferences_.26_Courses",  []),
+             ("Yeast Genetics", "http://wiki.yeastgenome.org/index.php/Meetings#Past_Yeast_Meetings",  []),
+             ("Submit a Gene Registration", "/cgi-bin/registry/geneRegistry",  []),
+             ("Gene Registry", "/help/community/gene-registry",  []),
+             ("Nomenclature Conventions", "/help/community/nomenclature-conventions",  []),
+             ("Global Gene Hunter", "/cgi-bin/geneHunter",  []),
+             ("Strains and Constructs", "http://wiki.yeastgenome.org/index.php/Strains",  []),
+             ("Reagents", "http://wiki.yeastgenome.org/index.php/Reagents",  []),
+             ("Protocols and Methods", "http://wiki.yeastgenome.org/index.php/Methods",  []),
+             ("Physical & Genetic Maps", "http://wiki.yeastgenome.org/index.php/Combined_Physical_and_Genetic_Maps_of_S._cerevisiae",  []),
+             ("Genetic Maps", "http://wiki.yeastgenome.org/index.php/Yeast_Mortimer_Maps_-_Edition_12",  []),
+             ("Sequence", "http://wiki.yeastgenome.org/index.php/Historical_Systematic_Sequence_Information",  []),
+             ("Gene Summary Paragraphs", "/cache/geneSummarytable.html",  []),
+             ("Wiki", "http://wiki.yeastgenome.org/index.php/Main_Page",  'wiki'),
+             ("Resources", "http://wiki.yeastgenome.org/index.php/External_Links",  [])]
 
     print 'Indexing ' + str(len(links)) + ' toolbar links'
 
@@ -604,21 +619,20 @@ def index_toolbar_links():
         obj = {
             'name': l[0],
             'href': l[1],
-            'description': l[2],
-            'category': l[3],
-            'data': l[4],
-            'keys': []
+            'description': None,
+            'category': 'resource',
+            'keys': l[2]
         }
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=l[1])
     
 def main():
-    index_toolbar_links()
-    index_downloads_from_json('./downloadable_files.json')
-    index_strains()
-    index_phenotypes()
-    index_genes()
-    index_contigs()
-    index_go_terms()
+#    index_downloads_from_json('./downloadable_files.json')
+#    index_toolbar_links()
+#    index_observables()
+#    index_strains()
+#    index_phenotypes()
+#    index_genes()
+#    index_go_terms()
     index_references()
 
 main()
