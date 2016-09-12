@@ -697,78 +697,71 @@ class PerfBackend(BackendInterface):
             es_query = { 'match_all': {} }
         else:
             es_query = {
-                "bool": {
-                    "must_not" : {
-                        "match" : {
-                            "category" : "colleagues"
-                        }
-                    },
-                    "should": [
+                'dis_max': {
+                    'queries': [
                         {
-                            "match_phrase_prefix": {
-                                "name": {
-                                    "query": query,
-                                    "boost": 3,
-                                    "max_expansions": 30,
-                                    "analyzer": "standard"
-                                }
-                            }
-                        },
-                        {
-                            "match_phrase_prefix": {
-                                "keys": {
-                                    "query": query,
-                                    "boost": 35,
-                                    "max_expansions": 12,
-                                    "analyzer": "standard"
-                                }
-                            }
-                        },
-                        {
-                            "match_phrase": {
-                                "name": {
-                                    "query": query,
-                                    "boost": 80,
-                                    "analyzer": "standard"
-                                }
-                            }
-                        },                        
-                        {
-                            "match": {
-                                "description": {
-                                    "query": query,
-                                    "boost": 1,
-                                    "analyzer": "standard"
-                                }
-                            }
-                        },
-                        {
-                            "match_phrase": {
-                                "keys": {
-                                    "query": query,
-                                    "boost": 50,
-                                    "analyzer": "standard"
-                                }
-                            }
+                            'boosting': {
+                                'positive': {
+                                    "match": {
+                                        "name": {
+                                            "query": query,
+                                            "analyzer": "standard",
+                                            "boost": 20
+                                        }
+                                    }
+                                },
+                                'negative': {
+                                    'match': {
+                                        'category': 'reference'
+                                    }
+                                },
+                                'negative_boost': 0.2
+                            }   
                         },
                         {
                             "multi_match": {
                                 "query": query,
                                 "type": "best_fields",
-                                "fields": multi_match_fields,
+                                "fields": multi_match_fields + ['name', 'description'],
                                 "boost": 1
                             }
+                        },
+                        {
+                            "match_phrase_prefix": {
+                                "keys": {
+                                    "query": query,
+                                    "analyzer": "standard",
+                                    "max_expansions": 12,
+                                    "boost": 10
+                                }
+                            }
+                        },
+                        {
+                            "match_phrase_prefix": {
+                                "name": {
+                                    "query": query,
+                                    "analyzer": "standard",
+                                    "boost": 1
+                                }
+                            }
+
                         }
-                    ],
-                    "minimum_should_match": 1
+                    ]
                 }
             }
 
             if (query[0] in ('"', "'") and query[-1] in ('"', "'")):
                 new_conditions = []
-                for cond in es_query['bool']['should'][2:4]:
-                    new_conditions.append({'match_phrase_prefix': cond.pop(cond.keys()[0])})
-                multi_fields = {
+                es_query['dis_max']['queries'][0]['boosting']['positive'] = {
+                    "match_phrase_prefix": {
+                        "name": {
+                            "query": query,
+                            "analyzer": "standard",
+                            "boost": 10
+                        }
+                    }
+                }
+                es_query['dis_max']['queries'][1] = {
                     "multi_match": {
                         "query": query,
                         "type": "phrase_prefix",
@@ -776,7 +769,6 @@ class PerfBackend(BackendInterface):
                         "boost": 3
                     }
                 }
-                es_query['bool']['should'] = [es_query['bool']['should'][0]] + new_conditions + [multi_fields]
 
         if category != '':
             es_query = {
