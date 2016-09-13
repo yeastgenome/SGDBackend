@@ -33,6 +33,7 @@ from src.sgd.model.nex.bioconcept import Phenotype
 from src.sgd.model.nex.bioconcept import Observable
 from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.bioitem import Contig
+from src.sgd.model.nex.bioitem import Reservedname
 nex_session = nex_session_maker()
 perf_session = perf_session_maker()
 
@@ -427,6 +428,50 @@ def index_go_terms():
 
     print 'Indexing ' + str(num_indexed) + ' GO terms'
 
+def index_reserved_names():
+    all_reserved_names = nex_session.query(Reservedname).all()
+
+    print 'Indexing ' + str(len(all_reserved_names)) + ' reserved names'
+
+    bulk_data = []
+    names = 0
+    for reserved_name in all_reserved_names:
+        key_values = [reserved_name.display_name]
+
+        keys = set([])
+        for k in key_values:
+            if k is not None:
+                keys.add(k.lower())
+        
+        obj = {
+            'name': reserved_name.display_name,
+            'href': reserved_name.link,
+            'description': reserved_name.description,
+
+            'category': "reserved_name",
+
+            'keys': list(keys)
+        }
+
+        bulk_data.append({
+            'index': {
+                '_index': INDEX_NAME,
+                '_type': DOC_TYPE,
+                '_id': reserved_name.format_name
+            }
+        })
+
+        bulk_data.append(obj)
+
+        names +=1
+        if names % 500 == 0:
+            es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
+            bulk_data = []
+
+    if (len(bulk_data)) > 0:
+        es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
+        
+
 def index_references():
     all_references = nex_session.query(Reference).all()
 
@@ -628,11 +673,12 @@ def index_toolbar_links():
 def main():
 #    index_downloads_from_json('./downloadable_files.json')
 #    index_toolbar_links()
+    index_reserved_names()
 #    index_observables()
 #    index_strains()
 #    index_phenotypes()
 #    index_genes()
 #    index_go_terms()
-    index_references()
+#    index_references()
 
 main()
