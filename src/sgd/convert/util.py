@@ -307,14 +307,12 @@ def get_strain_taxid_mapping():
              "CENPK":           "NTR:115",
              'Other':           "TAX:4932" }
 
-def read_gpad_file(filename, bud_session, nex_session, uniprot_to_date_assigned, uniprot_to_sgdid_list, get_extension=None, get_support=None):
+def read_gpad_file(filename, nex_session, uniprot_to_date_assigned, uniprot_to_sgdid_list, get_extension=None, get_support=None, new_pmids=None, dbentity_with_new_pmid=None, dbentity_with_uniprot=None, bad_ref=None):
 
     from src.sgd.model.nex.reference import Reference
     from src.sgd.model.nex.locus import Locus
     from src.sgd.model.nex.go import Go
     from src.sgd.model.nex.eco import EcoAlias
-
-    from src.sgd.model.bud.go import Go as Go_bud 
     
     from src.sgd.model import nex
     from src.sgd.convert import config
@@ -333,8 +331,6 @@ def read_gpad_file(filename, bud_session, nex_session, uniprot_to_date_assigned,
     f = open(filename)
     
     read_line = {}
-    bad_ref = []
-
     data = []
 
     for line in f:
@@ -351,10 +347,10 @@ def read_gpad_file(filename, bud_session, nex_session, uniprot_to_date_assigned,
             continue
         read_line[line] = 1
 
-        if get_extension == 1 and field[10] == '':
-            continue
-        if get_support == 1 and field[6] == '':
-            continue
+        # if get_extension == 1 and field[10] == '':
+        #    continue
+        # if get_support == 1 and field[6] == '':
+        #    continue
 
         ## uniprot ID & SGDIDs                                                                              
         uniprotID = field[1]
@@ -397,6 +393,24 @@ def read_gpad_file(filename, bud_session, nex_session, uniprot_to_date_assigned,
         else:
             created_by = curator_id.get(annot_prop_dict.get('curator_name'))
 
+        ## dbentity_id list
+        dbentity_ids = []
+        sgdid_list = uniprot_to_sgdid_list.get(uniprotID)
+        if sgdid_list is None:
+            print "UniProt ID ", uniprotID, " is not in GPI file."
+            continue
+
+        for sgdid in sgdid_list:
+            if sgdid == '':
+                continue
+            locus_id = sgdid_to_locus_id.get(sgdid)
+            if locus_id is None:
+                print "The sgdid = ", sgdid, " is not in LOCUSDBENTITY table."
+                continue    
+            dbentity_ids.append(locus_id)
+            if dbentity_with_uniprot is not None:
+                dbentity_with_uniprot[locus_id] = 1
+
         ## reference_id                                                                                     
         reference_id = None
         if field[4].startswith('PMID:'):
@@ -405,13 +419,18 @@ def read_gpad_file(filename, bud_session, nex_session, uniprot_to_date_assigned,
         else:
             ref_sgdid = go_ref_mapping.get(field[4])
             if ref_sgdid is None:
-                if field[4] not in bad_ref:
+                if bad_ref is not None and field[4] not in bad_ref:
                     bad_ref.append(field[4])
                 print "UNKNOWN REF: ", field[4], ", line=", line
                 continue
             reference_id = sgdid_to_reference_id.get(ref_sgdid)
         if reference_id is None:
             print "The PMID = " + str(pmid) + " is not in the REFERENCEDBENTITY table."
+            if new_pmids is not None:
+                if pmid not in new_pmids:
+                    new_pmids.append(pmid)
+                    for dbentity_id in dbentity_ids:
+                        dbentity_with_new_pmid[dbentity_id] = 1
             continue
 
         # assigned_group = field[9]           
@@ -427,19 +446,21 @@ def read_gpad_file(filename, bud_session, nex_session, uniprot_to_date_assigned,
             date_assigned = date_created
             annotation_type = 'computational'
         
-        sgdid_list = uniprot_to_sgdid_list.get(uniprotID)
-        if sgdid_list is None:
-            print "UniProt ID ", uniprotID, " is not in GPI file."
-            continue
+        # sgdid_list = uniprot_to_sgdid_list.get(uniprotID)
+        # if sgdid_list is None:
+        #    print "UniProt ID ", uniprotID, " is not in GPI file."
+        #    continue
 
-        for sgdid in sgdid_list:
-            if sgdid == '':
-                continue
-            locus_id = sgdid_to_locus_id.get(sgdid)
-            if locus_id is None:
-                print "The sgdid = ", sgdid, " is not in LOCUSDBENTITY table."
-                continue
+        # for sgdid in sgdid_list:
+        #    if sgdid == '':
+        #        continue
+        #    locus_id = sgdid_to_locus_id.get(sgdid)
+        #    if locus_id is None:
+        #        print "The sgdid = ", sgdid, " is not in LOCUSDBENTITY table."
+        #        continue
     
+        for locus_id in dbentity_ids:
+
             entry = { 'source': source,
                       'dbentity_id': locus_id,
                       'reference_id': reference_id,
@@ -450,10 +471,10 @@ def read_gpad_file(filename, bud_session, nex_session, uniprot_to_date_assigned,
                       'date_assigned': date_assigned,
                       'date_created': date_created,
                       'created_by': created_by } 
-        
-            if get_extension == 1:
+                        
+            if get_extension == 1 and field[10] != '':
                 entry['goextension'] = field[10]
-            if get_support == 1:
+            if get_support == 1 and field[6] != '':
                 entry['gosupport'] = field[6]
 
             data.append(entry)
@@ -600,6 +621,7 @@ def read_obo(ontology, filename, key_switch, parent_to_children, is_obsolete_id,
     is_obsolete_ecoid = {}
     id_to_id = {}
     parent_child_pair = {}
+    found_alias = {}
     for line in f:
         line = line.strip()
         ## remove all back slashes
@@ -640,8 +662,13 @@ def read_obo(ontology, filename, key_switch, parent_to_children, is_obsolete_id,
                         if alias_type == 'EXACT IUPAC_NAME':
                             alias_type = 'IUPAC name'
                         if len(alias_name) >= 500 or (alias_name, alias_type) in [(x['display_name'], x['alias_type']) for x in term['aliases']]:
-                            continue                  
+                            continue            
+                    if ontology == 'DO' and alias_type not in ('EXACT', 'RELATED'):
+                        continue
+                    if (term[id_name], alias_name, alias_type) in found_alias:
+                        continue
                     term['aliases'].append({'display_name': alias_name, "alias_type": alias_type, "source": {"display_name": alias_source}})
+                    found_alias[(term[id_name], alias_name, alias_type)] = 1
                 elif ontology == 'GO' and (pieces[0] == 'is_a' or pieces[0] == 'relationship'):
                     if term.get('display_name') is None:
                         continue
@@ -892,3 +919,25 @@ def link_strain_names(text, to_ignore, nex_session):
     except:
         print text
         return text
+
+
+def sendmail(subject, body_text, receiver):
+    import smtplib
+    
+    server = "localhost"
+    sender = 'sgd-programmers@genome.stanford.edu'
+
+    message = """\
+From: %s
+To: %s
+Subject: %s
+
+%s
+    """ % (sender, ", ".join(receiver), subject, body_text)
+    
+    try:
+        mailer = smtplib.SMTP(server)
+        mailer.sendmail(sender, receiver, message)
+    except (smtplib.SMTPConnectError):
+        print >> stderr, "Error sending email"
+        sys.exit(-1)

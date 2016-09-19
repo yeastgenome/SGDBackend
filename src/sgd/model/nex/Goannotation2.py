@@ -13,6 +13,8 @@ from src.sgd.model.nex.reference import Reference
 from src.sgd.model.nex.go import Go
 from src.sgd.model.nex.eco import Eco
 from src.sgd.model.nex.ro import Ro
+from src.sgd.model.nex.goextension2 import Goextension
+from src.sgd.model.nex.gosupportingevidence2 import Gosupportingevidence
 
 __author__ = 'sweng66'
 
@@ -40,6 +42,8 @@ class Goannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
     reference = relationship(Reference, uselist=False, foreign_keys=[reference_id])
     go = relationship(Go, uselist=False)
     eco = relationship(Eco, uselist=False)
+    # goextensions = relationship(Goextension, uselist=False, foreign_keys=[annotation_id])
+    # gosupportingevidences = relationship(Gosupportingevidence, uselist=False, foreign_keys=[annotation_id])
 
     __eq_values__ = ['id', 'annotation_type', 'bud_id', 'dbentity_id', 'taxonomy_id', 
                      'reference_id', 'go_id', 'eco_id', 'go_qualifier', 'date_assigned', 
@@ -50,36 +54,25 @@ class Goannotation(Base, EqualityByIDMixin, ToJsonMixin, UpdateWithJsonMixin):
                   ('taxonomy', Taxonomy, False),
                   ('go', Go, False),
                   ('eco', Eco, False)]
+                  # ('goextensions', Goextension, False),
+                  # ('gosupportingevidences', Gosupportingevidence, False)]
     __id_values__ = ['id']
     __no_edit_values__ = ['id', 'date_created', 'created_by']
     __filter_values__ = ['dbentity_id', 'reference_id', 'go_id', 'annotation_type']
 
-    def __init__(self, obj_json, session):
-        self.dbentity_id = obj_json['dbentity_id']
-        self.reference_id = obj_json['reference_id']
-        self.taxonomy_id = obj_json['taxonomy_id']
-        self.go_id = obj_json['go_id']
-        self.eco_id = obj_json['eco_id']
-        self.go_qualifier = obj_json['go_qualifier']
-        self.annotation_type = obj_json['annotation_type']
-        UpdateWithJsonMixin.__init__(self, obj_json, session)
+    def __init__(self, dbentity_id, source_id, taxonomy_id, reference_id, go_id, eco_id, annotation_type, go_qualifier, date_assigned, date_created, created_by):
+        self.dbentity_id = dbentity_id
+        self.source_id = source_id
+        self.taxonomy_id = taxonomy_id
+        self.reference_id = reference_id
+        self.go_id = go_id
+        self.eco_id = eco_id
+        self.annotation_type = annotation_type
+        self.go_qualifier = go_qualifier
+        self.date_assigned = date_assigned
+        self.date_created = date_created
+        self.created_by = created_by
 
-    @classmethod
-    def __to_small_json__(self):
-        obj_json = ToJsonMixin.__to_small_json__(self)
-        obj_json['dbentity'] = self.dbentity.display_name
-        obj_json['reference'] = self.reference.citation
-        obj_json['go'] = self.go.display_name
-        obj_json['annotation_type'] = self.annotation_type
-        return obj_json
 
-    def __to_large_json__(self):
-        obj_json = ToJsonMixin.__to_large_json__(self)
-        obj_json['dbentity'] = self.dbentity.display_name
-        obj_json['reference'] = self.phenotype.citation
-        obj_json['go'] = self.go.display_name
-        obj_json['annotation_type'] = self.annotation_type
-        obj_json['eco'] = self.eco.display_name
-        obj_json['date_assigned'] = self.date_assigned
-        return obj_json
+
 

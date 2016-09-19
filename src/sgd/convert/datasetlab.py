@@ -12,41 +12,61 @@ def datasetlab_starter(bud_session_maker):
     dataset_to_id = dict([(x.display_name, x.id) for x in nex_session.query(Dataset).all()])
     coll_name_institution_to_id = dict([((x.display_name, x.institution), x.id) for x in nex_session.query(Colleague).all()])
     coll_name_to_id = dict([(x.display_name, x.id) for x in nex_session.query(Colleague).all()])
-    f = open('src/sgd/convert/data/published_datasets_metadata_A-O_201604.txt')
-    
-    for line in f:
-        if line.startswith('dataset'):
-            continue
-        line = line.strip()
-        if line:
-            pieces = line.split("\t")
-            display_name = pieces[1]
-            dataset_id = dataset_to_id.get(display_name)
-            if dataset_id is None:
-                print "The dataset: ", display_name, " is not in DATASET table."
+
+    files = ['src/sgd/convert/data/GEO_metadata_reformatted_inSPELL_cleaned-up.tsv_dataset-OWL.txt',
+             'src/sgd/convert/data/GEO_metadata_reformatted_NOTinSPELL.tsv_dataset_OWL.txt',
+             'src/sgd/convert/data/published_datasets_metadata_dataset-20160804.txt',
+             'src/sgd/convert/data/non-GEO-dataset.tsv']
+
+    found = {}
+
+    for file in files:
+        f = open(file)
+        for line in f:
+            if line.startswith('dataset'):
                 continue
-            if len(pieces) <= 14 or pieces[13] == '' or pieces[14] == '':
-                continue
+            line = line.strip().replace('"', '')
+            if line:
+                pieces = line.split("\t")
+                display_name = pieces[1]
+                dataset_id = dataset_to_id.get(display_name)
+                if dataset_id is None:
+                    print "The dataset: ", display_name, " is not in DATASET table."
+                    continue
+                if len(pieces) <= 16 or pieces[15] == '' or pieces[16] == '':
+                    continue
 
-            coll_display_name = pieces[13].lstrip(' ').rstrip(' ')
-            coll_institution = pieces[14].replace('"', '').lstrip(' ').rstrip(' ')
-            data = { "source": { "display_name": 'SGD' },
-                     "dataset_id": dataset_id,
-                     "lab_name": pieces[13],
-                     "lab_location": coll_institution }
-            
-            # name = pieces[13].split(' ')
-            # last_name = name.pop()
-            # first_name = " ".join(name)
-            colleague_id = coll_name_institution_to_id.get((coll_display_name, coll_institution))
-            if colleague_id is None:
-                colleague_id = coll_name_to_id.get(coll_display_name)
-            if colleague_id is not None:
-                data['colleague_id'] = colleague_id
+                coll_display_name = pieces[15].lstrip(' ').rstrip(' ')
+                coll_institution = pieces[16].replace('"', '').lstrip(' ').rstrip(' ')
+                if len(coll_institution) > 100:
+                    coll_institution = coll_institution.replace("National Institute of Environmental Health Sciences", "NIEHS")
+                    if coll_institution.startswith('Department'):
+                        items = coll_institution.split(', ')
+                        items.pop(0)
+                        coll_institution = ', '.join(items)
+                name = pieces[15].split(' ')                                                                              
+                last_name = name[0]                                                                               
+                first_name = name[1].replace(', ', '')
+                lab_name = last_name + ' ' + first_name
+                
+                if (lab_name, dataset_id) in found:
+                    continue
+                found[(lab_name, dataset_id)] = 1
+                
+                data = { "source": { "display_name": 'SGD' },
+                         "dataset_id": dataset_id,
+                         "lab_name": lab_name,
+                         "lab_location": coll_institution }
+        
+                colleague_id = coll_name_institution_to_id.get((coll_display_name, coll_institution))
+                if colleague_id is None:
+                    colleague_id = coll_name_to_id.get(coll_display_name)
+                if colleague_id is not None:
+                    data['colleague_id'] = colleague_id
 
-            yield data
+                yield data
 
-    f.close()
+        f.close()
 
 def get_nex_session():
 

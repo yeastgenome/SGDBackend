@@ -24,7 +24,7 @@ def gosupportingevidence_starter(bud_session_maker):
 
     get_extension = 0
     get_support = 1
-    data = read_gpad_file(GPAD_FILE, bud_session, nex_session, uniprot_to_date_assigned,
+    data = read_gpad_file(GPAD_FILE, nex_session, uniprot_to_date_assigned,
                           uniprot_to_sgdid_list, get_extension, get_support)
 
     for x in data:

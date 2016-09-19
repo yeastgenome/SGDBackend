@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Dataset",
+    "title": "DoSubset",
     "type": "object",
     "properties": {
         "id": {
@@ -19,6 +19,18 @@
             "title": "Link",
             "type": "string"
         },
+	"subset_name": {
+            "title": "Subset Name",
+            "type": "string"
+        },
+	"genome_count": {
+            "title": "Genome Count",
+            "type": "integer"
+        },
+        "description": {
+            "title": "Description",
+            "type": "string"
+        },
         "bud_id": {
             "title": "Bud ID",
             "type": "integer"
@@ -26,6 +38,10 @@
         "source": {
             "title": "Source",
             "$ref": "source.json"
+        },
+        "do_id": {
+            "title": "DO ID",
+            "type": "integer"
         },
         "date_created": {
             "title": "Date Created",
@@ -42,39 +58,7 @@
         "created_by": {
             "title": "Name",
             "type": "string"
-        },
-	"dbxref_id": {
-	    "title": "DBXREF ID",
-            "type": "string"
-	},
-	"dbxref_type": {
-            "title": "DBXREF Type",
-            "type": "string"
-        },
-	"assay_id": {
-            "title": "Assay ID",
-            "type": "integer"
-        },
-	"channel_count": {
-            "title": "Channel Count",
-            "type": "integer"
-        },
-	"sample_count": {
-            "title": "Sample count",
-            "type": "integer"
-        },
-	"description": {
-            "title": "Description",
-            "type": "string"
-        },
-	"is_in_spell": {
-            "title": "Is-in-spell",
-            "type": "integer"
-        },
-	"is_in_browser": {
-            "title": "Is-in-browser",
-            "type": "integer"
         }
     },
-    "required": ["format_name", "display_name", "assay_id", "sample_count", "is_in_spell", "is_in_browser"]
+    "required": ["display_name", "format_name", "source", "do_id", "subset_name", "genome_count"]
 }

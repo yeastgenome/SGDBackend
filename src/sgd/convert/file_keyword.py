@@ -12,33 +12,37 @@ def file_keyword_starter(bud_session_maker):
     file_to_id = dict([(x.display_name, x.id) for x in nex_session.query(File).all()])
     keyword_to_id = dict([(x.display_name, x.id) for x in nex_session.query(Keyword).all()])
     
-    f = open('src/sgd/convert/data/published_datasets-files_metadata_A-O_201604.txt')
-    
-    for line in f:
-        if line.startswith('bun_filepath'):
-            continue
-        line = line.strip()
-        if line:
-            pieces = line.split("\t")
-            display_name = pieces[3]
-            file_id = file_to_id.get(display_name)
-            if file_id is None:
-                print "The file: ", display_name, " is not in FILEDBENTITY table."
+    files = ['src/sgd/convert/data/published_datasets_metadata_file-20160804.txt',
+             'src/sgd/convert/data/GEO_metadata_reformatted_inSPELL_cleaned-up.tsv_file.tsv_round2fix_fixdupRM_fixRMdescriptionEDWs_owl.tsv',
+             'src/sgd/convert/data/non-GEO-file.tsv']
+
+    for file in files:
+        f = open(file)
+        for line in f:
+            if line.startswith('bun_filepath') or line.startswith('bun filepath'):
                 continue
-            if len(pieces) <= 19 or pieces[19] == '':
-                continue
-            keywords = pieces[19].split("|")
-            for keyword in keywords:
-                keyword = keyword.replace('"', '')
-                if keyword == 'translation regulation':
-                    keyword = 'translational regulation'
-                keyword_id = keyword_to_id.get(keyword)
-                if keyword_id is None:
-                    print "The keyword: ", keyword, " is not in the KEYWORD table."
+            line = line.strip()
+            if line:
+                pieces = line.split("\t")
+                display_name = pieces[3]
+                file_id = file_to_id.get(display_name)
+                if file_id is None:
+                    print "The file: ", display_name, " is not in FILEDBENTITY table."
                     continue
-                yield { "source": { "display_name": 'SGD' },
-                        "keyword_id": keyword_id,
-                        "file_id": file_id }
+                if len(pieces) <= 19 or pieces[19] == '':
+                    continue
+                keywords = pieces[19].split("|")
+                for keyword in keywords:
+                    keyword = keyword.replace('"', '')
+                    if keyword == 'translation regulation':
+                        keyword = 'translational regulation'
+                    keyword_id = keyword_to_id.get(keyword)
+                    if keyword_id is None:
+                        print "The keyword: ", keyword, " is not in the KEYWORD table."
+                        continue
+                    yield { "source": { "display_name": 'SGD' },
+                            "keyword_id": keyword_id,
+                            "file_id": file_id }
 
     f.close()
 

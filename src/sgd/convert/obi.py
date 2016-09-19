@@ -43,25 +43,50 @@ def obi_starter(bud_session_maker):
         yield term
 
     ## add NTR terms:                                                                                        
-    f = open('src/sgd/convert/data/published_datasets_metadata_A-O_201604.txt')
+    files = ['src/sgd/convert/data/published_datasets_metadata_dataset-20160804.txt',
+             'src/sgd/convert/data/GEO_metadata_reformatted_NOTinSPELL.tsv_dataset_OWL.txt',
+             'src/sgd/convert/data/GEO_metadata_reformatted_inSPELL_cleaned-up.tsv_dataset-OWL.txt',
+             'src/sgd/convert/data/non-GEO-dataset.tsv']
+
     found = {}
     i = 0
-    for line in f:
-        if line.startswith('dataset'):
-            continue
-        line = line.strip()
-        if line:
-            pieces = line.split("\t")
-            if pieces[5].startswith('NTR:'):
-                display_name = pieces[5].replace('NTR:', '')
-                if display_name not in found:
-                    i = i + 1
-                    found[display_name] = 1
-                    yield { 'source': { 'display_name': 'SGD' },
-                            'obiid': 'NTR:' + str(i),
-                            'format_name': 'NTR:' + str(i),
-                            'display_name': display_name }
-        
+    for file in files:
+        f = open(file)
+        for line in f:
+            if line.startswith('dataset'):
+                continue
+            line = line.strip()
+            if line:
+                pieces = line.split("\t")
+                if len(pieces) > 7:
+                    if pieces[7].startswith('NTR:'):
+                        display_name = pieces[7].replace('NTR:', '')
+                        if display_name not in found:
+                            i = i + 1
+                            found[display_name] = 1
+                            yield { 'source': { 'display_name': 'SGD' },
+                                    'obiid': 'NTR:' + str(i),
+                                    'format_name': 'NTR:' + str(i),
+                                    'display_name': display_name }
+     
+    for display_name in ['ChIP-exo',
+                         'DNA sequence variation detection by snp array',
+                         'DNA sequence variation detection by tiling array',
+                         'Prediction',
+                         'Serial analysis of gene expression',
+                         'competitive growth assay analysis with microarrays',
+                         'fluorescence detection assay',
+                         'synthetic lethality analysis with microarrays',
+                         'sequencing']
+
+        if display_name not in found:
+            i = i + 1
+            found[display_name] = 1
+            yield { 'source': { 'display_name': 'SGD' },
+                    'obiid': 'NTR:' + str(i),
+                    'format_name': 'NTR:' + str(i),
+                    'display_name': display_name }
+
 if __name__ == '__main__':
     from src.sgd.convert import config
     basic_convert(config.BUD_HOST, config.NEX_HOST, obi_starter, 'obi', lambda x: x['display_name'])

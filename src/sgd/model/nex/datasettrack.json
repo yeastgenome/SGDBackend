@@ -1,5 +1,5 @@
 {
-    "title": "DatasetKeyword",
+    "title": "Datasettrack",
         "type": "object",
         "properties": {
             "id": {
@@ -18,40 +18,16 @@
                 "title": "Link",
                 "type": "string"
             },
-            "bud_id": {
-                "title": "BUD ID",
-                "type": "integer"
-            },
             "dataset_id": {
                 "title": "Dataset ID",
                 "type": "integer"
             },
-	    "taxonomy_id": {
-                "title": "Taxonomy ID",
+	    "track_order": {
+                "title": "Track Order",
                 "type": "integer"
             },
-	    "dbxref_id": {
-                "title": "DBXREF ID",
-                "type": "string"
-            },
-	    "dbxref_type": {
-                "title": "DBXREF Type",
-                "type": "string"
-            },
-	    "sample_order": {
-                "title": "Sample Order",
-                "type": "integer"
-            },
-	    "description": {
-                "title": "Description",
-                "type": "string"
-            },
-	    "biosample": {
-                "title": "Biosample",
-                "type": "string"
-            },
-	    "strain_name": {
-                "title": "Strain Name",
+	    "track_status": {
+                "title": "Track Status",
                 "type": "string"
             },
             "source": {
@@ -75,5 +51,5 @@
                 "type": "string"
             }
         },
-        "required": ["format_name", "display_name", "sample_order", "dataset_id"]
+        "required": ["format_name", "display_name", "track_order", "dataset_id"]
 }

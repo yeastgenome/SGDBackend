@@ -91,6 +91,27 @@ def taxonomy_starter(bud_session_maker):
                          "link": "http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id="+taxid}]
         yield term
 
+    ## "TAX:562": "Escherichia coli",
+    extra_taxid_to_term = { "TAX:4896": "Schizosaccharomyces pombe",
+                            "TAX:4931": "Saccharomyces bayanus",
+                            "TAX:27291": "Saccharomyces paradoxus",
+                            "TAX:4952": "Yarrowia lipolytica",
+                            "TAX:5476": "Candida albicans",
+                            "TAX:10090": "Mus musculus",
+                            "TAX:9606": "Homo sapiens",
+                            "TAX:4959": "Debaryomyces hansenii",
+                            "TAX:4897": "Schizosaccharomyces japonicus" }
+
+    for taxid in extra_taxid_to_term:
+        term = {}
+        term['taxid'] = taxid
+        term['format_name'] = extra_taxid_to_term[taxid].replace(' ', '_')
+        term['display_name'] = extra_taxid_to_term[taxid]
+        term['obj_url'] = '/taxonomy/' + term['format_name']
+        term['source'] = { 'display_name': 'NCBI' }
+        term['rank'] = 'no rank'
+        yield term
+
     index = 100
     for strain in ["BY4742", "D273-10B", "DBVPG6044", "FY1679", "JK9-3d", "K11", "L1528", "SEY6210", "X2180-1A", "YPH499", "YPS128", "YS9", "Y55", "BC187", "UWOPSS", "CENPK"]:
         term = {}
@@ -102,6 +123,8 @@ def taxonomy_starter(bud_session_maker):
         term['rank'] = 'no rank'
         index = index + 1
         yield term
+
+    
 
 
 if __name__ == '__main__':

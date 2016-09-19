@@ -8,7 +8,7 @@ from src.sgd.model import EqualityByIDMixin
 from src.sgd.model.nex import Base, ToJsonMixin, UpdateWithJsonMixin, create_format_name
 from src.sgd.model.nex.source import Source
 from src.sgd.model.nex.ro import Ro
-from src.sgd.model.nex.goannotation import Goannotation
+from src.sgd.model.nex.goannotation2 import Goannotation
 
 __author__ = 'sweng66'
 
@@ -26,7 +26,7 @@ class Goextension(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
 
     #Relationships                                                               
                                                             
-    annotation = relationship(Goannotation, uselist=False, backref=backref('goextensions', cascade="all, delete-orphan", passive_deletes=True))
+    # annotation = relationship(Goannotation, uselist=False, backref=backref('goextensions', cascade="all, delete-orphan", passive_deletes=True))
     ro = relationship(Ro, uselist=False)
     role = association_proxy('ro', 'display_name')
 
@@ -36,12 +36,17 @@ class Goextension(Base, EqualityByIDMixin, UpdateWithJsonMixin, ToJsonMixin):
     __no_edit_values__ = ['id', 'date_created', 'created_by']
     __filter_values__ = []
 
-    def __init__(self, obj_json, session):
-        self.annotation_id = obj_json['annotation_id'] 
-        UpdateWithJsonMixin.__init__(self, obj_json, session)
-
     # def __init__(self, obj_json, session):
-    #    self.annotation_id = obj_json['annotation_id']
-    #    self.update(obj_json, session)
+    #    self.annotation_id = obj_json['annotation_id'] 
+    #    UpdateWithJsonMixin.__init__(self, obj_json, session)
+    
+    def __init__(self, annotation_id, group_id, dbxref_id, link, ro_id, date_created, created_by):
+        self.annotation_id = annotation_id
+        self.group_id = group_id
+        self.dbxref_id = dbxref_id
+        self.link = link
+        self.ro_id = ro_id
+        self.date_created = date_created
+        self.created_by= created_by
 
 

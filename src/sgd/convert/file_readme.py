@@ -30,6 +30,8 @@ def file_starter(bud_session_maker):
             line = line.strip()
             if line:
                 pieces = line.split("\t")
+                # if pieces[11] == 'README' or pieces[11] == 'readme':
+                #    continue
                 display_name = pieces[3]
                 if file_to_id.get(display_name):
                     continue
@@ -68,10 +70,18 @@ def file_starter(bud_session_maker):
                 is_in_spell = int(pieces[14])
                 is_in_browser = int(pieces[15])
                 readme_file_id = None
-                if pieces[16]:
-                    readme_file_id = file_to_id.get(pieces[16])
+                # if pieces[16]:
+                #    readme_file_id = file_to_id.get(pieces[16])
 
                 description = pieces[17].replace('"', '')
+                ## it is a README file
+                if pieces[11] == 'README' or pieces[11] == 'readme':
+                    if "non-GEO" in file:
+                        name = display_name.replace(".README", "")
+                        description = "Information about " + name + " data"
+                    else:
+                        description = description.replace(" file", " data")
+                        description = description.replace("Information for ", "Information about ")
 
                 data = { 'source': { 'display_name': 'SGD' },
                          'display_name': display_name,
@@ -89,24 +99,25 @@ def file_starter(bud_session_maker):
                     data['previous_file_name'] = previous_file_name
                 if filepath_id:
                     data['filepath_id'] = filepath_id
-                if readme_file_id:
-                    data['readme_file_id'] = readme_file_id
+                # if readme_file_id:
+                #    data['readme_file_id'] = readme_file_id
                 if description:
                     data['description'] = description
 
-                if pieces[11] != 'README' and pieces[11] != 'readme':   
-                    other_data.append(data)
-                # else:
-                #   readme_data.append(data)
+                if pieces[11] == 'README' or pieces[11] == 'readme':   
+                    readme_data.append(data)
+                # else:e
+                #    other_data.append(data)
 
         f.close()
 
-    # for data in readme_data:
-    #    yield data
+    for data in readme_data:
+        yield data
+
     # file_to_id = dict([(x.display_name, x.id) for x in nex_session.query(File).all()])
 
-    for data in other_data:
-        yield data
+    # for data in other_data:
+    #    yield data
 
 def reformat_date(file_date):
 

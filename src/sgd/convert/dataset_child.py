@@ -12,19 +12,19 @@ def dataset_starter(bud_session_maker):
 
     nex_session = get_nex_session()
 
-    dataset_to_id = dict([(x.display_name, x.id) for x in nex_session.query(Dataset).all()])
+    dataset_to_id = dict([(x.format_name, x.id) for x in nex_session.query(Dataset).all()])
     file_to_id = dict([(x.display_name, x.id) for x in nex_session.query(File).all()])
     obi_name_to_id = dict([(x.display_name, x.id) for x in nex_session.query(Obi).all()]) 
     taxid_to_taxonomy_id = dict([(x.taxid, x.id) for x in nex_session.query(Taxonomy).all()])
     keyword_to_id = dict([(x.display_name, x.id) for x in nex_session.query(Keyword).all()])
 
-    ## have to load the NOTinSPELL before published ones - since some rowsa are in both 
+    ## have to load the NOTinSPELL before published ones - since some rows are in both 
     ## but NOTinSPELL dataset contains the complete info - except URL, PMIDs & strains 
     files = ['src/sgd/convert/data/GEO_metadata_reformatted_inSPELL_cleaned-up.tsv_dataset-OWL.txt',
              'src/sgd/convert/data/GEO_metadata_reformatted_NOTinSPELL.tsv_dataset_OWL.txt',
              'src/sgd/convert/data/published_datasets_metadata_dataset-20160804.txt',
              'src/sgd/convert/data/non-GEO-dataset.tsv']
-
+    
     found = {}
 
     for file in files:
@@ -38,11 +38,13 @@ def dataset_starter(bud_session_maker):
                 if len(pieces) < 12:
                     print "MISSING INFO: ", line
                     continue
-                
-                ## it has a super dataset so load it later
-                if pieces[6]:
+
+                ## there is no parent so skip (already loaded)
+                if pieces[6] == '':
                     continue
-           
+                
+                parent_dataset_id = dataset_to_id.get(pieces[6])
+                   
                 format_name = pieces[0]
 
                 if format_name in found:
@@ -115,21 +117,35 @@ def dataset_starter(bud_session_maker):
                             year = "20" + year
                         date_public = year + "-" + month + "-" + day 
                     data['date_public'] = date_public
+                # if pieces[9]:
+                #    taxid = pieces[9]
+                #    if "|" in taxid:
+                #        taxids = taxid.split('|')
+                #        taxid = taxids[0]
+                #    taxonomy_id = taxid_to_taxonomy_id.get("TAX:"+taxid)
+                #    if taxonomy_id is None:
+                #        print "The taxid: ", pieces[9], " is not in TAXONOMY table."
+                #    else:
+                #        data['taxonomy_id'] = taxonomy_id
+
+                if parent_dataset_id:
+                    data['parent_dataset_id'] = parent_dataset_id
 
                 if pieces[10]:
                     data['channel_count'] = int(pieces[10])
 
                 if pieces[14]:
                     desc_item = pieces[14].split(". ")
-                    data['description'] = desc_item[0]
+                    data['description']= desc_item[0]
                     desc_item.pop(0)
                     for desc in desc_item:
                         if data['description'].endswith('et al') or data['description'].endswith(' S') or data['description'] == 'S':
                             data['description'] = data['description'] + ". " + desc
-                            
+
                 yield data
-                
+
         f.close()
+
 
 def get_nex_session():
 
