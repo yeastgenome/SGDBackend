@@ -10,11 +10,6 @@ DECLARE
 BEGIN
   IF UPDATING THEN
 
-    IF (:old.dbentity_id != :new.dbentity_id)
-    THEN
-        AuditLog.InsertUpdateLog('REGULATIONANNOTATION', 'DBENTITY_ID', :old.annotation_id, :old.dbentity_id, :new.dbentity_id, USER);
-    END IF;
-
     IF (:old.target_id != :new.target_id)
     THEN
         AuditLog.InsertUpdateLog('REGULATIONANNOTATION', 'TARGET_ID', :old.annotation_id, :old.target_id, :new.target_id, USER);
