@@ -1653,6 +1653,21 @@ Comment on column PROTEINSEQUENCE_DETAIL.ALL_CYS_EXT_COEFF is 'All Cys residues 
 Comment on column PROTEINSEQUENCE_DETAIL.DATE_CREATED is 'Date the record was entered into the database.';
 Comment on column PROTEINSEQUENCE_DETAIL.CREATED_BY is 'Username of the person who entered the record into the database.';
 
+Comment on table REGULATIONANNOTATION is 'Target and regulator annotation information.';
+Comment on column REGULATIONANNOTATION.ANNOTATION_ID is 'Unique identifier (Oracle sequence).';
+Comment on column REGULATIONANNOTATION.TARGET_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column REGULATIONANNOTATION.REGULATOR_ID is 'FK to DBENTITY.DBENTITY_ID.';
+Comment on column REGULATIONANNOTATION.SOURCE_ID is 'FK to SOURCE.SOURCE_ID.';
+Comment on column REGULATIONANNOTATION.TAXONOMY_ID is 'FK to TAXONOMY.TAXONOMY_ID.';
+Comment on column REGULATIONANNOTATION.REFERENCE_ID is 'FK to REFERENCEBENTITY.DBENTITY_ID.';
+Comment on column REGULATIONANNOTATION.ECO_ID is 'FK to ECO.ECO_ID.';
+Comment on column REGULATIONANNOTATION.REGULATOR_TYPE is 'Type of regulator (transcription factor, chromatin modifier, protein modifier, RNA binder, RNA modifier, protein binder).';
+Comment on column REGULATIONANNOTATION.REGULATION_TYPE is 'Type of regulation (transcription, RNA stability, protein activity, protein stability).';
+Comment on column REGULATIONANNOTATION.DIRECTION is 'Direction (positive or negative) of the regulation.';
+Comment on column REGULATIONANNOTATION.HAPPENS_DURING is 'Cell cycle phase of the regulation using Gene Ontology biological process terms.';
+Comment on column REGULATIONANNOTATION.DATE_CREATED is 'Date the record was entered into the database.';
+Comment on column REGULATIONANNOTATION.CREATED_BY is 'Username of the person who entered the record into the database.';
+
 /* Curation tables */
 
 Comment on table CURATION is 'Tasks and notes associated with locus and reference curation.';
