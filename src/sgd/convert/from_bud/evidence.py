@@ -1474,6 +1474,31 @@ def make_protein_experiment_evidence_starter(bud_session_maker, nex_session_make
                            'data_value': data_value,
                            'data_unit': data_unit }
 
+
+        file_names = {"25466257": "src/sgd/convert/data/Christiano_et_al_half_life_25466257.txt"}
+
+        for pmid in file_names:
+            file_name = file_names[pmid]
+            pmid = int(pmid)
+            f = open(file_name, 'rU')
+            header = True
+            for line in f:
+                if header:
+                    header = False
+                else:
+                    field = line.split('\t')
+                    data_value = field[2].rstrip()
+                    # if '.' in data_value:
+                    #    data_value = float(data_value)
+                    # data_value = int(data_value)
+                    yield {'source': key_to_source['SGD'],
+                           'reference': pmid_to_reference[pmid],
+                           'experiment': key_to_experiment[field[0].replace(" ", "_")],
+                           'locus': formatname_to_bioentity[field[1]],
+                           'data_value': data_value,
+                           'data_unit': field[3] }
+
+
         nex_session.close()
 
     return protein_experiment_evidence_starter
