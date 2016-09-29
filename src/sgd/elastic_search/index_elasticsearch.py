@@ -6,9 +6,11 @@ from src.sgd.model import perf
 from elasticsearch import Elasticsearch
 #import xlrd
 import json
+from src.sgd.elastic_search.index_mapping import mapping
+import requests
 
 CLIENT_ADDRESS = 'http://52.41.106.165:9200/'# cluster alpha
-INDEX_NAME = 'searchable_items_red'
+INDEX_NAME = 'searchable_items_blue'
 DOC_TYPE = 'searchable_item'
 RESET_INDEX = False
 es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
@@ -47,10 +49,21 @@ def setup_index():
         put_mapping()
     return
 
+def delete_mapping():
+    print "Deleting mapping..."
+    response = requests.delete(CLIENT_ADDRESS + INDEX_NAME + "/")
+    if response.status_code != 200:
+        print "ERROR: " + str(response.json())
+    else:
+        print "SUCCESS"
+
 def put_mapping():
-    #PUT CLIENT_ADDRESS + searchable_items/
-    mapping = '{"settings": {"index": {"max_result_window": 15000, "analysis": {"analyzer": {"default": {"type": "standard"}, "autocomplete": {"type": "custom", "filter": ["lowercase", "autocomplete_filter"], "tokenizer": "standard"}, "raw": {"type": "custom", "filter": ["lowercase"], "tokenizer": "keyword"}}, "filter": {"autocomplete_filter": {"min_gram": "1", "type": "edge_ngram", "max_gram": "20"}}}, "number_of_replicas": "1", "number_of_shards": "5"}}, "mappings": {"searchable_item": {"properties": {"biological_process": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"category": {"type": "string"}, "observable": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "qualifier": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "references": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "phenotype_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "keys": {"type": "string"}, "secondary_sgdid": {"type": "string"}, "chemical": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "mutant_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "go_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "strain": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "author": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "journal": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "year": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "reference_loci": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "ec_number": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "tc_number": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}, "cellular_component": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"description": {"type": "string"}, "sequence_history": {"type": "string"}, "gene_history": {"type": "string"}, "summary": {"type":"string"}, "feature_type": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"href": {"type": "string"}, "molecular_function": {"type": "string", "fields": {"raw": {"type": "string", "index": "not_analyzed"}}},"name": {"type": "string","analyzer": "autocomplete","fields": {"raw": {"type": "string","analyzer": "raw"}}}, "go_id": {"type": "string"}, "number_annotations": {"type": "integer"}, "name_description": {"type": "string"}, "synonyms": {"type": "string"}, "phenotypes": {"type": "string", "protein": {"type": "string"}, "fields": {"raw": {"type": "string", "index": "not_analyzed"}}}}}}}'
-    return mapping
+    print "Putting mapping... "
+    response = requests.put(CLIENT_ADDRESS + INDEX_NAME + "/", json=mapping)
+    if response.status_code != 200:
+        print "ERROR: " + str(response.json())
+    else:
+        print "SUCCESS"
 
 from HTMLParser import HTMLParser
 
@@ -179,8 +192,6 @@ def index_genes(delete=False):
                     biological_process.add(k)
                     
         key_values = [gene.display_name, gene.format_name, gene.sgdid, gene.uniprotid]
-        if "reserved_name" in perf_json:
-            key_values += [perf_json['reserved_name']['display_name']]
         
         keys = set([])
         for k in key_values:
@@ -191,7 +202,8 @@ def index_genes(delete=False):
         
         for alias in perf_json['aliases']:
             if not alias['protein']:
-                keys.add(alias['display_name'].lower())
+                pass
+#                keys.add(alias['display_name'].lower())
             if alias['category'] == 'NCBI protein name':
                 protein = alias['display_name']
 
@@ -235,7 +247,7 @@ def index_genes(delete=False):
 
         bulk_data.append(obj)
 
-        if len(bulk_data) % 200 == 0:
+        if len(bulk_data) == 600:
             es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
             bulk_data = []
 
@@ -246,6 +258,8 @@ def index_phenotypes():
     all_phenotypes = nex_session.query(Phenotype).all()
 
     num_indexed = 0
+
+    bulk_data = []
     
     for phenotype in all_phenotypes:
         perf_result = perf_session.query(PerfBioconceptDetails).filter_by(obj_id=phenotype.id).filter_by(class_type="PHENOTYPE_LOCUS").first()
@@ -297,8 +311,24 @@ def index_phenotypes():
             'keys': list(keys)
         }
 
-        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=phenotype.format_name)
+        bulk_data.append({
+            'index': {
+                '_index': INDEX_NAME,
+                '_type': DOC_TYPE,
+                '_id': phenotype.format_name
+            }
+        })
+
+        bulk_data.append(obj)
+
+        if len(bulk_data) == 500:
+            es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
+            bulk_data = []
+
         num_indexed += 1
+
+    if len(bulk_data) > 0:
+        es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
     
     print 'Indexing ' + str(num_indexed) + ' phenotypes'
 
@@ -346,6 +376,8 @@ def index_observables():
 
     print 'Indexing ' + str(len(all_observables)) + ' observables'
 
+    bulk_data = []
+    
     for observable in all_observables:
         key_values = []
 
@@ -363,7 +395,22 @@ def index_observables():
             'keys': list(keys)
         }
 
-        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=observable.id)
+        bulk_data.append({
+            'index': {
+                '_index': INDEX_NAME,
+                '_type': DOC_TYPE,
+                '_id': 'observable_' + str(observable.id)
+            }
+        })
+
+        bulk_data.append(obj)
+
+        if len(bulk_data) == 300:
+            es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
+            bulk_data = []
+
+    if len(bulk_data) > 0:
+        es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
         
 def index_strains():
     all_strains = nex_session.query(Strain).all()
@@ -387,13 +434,15 @@ def index_strains():
             'keys': list(keys)
         }
         
-        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=strain.id)
+        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id="strain_" + str(strain.id))
 
 def index_go_terms():
     go_id_blacklist = load_go_id_blacklist('src/sgd/elastic_search/go_id_blacklist.lst')
     
     all_gos = nex_session.query(Go).all()
 
+    bulk_data = []
+    
     num_indexed = 0
     for go in all_gos:
         if go.go_id in go_id_blacklist:
@@ -445,8 +494,24 @@ def index_go_terms():
             'keys': list(keys)
         }
 
-        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=go.go_id)
+        bulk_data.append({
+            'index': {
+                '_index': INDEX_NAME,
+                '_type': DOC_TYPE,
+                '_id': go.go_id
+            }
+        })
+
+        bulk_data.append(obj)
+
+        if len(bulk_data) == 800:
+            es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
+            bulk_data = []
+
         num_indexed += 1
+
+    if len(bulk_data) > 0:
+        es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
 
     print 'Indexing ' + str(num_indexed) + ' GO terms'
 
@@ -486,7 +551,7 @@ def index_reserved_names():
         bulk_data.append(obj)
 
         names +=1
-        if names % 500 == 0:
+        if names == 500:
             es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
             bulk_data = []
 
@@ -504,6 +569,8 @@ def index_references():
 
     print 'Indexing ' + str(len(all_references)) + ' references'
 
+    bulk_data = []
+    
     for reference in all_references:
         perf_result = perf_session.query(ReferenceDetails).filter_by(obj_id=reference.id).filter_by(class_type="LITERATURE").first()
 
@@ -541,7 +608,22 @@ def index_references():
             'keys': list(keys)
         }
 
-        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=reference.sgdid)
+        bulk_data.append({
+            'index': {
+                '_index': INDEX_NAME,
+                '_type': DOC_TYPE,
+                '_id': reference.sgdid
+            }
+        })
+
+        bulk_data.append(obj)
+
+        if len(bulk_data) == 600:
+            es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
+            bulk_data = []
+
+    if len(bulk_data) > 0:
+        es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
 
 def xls_to_dict(filename):
     workbook = xlrd.open_workbook(filename)
@@ -623,8 +705,24 @@ def index_downloads_from_json(filename):
                 'keys': []
             }
 
+    bulk_data = []
     for d in processed:
-        es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=processed[d], id=processed[d]['href'])
+        bulk_data.append({
+            'index': {
+                '_index': INDEX_NAME,
+                '_type': DOC_TYPE,
+                '_id': 'download_' + processed[d]['href']
+            }
+        })
+
+        bulk_data.append(processed[d])
+
+        if len(bulk_data) == 300:
+            es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
+            bulk_data = []
+
+    if len(bulk_data) > 0:
+        es.bulk(index=INDEX_NAME, body=bulk_data, refresh=True)
 
 def index_toolbar_links():
     links = [("Gene List", "http://yeastmine.yeastgenome.org/yeastmine/bag.do",  []),
@@ -693,14 +791,16 @@ def index_toolbar_links():
         es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=obj, id=l[1])
     
 def main():
-#    index_downloads_from_json('./downloadable_files.json')
-#    index_toolbar_links()
-#    index_reserved_names()
-#    index_observables()
-#    index_strains()
-#    index_phenotypes()
+    index_downloads_from_json('./downloadable_files.json')
+    index_toolbar_links()
+    index_reserved_names()
+    index_observables()
+    index_go_terms()
+    index_strains()
     index_genes()
-#    index_go_terms()
-#    index_references()
+    index_phenotypes()
+    index_references()
 
+delete_mapping()
+put_mapping()
 main()
