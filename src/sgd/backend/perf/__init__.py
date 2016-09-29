@@ -21,7 +21,7 @@ __author__ = 'kpaskov'
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
-SEARCH_ES_INDEX = 'searchable_items_red'
+SEARCH_ES_INDEX = 'searchable_items_blue'
 
 import datetime
 
@@ -702,11 +702,10 @@ class PerfBackend(BackendInterface):
                         {
                             'boosting': {
                                 'positive': {
-                                    "match": {
-                                        "name": {
-                                            "query": query,
-                                            "analyzer": "standard",
-                                            "boost": 20
+                                    "term": {
+                                        "name.simple": {
+                                            "value": query,
+                                            "boost": 100
                                         }
                                     }
                                 },
@@ -715,15 +714,15 @@ class PerfBackend(BackendInterface):
                                         'category': 'reference'
                                     }
                                 },
-                                'negative_boost': 0.2
-                            }   
+                                'negative_boost': 0.05
+                            }
                         },
                         {
                             "multi_match": {
                                 "query": query,
-                                "type": "best_fields",
-                                "fields": multi_match_fields + ['name', 'description'],
-                                "boost": 1
+                                "type": "most_fields",
+                                "fields": multi_match_fields + ['description', 'name.stemmed^2'],
+                                "boost": 25
                             }
                         },
                         {
@@ -741,10 +740,10 @@ class PerfBackend(BackendInterface):
                                 "name": {
                                     "query": query,
                                     "analyzer": "standard",
+                                    "max_expansions": 30,
                                     "boost": 1
                                 }
                             }
-
                         }
                     ]
                 }
@@ -853,7 +852,7 @@ class PerfBackend(BackendInterface):
                 }
             ]
 
-        highlight_fields = ['name', 'description'] + multi_match_fields
+        highlight_fields = ['name', 'name.raw', 'name.stemmed', 'name.simple', 'description'] + multi_match_fields
         for field in highlight_fields:
             results_search_body['highlight']['fields'][field] = {}
         
@@ -871,7 +870,17 @@ class PerfBackend(BackendInterface):
             for field in response_fields:
                 obj[field] = raw_obj.get(field)
                 
-            obj['highlights'] = r.get('highlight')
+            highlight_format = {}
+            highlight_es = r.get('highlight')
+
+            if highlight_es is not None:
+            
+                for k in highlight_es.keys():
+                    if '.' in k:
+                        highlight_format[k.split('.')[0]] = highlight_es[k]
+                    else:
+                        highlight_format[k] = highlight_es[k]
+                obj['highlights'] = highlight_format
 
 #            if obj["category"] == "download":
 #                obj["download_metadata"] = {}
@@ -1152,7 +1161,7 @@ class PerfBackend(BackendInterface):
                 "bool": {
                     "must": {
                         "match": {
-                            "name": {
+                            "name.autocomplete": {
                                 "query": query,
                                 "analyzer": "standard"
                             }
