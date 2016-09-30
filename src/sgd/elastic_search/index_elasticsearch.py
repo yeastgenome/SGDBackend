@@ -16,11 +16,11 @@ RESET_INDEX = False
 es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
 
 # prep session
-#nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_DBHOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
-#perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.PERF_DBHOST, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_DBHOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.PERF_DBHOST, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
-perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.PERF_HOST, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+#nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+#perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.PERF_HOST, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 from src.sgd.model.nex.bioentity import Bioentity, Locus
 
 from src.sgd.model.perf.core import Bioentity as PerfBioentity
@@ -202,8 +202,8 @@ def index_genes(delete=False):
         
         for alias in perf_json['aliases']:
             if not alias['protein']:
-                pass
-#                keys.add(alias['display_name'].lower())
+                if len(alias['display_name'].lower()) < 8:
+                    keys.add(alias['display_name'].lower())
             if alias['category'] == 'NCBI protein name':
                 protein = alias['display_name']
 
@@ -795,12 +795,13 @@ def main():
     index_toolbar_links()
     index_reserved_names()
     index_observables()
-    index_go_terms()
     index_strains()
     index_genes()
+    index_go_terms()
     index_phenotypes()
     index_references()
 
-delete_mapping()
-put_mapping()
+#delete_mapping()
+#put_mapping()
+
 main()
