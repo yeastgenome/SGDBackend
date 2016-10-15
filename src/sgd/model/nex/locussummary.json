@@ -1,0 +1,68 @@
+{
+    "title": "Locussummary",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "summary_type": {
+            "title": "Summary Type",
+            "type": "string"
+        },
+        "summary_order": {
+            "title": "Summary Order",
+            "type": "integer"
+        },
+        "text": {
+            "title": "Text",
+            "type": "string"
+        },
+        "html": {
+            "title": "Html",
+            "type": "string"
+        },
+        "source": {
+            "title": "Source",
+            "$ref": "source.json"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+	"locus_id": {
+            "title": "Locus ID",
+            "type": "integer"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Created By",
+            "type": "string"
+        },
+        "references": {
+            "title": "References",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                     "id": {
+                     	   "title": "ID",
+                     	   "type": "integer"
+                     }
+                 }
+            }
+        }
+    },
+    "required": ["text", "summary_type", "source"]
+}
