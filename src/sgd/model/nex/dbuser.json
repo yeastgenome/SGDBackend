@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Dbuser",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "integer"
+        },
+        "username": {
+            "title": "User Name",
+            "type": "string"
+        },
+        "first_name": {
+            "title": "First Name",
+            "type": "string"
+        },
+	"last_name": {
+            "title": "Last Name",
+            "type": "string"
+        },
+        "email": {
+            "title": "Email",
+            "type": "string"
+        },
+	"status": {
+            "title": "Status",
+            "type": "string"
+        },
+	"is_curator": {
+            "title": "Is Curator",
+            "type": "boolean"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        }
+    },
+    "required": ["username", "first_name", "last_name", "email", "status"]
+}
