@@ -1,0 +1,48 @@
+{
+    "title": "Colleague Relation",
+        "type": "object",
+        "properties": {
+            "id": {
+                "title": "ID",
+                "type": "integer"
+            },
+            "colleague_id": {
+                "title": "Colleague ID",
+                "type": "integer"
+            },
+            "associate_id": {
+                "title": "Associate ID",
+                "type": "integer"
+            },
+            "source": {
+                "title": "Source",
+                "$ref": "source.json"
+            },
+            "bud_id": {
+                "title": "Bud ID",
+                "type": "integer"
+            },
+	    "association_type": {
+                "title": "Association Type",
+                "type": "string"
+            },
+            "date_created": {
+                "title": "Date Created",
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "date-time"
+                    },
+                    {
+                        "format": "date"
+                    }
+                ]
+            },
+            "created_by": {
+                "title": "Created By",
+                "type": "string"
+            }
+        },
+        "required": ["colleague_id", "associate_id", "association_type", "source"]
+
+}
