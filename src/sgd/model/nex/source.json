@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Source",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "ID",
+            "type": "Integer"
+        },
+        "format_name": {
+            "title": "Format Name",
+            "type": "string"
+        },
+	"display_name": {
+            "title": "Display Name",
+            "type": "string"
+        },
+        "description": {
+            "title": "Description",
+            "type": "string"
+        },
+        "bud_id": {
+            "title": "Bud ID",
+            "type": "integer"
+        },
+        "date_created": {
+            "title": "Date Created",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "created_by": {
+            "title": "Name",
+            "type": "string"
+        }
+    },
+    "required": ["display_name"]
+}
