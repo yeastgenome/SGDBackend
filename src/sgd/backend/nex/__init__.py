@@ -992,7 +992,7 @@ class SGDBackend(BackendInterface):
         response_fields = ['name', 'href', 'description', 'category', 'bioentity_id', 'phenotype_loci', 'go_loci', 'reference_loci']
         results_search_body['_source'] = response_fields + ['keys']
         
-        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)            
+        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset, search_type='dfs_query_then_fetch', preference='pref_' + query)
 
         formatted_results = []
 

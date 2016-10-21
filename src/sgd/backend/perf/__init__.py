@@ -290,13 +290,17 @@ class PerfBackend(BackendInterface):
     #GO
     def go_enrichment(self, bioent_ids, callback=None):
         from src.sgd.model.perf.core import Bioentity, Bioconcept
+
         bioent_format_names = []
         num_chunks = ceil(1.0*len(bioent_ids)/500)
         for i in range(num_chunks):
             bioent_format_names.extend([json.loads(x.json)['format_name'] for x in DBSession.query(Bioentity).filter(Bioentity.id.in_(bioent_ids[i*500:(i+1)*500])).all()])
+
+        print "Going to batter"
         enrichment_results = query_batter.query_go_processes(bioent_format_names)
         json_format = []
 
+        print "Enriching results"
         for enrichment_result in enrichment_results:
             identifier = 'GO:' + str(int(enrichment_result[0][3:])).zfill(7)
             goterm_id = get_obj_id(str(identifier).upper(), 'BIOCONCEPT', 'GO')
@@ -304,6 +308,7 @@ class PerfBackend(BackendInterface):
             json_format.append({'go': goterm,
                             'match_count': enrichment_result[1],
                             'pvalue': enrichment_result[2]})
+
         return json.dumps(json_format)
 
     def go(self, go_identifier, are_ids=False):
@@ -855,11 +860,11 @@ class PerfBackend(BackendInterface):
         highlight_fields = ['name', 'name.raw', 'name.stemmed', 'name.simple', 'description'] + multi_match_fields
         for field in highlight_fields:
             results_search_body['highlight']['fields'][field] = {}
-        
+
         response_fields = ['name', 'href', 'description', 'category', 'bioentity_id', 'phenotype_loci', 'go_loci', 'reference_loci']
         results_search_body['_source'] = response_fields + ['keys']
-        
-        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset)
+
+        search_results = self.es.search(index=SEARCH_ES_INDEX, body=results_search_body, size=limit, from_=offset, search_type='dfs_query_then_fetch', preference='pref_' + query)
 
         formatted_results = []
 
