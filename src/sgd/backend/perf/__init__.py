@@ -296,11 +296,9 @@ class PerfBackend(BackendInterface):
         for i in range(num_chunks):
             bioent_format_names.extend([json.loads(x.json)['format_name'] for x in DBSession.query(Bioentity).filter(Bioentity.id.in_(bioent_ids[i*500:(i+1)*500])).all()])
 
-        print "Going to batter"
         enrichment_results = query_batter.query_go_processes(bioent_format_names)
         json_format = []
 
-        print "Enriching results"
         for enrichment_result in enrichment_results:
             identifier = 'GO:' + str(int(enrichment_result[0][3:])).zfill(7)
             goterm_id = get_obj_id(str(identifier).upper(), 'BIOCONCEPT', 'GO')
