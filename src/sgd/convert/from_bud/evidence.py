@@ -1295,7 +1295,8 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                       'src/sgd/convert/data/Phosphosites031516.txt',
                       'src/sgd/convert/data/PTMdata062416.txt',
                       'src/sgd/convert/data/PTMdata080316PMID17761666.txt',
-                      'src/sgd/convert/data/PTMdata19779198_092616.txt']
+                      'src/sgd/convert/data/PTMdata19779198_092616.txt',
+                      'src/sgd/convert/data/PTMdata102116.txt']
 
         for file_name in file_names:
             print file_name
@@ -1307,6 +1308,8 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                 else:
                     pieces = line.split('\t')
                     bioentity_key = (pieces[0], 'LOCUS')
+                    if len(pieces) < 5:
+                        continue
                     site = pieces[1].strip()
                     site_residue = site[0]
                     site_index = int(site[1:])
