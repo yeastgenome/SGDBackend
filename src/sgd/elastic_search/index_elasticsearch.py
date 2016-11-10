@@ -16,11 +16,11 @@ RESET_INDEX = False
 es = Elasticsearch(CLIENT_ADDRESS, retry_on_timeout=True)
 
 # prep session
-nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_DBHOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
-perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.PERF_DBHOST, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+#nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_DBHOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+#perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.PERF_DBHOST, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 
-#nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
-#perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.PERF_HOST, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
+nex_session_maker = prepare_schema_connection(nex, config.NEX_DBTYPE, config.NEX_HOST, config.NEX_DBNAME, config.NEX_SCHEMA, config.NEX_DBUSER, config.NEX_DBPASS)
+perf_session_maker = prepare_schema_connection(perf, config.PERF_DBTYPE, config.PERF_HOST, config.PERF_DBNAME, config.PERF_SCHEMA, config.PERF_DBUSER, config.PERF_DBPASS)
 from src.sgd.model.nex.bioentity import Bioentity, Locus
 
 from src.sgd.model.perf.core import Bioentity as PerfBioentity
@@ -146,7 +146,11 @@ def index_genes(delete=False):
         cellular_component = set()
         biological_process = set()
         molecular_function = set()
+
         for go_annotation in go_annotations_json:
+            if go_annotation['qualifier'] == 'NOT':
+                continue
+            
             if go_annotation['go']['go_aspect'] == 'molecular function':
                 molecular_function.add(go_annotation['go']['display_name'] + ' (direct)')
             elif go_annotation['go']['go_aspect'] == 'cellular component':
@@ -444,6 +448,7 @@ def index_go_terms():
     bulk_data = []
     
     num_indexed = 0
+
     for go in all_gos:
         if go.go_id in go_id_blacklist:
             continue
