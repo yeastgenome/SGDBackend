@@ -309,7 +309,8 @@ def make_bioentity_paragraph_starter(bud_session_maker, nex_session_maker):
                       'src/sgd/convert/data/16-5phenoSummaries.txt',
                       'src/sgd/convert/data/16-6phenoSummaries.txt',
                       'src/sgd/convert/data/16-7phenoSummaries.txt',
-                      'src/sgd/convert/data/16-9phenoSummaries.txt']
+                      'src/sgd/convert/data/16-9phenoSummaries.txt',
+                      'src/sgd/convert/data/16-10phenoSummaries.txt']
 
         for file_name in file_names:
             for row in make_file_starter(file_name)():
