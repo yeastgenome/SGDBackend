@@ -1055,8 +1055,6 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
             else:
                 key_to_reflinks[reflink_key] = [old_reflink]
 
-        found = {}
-
         for old_phenotype_feature in make_db_starter(bud_session.query(PhenotypeFeature).options(joinedload('experiment'), joinedload('phenotype')), 1000)():
             reference_ids = [] if ('PHENO_ANNOTATION_NO', old_phenotype_feature.id) not in key_to_reflinks else [x.reference_id for x in key_to_reflinks[('PHENO_ANNOTATION_NO', old_phenotype_feature.id)]]
             bioentity_id = old_phenotype_feature.feature_id
@@ -1084,7 +1082,7 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
                     note = '; '.join([a if b is None else a + ': ' + b for (a, b) in old_experiment.details])
                 strain_details = None if old_experiment.strain is None else old_experiment.strain[1]
                 experiment_details = None if old_experiment.experiment_comment is None else old_experiment.experiment_comment
-                conditions = make_phenotype_conditions(old_experiment, key_to_bioitem, old_phenotype_feature, found)
+                conditions = make_phenotype_conditions(old_experiment, key_to_bioitem, old_phenotype_feature)
                 #Get strain
                 if old_experiment.strain != None:
                     strain_key = old_experiment.strain[0]
@@ -1117,7 +1115,7 @@ def make_phenotype_evidence_starter(bud_session_maker, nex_session_maker):
         nex_session.close()
     return phenotype_evidence_starter
 
-def make_phenotype_conditions(old_experiment, key_to_bioitem, old_phenotype_feature, found):
+def make_phenotype_conditions(old_experiment, key_to_bioitem, old_phenotype_feature):
     from src.sgd.model.nex.evidence import Bioitemproperty, Chemicalproperty, Generalproperty
     conditions = []
     #Get reporter
@@ -1126,7 +1124,10 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem, old_phenotype_feat
 
         if reporter_key in key_to_bioitem:
 
-            # print "REPORTER: feature_no=", old_phenotype_feature.feature_id, ", phenotype_no=", old_phenotype_feature.phenotype_id, reporter_key
+
+            # if old_phenotype_feature.feature_id == 1901 and observable == 'valine accumulation':
+            #    print "REPORTER: feature_no=", old_phenotype_feature.feature_id, ", phenotype_no=", old_phenotype_feature.phenotype_id, reporter_key
+
 
             conditions.append(Bioitemproperty({'note': old_experiment.reporter[1], 'role': 'Reporter', 'bioitem': key_to_bioitem[reporter_key]}))
         else:
@@ -1139,8 +1140,8 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem, old_phenotype_feat
 
 
 
-            # if old_phenotype_feature.feature_id == 6430:
-            #    print "CDC28: ", old_phenotype_feature.phenotype.observable, ":", old_phenotype_feature.phenotype.qualifier, ", allele=", str(old_experiment.allele)
+            # if old_phenotype_feature.feature_id == 1901 and observable == 'valine accumulation':
+            #    print "SOD1: ", old_phenotype_feature.phenotype.observable, ":", old_phenotype_feature.phenotype.qualifier, ", allele=", str(old_experiment.allele)
 
 
             # print "ALLELE: feature_no=", old_phenotype_feature.feature_id, ", phenotype_no=", old_phenotype_feature.phenotype_id, allele_key
@@ -1151,10 +1152,11 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem, old_phenotype_feat
 
 
 
-    # if old_phenotype_feature.feature_id == 6430:
-    #    print "CDC28-CONDITION:", old_phenotype_feature.phenotype.observable, ":", old_phenotype_feature.phenotype.qualifier, ", condition=", str(conditions)
+    # if old_phenotype_feature.feature_id == 1901 and observable == 'valine accumulation':
+    #    print "SOD1-CONDITION:", old_phenotype_feature.phenotype.observable, ":", old_phenotype_feature.phenotype.qualifier, ", condition=", str(conditions)
 
 
+    found = {}
 
     #Get chemicals
     for (a, b) in old_experiment.chemicals:
@@ -1177,6 +1179,13 @@ def make_phenotype_conditions(old_experiment, key_to_bioitem, old_phenotype_feat
                 amount = b
             else:
                 chemical_note = b
+ 
+
+            # if old_phenotype_feature.feature_id == 1901 and observable == 'valine accumulation':
+            #    print "SOD1 Chemical=", chemical_key
+
+
+
             conditions.append(Chemicalproperty({'note': chemical_note, 'concentration': amount, 'bioitem': key_to_bioitem[chemical_key]}))
         else:
             print 'Chemical not found: ' + str(chemical_key)
