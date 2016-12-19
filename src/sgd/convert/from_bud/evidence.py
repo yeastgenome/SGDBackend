@@ -1305,7 +1305,8 @@ def make_posttranslational_evidence_starter(nex_session_maker):
                       'src/sgd/convert/data/PTMdata062416.txt',
                       'src/sgd/convert/data/PTMdata080316PMID17761666.txt',
                       'src/sgd/convert/data/PTMdata19779198_092616.txt',
-                      'src/sgd/convert/data/PTMdata102116.txt']
+                      'src/sgd/convert/data/PTMdata102116.txt',
+                      'src/sgd/convert/data/PTMdata121516.txt']
 
         for file_name in file_names:
             print file_name
